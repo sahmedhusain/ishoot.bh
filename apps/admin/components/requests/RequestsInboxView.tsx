@@ -35,7 +35,6 @@ export interface RequestInboxFilters {
 const DEFAULTS: Partial<RequestInboxFilters> = { status: "open", sort: "urgency" };
 const MORE_KEYS = ["team", "priority", "assignee", "source", "due", "from", "to"] as const;
 
-/** The request inbox: read-only rows; every action happens on the request's own page. */
 export function RequestsInboxView({
   rows,
   total,

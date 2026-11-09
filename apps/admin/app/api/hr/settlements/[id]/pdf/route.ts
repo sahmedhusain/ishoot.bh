@@ -11,7 +11,6 @@ import { generateFinalSettlementPdf } from "../../../../../../lib/pdf/final-sett
 
 export const runtime = "nodejs";
 
-/** The settlement statement in Arabic or English, for payroll staff, its approvers and the employee it concerns. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

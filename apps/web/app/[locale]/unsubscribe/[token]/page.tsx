@@ -4,7 +4,6 @@ import { requireSiteLanguage, siteTranslations } from "../../../../lib/site";
 
 export const dynamic = "force-dynamic";
 
-/** The unsubscribe link in marketing e-mail: one visit turns marketing e-mail off for that customer. */
 export default async function UnsubscribePage({ params }: { params: Promise<{ locale: string; token: string }> }) {
   const { locale, token } = await params;
   await requireSiteLanguage(locale);

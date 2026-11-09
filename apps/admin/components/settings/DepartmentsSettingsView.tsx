@@ -29,7 +29,6 @@ interface Draft {
 
 const EMPTY: Draft = { code: "", name_en: "", name_ar: "", parent_id: "", manager_id: "", deputy_id: "", cost_centre: "", is_active: true };
 
-/** Settings → Departments: the company's departments as a tree, with head, deputy and cost centre. */
 export function DepartmentsSettingsView({ departments, people, languages, canEdit }: { departments: DepartmentNode[]; people: { id: string; fullName: string }[]; languages: readonly ContentLanguage[]; canEdit: boolean }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

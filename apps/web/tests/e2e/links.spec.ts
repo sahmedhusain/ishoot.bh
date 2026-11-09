@@ -2,8 +2,6 @@ import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
 import { checkDownload, crawl } from "../../crawl";
 
-// Every page of the website in both languages: no broken links, images or downloads, new tabs open with
-// rel="noreferrer", and links stay in the page's language (only the language switcher, marked hreflang, leaves it).
 for (const locale of ["en", "ar"] as const) {
   test(`every /${locale} link, image and download works`, async ({ page }) => {
     test.setTimeout(20 * 60_000);

@@ -33,7 +33,6 @@ const refresh = (employeeId?: string) => {
   if (employeeId) revalidatePath(ROUTES.hr.employee(employeeId));
 };
 
-/** The 1st-of-month rule and which wage contributions are worked out on. */
 export async function updateGosiRulesAction(input: {
   firstOfMonthRule: boolean;
   wageSource: "contract" | "registered";
@@ -56,7 +55,6 @@ export async function updateGosiRulesAction(input: {
   });
 }
 
-/** Adds a contribution or schedules new rates for it from a date (earlier months keep the old rates). */
 export async function scheduleGosiComponentAction(input: GosiComponentInput) {
   return measureOperation("action:scheduleGosiComponentAction", async () => {
     const actor = await requirePermission("payroll", "edit");
@@ -127,7 +125,6 @@ export async function endGosiComponentAction(id: string, endsOn: string) {
   });
 }
 
-/** Registers an employee from a date: category, GOSI number, registered wage, per-contribution exceptions. */
 export async function saveEmployeeGosiRecordAction(
   employeeId: string,
   input: EmployeeGosiInput,
@@ -177,7 +174,6 @@ export async function deleteEmployeeGosiRecordAction(id: string) {
   });
 }
 
-/** Registers everyone without a registration, by statutory classification (national, regional, expatriate). */
 export async function registerUnregisteredEmployeesAction(
   effectiveFrom: string,
 ) {
@@ -231,7 +227,6 @@ export async function saveSupportProgramAction(
   });
 }
 
-/** New programme terms from a date (share by year of support, caps by qualification and wage). */
 export async function scheduleSupportRuleAction(
   programId: string,
   input: SupportRuleInput,
@@ -277,7 +272,6 @@ export async function deleteSupportRuleAction(id: string) {
   });
 }
 
-/** Records an employee's application or its decision (approved, partly approved, rejected, suspended, ended). */
 export async function saveEmployeeSupportAction(
   input: EmployeeSupportInput,
   id?: string,

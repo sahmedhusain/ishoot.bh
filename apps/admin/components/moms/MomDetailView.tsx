@@ -131,7 +131,6 @@ export function MomDetailView({
     window.open(url, "_blank");
   };
 
-  // Minutes signed on the spot: the approver draws now instead of applying their saved signature.
   const [signLive, setSignLive] = React.useState(false);
   const [signPadOpen, setSignPadOpen] = React.useState(false);
   const [liveSignature, setLiveSignature] = React.useState<string | null>(null);
@@ -314,7 +313,6 @@ export function MomDetailView({
         </section>
       ) : null}
 
-      {/* Feedback Banner */}
       {feedbackMessage && (
         <div
           role="status"
@@ -334,7 +332,6 @@ export function MomDetailView({
 
       <MomContent mom={mom} />
 
-      {/* Original browser-print document. */}
       <div className="hidden print:block">
         <div
           dir={isAr ? "rtl" : "ltr"}
@@ -342,7 +339,6 @@ export function MomDetailView({
           className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[1050px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible ${isAr ? "font-arabic" : "font-sans"
             }`}
         >
-          {/* Document Letterhead */}
           <DocumentLetterhead
             documentType="mom"
             documentNumber={mom.mom_number}
@@ -363,9 +359,7 @@ export function MomDetailView({
             }}
           />
 
-          {/* Document Body */}
           <div className="p-8 sm:p-10 space-y-8 print:p-6 print:space-y-6">
-            {/* Title & Subject Block */}
             <div className="border-b-2 border-slate-900 pb-5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent block mb-1">
                 {t.momDetail.sessionSubjectFocus}
@@ -380,7 +374,6 @@ export function MomDetailView({
               )}
             </div>
 
-            {/* Quick Metadata Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
               <div className="space-y-1">
                 <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
@@ -427,7 +420,6 @@ export function MomDetailView({
               </div>
             </div>
 
-            {/* Attendees Table */}
             {mom.attendees && mom.attendees.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
@@ -480,9 +472,7 @@ export function MomDetailView({
               </div>
             )}
 
-            {/* Agenda & Discussion Points */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Agenda */}
               {mom.agenda && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
@@ -495,7 +485,6 @@ export function MomDetailView({
                 </div>
               )}
 
-              {/* General Notes */}
               {mom.notes && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
@@ -509,7 +498,6 @@ export function MomDetailView({
               )}
             </div>
 
-            {/* Discussion Points */}
             {mom.discussion_points && mom.discussion_points.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5">
@@ -543,7 +531,6 @@ export function MomDetailView({
               </div>
             )}
 
-            {/* Decisions Callout */}
             {mom.decisions && mom.decisions.length > 0 && (
               <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border-2 border-emerald-500/30 space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
@@ -561,7 +548,6 @@ export function MomDetailView({
               </div>
             )}
 
-            {/* Action Items Matrix */}
             {mom.action_items && mom.action_items.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5 flex items-center justify-between">
@@ -632,7 +618,6 @@ export function MomDetailView({
             )}
           </div>
 
-          {/* Unified Document Footer with Stamp & Digital Signature */}
           <DocumentFooter
             company={company}
             language={isAr ? "ar" : "en"}
@@ -651,7 +636,6 @@ export function MomDetailView({
         </div>
       </div>
 
-      {/* Share Via Email Modal */}
       <Modal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} title={t.momDetail.shareMomViaEmail}
         busy={isSendingEmail} className="max-w-md no-print" footer={<div className="flex justify-end gap-3">
           <Button type="button" variant="ghost" disabled={isSendingEmail} onClick={() => setIsEmailModalOpen(false)}>{t.momDetail.cancel}</Button>

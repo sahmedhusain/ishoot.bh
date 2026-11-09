@@ -20,7 +20,6 @@ import {
 } from "../website-config";
 import { RESERVED_COLLECTION_SLUGS } from "../website-presets";
 
-/** A website page as the admin edits it and the website shows it. */
 export interface CmsPageRecord {
   id: string;
   slug: string;
@@ -74,7 +73,6 @@ const block = <T extends BlockType>(
   data: { ...newBlockData(type), ...data },
 });
 
-/** Homepage sections of the old fixed layout and the blocks that now show them. */
 const SECTION_BLOCKS: Partial<Record<WebsiteSection, BlockType>> = {
   about: "about",
   clients: "clients",
@@ -85,7 +83,6 @@ const SECTION_BLOCKS: Partial<Record<WebsiteSection, BlockType>> = {
   faq: "faq",
 };
 
-/** The pages a website starts with, built from its settings: same sections, order, visibility and content. */
 export function defaultCmsPages(config: ResolvedWebsiteConfig) {
   const en = getTranslations("en");
   const ar = getTranslations("ar");
@@ -140,7 +137,6 @@ export function defaultCmsPages(config: ResolvedWebsiteConfig) {
   ];
 }
 
-/** Creates the starting pages from the current website draft the first time pages are needed. */
 export async function ensureCmsPages() {
   if ((await db.cmsPage.count()) > 0) return;
   const content = await db.websiteContent.findUnique({
@@ -201,7 +197,6 @@ const count = (value: unknown, min: number, max: number, fallback: number) =>
     ? Math.min(max, Math.max(min, value as number))
     : fallback;
 
-/** Cleans one block's data to the shape its type allows; anything else is dropped. Rich text HTML is set by the caller. */
 function cleanData(
   type: BlockType,
   raw: Record<string, unknown>,
@@ -333,7 +328,6 @@ function cleanData(
   }
 }
 
-/** Validates the blocks an editor sent: known types, unique ids, at most 80 blocks, data cleaned per type. */
 export function validateBlocks(input: unknown): Block[] {
   if (!Array.isArray(input) || input.length > 80)
     throw new Error(serverMessages.cmsBlocksInvalid);
@@ -359,7 +353,6 @@ export function validateBlocks(input: unknown): Block[] {
   });
 }
 
-/** Whether two block lists differ in any block that only code editors may touch. */
 export function codeBlocksChanged(before: Block[], after: Block[]) {
   const code = (blocks: Block[]) =>
     JSON.stringify(
@@ -385,7 +378,6 @@ export interface CmsPageInput {
   in_footer: boolean;
 }
 
-/** Saves a page (the draft: the website changes when the website is published). */
 export async function saveCmsPage(
   input: CmsPageInput,
   blocks: Block[],
@@ -395,7 +387,6 @@ export async function saveCmsPage(
     ? await db.cmsPage.findUnique({ where: { id: input.id } })
     : null;
   if (input.id && !existing) throw new Error(serverMessages.cmsPageNotFound);
-  // Built-in pages keep their addresses; new pages need one that is free and not a reserved route.
   const slug =
     existing && existing.pageType !== "custom"
       ? existing.slug
@@ -429,7 +420,6 @@ export async function saveCmsPage(
     seoDescriptionEn: text(input.seo_description_en, 400),
     seoDescriptionAr: text(input.seo_description_ar, 400),
     blocks: JSON.parse(JSON.stringify(blocks)),
-    // The homepage is always on; it is reached through the logo, not a menu.
     isVisible: existing?.pageType === "home" ? true : input.is_visible,
     inHeader: existing?.pageType === "home" ? false : input.in_header,
     inFooter: existing?.pageType === "home" ? false : input.in_footer,
@@ -450,7 +440,6 @@ export async function saveCmsPage(
   );
 }
 
-/** A copy of a page with fresh block ids, hidden until the editor shows it. */
 export async function duplicateCmsPage(id: string) {
   const page = await db.cmsPage.findUnique({ where: { id } });
   if (!page) throw new Error(serverMessages.cmsPageNotFound);
@@ -480,7 +469,6 @@ export async function duplicateCmsPage(id: string) {
   );
 }
 
-/** Removes a page the company added; the built-in pages can be hidden but not removed. */
 export async function deleteCmsPage(id: string) {
   const page = await db.cmsPage.findUnique({
     where: { id },
@@ -502,7 +490,6 @@ export async function reorderCmsPages(ids: string[]) {
   );
 }
 
-/** Whether a page shows on the website and in the header and footer menus (the homepage is always shown, menus never). */
 export async function updateCmsPageFlags(
   id: string,
   flags: { is_visible: boolean; in_header: boolean; in_footer: boolean },

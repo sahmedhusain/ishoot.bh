@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 
 const ID = /^[A-Za-z0-9_:-]{1,128}$/;
 
-/** Colleagues' statuses (available, in a meeting, on leave…), for the dots next to their names. */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ items: [] }, { status: 401 });

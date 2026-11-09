@@ -5,7 +5,6 @@ export interface JournalPostingLine {
   credit: string;
   memo?: string;
 }
-/** Exact minor units: money crossing a posting boundary is a decimal string, never a float. */
 export function journalMinorUnits(value: string, currency: string): bigint {
   if (!/^\d{1,12}(?:\.\d{1,6})?$/.test(value))
     throw new Error("Invalid journal amount");

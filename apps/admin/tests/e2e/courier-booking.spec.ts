@@ -118,7 +118,6 @@ for (const locale of ["en", "ar"] as const) {
     );
     await expect(dialog.locator("button").last()).toBeDisabled();
     await page.keyboard.press("Escape");
-    // Never approve an automatic API retry in this browser test: only a confirmed portal tracking number is saved.
     await card
       .locator('input[name="trackingNumber"]')
       .fill("E2E-PORTAL-CONFIRMED");

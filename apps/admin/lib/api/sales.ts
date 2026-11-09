@@ -110,7 +110,6 @@ async function salesFetch<T>(
       const st = await serviceToken();
       if (st) headers.set("Authorization", `Bearer ${st}`);
     } catch {
-      // Allow unauthenticated calls for public inquiry submission
     }
   }
   if (options.body && !headers.has("Content-Type")) {
@@ -128,7 +127,6 @@ async function salesFetch<T>(
     try {
       errBody = await res.json();
     } catch {
-      // non-JSON
     }
     throw await apiError(res, errBody);
   }
@@ -140,7 +138,6 @@ async function salesFetch<T>(
   return normalizeApiRecord(body) as T;
 }
 
-// Contacts
 export const listContacts = (token?: string) =>
   salesFetch<Contact[]>("/v1/sales/contacts", {}, token);
 
@@ -156,7 +153,6 @@ export const updateContact = (id: string, input: Partial<Contact>, token?: strin
 export const deleteContact = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/contacts/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Deals
 export const listDeals = (contactId?: string, token?: string) => {
   const q = contactId ? `?contactId=${encodeURIComponent(contactId)}` : "";
   return salesFetch<Deal[]>(`/v1/sales/deals${q}`, {}, token);
@@ -177,7 +173,6 @@ export const updateDealStage = (id: string, stage: string, status: string, token
 export const deleteDeal = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/deals/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Inquiries
 export const listInquiries = (token?: string) =>
   salesFetch<Inquiry[]>("/v1/sales/inquiries", {}, token);
 
@@ -193,7 +188,6 @@ export const updateInquiryStatus = (id: string, status: string, token?: string) 
 export const deleteInquiry = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/inquiries/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Quotations
 export const listQuotations = (token?: string) =>
   salesFetch<Quotation[]>("/v1/sales/quotations", {}, token);
 
@@ -240,7 +234,6 @@ export const updateQuotationStatus = (id: string, status: string, token?: string
 export const deleteQuotation = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/quotations/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Campaigns
 export const listCampaigns = (token?: string) =>
   salesFetch<Campaign[]>("/v1/sales/campaigns", {}, token);
 

@@ -26,7 +26,6 @@ const refresh = (assetId?: string, handoverId?: string) => {
   revalidatePath(ROUTES.approvals());
 };
 
-/** Adds or edits an asset category with its spec fields and handover checklist. */
 export async function saveAssetCategoryAction(
   data: AssetCategoryInput,
   categoryId?: string,
@@ -74,10 +73,6 @@ export async function saveAssetAction(data: AssetInput, assetId?: string) {
   });
 }
 
-/**
- * Starts issuing or returning an asset; with `inPerson` the employee signs on this device right away.
- * `issuerSignature` is drawn now when handovers are signed on the spot.
- */
 export async function startAssetHandoverAction(
   data: HandoverInput,
   inPerson?: HandoverSignature,
@@ -116,7 +111,6 @@ export async function startAssetHandoverAction(
   });
 }
 
-/** The employee signs their own handover from their profile. */
 export async function signAssetHandoverAction(
   handoverId: string,
   data: HandoverSignature,
@@ -145,7 +139,6 @@ export async function signAssetHandoverAction(
   });
 }
 
-/** Staff collect the employee's signature in person on this device. */
 export async function signAssetHandoverInPersonAction(
   handoverId: string,
   data: HandoverSignature,

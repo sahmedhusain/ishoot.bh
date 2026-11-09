@@ -15,11 +15,9 @@ interface DocumentShareMenuProps {
   clientEmail?: string;
   clientPhone?: string;
   amountFormatted: string;
-  /** Sending to the client is allowed only once the document is approved, signed and stamped. */
   signed: boolean;
 }
 
-/** Email and WhatsApp hand-off to the client, opened from the detail header. */
 export function DocumentShareMenu({
   documentType,
   documentNumber,

@@ -12,10 +12,6 @@ import { errorMessage } from "../../lib/error-text";
 const ACTIONS = ["read", "create", "edit", "delete", "approve", "export", "issue_send", "assign"] as const;
 type Cell = "role" | "allow" | "deny";
 
-/**
- * One person's privileges on top of their role: each permission follows the role, or is allowed or denied for this
- * person only. Changes take effect at their next page load.
- */
 export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: { id: string; name: string; role: string; permissions?: Record<string, boolean> | null }; roleGrants: Record<string, boolean>; onClose: () => void }) {
   const { t } = useAdminLocale();
   const o = t.permissionOverrides;
@@ -33,7 +29,6 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
       if (current === "role") next[key] = !roleGrants[key];
       else if (current === "allow") next[key] = false;
       else delete next[key];
-      // A choice that matches the role is no override at all.
       if (next[key] === roleGrants[key] && current !== "role") delete next[key];
       return next;
     });

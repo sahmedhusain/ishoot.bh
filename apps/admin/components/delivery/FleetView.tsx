@@ -12,7 +12,6 @@ import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Delivery → vehicles: the fleet, and who can drive it. */
 export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; drivers: DriverOption[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.fleet;

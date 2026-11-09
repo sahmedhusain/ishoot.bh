@@ -40,7 +40,6 @@ export function InvoiceReceiptSequencesTab({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Invoice Sequence */}
           <div className="p-4 rounded-xl border border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-4">
             <div className="flex items-center gap-2 font-bold text-xs text-ink">
               <FileText className="w-4 h-4 text-primary dark:text-mint" />
@@ -91,7 +90,6 @@ export function InvoiceReceiptSequencesTab({
             </div>
           </div>
 
-          {/* Receipt Sequence */}
           <div className="p-4 rounded-xl border border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-4">
             <div className="flex items-center gap-2 font-bold text-xs text-ink">
               <Receipt className="w-4 h-4 text-accent" />
@@ -142,7 +140,6 @@ export function InvoiceReceiptSequencesTab({
             </div>
           </div>
 
-          {/* Payment Terms Days */}
           <div className="sm:col-span-2 p-4 rounded-xl border border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-3">
             <div className="flex items-center gap-2 font-bold text-xs text-ink">
               <Clock className="w-4 h-4 text-amber-500" />

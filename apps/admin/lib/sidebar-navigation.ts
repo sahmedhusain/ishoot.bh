@@ -17,7 +17,6 @@ const ALL_SIDEBAR_GROUPS = [
   "administration",
 ] as const;
 
-
 export type DesignationTier =
   | "executive_director"
   | "department_head"
@@ -334,7 +333,6 @@ export const SIDEBAR_PRESETS: Record<
   },
 };
 
-/** Role, department, and designation determine priority, while resource permissions always decide visibility. */
 export function sidebarGroupOrder(
   role?: string,
   departmentKey?: string,

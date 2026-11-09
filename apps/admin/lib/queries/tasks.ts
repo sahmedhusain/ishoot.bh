@@ -17,10 +17,6 @@ import {
 import { createNotification } from "./notifications";
 import { getNextSequenceNumber } from "./sequence";
 
-/**
- * Who sees which tasks. People who assign tasks see all of them; everyone else sees the tasks assigned to them,
- * the ones they created, their department's, and every task in a project they own.
- */
 export interface TaskScope {
   userId: string;
   departmentId: string | null;
@@ -59,17 +55,13 @@ async function userNames(ids: (string | null | undefined)[]) {
   return new Map<string, string>(users.map((u: any) => [u.id, u.fullName]));
 }
 
-// ─── Tasks ───────────────────────────────────────────────────────────────────────────────────────────────────────
-
 export interface TaskFilters {
   q?: string;
   status?: string;
   projectId?: string;
   assigneeId?: string;
   departmentId?: string;
-  /** Only the person's own tasks. */
   mine?: boolean;
-  /** Include done and cancelled tasks however old. */
   closed?: boolean;
 }
 
@@ -108,7 +100,6 @@ export async function listTasks(scope: TaskScope, filters: TaskFilters = {}) {
       _count: { select: { comments: true } },
     },
   });
-  // Done tasks stay on the board for two weeks after they are finished.
   const cutoff = Date.now() - 14 * 86_400_000;
   const visible =
     filters.closed || filters.status
@@ -227,7 +218,6 @@ export interface TaskInput {
   linkId?: string;
 }
 
-/** Tells someone a task is now theirs. */
 async function notifyAssignee(
   task: {
     id: string;
@@ -281,7 +271,6 @@ export async function saveTask(input: TaskInput, scope: TaskScope) {
       })
     : null;
   if (input.id && !existing) throw new Error(serverMessages.taskNotFound);
-  // People who cannot assign tasks may only give them to themselves (or leave someone else's assignment as it is).
   if (
     !scope.all &&
     input.assigneeId &&
@@ -331,7 +320,6 @@ export async function saveTask(input: TaskInput, scope: TaskScope) {
   return task;
 }
 
-/** Moves a task to another column (drag on the board, or the status menu). */
 export async function moveTask(id: string, status: string, scope: TaskScope) {
   if (!(TASK_STATUSES as readonly string[]).includes(status))
     throw new Error(serverMessages.taskInvalid);
@@ -346,7 +334,6 @@ export async function moveTask(id: string, status: string, scope: TaskScope) {
       completedAt: status === "done" ? (task.completedAt ?? new Date()) : null,
     },
   });
-  // Tell the person who asked for it that it is done.
   if (
     status === "done" &&
     task.status !== "done" &&
@@ -401,7 +388,6 @@ export async function addTaskComment(
   }
 }
 
-/** Open tasks due tomorrow or earlier remind their assignee once (the scheduled job). */
 export async function remindDueTasks(now = new Date()) {
   const tomorrow = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
@@ -436,8 +422,6 @@ export async function remindDueTasks(now = new Date()) {
   }
   return due.length;
 }
-
-// ─── Projects ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function listProjects(scope: TaskScope, includeArchived = false) {
   const rows = await db.project.findMany({
@@ -545,7 +529,6 @@ export async function saveProject(input: ProjectInput, userId: string) {
   });
 }
 
-/** People, departments and projects for the task form's choices. */
 export async function taskChoices(scope: TaskScope) {
   let [users, departments, projects] = await Promise.all([
     db.user.findMany({

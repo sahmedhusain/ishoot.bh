@@ -25,7 +25,6 @@ export const ASSET_STATUS_STYLE: Record<string, string> = {
 type Option = { id: string; name_en: string; name_ar: string };
 type Filters = { q: string; category: string; status: string; condition: string; holder: string; sort: string };
 
-/** Company equipment and property, who holds what, and its value. */
 export function AssetsListView({ items, counts, totalValue, filters, categories, employees, canCreate, canEdit }: {
   items: AssetRecord[];
   counts: Record<string, number>;

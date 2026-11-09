@@ -55,7 +55,6 @@ function Section({ title, children, aside }: { title: string; children: React.Re
   );
 }
 
-/** Create or edit a client: individual, company (local with CR, or foreign) or government entity. */
 export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contact?: CRMContact; defaultPaymentTermsDays: number }) {
   const router = useRouter();
   const companyCountry = useCompanyCountry();
@@ -130,7 +129,6 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
     const website = values.website?.trim();
     const payload: ClientProfileInput = {
       ...values,
-      // Names are only sent where they apply (the action rejects a blank name).
       full_name: kind === "individual" ? values.full_name : undefined,
       website: website && !/^https?:\/\//i.test(website) ? `https://${website}` : website,
       client_kind: kind,

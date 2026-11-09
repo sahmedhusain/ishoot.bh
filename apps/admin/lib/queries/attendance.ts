@@ -20,7 +20,6 @@ import {
   listShiftTypes,
 } from "./hr-settings";
 
-/** Local time offset; check-in/out times are entered as local HH:MM. */
 const LOCAL_OFFSET = "+00:00";
 export const ATTENDANCE_STATUSES = [
   "present",
@@ -61,10 +60,8 @@ export interface AttendanceSheet {
     nameAr: string;
     hireDate: string;
     cells: Record<string, AttendanceCell>;
-    /** Approved or pending leave per day: type code and portion. */
     leave: Record<string, { code: string; portion: string; status: string }>;
   }>;
-  /** Days already in a submitted, approved or paid payroll; they cannot be edited. */
   lockedThrough: string | null;
   shiftTypes: Awaited<ReturnType<typeof listShiftTypes>>;
   policy: Pick<
@@ -106,7 +103,6 @@ function toCell(row: {
   };
 }
 
-/** Latest attendance day that belongs to a payroll already submitted, approved or paid. */
 export async function attendanceLockedThrough(): Promise<Date | null> {
   const run = await db.payrollRun.findFirst({
     where: { status: { in: ["submitted", "approved", "paid", "closed"] } },
@@ -226,7 +222,6 @@ export interface AttendanceInput {
   status: AttendanceStatus;
   checkIn?: string | null;
   checkOut?: string | null;
-  /** Leave blank to work these out from the times. */
   lateMinutes?: number | null;
   overtimeMinutes?: number | null;
   overtimeNightMinutes?: number | null;
@@ -251,10 +246,6 @@ async function assertUnlocked(date: Date) {
     );
 }
 
-/**
- * Records one day. Lateness is minutes after the workday start; overtime is time worked beyond the workday,
- * or all time worked on a weekend (rest-day) or public holiday, unless entered explicitly.
- */
 export async function saveAttendanceEntry(
   input: AttendanceInput,
   actorId: string,
@@ -295,7 +286,7 @@ export async function saveAttendanceEntry(
   let worked = 0;
   if (present && input.checkIn && input.checkOut) {
     worked = minutesOf(input.checkOut) - minutesOf(input.checkIn);
-    if (worked <= 0) worked += 24 * 60; // overnight shift
+    if (worked <= 0) worked += 24 * 60;
   }
   const standard =
     policy.workdayHours * 60 * (input.status === "half_day" ? 0.5 : 1);
@@ -347,10 +338,6 @@ export async function deleteAttendanceEntry(employeeId: string, date: string) {
   await db.attendanceEntry.deleteMany({ where: { employeeId, date: day } });
 }
 
-/**
- * Marks every working day of the month up to today as present for the chosen employees, skipping days that
- * already have a record, full-day leave, days before joining and locked days.
- */
 export async function markMonthPresent(
   year: number,
   month: number,
@@ -391,7 +378,6 @@ export async function markMonthPresent(
   return { created: data.length };
 }
 
-/** Attendance for one employee over a window, in the shape the payroll engine expects. */
 export async function attendanceForPayroll(
   employeeIds: string[],
   start: Date,

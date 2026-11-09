@@ -11,13 +11,11 @@ import { ShareLinks } from "./ShareLinks";
 
 const text = (en: string, ar: string, locale: string) => (locale === "ar" ? ar || en : en || ar);
 
-/** Articles that are public now: published, with their date reached. */
 export function liveArticles(articles: PublicArticle[] | undefined) {
   const now = Date.now();
   return (articles ?? []).filter((article) => !article.publish_at || Date.parse(article.publish_at) <= now);
 }
 
-/** The articles list, filterable by category (press releases, updates…). */
 export async function ArticlesIndex({ articles, locale, base, query }: { articles: PublicArticle[]; locale: string; base: string; query: { category?: string; q?: string; page?: string } }) {
   const [t, { config }] = await Promise.all([siteTranslations(locale), getSite()]);
   const options = config.commerce;
@@ -69,7 +67,6 @@ export async function ArticlesIndex({ articles, locale, base, query }: { article
   );
 }
 
-/** One article: cover, date and author, the body and share links. */
 export async function ArticleView({ article, related, locale, base, url }: { article: PublicArticle; related: PublicArticle[]; locale: string; base: string; url: string }) {
   const t = await siteTranslations(locale);
   const Back = locale === "ar" ? ArrowRight : ArrowLeft;

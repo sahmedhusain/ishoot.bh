@@ -116,7 +116,6 @@ test("checkout prices delivery by zone, refuses areas not served, and books a de
   );
   expect(Number(shipment.codAmount)).toBe(Number(order.total));
 
-  // The customer follows it.
   await page.goto(`/en/track/${shipment.trackingToken}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     shipment.number,

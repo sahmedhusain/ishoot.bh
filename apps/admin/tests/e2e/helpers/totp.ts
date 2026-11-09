@@ -2,7 +2,6 @@ import crypto from "node:crypto";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-/** The current RFC 6238 code (SHA-1, 6 digits, 30 s) for a base32 secret, as an authenticator app shows it. */
 export function totp(secret: string, at = Date.now()) {
   const bits = [...secret]
     .map((c) => ALPHABET.indexOf(c).toString(2).padStart(5, "0"))

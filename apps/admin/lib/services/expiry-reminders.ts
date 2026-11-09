@@ -7,7 +7,6 @@ import type {
   PermissionResource,
 } from "../constants/permissions";
 
-/** Reminder stages: a document is reminded once at each stage it reaches. */
 const STAGES = [60, 30, 7, 0] as const;
 const stageOf = (days: number) =>
   days < 0 ? 0 : (STAGES.filter((s) => days <= s).at(-1) ?? null);
@@ -47,7 +46,6 @@ interface Reminder {
 
 async function send(reminders: Reminder[]) {
   let sent = 0;
-  // Everyone already told about each reminder, read in one query.
   const pending = reminders.filter((r) => r.recipients.length);
   const told = new Set(
     pending.length
@@ -85,10 +83,6 @@ async function send(reminders: Reminder[]) {
   return sent;
 }
 
-/**
- * Notifies HR about passports, CPRs, visas, permits and other employee documents, and settings managers
- * about company documents and tax certificates, at 60, 30 and 7 days before expiry and once expired.
- */
 export async function sendExpiryReminders() {
   const reminders: Reminder[] = [];
   const [hr, admins, employeeDocs, companyDocs, taxes] = await Promise.all([

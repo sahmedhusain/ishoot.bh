@@ -54,7 +54,6 @@ export function ServicesManagementView({
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "inactive">("all");
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const serviceFormId = React.useId();
   const pendingSave = React.useRef(false);
@@ -63,7 +62,6 @@ export function ServicesManagementView({
   const [saving, setSaving] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
-  // Form State
   const [formCode, setFormCode] = React.useState("");
   const [formNameEn, setFormNameEn] = React.useState("");
   const [formNameAr, setFormNameAr] = React.useState("");
@@ -171,7 +169,6 @@ export function ServicesManagementView({
     });
   };
 
-  // Filtered List
   const filteredServices = React.useMemo(() => {
     return services.filter((s) => {
       if (activeCategory !== "all" && s.category !== activeCategory) return false;
@@ -189,7 +186,6 @@ export function ServicesManagementView({
     });
   }, [services, activeCategory, statusFilter, searchTerm]);
 
-  // Statistics
   const activeCount = services.filter((s) => s.is_active).length;
   const avgRate = services.length > 0
     ? services.reduce((acc, s) => acc + s.default_rate, 0) / services.length
@@ -197,7 +193,6 @@ export function ServicesManagementView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <PageHeader
         actions={<div className="flex items-center gap-3">
           {canWrite && <Button
@@ -210,7 +205,6 @@ export function ServicesManagementView({
         </div>}
       />
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-xl bg-surface-raised border border-outline-variant shadow-xs space-y-1">
           <div className="flex items-center justify-between">
@@ -253,7 +247,6 @@ export function ServicesManagementView({
         </div>
       </div>
 
-      {/* Categories Horizontal Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {SERVICE_CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.value;
@@ -278,7 +271,6 @@ export function ServicesManagementView({
         })}
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-raised p-3 rounded-xl border border-outline-variant shadow-xs">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-muted" />
@@ -305,7 +297,6 @@ export function ServicesManagementView({
         </div>
       </div>
 
-      {/* Services Table */}
       <div className="bg-surface-raised rounded-2xl border border-outline-variant/80 dark:border-outline-variant shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-start border-collapse">
@@ -413,7 +404,6 @@ export function ServicesManagementView({
         </div>
       </div>
 
-      {/* Create / Edit Service Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle} busy={saving} className="max-w-xl" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={saving} onClick={() => setIsModalOpen(false)}>{t.actions.cancel}</Button><Button type="submit" form={serviceFormId} disabled={saving}>{saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}</Button></div>}>
         <form id={serviceFormId} onSubmit={handleSave} onInvalidCapture={() => setSaveError(t.servicesView.validationFailed)}>
           <fieldset disabled={saving} className="space-y-4">

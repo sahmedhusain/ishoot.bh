@@ -50,7 +50,6 @@ describe("reports", () => {
     expect(nextScheduledRun("daily", now).toISOString()).toBe(
       "2026-07-02T04:00:00.000Z",
     );
-    // 2026-07-01 is a Wednesday: the next Sunday is the 5th.
     expect(nextScheduledRun("weekly", now).toISOString()).toBe(
       "2026-07-05T04:00:00.000Z",
     );

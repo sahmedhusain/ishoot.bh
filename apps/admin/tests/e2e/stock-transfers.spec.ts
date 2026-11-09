@@ -39,7 +39,6 @@ for (const locale of ["en", "ar"] as const) {
     await db.stockLevel.create({
       data: { productId: product.id, locationId: locations[0].id, onHand: 2 },
     });
-    // Already verified physical units are a fixture; no production identifier or stock API is called.
     const codes = [`TEST-${tag}-1`, `TEST-${tag}-2`];
     await db.serialGeneration.create({
       data: {

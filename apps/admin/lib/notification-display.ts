@@ -6,7 +6,6 @@ import { notificationCategory } from "@platform/contracts";
 import { approvalTargetUrl } from "@platform/database/constants/approvals";
 import { ROUTES } from "@platform/database/constants/routes";
 
-/** A notify inbox item (docs/adr/0012) in the shape the display helpers read. */
 export function fromInbox(item: InboxItem): Notification {
   return {
     id: item.id,
@@ -24,14 +23,12 @@ export function fromInbox(item: InboxItem): Notification {
   };
 }
 
-/** A category's name in the person's language. */
 export function categoryName(key: string, locale: string) {
   const category = notificationCategory(key);
   if (!category) return key;
   return locale === "ar" ? category.nameAr : category.nameEn;
 }
 
-/** A category's description in the person's language. */
 export function categoryDescription(key: string, locale: string) {
   const category = notificationCategory(key);
   if (!category) return "";

@@ -45,7 +45,6 @@ export interface WebsitePillar {
   textAr: string;
 }
 
-/** The website's catalogue (projects, products, menu…): its route, card layout and names. */
 export interface WebsiteCollection {
   slug: string;
   layout: CollectionLayout;
@@ -57,19 +56,16 @@ export interface WebsiteCollection {
   subtitleAr: string;
 }
 
-/** Where the website lists articles ("news", "blog", "updates"…) and what the menu calls them. */
 export interface WebsiteArticles {
   slug: string;
   navEn: string;
   navAr: string;
 }
 
-/** One menu link: a page (by id), the catalogue, the articles list, or another website. */
 export interface WebsiteMenuItem {
   kind: "page" | "catalogue" | "articles" | "external";
   pageId?: string;
   url?: string;
-  /** The company's own wording; empty uses the page's or section's name. */
   labelEn: string;
   labelAr: string;
 }
@@ -79,11 +75,6 @@ export interface WebsiteMenus {
   footer: WebsiteMenuItem[];
 }
 
-/**
- * Site-wide tracking and code, kept by the system service and managed by IT (queries/site.ts). Analytics are known
- * tags filled from an id (run on the page, built by the website); free-form code runs in a hidden sandboxed frame,
- * like custom-code blocks (docs/SECURITY.md).
- */
 export interface WebsiteCode {
   googleAnalyticsId: string;
   metaPixelId: string;
@@ -100,7 +91,6 @@ export interface WebsiteSeo {
 }
 
 export interface WebsiteConfig {
-  /** The company activity the website was set up for (website-presets.ts); neutral when missing. */
   purpose?: BusinessActivity;
   interfaceLanguages?: string[];
   primaryInterfaceLanguage?: string;
@@ -109,9 +99,7 @@ export interface WebsiteConfig {
   collection?: WebsiteCollection;
   inquiry?: InquiryOptions;
   seo?: WebsiteSeo;
-  /** The company's equipment list on the About page. */
   showEquipment?: boolean;
-  /** Retired; legacy snapshots may contain it, but it always resolves to false. */
   whatsappButton?: boolean;
   design?: WebsiteDesign;
   commerce?: WebsiteCommerce;
@@ -122,7 +110,6 @@ export interface WebsiteConfig {
   sections: { id: WebsiteSection; visible: boolean }[];
   pages?: { id: WebsitePage; visible: boolean }[];
   articles?: WebsiteArticles;
-  /** Missing: built from the pages' header and footer flags. */
   menus?: WebsiteMenus;
   contactTitleEn: string;
   contactTitleAr: string;
@@ -134,7 +121,6 @@ export interface WebsiteConfig {
   responseAr: string;
 }
 
-/** A website config with every optional setting filled in, as the public website reads it. */
 export type ResolvedWebsiteConfig = WebsiteConfig &
   Required<
     Pick<
@@ -161,7 +147,6 @@ export const EMPTY_WEBSITE_CODE: WebsiteCode = {
   bodyHtml: "",
 };
 
-/** The articles address an activity starts with, named from the website copy. */
 export function articlesForActivity(
   activity: BusinessActivity,
 ): WebsiteArticles {
@@ -185,7 +170,6 @@ export const defaultWebsiteConfig: WebsiteConfig = {
   ...websiteDefaultCopy,
 };
 
-/** The catalogue names an activity's website starts with, in both languages. */
 export function collectionForActivity(
   activity: BusinessActivity,
 ): WebsiteCollection {
@@ -204,7 +188,6 @@ export function collectionForActivity(
   };
 }
 
-/** The recommended website for an activity: pages, section order, catalogue, hero and enquiry questions. */
 export function websiteConfigForActivity(
   activity: BusinessActivity,
   base: WebsiteConfig = defaultWebsiteConfig,
@@ -228,7 +211,6 @@ export function websiteConfigForActivity(
   };
 }
 
-/** Fills settings older drafts do not have from the preset of their activity (neutral when none is set). */
 export function resolveWebsiteConfig(
   config: WebsiteConfig,
   legacyMode: "light" | "dark" = "dark",

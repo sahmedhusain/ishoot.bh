@@ -1,6 +1,3 @@
-// The department catalogue a company picks from (setup wizard, Settings → Departments). Runtime-free.
-// Names live in the admin copy (`departmentCatalogue.<key>`), so a department created from the catalogue reads
-// correctly in both languages; the company can rename it afterwards.
 
 export const DEPARTMENT_CATALOGUE = [
   "management",
@@ -24,7 +21,6 @@ export const isDepartmentKey = (value: unknown): value is DepartmentKey =>
   typeof value === "string" &&
   (DEPARTMENT_CATALOGUE as readonly string[]).includes(value);
 
-/** Short codes for catalogue departments (Department.code is unique). */
 export const DEPARTMENT_CODES: Record<DepartmentKey, string> = {
   management: "MGMT",
   finance: "FIN",
@@ -64,7 +60,6 @@ const STORE: DepartmentKey[] = [
   "it",
 ];
 
-/** Departments each business activity starts with (website-presets.ts BUSINESS_ACTIVITIES). */
 export const ACTIVITY_DEPARTMENTS: Record<string, readonly DepartmentKey[]> = {
   media: [...CORE, "pr"],
   agency: [...CORE, "pr", "it"],
@@ -159,7 +154,6 @@ export function activityDepartments(
   return ACTIVITY_DEPARTMENTS[activity ?? ""] ?? ACTIVITY_DEPARTMENTS.other;
 }
 
-/** The role templates (constants/permissions) that usually work in each catalogue department, for the wizard. */
 export const DEPARTMENT_ROLES: Record<DepartmentKey, readonly string[]> = {
   management: ["department_manager"],
   finance: ["finance_manager", "accountant"],
@@ -177,7 +171,6 @@ export const DEPARTMENT_ROLES: Record<DepartmentKey, readonly string[]> = {
   administration: ["employee"],
 };
 
-/** Roles every company has, whatever its departments. */
 export const BASE_ROLES = [
   "super_admin",
   "admin",

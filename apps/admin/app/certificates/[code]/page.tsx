@@ -15,7 +15,6 @@ export async function generateMetadata({
   return { title: c.eyebrow, robots: { index: false, follow: false } };
 }
 
-/** Public page behind the QR code on documents: the company's registration for a tax and its certificate. */
 export default async function TaxCertificatePage({
   params,
   searchParams,
@@ -56,7 +55,6 @@ export default async function TaxCertificatePage({
       <div className="mx-auto max-w-2xl space-y-6">
         <header className="flex items-center gap-3">
           {company.icon_url || company.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element -- company artwork from settings
             <img
               src={company.icon_url || company.logo_url || ""}
               alt=""
@@ -134,7 +132,6 @@ export default async function TaxCertificatePage({
                   {c.open}
                 </a>
                 {isImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- the uploaded certificate scan
                   <img
                     src={fileHref}
                     alt={taxName}

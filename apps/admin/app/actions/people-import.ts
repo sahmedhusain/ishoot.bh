@@ -16,7 +16,6 @@ import { ROUTES } from "../../constants/routes";
 import { getCurrentPermissions, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** What the importer may do: set pay, create accounts, and which roles (never one with more access than their own). */
 async function importOptions(actor: {
   role: string;
 }): Promise<PeopleImportOptions> {
@@ -41,7 +40,6 @@ async function importOptions(actor: {
   };
 }
 
-/** Rows arrive as cells in PEOPLE_IMPORT_COLUMNS order (compact, and the file's own text is checked by the import). */
 const toRows = (cells: string[][]): PeopleImportRow[] =>
   cells
     .slice(0, PEOPLE_IMPORT_LIMIT)
@@ -54,7 +52,6 @@ const toRows = (cells: string[][]): PeopleImportRow[] =>
       ),
     );
 
-/** HR → Employees → Import: checks the rows and reports every problem, saving nothing. */
 export async function previewPeopleImportAction(rows: string[][]) {
   return measureOperation("action:previewPeopleImportAction", async () => {
     const actor = await requirePermission("employees", "create");
@@ -65,13 +62,11 @@ export async function previewPeopleImportAction(rows: string[][]) {
   });
 }
 
-/** Imports the rows without problems (employees, and accounts where a role is given). */
 export async function importPeopleAction(rows: string[][]) {
   return measureOperation("action:importPeopleAction", async () => {
     const actor = await requirePermission("employees", "create");
     validateActionArguments("importPeopleAction", { rows });
     const options = await importOptions(actor);
-    // Each person is saved on their own (a long file must not hold one transaction open); the log records the totals.
     const result = await importPeople(toRows(rows), actor.id, options);
     await createActivityLog({
       user_id: actor.id,

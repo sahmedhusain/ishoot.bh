@@ -1,9 +1,5 @@
 import { getCurrencyDecimals } from "@platform/config/currency";
 
-/**
- * Money arithmetic in the currency's minor units, so 0.1 + 0.7 settles 0.8 exactly.
- * Every stored amount should pass through roundMoney.
- */
 export function moneyFactor(currency: string): number {
   return Math.pow(10, getCurrencyDecimals(currency));
 }
@@ -35,7 +31,6 @@ export function sumMoney(
   return minor / moneyFactor(currency);
 }
 
-/** Outstanding balance, never negative, compared in minor units. */
 export function amountDue(
   total: number,
   paid: number,
@@ -55,7 +50,6 @@ export function isFullyPaid(
   return toMinorUnits(paid, currency) >= toMinorUnits(total, currency);
 }
 
-/** Payment status implied by the amount paid against the total. */
 export function paymentStatusFor(
   total: number,
   paid: number,
@@ -65,7 +59,6 @@ export function paymentStatusFor(
   return isFullyPaid(total, paid, currency) ? "paid" : "partially_paid";
 }
 
-/** Accepts floating-point representation noise, while rejecting fractions below the currency's minor unit. */
 export function validMoneyAmount(amount: number, currency: string, allowZero = false): boolean {
   return Number.isFinite(amount) && (allowZero ? amount >= 0 : amount > 0) && Number.isSafeInteger(toMinorUnits(amount, currency)) && (allowZero || toMinorUnits(amount, currency) > 0) && Math.abs(amount - roundMoney(amount, currency)) <= Number.EPSILON * Math.max(1, Math.abs(amount)) * 4;
 }

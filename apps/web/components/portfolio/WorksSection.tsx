@@ -36,7 +36,6 @@ export function WorksSection({ items, categories: categoryChoices, title, presen
 
   const shown = featured
     .filter((item) => !filterable || category === "all" || categoryAncestors(item.category?.slug ?? "", site?.commerce?.categoryParents).includes(categories.find(choice => choice.id === category)?.slug ?? ""))
-    // Two wide project cards per row, three products or listings per row: two full rows either way.
     .slice(0, limit ?? (layout === "product" || layout === "listing" ? 6 : 4));
 
   if (!items.length) return null;

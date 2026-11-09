@@ -53,9 +53,7 @@ interface NewInvoiceFormViewProps {
   preselectedClientId?: string;
   acceptedQuotations?: Quotation[];
   preselectedQuotation?: Quotation | null;
-  /** Deal this invoice bills (from a deal page link). */
   dealId?: string;
-  /** People an invoice can be credited to; defaults to its quotation's salesperson, else the issuer. */
   salesPeople?: { id: string; name: string }[];
   currentUserId?: string;
 }
@@ -116,7 +114,6 @@ export function NewInvoiceFormView({
 
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
-  // VAT follows the company registration only; documents never toggle it.
   const [vatEnabled] = React.useState<boolean>(
     company?.vat_enabled ?? false,
   );
@@ -138,13 +135,11 @@ export function NewInvoiceFormView({
   const initializedQuote = React.useRef<string | null>(null);
   const markSaved = useUnsavedChanges({ selectedContactId, selectedQuotationId, currency, salesOwnerId, language, issueDate, dueDate, selectedDealId, notesEn, notesAr, discountType, discountValue, lineItems }, !quoteInitializing);
 
-  // Apply quotation items to the invoice form
   const applyQuotation = React.useCallback(
     (q: any) => {
       if (!q) return;
       setSelectedQuotationId(q.id);
       if (q.dealId) setSelectedDealId(q.dealId);
-      // The invoice keeps the quotation's sales credit unless someone changes it on purpose.
       if (q.salesOwnerId) setSalesOwnerId(q.salesOwnerId);
 
       if (q.clientId) {
@@ -189,7 +184,6 @@ export function NewInvoiceFormView({
     [contacts, t],
   );
 
-  // Initialize from preselected quotation if given
   React.useEffect(() => {
     if (preselectedQuotation && initializedQuote.current !== preselectedQuotation.id) {
       initializedQuote.current = preselectedQuotation.id;
@@ -266,7 +260,6 @@ export function NewInvoiceFormView({
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Taxes besides VAT that the company registry adds to new invoices when VAT is enabled.
   const { taxes: registeredTaxes } = useCompanyVat();
   const otherTaxes = React.useMemo(
     () => (vatEnabled ? registeredTaxes.filter((tax) => tax.invoices) : []),
@@ -297,7 +290,6 @@ export function NewInvoiceFormView({
       const res = await createInvoiceAction({
         contact_id: selectedContactId,
         deal_id: selectedDealId,
-        // Links the source quotation so it is marked converted and cannot be invoiced again.
         quotation_id: selectedQuotationId || undefined,
         issue_date: issueDate,
         due_date: dueDate,
@@ -350,7 +342,6 @@ export function NewInvoiceFormView({
 
       <PageHeader />
 
-      {/* Option: Import from Accepted Quotations */}
       {acceptedQuotations.length > 0 && (
         <Card className="p-5 bg-surface-container border border-outline-variant rounded-2xl space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -407,7 +398,6 @@ export function NewInvoiceFormView({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Unified Client Selection Card (Dual Flow: Search Existing or Create New Inline) */}
         <Card className="p-6 space-y-6" data-page-section>
           <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -428,7 +418,6 @@ export function NewInvoiceFormView({
           </div>
 
           <div className="space-y-4">
-            {/* Unified Client Autocomplete & Inline Creator */}
             <ClientAutocomplete
               initialContacts={contacts}
               selectedContactId={selectedContactId}
@@ -441,7 +430,6 @@ export function NewInvoiceFormView({
               allowCreate
             />
 
-            {/* Document Attributes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-ink-muted">
@@ -500,7 +488,6 @@ export function NewInvoiceFormView({
           </div>
         </Card>
 
-        {/* Line Items Card */}
         <Card className="p-6 space-y-6" data-page-section>
           <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -658,7 +645,6 @@ export function NewInvoiceFormView({
           </div>
         </Card>
 
-        {/* Adjustments & Totals */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 space-y-4" data-page-section>
             <h2 className="text-sm font-bold text-ink uppercase tracking-wider">

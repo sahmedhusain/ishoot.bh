@@ -27,7 +27,6 @@ const resources: Record<string, PermissionResource> = {
   sales_order: "orders",
 };
 
-/** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
 const CMS_ASSET_RESOURCES = [
   "banners",
   "portfolio",
@@ -58,14 +57,12 @@ export async function requireAttachmentAccess(
     entityType === "user_signature" &&
     (entityId === "pending" || !entityId)
   ) {
-    // Anyone may upload a drawn signature for themselves; it only applies after approval.
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
     if (action === "read") return requirePermission("users", "read");
     return user;
   }
   if (entityType === "user_avatar" && (entityId === "pending" || !entityId)) {
-    // Anyone may upload a profile photo for themselves; it applies when they save it (updateMyAvatarAction).
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
     return user;
@@ -75,7 +72,6 @@ export async function requireAttachmentAccess(
     if (user && user.id === entityId) return user;
   }
   if (entityType === "expense_claim") {
-    // Every staff member files claims; receipts are visible to the claimant and to finance.
     if (action !== "read") return requirePermission("self_service", "create");
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
@@ -90,13 +86,11 @@ export async function requireAttachmentAccess(
     return requirePermission("expenses", "read");
   }
   if (entityType === "it_ticket") {
-    // Files for a new IT request; the server action claims them and they are served through the ticket only.
     if (action === "read" || (entityId && entityId !== "pending"))
       throw new Error(serverMessages.unsupportedAttachmentType);
     return requirePermission("it_support", "create");
   }
   if (entityType === "shipment") {
-    // Proof of delivery: whoever may update the shipment (its driver, or people who assign deliveries).
     return (
       await requireShipmentAccess(entityId, action === "read" ? "read" : "edit")
     ).user;

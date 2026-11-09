@@ -23,7 +23,6 @@ const toInput = (c: AssetCategoryRecord): AssetCategoryInput => ({
 });
 const empty = (): AssetCategoryInput => ({ name_en: "", name_ar: "", spec_fields: [], checklist: [], is_active: true });
 
-/** Asset categories: the details recorded for each kind of asset and what is checked at every handover. */
 export function AssetCategoriesView({ categories }: { categories: AssetCategoryRecord[] }) {
   const { t, locale } = useAdminLocale();
   const a = t.assets;

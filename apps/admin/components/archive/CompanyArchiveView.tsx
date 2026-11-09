@@ -59,10 +59,6 @@ type Counts = {
   expiring: number;
 };
 
-/**
- * The company archive: every file kept anywhere in the system (legal, HR, finance, clients, assets and company),
- * searchable, filtered by group, type, date and expiry, sorted, and exported as a spreadsheet.
- */
 export function CompanyArchiveView({
   items,
   total,

@@ -59,7 +59,6 @@ export async function departmentSubtree(rootIds: string[]): Promise<string[]> {
 }
 
 export async function userDepartmentId(userId: string): Promise<string | null> {
-  // This would need an API call to get user info.
   throw new Error("userDepartmentId is not implemented in API");
 }
 
@@ -89,7 +88,6 @@ export async function saveDepartment(input: DepartmentInput) {
 }
 
 export async function deleteDepartment(id: string) {
-  // Not implemented in API.
   throw new Error("deleteDepartment is not implemented in API");
 }
 
@@ -97,7 +95,6 @@ export async function assignUsersToDepartment(
   userIds: string[],
   departmentId: string | null,
 ) {
-  // Must be a single API call.
   throw new Error("assignUsersToDepartment must be implemented as a single API call in Go backend");
 }
 
@@ -105,7 +102,6 @@ export async function applyActivityDepartments(
   activity: string | null | undefined,
   only?: readonly string[],
 ) {
-  // Not implemented in API.
   throw new Error("applyActivityDepartments is not implemented in API");
 }
 

@@ -16,7 +16,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-/** Period presets relative to today. */
 function presets(today: string) {
   const d = new Date(`${today}T00:00:00Z`);
   const y = d.getUTCFullYear();
@@ -29,7 +28,6 @@ function presets(today: string) {
   };
 }
 
-/** One report: its period (with presets and the period before), a chart of its measure, the table, exports and e-mail schedules. */
 export function ReportView({ result, locale: dataLocale, compare, schedules, currency, today }: { result: ReportResult; locale: "en" | "ar"; compare: boolean; schedules: ReportScheduleRecord[]; currency: string; today: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.reports;
@@ -57,11 +55,8 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
     return params.toString();
   };
   const go = (next: { from?: string; to?: string; compare?: boolean }) => router.push(`${ROUTES.reports.report(definition.key)}?${query(next)}`);
-  // Ask again in the reader's language when the server answered in the other one.
   React.useEffect(() => {
     if (locale !== dataLocale) router.replace(`${ROUTES.reports.report(definition.key)}?${query({})}`);
-    // query depends on the values listed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale, dataLocale]);
 
   const show = (value: string | number | null | undefined, kind: ReportColumnKind) => {
@@ -179,7 +174,6 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
   );
 }
 
-/** E-mailing the report after each day, week or month. */
 function Schedules({ reportKey, schedules }: { reportKey: string; schedules: ReportScheduleRecord[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.reports.schedules;

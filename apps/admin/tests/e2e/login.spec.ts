@@ -20,7 +20,6 @@ test.describe("Authentication Flows", () => {
     await page.locator('input[type="email"], input[name="email"]').fill("admin@example.com");
     await page.locator('input[type="password"], input[name="password"]').fill("password");
     await page.locator('button[type="submit"]').click();
-    // Redirects to dashboard or remains on valid authenticated page
     await page.waitForLoadState("networkidle");
     await expect(page).toHaveURL(/.*dashboard.*/);
   });

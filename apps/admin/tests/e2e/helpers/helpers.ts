@@ -7,7 +7,6 @@ const root = path.resolve(__dirname, "../..");
 
 export const admin = users.admin;
 
-/** The demo profile every seeded run uses, read from seeds/assets so tests never hardcode a company. */
 export const demo = {
   ...JSON.parse(
     fs.readFileSync(
@@ -23,7 +22,6 @@ export const demo = {
   ),
 };
 
-/** Names of every company profile other than the demo; none may ever appear on a demo page. */
 export const otherCompanyNames: string[] = fs
   .readdirSync(path.join(root, "seeds/assets"))
   .filter(
@@ -45,8 +43,6 @@ export const otherCompanyNames: string[] = fs
       company.companyNameAr,
     ].filter(Boolean);
   })
-  // Profiles may intentionally share a trading name with the demo (e.g. the
-  // all-modules profile). Only names foreign to the active company are leaks.
   .filter((name) => ![
     demo.display?.nameEn,
     demo.display?.nameAr,
@@ -65,13 +61,11 @@ export async function login(
   password = admin.password,
 ) {
   await page.goto("/login");
-  // Next's streaming response can temporarily retain a hidden copy of the form.
   await page.locator('input[type="email"]:visible').fill(email);
   await page.locator('input[type="password"]:visible').fill(password);
   await page.locator('button[type="submit"]:visible').click();
 }
 
-/** Fails the test on uncaught page errors and console errors (ignoring known browser noise). */
 export function watchErrors(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
@@ -84,7 +78,6 @@ export function watchErrors(page: Page) {
       )
     )
       return;
-    // A failed load names only its status; the location says what failed.
     const where = message.location().url;
     errors.push(
       `console: ${text}${where && /Failed to load resource/.test(text) ? ` (${where})` : ""}`,
@@ -96,7 +89,6 @@ export function watchErrors(page: Page) {
   };
 }
 
-/** Every <img> on the page that should have loaded did load. */
 export async function brokenImages(page: Page) {
   return page.evaluate(async () => {
     const images = Array.from(document.images);
@@ -117,7 +109,6 @@ export async function brokenImages(page: Page) {
   });
 }
 
-/** The CSS variable values the company theme stylesheet put on <html>. */
 export async function themeVariable(page: Page, name: string) {
   return page.evaluate(
     (variable) =>
@@ -128,11 +119,9 @@ export async function themeVariable(page: Page, name: string) {
   );
 }
 
-/** The page's own alert messages (Next.js adds a route announcer with role="alert" too). */
 export const alertMessage = (page: Page) =>
   page.locator('[role="alert"]:not(#__next-route-announcer__)');
 
-/** What a visitor can see or download: text, title, meta tags, image sources and alt text (not dev-mode stack traces). */
 export async function visibleContent(page: Page) {
   return page.evaluate(() =>
     [
@@ -152,7 +141,6 @@ export async function visibleContent(page: Page) {
   );
 }
 
-/** Direct read access to the seeded test database, for asserting what the app stored. */
 export function testDatabase() {
   const { createRequire } =
     require("node:module") as typeof import("node:module");
@@ -168,7 +156,6 @@ export function testDatabase() {
   return new PrismaClient({ datasources: { db: { url: url.toString() } } });
 }
 
-/** Accept only the shared confirmation dialog; ordinary forms remain under the spec's control. */
 export async function acceptConfirmations(page: Page) {
   await page.addLocatorHandler(
     page

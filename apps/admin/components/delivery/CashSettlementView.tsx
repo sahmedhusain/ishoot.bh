@@ -13,7 +13,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 type Settlement = Awaited<ReturnType<typeof listCodSettlements>>[number];
 
-/** Delivery → cash from drivers: what each driver holds, recording the handover, and past handovers. */
 export function CashSettlementView({ pending, history, currency, canSettle }: { pending: CashToSettle[]; history: Settlement[]; currency: string; canSettle: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.cash;

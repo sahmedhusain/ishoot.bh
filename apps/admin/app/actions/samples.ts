@@ -13,7 +13,6 @@ import { isBusinessActivity } from "@platform/database/website-presets";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Fills the website with the activity's sample content, marked so one click removes it. */
 export async function addSampleContentAction(activity: string) {
   return measureOperation("action:addSampleContentAction", async () => {
     const user = await requirePermission("settings", "write");
@@ -33,7 +32,6 @@ export async function addSampleContentAction(activity: string) {
   });
 }
 
-/** Removes every sample; what the company wrote stays. */
 export async function removeSampleContentAction() {
   validateActionArguments("removeSampleContentAction", {});
   return measureOperation("action:removeSampleContentAction", async () => {
@@ -53,7 +51,6 @@ export async function removeSampleContentAction() {
   });
 }
 
-/** A short-lived link to the demo website of an activity, built from its samples; nothing is saved. */
 export async function exampleWebsiteAction(activity: string, locale: string) {
   return measureOperation("action:exampleWebsiteAction", async () => {
     await requirePermission("settings", "read");

@@ -13,7 +13,6 @@ interface ReportPdfInput {
   currency: string;
 }
 
-/** A report as a PDF in the company letterhead: title, period and the table with its totals (landscape when wide). */
 export async function generateReportPdf(input: ReportPdfInput, company: CompanySettings, locale: "en" | "ar") {
   const brand = await resolvePdfBrand(company);
   const k = docKit(locale);

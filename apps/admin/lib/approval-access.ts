@@ -1,6 +1,5 @@
 import { hasPermission } from "./auth";
 
-/** Target types whose approval records a reader may see beyond their own queue. */
 const READ_ACCESS: Array<[string, Parameters<typeof hasPermission>]> = [
   ["quotation", ["quotations", "read"]],
   ["invoice", ["invoices", "read"]],

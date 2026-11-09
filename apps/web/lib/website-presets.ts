@@ -1,10 +1,6 @@
 import activityCatalog from "@platform/contracts/catalog/business-activities.json";
-// What the company does decides how its website reads and is laid out: the name and route of its catalogue
-// ("Works", "Products", "Menu"…), the item details it shows, the hero, the homepage sections, the enquiry form
-// and the modules worth switching on. The setup wizard applies a preset; everything stays editable afterwards.
 import type { WebsitePage, WebsiteSection } from "./website-config";
 
-// Spelled out (not derived from the list) so the server-action input contracts can read it.
 export type BusinessActivity =
   | "media"
   | "agency"
@@ -39,7 +35,6 @@ export function isBusinessActivity(value: unknown): value is BusinessActivity {
   );
 }
 
-/** How catalogue items are shown: video projects, priced products, listings with facts, or case studies. */
 export const COLLECTION_LAYOUTS = [
   "media",
   "product",
@@ -48,11 +43,9 @@ export const COLLECTION_LAYOUTS = [
 ] as const;
 export type CollectionLayout = (typeof COLLECTION_LAYOUTS)[number];
 
-/** The homepage opening: full-bleed media, text beside an image, or a centred headline. */
 export const HERO_STYLES = ["cinematic", "split", "centered"] as const;
 export type HeroStyle = (typeof HERO_STYLES)[number];
 
-/** Item details an activity uses; the admin catalogue form shows only these. */
 export const COLLECTION_FIELDS = [
   "client",
   "year",
@@ -67,7 +60,6 @@ export const COLLECTION_FIELDS = [
 ] as const;
 export type CollectionField = (typeof COLLECTION_FIELDS)[number];
 
-/** Optional questions on the website's quote request. */
 export interface InquiryOptions {
   budget: boolean;
   timeline: boolean;
@@ -75,7 +67,6 @@ export interface InquiryOptions {
   reference: boolean;
 }
 
-/** Optional modules (constants/features.ts) worth switching on for an activity. */
 type ModuleChoice = Partial<
   Record<
     | "crm_deals"
@@ -93,9 +84,7 @@ type ModuleChoice = Partial<
 >;
 
 export interface ActivityPreset {
-  /** lucide-react icon name shown in the wizard. */
   icon: string;
-  /** STYLE_PRESETS id suggested for this activity. */
   stylePreset: string;
   heroStyle: HeroStyle;
   collection: {
@@ -103,11 +92,9 @@ export interface ActivityPreset {
     layout: CollectionLayout;
     fields: readonly CollectionField[];
   };
-  /** Homepage sections in order; sections left out are hidden. */
   sections: readonly WebsiteSection[];
   pages: Record<WebsitePage, boolean>;
   inquiry: InquiryOptions;
-  /** The studio equipment list on the About page (media companies that rent gear). */
   showEquipment: boolean;
   modules: ModuleChoice;
 }
@@ -741,7 +728,6 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
   },
 };
 
-/** Missing activity uses neutral defaults; explicit industry selections remain unchanged. */
 export const DEFAULT_ACTIVITY: BusinessActivity = "other";
 
 export function activityPreset(activity: unknown): ActivityPreset {
@@ -750,7 +736,6 @@ export function activityPreset(activity: unknown): ActivityPreset {
   ];
 }
 
-/** Paths a catalogue can never take, because pages or the router already use them. */
 export const RESERVED_COLLECTION_SLUGS = [
   "about",
   "contact",

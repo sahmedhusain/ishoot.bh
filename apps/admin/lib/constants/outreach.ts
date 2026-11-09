@@ -1,4 +1,3 @@
-// Marketing, PR and legal: the fixed lists their records use. Runtime-free.
 
 export const CAMPAIGN_CHANNELS = [
   "social",
@@ -32,7 +31,6 @@ export const LEGAL_STATUSES = [
   "closed",
 ] as const;
 
-/** A utm_campaign value: lower-case letters, digits, dashes and underscores, from a campaign name. */
 export function utmSlug(name: string) {
   return (
     name
@@ -46,7 +44,6 @@ export function utmSlug(name: string) {
 export const isUtmSlug = (value: string) =>
   /^[a-z0-9][a-z0-9_-]{1,59}$/.test(value);
 
-/** A tracked link: the page with the campaign's utm parameters added (existing parameters kept). */
 export function trackedLink(
   url: string,
   params: {
@@ -67,14 +64,11 @@ export function trackedLink(
 export interface SegmentRules {
   minOrders?: number;
   minSpent?: number;
-  /** Ordered at least once in the last N days. */
   orderedWithinDays?: number;
-  /** Has not ordered for N days or more (lapsed customers). */
   notOrderedForDays?: number;
   city?: string;
 }
 
-/** Whether a customer's history matches a segment's rules. */
 export function matchesSegment(
   rules: SegmentRules,
   customer: {
@@ -105,6 +99,5 @@ export function matchesSegment(
   return true;
 }
 
-/** Return on a campaign's spend: revenue it brought for each unit spent (null without spend). */
 export const campaignReturn = (revenue: number, spend: number) =>
   spend > 0 ? Math.round((revenue / spend) * 100) / 100 : null;

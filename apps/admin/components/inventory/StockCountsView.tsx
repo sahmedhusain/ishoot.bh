@@ -34,7 +34,6 @@ const STATUS_TONE: Record<string, string> = {
   cancelled: "bg-ink/10 text-ink-muted",
 };
 
-/** Inventory → stock counts: the counts so far and starting a new one. */
 export function StockCountsView({ counts, warehouses, categories, canCreate }: { counts: CountRow[]; warehouses: WarehouseRecord[]; categories: ProductCategoryRecord[]; canCreate: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.counts;

@@ -52,7 +52,6 @@ function Field({
   );
 }
 
-/** One visa, permit, licence, insurance or other document with its dates and what it costs the company. */
 export function CredentialFields({
   value,
   onChange,
@@ -62,7 +61,6 @@ export function CredentialFields({
   value: EmployeeCredentialInput;
   onChange: (next: EmployeeCredentialInput) => void;
   lockKind?: boolean;
-  /** Set once the employee exists, so a copy can be uploaded; before that only a link can be given. */
   employeeId?: string;
 }) {
   const companyCurrency = useCompanyCurrency();

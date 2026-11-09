@@ -10,7 +10,6 @@ import { HANDOVER_STATUS_STYLE } from "./HandoversListView";
 
 type Row = Awaited<ReturnType<typeof listEmployeeHandovers>>[number];
 
-/** The employee's exit and leave handovers, with a shortcut to start the exit handover. */
 export function EmployeeHandoversCard({ employeeId, items, canStart }: { employeeId: string; items: Row[]; canStart: boolean }) {
   const { t, locale } = useAdminLocale();
   const e = t.employeeHandovers;

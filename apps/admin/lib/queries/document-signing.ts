@@ -9,11 +9,8 @@ import {
 export type SignableDocument = "quotation" | "invoice" | "receipt";
 
 export interface SigningState {
-  /** "live": the signer draws the signature when signing; "stored": their saved signature is applied. */
   mode?: "stored" | "live";
-  /** Approved for sending (quotations: approved and later; invoices: approval granted; receipts: recorded). */
   approved: boolean;
-  /** Invoice approval status, for the request-approval step. */
   approvalStatus?: string;
   signed: boolean;
   signedBy: { id: string; name: string } | null;
@@ -107,7 +104,6 @@ export async function getSigningState(
   };
 }
 
-/** Who may sign: the person credited with the document, its issuer, or someone allowed to send such documents. */
 export async function canSignDocument(
   type: SignableDocument,
   id: string,
@@ -123,10 +119,6 @@ export async function canSignDocument(
   );
 }
 
-/**
- * Signs and stamps an approved document with the signer's approved signature (snapshotted, so a
- * later signature change never alters an issued document). Unapproved or already-signed documents are refused.
- */
 export async function signDocument(
   type: SignableDocument,
   id: string,
@@ -146,7 +138,6 @@ export async function signDocument(
     });
     if (!signer.isActive)
       throw new Error(serverMessages.inactiveUsersCannotSignDocuments);
-    // The saved signature, or one drawn now when this document type must be signed on the spot.
     const signerSignatureUrl = await resolveSigningSignature(
       type,
       actorId,
@@ -166,7 +157,6 @@ export async function signDocument(
   });
 }
 
-/** Sends an invoice for approval (applied at once when the invoice policy is off or the requester auto-approves). */
 export async function requestInvoiceApproval(id: string, actorId: string) {
   return runAtomicMutation(async () => {
     const invoice = await db.invoice.findUniqueOrThrow({
@@ -202,7 +192,6 @@ export async function requestInvoiceApproval(id: string, actorId: string) {
   });
 }
 
-/** Sending to a client needs a signed document. */
 export async function assertSigned(type: SignableDocument, id: string) {
   const doc = await load(type, id);
   if (!doc) throw new Error(serverMessages.documentNotFound);

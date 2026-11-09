@@ -259,9 +259,9 @@ export async function getCustomerDossier(
             return filtered;
           }),
 
-      Promise.resolve([]), // Contracts not available in API
+      Promise.resolve([]),
 
-      Promise.resolve([]), // Attachments not available in API
+      Promise.resolve([]),
 
       access?.audit === false
         ? Promise.resolve([])
@@ -318,7 +318,7 @@ export async function getCustomerDossier(
       .filter(([stage]) => !isActiveDealStage(stage))
       .reduce((n, [_, s]) => n + s.count, 0);
     const winRate = decidedCount ? Math.round((wonCount / decidedCount) * 100) : 0;
-    const bhd = Object.entries(stages).filter(([stage]) => true); // Simplified
+    const bhd = Object.entries(stages).filter(([stage]) => true);
     const bhdCount = Object.values(stages).reduce((n, s) => n + s.count, 0);
     const avgDealSize = bhdCount ? Object.values(stages).reduce((n, s) => n + s.value, 0) / bhdCount : 0;
 
@@ -654,7 +654,6 @@ export async function globalAdminSearch(
   query: string,
   limit: number = 8,
   categories: ReadonlySet<string> = new Set(["customers", "invoices", "deals"]),
-  /** Data scope for deals: the owners whose deals may appear; null or missing for all. */
   dealScope?: string[] | null,
 ): Promise<GlobalSearchResult[]> {
   if (
@@ -672,7 +671,6 @@ export async function globalAdminSearch(
 
   try {
     const phoneVars = phoneSearchVariants(query);
-    // 1. Search Contacts/Customers
     const contacts = categories.has("customers")
       ? await listContacts()
       : [];
@@ -699,7 +697,6 @@ export async function globalAdminSearch(
       });
     }
 
-    // 2. Search Invoices
     const invoices = categories.has("invoices")
       ? await listInvoices()
       : [];
@@ -717,7 +714,6 @@ export async function globalAdminSearch(
       });
     }
 
-    // 3. Search Deals
     const deals = categories.has("deals")
       ? await listDeals()
       : [];
@@ -734,7 +730,6 @@ export async function globalAdminSearch(
         badge: d.stage,
       });
     }
-    // 4. People
     const people = categories.has("people")
       ? await listITAccountsForIT("service-token")
       : null;
@@ -760,7 +755,7 @@ export async function globalAdminSearch(
 
 export async function getCRMDealOverview(
   includeAnalytics = true,
-  /** Owners whose deals count; null or missing for all. */ scope?:
+   scope?:
     string[] | null,
 ) {
   const [deals, contacts] = await Promise.all([

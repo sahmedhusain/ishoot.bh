@@ -13,7 +13,6 @@ import {
 import { getCurrentUser, getStaffToken } from "../../../../lib/auth";
 import { readLoginInput } from "../../../../lib/login-input";
 
-/** Manages the signed-in person's authenticator through identity, which rechecks the password on every step. */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/mfa:POST", async () => {
     const user = await getCurrentUser();
@@ -46,7 +45,6 @@ export async function POST(req: NextRequest) {
       }
       if (typeof input.code !== "string" || input.code.length > 32)
         throw new Error("Invalid code");
-      // Identity ends every session of the account, this one included, once the authenticator changes.
       if (input.mode === "confirm") {
         const { recoveryCodes } = await confirmMFAEnrollment(token, password, input.code);
         return NextResponse.json({ recoveryCodes, enabled: true }, { headers });

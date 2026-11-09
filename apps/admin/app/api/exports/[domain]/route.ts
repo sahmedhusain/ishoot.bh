@@ -158,7 +158,6 @@ const columns = {
     "overdue",
   ],
 };
-/** A client row for the spreadsheet: the profile flattened, with every point of contact on one cell. */
 function clientRow(row: ClientListRow) {
   const a = row.address_details ?? {};
   return {
@@ -203,7 +202,6 @@ function csv(value: unknown) {
   if (typeof value === "string" && /^[\s]*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replaceAll('"', '""') + '"';
 }
-/** The company archive export: every file the viewer may see and export, in the archive's filters. */
 async function exportArchive(req: NextRequest) {
   const kinds = await archiveKindsForCurrentUser(["read", "export"]);
   if (!kinds.length)
@@ -272,7 +270,6 @@ async function exportArchive(req: NextRequest) {
     },
   });
 }
-/** The request inbox export: the same filters as the inbox, every match walked by id. */
 async function exportRequests(req: NextRequest) {
   let viewer: { id: string };
   try {
@@ -459,7 +456,6 @@ export async function GET(
       q: req.nextUrl.searchParams.get("q") || "",
       status: req.nextUrl.searchParams.get("status") || "all",
     };
-    // Deals and expenses follow the exporter's data scope, like their lists.
     const iterator = iterateListExport(
       name,
       paramsInput,

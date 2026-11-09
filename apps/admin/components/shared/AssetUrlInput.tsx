@@ -14,14 +14,12 @@ type CmsAssetResource = "banners" | "portfolio" | "clients" | "equipment" | "rev
 interface AssetUrlInputProps {
   value: string;
   onChange: (url: string) => void;
-  /** CMS resource the upload is filed under; the uploader needs write access to it. */
   resource: CmsAssetResource;
   placeholder?: string;
   required?: boolean;
   id?: string;
 }
 
-/** An image field that accepts either an uploaded file or a pasted URL, with a live preview. */
 export function AssetUrlInput({ value, onChange, resource, placeholder, required, id }: AssetUrlInputProps) {
   const { t } = useAdminLocale();
   const fileRef = React.useRef<HTMLInputElement>(null);

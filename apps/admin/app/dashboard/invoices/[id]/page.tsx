@@ -24,7 +24,6 @@ export default async function InvoiceDetailPage({
   const canReadPayments = await hasPermission("payments", "read");
   const { id } = await params;
 
-  // Invoice access alone opens the page; the payment history needs payments access.
   const [invoice, company, allPayments, attribution, salesPeople, canEdit, canAssign] = await Promise.all([
     getInvoiceById(id),
     getCachedCompanySettings(),
@@ -49,7 +48,6 @@ export default async function InvoiceDetailPage({
     hasPermission("quotations", "read"),
     hasPermission("deals", "read"),
   ]);
-  // Links card: the quotation this invoice came from and its deal, each shown only to those who can open it.
   const quotationId = (invoice as any).quotationId || (invoice as any).quotation_id;
   const dealId = (invoice as any).dealId || (invoice as any).deal_id;
   const [quotation, deal] = await Promise.all([

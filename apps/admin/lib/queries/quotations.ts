@@ -47,7 +47,6 @@ export async function createQuotation(
     discountValue?: number;
     termsEn?: string | null;
     termsAr?: string | null;
-    /** Salesperson credited with the quotation; defaults to the issuer. */
     salesOwnerId?: string | null;
     lineItems: {
       descriptionEn: string;
@@ -63,7 +62,6 @@ export async function createQuotation(
   const currency = await assertCompanyCurrency(data.currency);
   const quotationNumber = await getNextSequenceNumber("QTE");
 
-  // Same totals rules as invoices (validation, per-currency rounding).
   const { vatEnabled, vatPercentage } = await companyVat();
   const otherTaxes = await companyTaxes("quotation");
   const itemsWithTotals = data.lineItems.map((item, idx) => ({
@@ -336,7 +334,6 @@ export async function submitQuotationForApproval(
     );
   }
 
-  // Discounts within the issuer's limit need no approval; above it the issuer must explain why.
   const discount = await discountDecision(
     actorId,
     Number(quotation.subtotal),
@@ -418,7 +415,6 @@ export async function issueQuotation(
 
   if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
-  // Gating: Must be Super Admin approved before issue/send
   if (quotation.status !== "approved") {
     throw new Error(
       serverMessages.quotationDeliveryBlockedSuperAdminApprovalIs,
@@ -568,10 +564,6 @@ export async function rejectQuotation(
   return updated;
 }
 
-/**
- * Converts an accepted quotation to an invoice.
- * Idempotent link: retries return the already existing invoice.
- */
 export async function convertQuotationToInvoice(
   quotationId: string,
   actorId: string,
@@ -579,7 +571,6 @@ export async function convertQuotationToInvoice(
   await assertActorNotOnLeave(actorId);
 
   return runAtomicMutation(async () => {
-    // Lock first so two simultaneous clicks cannot both create an invoice.
     await db.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${quotationId} FOR UPDATE`;
     const quotation = await db.quotation.findUnique({
       where: { id: quotationId },
@@ -590,7 +581,6 @@ export async function convertQuotationToInvoice(
     });
     if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
-    // Idempotency: an already linked quotation returns its invoice.
     if (quotation.invoiceId) {
       const existingInv = await db.invoice.findUnique({
         where: { id: quotation.invoiceId },
@@ -632,7 +622,6 @@ export async function convertQuotationToInvoice(
         vatEnabled: quotation.vatEnabled,
         vatPercentage: quotation.vatPercentage,
         vatAmount: quotation.vatAmount,
-        // The invoice charges exactly what the client accepted, including the other taxes.
         otherTaxAmount: quotation.otherTaxAmount,
         taxes: {
           create: (quotation.taxes ?? []).map(
@@ -694,7 +683,6 @@ export async function convertQuotationToInvoice(
   });
 }
 
-/** A quotation is valid through the end of its valid-until date. */
 export function isQuotationExpired(
   validUntil: Date,
   now: Date = new Date(),
@@ -774,7 +762,6 @@ async function mapApiQuotationToQuotation(q: any): Promise<Quotation> {
       const { getContact } = await import("@platform/api-client");
       clientObj = await getContact(contactId).catch(() => null);
     } catch {
-      // ignore
     }
   }
 
@@ -839,11 +826,9 @@ export interface QuotationListSummary {
   total: number;
   pendingApproval: number;
   acceptedOrConverted: number;
-  /** Open pipeline value per currency; amounts in different currencies are never added together. */
   openValueByCurrency: Record<string, number>;
 }
 
-/** Headline figures for the quotations list, across every quotation (not just the current page). */
 export async function getQuotationListSummary(): Promise<QuotationListSummary> {
   try {
     const list = await listSalesQuotations();

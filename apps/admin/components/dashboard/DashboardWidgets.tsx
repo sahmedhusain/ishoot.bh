@@ -46,7 +46,6 @@ import { WorkloadPanels } from "./WorkloadPanels";
 
 export const widgetCard = "admin-widget h-full";
 
-/** Where an activity entry's record opens, for the types that have a page. */
 const ENTITY_LINKS: Record<string, (id: string) => string> = {
   invoice: (id) => ROUTES.invoices.detail(id),
   deal: (id) => ROUTES.crm.deal(id),
@@ -103,7 +102,6 @@ function Empty({ children }: { children?: ReactNode }) {
   return <p className="text-xs text-ink-muted py-4 text-center">{children ?? t.dashboardBoard.none}</p>;
 }
 
-/** One widget's content from the loaded data; null when its data was not loaded (added while editing). */
 export function DashboardWidget({
   id,
   data,
@@ -119,7 +117,6 @@ export function DashboardWidget({
   const b = t.dashboardBoard;
   const title = (b.widgets as Record<string, string>)[id] ?? id;
   const money = (amount: number) => <CurrencyDisplay amount={amount} currency={data.currency} />;
-  // Headline figures count up when they appear.
   const countMoney = (amount: number) => <CountUp value={amount} decimals={3} render={money} />;
   const count = (n: number, message?: string) => <CountUp value={n} render={(v) => (message ? formatMessage(message, { n: String(v) }) : v)} />;
   const name = (en: string, ar: string) => (locale === "ar" ? ar || en : en || ar);

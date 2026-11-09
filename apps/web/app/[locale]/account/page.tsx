@@ -7,7 +7,6 @@ import { AccountDashboard } from "../../../components/account/AccountDashboard";
 
 export const dynamic = "force-dynamic";
 
-/** The customer's account: sign in or create one, then profile, addresses, orders and wishlist. */
 export default async function AccountPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ signin?: string; next?: string }> }) {
   const { locale } = await params;
   await requireSiteLanguage(locale);

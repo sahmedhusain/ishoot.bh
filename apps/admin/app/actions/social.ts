@@ -25,7 +25,6 @@ interface PlanInput {
   assigneeId?: string | null;
 }
 
-/** Syncs every connected social account now. Returns per-provider results so the page can show failures. */
 export async function refreshSocialAnalyticsAction() {
   validateActionArguments("refreshSocialAnalyticsAction", {});
   return measureOperation("admin:refreshSocialAnalytics", async () => {

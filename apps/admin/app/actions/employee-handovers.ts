@@ -36,7 +36,6 @@ const log = (
     details,
   });
 
-/** Opens an exit or leave handover for an employee. */
 export async function openEmployeeHandoverAction(data: EmployeeHandoverInput) {
   return measureOperation("action:openEmployeeHandoverAction", async () => {
     const user = await requirePermission("employees", "edit");
@@ -72,7 +71,6 @@ export async function setHandoverCaseModeAction(
   });
 }
 
-/** Reassigns the pending cases (by the chosen mode, or by the person chosen for each case in manual mode). */
 export async function applyHandoverCasesAction(
   handoverId: string,
   choices: Record<string, string> = {},

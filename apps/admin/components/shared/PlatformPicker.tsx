@@ -25,7 +25,6 @@ const PLATFORM_PRESETS: PlatformOption[] = [
   { id: "custom", name: "custom", defaultIcon: "link" },
 ];
 
-/** Brand mark for a stored platform name, falling back to a generic link icon. */
 export function SocialBrandIcon({
   name,
   hint,

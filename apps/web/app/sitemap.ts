@@ -8,7 +8,6 @@ import {
 import { resolveWebsiteConfig } from "@platform/database/website-config";
 import { publicSiteUrl } from "../lib/site-url";
 
-/** Every public page, in the languages the company writes in, at the catalogue's own address. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (await publicSiteUrl()).href.replace(/\/$/, "");
   const [website, company, enabled] = await Promise.all([

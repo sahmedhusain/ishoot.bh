@@ -1,6 +1,4 @@
 "use client";
-// Choosing a status (docs/adr/0012): available, busy, do not disturb, in a meeting, away, on leave…, with an optional
-// message and when it clears. Without a choice the status follows the calendar, approved leave and activity.
 import * as React from "react";
 import { toast } from "sonner";
 import { CalendarClock, Plane } from "lucide-react";
@@ -19,7 +17,6 @@ import { clearMyStatusAction, setMyStatusAction } from "../../app/actions/presen
 import { presenceLook, useMyStatus } from "./LiveProvider";
 import { statusName, statusTime } from "./status-text";
 
-/** The current status in one line: "In a meeting · until 15:00 (from your calendar)". */
 export function StatusSummary({ className }: { className?: string }) {
   const { t, locale } = useAdminLocale();
   const s = t.presence;
@@ -177,7 +174,6 @@ function StatusEditor({ onDone }: { onDone?: () => void }) {
   );
 }
 
-/** The status editor in a dialog (from the account menu). */
 export function StatusDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { t } = useAdminLocale();
   return (

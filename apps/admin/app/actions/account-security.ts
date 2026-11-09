@@ -22,7 +22,6 @@ async function staffToken() {
   return staff;
 }
 
-/** Changes the person's own password through identity, which ends every session, including this one. */
 export async function changeMyPasswordAction(input: {
   currentPassword: string;
   newPassword: string;

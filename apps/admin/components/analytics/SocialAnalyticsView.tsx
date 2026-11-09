@@ -87,7 +87,6 @@ function Kpi({ icon, label, value, footer }: { icon: React.ReactNode; label: str
   );
 }
 
-/** Interactions per day as bars; long periods are grouped into weeks so bars stay readable. */
 function InteractionsChart({ daily }: { daily: SocialAnalytics["daily"] }) {
   const { t, locale } = useAdminLocale();
   const number = useNumber();
@@ -135,7 +134,6 @@ function PostRow({ post }: { post: SocialPostView }) {
     <li className="flex gap-3 py-3">
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface-sunken dark:bg-white/5">
         {post.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={post.thumbnailUrl} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-ink-muted">

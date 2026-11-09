@@ -14,7 +14,6 @@ import { recordSupportReimbursementAction } from "../../app/actions/payroll";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-/** Six-monthly wage-support claims (Wage support fund) built from approved payroll, with receipts. */
 export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaimRow[]; canRecord: boolean }) {
   const { t, locale } = useAdminLocale();
   const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");

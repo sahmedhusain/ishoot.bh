@@ -11,7 +11,6 @@ import { getCurrentUser, hasPermission } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-/** The signed-in user's calendar between two dates: what they may see, by layer. */
 export async function GET(request: NextRequest) {
   return measureOperation("admin:calendar/events:GET", async () => {
     const user = await getCurrentUser();

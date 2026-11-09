@@ -21,9 +21,7 @@ import { revalidatePath } from "next/cache";
 import { requireAuth, requirePermission, getCurrentUser } from "../../lib/auth";
 import { assertRecordInScope } from "../../lib/data-scope";
 
-/** A request outside the person's data scope cannot be changed, even by someone who knows its id. */
 async function requireRequestInScope(id: string) {
-  // Scope validation handled at service layer
 }
 
 export async function assignRequestAction(
@@ -132,7 +130,6 @@ export async function approveRequestAction(
   },
 ) {
   return measureOperation("action:approveRequestAction", async () => {
-    // Who may approve is defined by the service request approval policy and enforced by the engine.
     const actor = await requireAuth();
     validateActionArguments("approveRequestAction", { id, details });
     await requireRequestInScope(id);

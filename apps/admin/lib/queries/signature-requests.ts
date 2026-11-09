@@ -11,11 +11,6 @@ import { SIGNING_REQUEST_DAYS } from "../constants/signatures";
 import { validateSignatureImage } from "../services/signature-image";
 import { getAssetHandover, signAssetHandover } from "./assets";
 
-/**
- * One-time links for staff to sign a document on their own device, like the client signing link for
- * quotations: an employee receiving or returning company equipment reads the handover and signs it there.
- * The raw token is shown once; only its SHA-256 hash is stored.
- */
 export type SignatureRequestType = "asset_handover";
 
 const hashToken = (token: string) =>
@@ -35,7 +30,6 @@ async function assertSignable(type: SignatureRequestType, id: string) {
   throw new Error(serverMessages.unknownDocumentType);
 }
 
-/** A fresh link for the document; any earlier unused link stops working. Returns the raw token once. */
 export async function createSignatureRequest(
   type: SignatureRequestType,
   id: string,
@@ -117,7 +111,6 @@ export async function revokeSignatureRequest(
   return record;
 }
 
-/** Signing links for a document, newest first (tokens are never returned). */
 export async function listSignatureRequests(
   type: SignatureRequestType,
   id: string,
@@ -142,7 +135,6 @@ export async function listSignatureRequests(
   }));
 }
 
-/** The document behind a link, or why the link cannot be used. Expired links are marked as such. */
 export async function getSignatureRequestSession(token: string) {
   if (typeof token !== "string" || token.length < 30 || token.length > 100)
     return { state: "invalid" as const };
@@ -181,7 +173,6 @@ export async function getSignatureRequestSession(token: string) {
   return { state: "open" as const, record, handover };
 }
 
-/** The employee signs through the link: the signature is recorded on the handover and it moves to approval. */
 export async function signWithSignatureRequest(
   token: string,
   input: {
@@ -204,7 +195,6 @@ export async function signWithSignatureRequest(
   const { record } = session;
   return runAtomicMutation(async () => {
     const signedAt = new Date();
-    // Only one request can turn the pending link into a signature.
     const claimed = await db.signatureRequest.updateMany({
       where: { id: record.id, status: "pending", expiresAt: { gt: signedAt } },
       data: {

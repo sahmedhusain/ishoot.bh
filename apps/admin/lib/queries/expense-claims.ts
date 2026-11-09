@@ -105,7 +105,6 @@ export interface ExpenseClaimInput {
   receiptUrl: string;
 }
 
-/** Files a claim with its receipt; the caller submits it for approval in the same transaction. */
 export async function createExpenseClaim(
   input: ExpenseClaimInput,
   claimantId: string,
@@ -208,12 +207,10 @@ export interface ExpenseClaimListResult {
   };
 }
 
-/** A claimant's own claims, or (for finance) everyone's. */
 export async function listExpenseClaims(options: {
   claimantId?: string;
   status?: string;
   take?: number;
-  /** Data scope: the claimants whose claims the viewer may see; null or missing for everyone. */
   claimantIds?: string[] | null;
 }): Promise<ExpenseClaimListResult> {
   const base = options.claimantId
@@ -267,7 +264,6 @@ export async function listExpenseClaims(options: {
   };
 }
 
-/** Finance stages an approved claim for the next payment run. */
 export async function scheduleExpenseClaim(
   id: string,
   actorId: string,
@@ -298,10 +294,6 @@ export async function scheduleExpenseClaim(
   });
 }
 
-/**
- * Marks a claim reimbursed and records the expense it represents, filed against the claim's deal
- * (and so its client) or as an internal cost, already approved because the claim was.
- */
 export async function payExpenseClaim(
   id: string,
   actorId: string,
@@ -367,7 +359,6 @@ export async function payExpenseClaim(
   });
 }
 
-/** A claimant can withdraw a claim that has not been decided yet. */
 export async function cancelExpenseClaim(id: string, actorId: string) {
   return runAtomicMutation(async () => {
     const claim = await db.expenseClaim.findUniqueOrThrow({

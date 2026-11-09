@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
           { status: 403 },
         );
       }
-      // A pending upload (its record does not exist yet) is only checked; a server action claims it later.
       const pending = !entityId || entityId === "pending";
       let upload: FileRecord;
       try {

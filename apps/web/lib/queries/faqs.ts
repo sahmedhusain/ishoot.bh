@@ -19,7 +19,6 @@ export async function getFaqs(adminOnly = true) {
       }));
     }
   } catch {
-    // Fall back to direct database
   }
   try {
     return await db.faq.findMany({

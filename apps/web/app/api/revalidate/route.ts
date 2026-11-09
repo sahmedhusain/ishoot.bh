@@ -6,7 +6,6 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-// Hashing both sides gives equal lengths, so the comparison takes the same time whatever was sent.
 function secretMatches(sent: string, expected: string) {
   const digest = (value: string) => createHash("sha256").update(value).digest();
   return timingSafeEqual(digest(sent), digest(expected));

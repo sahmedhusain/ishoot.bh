@@ -18,7 +18,6 @@ import { Field } from "../setup/LanguageFields";
 import { OrderStatusPill, PaymentStatusPill } from "./OrderPills";
 import { PageHeader } from "../layout/PageHeader";
 
-/** One order: who and where, the items and totals, moving it along, payments, refunds, invoice and history. */
 type Attempt = Awaited<ReturnType<typeof orderPaymentAttempts>>[number];
 type OrderRequest = Awaited<ReturnType<typeof requestsForOrder>>[number];
 

@@ -4,9 +4,7 @@ import { Card } from "@platform/ui";
 interface DocumentCardProps {
   title: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
-  /** `main` sits in the wide column; `side` is the quieter metadata style. */
   variant?: "main" | "side";
-  /** Content at the far end of the title row. */
   action?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
@@ -56,7 +54,6 @@ export function DocumentCard({
   );
 }
 
-/** English and Arabic text side by side (terms, notes). */
 export function DocumentBilingualText({
   en,
   ar,

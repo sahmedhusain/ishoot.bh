@@ -31,7 +31,6 @@ export async function createLeaveRequestAction(data: {
   reason: string;
   fullDay?: boolean;
   hours?: number;
-  /** "full", "half_am", "half_pm" or "hours". */
   dayPortion?: "full" | "half_am" | "half_pm" | "hours";
   attachmentUrl?: string | null;
 }) {
@@ -63,7 +62,6 @@ export async function createLeaveRequestAction(data: {
         attachmentUrl: data.attachmentUrl ?? null,
       });
 
-      // The employee is the requester even when HR files on their behalf, so they can't self-approve.
       const requesterId = target?.userId ?? actor.id;
       const approval = await submitForApproval({
         targetType: "leave_request",
@@ -103,7 +101,6 @@ export async function decideLeaveRequestAction(
   notes?: string,
 ) {
   return measureOperation("action:decideLeaveRequestAction", async () => {
-    // Who may decide is defined by the leave approval policy and enforced by the engine.
     const actor = await requireAuth();
     validateActionArguments("decideLeaveRequestAction", {
       requestId,

@@ -29,7 +29,6 @@ interface InventoryStockViewProps {
 
 const qty = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 3 });
 
-/** Inventory → stock: on hand, reserved and available per item, with receive, adjust, write off and transfer. */
 export function InventoryStockView({ rows, total, page, pageSize, totalValue, filters, warehouses, expiring, currency, canEdit }: InventoryStockViewProps) {
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.stock;

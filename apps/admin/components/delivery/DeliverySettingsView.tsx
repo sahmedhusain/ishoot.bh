@@ -16,7 +16,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 type Slot = DeliveryZoneRecord["slots"][number];
 
-/** Delivery settings: who delivers and the promise, the zones with their fees, and the delivery times. */
 export function DeliverySettingsView({ settings, zones, sharedSlots, currency, languages, canEdit }: { settings: DeliverySettingsRecord; zones: DeliveryZoneRecord[]; sharedSlots: Slot[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.settings;
@@ -129,7 +128,6 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
   );
 }
 
-/** A zone's weekly delivery times, with a small form to add the same window on several days. */
 function SlotsEditor({ slots, zoneId, canEdit, busy, run }: { slots: Slot[]; zoneId: string; canEdit: boolean; busy: boolean; run: (task: () => Promise<unknown>) => Promise<boolean> }) {
   const { t } = useAdminLocale();
   const copy = t.delivery.settings;

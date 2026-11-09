@@ -1,5 +1,3 @@
-// In-app notification categories, priorities and sounds (catalog/notifications.json, ADR 0012). The notify service
-// applies the same catalogue in Go (backend/pkg/catalog).
 import catalog from "../catalog/notifications.json";
 
 export type NotificationRealm = "staff" | "it";
@@ -14,18 +12,12 @@ export const NOTIFICATION_DEFAULT_SOUND = catalog.defaultSound;
 export const NOTIFICATION_DEFAULT_VOLUME = catalog.defaultVolume;
 export const NOTIFICATION_CATEGORIES: readonly NotificationCategory[] = catalog.categories;
 
-/** The category with this key. */
 export const notificationCategory = (key: string) =>
   NOTIFICATION_CATEGORIES.find((c) => c.key === key);
 
-/** The categories of one realm, in catalogue order. */
 export const realmCategories = (realm: NotificationRealm) =>
   NOTIFICATION_CATEGORIES.filter((c) => c.realms.includes(realm));
 
-/**
- * The categories a person may receive and configure: personal ones always, role ones when one of their
- * permissions ("resource:action") allows it.
- */
 export function allowedCategories(
   realm: NotificationRealm,
   allows: (resource: string, action: string) => boolean,
@@ -42,7 +34,6 @@ export function allowedCategories(
     .map((c) => c.key);
 }
 
-/** The category of a notification that did not name one: by message key, then entity type, then the fallback. */
 export function categoryFor(
   realm: NotificationRealm,
   messageKey?: string | null,

@@ -41,7 +41,6 @@ export async function requestProfileChange(
   )
     throw new Error(serverMessages.profileSecurityError8);
 
-  // Check email uniqueness if email is changing
   if (
     proposed.email &&
     proposed.email.toLowerCase().trim() !== user.email.toLowerCase().trim()
@@ -64,7 +63,6 @@ export async function requestProfileChange(
     email: proposed.email?.toLowerCase().trim() || user.email,
   };
 
-  // Supersede previous pending profile changes
   await db.profileChangeRequest.updateMany({
     where: { userId, status: "pending" },
     data: { status: "cancelled" },
@@ -91,7 +89,6 @@ export async function requestProfileChange(
   };
 }
 
-/** Applies an approval decided by the approval engine (which enforces who may decide). */
 export async function approveProfileChange(
   requestId: string,
   deciderId: string,
@@ -121,7 +118,6 @@ export async function approveProfileChange(
   const newVals = req.newValues as { fullName?: string; email?: string };
 
   const updated = await db.$transaction(async (tx) => {
-    // Check email uniqueness again inside the transaction
     if (newVals.email && newVals.email !== req.user.email) {
       const emailConflict = await tx.user.findFirst({
         where: { email: newVals.email, id: { not: req.userId } },
@@ -131,7 +127,6 @@ export async function approveProfileChange(
       }
     }
 
-    // Update the user's active login identity
     await tx.user.update({
       where: { id: req.userId },
       data: {
@@ -140,7 +135,6 @@ export async function approveProfileChange(
       },
     });
 
-    // Update employee record if linked
     await tx.employee.updateMany({
       where: { userId: req.userId },
       data: {
@@ -173,7 +167,6 @@ export async function approveProfileChange(
   };
 }
 
-/** Applies a rejection decided by the approval engine. */
 export async function rejectProfileChange(
   requestId: string,
   deciderId: string,

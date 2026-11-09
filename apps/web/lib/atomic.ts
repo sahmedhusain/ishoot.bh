@@ -45,7 +45,6 @@ function createModelProxy(): any {
   });
 }
 
-// Deprecated in-memory stub for unmigrated query files awaiting backend Go API endpoints
 export const db: DbClient = new Proxy(
   {} as DbClient,
   {

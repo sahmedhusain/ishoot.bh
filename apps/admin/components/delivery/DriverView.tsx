@@ -15,7 +15,6 @@ import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { ShipmentStatusPill } from "./ShipmentPills";
 import { PageHeader } from "../layout/PageHeader";
 
-/** A driver's stops: call, navigate, set off, and record each delivery with proof (or why it failed). */
 export function DriverView({ stops, linked }: { stops: DriverStop[]; linked: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.delivery.driverView;

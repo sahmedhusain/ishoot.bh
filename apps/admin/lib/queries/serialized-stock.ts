@@ -4,7 +4,6 @@ import { requireStockLocationAccess } from "./branches";
 import { postMovements } from "./inventory";
 import { uniqueSerials } from "../constants/stock-traceability";
 
-/** Scan every generated label before activating its association with existing physical stock. */
 export async function verifyGeneratedSerials(
   generationId: string,
   scannedCodes: string[],
@@ -59,7 +58,6 @@ export interface SerialBinMove {
   serials: { code: string; revision: number }[];
   idempotencyKey: string;
 }
-/** A put-away/bin relocation within one warehouse. Branch dispatch uses a separate transit workflow. */
 export async function moveSerialsBetweenBins(
   input: SerialBinMove,
   actorId: string,

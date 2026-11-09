@@ -1,4 +1,3 @@
-// Shared look of the account forms (the contact form's fields and buttons).
 export const field =
   "w-full px-4 py-3 rounded-brand bg-m3-surface-container-low border border-m3-outline-variant text-m3-on-surface text-sm placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary transition-colors duration-150 font-sans";
 export const primaryButton =
@@ -22,7 +21,6 @@ export function statusTone(status: string): string {
   }
 }
 
-/** Posts to the account API; resolves with the JSON body or throws the error key. */
 export async function accountPost<T = { success: boolean }>(
   action: string,
   body: Record<string, unknown>,

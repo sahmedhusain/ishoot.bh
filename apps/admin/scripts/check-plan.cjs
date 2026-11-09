@@ -6,16 +6,6 @@ function resolveAdmin(file) {
   if (file.startsWith("apps/admin/")) return path.join(adminRoot, file.slice("apps/admin/".length));
   return path.resolve(adminRoot, file);
 }
-/**
- * Comprehensive verification script for Admin Dashboard Plan requirements.
- * Covers:
- * 1. Super Admin maker-checker and financial gating (quotes, invoices, discounts, payroll)
- * 2. Approved leave availability constraints (assignee availability, actor work creation blocking)
- * 3. 3% FX margin calculation and separation from raw rate
- * 4. Financial purity (cash vs accrual, VAT-exclusive net profit, formula-safe CSV)
- * 5. Idempotent quotation to invoice conversion
- * 6. User lifecycle protection (session revocation on suspension, last super admin invariant)
- */
 const { realConstants } = require("./lib/real-constants.cjs");
 
 const assert = require("node:assert/strict");
@@ -69,11 +59,6 @@ function loadTs(file, mocks) {
 async function runTests() {
   console.log("Starting Admin Dashboard Plan Verification...\n");
 
-  // Approval routing (maker-checker, policies, self-approval) is covered by scripts/check-approvals.cjs.
-
-  // =========================================================================
-  // Test 2: Approved Leave Availability Constraints
-  // =========================================================================
   console.log("\nTest 2: Approved Leave Availability Constraints...");
 
   const employeeRecord = {
@@ -84,12 +69,10 @@ async function runTests() {
     lastNameEn: "Hassan",
   };
 
-  // Approved leave between Oct 10 and Oct 20
   const leaveStartDate = new Date("2026-10-10T00:00:00.000Z");
   const leaveEndDate = new Date("2026-10-20T23:59:59.999Z");
 
   const leaveQueries = loadTs("../apps/admin/lib/queries/leave.ts", {
-    // Leave rules and balances are not used by the availability checks below.
     "./hr-settings": { getHrPolicy: async () => ({}), holidaySet: async () => new Set(), listLeaveTypeRules: async () => [], toLeaveTypeRules: (row) => row },
     "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => { } },
     "../db": {
@@ -127,7 +110,6 @@ async function runTests() {
     },
   });
 
-  // 2.1 Overlapping assignment is blocked
   const assignmentStart = new Date("2026-10-12T00:00:00.000Z");
   const assignmentEnd = new Date("2026-10-15T00:00:00.000Z");
 
@@ -137,19 +119,16 @@ async function runTests() {
     "Assignee availability must throw when approved leave overlaps",
   );
 
-  // 2.2 User ID lookup also identifies employee leave
   await assert.rejects(
     leaveQueries.assertAssigneeAvailable("user-101", assignmentStart, assignmentEnd),
     /Assignment conflict.*approved leave/i,
     "User ID lookup must block on employee approved leave",
   );
 
-  // 2.3 Non-overlapping period is available
   const futureStart = new Date("2026-10-25T00:00:00.000Z");
   const futureEnd = new Date("2026-10-30T00:00:00.000Z");
   await leaveQueries.assertAssigneeAvailable("emp-101", futureStart, futureEnd);
 
-  // 2.4 Actor on approved leave cannot perform mutations
   const duringLeave = new Date("2026-10-14T12:00:00.000Z");
   await assert.rejects(
     leaveQueries.assertActorNotOnLeave("user-101", duringLeave),
@@ -159,12 +138,9 @@ async function runTests() {
   await leaveQueries.assertActorNotOnLeave("super-admin", duringLeave);
   console.log("  ✓ Leave availability blocks employee work; Super Admin remains authorized");
 
-  // =========================================================================
-  // Test 3: 3% FX Margin Calculation and Separation from Raw Rate
-  // =========================================================================
   console.log("\nTest 3: 3% FX Margin Calculation and Separation...");
 
-  const rawRateUsd = 2.65957; // 1 BHD = 2.65957 USD
+  const rawRateUsd = 2.65957;
   const expectedMarginPercent = 3.0;
   const expectedEffectiveRate = Math.round(rawRateUsd * 1.03 * 1000000) / 1000000;
 
@@ -174,18 +150,13 @@ async function runTests() {
     "3% FX buffer calculation on raw rate should match expected value",
   );
 
-  // Test quotation totals calculation with FX
-  const bhdSubtotal = 1000; // 1,000 BHD
+  const bhdSubtotal = 1000;
   const calculatedUsdTotal = Math.round(bhdSubtotal * expectedEffectiveRate * 100) / 100;
   assert.equal(calculatedUsdTotal, 2739.36);
 
-  // Verify raw rate and effective rate remain separate distinct metrics
   assert.notEqual(rawRateUsd, expectedEffectiveRate);
   console.log("  ✓ 3% FX margin correctly embedded in totals while preserving raw rate");
 
-  // =========================================================================
-  // Test 4: Financial Purity (No VAT in Net Profit, Cash vs Accrual)
-  // =========================================================================
   console.log("\nTest 4: Financial Report Purity and Formula-Safe CSV...");
 
   const mockInvoices = [
@@ -201,7 +172,6 @@ async function runTests() {
     { bankFeeBhd: 5, fxGainLossBhd: 2 },
   ];
 
-  // The report sums in the database; these stand-ins apply the same sums and the stored-net split to the rows above.
   const sumFields = (rows, fields) =>
     Object.fromEntries(Object.keys(fields).map((field) => [field, rows.reduce((total, row) => total + Number(row[field] ?? 0), 0)]));
   const netFilter = (args) => args.where?.AND?.find((part) => part.netAmount)?.netAmount;
@@ -228,29 +198,21 @@ async function runTests() {
   });
 
   const accrualReport = await reportQueries.getFinancialSummaryReport({ basis: "accrual" });
-  // Accrual net revenue = 1,000 (VAT 100 excluded)
   assert.equal(accrualReport.invoicedNet, 1000);
   assert.equal(accrualReport.invoicedOutputVat, 100);
 
-  // Operating expenses: Net expenses (200) + Non-recoverable VAT (0) + Payroll (300) + Bank fees (5) = 505
-  // Realized FX = +2
-  // Operating profit = 1,000 - 505 + 2 = 497
   assert.equal(accrualReport.operatingProfit, 497);
 
-  // Critical: VAT is NOT counted in operating profit
   assert.ok(
     accrualReport.operatingProfit < accrualReport.invoicedGross - 505,
     "Operating profit must never include output VAT",
   );
 
-  // Cash report
   const cashReport = await reportQueries.getFinancialSummaryReport({ basis: "cash" });
-  // Payment of 550 gross -> net 500, vat 50
   assert.equal(cashReport.cashGrossReceipts, 550);
   assert.equal(cashReport.cashNetReceipts, 500);
   assert.equal(cashReport.cashOutputVat, 50);
 
-  // Formula-safe CSV export test: strings starting with =, +, -, @ must be escaped
   assert.equal(reportQueries.escapeCsvField("=SUM(A1:B1)"), "'=SUM(A1:B1)");
   assert.equal(reportQueries.escapeCsvField("+12345"), "'+12345");
   assert.equal(reportQueries.escapeCsvField("@malicious"), "'@malicious");
@@ -260,9 +222,6 @@ async function runTests() {
   assert.ok(!csvContent.includes("\n+"), "CSV must not contain unescaped leading plus signs");
   console.log("  ✓ Financial purity verified: VAT excluded from profit, cash/accrual segregated, CSV formula safe");
 
-  // =========================================================================
-  // Test 5: Idempotent Quotation to Invoice Conversion
-  // =========================================================================
   console.log("\nTest 5: Idempotent Quotation to Invoice Conversion...");
 
   let quotationDb = {
@@ -327,13 +286,11 @@ async function runTests() {
     },
   });
 
-  // First conversion
   const firstConvert = await quotationConversionQueries.convertQuotationToInvoice("q-accepted-1", "admin-actor");
   assert.equal(firstConvert.isExisting, false);
   assert.equal(firstConvert.invoiceId, "inv-created-99");
   assert.equal(quotationDb.invoiceId, "inv-created-99");
 
-  // Second conversion (Retry / Duplicate call) -> MUST return existing without recreating
   const secondConvert = await quotationConversionQueries.convertQuotationToInvoice("q-accepted-1", "admin-actor");
   assert.equal(secondConvert.isExisting, true);
   assert.equal(secondConvert.invoiceId, "inv-created-99");
@@ -343,9 +300,6 @@ async function runTests() {
   assert.equal(Math.round(due), 14, "due date follows company payment terms");
   console.log("  ✓ Quotation to invoice conversion is strictly idempotent");
 
-  // =========================================================================
-  // Test 6: User Lifecycle and Super Admin Invariant
-  // =========================================================================
   console.log("\nTest 6: User Lifecycle & Super Admin Invariant...");
 
   let activeSuperAdmins = [
@@ -405,21 +359,18 @@ async function runTests() {
     },
   });
 
-  // 6.1 Last Super Admin cannot be suspended or deactivated
   await assert.rejects(
     userQueries.updateUser("sa-1", { is_active: false }),
     /keep at least one active super administrator/i,
     "The last active Super Admin must not be deactivated",
   );
 
-  // 6.2 Last Super Admin cannot be demoted to another role
   await assert.rejects(
     userQueries.updateUser("sa-1", { role: "admin" }),
     /keep at least one active super administrator/i,
     "The last active Super Admin must not be demoted",
   );
 
-  // 6.3 Last Super Admin cannot be deleted
   await assert.rejects(
     userQueries.deleteUser("sa-1"),
     /keep at least one active super administrator/i,

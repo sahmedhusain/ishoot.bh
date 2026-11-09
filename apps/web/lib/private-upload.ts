@@ -1,9 +1,5 @@
 import { deleteFile, isApiError, storeFile, type FileRecord } from "@platform/api-client";
 
-/**
- * Stores a website visitor's attachment (inquiry or order help) privately. The files service reads the real type
- * from the bytes, enforces the size limit and names the file "<prefix>_<random>.<ext>".
- */
 export async function storePrivateUpload(
   req: Request,
   namePrefix: "inquiry" | "customer",
@@ -33,6 +29,5 @@ export async function storePrivateUpload(
   return Response.json({ error: "generic" }, { status: 503 });
 }
 
-/** Removes an attachment that could not be filed. */
 export const discardPrivateUpload = (fileUrl: string) =>
   deleteFile(fileUrl).catch(() => undefined);

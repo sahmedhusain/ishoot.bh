@@ -1,5 +1,3 @@
-// The shared catalogue (contracts/catalog) must equal the TypeScript constants it was taken from, so Go and the
-// apps never disagree. `pnpm catalog:sync` rewrites the catalogue from the TypeScript constants (CATALOG_WRITE=1).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";

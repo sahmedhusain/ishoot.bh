@@ -1,4 +1,3 @@
-/** A report's period from a query: valid "YYYY-MM-DD" dates, else this month so far. */
 export function reportPeriod(
   query: { from?: string | null; to?: string | null },
   now = new Date(),

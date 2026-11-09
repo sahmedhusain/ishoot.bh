@@ -3,7 +3,6 @@
 import { UserX } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Shown wherever self-service HR needs an employee record the user does not have. */
 export function NoEmployeeProfile() {
   const { t } = useAdminLocale();
   return (

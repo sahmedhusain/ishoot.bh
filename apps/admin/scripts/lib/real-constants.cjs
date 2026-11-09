@@ -1,4 +1,3 @@
-// Test harness helper: constants and money helpers are pure, so harnesses load the real files instead of mocking them.
 const path = require("node:path");
 const fs = require("node:fs");
 const ts = require("typescript");

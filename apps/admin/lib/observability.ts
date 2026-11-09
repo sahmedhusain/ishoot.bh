@@ -34,7 +34,6 @@ export async function measureOperation<T>(
         result.success === false
       )
         failed = true;
-      // Never serialize buffers or streaming bodies to measure a response.
       if (context.record && !(result instanceof Response)) {
         try {
           bytes = Buffer.byteLength(JSON.stringify(result));

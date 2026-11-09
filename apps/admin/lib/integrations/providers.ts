@@ -10,11 +10,6 @@ import {
   type SocialOwnerMetricId,
 } from "../constants/integrations";
 
-/**
- * Thin clients for each provider's public API. Tokens go in headers only, so URLs and error messages never
- * contain credentials. Every call has a timeout; failures surface the provider's own message.
- */
-
 import { checkSignInCredentials } from "../services/oauth-signin";
 import { isPaymentGateway } from "../constants/payments";
 import { GatewayError, paymentGateway } from "../payments/gateways";
@@ -63,7 +58,6 @@ export interface SocialSnapshot {
   posts: FetchedPost[];
   ownerInsights?: Partial<Record<SocialPlatformId, OwnerInsightState>>;
   ownerReadings?: OwnerInsightReading[];
-  /** Server-only; sync persists these encrypted and returns counts, never the snapshot. */
   refreshedCredentials?: Credentials;
 }
 
@@ -207,7 +201,6 @@ async function request<T>(
   return body as T;
 }
 
-/** Pulls the human-readable message out of the error shapes these APIs use. */
 function providerMessage(body: unknown): string | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
@@ -233,8 +226,6 @@ function need(credentials: Credentials, ...keys: string[]) {
         formatMessage(serverTemplates.providerMissingField, { field: key }),
       );
 }
-
-// ---------- Meta (Facebook Page + Instagram Business) ----------
 
 interface GraphList<T> {
   data?: T[];
@@ -365,8 +356,6 @@ async function metaSnapshot(c: Credentials): Promise<SocialSnapshot> {
   }
   return snapshot;
 }
-
-// ---------- YouTube ----------
 
 async function youtubeSnapshot(
   c: Credentials,
@@ -670,7 +659,6 @@ async function youtubeOwnerInsights(
     );
     state.status = "ready";
     state.periodErrors = {};
-    // Serialize these reads so a rate-limit response stops subsequent report requests.
     for (const period of OWNER_PERIODS) {
       const from = offsetDay(through, 1 - period);
       try {
@@ -728,8 +716,6 @@ async function youtubeOwnerInsights(
       ).toISOString();
   }
 }
-
-// ---------- TikTok ----------
 
 interface TikTokEnvelope<T> {
   data?: T;
@@ -843,8 +829,6 @@ async function tiktokSnapshot(c: Credentials): Promise<SocialSnapshot> {
   return snapshot;
 }
 
-// ---------- X ----------
-
 async function xSnapshot(c: Credentials): Promise<SocialSnapshot> {
   need(c, "username", "bearerToken");
   const username = c.username.replace(/^@/, "");
@@ -933,8 +917,6 @@ async function xSnapshot(c: Credentials): Promise<SocialSnapshot> {
   return snapshot;
 }
 
-// ---------- LinkedIn ----------
-
 const linkedinHeaders = {
   "LinkedIn-Version": "202609",
   "X-Restli-Protocol-Version": "2.0.0",
@@ -978,7 +960,6 @@ const SNAPSHOTS: Partial<
   linkedin: linkedinSnapshot,
 };
 
-/** Fetches follower counts and recent posts for a social provider. */
 export async function fetchSocialSnapshot(
   provider: IntegrationProviderId,
   credentials: Credentials,
@@ -1016,8 +997,6 @@ export async function fetchSocialSnapshot(
     throw new ProviderError(serverMessages.providerInvalidResponse);
   }
 }
-
-// ---------- WhatsApp & Resend ----------
 
 async function checkWhatsApp(c: Credentials): Promise<ConnectionCheck> {
   need(c, "phoneId", "token");
@@ -1065,7 +1044,6 @@ async function checkResend(c: Credentials): Promise<ConnectionCheck> {
   return { ok: true, accountName: domain.name };
 }
 
-/** A health check reads one account endpoint; it never crawls posts or sends a message. */
 async function checkSocialConnection(
   provider: IntegrationProviderId,
   c: Credentials,
@@ -1127,7 +1105,6 @@ async function checkSocialConnection(
   return { ok: true, accountName: org.localizedName };
 }
 
-/** Confirms the stored credentials work, without changing anything at the provider. */
 export async function checkConnection(
   provider: IntegrationProviderId,
   credentials: Credentials,

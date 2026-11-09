@@ -40,8 +40,6 @@ export async function createConsolidatedRequest(
     await assertActorNotOnLeave(actorId);
   }
 
-  // Generate sequence reference e.g. SR-2026-000001 or CR-2026-000001
-  // Change requests (CR) are retired: client feedback arrives as inquiries and is triaged in the inbox.
   if ((data.requestType as string) === "CR")
     throw new Error(serverMessages.changeRequestsAreNoLongerCreatedLog);
   const reference = await getNextSequenceNumber(
@@ -126,10 +124,6 @@ export async function createConsolidatedRequest(
   return inquiry;
 }
 
-/**
- * The single assignment path for SR/CR: locks the row, validates the workflow state and the assignee's
- * availability, then records the assignment history.
- */
 export async function assignConsolidatedRequest(
   id: string,
   newAssigneeId: string,
@@ -160,7 +154,6 @@ export async function assignConsolidatedRequest(
       where: { id: actorId },
       select: { fullName: true },
     });
-    // Requests still being received or reviewed take an assignment even if someone was noted on them earlier.
     const isFirstAssignment =
       canTransitionRequest(request.workflowStatus, "assign") &&
       (!request.assignedToId ||
@@ -174,7 +167,6 @@ export async function assignConsolidatedRequest(
         notes: reason || undefined,
       });
     } else {
-      // Re-assigning work that is waiting for approval withdraws that approval.
       if (request.workflowStatus === "pending_approval")
         await cancelPendingApprovals("service_request", id);
       await reassignRequest(id, {
@@ -321,7 +313,6 @@ type RawConsolidatedRequest = Prisma.InquiryGetPayload<{
   include: typeof consolidatedRequestInclude;
 }>;
 
-/** A request with everything its detail page shows. Money is converted to numbers so it can cross into client components. */
 export type ConsolidatedRequest = Omit<
   RawConsolidatedRequest,
   "convertedDeal" | "quotations"
@@ -363,19 +354,15 @@ export async function getConsolidatedRequestById(
 
 export interface RequestListFilters {
   kind?: RequestKind | "all";
-  /** "open" (default) hides resolved/archived/rejected; any workflow status narrows further. */
   status?: string;
   scope?: "all" | "mine" | "unassigned";
   team?: string;
   priority?: string;
-  /** Kept for old links: the same as due = "overdue". */
   overdue?: boolean;
-  /** "overdue", "today" (due by end of today), "week" (due within 7 days) or "none" (no SLA date). */
   due?: string;
   assignee?: string;
   source?: string;
   customerId?: string;
-  /** Received on or after / on or before (YYYY-MM-DD). */
   from?: string;
   to?: string;
   search?: string;
@@ -428,7 +415,6 @@ function requestWhere(
     workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
   };
   const and: Prisma.InquiryWhereInput[] = [];
-  // Data scope: only requests assigned to someone the viewer may see.
   if (visible) and.push({ assignedToId: { in: visible } });
   if (filters.kind && filters.kind !== "all") and.push(kindWhere(filters.kind));
   const status = filters.status || "open";
@@ -498,7 +484,6 @@ const REQUEST_ORDER: Record<
   Exclude<RequestSort, "priority">,
   Prisma.InquiryOrderByWithRelationInput[]
 > = {
-  // Most urgent first: overdue SLAs, then newest.
   urgency: [
     { slaDueDate: { sort: "asc", nulls: "last" } },
     { createdAt: "desc" },
@@ -534,7 +519,6 @@ const listSelect = {
 } satisfies Prisma.InquirySelect;
 type ListRecord = Prisma.InquiryGetPayload<{ select: typeof listSelect }>;
 
-/** One page of matches. Priority order (urgent, high, normal) walks the priority buckets in turn. */
 async function requestPage(
   where: Prisma.InquiryWhereInput,
   sort: RequestSort,
@@ -552,7 +536,6 @@ async function requestPage(
   const buckets = ["urgent", "high", "normal"];
   const rest: Prisma.InquiryWhereInput = { priority: { notIn: buckets } };
   const groups = [...buckets.map((priority) => ({ priority })), rest];
-  // Bucket sizes from one grouped count; anything outside the named buckets falls in the last one.
   const counted = await db.inquiry.groupBy({ by: ["priority"], where, _count: { _all: true } });
   const sizes = buckets.map((priority) => counted.find((row) => row.priority === priority)?._count._all ?? 0);
   sizes.push(counted.filter((row) => !buckets.includes(row.priority as string)).reduce((sum, row) => sum + row._count._all, 0));
@@ -602,7 +585,6 @@ function toRow(r: ListRecord, now: Date): RequestListRow {
   };
 }
 
-/** Every match for the CSV export, walked by id. */
 export async function getRequestExportBatch(
   filters: RequestListFilters,
   viewerId: string,
@@ -622,7 +604,6 @@ export async function getRequestExportBatch(
   return rows.map((r) => toRow(r, now));
 }
 
-/** The request inbox: lean rows, server-side filters and sorting, and the counters the managers need. */
 export async function getRequestList(
   filters: RequestListFilters,
   viewerId: string,

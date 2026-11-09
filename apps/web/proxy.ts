@@ -62,7 +62,6 @@ function localized(request: NextRequest) {
     );
   }
 
-  // Pages that redirect between languages need the requested path, which server components cannot read.
   const forwarded = new Headers(request.headers);
   forwarded.set("x-pathname", pathname);
   return NextResponse.next({ request: { headers: forwarded } });

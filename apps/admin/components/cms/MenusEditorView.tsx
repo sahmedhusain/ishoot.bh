@@ -14,7 +14,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 type PageOption = { id: string; title_en: string; title_ar: string; in_header: boolean; in_footer: boolean; is_visible: boolean; page_type: string };
 
-/** The menus the pages' own header and footer flags give, as a starting point for editing. */
 function menusFromPages(pages: PageOption[]): WebsiteMenus {
   const item = (page: PageOption): WebsiteMenuItem => ({ kind: "page", pageId: page.id, labelEn: "", labelAr: "" });
   const home = pages.find((page) => page.page_type === "home");
@@ -25,7 +24,6 @@ function menusFromPages(pages: PageOption[]): WebsiteMenus {
   };
 }
 
-/** Website → Menus: the header and footer links, and where the articles live. */
 export function MenusEditorView({ initialMenus, articles: initialArticles, pages, languages }: { initialMenus: WebsiteMenus | null; articles: WebsiteArticles; pages: PageOption[]; languages: readonly ContentLanguage[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.cmsMenus;

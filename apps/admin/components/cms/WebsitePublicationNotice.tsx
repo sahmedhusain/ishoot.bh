@@ -2,7 +2,6 @@ import { getWebsitePublicationStatus, type WebsiteSnapshotSection } from "@platf
 import { hasPermission } from "../../lib/auth";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 
-/** Server wrapper: loads the publication status for a CMS collection page. */
 export async function WebsitePublicationNotice({ section }: { section: WebsiteSnapshotSection }) {
   const [status, canPublish] = await Promise.all([
     getWebsitePublicationStatus(),

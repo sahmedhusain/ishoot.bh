@@ -2,7 +2,6 @@ import * as React from "react";
 
 export interface DocumentStatusMeta {
   label: string;
-  /** Classes for the round icon badge. */
   color: string;
   icon: React.ComponentType<{ className?: string }>;
 }
@@ -10,12 +9,9 @@ export interface DocumentStatusMeta {
 interface DocumentStatusBannerProps {
   status: string;
   statusMeta: Record<string, DocumentStatusMeta>;
-  /** Key used when `status` has no entry. */
   fallback: string;
   caption: React.ReactNode;
-  /** Replaces the map's label (e.g. a list-specific status name). */
   label?: React.ReactNode;
-  /** Trailing content: delivery channel, balance due. */
   children?: React.ReactNode;
 }
 

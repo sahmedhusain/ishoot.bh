@@ -1,4 +1,3 @@
-/** Application email validation; delivery and mailbox ownership still require verification. */
 export function normalizeEmail(email?: string | null): string {
   const clean = email?.trim().toLowerCase() ?? "";
   const at = clean.lastIndexOf("@");

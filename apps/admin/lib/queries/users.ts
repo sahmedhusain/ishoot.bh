@@ -135,23 +135,19 @@ export async function verifyUserCredentials(
   email: string,
   plainTextPassword: string,
 ): Promise<Profile | null> {
-  // This should be handled by the sign-in flow in the app using identity.signIn
   throw new Error("verifyUserCredentials is handled by identity.signIn");
 }
 
 export async function updateUserLastLogin(id: string): Promise<void> {
-  // Handled by backend on sign-in.
 }
 
 async function validateManager(managerId: string, userId?: string) {
-  // Logic moved to backend.
 }
 
 export async function setUserDiscountLimit(
   userId: string,
   limit: number | null,
 ): Promise<{ discount_limit_percent: number | null; [key: string]: any }> {
-  // Not implemented in API.
   throw new Error("setUserDiscountLimit is not implemented in API");
 }
 

@@ -9,7 +9,6 @@ export const generateMetadata = () => pageMetadata("approvals/[type]/[id]");
 
 export const dynamic = "force-dynamic";
 
-/** One request under review: what it is, who asked, the approval steps, and approve or reject right here. */
 export default async function ApprovalItemPage({
   params,
 }: {
@@ -17,7 +16,6 @@ export default async function ApprovalItemPage({
 }) {
   const [{ type, id }, user] = await Promise.all([params, requireAuth()]);
   const target = approvalTargetUrl(type, id);
-  // Records with their own decision screen are reviewed there.
   if (!target.startsWith("/dashboard/approvals/")) redirect(target);
   const item = await getApprovalItem(type, id, user);
   if (!item) notFound();

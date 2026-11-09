@@ -53,18 +53,15 @@ describe("delivery", () => {
   test("slot times are local to the store's time zone", () => {
     expect(defaultTimeZone("bh")).toBe("Asia/Bahrain");
     expect(defaultTimeZone(null)).toBe("UTC");
-    // 09:00 in Bahrain (UTC+3) is 06:00 UTC.
     expect(
       zonedMoment("2026-06-01", "09:00", "Asia/Bahrain").toISOString(),
     ).toBe("2026-06-01T06:00:00.000Z");
-    // 22:30 UTC on the 1st is already the 2nd in Bahrain.
     expect(zonedDate(new Date("2026-06-01T22:30:00Z"), "Asia/Bahrain")).toBe(
       "2026-06-02",
     );
   });
 
   test("customers see the coming slots, not ones about to start or already full", () => {
-    // Monday 2026-06-01, 08:30 in Bahrain.
     const now = new Date("2026-06-01T05:30:00Z");
     const slots = [
       {
@@ -110,7 +107,6 @@ describe("delivery", () => {
       "Asia/Bahrain",
       60,
     );
-    // The 09:00 slot starts in 30 minutes (lead time 60), Tuesday's is full, the capital's slot is not this zone's.
     expect(open.slice(0, 2).map((s) => `${s.date} ${s.slotId}`)).toEqual([
       "2026-06-01 pm",
       "2026-06-08 am",

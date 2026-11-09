@@ -29,7 +29,6 @@ export function GeneralInfoTab({
 }: GeneralInfoTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Legal & Corporate Registration Card */}
       <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
         <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
@@ -123,7 +122,6 @@ export function GeneralInfoTab({
         </div>
       </Card>
 
-      {/* Communications & Platforms Card */}
       <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
         <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">

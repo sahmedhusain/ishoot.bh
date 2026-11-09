@@ -44,11 +44,8 @@ interface NewQuotationFormViewProps {
   preselectedClientId?: string;
   dealId?: string;
   inquiryId?: string;
-  /** The issuer's discount limit in % (null = unlimited). */
   discountLimit?: number | null;
-  /** The company sends every quotation for approval regardless of discount. */
   alwaysNeedsApproval?: boolean;
-  /** People a quotation can be credited to; it defaults to the issuer. */
   salesPeople?: { id: string; name: string }[];
   currentUserId?: string;
 }
@@ -80,20 +77,16 @@ export function NewQuotationFormView({
     return contacts.find((c) => c.id === selectedContactId) || null;
   }, [contacts, selectedContactId]);
 
-  // Quotation Meta
   const currency = company?.default_currency ?? "";
   const [language, setLanguage] = React.useState<"en" | "ar">("ar");
   const [validUntilDays, setValidUntilDays] = React.useState(30);
   const [salesOwnerId, setSalesOwnerId] = React.useState(currentUserId ?? "");
-  // VAT & Discount
-  // VAT follows the company registration only; quotations never toggle it.
 
   const vatEnabled = company?.vat_enabled ?? false;
   const vatPercentage = vatEnabled ? Number(company?.vat_percentage ?? 10) : 0;
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
 
-  // Bilingual Terms
   const [termsEn, setTermsEn] = React.useState<string>(
     company?.terms_en ?? "",
   );
@@ -101,7 +94,6 @@ export function NewQuotationFormView({
     company?.terms_ar ?? "",
   );
 
-  // Line items
   const [lineItems, setLineItems] = React.useState<LineItemDraft[]>([
     {
       serviceId: services.length > 0 ? services[0].id : null,
@@ -137,7 +129,6 @@ export function NewQuotationFormView({
     setLineItems((prev) =>
       prev.map((item, idx) => {
         if (idx !== index) return item;
-        // A hand-typed price stops following the catalogue rate.
         return { ...item, [field]: value, ...(field === "unitPrice" && { basePriceBhd: null }) };
       }),
     );
@@ -161,7 +152,6 @@ export function NewQuotationFormView({
     );
   };
 
-  // Pricing calculations
   const subtotal = React.useMemo(() => {
     return lineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
   }, [lineItems]);
@@ -180,7 +170,6 @@ export function NewQuotationFormView({
   const vatAmount = vatEnabled
     ? Math.round(taxableAmount * (vatPercentage / 100) * 1000) / 1000
     : 0;
-  // Taxes besides VAT from the company registry when VAT is enabled.
   const { taxes: registeredTaxes } = useCompanyVat();
   const otherTaxes = vatEnabled
     ? registeredTaxes
@@ -254,7 +243,6 @@ export function NewQuotationFormView({
 
   return (
     <form inert={submitting} aria-busy={submitting} onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8 pb-16">
-      {/* Top Breadcrumb & Action bar */}
       <PageHeader
         back={{ href: ROUTES.quotations.list }}
         eyebrow={qfT.commercialEngine}
@@ -277,9 +265,7 @@ export function NewQuotationFormView({
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Form Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Client Selection Card */}
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <div className="flex items-center justify-between border-b border-outline-variant pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2">
@@ -317,7 +303,6 @@ export function NewQuotationFormView({
             </div>
           </Card>
 
-          {/* Line Items Card */}
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <div className="flex items-center justify-between border-b border-outline-variant pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2">
@@ -444,7 +429,6 @@ export function NewQuotationFormView({
             </div>
           </Card>
 
-          {/* Terms & Conditions */}
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono">
               {qfT.termsTitle}
@@ -477,9 +461,7 @@ export function NewQuotationFormView({
           </Card>
         </div>
 
-        {/* Right 1 Col: Financial parameters */}
         <div className="space-y-6">
-          {/* Settings & Currency */}
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-2">
               {t.newQuotationForm.parametersAndPolicy}
@@ -545,7 +527,6 @@ export function NewQuotationFormView({
 
           </Card>
 
-          {/* VAT & Discounts */}
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-2">
               {qfT.discountsTaxesTitle}
@@ -594,7 +575,6 @@ export function NewQuotationFormView({
             </div>
           </Card>
 
-          {/* Real-time Summary Card */}
           <Card className="p-6 bg-primary text-primary-foreground rounded-lg space-y-4 shadow-sm" data-page-section>
             <h2 className="text-xs font-mono uppercase tracking-widest text-mint">
               {qfT.summaryTitle}

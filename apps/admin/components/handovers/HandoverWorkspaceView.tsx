@@ -41,10 +41,6 @@ import { PageHeader } from "../layout/PageHeader";
 type User = { id: string; name: string };
 const MODES = ["delegate", "spread", "manual"] as const;
 
-/**
- * One exit or leave handover: the employee's open cases and who takes them over (one person, shared across a
- * team, or chosen case by case), the company assets to bring back, HR's checklist, and the approval.
- */
 export function HandoverWorkspaceView({
   handover,
   held,
@@ -60,7 +56,6 @@ export function HandoverWorkspaceView({
   canEdit: boolean;
   canReturnAssets: boolean;
   approvalId: string | null;
-  /** Approvers draw their signature when approving. */
   signatureRequired?: boolean;
 }) {
   const confirmAction = useConfirmation();
@@ -174,7 +169,6 @@ export function HandoverWorkspaceView({
         </div>
         <div className="flex flex-wrap gap-2 self-start">
           {handover.kind === "exit" && handover.status !== "cancelled" ? (
-            // What the leaving employee is owed is settled in their final settlement.
             <Link
               href={ROUTES.hr.newSettlement({
                 employeeId: handover.employee.id,
@@ -265,7 +259,6 @@ export function HandoverWorkspaceView({
         ) : null}
       </section>
 
-      {/* ---- open cases */}
       <section className={card}>
         {heading(
           <Briefcase className="h-4 w-4 text-accent" />,
@@ -430,7 +423,6 @@ export function HandoverWorkspaceView({
         ) : null}
       </section>
 
-      {/* ---- company assets */}
       <section className={card}>
         {heading(<Laptop className="h-4 w-4 text-accent" />, e.assetsTitle)}
         <p className="text-[11px] text-ink-muted">
@@ -512,7 +504,6 @@ export function HandoverWorkspaceView({
         ) : null}
       </section>
 
-      {/* ---- HR checklist */}
       <section className={card}>
         {heading(
           <ClipboardCheck className="h-4 w-4 text-accent" />,
@@ -605,7 +596,6 @@ export function HandoverWorkspaceView({
         </ul>
       </section>
 
-      {/* ---- submit and approval */}
       <section className={card}>
         {heading(<Send className="h-4 w-4 text-accent" />, e.approvalTitle)}
         {handover.status === "open" ? (

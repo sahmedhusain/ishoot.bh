@@ -1,6 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-/** An upload-only capability for a freshly saved inquiry; it grants no read access to customer files. */
 export function inquiryUploadToken(
   id: string,
   secret: string,

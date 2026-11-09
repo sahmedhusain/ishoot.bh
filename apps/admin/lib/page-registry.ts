@@ -9,7 +9,6 @@ import {
   Timer, TrendingUp, Truck, UserCircle, Users, Users2, Warehouse, Bell, Mail,
 } from "lucide-react";
 
-/** Sidebar group a page belongs to; its label (t.navigationGroups) is the eyebrow above the page title. */
 type PageGroup =
   | "workspace" | "sales" | "store" | "products" | "procurement" | "delivery" | "work" | "operations"
   | "finance" | "people" | "personal" | "communications" | "marketing" | "legal" | "content" | "administration";
@@ -19,10 +18,6 @@ interface PageSection {
   group: PageGroup;
 }
 
-/**
- * Every dashboard section, keyed by its route under /dashboard ("" is the home page). Detail, new and edit pages
- * inherit the icon and group of the nearest section above them. Icons match the sidebar.
- */
 const SECTIONS: Record<string, PageSection> = {
   "": { icon: LayoutDashboard, group: "workspace" },
   notifications: { icon: Bell, group: "workspace" },
@@ -135,10 +130,6 @@ const SECTIONS: Record<string, PageSection> = {
   users: { icon: ShieldCheck, group: "administration" },
 };
 
-/**
- * Route patterns of every dashboard page, as their folders are named ("invoices/[id]"); each has a title and a
- * description under `pages` in the admin dictionaries. A test keeps this list in step with app/dashboard.
- */
 const PAGE_KEYS = [
   "", "analytics", "announcements", "announcements/[id]", "announcements/new", "approvals", "approvals/[type]/[id]",
   "archive", "assets", "assets/[id]", "assets/categories", "assets/handovers/[id]", "assets/new", "calendar", "claims",
@@ -172,12 +163,10 @@ export type PageKey = (typeof PAGE_KEYS)[number];
 
 const DASHBOARD = "/dashboard";
 const dynamicSegment = /^\[[^\]]+\]$/;
-// Literal routes first, so "orders/new" wins over "orders/[id]".
 const MATCH_ORDER = [...PAGE_KEYS].sort(
   (a, b) => a.split("/").filter((s) => dynamicSegment.test(s)).length - b.split("/").filter((s) => dynamicSegment.test(s)).length,
 );
 
-/** The page pattern a dashboard pathname was served from, or null outside the dashboard. */
 export function pageKeyForPath(pathname: string): PageKey | null {
   const clean = pathname.replace(/[?#].*$/, "").replace(/\/+$/, "");
   if (clean !== DASHBOARD && !clean.startsWith(`${DASHBOARD}/`)) return null;
@@ -190,7 +179,6 @@ export function pageKeyForPath(pathname: string): PageKey | null {
   return null;
 }
 
-/** Icon and sidebar group of a page: its own section, or the nearest section above it. */
 export function pageSection(key: PageKey): PageSection {
   const parts = key ? key.split("/") : [];
   for (let length = parts.length; length >= 0; length--) {

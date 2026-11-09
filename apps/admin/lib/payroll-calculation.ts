@@ -74,7 +74,6 @@ export function calculateContributions(
   };
 }
 
-/** How a month's support splits across programmes (a configured wage-support programme), capped like the payroll total. */
 export function supportBreakdown(
   fixedPay: number,
   settings: EmployeePayrollSettings | null,

@@ -10,7 +10,6 @@ import { errorMessage } from "../../../lib/error-text";
 import { saveSetupThemeAction } from "../../../app/actions/setup";
 import { ThemeEditor } from "../../setup/ThemeEditor";
 
-/** Colours, fonts, corners and default mode after setup; saving re-themes both apps. */
 export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme }) {
   const router = useRouter();
   const { t } = useAdminLocale();

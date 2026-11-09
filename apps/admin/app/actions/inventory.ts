@@ -33,7 +33,6 @@ function revalidateStock(productId?: string) {
   if (productId) revalidatePath(ROUTES.products.detail(productId));
 }
 
-/** Receives, adjusts or writes off stock at a location (the stock page's "Change stock"). */
 export async function changeStockAction(input: StockChangeInput) {
   return measureOperation("action:changeStockAction", async () => {
     await requireFeatureEnabled("products");
@@ -84,7 +83,6 @@ export async function transferStockAction(input: TransferInput) {
   });
 }
 
-/** Saves the reorder levels of a product's items (one per variant, or one for the product). */
 export async function saveReorderPointsAction(
   productId: string,
   levels: {
@@ -197,7 +195,6 @@ export async function saveCountedAction(
   });
 }
 
-/** Scanning during a count: finds the item by barcode or SKU and adds a line for it when it has none. */
 export async function scanCountItemAction(
   countId: string,
   code: string,
@@ -227,7 +224,6 @@ export async function scanCountItemAction(
   });
 }
 
-/** Moves a count between counting and review, or cancels it. */
 export async function setStockCountStatusAction(
   countId: string,
   status: "review" | "counting" | "cancelled",

@@ -18,33 +18,27 @@ export interface FinancialSummaryReport {
   periodStart?: string;
   periodEnd?: string;
 
-  // Accrual / Invoiced sales
   invoicedGross: number;
   invoicedNet: number;
   invoicedOutputVat: number;
 
-  // Cash / Receipts
   cashGrossReceipts: number;
   cashNetReceipts: number;
   cashOutputVat: number;
 
-  // Operating Costs / Expenses
   totalExpensesGross: number;
   expensesNet: number;
   inputVatTotal: number;
   inputVatRecoverable: number;
   inputVatNonRecoverable: number;
 
-  // Other Financial Components
   payrollCostsTotal: number;
   bankFeesTotal: number;
   realizedFxGainLoss: number;
 
-  /** Documents in other currencies are excluded until converted; this counts them. */
   excludedForeignCurrencyDocuments: number;
 
-  // Operating Profit
-  operatingProfit: number; // For cash: cashNet - (expensesNet + inputVatNonRecoverable + payroll + bankFees) + FX
+  operatingProfit: number;
   netMarginPercentage: number;
 }
 
@@ -215,7 +209,6 @@ export async function getFinancialSummaryReport(filters: {
 export function escapeCsvField(val: unknown): string {
   if (val === null || val === undefined) return "";
   let str = String(val);
-  // Formula injection defense: disallow leading =, +, -, @
   if (
     str.startsWith("=") ||
     str.startsWith("+") ||
@@ -279,7 +272,6 @@ export function generateFinancialSummaryCsv(
   ].join("\n");
 }
 
-// Preserve precision when historical currencies coexist; each document is displayed in its own minor units.
 const roundReportValue = (n: number) => Math.round(n * 1_000_000) / 1_000_000;
 
 export interface InvoiceRegisterRow {
@@ -292,7 +284,6 @@ export interface InvoiceRegisterRow {
   vatApplied: boolean;
   net: number;
   vat: number;
-  /** Taxes besides VAT. */
   otherTaxes: number;
   gross: number;
   paid: number;
@@ -366,11 +357,6 @@ const clientName = (
 ) =>
   c ? c.companyName || [c.firstName, c.lastName].filter(Boolean).join(" ") : "";
 
-/**
- * Line-level detail behind the summary: every invoice in the period (any currency, with and without
- * VAT), and company-currency breakdowns of costs, monthly results, clients, deals and the VAT position. Amounts
- * in the breakdowns are net of VAT; payroll comes from paid payroll runs plus payroll-type expenses.
- */
 export async function getFinancialReportDetail(filters: {
   dateFrom?: Date;
   dateTo?: Date;
@@ -475,7 +461,6 @@ export async function getFinancialReportDetail(filters: {
   const claimsPaid = { _sum: { amount: 0 }, _count: { _all: 0 } };
   const claimsOutstanding = { _sum: { amount: 0 } };
 
-  // Invoice register and with/without-VAT totals per currency.
   const invoices: InvoiceRegisterRow[] = invoiceRows.map((inv) => {
     const gross = Number(inv.totalAmount);
     const vat = Number(inv.vatAmount);
@@ -519,7 +504,6 @@ export async function getFinancialReportDetail(filters: {
     totalsByCurrency.set(inv.currency, t);
   }
 
-  // Costs by category, type and scope (BHD, net of VAT).
   const byCategory = new Map<
     string,
     FinancialReportDetail["expensesByCategory"][number]
@@ -552,7 +536,6 @@ export async function getFinancialReportDetail(filters: {
     const gross = Number(e.amount);
     const inputVat = Number(e.inputVatAmount);
     const stored = Number(e.netAmount);
-    // Non-recoverable VAT is a real cost, so it stays in the expense.
     const net =
       (stored > 0 ? stored : gross - inputVat) +
       (e.isVatRecoverable ? 0 : inputVat);
@@ -590,7 +573,6 @@ export async function getFinancialReportDetail(filters: {
     if (run.paidAt)
       month(monthKey(run.paidAt)).payroll += Number(run.totalEmployerCost);
 
-  // Revenue per month on the selected basis, net of VAT.
   let outputVat = 0;
   let otherTaxes = 0;
   if (basis === "cash") {
@@ -616,7 +598,6 @@ export async function getFinancialReportDetail(filters: {
       }
   }
 
-  // Clients and deals (accrual, BHD invoices in the period).
   const clients = new Map<
     string,
     { clientId: string; name: string; net: number; invoices: number }
@@ -711,7 +692,6 @@ export async function getFinancialReportDetail(filters: {
   };
 }
 
-/** Detail sections appended to the summary CSV: monthly results, invoice register and costs by category. */
 export function generateFinancialDetailCsv(
   detail: FinancialReportDetail,
   showVat: boolean,

@@ -1,10 +1,5 @@
 import type { PermissionResource } from "./permissions";
 
-/**
- * Every file the company keeps, wherever it was attached: uploads on clients, deals, invoices, quotations,
- * payments, expenses and claims, employee files and permits, leave evidence, company and legal documents,
- * tax certificates, and the records the system issues and has signed (salary documents, asset handovers).
- */
 export const ARCHIVE_GROUPS = [
   "legal",
   "hr",
@@ -15,7 +10,6 @@ export const ARCHIVE_GROUPS = [
 ] as const;
 export type ArchiveGroup = (typeof ARCHIVE_GROUPS)[number];
 
-/** Each kind of document, the group it is filed under and the permission needed to see it. */
 export const ARCHIVE_KINDS = {
   company_document: { group: "legal", resource: "settings" },
   company_setting: { group: "legal", resource: "settings" },
@@ -58,5 +52,4 @@ export const ARCHIVE_EXPIRY_FILTERS = [
   "valid",
   "none",
 ] as const;
-/** Documents expiring within this many days count as expiring soon. */
 export const ARCHIVE_EXPIRING_DAYS = 60;

@@ -130,7 +130,7 @@ export async function listSuppliers(
     vat_number: c.vatNumber ?? "",
     lead_time_days: c.supplierLeadTimeDays,
     payment_terms_days: c.supplierPaymentTermsDays,
-    open_orders: 0, // Count not available in API
+    open_orders: 0,
   }));
 }
 
@@ -145,71 +145,58 @@ export async function saveSupplier(input: any) {
 }
 
 export async function saveRequisition(input: any, userId: string): Promise<{ id: string; number: string; [key: string]: any }> {
-  // Must be a single API call.
   throw new Error("saveRequisition must be implemented as a single API call in Go backend");
 }
 
 export async function submitRequisition(id: string, userId: string): Promise<{ status: string; [key: string]: any }> {
-  // Must be a single API call.
   throw new Error("submitRequisition must be implemented as a single API call in Go backend");
 }
 
 export async function cancelRequisition(id: string): Promise<any> {
-  // Not available in API.
   throw new Error("cancelRequisition is not implemented in API");
 }
 
 export async function listRequisitions(
   filter: { status?: string; requestedById?: string } = {},
 ): Promise<any[]> {
-  // Not available in API.
   return [];
 }
 
 export async function getRequisition(id: string): Promise<any> {
-  // Not available in API.
   return null;
 }
 
 export async function createRfq(input: any, userId: string): Promise<{ id: string; number: string; [key: string]: any }> {
-  // Must be a single API call.
   throw new Error("createRfq must be implemented as a single API call in Go backend");
 }
 
 export async function listRfqs(): Promise<any[]> {
-  // Not available in API.
   return [];
 }
 
 export async function getRfq(id: string): Promise<any> {
-  // Not available in API.
   return null;
 }
 
 export async function saveRfqQuotes(rfqId: string, supplierId: string, quotes: any[]): Promise<any> {
-  // Must be a single API call.
   throw new Error("saveRfqQuotes must be implemented as a single API call in Go backend");
 }
 
 export async function listPurchaseOrders(
   filter: { status?: string; supplierId?: string; search?: string; page?: number; pageSize?: number; [key: string]: any } = {},
 ): Promise<{ rows: PurchaseOrderRecord[]; total: number }> {
-  // Not available in API.
   return { rows: [], total: 0 };
 }
 
 export async function getPurchaseOrder(id: string): Promise<PurchaseOrderRecord | null> {
-  // Not available in API.
   return null;
 }
 
 export async function savePurchaseOrder(input: any, userId: string): Promise<{ id: string; number: string; [key: string]: any }> {
-  // Must be a single API call.
   throw new Error("savePurchaseOrder must be implemented as a single API call in Go backend");
 }
 
 export async function issuePurchaseOrder(id: string, actorId: string): Promise<{ status: string; [key: string]: any }> {
-  // Must be a single API call.
   throw new Error("issuePurchaseOrder must be implemented as a single API call in Go backend");
 }
 
@@ -218,17 +205,14 @@ export async function recordPurchaseReceipt(
   receipts: any[],
   userId: string,
 ): Promise<any> {
-  // Must be a single API call.
   throw new Error("recordPurchaseReceipt must be implemented as a single API call in Go backend");
 }
 
 export async function listPurchaseReceipts(id: string): Promise<any[]> {
-  // Not available in API.
   return [];
 }
 
 export async function listPurchaseBills(id: string): Promise<any[]> {
-  // Not available in API.
   return [];
 }
 
@@ -237,12 +221,10 @@ export async function recordPurchaseBill(
   bill: any,
   userId: string,
 ): Promise<any> {
-  // Must be a single API call.
   throw new Error("recordPurchaseBill must be implemented as a single API call in Go backend");
 }
 
 export async function getPurchaseOrder_details(id: string): Promise<any> {
-  // Not available in API.
   return null;
 }
 
@@ -254,6 +236,6 @@ export async function procurementProductOptions() {
     name_en: p.nameEn,
     name_ar: p.nameAr,
     cost: Number(p.costPrice),
-    variants: [], // Variants would need separate calls
+    variants: [],
   }));
 }

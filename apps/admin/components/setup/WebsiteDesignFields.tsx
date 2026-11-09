@@ -9,7 +9,6 @@ import {
 } from "@platform/database/constants/website-design";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Edits the snapshot's design, using the existing website draft/preview/publication controls. */
 export function WebsiteDesignFields({
   design,
   onChange,

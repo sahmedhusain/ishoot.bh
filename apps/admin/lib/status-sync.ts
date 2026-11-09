@@ -1,6 +1,3 @@
-// Keeps people's automatic statuses in step with the calendar and approved leave (docs/adr/0012): a full sync of the
-// coming weeks every STATUS_SYNC_MS (default two minutes; 0 turns it off). Single changes are also sent as they are
-// saved, so this mainly repairs what was missed.
 import { syncAllStatusWindows } from "@platform/database/services/status-windows";
 
 const state = globalThis as { __statusSync?: ReturnType<typeof setTimeout> };
@@ -20,7 +17,6 @@ export function startStatusSync() {
     state.__statusSync = setTimeout(tick, every);
     state.__statusSync.unref?.();
   };
-  // Shortly after start, then regularly.
   state.__statusSync = setTimeout(tick, 5_000);
   state.__statusSync.unref?.();
 }

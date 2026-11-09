@@ -28,7 +28,6 @@ export default async function RequestsPage({
     scope,
     team: value("team") || "all",
     priority: value("priority") || "all",
-    // Old links used overdue=true.
     due: value("overdue") === "true" ? "overdue" : oneOf("due", REQUEST_DUE_FILTERS),
     assignee: value("assignee") || "all",
     source: oneOf("source", REQUEST_SOURCES),

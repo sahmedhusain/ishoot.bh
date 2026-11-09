@@ -46,7 +46,6 @@ export function clearSignInState(response: NextResponse) {
   });
 }
 
-/** The opaque flow state binds the provider callback to the initiating browser; nonce/PKCE stay in identity. */
 export function setSignInState(
   response: NextResponse,
   state: SignInState,

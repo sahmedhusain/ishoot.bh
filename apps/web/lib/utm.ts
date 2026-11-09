@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 
-/** The campaign stored by UtmCapture, read back on the server (never trusted beyond its shape). */
 export function campaignFrom(req: NextRequest) {
   const raw = req.cookies.get("platform-utm")?.value;
   if (!raw) return null;

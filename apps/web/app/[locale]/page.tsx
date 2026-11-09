@@ -19,14 +19,12 @@ import { isWebsitePreview } from "../../lib/website";
 import { CmsPageView, findPage } from "../../components/blocks/CmsPageView";
 import { ScrollReveal } from "../../components/shared/ScrollReveal";
 
-/** Sections with no entrance of their own rise into view as a whole (about and stats use Reveal inside). */
 const REVEAL_SECTIONS: readonly WebsiteSection[] = ["clients", "services", "portfolio", "reviews", "faq"];
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const [{ website: snapshot, company, info }, reviews, preview] = await Promise.all([getSite(), getReviews(false), isWebsitePreview()]);
   if (!snapshot) return null;
-  // The homepage built from blocks; websites published before pages existed keep the fixed layout below.
   const page = findPage(snapshot.pages, { type: "home" }, preview);
   if (page === null) notFound();
   if (page) return <CmsPageView page={page} locale={locale} />;
@@ -35,7 +33,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const catalogueItems = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) as number | undefined } : item);
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
-  // Full-screen media needs a banner; without one the centred headline opens the page.
   const heroStyle = info.heroStyle === "cinematic" && !website.banners.length ? "centered" : info.heroStyle;
   const components: Record<WebsiteSection, React.ReactNode> = {
     about: <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />,
@@ -45,7 +42,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     stats: <StatsSection stats={website.stats} />,
     reviews: <ReviewsSection reviews={reviews} />,
     faq: <FAQSection faqs={website.faqs} />,
-    cta: null, // The shared footer provides the closing project enquiry.
+    cta: null,
   };
   let lightBand = 0;
   const sections = website.config.sections

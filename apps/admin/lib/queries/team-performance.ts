@@ -35,7 +35,6 @@ export interface TeamHistoryItem {
   date: string;
 }
 
-/** The people a user manages: direct reports, plus members of departments they head. */
 export async function getTeamMembers(
   managerId: string,
   includeEveryone = false,
@@ -72,7 +71,6 @@ export async function getTeamMembers(
   });
 }
 
-/** Per-member KPIs for a period: quotations, credited sales and collections (BHD, net of VAT), service requests and leave. */
 export async function getTeamPerformance(
   memberIds: string[],
   from: Date,
@@ -253,7 +251,6 @@ export async function getTeamPerformance(
     );
 }
 
-/** A member's recent quotations, credited invoices and service requests. */
 export async function getMemberHistory(
   userId: string,
   take = 12,

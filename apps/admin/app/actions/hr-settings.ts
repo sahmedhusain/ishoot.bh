@@ -25,7 +25,6 @@ function revalidateHr() {
   revalidatePath(ROUTES.hr.payroll());
 }
 
-/** Pay day, attendance cut-off, weekend, daily rate, overtime and lateness rules. */
 export async function updateHrPolicyAction(policy: {
   salaryTiming: string;
   payDay: number;
@@ -189,8 +188,6 @@ export async function addLeaveAdjustmentAction(input: {
     return { id: adjustment.id };
   });
 }
-
-// ---------- Attendance ----------
 
 export async function saveAttendanceAction(input: {
   employeeId: string;

@@ -54,14 +54,12 @@ export function NewRequestFormView({
   const [priority, setPriority] = React.useState<string>("normal");
   const [slaDueDate, setSlaDueDate] = React.useState<string>("");
 
-  // Client Selection / Entry
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
   const [fullName, setFullName] = React.useState<string>("");
   const [email, setEmail] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
   const [company, setCompany] = React.useState<string>("");
 
-  // Scope & Services
   const [selectedServiceIds, setSelectedServiceIds] = React.useState<string[]>(
     [],
   );
@@ -69,13 +67,11 @@ export function NewRequestFormView({
   const [targetTimeline, setTargetTimeline] = React.useState<string>("");
   const [message, setMessage] = React.useState<string>("");
 
-  // Routing
   const [team, setTeam] = React.useState<string>("production");
   const [assignedToId, setAssignedToId] = React.useState<string>("");
 
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  // Sync contact details when selecting an existing contact
   const handleSelectContact = (contact: CRMContact | null) => {
     setSelectedContactId(contact?.id ?? "");
     if (contact) {
@@ -157,7 +153,6 @@ export function NewRequestFormView({
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-24">
-      {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <Link
           href={ROUTES.requests.list}
@@ -173,11 +168,9 @@ export function NewRequestFormView({
         </span>
       </div>
 
-      {/* Header */}
       <PageHeader />
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Section 1: Ticket Classification */}
         <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Sparkles className="w-4 h-4 text-accent" />
@@ -281,7 +274,6 @@ export function NewRequestFormView({
           </div>
         </div>
 
-        {/* Section 2: Requester / CRM Contact */}
         <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center justify-between pb-2 border-b border-outline-variant dark:border-white/5">
             <div className="flex items-center gap-2">
@@ -297,7 +289,6 @@ export function NewRequestFormView({
             )}
           </div>
 
-          {/* Quick Contact Picker — server-side search, never the whole directory */}
           {canPickContact && (
             <ClientAutocomplete
               label={
@@ -376,7 +367,6 @@ export function NewRequestFormView({
           </div>
         </div>
 
-        {/* Section 3: Scope, Services & Details */}
         <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Layers className="w-4 h-4 text-accent" />
@@ -385,7 +375,6 @@ export function NewRequestFormView({
             </h2>
           </div>
 
-          {/* Service items picker */}
           {services.length > 0 && (
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-ink">
@@ -459,7 +448,6 @@ export function NewRequestFormView({
           </label>
         </div>
 
-        {/* Section 4: Operational Assignment & Routing */}
         <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Clock className="w-4 h-4 text-accent" />
@@ -521,7 +509,6 @@ export function NewRequestFormView({
           </div>
         </div>
 
-        {/* Submit Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/80 dark:border-white/10">
           <Link href={ROUTES.requests.list}>
             <Button variant="outline" type="button" disabled={isSubmitting}>

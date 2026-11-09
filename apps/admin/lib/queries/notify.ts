@@ -6,7 +6,6 @@ import type {
 import { createNotification } from "./notifications";
 import { hasPermission } from "./permissions";
 
-/** Sends one notification to every active person whose role grants the permission (user overrides aside). */
 export async function notifyUsersWithPermission(
   resource: PermissionResource,
   action: PermissionAction,

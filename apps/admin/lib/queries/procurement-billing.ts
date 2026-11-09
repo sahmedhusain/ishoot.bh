@@ -34,8 +34,6 @@ const supplierName = (c: {
   lastName: string | null;
 }) => c.companyName || [c.firstName, c.lastName].filter(Boolean).join(" ");
 
-// ─── Goods received ──────────────────────────────────────────────────────────────────────────────────────────────
-
 export interface GoodsReceiptInput {
   locationId: string;
   note: string;
@@ -49,11 +47,6 @@ export interface GoodsReceiptInput {
   }[];
 }
 
-/**
- * Receives goods against an order (all or part): accepted catalogue items enter stock at the ordered price
- * (moving their average cost); rejected items are recorded with the reason. Nothing beyond the order is received.
- * Returns the low-stock items for alerts.
- */
 export async function receiveGoods(
   orderId: string,
   input: GoodsReceiptInput,
@@ -105,7 +98,6 @@ export async function receiveGoods(
         rejected < 0
       )
         throw new Error(serverMessages.stockQuantityInvalid);
-      // Accepted plus rejected may not go beyond what was ordered.
       if (
         num(line.receivedQuantity) +
           num(line.rejectedQuantity) +
@@ -166,7 +158,6 @@ export async function receiveGoods(
     const updated = await tx.purchaseOrderLine.findMany({
       where: { purchaseOrderId: order.id },
     });
-    // A line whose remainder was all rejected counts as done; the order is received when nothing is outstanding.
     const status = orderReceiptStatus(
       updated.map((l) => ({
         quantity: num(l.quantity),
@@ -182,8 +173,6 @@ export async function receiveGoods(
     return { receipt, low };
   });
 }
-
-// ─── Supplier bills ──────────────────────────────────────────────────────────────────────────────────────────────
 
 export interface SupplierBillInput {
   id?: string;
@@ -203,7 +192,6 @@ export interface SupplierBillInput {
   }[];
 }
 
-/** Lines to bill from an order: what was received and not yet billed, at the ordered price. */
 export async function billableOrderLines(orderId: string) {
   const order = await db.purchaseOrder.findUnique({
     where: { id: orderId },
@@ -371,7 +359,6 @@ export async function getSupplierBill(id: string) {
   const counted = bill.status !== "draft" && bill.status !== "cancelled";
   const lines: BillLineMatch[] = bill.lines.map((l) => {
     const o = l.orderLine;
-    // Once approved, this bill's own quantities are part of the order line's billed total.
     const billedBefore = o
       ? round3(num(o.billedQuantity) - (counted ? num(l.quantity) : 0))
       : null;
@@ -444,7 +431,6 @@ export type SupplierBillRecord = NonNullable<
   Awaited<ReturnType<typeof getSupplierBill>>
 >;
 
-/** The expense category supplier bills are recorded under, created the first time. */
 async function purchasesCategory() {
   const en = getTranslations("en").admin.procurement.bills;
   const ar = getTranslations("ar").admin.procurement.bills;
@@ -463,10 +449,6 @@ async function purchasesCategory() {
   });
 }
 
-/**
- * Approves a draft bill: the three-way match must pass, or a reason must be given to approve it anyway. The order
- * lines count the billed quantities, and the bill is recorded as an expense (with its input VAT) for the books.
- */
 export async function approveSupplierBill(
   id: string,
   userId: string,
@@ -541,7 +523,6 @@ export interface SupplierPaymentInput {
   reference: string;
 }
 
-/** Records a payment to the supplier against an approved bill; never more than is still owed. */
 export async function recordSupplierPayment(
   billId: string,
   input: SupplierPaymentInput,
@@ -610,12 +591,6 @@ export async function listSupplierBills(
   }));
 }
 
-// ─── Supplier performance and prices ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * How each supplier delivers: average days from order to first delivery, the share of orders delivered by the
- * expected date, the share of items rejected, and what has been billed.
- */
 export async function supplierPerformance() {
   const orders = await db.purchaseOrder.findMany({
     where: { status: { notIn: ["draft", "cancelled"] } },
@@ -713,7 +688,6 @@ export async function supplierPerformance() {
   return result;
 }
 
-/** What a product has been ordered at, newest first, with the supplier: its purchase price history. */
 export async function purchasePriceHistory(productId: string, limit = 10) {
   const lines = await db.purchaseOrderLine.findMany({
     where: {
@@ -746,10 +720,6 @@ export async function purchasePriceHistory(productId: string, limit = 10) {
   }));
 }
 
-/**
- * Keeps the supplier's own bill (a scan or PDF) on the bill as a private file; an approved bill's expense gets it
- * as its receipt too. The upload is claimed by the caller (it verifies the stored bytes and who uploaded them).
- */
 export async function setSupplierBillFile(id: string, fileUrl: string) {
   const bill = await db.supplierBill.findUnique({
     where: { id },

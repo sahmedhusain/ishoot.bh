@@ -49,8 +49,6 @@ const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
-// ─── Settings and coupons ────────────────────────────────────────────────────────────────────────────────────────
-
 export async function getStoreSettings() {
   const s = await db.storeSettings.upsert({
     where: { id: "default" },
@@ -84,7 +82,6 @@ export interface StoreSettingsInput {
   bankInstructionsEn: string;
   bankInstructionsAr: string;
   orderNotifyEmail: string;
-  /** A payment gateway id for "Pay online", or empty for none. */
   paymentGateway?: string;
 }
 
@@ -197,9 +194,6 @@ export async function saveCoupon(input: CouponInput) {
     : db.coupon.create({ data });
 }
 
-// ─── What the website sells ──────────────────────────────────────────────────────────────────────────────────────
-
-/** Current prices for catalogue cards, in one query; authored project prices stay independent. */
 export async function catalogueProductPrices(itemIds: string[]) {
   const products = await db.product.findMany({
     where: { catalogueItemId: { in: itemIds }, isActive: true },
@@ -208,7 +202,6 @@ export async function catalogueProductPrices(itemIds: string[]) {
   return new Map(products.map(product => [product.catalogueItemId!, Math.min(...(product.variants.length ? product.variants.map(variant => num(variant.price ?? product.price)) : [num(product.price)]))]));
 }
 
-/** The product behind a catalogue item, with each variant's price and what is available to sell. */
 export async function storeProductForItem(catalogueItemId: string) {
   const product = await db.product.findFirst({
     where: { catalogueItemId, isActive: true },
@@ -270,10 +263,6 @@ export type CartProblem =
   | "no_delivery_zone"
   | "below_minimum";
 
-/**
- * Prices a cart from the catalogue (never from the browser): each line's current price, whether it can still be
- * sold in that quantity, the coupon, delivery and VAT. Lines that cannot be sold are reported, not priced.
- */
 export async function quoteCart(
   input: {
     lines: CartLine[];
@@ -415,8 +404,6 @@ export async function quoteCart(
       };
   }
   const delivery = input.fulfilment === "delivery";
-  // Delivery zones, when the company uses them, set the fee, minimum order and free-delivery threshold by address.
-  // Without an address yet (the cart), the zone that covers everywhere else, or the cheapest, gives the estimate.
   const zones = delivery ? await activeZoneTerms() : [];
   const hasAddress = !!(
     input.address?.area?.trim() || input.address?.city?.trim()
@@ -455,8 +442,6 @@ export async function quoteCart(
 }
 export type CartQuote = Awaited<ReturnType<typeof quoteCart>>;
 
-// ─── Placing orders ──────────────────────────────────────────────────────────────────────────────────────────────
-
 export interface OrderAddress {
   name: string;
   phone: string;
@@ -487,13 +472,10 @@ export interface PlaceOrderInput {
   customerId?: string | null;
   contactId?: string | null;
   createdById?: string | null;
-  /** The delivery slot the customer chose, if any. */
   slot?: ShipmentSlotChoice | null;
-  /** The marketing campaign that brought the customer, when known. */
   utm?: { campaign: string; source: string; medium: string } | null;
 }
 
-/** The CRM contact for an order: the customer's, the one given, else one matched or created by e-mail. */
 async function orderContact(tx: Tx, input: PlaceOrderInput) {
   if (input.contactId) return input.contactId;
   if (input.customerId) {
@@ -527,10 +509,6 @@ async function orderContact(tx: Tx, input: PlaceOrderInput) {
   ).id;
 }
 
-/**
- * Places an order: prices the cart again, holds the stock (at the default warehouse's location with the most
- * available, else any warehouse), counts the coupon, and records the order with its first history entry.
- */
 export async function placeOrder(input: PlaceOrderInput) {
   const name = input.name.trim().slice(0, 120);
   const rawEmail = input.email.trim();
@@ -613,7 +591,6 @@ export async function placeOrder(input: PlaceOrderInput) {
         throw new Error(serverMessages.storeFulfilmentRequired);
       if (input.fulfilment === "pickup") pickupBranch = selectedPickupBranch(commerce, input.pickupBranchId);
     }
-    // Snapshot public collection details without coupling the branch to a stock warehouse.
     const destination = pickupBranch ? {
       name: input.locale === "ar" ? pickupBranch.nameAr : pickupBranch.nameEn,
       phone: pickupBranch.phone,
@@ -641,7 +618,6 @@ export async function placeOrder(input: PlaceOrderInput) {
           ? serverMessages.couponCannotBeUsed
           : serverMessages.storeCartChanged,
       );
-    // Hold the stock for every line that keeps stock.
     const held: { locationId: string | null }[] = [];
     for (const line of quote.lines) {
       if (!line.trackStock) {
@@ -743,8 +719,6 @@ export async function placeOrder(input: PlaceOrderInput) {
   });
 }
 
-// ─── Reading orders ──────────────────────────────────────────────────────────────────────────────────────────────
-
 export async function getOrder(id: string) {
   const o = await db.salesOrder.findUnique({
     where: { id },
@@ -766,7 +740,6 @@ export async function getOrder(id: string) {
         select: { id: true, invoiceNumber: true },
       })
     : null;
-  // Files kept on the order, such as the customer's proof of a bank transfer.
   const files = await db.attachment.findMany({
     where: { entityType: "sales_order", entityId: id },
     orderBy: { createdAt: "asc" },
@@ -884,7 +857,6 @@ export async function listOrders(
   };
 }
 
-/** A customer's own orders, newest first, for the account page. */
 export async function customerOrders(customerId: string) {
   const rows = await db.salesOrder.findMany({
     where: { customerId },
@@ -918,7 +890,6 @@ export async function customerOrders(customerId: string) {
   }));
 }
 
-/** Public account details are selected by ownership; staff notes and other customers' files never leave the server. */
 export async function customerOrder(customerId: string, id: string) {
   return db.salesOrder.findFirst({
     where: { id, customerId },
@@ -932,8 +903,6 @@ export async function customerOrder(customerId: string, id: string) {
     },
   });
 }
-
-// ─── Moving orders along ─────────────────────────────────────────────────────────────────────────────────────────
 
 async function releaseReservations(
   tx: Tx,
@@ -956,10 +925,6 @@ async function releaseReservations(
       });
 }
 
-/**
- * Moves an order to its next status: shipping takes the held stock out (a sale), cancelling releases it, and a
- * return puts it back. Returns the low-stock items for alerts.
- */
 export async function moveOrder(
   id: string,
   to: OrderStatus,
@@ -969,10 +934,6 @@ export async function moveOrder(
   return db.$transaction((tx) => moveOrderIn(tx, id, to, byId, note, true));
 }
 
-/**
- * Moves an order inside a transaction. `followShipments` moves its shipments too (staff moving the order); a
- * shipment moving its order passes false.
- */
 export async function moveOrderIn(
   tx: Tx,
   id: string,
@@ -1055,7 +1016,6 @@ export async function moveOrderIn(
   }
 }
 
-/** The order's invoice (issued, not a draft: the sale already happened), created the first time it is needed. */
 export async function issueOrderInvoice(orderId: string, byId: string | null) {
   const order = await db.salesOrder.findUnique({
     where: { id: orderId },
@@ -1144,7 +1104,6 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
   });
 }
 
-/** Records money received for an order: on its invoice (with a receipt), and the order shows it as paid. */
 export async function recordOrderPayment(
   orderId: string,
   input: {
@@ -1211,7 +1170,6 @@ export async function recordOrderPayment(
   });
 }
 
-/** Records a refund given back to the customer (by hand here; online payments refund through their gateway). */
 export async function recordOrderRefund(
   orderId: string,
   amountInput: number,
@@ -1265,7 +1223,6 @@ export async function addOrderNote(
   });
 }
 
-/** Products to sell at the counter or by phone: names, codes, prices and variants. */
 export async function saleProductOptions() {
   const products = await db.product.findMany({
     where: { isActive: true },

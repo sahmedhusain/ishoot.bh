@@ -2,7 +2,6 @@ import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { safeWebsiteUrl } from "../website-config";
 
-/** Built-in article categories; a company may also use its own keys. PR uses press_release. */
 export const ARTICLE_CATEGORIES = [
   "news",
   "update",
@@ -10,7 +9,6 @@ export const ARTICLE_CATEGORIES = [
   "press_release",
 ] as const;
 
-/** An article as the website shows it (part of the published snapshot). */
 export interface PublicArticle {
   id: string;
   slug: string;
@@ -24,7 +22,6 @@ export interface PublicArticle {
   category: string;
   tags: string[];
   author_name: string;
-  /** ISO time it goes public; later than now means scheduled. */
   publish_at: string | null;
   featured: boolean;
   seo_title_en: string;
@@ -33,7 +30,6 @@ export interface PublicArticle {
   seo_description_ar: string;
 }
 
-/** An article in the admin: the public fields plus the editor documents and status. */
 export interface CmsArticleRecord extends PublicArticle {
   status: "draft" | "published";
   body_en: unknown;
@@ -74,7 +70,6 @@ const mapArticle = (row: ArticleRow): CmsArticleRecord => ({
   updated_at: row.updatedAt.toISOString(),
 });
 
-/** Published articles (including scheduled ones) for the website snapshot, newest first. */
 export async function getPublishedArticles(): Promise<PublicArticle[]> {
   const rows = await db.cmsArticle.findMany({
     where: { status: "published" },
@@ -141,7 +136,6 @@ export interface CmsArticleInput {
   title_ar: string;
   excerpt_en: string;
   excerpt_ar: string;
-  /** TipTap documents; the HTML is rendered and cleaned on the server. */
   body_en: unknown;
   body_ar: unknown;
   cover_url: string;
@@ -149,7 +143,6 @@ export interface CmsArticleInput {
   tags: string[];
   author_name: string;
   status: "draft" | "published";
-  /** ISO date-time; empty publishes straight away when the website is published. */
   publish_at: string;
   featured: boolean;
   seo_title_en: string;
@@ -161,7 +154,6 @@ export interface CmsArticleInput {
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CATEGORY = /^[a-z][a-z0-9_]{1,39}$/;
 
-/** A web-safe address from a title: Latin letters and digits only, else a dated fallback. */
 export function articleSlug(title: string) {
   const slug = title
     .toLowerCase()
@@ -220,7 +212,6 @@ export async function saveCmsArticle(
     ).slice(0, 20),
     authorName: text(input.author_name, 120),
     status: input.status === "published" ? "published" : "draft",
-    // A published article without a date goes out now; drafts keep whatever date was chosen.
     publishAt:
       input.status === "published" && !publishAt ? new Date() : publishAt,
     featured: input.featured,

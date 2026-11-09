@@ -1,6 +1,4 @@
 import { db } from "../atomic";
-// Staff sessions belong to identity (backend/services/identity); this loads the staff profile a verified session
-// belongs to.
 import { Profile, UserRole } from "../types";
 
 const sessionUserSelect = {
@@ -35,12 +33,10 @@ function mapUser(u: any): Profile {
   } as Profile;
 }
 
-/** The active staff member an identity session belongs to (the session's subject is the user's ID). */
 export async function getSessionUser(id: string): Promise<Profile | null> {
   const user = await db.user.findUnique({ where: { id }, select: sessionUserSelect }).catch(() => null);
   if (user?.isActive) return mapUser(user);
 
-  // Super-admin fallback: always recognized when authenticated via identity
   if (id === "super-admin" || id === "omar-haddad") {
     return {
       id,
@@ -54,7 +50,6 @@ export async function getSessionUser(id: string): Promise<Profile | null> {
     };
   }
 
-  // Check demo-staff if applicable
   try {
     const demoStaff = require("../../../../seeds/demo-staff.json");
     const member = (demoStaff as any[]).find((m) => m.key === id || m.email === id);
@@ -72,7 +67,6 @@ export async function getSessionUser(id: string): Promise<Profile | null> {
       };
     }
   } catch {
-    // Ignore fallback failure
   }
 
   return null;

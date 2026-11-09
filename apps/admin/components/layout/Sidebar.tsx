@@ -70,7 +70,7 @@ import {
   ClipboardList,
   Newspaper,
   Menu,
-  
+
   SlidersHorizontal,
   Star,
   X,
@@ -93,12 +93,9 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
-  /** Permission needed on the resource (default read). */
   action?: "read" | "edit" | "create" | "assign";
   moduleKey?: string;
-  /** Only for people who manage a team. */
   managersOnly?: boolean;
-  /** Only for super administrators (governance pages). */
   superAdminOnly?: boolean;
 }
 
@@ -319,7 +316,6 @@ export function Sidebar() {
             resource: "employees",
             moduleKey: "hrms",
           },
-          // Leave and salary documents are self-service: every staff member files their own.
           {
             href: ROUTES.hr.leave(),
             label: t.sidebar.leaveManagement,
@@ -563,7 +559,6 @@ export function Sidebar() {
         title: t.navigationGroups.workspace,
         items: [
           ...take([ROUTES.home, ROUTES.approvals(), ROUTES.calendar, ROUTES.team]),
-          // Everyone sees Reports; the page lists only the reports their role may run.
           { href: ROUTES.reports.list, label: t.reports.nav, icon: FileBarChart },
         ],
       },
@@ -764,7 +759,6 @@ export function Sidebar() {
         ],
       },
     ];
-    // Use task-specific symbols for communication destinations.
     for (const group of groups)
       for (const item of group.items) {
         if (item.href === ROUTES.notifications()) item.icon = Bell;
@@ -926,12 +920,10 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Persistent drawer for the many admin destinations */}
       <aside data-collapsed={isCollapsed} className="admin-sidebar hidden lg:block">
         {navContent}
       </aside>
 
-      {/* Mobile Drawer */}
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div

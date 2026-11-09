@@ -11,7 +11,6 @@ import { getCurrentUser, hasPermission } from "../../../../lib/auth";
 import { buildIcs } from "../../../../lib/ics";
 import { publicOrigin } from "../../../../lib/public-origin";
 
-/** Downloads the signed-in user's calendar as an .ics file (only what they may see). */
 export async function GET() {
   return measureOperation("admin:calendar/feed:GET", async () => {
     const user = await getCurrentUser();

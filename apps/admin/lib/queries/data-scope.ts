@@ -11,7 +11,6 @@ import {
 } from "../constants/data-scope";
 import { departmentSubtree, userDepartmentId } from "./departments";
 
-/** Every area's scope for a role: stored choices over the template defaults. */
 export async function getRoleDataScopes(
   role: string,
 ): Promise<Record<DataScopeArea, DataScope>> {
@@ -53,10 +52,6 @@ export async function setRoleDataScopes(
   );
 }
 
-/**
- * The staff accounts whose records `user` may see in `area`: null for every record, else their own id plus,
- * for a department scope, everyone in their department and its sub-departments.
- */
 export async function scopedUserIds(
   user: { id: string; role: string },
   area: DataScopeArea,
@@ -86,7 +81,6 @@ export async function scopedUserIds(
   return Array.from(new Set([user.id, ...members.map((member) => member.id)]));
 }
 
-/** Throws unless the record's owner is within the scope (records without an owner are only visible to "all"). */
 export function assertInScope(
   scope: string[] | null,
   ownerId: string | null | undefined,

@@ -10,7 +10,6 @@ import {
 import { getCurrentUser } from "../../../../../../lib/auth";
 import { generatePurchaseOrderPdf } from "../../../../../../lib/pdf/purchase-order-pdf";
 
-/** The purchase order PDF, in the company's main language unless another is asked for. */
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },

@@ -458,7 +458,6 @@ test("large stock-count saves retain only the failed batch for retry", async ({
   const main = page.getByRole("main"),
     fields = main.getByRole("spinbutton");
   await expect(fields).toHaveCount(501);
-  // Set up the capacity fixture with native input events; per-field interaction is covered above.
   await fields.evaluateAll((inputs) => {
     const setValue = Object.getOwnPropertyDescriptor(
       HTMLInputElement.prototype,

@@ -16,7 +16,6 @@ export interface CmsCounts {
   stats: number;
 }
 
-/** Row counts for the CMS overview, without loading the collections themselves. */
 export async function getCmsCounts(): Promise<CmsCounts> {
   let reviewsCount = 0;
   let pendingReviewsCount = 0;

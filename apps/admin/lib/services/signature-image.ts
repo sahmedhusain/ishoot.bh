@@ -1,7 +1,6 @@
 import { serverMessages } from "@platform/locales";
 const MAX_SIGNATURE_BYTES = 200 * 1024;
 
-/** A drawn signature must be a real, reasonably small PNG data URL. Returns its bytes. */
 export function validateSignatureImage(dataUrl: string) {
   const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(
     dataUrl ?? "",

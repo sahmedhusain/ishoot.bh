@@ -1,8 +1,3 @@
-// Run: node tests/e2e/it-account.cjs
-// Creates the end-to-end IT account with identity's bootstrap-it command in the Compose stack and keeps its
-// password and authenticator secret in tests/e2e/.results/it-account.json (ignored by git, never uploaded) for tests/e2e/specs/it.
-// Bootstrapping runs once per database, so an existing file is kept as it is. E2E_IT_ACCOUNT_FILE names another file, for a
-// second stack (with COMPOSE_ARGS="-p <project> --env-file <file>").
 const { execFileSync } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");

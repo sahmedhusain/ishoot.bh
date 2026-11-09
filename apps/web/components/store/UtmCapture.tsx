@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-/** The campaign a visitor came from (utm_campaign, utm_source, utm_medium), kept for 30 days for their orders and enquiries. */
 const UTM_COOKIE = "platform-utm";
 
 export function UtmCapture() {

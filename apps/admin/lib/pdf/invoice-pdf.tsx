@@ -22,15 +22,10 @@ import { formatClientAddress } from "../client-address";
 interface InvoicePDFProps {
   invoice: Invoice;
   brand: PdfBrand;
-  /** A quotation renders through the same layout so print, download and email stay identical. */
   variant?: "invoice" | "quotation";
-  /** Quotation terms in the document language. */
   quotationTerms?: string | null;
-  /** Present only once the document is approved and signed. */
   signing?: CompanySignature | null;
-  /** The client's signature, once they sign online or a signed copy is uploaded. */
   acceptance?: ClientAcceptance | null;
-  /** QR codes to the certificates of the taxes on this document, printed centred at its end. */
   certificates?: TaxCertificateMark[];
 }
 
@@ -42,7 +37,6 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
   const d = all.pdfDocs;
   const company = brand.company;
   const isQuote = variant === "quotation";
-  // VAT on an invoice is immutable: it depends strictly on the invoice's own issued snapshot.
   const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
   const currency = invoice.currency || company.default_currency;
   const money = (value: number) => fmtMoney(value, currency, isAr);

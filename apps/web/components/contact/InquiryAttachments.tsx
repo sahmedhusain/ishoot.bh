@@ -3,7 +3,6 @@ import * as React from "react";
 import { primaryButton } from "../account/ui";
 import { useTranslation } from "../../hooks/useTranslation";
 
-/** Attachments follow a successful submission, so a failed upload never duplicates the inquiry. */
 export function InquiryAttachments({
   token,
   locale,

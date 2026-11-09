@@ -25,7 +25,6 @@ function revalidateProducts(id?: string) {
   if (id) revalidatePath(ROUTES.products.detail(id));
 }
 
-/** Creates or updates a product with its variants (Products → product). */
 export async function saveProductAction(input: ProductInput) {
   return measureOperation("action:saveProductAction", async () => {
     await requireFeatureEnabled("products");
@@ -69,7 +68,6 @@ export async function deleteProductAction(id: string) {
   });
 }
 
-/** Switches several products on or off for sale at once (the list's bulk action). */
 export async function setProductsActiveAction(
   ids: string[],
   isActive: boolean,
@@ -91,7 +89,6 @@ export async function setProductsActiveAction(
   });
 }
 
-/** Shows the product in the website catalogue, or takes it off; the website changes when it is published. */
 export async function setProductOnWebsiteAction(
   id: string,
   onWebsite: boolean,

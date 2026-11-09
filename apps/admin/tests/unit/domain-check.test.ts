@@ -22,7 +22,6 @@ describe("domain check", () => {
     expect(await checkDomain("website", "example.com", async () => "abc")).toEqual({ state: "connected", status: 200 });
     expect(await checkDomain("website", "example.com", async () => "other")).toEqual({ state: "other", status: 200 });
     expect(await checkDomain("admin", "example.com", async () => "abc")).toEqual({ state: "other", status: 200 });
-    // Without a known fingerprint nothing can be confirmed (the IT dashboard has no database of its own).
     expect(await checkDomain("website", "example.com", async () => null)).toEqual({ state: "other", status: 200 });
   });
 

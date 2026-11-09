@@ -1,4 +1,3 @@
-// Render the real dashboard with boundary components, and exercise query selection.
 const path = require("node:path");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -100,7 +99,6 @@ async function main() {
     assert.ok(withRequests.includes("id=\"wl-requests\"") && withRequests.includes("overdue=true"));
     assert.ok(!withRequests.includes("wl-complaints"));
   }
-  // The widget catalogue: grants and modules decide what can be placed; stored layouts are cleaned on read.
   const dash = realConstants(path.join(adminRoot, "x.ts"), "@platform/database/constants/dashboard");
   const on = () => true;
   const viewerWidgets = dash.availableDashboardWidgets({ "tasks:read": true }, on).map((w) => w.id);
@@ -141,7 +139,6 @@ async function main() {
   assert.equal(full.activePipelineValue, 300);
   assert.equal(listReads, 2);
 
-  // Linked deals only ever move forward, and never out of a closed stage.
   const advances = [];
   const { advanceDealForEvent } = load("lib/queries/crm.ts", {
     "./company-settings": {}, "../services/lead-resolver": {}, "../db": { db: {} },
@@ -159,7 +156,6 @@ async function main() {
   assert.ok(!advances[1].where.dealStage.in.includes("closed_lost"), "A lost deal is never reopened");
   assert.ok(advances[1].where.dealStage.in.includes("invoiced"));
 
-  // Links can only carry the parameters their target page reads.
   const { ROUTES, entityRoute } = realConstants(path.join(adminRoot, "x.ts"), "@platform/database/constants/routes");
   assert.equal(ROUTES.quotations.create({ clientId: "c 1", dealId: "d", inquiryId: null }), "/dashboard/quotations/new?clientId=c+1&dealId=d");
   assert.equal(ROUTES.crm.newDeal(), "/dashboard/crm/deals/new");

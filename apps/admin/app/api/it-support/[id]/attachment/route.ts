@@ -5,7 +5,6 @@ import { getCurrentUser, hasPermission } from "../../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-/** An attachment of one of the signed-in employee's IT requests. Other people's tickets answer 404. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

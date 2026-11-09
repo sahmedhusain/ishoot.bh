@@ -7,7 +7,6 @@ export type ContactModels = ReadonlyMap<string, readonly ModelField[]>;
 const emailField = /^(?:email|emailNorm)$|Email$/;
 const phoneField = /^(?:phone|phoneE164|mobile|whatsappPhone)$|(?:Phone|Mobile|PhoneNumber)$/;
 
-/** Only schema fields are visited: JSON snapshots, message bodies and audit history are never rewritten. */
 export async function normalizeContactWrites(models: ContactModels, model: string, input: unknown, getCountry: () => Promise<string>): Promise<void> {
   if (Array.isArray(input)) {
     for (const row of input) await normalizeContactWrites(models, model, row, getCountry);

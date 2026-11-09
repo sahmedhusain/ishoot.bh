@@ -8,7 +8,6 @@ import {
   isBusinessActivity,
   type BusinessActivity,
 } from "@platform/database/website-presets";
-/** The signed preview cookie: the draft website, or an activity's demo website when it names one. */
 const previewCookie = cache(
   async (): Promise<{ example: BusinessActivity | null } | null> => {
     const value = (await cookies()).get("platform_preview")?.value;
@@ -35,7 +34,6 @@ const previewCookie = cache(
   },
 );
 export const isWebsitePreview = cache(async () => !!(await previewCookie()));
-/** The activity whose demo website is showing, if any. */
 export const websiteExample = cache(
   async () => (await previewCookie())?.example ?? null,
 );
@@ -47,7 +45,6 @@ const getPublishedWebsite = unstable_cache(
         return snap.published as unknown as WebsiteSnapshot;
       }
     } catch {
-      // Fallback to database or example snapshot
     }
     try {
       return await getWebsiteSnapshot(false);

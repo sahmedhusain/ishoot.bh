@@ -4,7 +4,6 @@ import { FILE_URL_PREFIX } from "@platform/contracts";
 import { fileResponse, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 
-/** Public brand files and the website's published documents; nothing private is ever served here. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ folder: string; name: string }> },

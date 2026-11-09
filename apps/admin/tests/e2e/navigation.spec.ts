@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import { watchErrors } from "../../helpers";
 import { t } from "../helpers/locale";
 
-// Every page reachable from the sidebar renders for an administrator: no error page, no 404, no console errors.
 test("every sidebar destination renders", async ({ page }) => {
   test.setTimeout(20 * 60_000);
   await page.goto("/dashboard");

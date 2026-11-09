@@ -10,10 +10,8 @@ export interface SupportClaimRow {
   provider: string;
   periodStart: string;
   periodEnd: string;
-  /** Months of the window already in approved or paid payroll. */
   monthsAccrued: number;
   accrued: number;
-  /** "accruing" (window still open), "claimable" (ended, not received), "received". */
   status: "accruing" | "claimable" | "received";
   receipt: {
     amount: number;
@@ -30,10 +28,6 @@ const monthsBetween = (from: string, to: string) => {
   return (ty - fy) * 12 + (tm - fm);
 };
 
-/**
- * Wage support owed by each programme, grouped into six-month claims per employee starting from
- * the first supported month. Built from approved and paid payroll, so it matches what payroll booked.
- */
 export async function getSupportClaims(): Promise<SupportClaimRow[]> {
   const [items, receipts] = await Promise.all([
     db.payrollItem.findMany({
@@ -57,7 +51,6 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
     db.supportReimbursement.findMany(),
   ]);
 
-  // Per employee and programme: monthly amounts and the programme's first month.
   const programmes = new Map<
     string,
     {
@@ -85,7 +78,6 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
       if (!earliest || s.startMonth < earliest)
         providerStarts.set(provider, s.startMonth);
     }
-    // Months paid under a programme carry their own support lines; older months use the employee's support entries.
     const snapshotLines = (
       item.calculationSnapshot as {
         supportLines?: Array<{
@@ -180,7 +172,6 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
   );
 }
 
-/** Records the programme's payment for one employee's six-month claim. */
 export async function recordSupportReimbursement(
   input: {
     employeeId: string;

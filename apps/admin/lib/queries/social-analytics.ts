@@ -74,7 +74,6 @@ export interface SocialAnalytics {
     interactions: number | null;
     views: number | null;
   };
-  /** One point per day of the period: interactions on posts published that day. */
   daily: Array<{
     date: string;
     posts: number;
@@ -139,7 +138,6 @@ export async function getSocialAnalytics(
     ? (options.days ?? 30)
     : 30;
   const now = options.now ?? new Date();
-  // UTC calendar days, including today. The UI names the timezone explicitly.
   const until = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
   );
@@ -414,8 +412,6 @@ export async function getSocialAnalytics(
     recentPosts: views.slice(0, 50),
   };
 }
-
-// ---------- Content plan ----------
 
 export interface SocialPlanInput {
   title: string;

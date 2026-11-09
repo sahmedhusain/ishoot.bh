@@ -75,7 +75,6 @@ export async function saveSupplierAction(input: SupplierInput) {
   });
 }
 
-/** Anyone who may ask to buy can work on their own requisitions; others need edit access. */
 async function requireRequisitionAccess(
   id: string | undefined,
   userId: string,
@@ -236,7 +235,6 @@ export async function submitPurchaseOrderAction(id: string) {
   });
 }
 
-/** Emails the approved order to the supplier with its PDF (through the email outbox) and marks it sent. */
 export async function emailPurchaseOrderAction(id: string) {
   return measureOperation("action:emailPurchaseOrderAction", async () => {
     await requireFeatureEnabled("procurement");
@@ -304,7 +302,6 @@ export async function cancelPurchaseOrderAction(id: string) {
   });
 }
 
-/** Records goods arriving against an order; accepted items enter stock at the ordered price. */
 export async function receiveGoodsAction(
   orderId: string,
   input: GoodsReceiptInput,
@@ -348,7 +345,6 @@ export async function saveSupplierBillAction(input: SupplierBillInput) {
   });
 }
 
-/** Attaches the supplier's own bill (uploaded beforehand, claimed here as a private file of the bill). */
 export async function attachSupplierBillFileAction(
   id: string,
   fileUrl: string,
@@ -365,7 +361,6 @@ export async function attachSupplierBillFileAction(
   });
 }
 
-/** Approves a bill into an expense; differences from the three-way match need a reason. */
 export async function approveSupplierBillAction(
   id: string,
   overrideReason: string,

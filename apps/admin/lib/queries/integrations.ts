@@ -26,7 +26,6 @@ import {
   type Credentials,
 } from "../integrations/providers";
 
-/** What the settings page may see: plain fields in full, secrets only as "set" plus their last characters. */
 export interface IntegrationAdminView {
   provider: IntegrationProviderId;
   isActive: boolean;
@@ -86,7 +85,6 @@ export async function listIntegrationsForAdmin(): Promise<
   });
 }
 
-/** Stored credentials for server-side use (sending, syncing). Null when the integration is off. */
 export async function getActiveIntegrationCredentials(
   provider: IntegrationProviderId,
 ): Promise<Credentials | null> {
@@ -108,7 +106,6 @@ export async function getIntegrationRecord(
 
 export interface SaveIntegrationInput {
   isActive: boolean;
-  /** Field values; a blank secret keeps the stored one. */
   values: Record<string, string>;
   config?: Record<string, unknown>;
 }
@@ -237,7 +234,6 @@ export async function unlinkIntegrationSettings(
   await unlinkIntegration(provider.id);
 }
 
-/** Checks the stored credentials against the provider and records the result. */
 export async function testIntegration(providerId: string) {
   const provider = integrationProvider(providerId);
   if (!provider) throw new Error(serverMessages.unknownIntegration);
@@ -258,18 +254,13 @@ export async function testIntegration(providerId: string) {
   return result;
 }
 
-/** Pulls follower counts and recent posts for one social integration into SocialMetric/SocialPost. */
 export async function syncSocialIntegration(
   providerId: string,
   now = new Date(),
 ) {
-  // This functionality is now moved to the Go backend.
-  // This client function should call a backend endpoint to trigger a sync.
-  // For now, we mark it as a gap since no API endpoint is provided in lib/api.
   throw new Error("syncSocialIntegration is now handled by the Go backend; API endpoint required");
 }
 
-/** Worker entry point: syncs every active social integration not synced in the last `maxAgeHours`. */
 export async function syncDueSocialIntegrations(
   maxAgeHours = 6,
   now = new Date(),
@@ -296,7 +287,6 @@ export async function syncDueSocialIntegrations(
   return { synced, failed };
 }
 
-/** Google calendar sync feature toggle */
 export async function isCalendarSyncEnabled(): Promise<boolean> {
   const record = await getIntegration("google_calendar");
   return record ? record.isActive : true;

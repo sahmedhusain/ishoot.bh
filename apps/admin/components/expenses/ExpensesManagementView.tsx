@@ -18,7 +18,6 @@ interface ExpensesManagementViewProps {
   scopeCounts?: Record<string, number>;
   initialExpenses: Expense[];
   categories: ExpenseCategory[];
-  /** Search, filters and paging, shown under the header. */
   controls?: React.ReactNode;
 }
 

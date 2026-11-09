@@ -1,8 +1,5 @@
-// Which records a role sees in each area: its own, its department's (with sub-departments) or all of them.
-// Runtime-free, so the Roles screen and the queries share one list.
 import type { RoleKey } from "./permissions";
 
-/** Areas whose lists and records follow a data scope. Later modules (tasks, orders, purchases, deliveries) add theirs. */
 export const DATA_SCOPE_AREAS = [
   "deals",
   "requests",
@@ -22,10 +19,6 @@ export const isDataScope = (value: unknown): value is DataScope =>
   typeof value === "string" &&
   (DATA_SCOPES as readonly string[]).includes(value);
 
-/**
- * Role template defaults; anything not listed sees every record its permissions allow. Roles that existed before
- * data scopes (sales, project lead…) keep seeing everything until the company narrows them in Settings → Roles.
- */
 export const DEFAULT_DATA_SCOPES: Partial<
   Record<RoleKey, Partial<Record<DataScopeArea, DataScope>>>
 > = {

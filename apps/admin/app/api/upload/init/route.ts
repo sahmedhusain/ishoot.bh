@@ -49,8 +49,6 @@ export async function POST(req: NextRequest) {
           { error: serverMessages.runtimeInvalidUploadInput },
           { status: 400 },
         );
-      // Brand fonts (woff2, woff, ttf, otf) are accepted only for the company theme, and are public like the logos.
-      // Which types each storage folder accepts is checked by the files service (contracts/catalog/files.json).
       const brandFont = entityType === "company_font";
       if (brandFont !== isFontMimeType(fileType))
         return NextResponse.json(
@@ -125,7 +123,6 @@ export async function POST(req: NextRequest) {
         throw error;
       }
 
-      // The browser sends the bytes to our own owner-checked route, which streams them to the files service.
       return NextResponse.json({
         success: true,
         signedUrl: upload.fileUrl.replace(

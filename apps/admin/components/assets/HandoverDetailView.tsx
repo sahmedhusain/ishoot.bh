@@ -40,7 +40,6 @@ const STATUS_STYLE: Record<string, string> = {
   cancelled: "bg-ink/10 text-ink-muted",
 };
 
-/** One handover: what was checked, its signatures and approvals, and the actions open to the viewer. */
 export function HandoverDetailView({
   handover,
   isEmployee,
@@ -180,7 +179,6 @@ export function HandoverDetailView({
                     key={c.key}
                     className="flex items-start gap-2 px-3 py-2 text-sm"
                   >
-                    {/* A checklist item is ticked or not; the asset's condition is recorded separately. */}
                     {c.ok ? (
                       <CheckSquare
                         aria-label={h.ticked}
@@ -302,7 +300,6 @@ export function HandoverDetailView({
       </div>
 
       {handover.status === "awaiting_employee" && isEmployee && !canEdit ? (
-        // The employee reviews and signs on the dedicated signing page, not inside the admin screen.
         <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-3" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
             <PenLine className="h-4 w-4 text-accent" />

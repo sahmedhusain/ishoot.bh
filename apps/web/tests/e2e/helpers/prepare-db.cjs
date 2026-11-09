@@ -1,4 +1,3 @@
-// E2E Test Database Helper (Go Backend Microservices)
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "../../..");

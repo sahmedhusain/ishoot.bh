@@ -1,4 +1,3 @@
-// Visual vocabulary for service requests. Labels live in the locale files (t.requestLabels).
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
@@ -23,10 +22,8 @@ export type RequestWorkflowKey =
   | "confirmed"
   | "returned"
   | "resolved";
-/** Matches the database constraint on Inquiry.priority. */
 export type RequestPriorityKey = "urgent" | "high" | "normal";
 
-/** Request types arrive both as workflow codes (SR/CR) and as inquiry intents. */
 export function normalizeRequestType(type?: string | null): RequestTypeKey {
   if (type === "CR" || type === "complaint") return "complaint";
   if (type === "SR" || type === "service_request") return "service_request";

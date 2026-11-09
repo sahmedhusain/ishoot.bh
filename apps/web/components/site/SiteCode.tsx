@@ -1,12 +1,7 @@
 import Script from "next/script";
 import type { WebsiteCode } from "@platform/database/website-config";
 
-/**
- * Analytics tags built by the website from an id the company enters (Google Analytics, Meta Pixel, TikTok Pixel),
- * and the company's own head and body code in a hidden sandboxed frame (no access to the page or its visitors).
- */
 export function SiteAnalytics({ code }: { code: WebsiteCode }) {
-  // Ids are checked against strict patterns when saved (validateWebsiteConfig); JSON.stringify quotes them again.
   const scripts: string[] = [];
   if (code.googleAnalyticsId)
     scripts.push(`(function(){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id="+${JSON.stringify(code.googleAnalyticsId)};document.head.appendChild(s);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag("js",new Date());gtag("config",${JSON.stringify(code.googleAnalyticsId)});})();`);

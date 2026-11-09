@@ -17,7 +17,6 @@ import { reportPeriod } from "../../../../lib/report-params";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** A report as CSV, Excel or PDF, for the period asked, if the person may run it. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ key: string }> },

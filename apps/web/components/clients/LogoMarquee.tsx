@@ -35,7 +35,6 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
             <feComponentTransfer in="SourceGraphic" result="artwork">
               <feFuncA type="gamma" amplitude="1" exponent=".5" offset="0" />
             </feComponentTransfer>
-            {/* Lift only dark neutral ink; saturated brand colors pass through. */}
             <feColorMatrix
               in="artwork"
               type="saturate"
@@ -85,7 +84,6 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
               operator="in"
               result="lightInk"
             />
-            {/* Deep colored shadows get a small luminance lift without hue inversion. */}
             <feComponentTransfer in="ink" result="deepMask">
               <feFuncA type="table" tableValues=".5 0 0 0 0 0 0 0 0" />
             </feComponentTransfer>

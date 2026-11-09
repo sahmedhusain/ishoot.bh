@@ -10,10 +10,8 @@ import {
   isSystemDealStage,
 } from "../constants/crm";
 
-/** One stage of the company's sales pipeline. */
 export interface DealPipelineStage {
   id: string;
-  /** Null: the built-in label for the company's activity. */
   name_en: string | null;
   name_ar: string | null;
   sort_order: number;
@@ -22,7 +20,6 @@ export interface DealPipelineStage {
   color: string | null;
   is_system: boolean;
   is_active: boolean;
-  /** Deals currently in this stage. */
   deal_count: number;
 }
 
@@ -65,12 +62,10 @@ const builtInRow = (id: string, sortOrder: number): StageRow => ({
   isActive: true,
 });
 
-// Cache customized stages in memory for runtime persistence across queries
 let pipelineStagesStore: StageRow[] = DEAL_STAGE_ORDER.map((id, index) =>
   builtInRow(id, index),
 );
 
-/** Every stage, active or not, in pipeline order, with how many deals each holds. */
 export async function getDealPipeline(): Promise<DealPipelineStage[]> {
   const deals = await listDeals().catch(() => []);
   const byStage = new Map<string, number>();
@@ -85,7 +80,6 @@ export async function getDealPipeline(): Promise<DealPipelineStage[]> {
   return rows.map((row) => mapStage(row, byStage.get(row.id) ?? 0));
 }
 
-/** The stages deals can be in: active ones, plus any inactive stage that still holds deals. */
 export async function getActiveDealStages(): Promise<DealPipelineStage[]> {
   return (await getDealPipeline()).filter(
     (stage) => stage.is_active || stage.deal_count > 0,
@@ -109,10 +103,6 @@ export interface DealPipelineStageInput {
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-/**
- * Replaces the pipeline with `stages` (in order). System stages must all be present and active; a stage that
- * still holds deals cannot be removed or switched off. Closed stages always stay at the end.
- */
 export async function saveDealPipeline(stages: DealPipelineStageInput[]) {
   const ids = stages.map((stage) => stage.id);
   if (new Set(ids).size !== ids.length || stages.length > 30)
@@ -177,10 +167,6 @@ export async function saveDealPipeline(stages: DealPipelineStageInput[]) {
   return getDealPipeline();
 }
 
-/**
- * Sets up the pipeline an activity recommends without losing anything: its stages are added and switched on,
- * other stages without deals are switched off, and stages that hold deals stay where they are.
- */
 export async function applyActivityDealPipeline(
   activity: string | null | undefined,
 ) {

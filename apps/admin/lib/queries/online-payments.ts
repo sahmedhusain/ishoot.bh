@@ -36,7 +36,6 @@ const OPEN = ["created", "pending"];
 
 export { GatewayError, WebhookSignatureError };
 
-/** Payment gateways switched on in Integrations, for choosing the one behind "Pay online". */
 export async function availablePaymentGateways() {
   const found = await Promise.all(
     PAYMENT_GATEWAY_IDS.map((id) => gatewayWithCredentials(id)),
@@ -46,15 +45,10 @@ export async function availablePaymentGateways() {
     .map((g) => ({ id: g.id, test_mode: g.testMode }));
 }
 
-/** Is "Pay online" available at checkout now? */
 export async function onlinePaymentAvailable() {
   return !!(await activePaymentGateway());
 }
 
-/**
- * Starts paying what is still owed on an order with the store's gateway: records the attempt, asks the gateway for its
- * hosted page and returns where to send the customer (or the widget our page hosts).
- */
 export async function startOrderPayment(
   orderId: string,
   site: { url: string; locale: string },
@@ -120,7 +114,6 @@ export async function startOrderPayment(
   }
 }
 
-/** The attempt behind a hosted widget page (HyperPay): only while it is still open. */
 export async function openPaymentAttempt(attemptId: string) {
   const attempt = await db.paymentAttempt.findUnique({
     where: { id: attemptId },
@@ -142,10 +135,6 @@ export async function openPaymentAttempt(attemptId: string) {
   };
 }
 
-/**
- * Applies what the gateway says about an attempt. Moving an attempt to paid is a guarded change, so the webhook and
- * the customer's return can both arrive and the money is recorded once.
- */
 export async function settleAttempt(
   attemptId: string,
   payment: GatewayPayment,
@@ -280,7 +269,6 @@ export async function settleAttempt(
   });
 }
 
-/** The customer is back from the gateway: ask the gateway (never the browser) how it went. */
 export async function confirmReturn(
   attemptId: string,
   params: Record<string, string>,
@@ -333,7 +321,6 @@ export async function confirmReturn(
   }
 }
 
-/** A gateway's webhook: verified, handled once, applied to its attempt. Throws WebhookSignatureError when forged. */
 export async function handlePaymentWebhook(
   gatewayId: string,
   request: { headers: Headers; rawBody: string },
@@ -360,7 +347,6 @@ export async function handlePaymentWebhook(
       : null;
   if (!attempt || attempt.gateway !== gatewayId) return { handled: false };
   let payment: GatewayPayment = event;
-  // PayPal approval precedes capture; resolve the external operation before opening the receipt transaction.
   if (gatewayId === "paypal" && event.state === "pending" && attempt.sessionId)
     payment = await active.gateway.status(
       active.credentials,
@@ -376,10 +362,6 @@ export async function handlePaymentWebhook(
   };
 }
 
-/**
- * Refunds an order. Money paid online goes back through the gateway that took it (newest payment first); otherwise
- * the refund is recorded as given back by hand.
- */
 export async function refundOrder(
   orderId: string,
   amountInput: number,
@@ -432,7 +414,6 @@ export async function refundOrder(
   }
 }
 
-/** The order's online payment attempts, newest first, for the order page. */
 export async function orderPaymentAttempts(orderId: string) {
   const rows = await db.paymentAttempt.findMany({
     where: { orderId },
@@ -453,10 +434,6 @@ export async function orderPaymentAttempts(orderId: string) {
   }));
 }
 
-/**
- * Online payments nobody finished: asks the gateway once more (a lost webhook), then expires the attempt. An online
- * order with nothing paid and no attempt left open is cancelled, which gives its stock back.
- */
 export async function expireOnlinePayments(now = new Date()) {
   const cutoff = new Date(
     now.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000,
@@ -486,7 +463,6 @@ export async function expireOnlinePayments(now = new Date()) {
           .catch(() => "unknown" as const);
     }
     if (state === "paid" || state === "unknown") continue;
-    // A payment still in progress at the gateway gets one more timeout before giving up.
     if (
       state === "pending" &&
       attempt.createdAt >
@@ -527,9 +503,6 @@ export async function expireOnlinePayments(now = new Date()) {
   return { expired, cancelled };
 }
 
-// ─── Payment links ───────────────────────────────────────────────────────────────────────────────────────────────
-
-/** What a payment link page shows: the order and what is still owed. */
 export async function paymentLinkOrder(orderId: string) {
   const order = await db.salesOrder.findUnique({
     where: { id: orderId },

@@ -10,10 +10,6 @@ export async function canManageSalaryDocuments(user: Profile) {
     user.permissions,
   );
 }
-/**
- * Sending a salary document to the employee by e-mail or WhatsApp is for HR issuing it to someone else.
- * The person who asked for their own payslip or certificate only views, downloads or prints it.
- */
 export async function canShareSalaryDocument(
   document: { employee: { userId: string | null } },
   user: Profile,
@@ -28,7 +24,6 @@ export interface SalaryDocumentRecord {
   employeeId: string;
   kind: string;
   months: unknown;
-  /** Languages the employee asked for ("ar", "en"). */
   languages: string[];
   status: string;
   snapshot: unknown;
@@ -63,7 +58,6 @@ export async function getAccessibleSalaryDocument(
   return document;
 }
 
-/** Months (YYYY-MM) with approved, paid or closed payroll for this employee — the only ones a payslip can cover. */
 export async function availablePayslipMonths(
   employeeId: string,
 ): Promise<string[]> {
@@ -83,7 +77,6 @@ export async function availablePayslipMonths(
     .reverse();
 }
 
-/** Salary document ids (from `ids`) the user may issue or reject now, per the approval policy. */
 export async function decidableSalaryDocumentIds(
   user: Profile,
   ids: string[],

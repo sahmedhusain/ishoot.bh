@@ -36,10 +36,6 @@ const LAYERS: CalendarLayer[] = [
   "requests",
 ];
 
-/**
- * Your calendar in Google Calendar (or Outlook / Apple Calendar): a private subscription link that lists only what
- * you may see, kept up to date by your calendar app. Administrators can switch the feature off for the company.
- */
 export function CalendarSyncCard({
   feed,
   syncEnabled,

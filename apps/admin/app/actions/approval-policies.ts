@@ -40,12 +40,10 @@ export async function updateApprovalPolicyAction(
       targetType,
       policy,
     });
-    // Approval routing is governance: same rule as role permissions.
     if (actor.role !== "super_admin")
       throw new Error(
         serverMessages.onlySuperAdministratorsCanChangeApprovalPolicies,
       );
-    // Values are validated against the approval/permission constants inside updateApprovalPolicy.
     await updateApprovalPolicy(targetType as ApprovalTargetType, {
       ...policy,
       steps: policy.steps.map((step) => ({

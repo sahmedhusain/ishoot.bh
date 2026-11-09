@@ -9,7 +9,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 
-/** Creates or edits a task. Without the right to assign, the only choices for "who does it" are no one and oneself. */
 export function TaskForm({ initial, choices, canAssign, selfId, onSaved, onCancel }: { initial: TaskInput; choices: TaskChoices; canAssign: boolean; selfId: string; onSaved: (id: string) => void; onCancel: () => void }) {
   const { t, locale } = useAdminLocale();
   const copy = t.tasks.form;

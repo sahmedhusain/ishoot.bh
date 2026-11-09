@@ -26,7 +26,6 @@ const remember = (key: string, value: string) => {
   } catch { }
 };
 
-/** The cart page: lines priced by the server, quantities, coupon, delivery or pickup, then checkout. */
 export function CartView({ locale, currency, shopHref, fulfilments }: { locale: string; currency: string; shopHref: string; fulfilments: { delivery: boolean; pickup: boolean } }) {
   const { t, site } = useTranslation();
   const lines = useCart();

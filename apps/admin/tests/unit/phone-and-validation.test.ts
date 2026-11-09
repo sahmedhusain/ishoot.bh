@@ -14,27 +14,22 @@ import {
 
 describe("Phone number parsing, formatting and search", () => {
   it("splits phone numbers correctly with dial code and national digits", () => {
-    // Standard format with +
     const res1 = splitPhoneNumber("+97333115351");
     expect(res1.countryCode).toBe("+973");
     expect(res1.nationalNumber).toBe("33115351");
 
-    // Number with spaces, dashes, parentheses
     const res2 = splitPhoneNumber("+973 33-11 (5351)");
     expect(res2.countryCode).toBe("+973");
     expect(res2.nationalNumber).toBe("33115351");
 
-    // Saudi number
     const res3 = splitPhoneNumber("+966501234567");
     expect(res3.countryCode).toBe("+966");
     expect(res3.nationalNumber).toBe("501234567");
 
-    // Local number without country code
     const res4 = splitPhoneNumber("33115351", "+973");
     expect(res4.countryCode).toBe("+973");
     expect(res4.nationalNumber).toBe("33115351");
 
-    // Leading 00 prefix
     const res5 = splitPhoneNumber("0097333115351");
     expect(res5.countryCode).toBe("+973");
     expect(res5.nationalNumber).toBe("33115351");
@@ -72,8 +67,8 @@ describe("Phone number parsing, formatting and search", () => {
   it("validates phone number digits accurately", () => {
     expect(isValidPhone("+973", "33115351")).toBe(true);
     expect(isValidPhone("+966", "501234567")).toBe(true);
-    expect(isValidPhone("+973", "123")).toBe(false); // too short
-    expect(isValidPhone("+973", "12345678901234567")).toBe(false); // too long
+    expect(isValidPhone("+973", "123")).toBe(false);
+    expect(isValidPhone("+973", "12345678901234567")).toBe(false);
     expect(isValidPhone("+973", "")).toBe(false);
   });
 });
@@ -102,14 +97,14 @@ describe("Strict email validation", () => {
     expect(isValidEmail("invalid")).toBe(false);
     expect(isValidEmail("user@")).toBe(false);
     expect(isValidEmail("@domain.com")).toBe(false);
-    expect(isValidEmail("user@domain")).toBe(false); // missing TLD dot
-    expect(isValidEmail("user@domain.c")).toBe(false); // TLD too short
+    expect(isValidEmail("user@domain")).toBe(false);
+    expect(isValidEmail("user@domain.c")).toBe(false);
     expect(isValidEmail(".user@domain.com")).toBe(false);
     expect(isValidEmail("user.@domain.com")).toBe(false);
     expect(isValidEmail("user@%65xample.com")).toBe(false);
-    expect(isValidEmail("user..name@domain.com")).toBe(false); // double dot
+    expect(isValidEmail("user..name@domain.com")).toBe(false);
     expect(isValidEmail("user@domain..com")).toBe(false);
-    expect(isValidEmail("user @domain.com")).toBe(false); // spaces
+    expect(isValidEmail("user @domain.com")).toBe(false);
   });
 
   it("normalizes email addresses", () => {

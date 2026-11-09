@@ -1,7 +1,4 @@
-// CRM pipeline rules shared by queries and the UI. Runtime-free.
-// Each company keeps its own stage list (DealPipelineStage); these are the built-in stages and their defaults.
 
-/** The stages a new install starts with, in pipeline order. Closed stages come last. */
 export const DEAL_STAGE_ORDER = [
   "lead",
   "proposal_sent",
@@ -15,7 +12,6 @@ export const DEAL_STAGE_ORDER = [
 ] as const;
 export type DealStageValue = (typeof DEAL_STAGE_ORDER)[number];
 
-/** Stages quotations, invoices and payments move deals into: they can be renamed and reordered, not removed. */
 export const SYSTEM_DEAL_STAGES = [
   "lead",
   "proposal_sent",
@@ -28,7 +24,6 @@ export type SystemDealStage = (typeof SYSTEM_DEAL_STAGES)[number];
 export const isSystemDealStage = (stage: string): stage is SystemDealStage =>
   (SYSTEM_DEAL_STAGES as readonly string[]).includes(stage);
 
-/** Stages with a built-in label in the admin copy (`stages.<id>`), offered when a company builds its pipeline. */
 export const BUILT_IN_DEAL_STAGES = [
   ...DEAL_STAGE_ORDER,
   "scheduled",
@@ -46,14 +41,12 @@ export const CLOSED_DEAL_STAGES: readonly DealStageValue[] = [
   "closed_lost",
 ];
 
-/** The single definition of an "active" deal: anything still in the pipeline (not won or lost). */
 export const ACTIVE_DEAL_STAGES: readonly DealStageValue[] =
   DEAL_STAGE_ORDER.filter((stage) => !CLOSED_DEAL_STAGES.includes(stage));
 
 export const isActiveDealStage = (stage: string) =>
   !(CLOSED_DEAL_STAGES as readonly string[]).includes(stage);
 
-/** Default win probability and board colour of each built-in stage. */
 export const DEAL_STAGE_DEFAULTS: Record<
   BuiltInDealStage,
   { probability: number; color: string | null }
@@ -74,10 +67,6 @@ export const DEAL_STAGE_DEFAULTS: Record<
   closed_lost: { probability: 0, color: "#E11D48" },
 };
 
-/**
- * The working stages between "contract signed" and "invoiced" for each business activity
- * (website-presets.ts BUSINESS_ACTIVITIES). The system stages frame them.
- */
 export const ACTIVITY_DEAL_STAGES: Record<string, readonly BuiltInDealStage[]> =
   {
     media: ["production", "post_production", "delivered"],
@@ -105,7 +94,6 @@ export const ACTIVITY_DEAL_STAGES: Record<string, readonly BuiltInDealStage[]> =
     other: ["production", "delivered"],
   };
 
-/** The full stage list an activity starts with, in pipeline order. */
 export function activityDealStages(
   activity: string | null | undefined,
 ): BuiltInDealStage[] {
@@ -124,7 +112,6 @@ export function activityDealStages(
   ];
 }
 
-/** Business events that move a linked deal forward. */
 export const DEAL_STAGE_ON_EVENT = {
   quotation_issued: "proposal_sent",
   quotation_accepted: "contract_signed",
@@ -133,5 +120,4 @@ export const DEAL_STAGE_ON_EVENT = {
 } as const satisfies Record<string, SystemDealStage>;
 export type DealProgressEvent = keyof typeof DEAL_STAGE_ON_EVENT;
 
-/** A custom stage id: lower-case words joined by underscores. */
 export const DEAL_STAGE_ID = /^[a-z][a-z0-9_]{1,39}$/;

@@ -18,9 +18,7 @@ interface DocumentDetailHeaderProps {
   eyebrow: React.ReactNode;
   number: string;
   chips?: React.ReactNode;
-  /** The generated paper document behind Print and Download; downloading needs export access. */
   pdf: { type: PdfDocumentType; id: string; number: string; canDownload?: boolean };
-  /** Lifecycle actions, shown after Print and Download. */
   actions?: React.ReactNode;
 }
 
@@ -84,7 +82,6 @@ export function DocumentDetailHeader({
   );
 }
 
-/** Small mono tag next to the eyebrow (revision, signature state, method). */
 export function DocumentHeaderChip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-full bg-surface-container-high px-2.5 py-0.5 font-mono text-xs text-on-surface-variant">

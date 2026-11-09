@@ -22,7 +22,6 @@ interface Filters {
   late: boolean;
 }
 
-/** Delivery → shipments: today's board and every shipment, by promise time. */
 export function ShipmentsListView({ rows, total, page, pageSize, counts, zones, filters, currency }: Result & { counts: Awaited<ReturnType<typeof shipmentCounts>>; zones: { id: string; name_en: string; name_ar: string }[]; filters: Filters; currency: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery;

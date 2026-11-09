@@ -46,7 +46,6 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       data-topbar
       className="admin-topbar"
     >
-      {/* Start: Hamburger Menu + Dynamic Brand Lockup */}
       <div className="admin-brand">
         <button
           type="button"
@@ -105,15 +104,11 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         </Link>
       </div>
 
-      {/* Center: M3 Search Bar */}
-      {/* Search shrinks on phones so the actions on the other side stay on screen. */}
       <div className="admin-topbar-search">
         <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
       </div>
 
-      {/* End: Action Cluster */}
       <div className="admin-topbar-actions">
-        {/* Calendar Shortcut */}
         {can("calendar", "read") && (
           <Link
             href={ROUTES.calendar}
@@ -125,7 +120,6 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           </Link>
         )}
 
-        {/* Theme Switcher */}
         <button
           type="button"
           onClick={toggleTheme}
@@ -140,7 +134,6 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           )}
         </button>
 
-        {/* Notifications Popover */}
         <NotificationCenter />
         <span className="mx-1 h-5 w-px bg-outline-variant/40" aria-hidden />
         <AdminProfileDropdown />

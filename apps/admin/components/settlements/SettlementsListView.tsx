@@ -41,7 +41,6 @@ const STATUSES = [
 ] as const;
 const label = "mb-1 block text-xs font-semibold text-ink";
 
-/** Final settlements, and the rules for leaving indemnity and unused leave they are worked out with. */
 export function SettlementsListView({
   items,
   rules,

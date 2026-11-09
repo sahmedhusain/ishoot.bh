@@ -22,10 +22,6 @@ interface FinancialAnalyticsViewProps {
 
 const AGING_COLORS = ["bg-emerald-500", "bg-amber-400", "bg-orange-500", "bg-rose-500", "bg-rose-700"];
 
-/**
- * Operational finance view: collections, receivables and spending trends.
- * The profit & loss statement, VAT and accounting basis live only in Financial Reports.
- */
 export function FinancialAnalyticsView({ finance, insight, categoryTotals, categories, monthlyCashflow }: FinancialAnalyticsViewProps) {
   const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();

@@ -1,6 +1,3 @@
-// Every admin dashboard URL, in one place. Runtime-free so server queries, server actions and
-// client components build links the same way. The query types are what each page reads from
-// its `searchParams`, so a link can only pass parameters the target page understands.
 
 type QueryValue = string | number | null | undefined;
 
@@ -41,7 +38,6 @@ export const ROUTES = {
     type?: string | null;
     scope?: string | null;
   }) => withQuery("/dashboard/approvals", query),
-  /** One request under review: the record itself, its approval steps and the decision. */
   approvalItem: (targetType: string, targetId: string) =>
     `/dashboard/approvals/${encode(targetType)}/${encode(targetId)}`,
   archive: "/dashboard/archive",
@@ -309,10 +305,6 @@ export const ROUTES = {
   },
 } as const;
 
-/**
- * Entity types used by attachments, activity logs and search results → the dashboard page that
- * owns them. Used for "open" links and to revalidate the owning page after a change.
- */
 export const ENTITY_ROUTES: Record<string, (id: string) => string> = {
   contact: ROUTES.crm.customer,
   customer: ROUTES.crm.customer,

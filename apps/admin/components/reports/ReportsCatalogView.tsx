@@ -8,7 +8,6 @@ import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Reports: every report the person may run, by area. */
 export function ReportsCatalogView({ reports }: { reports: { key: string; area: string }[] }) {
   const { t } = useAdminLocale();
   const copy = t.reports;

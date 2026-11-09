@@ -38,9 +38,7 @@ export interface SalaryDocumentItem {
   reviewNotes: string | null;
   employeeName?: string;
   employeeNameAr?: string;
-  /** Languages the employee asked for; one PDF each. */
   languages: string[];
-  /** HR may e-mail or WhatsApp it to the employee; the requester only views, downloads and prints their own. */
   shareable?: boolean;
 }
 const LANGUAGE_CHOICES = {
@@ -58,19 +56,14 @@ export function SalaryDocumentsView({
 }: {
   employeeId?: string;
   documents: SalaryDocumentItem[];
-  /** YYYY-MM months with approved payroll for this employee; the only months a payslip can cover. */
   availableMonths?: string[];
-  /** Document ids the viewer may issue or reject under the salary document approval policy. */
   decidableIds?: string[];
-  /** Show the "HR profile not set up" notice when there is no employee to request for. */
   showNoProfile?: boolean;
-  /** Rendered inside another page (employee record): no page header. */
   embedded?: boolean;
 }) {
   const modalFormId = useId();
   const { t, locale } = useAdminLocale();
   const { can } = usePermissions();
-  // Your own documents need self-service access; requesting for others needs payroll issuing rights.
   const canRequest =
     can("self_service", "create") || can("payroll", "issue_send");
   const h = t.hrExtensions;
@@ -396,7 +389,6 @@ export function SalaryDocumentsView({
                   <div className="flex flex-wrap gap-2">
                     {item.status === "pending" &&
                       decidableIds.includes(item.id) && (
-                        // Issued from its own approval page, where the signer reviews it (and signs on the spot when required).
                         <Link
                           href={ROUTES.approvalItem("salary_document", item.id)}
                           className="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"

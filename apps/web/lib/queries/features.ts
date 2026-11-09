@@ -1,6 +1,3 @@
-// Which optional modules are on. The system service owns them (backend/services/system); these helpers keep the
-// names the apps already use. Reads are cached briefly in each server process (SYSTEM_MODULES_CACHE_MS, default 5 s),
-// so a change made elsewhere reaches every server within that time; a change made here is seen at once.
 import { serverMessages } from "@platform/locales";
 import { listModules, setModule, type ModuleState } from "@platform/api-client";
 import { moduleOnByDefault } from "../constants/features";
@@ -23,7 +20,6 @@ function modules(): Promise<ModuleState[]> {
   if (!cached || now >= cached.until) {
     const pending = listModules();
     cached = { until: now + cacheMs(), modules: pending };
-    // A failed read is never cached.
     pending.catch(() => {
       if (cached?.modules === pending) cached = undefined;
     });
@@ -38,7 +34,6 @@ const toToggle = (m: ModuleState): FeatureToggle => ({
   nameAr: m.nameAr,
 });
 
-/** Every module in the catalogue with its state, by key. */
 export async function getFeatureToggles(): Promise<FeatureToggle[]> {
   try {
     return (await modules()).map(toToggle).sort((a, b) => a.moduleKey.localeCompare(b.moduleKey));
@@ -56,14 +51,12 @@ export async function getFeatureToggle(moduleKey: string): Promise<FeatureToggle
   }
 }
 
-/** Switches a module on or off for the person making the change. */
 export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean, actorId: string) {
   await setModule(moduleKey, isEnabled, actorId);
   cached = undefined;
   return { moduleKey, isEnabled };
 }
 
-/** Whether a module is on; a key outside the catalogue follows moduleOnByDefault. */
 export async function isFeatureEnabled(moduleKey: string) {
   try {
     const found = (await modules()).find((m) => m.key === moduleKey);

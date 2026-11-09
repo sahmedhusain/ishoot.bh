@@ -1,6 +1,3 @@
-// The admin dictionary is activity-neutral; an activity whose own vocabulary reads better (a media studio's
-// shoots, gear and post-production) layers it on top. Kept apart from index.ts so the admin client can
-// import it without the website dictionaries.
 import type dictionary from "./en.json";
 import adminActivities from "./admin-activities.json";
 import { deepMerge, type DeepPartial } from "./merge";
@@ -14,7 +11,6 @@ const copy = adminActivities as unknown as Record<
   Partial<Record<AdminLocale, AdminCopyOverlay>>
 >;
 
-/** The wording an activity layers over the neutral admin copy (most activities use the base as it is). */
 export function adminActivityCopy(
   locale: AdminLocale,
   activity: string | null | undefined,
@@ -22,7 +18,6 @@ export function adminActivityCopy(
   return (activity && copy[activity]?.[locale]) || {};
 }
 
-/** An admin dictionary with the company's activity wording on top. */
 export function withAdminActivity(
   dictionary: AdminDictionary,
   locale: AdminLocale,

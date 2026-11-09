@@ -104,7 +104,6 @@ async function hrFetch<T>(
     try {
       errBody = await res.json();
     } catch {
-      // non-JSON
     }
     throw await apiError(res, errBody);
   }
@@ -116,14 +115,12 @@ async function hrFetch<T>(
   return normalizeApiRecord(body) as T;
 }
 
-// Departments
 export const listDepartments = (token?: string) =>
   hrFetch<Department[]>("/v1/hr/departments", {}, token);
 
 export const createDepartment = (input: Partial<Department>, token?: string) =>
   hrFetch<Department>("/v1/hr/departments", { method: "POST", body: JSON.stringify(input) }, token);
 
-// Employees
 export const listEmployees = (token?: string) =>
   hrFetch<Employee[]>("/v1/hr/employees", {}, token);
 
@@ -139,7 +136,6 @@ export const offboardEmployee = (id: string, token?: string) =>
 export const deleteEmployee = (id: string, token?: string) =>
   hrFetch<void>(`/v1/hr/employees/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Leave
 export const listLeaveRequests = (employeeId?: string, token?: string) => {
   const q = employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : "";
   return hrFetch<LeaveRequest[]>(`/v1/hr/leave${q}`, {}, token);
@@ -154,7 +150,6 @@ export const approveLeaveRequest = (id: string, approvedBy: string, token?: stri
     body: JSON.stringify({ approvedBy }),
   }, token);
 
-// Payroll
 export const listPayrollRuns = (token?: string) =>
   hrFetch<PayrollRun[]>("/v1/hr/payroll", {}, token);
 

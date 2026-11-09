@@ -1,5 +1,3 @@
-// Website Service & Form Integration Verification
-// Verifies public website sanitization, idempotency logic, and Gateway CMS/Sales connectivity.
 const assert = require("node:assert/strict");
 const { randomUUID, createHash } = require("node:crypto");
 
@@ -36,7 +34,6 @@ async function testGatewayCmsPages() {
       headers: { "Content-Type": "application/json" },
       signal: AbortSignal.timeout(3000),
     });
-    // Public CMS pages endpoint must return 200
     assert.ok(
       [200, 401].includes(res.status),
       `Gateway /v1/cms/pages responded with unexpected status ${res.status}`

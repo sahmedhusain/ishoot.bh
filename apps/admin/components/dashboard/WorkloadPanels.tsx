@@ -12,7 +12,6 @@ interface WorkloadPanelsProps {
   approvals: ApprovalWorkload;
   requests: RequestWorkload | null;
   complaints: ComplaintWorkload | null;
-  /** Server time, so ages render the same on server and client. */
   generatedAt: string;
 }
 

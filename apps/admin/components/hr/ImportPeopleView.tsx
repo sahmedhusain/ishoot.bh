@@ -14,11 +14,9 @@ import { csvLine, parseCsv } from "../../lib/csv";
 import { errorMessage } from "../../lib/error-text";
 import { PageHeader } from "../layout/PageHeader";
 
-// Same order as PEOPLE_IMPORT_COLUMNS in @platform/database (kept here so the client bundle stays database-free).
 const COLUMNS = ["first_name_en", "last_name_en", "first_name_ar", "last_name_ar", "job_title_en", "job_title_ar", "department_code", "hire_date", "basic_salary", "email", "phone", "account_role", "manager_email"] as const;
 const LIMIT = 2000;
 
-/** HR → Employees → Import: upload a CSV, review every row's problems, then import the rows that are ready. */
 export function ImportPeopleView({
   departments,
   roles,

@@ -106,7 +106,6 @@ const toForm = (c?: Component, schedule = false): ComponentForm => ({
   notes: c?.notes ?? "",
 });
 
-/** Social insurance: rules, dated contribution rates (a change takes effect from its date), employee registrations. */
 export function GosiView({
   rules,
   components,
@@ -154,7 +153,6 @@ export function GosiView({
     }
   };
 
-  // Current version per code, with older and future versions as its history.
   const codes = Array.from(new Set(components.map((c) => c.code)));
   const current = (code: string) => {
     const on = today();

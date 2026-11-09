@@ -35,7 +35,6 @@ export function AdminLocaleProvider({
   children: React.ReactNode;
   initialLocale?: AdminLocale;
   initialTranslations?: AdminTranslations;
-  /** The company's business activity, whose wording layers over the neutral dictionary. */
   activity?: string | null;
 }) {
   const [state, setState] = React.useState<{ locale: AdminLocale; t: AdminTranslations }>(() => ({

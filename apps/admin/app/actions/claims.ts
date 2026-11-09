@@ -22,7 +22,6 @@ function refresh() {
   revalidatePath(ROUTES.approvals());
 }
 
-/** Any staff member: file a reimbursement claim with its receipt; it goes straight into approval. */
 export async function submitExpenseClaimAction(data: {
   amount: number;
   currency?: string;
@@ -82,7 +81,6 @@ export async function cancelExpenseClaimAction(id: string) {
   });
 }
 
-/** Finance: stage an approved claim for the next payment run. */
 export async function scheduleExpenseClaimAction(
   id: string,
   payOn?: string | null,
@@ -122,7 +120,6 @@ export async function scheduleExpenseClaimAction(
   });
 }
 
-/** Finance: record the reimbursement; this also books the expense in the financials. */
 export async function payExpenseClaimAction(
   id: string,
   payment: {

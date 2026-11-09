@@ -10,7 +10,6 @@ export const dynamic = "force-dynamic";
 const when = (iso: string, locale: string) => new Date(iso).toLocaleString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const day = (date: string, locale: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
-/** The customer's view of a delivery: where it is, when it is expected, and what happened. */
 export default async function TrackPage({ params }: { params: Promise<{ locale: string; token: string }> }) {
   const { locale, token } = await params;
   await requireSiteLanguage(locale);
@@ -22,7 +21,6 @@ export default async function TrackPage({ params }: { params: Promise<{ locale: 
     </div>
   );
   if (!shipment) return shell(<p className="text-ink-muted" role="alert">{t.store.trackNotFound}</p>);
-  // How far along it is: the order's own progress, then the shipment's.
   const reached = shipment.status === "delivered" ? 3 : shipment.status === "out_for_delivery" || shipment.status === "failed" ? 2 : ["packing", "shipped"].includes(shipment.order_status) ? 1 : 0;
   const stopped = ["returned", "cancelled"].includes(shipment.status);
   return shell(

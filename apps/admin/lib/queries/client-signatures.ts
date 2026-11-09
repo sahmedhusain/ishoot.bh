@@ -12,11 +12,6 @@ import { claimUploadOrLink } from "../services/uploads";
 import { advanceDealForEvent } from "./crm";
 import { validateSignatureImage } from "../services/signature-image";
 
-/**
- * Client acceptance of quotations and invoices. Staff either send a time-limited signing link (the
- * client reads the document and its terms, then signs online) or upload a copy the client signed by
- * hand. A quotation signed this way is accepted. Tokens are stored only as SHA-256 hashes.
- */
 export type ClientSignableType = "quotation" | "invoice";
 
 export const SIGNABLE_STATUSES: Record<ClientSignableType, readonly string[]> =
@@ -37,7 +32,6 @@ export interface ClientSignableDocument {
   language: "ar" | "en";
   status: string;
   issueDate: string;
-  /** Due date for an invoice, validity for a quotation. */
   untilDate: string;
   currency: string;
   subtotal: number;
@@ -45,7 +39,6 @@ export interface ClientSignableDocument {
   vatAmount: number;
   vatPercentage: number;
   vatEnabled: boolean;
-  /** Taxes besides VAT frozen on the document. */
   otherTaxes: Array<{
     code: string;
     nameEn: string;
@@ -182,14 +175,12 @@ export async function loadSignableDocument(
   };
 }
 
-/** E-signature consent wording in the document language, supplied by the app (it owns the translations). */
 export type ConsentText = (
   language: "ar" | "en",
   number: string,
   type: ClientSignableType,
 ) => string;
 
-/** What the client agreed to: the document's own terms plus the e-signature consent, in its language. */
 export function signingTerms(
   doc: ClientSignableDocument,
   consent: ConsentText,
@@ -199,7 +190,6 @@ export function signingTerms(
     .join("\n\n");
 }
 
-/** Number, currency, total and lines: if any of these change after signing, the signature no longer matches. */
 export function documentFingerprint(doc: ClientSignableDocument): string {
   const payload = JSON.stringify([
     doc.type,
@@ -241,7 +231,6 @@ async function signedRecord(
   });
 }
 
-/** Creates a fresh signing link (any earlier unused link for the document stops working). Returns the raw token once. */
 export async function createSigningLink(
   type: ClientSignableType,
   id: string,
@@ -261,7 +250,6 @@ export async function createSigningLink(
       }),
     );
   let expiresAt = new Date(Date.now() + days * 86_400_000);
-  // A quotation cannot be signed after it stops being valid.
   if (type === "quotation") {
     const validUntil = endOfDayUtc(doc.untilDate);
     if (validUntil <= new Date())
@@ -326,7 +314,6 @@ export async function revokeSigningLink(signatureId: string, actorId: string) {
   return record;
 }
 
-/** Marks a quotation accepted inside the signing transaction (the same effect as staff recording acceptance). */
 async function acceptQuotationForSignature(
   tx: Prisma.TransactionClient,
   doc: ClientSignableDocument,
@@ -340,7 +327,6 @@ async function acceptQuotationForSignature(
   await advanceDealForEvent(tx, doc.dealId, "quotation_accepted");
 }
 
-/** Records a copy the client signed by hand (PDF or image uploaded by staff). */
 export async function recordSignedCopy(
   type: ClientSignableType,
   id: string,
@@ -419,7 +405,6 @@ export async function recordSignedCopy(
   });
 }
 
-/** The live link behind a token, or why it cannot be used. Expired links are marked as such. */
 export async function getSigningSession(token: string, consent: ConsentText) {
   if (typeof token !== "string" || token.length < 30 || token.length > 100)
     return { state: "invalid" as const };
@@ -497,7 +482,6 @@ export async function signWithToken(
     );
     assertSignable(doc);
     const signedAt = new Date();
-    // Only one request can turn the pending link into a signature.
     const claimed = await tx.clientSignature.updateMany({
       where: { id: record.id, status: "pending", expiresAt: { gt: signedAt } },
       data: {
@@ -520,7 +504,6 @@ export async function signWithToken(
       doc,
       `Signed online by ${signerName}`,
     );
-    // Logged against the staff member who sent the link; the details name the client signer.
     await tx.activityLog.create({
       data: {
         userId: record.createdById,
@@ -540,7 +523,6 @@ export async function signWithToken(
   });
 }
 
-/** The signed acceptance shown on the PDF, or null. */
 export async function getClientAcceptance(
   type: ClientSignableType,
   id: string,
@@ -561,7 +543,6 @@ export async function getClientAcceptance(
   };
 }
 
-/** Signing history for the staff screen (newest first); tokens are never returned. */
 export async function listClientSignatures(
   type: ClientSignableType,
   id: string,

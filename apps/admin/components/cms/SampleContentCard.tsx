@@ -10,13 +10,11 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { formatMessage } from "@platform/locales";
 
-/** Opens the demo website of an activity in a new tab. */
 export function ShowExampleButton({ activity, className, compact }: { activity: BusinessActivity; className?: string; compact?: boolean }) {
   const { t, locale } = useAdminLocale();
   const [busy, setBusy] = React.useState(false);
   const open = async () => {
     setBusy(true);
-    // Opened before the link is ready so the browser does not treat it as a pop-up.
     const tab = window.open("", "_blank");
     try {
       const url = await exampleWebsiteAction(activity, locale);
@@ -44,7 +42,6 @@ export function ShowExampleButton({ activity, className, compact }: { activity: 
   );
 }
 
-/** Website → sample content: add the activity's samples, or remove them all in one click. */
 export function SampleContentCard({ activity, count }: { activity: BusinessActivity | null; count: number }) {
   const { t } = useAdminLocale();
   const copy = t.sampleContent;

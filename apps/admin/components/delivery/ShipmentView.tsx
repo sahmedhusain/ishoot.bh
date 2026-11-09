@@ -17,7 +17,6 @@ import { Field } from "../setup/LanguageFields";
 import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
 import { PageHeader } from "../layout/PageHeader";
 
-/** One shipment: where and when, what is in it, moving it along (with a reason when it fails) and its history. */
 export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles, agencies, currency }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[]; agencies: CourierAgencyRecord[]; currency: string }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
@@ -54,7 +53,6 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
-      // A failed carrier call may still have recorded an uncertain booking.
       router.refresh();
       return false;
     } finally {
@@ -195,12 +193,10 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
               <div className="flex flex-wrap gap-4">
                 {shipment.proof_photo_url && (
                   <a href={shipment.proof_photo_url} target="_blank" rel="noreferrer" className="block">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- a private file served by the owner-checked file route */}
                     <img src={shipment.proof_photo_url} alt={t.delivery.assign.photo} className="h-32 rounded-lg border border-outline-variant object-cover" />
                   </a>
                 )}
                 {shipment.proof_signature && (
-                  // eslint-disable-next-line @next/next/no-img-element -- an inline PNG data URL
                   <img src={shipment.proof_signature} alt={t.delivery.assign.signature} className="h-32 rounded-lg border border-outline-variant bg-surface-raised" />
                 )}
               </div>

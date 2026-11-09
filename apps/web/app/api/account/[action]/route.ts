@@ -65,7 +65,6 @@ function signedIn(credential: LoginCredential) {
   return response;
 }
 
-/** Account actions posted from the website's account page. */
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ action: string }> },
@@ -263,7 +262,6 @@ export async function POST(
             saved: await toggleWishlist(customer.id, str(body.itemId, 60)),
           });
         case "order-help": {
-          // A question or a problem about one of the customer's own orders goes to the service desk.
           await consumeAbuseLimit("customer-order-help", customer.id, 5, 3600);
           const result = await createOrderHelpRequest(
             {
@@ -332,7 +330,6 @@ export async function POST(
   });
 }
 
-/** Starts a provider flow; identity owns nonce, PKCE and provider credentials. */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ action: string }> },

@@ -19,7 +19,6 @@ interface Reply {
   at: string;
 }
 
-/** Replying to the customer from a request: saved replies in the customer's language, e-mail or WhatsApp. */
 export function ServiceReplyPanel({ requestId, customerLocale, hasEmail, hasPhone, order, replies, cannedReplies, canReply }: { requestId: string; customerLocale: string; hasEmail: boolean; hasPhone: boolean; order: { id: string; number: string } | null; replies: Reply[]; cannedReplies: CannedReplyRecord[]; canReply: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.serviceDesk.reply;

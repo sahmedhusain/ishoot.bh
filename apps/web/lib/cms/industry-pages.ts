@@ -3,7 +3,6 @@ import type { CollectionLayout } from "../website-presets";
 import type { BusinessActivity } from "../website-presets";
 
 type PageRecipe = { slug: string; en: string; ar: string; blocks: BlockType[] };
-/** Editable compositions of existing CMS capabilities. Booking/registration remains an inquiry until supported. */
 export const INDUSTRY_PAGES: Record<BusinessActivity, PageRecipe[]> = {
   media: [
     {

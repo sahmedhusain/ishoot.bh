@@ -13,7 +13,6 @@ import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Marketing → segments and e-mail: who to reach, and e-mail broadcasts to those who agreed. */
 export function AudienceView({ segments, broadcasts, campaigns, currency, languages, canEdit }: { segments: SegmentRow[]; broadcasts: BroadcastRow[]; campaigns: { id: string; name: string }[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean }) {
   const confirmAction = useConfirmation();
   const { t } = useAdminLocale();

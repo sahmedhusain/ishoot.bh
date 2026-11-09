@@ -1,7 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 
-/** Frozen copy of the data a salary document prints. Throws when payroll for a requested month is not approved. */
 export async function salaryDocumentSnapshot(
   employeeId: string,
   kind: string,
@@ -66,7 +65,6 @@ export async function salaryDocumentSnapshot(
   });
   if (items.length !== months.length)
     throw new Error(serverMessages.approvedPayrollIsRequiredForEverySelected);
-  // Salary documents state pay only: attendance counts and the attendance window are internal to payroll.
   const printable = items.map(
     ({
       attendanceSummary: _attendance,

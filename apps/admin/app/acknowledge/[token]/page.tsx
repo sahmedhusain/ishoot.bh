@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-/** Public page an employee opens from their signing link to read and sign an asset handover on their own device. */
 export default async function HandoverSigningPage({
   params,
   searchParams,

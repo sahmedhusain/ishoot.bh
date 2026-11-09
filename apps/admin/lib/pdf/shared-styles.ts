@@ -10,10 +10,8 @@ import {
   type FontChoice,
 } from "@platform/database/constants/theme";
 
-/** The single family every generated document uses; it is registered from the company theme's body font. */
 export const PDF_FONT = "CompanyPdf";
 
-// Arabic and English words are never hyphenated.
 Font.registerHyphenationCallback((word) => [word]);
 
 let registeredKey: string | null = null;
@@ -24,10 +22,6 @@ const nearest = (files: { weight: number; url: string }[], weight: number) =>
     (a, b) => Math.abs(a.weight - weight) - Math.abs(b.weight - weight),
   )[0];
 
-/**
- * The renderer loads fonts from a path, so an uploaded font is copied once to a temporary folder. Uploaded files
- * never change under the same address, so the copy never goes stale.
- */
 async function uploadedFontSource(url: string) {
   const extension = path.extname(url);
   const target = path.join(
@@ -43,11 +37,9 @@ async function uploadedFontSource(url: string) {
   return target;
 }
 
-/** Google serves complete TrueType files (Arabic and Latin together) to non-browser clients. */
 async function googleFontSources(family: string) {
   const cached = googleSources.get(family);
   if (cached) return cached;
-  // Asking for a weight the family lacks fails the whole request (Lalezar, Bebas Neue… have only 400).
   const known = FONT_LIBRARY.find((f) => f.family === family)?.weights;
   const weights = known
     ? [400, 700].filter((w) => known.includes(w))
@@ -85,10 +77,6 @@ async function fontSources(
   return null;
 }
 
-/**
- * Registers the company's body font for PDFs (once per theme). Returns false when no font could be loaded,
- * in which case documents fall back to the built-in Helvetica.
- */
 export async function registerPdfFont(theme: BrandTheme): Promise<boolean> {
   const key = JSON.stringify(theme.fonts.body);
   if (registeredKey === key) return true;

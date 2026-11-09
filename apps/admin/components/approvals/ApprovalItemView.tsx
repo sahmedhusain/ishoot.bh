@@ -28,7 +28,6 @@ const STATUS_STYLES: Record<string, string> = {
   rejected: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
 };
 
-/** One request on its own page: the record, what changes, the approval steps and the decision. */
 export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
   const { t, locale } = useAdminLocale();
   const a = t.approvals;

@@ -26,7 +26,6 @@ test.beforeAll(async () => {
   await enableStore(db);
   await useStripeStandIn(db);
   stripe = await startStripeStandIn(web);
-  // The second catalogue item, so the cart spec keeps the first.
   const item = (
     await db.portfolioItem.findMany({
       orderBy: { displayOrder: "asc" },
@@ -82,7 +81,6 @@ async function checkoutOnline(page: import("@playwright/test").Page) {
     form.getByRole("radio", { name: copy.paymentMethods.online }),
   ).toBeChecked();
   await page.getByTestId("checkout-place").click();
-  // Straight on to the gateway's page.
   await page.waitForURL(`${stripe.url}/pay/**`, { timeout: 60_000 });
   await expect(page.getByTestId("standin-amount")).toHaveText(/^\d+ [a-z]{3}$/);
 }
@@ -123,7 +121,6 @@ test("paying online: the gateway's signed webhook and the customer's return reco
     });
   expect(await receipts()).toBe(1);
 
-  // Stripe retries a webhook it thinks failed: nothing changes.
   const replay = await request.post(`${web}/api/store/payment/webhook/stripe`, {
     headers: {
       "Content-Type": "application/json",
@@ -133,7 +130,6 @@ test("paying online: the gateway's signed webhook and the customer's return reco
   });
   expect(replay.ok()).toBe(true);
   expect(await receipts()).toBe(1);
-  // A forged one is refused.
   const forged = await request.post(`${web}/api/store/payment/webhook/stripe`, {
     headers: {
       "Content-Type": "application/json",
@@ -151,7 +147,6 @@ test("leaving the gateway without paying keeps the order, and the customer can t
   const errors = watchErrors(page);
   await checkoutOnline(page);
   await page.getByRole("link", { name: "Back" }).click();
-  // The stand-in still reports an open session; a browser return cannot confirm a failed payment.
   await expect(page.getByTestId("pay-state")).toContainText(
     copy.payPendingTitle,
     { timeout: 60_000 },
@@ -160,7 +155,6 @@ test("leaving the gateway without paying keeps the order, and the customer can t
   expect(order.paymentAttempts.map((a) => a.status)).toEqual(["pending"]);
   expect(order.status).toBe("placed");
 
-  // The page arrived by redirect from the gateway; let it finish loading before using its button.
   await page.waitForLoadState("networkidle");
   await page.getByTestId("pay-now").click();
   await page.waitForURL(`${stripe.url}/pay/**`);
@@ -183,9 +177,7 @@ test("an online order nobody pays for is cancelled by the scheduled job and its 
 }) => {
   await checkoutOnline(page);
   const placed = await orderFor();
-  // Paid orders from the tests above still hold their items until shipped.
   const before = await stockOf(db, productId);
-  // Two hours ago, past the timeout and the grace period for payments still at the gateway.
   await db.paymentAttempt.updateMany({
     where: { orderId: placed.id },
     data: { createdAt: new Date(Date.now() - 2 * 3600_000 - 60_000) },

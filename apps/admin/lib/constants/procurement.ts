@@ -1,4 +1,3 @@
-// Procurement: statuses, document totals and the three-way match. Runtime-free, so forms and the server agree.
 
 export const REQUISITION_STATUSES = [
   "draft",
@@ -43,20 +42,17 @@ export const REJECT_REASONS = [
 
 export type PurchaseOrderStatus = (typeof PURCHASE_ORDER_STATUSES)[number];
 
-/** Purchase orders that can still receive goods. */
 export const RECEIVABLE_ORDER_STATUSES: readonly PurchaseOrderStatus[] = [
   "approved",
   "sent",
   "partially_received",
 ];
-/** Purchase orders still being prepared; their lines can change. */
 export const EDITABLE_ORDER_STATUSES: readonly PurchaseOrderStatus[] = [
   "draft",
 ];
 
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
-/** Subtotal, VAT and total of document lines, each line rounded to the company's three decimals. */
 export function documentTotals(
   lines: { quantity: number; unitPrice: number }[],
   vatPercentage: number,
@@ -71,7 +67,6 @@ export function documentTotals(
   return { subtotal, vatAmount, total: round3(subtotal + vatAmount) };
 }
 
-/** Where an order stands after goods arrive: fully received, part received, or unchanged. */
 export function orderReceiptStatus(
   lines: { quantity: number; receivedQuantity: number }[],
   current: PurchaseOrderStatus,
@@ -81,16 +76,11 @@ export function orderReceiptStatus(
   return received > 0 ? "partially_received" : current;
 }
 
-/** Prices may differ from the order by this share before the match flags them (rounding, small fees). */
 export const PRICE_TOLERANCE = 0.01;
 
 export type MatchIssue =
   "not_ordered" | "over_ordered" | "over_received" | "price";
 
-/**
- * The three-way match of one bill line: it must belong to an order line, not bill more than was ordered or
- * received (counting what earlier bills already billed), and keep the ordered price within the tolerance.
- */
 export function matchBillLine(
   bill: { quantity: number; unitPrice: number },
   order: {
@@ -111,7 +101,6 @@ export function matchBillLine(
   return issues;
 }
 
-/** What is left to pay on a bill, and the status that follows a payment. */
 export function billAfterPayment(total: number, amountPaid: number) {
   const paid = round3(amountPaid);
   return {
@@ -125,7 +114,6 @@ export function billAfterPayment(total: number, amountPaid: number) {
   };
 }
 
-/** Days between two dates (whole days, ignoring the time of day). */
 export function daysBetween(from: Date | string, to: Date | string) {
   const day = (d: Date) =>
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());

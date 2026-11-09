@@ -22,7 +22,6 @@ interface Row {
   total: number;
 }
 
-/** Purchasing → purchase orders. */
 export function PurchaseOrdersListView({ rows, total, page, pageSize, filters, currency, canCreate }: { rows: Row[]; total: number; page: number; pageSize: number; filters: { q: string; status: string }; currency: string; canCreate: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.orders;

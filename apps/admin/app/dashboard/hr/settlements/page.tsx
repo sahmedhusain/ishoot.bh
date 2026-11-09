@@ -7,7 +7,6 @@ export const generateMetadata = () => pageMetadata("hr/settlements");
 
 export const dynamic = "force-dynamic";
 
-/** Final settlements of leaving employees, and the leaving-indemnity and leave pay-out rules they follow. */
 export default async function SettlementsPage({
   searchParams,
 }: {

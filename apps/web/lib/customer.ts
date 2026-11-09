@@ -17,7 +17,6 @@ import {
   onlinePaymentAvailable,
 } from "@platform/database";
 
-/** The signed-in customer for this request: verified token, live identity account, then its business profile. */
 export const currentCustomer = cache(async () => {
   const token = await verifyAccessToken(
     (await cookies()).get(ACCESS_COOKIE)?.value,
@@ -39,7 +38,6 @@ export const currentCustomer = cache(async () => {
   }
 });
 
-/** Signs inquiry upload grants until the inquiry service owns attachments. */
 export function signInSecret() {
   const secret =
     process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET;
@@ -47,7 +45,6 @@ export function signInSecret() {
   return secret;
 }
 
-/** Customer accounts exist only while the online store module is on. */
 export const storeEnabled = cache(async () => {
   if (!(await isFeatureEnabled("store"))) return false;
   const { enabled, website, config } = await getSite();
@@ -76,16 +73,13 @@ export const orderingEnabled = cache(async () => {
   );
 });
 
-/** Enabled provider names only; OAuth credentials never reach the frontend process. */
 export const signInProviders = customerSignInProviders;
 
-/** Form posts from this website only (the browser sends the Origin header on POST). */
 export function sameOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
   return !!origin && origin === req.nextUrl.origin;
 }
 
-/** An error for the website: the key of a known server message (the page words it), else a generic one. */
 export function errorKey(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   const key = Object.entries(serverMessages).find(

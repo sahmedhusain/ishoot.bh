@@ -15,7 +15,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 const blank: CampaignInput = { name: "", channel: "social", status: "planned", startDate: "", endDate: "", budget: "", spend: "", utmCampaign: "", couponCode: "", notes: "" };
 
-/** Marketing → campaigns: budget against results (orders and requests from the campaign's links or coupon). */
 export function CampaignsView({ campaigns, currency, canEdit, websiteUrl }: { campaigns: CampaignRow[]; currency: string; canEdit: boolean; websiteUrl: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.marketing.campaigns;
@@ -111,7 +110,6 @@ export function CampaignsView({ campaigns, currency, canEdit, websiteUrl }: { ca
   );
 }
 
-/** Makes a website link that carries the campaign, for posts, ads and messages. */
 function LinkBuilder({ websiteUrl, campaign }: { websiteUrl: string; campaign: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.marketing.campaigns;

@@ -39,7 +39,6 @@ export async function listRecurringPay(
   }));
 }
 
-/** A custom addition or deduction paid every month from `start_month` (to `end_month` if set). */
 export async function saveRecurringPay(
   employeeId: string,
   input: RecurringPayInput,

@@ -82,7 +82,6 @@ function Progress({ value }: { value: number }) {
   );
 }
 
-/** Tasks → projects: every project with how far along it is. */
 export function ProjectsView({ projects, choices, canManage }: { projects: ProjectRow[]; choices: TaskChoices; canManage: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.tasks.projects;
@@ -134,7 +133,6 @@ export function ProjectsView({ projects, choices, canManage }: { projects: Proje
   );
 }
 
-/** One project: its details and its tasks on a board. */
 export function ProjectView({ project, rows, choices, filters, canAssign, selfId, today }: { project: ProjectRow; rows: TaskRow[]; choices: TaskChoices; filters: TaskFiltersState; canAssign: boolean; selfId: string; today: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.tasks.projects;

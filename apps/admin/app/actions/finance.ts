@@ -49,7 +49,6 @@ export async function createExpenseAction(data: {
     validateActionArguments("createExpenseAction", { data });
     const { expense } = await runAtomicMutation(async () => {
       const expense = await createExpense(data, user.id);
-      // Applies immediately when the expense policy is off or the creator's role auto-approves.
       await submitForApproval({
         targetType: "expense",
         targetId: expense.id,
@@ -167,7 +166,6 @@ export async function createInvoiceAction(data: {
   vat_enabled?: boolean;
   vat_percentage?: number;
   created_by?: string;
-  /** Salesperson credited with the invoice; defaults to its quotation's, else the issuer. */
   sales_owner_id?: string;
   line_items: {
     service_id?: string;
@@ -268,7 +266,6 @@ export async function updateInvoiceAction(
   });
 }
 
-/** Issues a draft invoice: it becomes a receivable and can accept payments. */
 export async function markInvoiceSentAction(id: string) {
   return measureOperation("action:markInvoiceSentAction", async () => {
     await requireFeatureEnabled("invoicing");

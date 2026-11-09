@@ -14,10 +14,6 @@ import { hasPermission, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import { renderRichText } from "../../lib/rich-text/render";
 
-/**
- * Saves an article. The body is rendered to clean HTML here from the editor document. Publishing needs
- * articles:approve; others save drafts that a publisher releases. The website shows it after the next publication.
- */
 export async function saveCmsArticleAction(input: CmsArticleInput) {
   return measureOperation("action:saveCmsArticleAction", async () => {
     await requireFeatureEnabled("cms");

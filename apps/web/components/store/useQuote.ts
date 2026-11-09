@@ -4,10 +4,6 @@ import * as React from "react";
 import type { CartQuote } from "@platform/database";
 import type { CartLine } from "@platform/database/constants/store";
 
-/**
- * Prices the browser's cart on the server whenever it, the coupon, the fulfilment or the delivery area changes
- * (the area picks the delivery zone's fee). Typing an address waits for a pause before asking again.
- */
 export function useQuote(
   lines: CartLine[],
   couponCode: string,
@@ -54,8 +50,6 @@ export function useQuote(
       live = false;
       clearTimeout(timer);
     };
-    // The key holds everything the request depends on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return { quote, loading, failed, retry };
 }

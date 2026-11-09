@@ -1,7 +1,3 @@
-// Sends meetings and approved leave to the realtime service as status windows (docs/adr/0012), so people show as
-// "In a meeting" or "On leave" while they last. Each change is sent right after it is saved; a full sync of the coming
-// weeks runs regularly and repairs anything missed (realtime unreachable, a change made by another path). A failure
-// never blocks the change itself: statuses are informative.
 import {
   removeStatusWindow,
   replaceStatusWindow,
@@ -11,11 +7,9 @@ import {
 import { db } from "../atomic";
 
 const DAY = 86_400_000;
-/** How far ahead the full sync covers meetings, and leave. */
 const MEETINGS_AHEAD = 14 * DAY;
 const LEAVE_AHEAD = 60 * DAY;
 
-/** The people in a meeting: its organiser, and those chosen for a private or custom event. */
 function meetingPeople(event: { createdById: string | null; visibility: string; audienceUserIds: string[] }) {
   const people = new Set<string>();
   if (event.createdById) people.add(event.createdById);
@@ -57,7 +51,6 @@ function quietly(what: string, error: unknown) {
   console.error(`Updating statuses for ${what} failed; the next full sync repairs it:`, error);
 }
 
-/** Sends one calendar event's window (or removes it when it is no longer a timed meeting). */
 export async function syncMeetingStatus(eventId: string) {
   try {
     const event = await db.calendarEvent.findUnique({ where: { id: eventId }, select: meetingSelect });
@@ -78,7 +71,6 @@ type LeaveRow = {
   leaveType: { code: string };
 };
 
-/** Leave covers whole days: from the start day's midnight to the end of the end day (server time). */
 function leaveWindow(leave: LeaveRow): StatusWindowInput | null {
   const userId = leave.employee.userId;
   if (leave.status !== "approved" || !userId) return null;
@@ -105,7 +97,6 @@ const leaveSelect = {
   leaveType: { select: { code: true } },
 } as const;
 
-/** Sends one leave request's window when approved, and removes it otherwise (rejected, cancelled). */
 export async function syncLeaveStatus(leaveId: string) {
   try {
     const leave = await db.leaveRequest.findUnique({ where: { id: leaveId }, select: leaveSelect });
@@ -117,7 +108,6 @@ export async function syncLeaveStatus(leaveId: string) {
   }
 }
 
-/** Replaces realtime's picture of the coming weeks' meetings and approved leave with the current one. */
 export async function syncAllStatusWindows(now = new Date()) {
   const from = new Date(now.getTime() - DAY);
   const meetingsUntil = new Date(now.getTime() + MEETINGS_AHEAD);

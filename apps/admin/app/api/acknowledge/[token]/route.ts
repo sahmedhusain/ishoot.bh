@@ -7,7 +7,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/** Public: the employee signs a handover through their one-time link. Errors come back as codes the page translates. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },

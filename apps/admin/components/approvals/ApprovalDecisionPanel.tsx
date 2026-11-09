@@ -11,10 +11,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 
-/**
- * Approve or reject a request on the record's own page. When the document must be signed on the spot, the
- * approver draws their signature here; a saved signature is never applied by pressing a button.
- */
 export function ApprovalDecisionPanel({
   approvalId,
   requiresSignature = false,

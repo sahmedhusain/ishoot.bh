@@ -1,7 +1,3 @@
-/**
- * Parses CSV text (RFC 4180: quoted fields, doubled quotes, line breaks inside quotes) into rows of cells.
- * Detects a semicolon delimiter (common in Arabic and European spreadsheet exports) and strips a byte-order mark.
- */
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^﻿/, "");
   const firstLine = source.slice(0, source.search(/\r?\n/) >>> 0);
@@ -38,7 +34,6 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
-/** One CSV line, quoting cells that need it. Cells that would start a spreadsheet formula are prefixed with '. */
 export const csvLine = (cells: string[]) =>
   cells
     .map((cell) => (/^[=+\-@]/.test(cell) ? `'${cell}` : cell))

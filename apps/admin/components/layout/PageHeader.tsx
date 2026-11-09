@@ -8,36 +8,21 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { pageKeyForPath, pageSection, type PageKey } from "../../lib/page-registry";
 
 interface PageHeaderProps {
-  /** The page whose title, description, icon and group are used; defaults to the current route. */
   page?: PageKey;
-  /** Replaces the page's title, e.g. with a record's number or name. */
   title?: React.ReactNode;
-  /** Replaces the page's description; null hides it. */
   description?: React.ReactNode | null;
-  /** Replaces the page's icon; null hides it. */
   icon?: LucideIcon | null;
-  /** Replaces the sidebar group shown above the title. */
   eyebrow?: React.ReactNode;
-  /** Chips and badges under the description (status, counts, links). */
   meta?: React.ReactNode;
-  /** Buttons at the end of the header. */
   actions?: React.ReactNode;
-  /** Shows a back button before the title. */
   back?: { href: string; label?: string };
-  /** Anything else placed before the title, such as a custom back link. */
   leading?: React.ReactNode;
   className?: string;
 }
 
-/**
- * The header every dashboard page starts with: the sidebar group, an icon, the title and a short description,
- * with the page's actions at the end. Copy comes from `pages.<route>` in the admin dictionaries.
- */
 export function PageHeader({ page, title, description, icon, eyebrow, meta, actions, back, leading, className }: PageHeaderProps) {
   const headerRef = React.useRef<HTMLElement>(null);
   React.useEffect(() => {
-    // The page's client tree has committed. DOM enhancers must not alter its
-    // streamed server markup before this point.
     headerRef.current?.setAttribute("data-overlay-scroll-ready", "");
   }, []);
   const pathname = usePathname();

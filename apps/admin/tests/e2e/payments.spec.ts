@@ -48,7 +48,6 @@ test("a payment gateway is chosen in store settings", async ({ page }) => {
   await updateIntegrationStatus("stripe", { healthStatus: "healthy" });
 
   await page.goto("/dashboard/orders/settings");
-  // In development a Fast Refresh can briefly mount the page twice; read one copy.
   const gateway = page.locator('select[name="paymentGateway"]').first();
   await expect(gateway).toHaveValue("stripe");
   await expect(gateway.locator('option[value="stripe"]')).toHaveText(
@@ -83,7 +82,6 @@ test("a phone order is paid from a payment link and refunded through the gateway
     new RegExp(`^http://localhost:${ports.web}/(ar|en)/pay/${id}\\.`),
   );
 
-  // The customer opens the link.
   await page.goto(link);
   await page.waitForLoadState("networkidle");
   await page.getByTestId("pay-now").click();

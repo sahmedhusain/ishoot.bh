@@ -13,8 +13,6 @@ const num = (value: { toString(): string } | null | undefined) =>
 const dateOnly = (value: Date | null) =>
   value ? value.toISOString().slice(0, 10) : null;
 
-// ─── Layouts & Custom Folders ────────────────────────────────────────────────────────────────────────────────────
-
 function extractStoredFolders(raw: unknown): CustomArchiveFolder[] {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
   const folders = (raw as { customFolders?: unknown }).customFolders;
@@ -28,7 +26,6 @@ function extractStoredFolders(raw: unknown): CustomArchiveFolder[] {
   );
 }
 
-/** The person's saved widgets as stored (normalise before use), or null when they never changed the default. */
 export async function getDashboardLayout(
   userId: string,
 ): Promise<unknown | null> {
@@ -72,7 +69,6 @@ export async function saveDashboardLayout(
   });
 }
 
-/** Back to the role's default layout (preserving any custom folders created by the user). */
 export async function resetDashboardLayout(userId: string) {
   const existing = await db.dashboardLayout.findUnique({
     where: { userId },
@@ -91,13 +87,6 @@ export async function resetDashboardLayout(userId: string) {
   }
 }
 
-/**
- * Lists all custom folders visible to a user:
- * - personal folders owned by userId
- * - department folders matching departmentId
- * - role folders matching role
- * - company-wide folders
- */
 export async function listCustomFoldersForUser(params: {
   userId: string;
   role: string;
@@ -224,11 +213,8 @@ export async function procurementPulseSummary() {
   };
 }
 
-// ─── Widget data ─────────────────────────────────────────────────────────────────────────────────────────────────
-
 const OPEN_ORDER_STATUSES = ["placed", "paid", "packing", "shipped"];
 
-/** Orders still to finish, and today's sales (not cancelled). */
 export async function orderSummary(now = new Date()) {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
@@ -247,7 +233,6 @@ export async function orderSummary(now = new Date()) {
   };
 }
 
-/** The person's own open tasks: counts, and the next few by due date. */
 export async function myTaskSummary(
   userId: string,
   now = new Date(),
@@ -297,7 +282,6 @@ export async function myTaskSummary(
   };
 }
 
-/** Matters with a hearing or deadline coming up (open matters only), soonest first. */
 export async function upcomingLegalDates(now = new Date(), limit = 5) {
   const rows = await db.legalMatter.findMany({
     where: {
@@ -326,7 +310,6 @@ export interface ActivityFeedEntry {
   at: string;
 }
 
-/** What happened lately: everyone's activity for people who may read the audit log, otherwise their own. */
 export async function activityFeed(
   userId: string,
   everyone: boolean,
@@ -358,9 +341,6 @@ export async function activityFeed(
   }));
 }
 
-// ─── Department dashboards ───────────────────────────────────────────────────────────────────────────────────────
-
-/** Departments someone runs (head or deputy), or every active department when `all`. */
 export async function dashboardDepartments(userId: string, all: boolean) {
   const rows = await db.department.findMany({
     where: {
@@ -373,10 +353,6 @@ export async function dashboardDepartments(userId: string, all: boolean) {
   return rows.map((d) => ({ id: d.id, name_en: d.nameEn, name_ar: d.nameAr }));
 }
 
-/**
- * A manager's view of a department and the departments under it: who is in, who is away today, each person's
- * open and overdue tasks and open requests, leave waiting for a decision.
- */
 export async function departmentDashboard(
   departmentIds: string[],
   now = new Date(),
@@ -481,8 +457,6 @@ export type DepartmentDashboard = Awaited<
   ReturnType<typeof departmentDashboard>
 >;
 
-// ─── Search across records (Cmd+K) ───────────────────────────────────────────────────────────────────────────────
-
 export type RecordSearchCategory =
   | "orders"
   | "products"
@@ -493,16 +467,10 @@ export type RecordSearchCategory =
   | "campaigns";
 
 export interface RecordSearchOptions {
-  /** Tasks: whose tasks the person sees (null = all). */
   tasks?: { userId: string; departmentId: string | null; all: boolean } | null;
-  /** Shipments: only this driver's (null = all). */
   driverId?: string | null;
 }
 
-/**
- * The records of the commerce, work and department modules matching a search, for the categories the person
- * may read (the caller decides). Same result shape as the CRM search.
- */
 export async function searchRecords(
   query: string,
   limit: number,

@@ -1,6 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Uses the explicitly started isolated test servers; never attaches to development ports.
 process.env.E2E_SEEDED_DATABASE ||= "platform_web_redesign_test";
 process.env.ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef";
 export default defineConfig({

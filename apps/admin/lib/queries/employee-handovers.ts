@@ -23,7 +23,6 @@ import {
 
 export const HANDOVER_KINDS = ["exit", "leave"] as const;
 export const CASE_MODES = ["delegate", "spread", "manual"] as const;
-/** What HR confirms before an employee leaves or goes on a long leave. */
 export const HANDOVER_CHECKLIST = {
   exit: [
     "knowledge_transfer",
@@ -80,7 +79,6 @@ const freshChecklist = (kind: "exit" | "leave"): ChecklistEntry[] =>
     at: null,
   }));
 
-/** Opens an exit or leave handover; the employee's open cases are gathered straight away. */
 export async function openEmployeeHandover(
   input: EmployeeHandoverInput,
   actorId: string,
@@ -135,10 +133,6 @@ export async function openEmployeeHandover(
   });
 }
 
-/**
- * Re-reads what the employee still owns: open service requests and inquiries assigned to them, active deals
- * they run and approvals waiting for them. New ones are added; ones closed elsewhere are marked closed.
- */
 export async function refreshHandoverCases(handoverId: string) {
   const h = await db.employeeHandover.findUniqueOrThrow({
     where: { id: handoverId },
@@ -165,7 +159,6 @@ export async function refreshHandoverCases(handoverId: string) {
         select: { id: true, targetType: true, targetId: true },
       }),
     ]);
-    // Older website requests carry an internal id as their reference; show a short form and the client.
     for (const r of requests) {
       const ref = /^[A-Z]+-\d/.test(r.reference)
         ? r.reference
@@ -203,7 +196,6 @@ export async function refreshHandoverCases(handoverId: string) {
       });
 }
 
-/** How cases are to be reassigned: all to one delegate, spread across a team, or chosen one by one. */
 export async function setHandoverCaseMode(
   handoverId: string,
   input: { mode: string; delegate_user_id?: string; team_user_ids?: string[] },
@@ -270,7 +262,6 @@ async function reassignCase(
         reason,
       );
     } else {
-      // Confirmed work keeps its stage; only the owner changes.
       await db.inquiry.update({
         where: { id: c.caseId },
         data: { assignedToId: toUserId },
@@ -322,10 +313,6 @@ async function reassignCase(
   }
 }
 
-/**
- * Reassigns the pending cases: by the chosen mode, or for manual mode by the assignee chosen for each case
- * (`choices`: case id → user id). Each case keeps its own history (request events, approval approvers).
- */
 export async function applyHandoverCases(
   handoverId: string,
   actorId: string,
@@ -401,7 +388,6 @@ export async function updateHandoverChecklist(
   });
 }
 
-/** What still blocks submitting the handover for approval. */
 export async function handoverBlockers(handoverId: string) {
   const h = await db.employeeHandover.findUniqueOrThrow({
     where: { id: handoverId },
@@ -496,7 +482,6 @@ registerApprovalFinalizer("employee_handover", {
       });
   },
   async reject(id, _decider, reason) {
-    // Back to HR to finish what the approvers found missing.
     await db.employeeHandover.update({
       where: { id },
       data: { status: "open", decisionNotes: reason || null },
@@ -504,7 +489,6 @@ registerApprovalFinalizer("employee_handover", {
   },
 });
 
-/** Opens a leave handover when a leave type that needs one is approved, and tells HR. */
 export async function openLeaveHandoverIfNeeded(
   leaveRequestId: string,
   actorId: string,

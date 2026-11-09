@@ -31,7 +31,6 @@ interface Line {
   quantity: string;
 }
 
-/** A sale taken by staff: at the counter (scan or search), by phone or WhatsApp. */
 export function NewSaleView({
   products,
   currency,
@@ -70,7 +69,6 @@ export function NewSaleView({
   const name = (p: { name_en: string; name_ar: string }) =>
     locale === "ar" ? p.name_ar || p.name_en : p.name_en || p.name_ar;
 
-  // Every sellable item: a product without variants, or each of its variants.
   const items = React.useMemo(
     () =>
       products.flatMap((p) =>
@@ -94,8 +92,6 @@ export function NewSaleView({
               },
             ],
       ),
-    // name depends on the locale only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [products, locale],
   );
   const text = query.trim().toLowerCase();
@@ -210,7 +206,6 @@ export function NewSaleView({
                   setQuery("");
               }}
               onKeyDown={(e) => {
-                // A scanner types the barcode and presses Enter.
                 if (e.key === "Enter" && matches[0]) {
                   e.preventDefault();
                   add(matches[0]);

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Link2, Linkedin, Twitter } from "lucide-react";
 
-/** Share an article on X or LinkedIn, or copy its address. */
 export function ShareLinks({ url, title, labels }: { url: string; title: string; labels: { share: string; x: string; linkedin: string; copy: string; copied: string } }) {
   const [manualCopy, setManualCopy] = React.useState(false);
   const [copied, setCopied] = React.useState(false);

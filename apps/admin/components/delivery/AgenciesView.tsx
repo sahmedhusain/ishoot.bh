@@ -16,7 +16,6 @@ import { PageHeader } from "../layout/PageHeader";
 type Unbilled = Awaited<ReturnType<typeof unbilledAgencyShipments>>;
 type Invoice = Awaited<ReturnType<typeof listAgencyInvoices>>[number];
 
-/** Delivery → courier agencies: who carries for you, and their invoices recorded as delivery expenses. */
 export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoice }: { agencies: CourierAgencyRecord[]; unbilled: Record<string, Unbilled>; invoices: Invoice[]; currency: string; canInvoice: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.agencies;

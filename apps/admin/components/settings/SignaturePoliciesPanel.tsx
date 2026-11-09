@@ -9,10 +9,6 @@ import { setSignaturePolicyAction } from "../../app/actions/signatures";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
-/**
- * Per document, whether the signer's approved saved signature is applied, or the signer must draw it at the
- * moment of signing or approving (documents signed in front of someone, such as asset handovers).
- */
 export function SignaturePoliciesPanel({
   policies,
 }: {

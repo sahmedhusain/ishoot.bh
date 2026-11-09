@@ -35,7 +35,6 @@ interface WishItem {
 
 const blankAddress = { id: "", label: "", name: "", phone: "", line1: "", line2: "", area: "", city: "", country: "", postalCode: "", isDefault: false };
 
-/** The signed-in customer's account page. */
 interface OrderSummary {
   id: string;
   number: string;
@@ -233,7 +232,6 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
   );
 }
 
-/** A question or a problem about one order, sent to the service desk with the order attached. */
 export function OrderHelp({ orderId, locale }: { orderId: string; locale: string }) {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);

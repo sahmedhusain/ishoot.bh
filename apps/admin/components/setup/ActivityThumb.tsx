@@ -2,7 +2,6 @@ import { ACTIVITY_PRESETS, type BusinessActivity } from "@platform/database/webs
 import { STYLE_PRESETS } from "@platform/database/constants/theme";
 import { ACTIVITY_SAMPLES } from "@platform/database/samples/activity-samples";
 
-/** A small drawing of the activity's sample homepage in its suggested style (header, banner, catalogue). */
 export function ActivityThumb({ activity, locale }: { activity: BusinessActivity; locale: string }) {
   const style = STYLE_PRESETS.find((s) => s.id === ACTIVITY_PRESETS[activity].stylePreset)?.theme;
   const primary = style?.primary ?? "#0F172A";

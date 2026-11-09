@@ -151,7 +151,6 @@ export function SidebarCustomizerModal({
     const idx = ids.indexOf(sectionId);
     const targetIdx = idx + delta;
     if (idx < 0 || targetIdx < 0 || targetIdx >= ids.length) return;
-    // Keep workspace at top if user tries to move above index 0, or allow full reorder
     const nextVisibleIds = [...ids];
     const [moved] = nextVisibleIds.splice(idx, 1);
     nextVisibleIds.splice(targetIdx, 0, moved);

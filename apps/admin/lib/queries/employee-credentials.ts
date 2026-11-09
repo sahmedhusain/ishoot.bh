@@ -75,7 +75,6 @@ export interface EmployeeResidency {
     passport_expiry_date?: string;
   };
   credentials: EmployeeCredentialRecord[];
-  /** Recurring cost to the company per month and per year, in the company currency. */
   monthlyCost: number;
   yearlyCost: number;
   oneTimeCost: number;
@@ -104,7 +103,6 @@ const country = (value: unknown) => {
   return code;
 };
 
-/** Identity columns for an employee, using the issuing country recorded alongside them. */
 export function normalizeEmployeeIdentity(input: EmployeeIdentityInput) {
   const cpr = clean(input.cpr_number, 64)?.replace(/\s+/g, "") ?? null;
   if (cpr && (!new RegExp("^[\\p{L}\\p{N}./-]+$", "u").test(cpr) || cpr.length > 64))
@@ -289,7 +287,6 @@ export async function saveEmployeeCredential(
       : null;
     if (input.id && (!existing || existing.employeeId !== employeeId))
       throw new Error(serverMessages.documentNotFound);
-    // A new file is an uploaded copy (claimed now) or a link to where the document is kept.
     if (data.fileUrl && data.fileUrl !== existing?.fileUrl)
       await claimUploadOrLink(data.fileUrl, actorId);
     if (input.id)
@@ -313,7 +310,6 @@ export async function deleteEmployeeCredential(id: string) {
   return existing.employeeId;
 }
 
-/** Employee documents expiring within `days` (or already expired) for the HR overview and reminders. */
 export async function listExpiringEmployeeDocuments(days = 60) {
   const until = new Date(Date.now() + days * 86400000);
   const employees = await db.employee.findMany({

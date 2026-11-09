@@ -1,4 +1,4 @@
-/* Workspace composition and personal display choices share the company palette. */
+
 :root {
   --company-corner: var(--brand-radius, 12px);
   --company-button-corner: var(--brand-button-radius, 999px);
@@ -27,7 +27,7 @@ body {
   --admin-popup-shadow:
     0 24px 80px -20px rgb(0 0 0 / 0.25), 0 2px 8px rgb(0 0 0 / 0.08);
   --admin-spring-expressive: cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Damped spatial response; opacity uses the faster, non-spatial easing. */
+
   --admin-ease-spatial: linear(
     0,
     0.062,
@@ -526,7 +526,6 @@ html[data-borders="defined"] body {
   }
 }
 
-/* Dialogs have distinct, fixed regions; only their body scrolls. */
 [data-modal-container] {
   z-index: 60;
   display: flex;
@@ -651,7 +650,6 @@ html[dir="rtl"][data-dialog-placement="side"]
   max-width: 480px;
 }
 
-/* Anchored surfaces use the same edges, header/footer divisions and elevation. */
 .admin-popover {
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-panel-radius);
@@ -1014,7 +1012,7 @@ html[data-motion="reduced"] [data-ui="button"]:active {
 }
 
 @media screen {
-  /* Uniform Component Corners across the entire Admin Workspace (Cards, Panels, Widgets, Inner Tiles, Buttons, Fields, Chips, Popovers). */
+
   :is(.admin-main, [data-dialog-body], .admin-popover)
     :is(div, section, article, aside, li, form, header, footer):is(
       .rounded-xl,
@@ -1031,7 +1029,7 @@ html[data-motion="reduced"] [data-ui="button"]:active {
     ):not([data-appearance-preview] *) {
     border-radius: var(--admin-card-radius) !important;
   }
-  /* Inner elements inside widgets and cards always follow --admin-inner-radius */
+
   .admin-widget
     :is(div, section, article, aside, li, label):is(
       .rounded-md,
@@ -1058,7 +1056,7 @@ html[data-motion="reduced"] [data-ui="button"]:active {
     ):not([data-appearance-preview] *) {
     border-radius: var(--admin-inner-radius) !important;
   }
-  /* Badges, chips, and pills follow --admin-chip-radius */
+
   :is(.admin-main, [data-dialog-body], .admin-popover)
     :is(span, div, label).rounded-full:not([data-keep-round="true"]):not(
       .w-1

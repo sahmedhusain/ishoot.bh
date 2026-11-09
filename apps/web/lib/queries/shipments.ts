@@ -11,7 +11,6 @@ import {
 } from "../constants/delivery";
 import { moveOrderIn, type OrderAddress } from "./store";
 
-/** The agency's public tracking page for a number, when the agency has one. */
 const agencyTrackingLink = (
   template: string | null | undefined,
   trackingNumber: string | null | undefined,
@@ -28,11 +27,9 @@ const round3 = (value: number) => Math.round(value * 1000) / 1000;
 export interface ShipmentFilters {
   q?: string;
   status?: string;
-  /** "YYYY-MM-DD": shipments promised or booked for that day. */
   date?: string;
   zoneId?: string;
   late?: boolean;
-  /** Only this driver's shipments (drivers see their own). */
   driverId?: string;
   page?: number;
 }
@@ -141,10 +138,9 @@ export async function listShipments(
   };
 }
 
-/** Today's picture for the delivery board: shipments by status and how many are late. */
 export async function shipmentCounts(
   now = new Date(),
-  /** Only this driver's shipments. */ driverId?: string | null,
+   driverId?: string | null,
 ) {
   const mine = driverId ? { driverId } : {};
   const [byStatus, late] = await Promise.all([
@@ -301,14 +297,11 @@ export type ShipmentRecord = NonNullable<
 
 export interface MoveShipmentInput {
   to: string;
-  /** Required when a delivery fails. */
   reason?: string;
   note?: string;
-  /** Cash taken from the customer on delivery. */
   codCollected?: number;
 }
 
-/** Walks the order forward to `target` through the statuses it skipped (placed → packing → shipped → delivered). */
 async function bringOrderTo(
   tx: Tx,
   orderId: string,
@@ -347,10 +340,6 @@ async function bringOrderTo(
   return low;
 }
 
-/**
- * Moves a shipment on, and the order with it: going out ships the order (its stock leaves the warehouse), delivery
- * delivers it, a return brings the stock back. Returns products that fell to their reorder point.
- */
 export async function moveShipment(
   id: string,
   input: MoveShipmentInput,
@@ -418,7 +407,6 @@ export async function moveShipment(
   });
 }
 
-/** What the customer's tracking page shows: no staff names, no internal notes. */
 export async function shipmentForTracking(token: string) {
   if (!/^[A-Za-z0-9_-]{20,40}$/.test(token)) return null;
   const s = await db.shipment.findUnique({
@@ -484,7 +472,6 @@ export async function shipmentForTracking(token: string) {
   };
 }
 
-/** Tracking links for an order's shipments (the confirmation e-mail and the customer's account). */
 export async function orderTrackingTokens(orderIds: string[]) {
   const rows = await db.shipment.findMany({
     where: { orderId: { in: orderIds }, status: { not: "cancelled" } },

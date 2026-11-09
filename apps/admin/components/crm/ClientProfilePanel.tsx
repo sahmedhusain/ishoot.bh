@@ -57,7 +57,6 @@ function Item({ label, value, ltr }: { label: string; value?: string | null; ltr
   );
 }
 
-/** The client's identity, registration, address and points of contact on the client page. */
 export function ClientProfilePanel({ contact, standing, className = "" }: { contact: CRMContact; standing: ClientStanding | null; className?: string }) {
   const { t, locale } = useAdminLocale();
   const c = t.clients;

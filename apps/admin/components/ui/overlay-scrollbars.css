@@ -1,16 +1,5 @@
-/* =========================================================================
-   ZERO-GUTTER OVERLAY SCROLLBARS (Front Layer Overlay, Zero Layout Shift)
-   Exact replica of the web app FloatingScrollbar in physics, transitions, and glow:
-   - Contained strictly within its host container, with zero viewport spillover
-   - Top-anchored starting position (starts exactly at the top, not shifted down)
-   - Hidden by default when idle (opacity: 0, scale: 0.5)
-   - Expands and reveals smoothly when actively scrolling (opacity: 1, scale: 1, 300ms ease-out)
-   - Hover on track/handle expands further with glowing halo (scale: 1.15, shadow: 8px)
-   - Active dragging expands to scale: 1.3 with high glow halo (shadow: 14px)
-   - 1200ms auto-hide delay matching FloatingScrollbar
-   ========================================================================= */
 
-/* Eliminate native window scrollbar gutter and prevent any layout shift */
+
 html,
 body,
 [data-admin-app] {
@@ -26,13 +15,11 @@ body::-webkit-scrollbar,
   background: transparent !important;
 }
 
-/* Ensure the host element creates a local positioning context and never overflows */
 .admin-main,
 [data-overlayscrollbars] {
   position: relative !important;
 }
 
-/* Base Theme Tokens & Layout */
 .os-theme-material {
   --os-size: 14px;
   --os-padding-perpendicular: 4px;
@@ -80,9 +67,6 @@ body::-webkit-scrollbar,
   border: none !important;
 }
 
-/* =========================================================================
-   VERTICAL SCROLLBAR (Top-anchored, 6px padding from top/bottom, 4px from side)
-   ========================================================================= */
 .os-theme-material.os-scrollbar-vertical {
   width: 14px !important;
   top: 0 !important;
@@ -101,12 +85,10 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical,
   inset-inline-start: auto !important;
 }
 
-/* Corner collision prevention when horizontal scrollbar is also active */
 .os-theme-material.os-scrollbar-vertical:not(.os-scrollbar-cornerless) {
   bottom: 14px !important;
 }
 
-/* Visual Thumb Pill on ::after */
 .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::after {
   content: "";
   position: absolute;
@@ -134,13 +116,11 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
   transform-origin: center left !important;
 }
 
-/* Active / Scrolling State */
 .os-theme-material.os-scrollbar-vertical:not(.os-scrollbar-auto-hide-hidden):not(.os-scrollbar-auto-hidden):not(.os-scrollbar-unusable) .os-scrollbar-handle::after {
   opacity: 1 !important;
   transform: scaleX(1) !important;
 }
 
-/* Hover State (Track or Handle hovered) */
 .os-theme-material.os-scrollbar-vertical:hover,
 .os-theme-material.os-scrollbar-vertical.os-scrollbar-handle-interactive:hover {
   opacity: 1 !important;
@@ -164,7 +144,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
     ) !important;
 }
 
-/* Dragging / Pointer Active State */
 .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle:active::after,
 .os-theme-material.os-scrollbar-vertical.os-scrollbar-handle-interactive:active .os-scrollbar-handle::after {
   opacity: 1 !important;
@@ -181,9 +160,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
     ) !important;
 }
 
-/* =========================================================================
-   HORIZONTAL SCROLLBAR (Start-anchored, 6px padding from sides, 4px from bottom)
-   ========================================================================= */
 .os-theme-material.os-scrollbar-horizontal {
   height: 14px !important;
   bottom: 0 !important;
@@ -194,7 +170,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
   inset-inline-end: 0 !important;
 }
 
-/* Corner collision prevention when vertical scrollbar is also active */
 .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cornerless) {
   right: 14px !important;
 }
@@ -205,7 +180,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
   left: 14px !important;
 }
 
-/* Visual Thumb Pill on ::after */
 .os-theme-material.os-scrollbar-horizontal .os-scrollbar-handle::after {
   content: "";
   position: absolute;
@@ -228,13 +202,11 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
     box-shadow 200ms ease !important;
 }
 
-/* Active / Scrolling State */
 .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-auto-hide-hidden):not(.os-scrollbar-auto-hidden):not(.os-scrollbar-unusable) .os-scrollbar-handle::after {
   opacity: 1 !important;
   transform: scaleY(1) !important;
 }
 
-/* Hover State (Track or Handle hovered) */
 .os-theme-material.os-scrollbar-horizontal:hover,
 .os-theme-material.os-scrollbar-horizontal.os-scrollbar-handle-interactive:hover {
   opacity: 1 !important;
@@ -258,7 +230,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
     ) !important;
 }
 
-/* Dragging / Pointer Active State */
 .os-theme-material.os-scrollbar-horizontal .os-scrollbar-handle:active::after,
 .os-theme-material.os-scrollbar-horizontal.os-scrollbar-handle-interactive:active .os-scrollbar-handle::after {
   opacity: 1 !important;
@@ -275,9 +246,6 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
     ) !important;
 }
 
-/* =========================================================================
-   IDLE / AUTO-HIDDEN STATE
-   ========================================================================= */
 .os-theme-material.os-scrollbar-auto-hide.os-scrollbar-auto-hide-hidden {
   visibility: visible !important;
 }

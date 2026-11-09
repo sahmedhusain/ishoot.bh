@@ -1,8 +1,4 @@
 "use client";
-// How a new notification announces itself (docs/adr/0012): a sound once per browser (from the tab holding the live
-// connection), a pop-up in the tab the person is looking at, and a desktop notification when no tab is in front.
-// Muted categories and records, "mute all" and the do-not-disturb status keep it quiet; security notifications
-// always show.
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

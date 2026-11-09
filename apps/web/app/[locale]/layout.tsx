@@ -25,7 +25,6 @@ import { UtmCapture } from "../../components/store/UtmCapture";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
-/** The admin app's origin, the only one a preview frame takes theme changes from. */
 const originOf = (url?: string) => {
   try {
     return url ? new URL(url).origin : "";
@@ -33,7 +32,6 @@ const originOf = (url?: string) => {
     return "";
   }
 };
-// Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
 
 export default async function LocaleLayout({
@@ -56,7 +54,6 @@ export default async function LocaleLayout({
     isWebsitePreview(),
     websiteExample(),
     siteTranslations(locale),
-    // IT's site-wide code; the website still renders when the system service cannot be reached.
     getSiteCode().catch((error) => {
       console.error("Site code unavailable:", error);
       return null;
@@ -82,8 +79,6 @@ export default async function LocaleLayout({
     </head>
   );
 
-  // A company without a public website (or one not published/configured yet) still owns its address: show who it is
-  // and how to reach it.
   const isConfigured = Boolean(
     company.setup_completed ||
     process.env.NODE_ENV !== "production",

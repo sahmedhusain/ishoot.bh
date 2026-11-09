@@ -17,7 +17,6 @@ const thisMonth = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0
 const empty = (kind: "addition" | "deduction"): RecurringPayInput => ({ kind, category: PAY_LINE_CATEGORIES[kind][0], label: "", amount: 0, start_month: thisMonth(), end_month: "", is_active: true, note: "" });
 const toInput = (r: RecurringPayRecord): RecurringPayInput => ({ kind: r.kind, category: r.category, label: r.label, amount: r.amount, start_month: r.start_month, end_month: r.end_month ?? "", is_active: r.is_active, note: r.note ?? "" });
 
-/** Custom additions and deductions an employee gets every month; payroll adds them to each run automatically. */
 export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: string; items: RecurringPayRecord[]; canEdit: boolean }) {
   const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();

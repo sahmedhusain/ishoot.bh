@@ -13,7 +13,6 @@ import { websiteConfigForActivity } from "./website-config";
 
 export const DEMO_PRESETS = [...BUSINESS_ACTIVITIES, "all"] as const;
 
-/** Use the same preset definitions as setup, so demos follow changes to the wizard. */
 export function demoPreset(value: string, style?: string) {
   if (value !== "all" && !isBusinessActivity(value))
     throw new Error(

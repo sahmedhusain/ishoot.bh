@@ -384,7 +384,6 @@ export function PaymentDetailView({
         </div>
       </div>
 
-      {/* The paper receipt only appears when the browser prints this page. */}
       <div className="hidden print:block">
         <ReceiptTemplate
           payment={payment}

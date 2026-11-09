@@ -168,7 +168,7 @@ export function BrandAssetsTab({
 
     try {
       const data = await uploadFileDirectly(file, { entityType: "company_asset", entityId: slot.key, customName: `${slot.key}-${file.name}`, documentType: "branding_asset" });
-      const res = { ok: true }; // polyfill for following code
+      const res = { ok: true };
       if (!res.ok || !data.success) {
         throw new Error(data.error || t.brandAssetsTab.uploadFailed);
       }
@@ -188,7 +188,6 @@ export function BrandAssetsTab({
           return [...filtered, result.asset];
         });
 
-        // Also update local settings state for matched keys
         if (slot.key === "logo_light") setSettings((s) => ({ ...s, logo_url: data.fileUrl }));
         if (slot.key === "logo_dark") setSettings((s) => ({ ...s, dark_logo_url: data.fileUrl }));
         if (slot.key === "full_logo_light") setSettings((s) => ({ ...s, full_logo_url: data.fileUrl }));
@@ -247,7 +246,6 @@ export function BrandAssetsTab({
           </div>
         </div>
 
-        {/* Brand Pairing Live Verification Card */}
         <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -264,7 +262,6 @@ export function BrandAssetsTab({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Light Theme Surface */}
             <div className="p-6 rounded-xl bg-surface-raised border border-outline-variant shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-ink-muted font-semibold border-b border-outline-variant pb-2">
                 <span>{t.brandAssetsTab.lightSurfaceInvoicesLettersPrint}</span>
@@ -299,7 +296,6 @@ export function BrandAssetsTab({
                 {t.copy.logoLightPreview}</div>
             </div>
 
-            {/* Dark Theme Surface */}
             <div className="p-6 rounded-xl bg-surface-sunken border border-outline-variant shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-ink/70 font-semibold border-b border-outline-variant pb-2">
                 <span>{t.brandAssetsTab.darkSurfaceWebAdminPortal}</span>
@@ -366,7 +362,6 @@ export function BrandAssetsTab({
                     ) : null}
                   </div>
 
-                  {/* Preview Display Box */}
                   <div className="mt-3 relative h-28 w-full rounded-lg border border-outline-variant dark:border-outline-variant/80 overflow-hidden flex items-center justify-center">
                     {slot.themeContext === "dark" ? (
                       <div className="absolute inset-0 bg-surface" />

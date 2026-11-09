@@ -19,7 +19,6 @@ import { ContentImage } from "../shared/ContentImage";
 import { Field, LanguageFields } from "../setup/LanguageFields";
 import { PageHeader } from "../layout/PageHeader";
 
-/** An option as typed: values as comma-separated text in each language. */
 interface OptionDraft {
   nameEn: string;
   nameAr: string;
@@ -55,15 +54,11 @@ interface ProductEditorViewProps {
   languages: readonly ContentLanguage[];
   canEdit: boolean;
   canDelete: boolean;
-  /** May put the product in the website catalogue (portfolio access). */
   canPublish: boolean;
-  /** New products start batch-tracked in activities that usually have expiry dates. */
   batchesByDefault?: boolean;
-  /** The stock panel, when the person may see stock. */
   stockPanel?: React.ReactNode;
 }
 
-/** Products → one product: details, price, pictures, options and their variants, and the website. */
 export function ProductEditorView({ product, categories, currency, languages, canEdit, canDelete, canPublish, batchesByDefault = false, stockPanel }: ProductEditorViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

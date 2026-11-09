@@ -21,7 +21,6 @@ const refresh = () => {
   revalidatePath(ROUTES.finance.overview);
 };
 
-/** Adds or edits a periodic bill (rent, utilities, phones, subscriptions…). */
 export async function saveRecurringExpenseAction(
   data: RecurringExpenseInput,
   recurringId?: string,
@@ -54,7 +53,6 @@ export async function saveRecurringExpenseAction(
   });
 }
 
-/** Records the current due date's expense, with the actual amount when it differs from the usual one. */
 export async function recordRecurringExpenseAction(
   recurringId: string,
   actual: {

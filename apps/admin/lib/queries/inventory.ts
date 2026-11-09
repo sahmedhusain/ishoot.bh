@@ -227,7 +227,6 @@ export async function saveWarehouse(input: WarehouseInput) {
     isDefault: input.isDefault,
   };
   if (input.id) {
-    // No updateWarehouse in API, we'd need it.
     throw new Error("updateWarehouse is not implemented in API");
   }
   return createWarehouse(data);
@@ -251,7 +250,6 @@ export async function saveLocation(input: LocationInput) {
     isActive: input.isActive,
   };
   if (input.id) {
-    // No updateLocation in API.
     throw new Error("updateLocation is not implemented in API");
   }
   return createLocation(input.warehouseId, data as any);
@@ -278,7 +276,6 @@ export async function postMovements(
   movements: MovementInput[],
   userId: string | null,
 ) {
-  // This is a complex transaction. Must be a single API call.
   throw new Error("postMovements must be implemented as a single API call in Go backend");
 }
 
@@ -292,7 +289,6 @@ export async function reserveStock(
     quantity: number;
   },
 ) {
-  // This is a transaction-heavy function.
   throw new Error("reserveStock must be implemented as a single API call in Go backend");
 }
 
@@ -360,7 +356,6 @@ export async function transferStock(
   input: TransferInput,
   userId: string | null,
 ) {
-  // Must be a single API call.
   throw new Error("transferStock must be implemented as a single API call in Go backend");
 }
 
@@ -370,7 +365,6 @@ export async function setReorderPoint(
   reorderPoint: number | null,
   reorderQuantity: number | null,
 ) {
-  // Not available in API.
   throw new Error("setReorderPoint is not implemented in API");
 }
 
@@ -396,7 +390,6 @@ export async function createStockCount(
 }
 
 export async function getStockCount(id: string, actorId?: string): Promise<any> {
-  // API doesn't have getStockCount.
   throw new Error("getStockCount is not implemented in API");
 }
 
@@ -408,7 +401,6 @@ export async function recordCountedQuantities(
   countId: string,
   entries: { lineId: string; counted: string; note?: string }[],
 ): Promise<any> {
-  // Not available in API.
   throw new Error("recordCountedQuantities is not implemented in API");
 }
 
@@ -416,7 +408,6 @@ export async function addCountLine(
   countId: string,
   input: { productId: string; variantId?: string; locationId: string },
 ): Promise<{ id: string; [key: string]: any }> {
-  // Not available in API.
   throw new Error("addCountLine is not implemented in API");
 }
 
@@ -438,7 +429,6 @@ export async function setStockCountStatus(
   countId: string,
   status: "review" | "counting" | "cancelled",
 ): Promise<any> {
-  // Not available in API.
   throw new Error("setStockCountStatus is not implemented in API");
 }
 
@@ -446,16 +436,13 @@ export async function approveStockCount(
   countId: string,
   userId: string | null,
 ): Promise<{ low: any[]; adjusted: number; [key: string]: any }> {
-  // Not available in API.
   throw new Error("approveStockCount is not implemented in API");
 }
 
 export async function listMovements(query: any = {}, actorId?: string) {
-  // Not available in API.
   return { rows: [], total: 0 };
 }
 
 export async function expiringBatches(days = 30, actorId?: string) {
-  // Not available in API.
   return [];
 }

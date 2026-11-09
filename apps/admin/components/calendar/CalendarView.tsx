@@ -72,7 +72,6 @@ const VISIBILITIES: CalendarVisibility[] = [
   "custom",
 ];
 
-/** `datetime-local` inputs take local wall-clock time, not UTC. */
 const toLocalInput = (value: string | number | Date) => {
   const date = new Date(value);
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -101,7 +100,6 @@ interface Props {
   syncEnabled?: boolean;
 }
 
-/** Month, week and day views of everything on the person's calendar, filtered by layer. */
 export function CalendarView({
   initialEvents,
   people,
@@ -165,7 +163,6 @@ export function CalendarView({
       timeStyle: "short",
     });
 
-  // Load the visible range whenever the period changes.
   const load = React.useCallback(async (from: Date, to: Date) => {
     setLoading(true);
     try {
@@ -298,7 +295,6 @@ export function CalendarView({
 
   const toggle = <T,>(list: T[], value: T) =>
     list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
-  // Month grid starts on Sunday, like the weekday header.
   const weekStart = new Date(currentDate);
   weekStart.setDate(currentDate.getDate() - currentDate.getDay());
   const weekDays = Array.from(
@@ -654,7 +650,6 @@ export function CalendarView({
               </>
             )}
           </fieldset>
-
 
         </form>
       </Modal>

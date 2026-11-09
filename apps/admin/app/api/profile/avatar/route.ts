@@ -5,10 +5,6 @@ import { getCurrentUser } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Fetches a profile photo from a link (the files service reaches public addresses only, docs/adr/0012) into an upload
- * of the signed-in person's, which the browser then crops. It expires unless saved.
- */
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });

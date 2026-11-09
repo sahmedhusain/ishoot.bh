@@ -2,13 +2,10 @@ import { db } from "../atomic";
 import { getCompanyConfiguration } from "../api/company";
 
 export interface DiscountDecision {
-  /** Discount as a percentage of the subtotal (0 when there is none). */
   percent: number;
-  /** The issuer's limit; null means unlimited (Super Admin). */
   limit: number | null;
   limitSource: "user" | "company" | "super_admin";
   withinLimit: boolean;
-  /** Whether the document must go through approval. */
   needsApproval: boolean;
 }
 
@@ -20,10 +17,6 @@ export function discountPercent(
   return Math.round((discountAmount / subtotal) * 10000) / 100;
 }
 
-/**
- * Discounts up to the issuer's limit (their own, else the company default) need no approval.
- * Super Admin has no limit. A company can still require approval for every quotation.
- */
 export async function discountDecision(
   userId: string,
   subtotal: number,

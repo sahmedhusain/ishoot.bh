@@ -14,7 +14,6 @@ export async function companyCurrency(): Promise<string> {
   return "USD";
 }
 
-/** Currency belongs to the company; a submitted document cannot select a different currency. */
 export async function assertCompanyCurrency(requested?: string, _connection?: any): Promise<string> {
   const currency = await companyCurrency();
   assertSupportedCurrency(currency);

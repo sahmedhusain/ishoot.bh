@@ -14,7 +14,6 @@ import { addLeaveAdjustmentAction } from "../../app/actions/hr-settings";
 const fieldClass =
   "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 
-/** Per-type leave balances for one employee and year; HR can add adjustments. */
 export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = false }: { balances: LeaveBalance[]; year: number; employeeId?: string; canAdjust?: boolean }) {
   const modalFormId = React.useId();
 

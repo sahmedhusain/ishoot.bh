@@ -70,7 +70,7 @@ function mapPayrollItem(it: any) {
   out.editedAt = it.editedAt ? it.editedAt.toISOString() : null;
   out.paidAt = it.paidAt ? it.paidAt.toISOString() : null;
   delete out.commissionPayout;
-  delete out.lines; // Decimal amounts; the detail returns them mapped.
+  delete out.lines;
   return out;
 }
 
@@ -120,10 +120,6 @@ export interface PayrollLineInput {
   otherDeductions?: number;
 }
 
-/**
- * Fixed pay only (no attendance): contributions and support on basic + allowances, bonus on top, other deductions
- * off net. Kept for previews and older callers; payroll runs use the attendance-aware engine.
- */
 export function computePayrollLine(
   input: PayrollLineInput,
   settings: EmployeePayrollSettings | null,
@@ -166,7 +162,6 @@ export function computePayrollLine(
   };
 }
 
-// Preserve stored precision; the payroll engine applies each run’s configured currency.
 const roundIntermediate = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
 async function refreshPayrollTotals(runId: string) {
@@ -198,8 +193,6 @@ async function refreshPayrollTotals(runId: string) {
   });
 }
 
-// ---------- Calculation ----------
-
 interface RunContext {
   policy: HrPolicyRules;
   window: PayrollWindow;
@@ -208,11 +201,8 @@ interface RunContext {
   attendance: Awaited<ReturnType<typeof attendanceForPayroll>>;
   leaves: Map<string, LeaveInWindow[]>;
   commissions: Map<string, number>;
-  /** Users whose commission for this month was already paid outside payroll. */
   commissionPaidElsewhere: Set<string>;
-  /** Social insurance components and registrations; employees without one keep their own contribution settings. */
   gosi: GosiContext;
-  /** Wage-support programme enrolments; employees without one keep their own support entries. */
   supports: SupportContext;
 }
 
@@ -251,7 +241,6 @@ async function buildContext(
   const w = window ?? payrollWindow(policy, year, month);
   const monthKey = `${year}-${String(month).padStart(2, "0")}`;
   const ids = employees.map((e) => e.id);
-  // Leave from the start of the year so pay bands (e.g. sick leave) know what was already taken.
   const yearStart = utcDay(w.attendanceStart.getUTCFullYear(), 0, 1);
   const [
     holidays,
@@ -367,7 +356,6 @@ type LineDraft = {
   displayOrder: number;
 };
 
-/** Recurring additions and deductions due in a month, per employee. */
 async function recurringPayFor(employeeIds: string[], monthKey: string) {
   const rows = await db.employeeRecurringPay.findMany({
     where: {
@@ -396,7 +384,6 @@ async function recurringPayFor(employeeIds: string[], monthKey: string) {
   return map;
 }
 
-/** Totals of a line set: additions are paid as `bonus`, deductions as `otherDeductions`. */
 function lineTotals(lines: Array<{ kind: string; amount: unknown }>) {
   const sum = (kind: string) =>
     roundIntermediate(
@@ -424,7 +411,6 @@ function lineFor(
         other: Number(record.otherAllowances),
       }
     : { basic: 0, housing: 0, transport: 0, other: 0 };
-  // Registered employees follow the social insurance scheme (dated rates, 1st-of-month rule); others keep their own settings.
   const scheme = record
     ? schemeContributions(ctx.gosi, employee.id, {
         pay,
@@ -466,7 +452,6 @@ function lineFor(
     ? { employee: scheme.employee, employer: scheme.employer }
     : { employee: legacy!.employee, employer: legacy!.employer };
   const totals = payrollTotals(breakdown, contributions.employee, ctx.policy.currency);
-  // Wage support follows the share of the month actually paid (joiners, unpaid leave) when the programme prorates.
   const paidShare =
     breakdown.fixedPay > 0
       ? Math.max(
@@ -535,7 +520,6 @@ function lineFor(
             employer: { mode: "fixed", value: 0 },
             supports: [],
           }),
-          // What the month was worked out under, so later rate changes never alter it.
           gosi: scheme
             ? {
                 category: scheme.profile.category,
@@ -608,10 +592,6 @@ function assertPeriod(month: number, year: number) {
     throw new Error(serverMessages.invalidPayrollPeriod);
 }
 
-/**
- * Creates the month's payroll from salaries, attendance, leave, overtime, shifts and commissions.
- * Returns the existing run when the month already has one.
- */
 export async function createPayrollRun(
   month: number,
   year: number,
@@ -691,7 +671,6 @@ export async function createPayrollRun(
   return mapRun(run);
 }
 
-/** Recomputes a run that has not been submitted, after attendance, leave or salary changes. Manual bonus and deductions are kept. */
 export async function recalculatePayrollRun(
   runId: string,
   actorId: string,
@@ -705,7 +684,6 @@ export async function recalculatePayrollRun(
       formatMessage(serverTemplates.payrollIs0ItCanOnlyBe, { 0: run.status }),
     );
   const policy = await getHrPolicy();
-  // The window follows the current policy, so a policy change takes effect on recalculation.
   const window = payrollWindow(policy, run.year, run.month);
   const employees = await eligibleEmployees(window);
   const ctx = await buildContext(run.year, run.month, window, employees);
@@ -727,7 +705,6 @@ export async function recalculatePayrollRun(
     const keep = new Set<string>();
     for (const employee of employees) {
       const existing = run.items.find((i) => i.employeeId === employee.id);
-      // Manual lines are kept; recurring ones are taken afresh from the employee's recurring pay.
       const manual = (existing?.lines ?? []).filter(
         (l) => l.source === "manual",
       );
@@ -772,7 +749,6 @@ export async function recalculatePayrollRun(
         actorId,
       );
     }
-    // Employees who left or were suspended since the run was created drop out of it.
     const dropped = run.items.filter((i) => !keep.has(i.id)).map((i) => i.id);
     if (dropped.length)
       await db.payrollItem.deleteMany({ where: { id: { in: dropped } } });
@@ -793,10 +769,6 @@ export interface PayLineInput {
   note?: string;
 }
 
-/**
- * Sets the manual additions and deductions of one employee's month before submission. Additions and
- * deductions are separate lists of named lines; recurring lines stay as they are. The rest of the line is kept.
- */
 export async function setPayrollItemLines(
   itemId: string,
   input: {
@@ -992,7 +964,6 @@ async function payItems(
     );
     if (itemIds && targets.length !== itemIds.length)
       throw new Error(serverMessages.thisSalaryIsAlreadyPaid);
-    // One statement for every salary paid; payslips that already exist are kept as they are.
     await db.payrollItem.updateMany({
       where: { id: { in: targets.map((item) => item.id) } },
       data: {
@@ -1029,7 +1000,6 @@ async function payItems(
   });
 }
 
-/** Records one employee's salary payment; the run becomes paid when every salary in it is paid. */
 export async function payPayrollItem(
   itemId: string,
   input: ItemPaymentInput,
@@ -1043,7 +1013,6 @@ export async function payPayrollItem(
   return mapRun(await payItems(item.payrollRunId, [itemId], input, actorId));
 }
 
-/** Pays every salary still unpaid in an approved run. */
 export async function markPayrollAsPaid(
   id: string,
   actorId: string,
@@ -1061,7 +1030,6 @@ export async function listPayrollRuns(): Promise<PayrollRun[]> {
   return runs.map(mapRun);
 }
 
-/** Everything the individual salary page shows: the line, its period, and the attendance and leave behind it. */
 export async function getPayrollItemDetail(itemId: string) {
   const item = await db.payrollItem.findUnique({
     where: { id: itemId },

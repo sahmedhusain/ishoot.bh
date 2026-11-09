@@ -27,7 +27,6 @@ const PAY_FIELDS = [
   "payrollSettings",
 ] as const;
 
-/** Salaries and payroll settings are payroll data: changing them needs payroll:edit, not only employee access. */
 async function requirePayAccessFor(
   data: Partial<Record<(typeof PAY_FIELDS)[number], unknown>>,
 ) {
@@ -58,11 +57,8 @@ export async function createEmployeeAction(data: {
   transportAllowance?: number;
   otherAllowances?: number;
   payrollSettings?: EmployeePayrollSettings;
-  /** Links the new record to an existing user account that has no employee record yet. */
   userId?: string;
-  /** Nationality, date of birth, CPR expiry and passport. */
   identity?: EmployeeIdentityInput;
-  /** Visa, work permit and other documents entered while onboarding. */
   credentials?: EmployeeCredentialInput[];
 }) {
   return measureOperation("action:createEmployeeAction", async () => {

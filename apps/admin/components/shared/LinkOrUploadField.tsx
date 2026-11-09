@@ -16,7 +16,6 @@ import { errorMessage } from "../../lib/error-text";
 const DOCUMENT_ACCEPT =
   "application/pdf,image/png,image/jpeg,image/webp";
 
-/** True for an https address the server accepts as a linked document. */
 export function isHttpsLink(value: string) {
   try {
     const url = new URL(value.trim());
@@ -31,10 +30,6 @@ export function isHttpsLink(value: string) {
   }
 }
 
-/**
- * A document given either as an uploaded file or as a link to where it is kept (an official portal, a shared
- * drive). `upload` stores the file and returns its address; the chosen address is reported through `onChange`.
- */
 export function LinkOrUploadField({
   value,
   onChange,
@@ -51,7 +46,6 @@ export function LinkOrUploadField({
     url: string,
     meta?: { fileName?: string; isLink: boolean },
   ) => void;
-  /** Without it only a link can be given (e.g. before the record the file belongs to exists). */
   upload?: (file: File) => Promise<{ fileUrl: string; fileName?: string }>;
   accept?: string;
   required?: boolean;
@@ -244,7 +238,6 @@ export function LinkOrUploadField({
   );
 }
 
-/** A small "or add a link" control placed next to an existing upload button. */
 export function AddLinkInline({ onLink, disabled }: { onLink: (url: string) => void | Promise<void>; disabled?: boolean }) {
   const { t } = useAdminLocale();
   const f = t.linkOrUpload;

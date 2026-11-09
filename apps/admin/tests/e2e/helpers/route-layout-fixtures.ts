@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import type { Prisma, db as client } from "../../../lib/data-hub";
 import { admin } from "./helpers";
 
-/** Draft records let the layout audit render detail screens without changing existing records. */
 export async function prepareLayoutFixtures(db: typeof client) {
   const prefix = `UI-${randomUUID()}`;
   const today = new Date();

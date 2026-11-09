@@ -12,7 +12,6 @@ import {
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Create a stock package (carton, pallet, tote) at a physical location. */
 export async function createStockPackageAction(input: PackageInput) {
   validateActionArguments("createStockPackageAction", { input });
   await requireFeatureEnabled("inventory");
@@ -22,7 +21,6 @@ export async function createStockPackageAction(input: PackageInput) {
   return result;
 }
 
-/** Pack available physical serials into a package with membership tracking. */
 export async function packSerialsAction(input: { packageId: string; serialCodes: string[] }) {
   validateActionArguments("packSerialsAction", { input });
   await requireFeatureEnabled("inventory");
@@ -32,7 +30,6 @@ export async function packSerialsAction(input: { packageId: string; serialCodes:
   return result;
 }
 
-/** Seal a package with a tamper-evident seal number. */
 export async function sealStockPackageAction(input: { packageId: string; sealNumber: string }) {
   validateActionArguments("sealStockPackageAction", { input });
   await requireFeatureEnabled("inventory");
@@ -42,7 +39,6 @@ export async function sealStockPackageAction(input: { packageId: string; sealNum
   return result;
 }
 
-/** Move an entire package and all its enclosed serials with atomic ledger transfers. */
 export async function moveStockPackageAction(input: { packageId: string; targetLocationId: string }) {
   validateActionArguments("moveStockPackageAction", { input });
   await requireFeatureEnabled("inventory");
@@ -52,7 +48,6 @@ export async function moveStockPackageAction(input: { packageId: string; targetL
   return result;
 }
 
-/** Unpack a package, releasing all enclosed serials back to direct location membership. */
 export async function unpackStockPackageAction(input: { packageId: string }) {
   validateActionArguments("unpackStockPackageAction", { input });
   await requireFeatureEnabled("inventory");

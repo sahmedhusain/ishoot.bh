@@ -13,10 +13,8 @@ import { generateAssetHandoverPdf } from "../../../../../lib/pdf/asset-handover-
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Days the employee can still download their signed copy through the link. */
 const SIGNED_COPY_DAYS = 30;
 
-/** Public: the handover behind a signing link, in Arabic or English, while the link is open (and for a while after). */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },

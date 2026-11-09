@@ -11,7 +11,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Website → Articles: news, updates, posts and press releases with their status and date. */
 export function ArticlesListView({
   articles,
   total,

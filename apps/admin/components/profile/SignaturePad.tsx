@@ -18,10 +18,6 @@ type Point = { x: number; y: number; p: number };
 const WIDTH = 600;
 const HEIGHT = 200;
 
-/**
- * Draw a signature on the page (mouse, pen or finger). It is saved as a transparent PNG and
- * replaces the current signature only after approval; every change stays in the log below.
- */
 export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | null; changes: SignatureChangeRow[] }) {
   const { t, locale } = useAdminLocale();
   const s = t.signaturePad;
@@ -31,7 +27,6 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
   const drawing = React.useRef(false);
   const [hasInk, setHasInk] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  // The pad shows only after "Change signature", so the current one is never replaced by accident.
   const [editing, setEditing] = React.useState(false);
   const confirmAction = useConfirmation();
   const pending = changes.find((c) => c.status === "pending");
@@ -110,7 +105,6 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
             <figure className="space-y-1">
               <figcaption>{s.newSignature}</figcaption>
               <div className="flex h-16 items-center justify-center overflow-hidden rounded-xl border border-accent/40 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element -- a data URL of the drawing */}
                 <img src={preview} alt={s.newSignature} className="max-h-full max-w-full object-contain" />
               </div>
             </figure>

@@ -17,7 +17,6 @@ export function isDocumentLink(value: unknown): boolean {
   }
 }
 
-/** The file a document points at: a claimed upload, or an external https link recorded as it is. */
 export async function claimUploadOrLink(fileUrl: string, ownerId?: string) {
   if (isDocumentLink(fileUrl)) {
     if (!ownerId) throw new Error(serverMessages.invalidUploadedFile);
@@ -37,11 +36,6 @@ export async function claimUploadOrLink(fileUrl: string, ownerId?: string) {
   return { ...upload, isLink: false as const };
 }
 
-/**
- * A file's bytes as an HTTP response for the apps' file routes. Public files (brand, website media) never change
- * under the same address, so browsers may cache them for a year; everything else is never cached unless the caller
- * sets its own Cache-Control. With a file name, browsers save it under that name.
- */
 export async function fileResponse(
   record: Pick<FileRecord, "fileUrl" | "mimeType" | "fileSize" | "isPublic">,
   options: {

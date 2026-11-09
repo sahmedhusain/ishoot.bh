@@ -25,7 +25,6 @@ function revalidateDepartments() {
   revalidatePath(ROUTES.directory);
 }
 
-/** Settings → Departments: create or update one department. */
 export async function saveDepartmentAction(input: DepartmentInput) {
   return measureOperation("action:saveDepartmentAction", async () => {
     const user = await requirePermission("settings", "edit");
@@ -65,7 +64,6 @@ export async function deleteDepartmentAction(id: string) {
   });
 }
 
-/** Adds catalogue departments: the ones picked, or every one the company's activity recommends. */
 export async function addCatalogueDepartmentsAction(keys: string[]) {
   return measureOperation("action:addCatalogueDepartmentsAction", async () => {
     const user = await requirePermission("settings", "edit");

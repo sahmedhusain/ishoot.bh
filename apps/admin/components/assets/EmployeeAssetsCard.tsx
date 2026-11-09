@@ -9,7 +9,6 @@ import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Company assets an employee holds and handovers waiting for them (employee page and own profile). */
 export function EmployeeAssetsCard({ held, pending, value, own, canOpenAssets }: {
   held: AssetRecord[];
   pending: Array<{ id: string; reference: string; kind: string; status: string; asset: string }>;

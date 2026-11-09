@@ -11,7 +11,6 @@ import { collectionHref } from "../../../lib/site-copy";
 import { CmsPageView, findPage } from "../../../components/blocks/CmsPageView";
 import { ArticlesIndex, liveArticles } from "../../../components/articles/ArticleViews";
 
-/** The website's catalogue at the address chosen in the website settings (works, products, menu…). */
 export default async function CollectionPage({
   params,
   searchParams,
@@ -22,14 +21,12 @@ export default async function CollectionPage({
   const { locale, collection } = await params;
   const [{ website, config, info }, isPreview, t, query] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale), searchParams]);
   if (!website) notFound();
-  // The same address level also holds the articles list and the company's own pages.
   if (collection === info.articles.slug && collection !== info.collection.slug)
     return <ArticlesIndex articles={liveArticles(website.articles)} locale={locale} base={`/${locale}/${info.articles.slug}`} query={query} />;
   if (collection !== info.collection.slug) {
     const page = findPage(website.pages, { slug: collection }, isPreview);
     if (page) return <CmsPageView page={page} locale={locale} />;
   }
-  // Links shared before the catalogue was renamed still arrive.
   if (collection !== info.collection.slug) {
     if (collection === "works") permanentRedirect(collectionHref(info, locale));
     notFound();

@@ -12,7 +12,6 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async () => {
   for (const moduleKey of ["products", "procurement"])
     await setModule(moduleKey, true);
-  // Earlier runs' documents and suppliers.
   const suppliers = await db.crmContact.findMany({
     where: { companyName: { startsWith: "E2E Supplier" } },
     select: { id: true },
@@ -139,7 +138,6 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
     /\/dashboard\/procurement\/requisitions\/[0-9a-f-]{36}$/,
     { timeout: 60_000 },
   );
-  // The administrator's own requisition needs nobody else's approval.
   await expect(page.getByRole("main").getByTestId("status")).toHaveText(
     copy.statuses.approved,
   );
@@ -164,7 +162,6 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
   }
   const compare = page.getByTestId("rfq-compare");
   await expect(compare.getByText(copy.rfqs.best)).toHaveCount(1);
-  // The cheaper price is chosen already.
   await expect(
     compare.getByRole("radio", { name: new RegExp("E2E Supplier Beta") }),
   ).toBeChecked();
@@ -274,7 +271,6 @@ test("goods are received into stock, a bill that differs is approved with a reas
     copy.statuses.approved,
   );
 
-  // 6 arrive in good order and 1 damaged; 3 are still to come.
   const receive = page.getByTestId("receive-goods");
   await receive
     .getByRole("spinbutton", { name: new RegExp(`^${copy.receive.accepted}`) })
@@ -299,7 +295,6 @@ test("goods are received into stock, a bill that differs is approved with a reas
     Number(line.rejectedQuantity),
   ]).toEqual([6, 1]);
 
-  // The bill asks 2.5 a unit where the order said 2: it needs a reason to be approved.
   await page.getByTestId("order-bill").click();
   await expect(page).toHaveURL(/\/dashboard\/procurement\/bills\/new/);
   await page.locator('input[name="supplierRef"]').fill("INV-E2E-77");
@@ -338,7 +333,6 @@ test("goods are received into stock, a bill that differs is approved with a reas
     ),
   ).toBe(6);
 
-  // The supplier's invoice is kept on the bill (and its expense).
   await page
     .getByTestId("bill-file")
     .locator('input[name="billFile"]')

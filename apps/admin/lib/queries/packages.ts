@@ -113,7 +113,6 @@ export async function moveStockPackage(packageId: string, targetLocationId: stri
 
     const operationId = `pkg-move:${packageId}:${Date.now()}`;
 
-    // Post paired movements for all enclosed serials
     for (const serial of pkg.serials) {
       await db.stockSerial.update({
         where: { id: serial.id },
@@ -143,7 +142,6 @@ export async function moveStockPackage(packageId: string, targetLocationId: stri
       );
     }
 
-    // Update package location
     const updated = await db.stockPackage.update({
       where: { id: packageId },
       data: { locationId: targetLocationId, revision: { increment: 1 } },

@@ -14,10 +14,6 @@ import { isBusinessActivity } from "../website-presets";
 import { CompanySettings, SupportedCurrency } from "../types";
 import { getSiteSettings } from "./site";
 
-/**
- * The domains belong to the system service (IT); they are read with the rest for the pages that link with them. When
- * the service cannot be reached they are left out, so pages fall back to WEB_URL / ADMIN_URL instead of failing.
- */
 async function mapSettings(s: any): Promise<CompanySettings> {
   const site = await getSiteSettings().catch((error) => {
     console.error("Site domains unavailable:", error);

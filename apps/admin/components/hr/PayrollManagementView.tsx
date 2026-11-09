@@ -38,13 +38,9 @@ import { PageHeader } from "../layout/PageHeader";
 interface PayrollManagementViewProps {
   runs: PayrollRun[];
   currentUserId: string;
-  /** Runs the current user may approve under the payroll approval policy. */
   decidableRunIds: string[];
-  /** May adjust individual salary lines, submit runs and mark them paid. */
   canEdit?: boolean;
-  /** May generate a monthly run. */
   canCreate?: boolean;
-  /** May record salary payments. */
   canPay?: boolean;
 }
 
@@ -73,7 +69,6 @@ export function PayrollManagementView({
     runs[0]?.id || null,
   );
 
-  // Generate Run Modal
   const [showGenerateModal, setShowGenerateModal] = React.useState(false);
   const generateFormId = React.useId();
   const generatePending = React.useRef(false);
@@ -86,7 +81,6 @@ export function PayrollManagementView({
   );
   const [generating, setGenerating] = React.useState(false);
 
-  // High-level aggregates
   const totalNetDisbursed = runs.reduce(
     (sum, r) => sum + (Number(r.totalNet) || 0),
     0,
@@ -206,7 +200,6 @@ export function PayrollManagementView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
-      {/* Editorial Header */}
       <PageHeader
         eyebrow={t.payrollManagement.hrAndStatutoryPayroll}
         actions={<div className="flex flex-wrap items-center gap-2">
@@ -230,7 +223,6 @@ export function PayrollManagementView({
         </div>}
       />
 
-      {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
           <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
@@ -269,7 +261,6 @@ export function PayrollManagementView({
         </div>
       </div>
 
-      {/* Runs List */}
       <div className="space-y-6">
         {runs.length === 0 ? (
           <div className="p-12 text-center rounded-lg border border-dashed border-outline-variant bg-white/50 dark:bg-surface-raised/50">
@@ -299,7 +290,6 @@ export function PayrollManagementView({
                 key={run.id}
                 className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden space-y-0"
               >
-                {/* Run Summary Header */}
                 <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-raised/50 dark:bg-surface-raised/30">
                   <div className="flex items-center gap-3">
                     <button
@@ -347,7 +337,6 @@ export function PayrollManagementView({
                     </div>
                   </div>
 
-                  {/* Financial Metrics */}
                   <div className="flex flex-wrap items-center gap-6 text-xs">
                     <div>
                       <span className="text-ink-muted block text-[10px] uppercase font-mono">
@@ -389,7 +378,6 @@ export function PayrollManagementView({
                       </span>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex w-full min-w-0 flex-wrap items-center gap-2 border-t border-outline-variant pt-3 sm:w-auto sm:border-t-0 sm:border-s sm:ps-4 sm:pt-0">
                       {canEdit && (run.status === "draft" || run.status === "calculated") && (
                         <Button
@@ -445,7 +433,6 @@ export function PayrollManagementView({
                   </div>
                 </div>
 
-                {/* Employees: each opens their own payment page */}
                 {isExpanded && (
                   <div className="p-4 sm:p-5 border-t border-outline-variant space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -540,7 +527,6 @@ export function PayrollManagementView({
         </form>
       </Modal>
 
-      {/* Generate Run Modal */}
       <Modal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} title={t.payrollManagement.generateMonthlyPayrollCycle} description={t.payrollManagement.calculateSalaryItemsUsingEmployment} busy={generating} className="max-w-md" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={generating} onClick={() => setShowGenerateModal(false)}>{t.shared.cancel}</Button><Button type="submit" form={generateFormId} disabled={generating}>{generating ? t.payrollManagement.calculating : t.payrollManagement.generateRun}</Button></div>}>
         <form id={generateFormId} onSubmit={handleGenerate} onInvalidCapture={() => setGenerateError(formatMessage(t.payrollManagement.invalidPeriod, { startYear: 2020, endYear: 2035 }))}>
           <fieldset disabled={generating}>

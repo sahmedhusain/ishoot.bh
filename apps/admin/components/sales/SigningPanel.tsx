@@ -26,11 +26,9 @@ interface SigningPanelProps {
   state: SigningState;
   canSign: boolean;
   canRequestApproval?: boolean;
-  /** The current user has an approved signature to sign with. */
   hasSignature: boolean;
 }
 
-/** Approval → sign & stamp → send: where this document stands and the next step. */
 export function SigningPanel({
   type,
   id,
@@ -44,7 +42,6 @@ export function SigningPanel({
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
   const [drawn, setDrawn] = React.useState<string | null>(null);
-  // Some documents must be signed on the spot: the signer draws now instead of applying a saved signature.
   const live = state.mode === "live";
 
   const run = async (fn: () => Promise<unknown>, done: string) => {

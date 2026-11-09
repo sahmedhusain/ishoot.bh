@@ -15,10 +15,6 @@ export interface MenuLink {
 
 const now = () => Date.now();
 
-/**
- * The header and footer links: the menus edited in Website → Menus, or, until then, the pages marked for each menu.
- * Null for a website published before pages existed (the fixed menu is used).
- */
 export function siteMenus(
   website: WebsiteSnapshot | null,
   config: ResolvedWebsiteConfig,
@@ -98,7 +94,6 @@ export function siteMenus(
   ];
   const marked = (key: "in_header" | "in_footer") =>
     visible.filter((page) => page[key]).map((page) => pageLink(page.id)!);
-  // The catalogue and articles sit after the first marked page, as the fixed menu put the catalogue after home.
   return {
     header: [...start, ...extras, ...marked("in_header")],
     footer: [...start, ...extras, ...marked("in_footer")],

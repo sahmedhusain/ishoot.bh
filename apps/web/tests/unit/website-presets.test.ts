@@ -107,7 +107,6 @@ describe("activity presets", () => {
     for (const activity of BUSINESS_ACTIVITIES.filter((a) => a !== "media")) {
       for (const locale of ["en", "ar"] as const) {
         const t = getWebsiteTranslations(locale, activity);
-        // Only the keys the website renders (legacy keys in the dictionaries are never shown).
         const shown = [
           t.portfolio.badge,
           t.portfolio.title,

@@ -9,7 +9,6 @@ export const generateMetadata = () => pageMetadata("archive");
 
 export const dynamic = "force-dynamic";
 
-/** Every document the company keeps, limited to the kinds the viewer's permissions cover. */
 export default async function ArchiveVaultPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await requireAuth();
   const kinds = await archiveKindsForCurrentUser();

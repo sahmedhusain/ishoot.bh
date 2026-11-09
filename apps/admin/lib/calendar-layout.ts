@@ -15,7 +15,6 @@ export function calendarMonthDays(date: Date) {
   );
 }
 
-/** Presentation-only lanes: overlapping appointments never cover one another. */
 export function calendarEventLanes(events: CalendarEvent[], date: Date) {
   const start = new Date(
     date.getFullYear(),

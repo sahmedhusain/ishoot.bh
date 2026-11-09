@@ -13,7 +13,6 @@ import { generateReportPdf } from "./pdf/report-pdf";
 
 type Admin = ReturnType<typeof getTranslations>["admin"];
 
-/** Words a report needs in the reader's language: channels, order and purchase statuses, campaign channels… */
 export function reportLabels(t: Admin) {
   const labels: Record<string, string> = { ...t.reports.labels };
   for (const [k, v] of Object.entries(t.orders.channels))
@@ -29,7 +28,6 @@ export function reportLabels(t: Admin) {
   return labels;
 }
 
-/** The reports a role may run: it may read the report's resource and the report's module is on. */
 export async function reportsFor(
   role: string,
   overrides: Record<string, boolean> | null,
@@ -63,7 +61,6 @@ const csvCell = (value: unknown) => {
   return `"${text.replaceAll('"', '""')}"`;
 };
 
-/** A report as a file: CSV (with a byte-order mark for Excel), an Excel workbook or a PDF in the letterhead. */
 export async function exportReport(
   result: ReportResult,
   format: string,

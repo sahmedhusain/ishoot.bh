@@ -2,10 +2,6 @@ import { headers } from "next/headers";
 import { getCompanySettings } from "@platform/database";
 import { domainOrigin } from "@platform/database/constants/domains";
 
-/**
- * The address clients open links and QR codes on: ADMIN_APP_URL (or ADMIN_URL) when configured, else the admin
- * domain from the company settings, else the address staff are using right now, else the local development server.
- */
 export async function publicOrigin(): Promise<string> {
   const configured =
     process.env.ADMIN_APP_URL ||
@@ -22,7 +18,6 @@ export async function publicOrigin(): Promise<string> {
     if (host)
       return `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
   } catch {
-    // Outside a request (workers): fall through.
   }
   return "http://localhost:3001";
 }

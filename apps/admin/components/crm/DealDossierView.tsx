@@ -73,7 +73,6 @@ export function DealDossierView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Top Header */}
       <PageHeader
         title={<><span><bdi dir="auto">{deal.title}</bdi></span><Badge
               variant="outline"
@@ -126,7 +125,6 @@ export function DealDossierView({
         </div>}
       />
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card className="p-5 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-xs text-ink-muted">
@@ -192,7 +190,6 @@ export function DealDossierView({
         </Card>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-outline-variant dark:border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto" role="tablist">
         {[
           { id: "overview", label: t.dealDossier.tabOverview, icon: User },

@@ -1,6 +1,4 @@
 "use client";
-// The person's notification settings (docs/adr/0012): pause everything, sound, pop-ups, desktop notifications, each
-// category, and the records they muted. Changes apply when saved, on every device.
 import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -69,7 +67,6 @@ export function NotificationSettingsPanel() {
   const [saving, setSaving] = React.useState(false);
   const [permission, setPermission] = React.useState<DesktopPermission>("default");
   React.useEffect(() => setPermission(desktopPermission()), []);
-  // Settings saved in another tab or device replace the form only while it has no unsaved changes.
   const lastSaved = React.useRef(preferences);
   React.useEffect(() => {
     setDraft((current) => (current === null || same(current, lastSaved.current) ? preferences : current));

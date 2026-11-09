@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-// Phone and desktop widths: key pages fit the screen without sideways scrolling.
 for (const path of [
   "/dashboard",
   "/dashboard/archive",

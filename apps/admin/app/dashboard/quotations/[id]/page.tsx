@@ -25,7 +25,6 @@ export default async function QuotationDetailPage({
   }
 
   const [approvalRequest, canIssue, canEdit, canAssign, attribution, salesPeople] = await Promise.all([
-    // Latest approval round; rounds are numbered independently of the quotation revision.
     getApprovalRequest("quotation", id),
     hasPermission("quotations", "issue_send"),
     hasPermission("quotations", "edit"),

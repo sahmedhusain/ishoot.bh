@@ -1,5 +1,4 @@
 "use client";
-// A person's avatar with their live status dot (docs/adr/0012).
 import { UserAvatar, type UserAvatarProps } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { presenceLook, usePresence } from "./LiveProvider";

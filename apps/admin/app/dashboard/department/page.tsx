@@ -8,7 +8,6 @@ export const generateMetadata = () => pageMetadata("department");
 
 export const dynamic = "force-dynamic";
 
-/** For department heads and deputies (their departments), and people who manage every employee (all). */
 export default async function DepartmentDashboardPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   const user = await requireAuth();
   const grants = await getCurrentPermissions();

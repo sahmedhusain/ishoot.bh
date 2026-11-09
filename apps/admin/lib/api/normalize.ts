@@ -1,7 +1,3 @@
-/**
- * Normalizes Go microservice PascalCase responses to camelCase and aliases
- * common frontend/Prisma field names so that data renders seamlessly with no undefined values.
- */
 export function normalizeApiRecord<T = any>(data: T): T {
   if (data === null || data === undefined) return data;
   if (Array.isArray(data)) {
@@ -17,7 +13,6 @@ export function normalizeApiRecord<T = any>(data: T): T {
   for (const [key, value] of entries) {
     const normalizedValue = normalizeApiRecord(value);
 
-    // Compute camelCase key:
     let camelKey = key;
     if (key === "ID") {
       camelKey = "id";
@@ -43,11 +38,9 @@ export function normalizeApiRecord<T = any>(data: T): T {
     }
   }
 
-  // Common ID alias
   if (result.ID && !result.id) result.id = result.ID;
   if (result.id && !result.ID) result.ID = result.id;
 
-  // Contact aliases:
   if (result.firstName && result.lastName && !result.fullName) {
     result.fullName = `${result.firstName} ${result.lastName}`.trim();
   }
@@ -58,7 +51,6 @@ export function normalizeApiRecord<T = any>(data: T): T {
     result.company = result.companyName;
   }
 
-  // Deal aliases:
   if (result.stage !== undefined && result.dealStage === undefined) {
     result.dealStage = result.stage;
   }
@@ -78,7 +70,6 @@ export function normalizeApiRecord<T = any>(data: T): T {
     result.expectedCloseDate = result.targetCloseDate;
   }
 
-  // Invoice / Payment / Quotation aliases:
   if (result.total !== undefined && result.totalAmount === undefined) {
     result.totalAmount = result.total;
   }
@@ -110,7 +101,6 @@ export function normalizeApiRecord<T = any>(data: T): T {
     result.paymentNumber = result.receiptNumber;
   }
 
-  // Inventory aliases:
   if (result.sku && !result.code) {
     result.code = result.sku;
   }
@@ -133,7 +123,6 @@ export function normalizeApiRecord<T = any>(data: T): T {
     result.trackInventory = result.trackStock;
   }
 
-  // Expense aliases:
   if (result.vendor && !result.vendorName) {
     result.vendorName = result.vendor;
   }

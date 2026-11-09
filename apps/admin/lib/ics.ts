@@ -13,7 +13,6 @@ const escape = (value: string) =>
     .replace(/\r\n|\r|\n/g, "\\n")
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,");
-/** Lines longer than 75 octets are folded, as calendar apps expect. */
 const fold = (line: string) => {
   const encoder = new TextEncoder();
   const parts: string[] = [];
@@ -33,7 +32,6 @@ const fold = (line: string) => {
   return parts.join("\r\n");
 };
 
-/** An iCalendar (RFC 5545) document for subscription by Google Calendar, Outlook or Apple Calendar. */
 export function buildIcs(
   events: CalendarEvent[],
   options: { name: string; language: "ar" | "en"; origin: string; timeZone?: string },
@@ -65,7 +63,6 @@ export function buildIcs(
       `DTSTAMP:${now}`,
     );
     if (ev.all_day) {
-      // All-day items end on the day after (exclusive), in the company's calendar days.
       const end = new Date(`${ev.end_date.slice(0, 10)}T00:00:00Z`);
       end.setUTCDate(end.getUTCDate() + 1);
       lines.push(

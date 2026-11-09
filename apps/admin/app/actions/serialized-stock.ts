@@ -20,7 +20,6 @@ import {
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Generate serial labels against real stock without creating phantom quantities. */
 export async function generateSerialLabelsAction(input: SerialLabelInput) {
   validateActionArguments("generateSerialLabelsAction", { input });
   await requireFeatureEnabled("inventory");
@@ -30,7 +29,6 @@ export async function generateSerialLabelsAction(input: SerialLabelInput) {
   return result;
 }
 
-/** Record human operator confirmation of label physical print out. */
 export async function confirmSerialLabelPrintingAction(input: { jobId: string }) {
   validateActionArguments("confirmSerialLabelPrintingAction", { input });
   await requireFeatureEnabled("inventory");
@@ -40,7 +38,6 @@ export async function confirmSerialLabelPrintingAction(input: { jobId: string })
   return result;
 }
 
-/** Verify printed serials via physical scanning before activating them for operations. */
 export async function verifyGeneratedSerialsAction(input: { generationId: string; scannedCodes: string[] }) {
   validateActionArguments("verifyGeneratedSerialsAction", { input });
   await requireFeatureEnabled("inventory");
@@ -50,7 +47,6 @@ export async function verifyGeneratedSerialsAction(input: { generationId: string
   return result;
 }
 
-/** Relocate individual serialized units between bins in the same warehouse. */
 export async function moveSerialsBetweenBinsAction(input: SerialBinMove) {
   validateActionArguments("moveSerialsBetweenBinsAction", { input });
   await requireFeatureEnabled("inventory");
@@ -60,7 +56,6 @@ export async function moveSerialsBetweenBinsAction(input: SerialBinMove) {
   return result;
 }
 
-/** Fulfill a sales order by assigning and consuming exact serial identities. */
 export async function fulfillSerializedOrderAction(input: { orderId: string; lines: FulfillSerializedOrderLine[] }) {
   validateActionArguments("fulfillSerializedOrderAction", { input });
   await requireFeatureEnabled("orders");
@@ -70,7 +65,6 @@ export async function fulfillSerializedOrderAction(input: { orderId: string; lin
   return result;
 }
 
-/** Return previously sold serialized items back to inventory with full traceability. */
 export async function returnSerializedOrderAction(input: { orderId: string; lines: ReturnSerializedOrderLine[] }) {
   validateActionArguments("returnSerializedOrderAction", { input });
   await requireFeatureEnabled("orders");

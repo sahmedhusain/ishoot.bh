@@ -46,7 +46,6 @@ export function WebUnifiedErrorPage({
   const [copied, setCopied] = useState(false);
   const [showStack, setShowStack] = useState(false);
 
-  // Dynamic status code resolution
   const resolvedCode = String(
     statusCode ?? (error?.status || error?.statusCode || (error ? 500 : 404)),
   );
@@ -75,7 +74,6 @@ export function WebUnifiedErrorPage({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Dynamic title and description based on status code
   const titleKey = `code${resolvedCode}Title` as keyof typeof copy;
   const descKey = `code${resolvedCode}Desc` as keyof typeof copy;
 
@@ -103,7 +101,6 @@ export function WebUnifiedErrorPage({
       dir={isRTL ? "rtl" : "ltr"}
     >
       <div className="max-w-2xl w-full text-center space-y-6 bg-brand-surface/90 border border-white/10 p-6 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-xl relative overflow-hidden">
-        {/* Ambient Studio Lighting Aura */}
         <div
           className={`absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none ${
             is404
@@ -114,7 +111,6 @@ export function WebUnifiedErrorPage({
           }`}
         />
 
-        {/* Status Badge & Icon */}
         <div className="relative mx-auto">
           <div
             className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-xl transition-transform ${
@@ -135,7 +131,6 @@ export function WebUnifiedErrorPage({
           </div>
         </div>
 
-        {/* Title, Badge & Description */}
         <div className="space-y-3 relative z-10">
           <div
             className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wider ${
@@ -159,7 +154,6 @@ export function WebUnifiedErrorPage({
           </p>
         </div>
 
-        {/* Prominent Technical Error Message Slate */}
         <div className="rounded-2xl border border-white/10 bg-black/60 p-4 text-left font-mono text-xs text-rose-300 break-words space-y-1.5 shadow-inner relative z-10">
           <div className="flex items-center gap-2 text-white/50 text-[11px] uppercase tracking-wider font-sans font-semibold">
             <Terminal className="w-3.5 h-3.5 text-rose-400" />
@@ -175,7 +169,6 @@ export function WebUnifiedErrorPage({
           )}
         </div>
 
-        {/* Quick Links for 404 / Exploration */}
         {is404 && (
           <div className="pt-1 text-left relative z-10">
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted/70 mb-2.5 text-center">
@@ -199,7 +192,6 @@ export function WebUnifiedErrorPage({
           </div>
         )}
 
-        {/* Collapsible Stack Trace */}
         {error?.stack && (
           <div className="text-left relative z-10">
             <button
@@ -219,7 +211,6 @@ export function WebUnifiedErrorPage({
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2 relative z-10">
           {reset && (
             <button

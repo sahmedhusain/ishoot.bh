@@ -116,7 +116,6 @@ export function InvoiceEditFormView({
   const [discountValue, setDiscountValue] = React.useState<number>(
     Number(invoice.discount_value) || 0,
   );
-  // VAT follows the invoice snapshot first; old invoices without VAT never have VAT retroactively forced.
   const [vatEnabled] = React.useState<boolean>(
     invoice.vat_enabled ?? (company?.vat_enabled ?? false),
   );
@@ -130,7 +129,6 @@ export function InvoiceEditFormView({
 
   const isLocked = invoice.status === "void";
 
-  // Drafts follow the company tax registry when VAT is enabled; an existing invoice keeps its frozen taxes.
   const { taxes: registeredTaxes } = useCompanyVat();
   const otherTaxes =
     invoice.status === "draft"
@@ -315,7 +313,6 @@ export function InvoiceEditFormView({
 
   return (
     <div inert={submitting} aria-busy={submitting} className="space-y-8 max-w-5xl mx-auto pb-16">
-      {/* Top Header */}
       <PageHeader
         title={<>{t.invoiceEdit.title} — {invoice.invoice_number}</>}
         back={{ href: ROUTES.invoices.detail(invoice.id) }}
@@ -333,7 +330,6 @@ export function InvoiceEditFormView({
       />
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Section 1: Client Selection & Auto-fetch */}
         <Card className="p-6 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant dark:border-white/10 pb-4">
             <div>
@@ -355,8 +351,6 @@ export function InvoiceEditFormView({
             )}
           </div>
 
-
-          {/* Client Search / Autocomplete */}
           <div className="space-y-4">
             <label className="text-xs font-medium text-ink block">
               {t.invoiceEdit.searchSelectClient}
@@ -375,7 +369,6 @@ export function InvoiceEditFormView({
               placeholder={t.invoiceEdit.clientSearchPlaceholder}
             />
 
-            {/* Selected Client Live Card */}
             {selectedContact && (
               <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
@@ -415,7 +408,6 @@ export function InvoiceEditFormView({
             )}
           </div>
 
-          {/* Invoice Metadata Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-outline-variant dark:border-white/10">
             <label>
               <span className="text-xs font-medium text-ink mb-1.5 block">
@@ -468,7 +460,6 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        {/* Section 2: Line Items */}
         <Card className="p-6 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
           <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
@@ -494,7 +485,6 @@ export function InvoiceEditFormView({
                 key={idx}
                 className="p-4 rounded-xl bg-surface-raised/70 dark:bg-white/[0.02] border border-outline-variant/70 dark:border-white/5 space-y-3"
               >
-                {/* Standard Service Quick Selector */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-outline-variant/60 dark:border-white/10">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                     <Sparkles className="w-3.5 h-3.5 text-accent" />
@@ -638,7 +628,6 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        {/* Section 3: Discounts & Tax Adjustments */}
         <Card className="p-6 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-3">
             {t.invoiceEdit.discountTaxAdjustments}
@@ -681,7 +670,6 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        {/* Section 4: Terms & Notes */}
         <Card className="p-6 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-3">
             {t.invoiceEdit.invoiceTermsNotes}
@@ -718,7 +706,6 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        {/* Section 5: Totals Summary */}
         <Card className="p-6 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
           <div className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
             <span className="text-ink-muted">{t.invoiceEdit.subtotal}</span>
@@ -766,7 +753,6 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        {/* Actions Toolbar */}
         <div className="pt-4 border-t border-outline-variant dark:border-white/10 flex items-center justify-end gap-4">
           <Link href={ROUTES.invoices.detail(invoice.id)}>
             <Button type="button" variant="outline" size="sm">

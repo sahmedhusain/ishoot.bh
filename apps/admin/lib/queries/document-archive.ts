@@ -14,7 +14,6 @@ import {
 
 export * from "../constants/archive";
 
-/** The company archive: one list over every source of files (see constants/archive). */
 export interface ArchiveFilters {
   q: string;
   group: string;
@@ -53,7 +52,6 @@ export function archiveParameters(
   };
 }
 
-/** The kinds a person may see, from their permissions. */
 export function archiveKindsFor(
   can: (resource: PermissionResource) => boolean,
 ): ArchiveKind[] {
@@ -81,7 +79,6 @@ type Row = {
 const employeeName = Prisma.sql`concat_ws(' ', e."firstNameEn", e."lastNameEn")`;
 const employeeNameAr = Prisma.sql`concat_ws(' ', e."firstNameAr", e."lastNameAr")`;
 
-/** One row per file. Files recorded twice (an attachment and the record's own field) are listed once. */
 const documents = Prisma.sql`
   SELECT 'attachment' AS source, a.id, a."fileName" AS file_name, a."fileUrl" AS file_url, a."mimeType" AS mime_type, a."fileSize" AS file_size,
     a."entityType" AS kind, a."entityId" AS owner_id,
@@ -173,7 +170,6 @@ export type ArchiveDocument = {
   uploaded_by?: string;
   created_at: string;
   expires_on?: string;
-  /** Uploaded files can be removed from the archive; issued records and fields owned by a record cannot. */
   deletable: boolean;
 };
 
@@ -274,7 +270,6 @@ const ORDER: Record<string, Prisma.Sql> = {
   largest: Prisma.sql`doc.file_size DESC NULLS LAST, doc.created_at DESC, doc.id DESC`,
 };
 
-/** A page of the archive, with counts per group and the expiry summary for what the viewer may see. */
 export async function getDocumentArchivePage(
   input: Record<string, string | string[] | undefined>,
   kinds: ArchiveKind[],
@@ -323,7 +318,6 @@ export async function getDocumentArchivePage(
   };
 }
 
-/** Export batches in the archive's current filter and order (keyset on the row id for stable paging). */
 export async function getDocumentArchiveExportBatch(
   input: Record<string, string | string[] | undefined>,
   kinds: ArchiveKind[],

@@ -47,7 +47,6 @@ test("changing the theme in settings re-colours the app", async ({ page }) => {
   await expect
     .poll(() => themeVariable(page, "--brand-accent"))
     .toBe(channels("#DC2626"));
-  // Restore the demo accent for the other tests.
   await accent.fill(demo.theme.accent);
   await page.getByTestId("theme-save").click();
   await expect

@@ -22,7 +22,6 @@ interface EmployeesListViewProps {
   page: number;
   canViewPay?: boolean;
   canCreate?: boolean;
-  /** Shown under the page header (e.g. documents about to expire). */
   notice?: React.ReactNode;
 }
 
@@ -79,7 +78,6 @@ export function EmployeesListView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
-      {/* Editorial Header */}
       <PageHeader
         eyebrow={t.employeesList.humanCapitalAndOrganization}
         actions={<div className="flex items-center gap-3">
@@ -102,7 +100,6 @@ export function EmployeesListView({
 
       {notice}
 
-      {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
           <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
@@ -146,7 +143,6 @@ export function EmployeesListView({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised border border-outline-variant">
         <form
           onSubmit={handleSearch}
@@ -171,7 +167,6 @@ export function EmployeesListView({
         </form>
 
         <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
-          {/* Department Filter */}
           <Select
             value={currentDepartment}
             onChange={(e) => updateFilter(e.target.value, currentStatus)}
@@ -185,7 +180,6 @@ export function EmployeesListView({
             ))}
           </Select>
 
-          {/* Status Filter */}
           <Select
             value={currentStatus}
             onChange={(e) => updateFilter(currentDepartment, e.target.value)}
@@ -200,7 +194,6 @@ export function EmployeesListView({
         </div>
       </div>
 
-      {/* Employees Table */}
       <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-start text-sm">

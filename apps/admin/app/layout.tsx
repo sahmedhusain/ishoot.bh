@@ -25,8 +25,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // The company theme (colours, fonts, radius) becomes CSS variables; the default theme is used if the
-  // database is unreachable so the error and login pages still render.
   const company = await getCachedCompanySettings().catch(() => null);
   const savedLocale = (await cookies()).get("platform_admin_locale")?.value;
   const initialLocale = isLocale(savedLocale) ? savedLocale : company?.primary_language ?? "ar";

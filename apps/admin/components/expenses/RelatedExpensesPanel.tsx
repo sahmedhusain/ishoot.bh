@@ -17,7 +17,6 @@ interface RelatedExpensesPanelProps {
   canWrite: boolean;
 }
 
-/** Costs recorded against a deal or client, shown in its file. */
 export function RelatedExpensesPanel({ dealId, clientId, items, totals, canWrite }: RelatedExpensesPanelProps) {
   const { t, locale } = useAdminLocale();
   const addHref = `${ROUTES.expenses.create}?${dealId ? `dealId=${encodeURIComponent(dealId)}` : `clientId=${encodeURIComponent(clientId!)}`}`;

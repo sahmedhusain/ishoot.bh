@@ -82,7 +82,6 @@ export async function stopReportSchedule(id: string, ownerId: string) {
   });
 }
 
-/** Schedules whose time has come, with their owner (whose rights decide what the report may contain). */
 export async function dueReportSchedules(now = new Date()) {
   const rows = await db.reportSchedule.findMany({
     where: { isActive: true, nextRunAt: { lte: now } },

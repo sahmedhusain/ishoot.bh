@@ -18,8 +18,6 @@ const escape = (value: string) =>
       ]!,
   );
 
-// ─── Settings ────────────────────────────────────────────────────────────────────────────────────────────────────
-
 export async function getServiceSettings() {
   const s = await db.serviceSettings
     .upsert({
@@ -60,8 +58,6 @@ export async function saveServiceSettings(input: {
     create: { id: "default", ...data },
   });
 }
-
-// ─── Canned replies ──────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function listCannedReplies(activeOnly = false) {
   const rows = await db.cannedReply.findMany({
@@ -105,10 +101,6 @@ export async function saveCannedReply(input: CannedReplyInput) {
     : db.cannedReply.create({ data });
 }
 
-/**
- * Whether notify has not refused a message within a few seconds. A refusal comes quickly (the provider answers at
- * once); a message still queued after that is on its way, and IT sees how it ends.
- */
 async function notRefused(id: string, waitMs = 5000) {
   for (let waited = 0; waited <= waitMs; waited += 500) {
     const message = await getMessageStatus(id).catch(() => null);
@@ -119,15 +111,6 @@ async function notRefused(id: string, waitMs = 5000) {
   return true;
 }
 
-// ─── Replying to the customer ────────────────────────────────────────────────────────────────────────────────────
-
-/**
- * Replies to the person who raised a request, then keeps the reply on the request as a customer-visible comment
- * and moves the request out of "received". E-mail goes out through `sendEmail` (passed in by the app, which owns
- * the mailer) before anything is recorded; WhatsApp goes through the notify service, and when it refuses the message
- * (no WhatsApp integration, or outside WhatsApp's 24-hour window) a wa.me link comes back for the agent to send it by
- * hand.
- */
 export async function replyToRequest(
   inquiryId: string,
   input: { channel: "email" | "whatsapp"; body: string },
@@ -207,7 +190,6 @@ export async function replyToRequest(
   return { commentId: comment.id, whatsappLink };
 }
 
-/** Replies already sent to the customer on a request, newest last. */
 export async function requestReplies(inquiryId: string) {
   const rows = await db.requestComment.findMany({
     where: { inquiryId, isClientVisible: true },
@@ -223,9 +205,6 @@ export async function requestReplies(inquiryId: string) {
   }));
 }
 
-// ─── Requests about orders ───────────────────────────────────────────────────────────────────────────────────────
-
-/** A signed-in customer asks about one of their orders: a question, or a problem (a complaint, high priority). */
 export async function createOrderHelpRequest(
   customer: { id: string; name: string; email: string; phone: string },
   input: {
@@ -245,7 +224,6 @@ export async function createOrderHelpRequest(
   return resolveIncomingLead({
     name: customer.name,
     email: customer.email,
-    // The phone on the order reaches them when their profile has none.
     phone: customer.phone || order.phone || undefined,
     message: `${order.number}\n\n${message}`,
     source: "website",
@@ -257,7 +235,6 @@ export async function createOrderHelpRequest(
   });
 }
 
-/** The requests raised about an order, for the order page. */
 export async function requestsForOrder(orderId: string) {
   const rows = await db.inquiry.findMany({
     where: { orderId },

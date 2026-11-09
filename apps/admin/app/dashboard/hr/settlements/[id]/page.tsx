@@ -14,7 +14,6 @@ export const generateMetadata = () => pageMetadata("hr/settlements/[id]");
 
 export const dynamic = "force-dynamic";
 
-/** One final settlement: every line, the approval, the employee's acknowledgement and the payment. Open to payroll staff and its approvers. */
 export default async function SettlementPage({
   params,
 }: {

@@ -16,7 +16,6 @@ import type {
 import { getEffectivePermissions } from "./permissions";
 import { getCompanyConfiguration } from "../api/company";
 
-/** Events without their own colour follow the company accent (resolved by the browser from the theme). */
 const ACCENT = "rgb(var(--brand-accent))";
 
 export const CALENDAR_VISIBILITIES = [
@@ -80,8 +79,6 @@ export function mapEvent(e: any): CalendarEvent {
   };
 }
 
-// ---------- Who sees what ----------
-
 interface Person {
   id: string;
   role: string;
@@ -90,15 +87,12 @@ interface Person {
 }
 
 export interface CalendarViewer extends Person {
-  /** Everyone above the viewer in the reporting line. */
   managers: Set<string>;
-  /** Everyone below the viewer in the reporting line. */
   reports: Set<string>;
   people: Map<string, Person>;
   permissions: Record<string, boolean>;
 }
 
-/** The viewer's place in the company: department, reporting line and permissions. */
 export async function calendarViewer(userId: string): Promise<CalendarViewer> {
   const [users, employees] = await Promise.all([
     db.user.findMany({
@@ -166,7 +160,6 @@ export async function calendarViewer(userId: string): Promise<CalendarViewer> {
   };
 }
 
-/** Whether `viewer` sees an event created in the calendar. */
 export function canSeeEvent(
   event: {
     createdById: string | null;
@@ -187,7 +180,6 @@ export function canSeeEvent(
   const creator = event.createdById
     ? viewer.people.get(event.createdById)
     : undefined;
-  // Managers above the creator see what their team plans.
   if (creator && viewer.reports.has(creator.id)) return true;
   if (
     viewer.departmentId &&
@@ -205,7 +197,6 @@ export function canSeeEvent(
         creator.departmentId === viewer.departmentId
       );
     case "team":
-      // The creator's reports, their peers under the same manager, and the creator's own manager chain.
       return (
         !!creator &&
         (viewer.managers.has(creator.id) ||
@@ -217,7 +208,6 @@ export function canSeeEvent(
   }
 }
 
-/** Only the creator changes an event; administrators may manage any. */
 export function canEditEvent(
   event: { createdById: string | null },
   viewer: { id: string; role: string },
@@ -228,8 +218,6 @@ export function canEditEvent(
     viewer.role === "admin"
   );
 }
-
-// ---------- Role-related events from the rest of the system ----------
 
 const COLORS: Record<CalendarLayer, string> = {
   own: ACCENT,
@@ -291,7 +279,6 @@ const allDayItem = (input: {
   };
 };
 
-/** Dated work from leave, deals, quotations, invoices, payroll, documents, minutes and requests that the viewer is part of. */
 async function systemEvents(
   viewer: CalendarViewer,
   start: Date,
@@ -329,7 +316,6 @@ async function systemEvents(
   }
 
   if (layers.has("leave")) {
-    // Your own leave, your team's, and everyone's for HR.
     const everyone = can("employees:read");
     const leave = await db.leaveRequest.findMany({
       where: {
@@ -369,7 +355,6 @@ async function systemEvents(
   }
 
   if (layers.has("sales") && can("deals:read")) {
-    // Scheduled days and expected closing: your deals and your team's; all of them for whoever manages the pipeline.
     const all = can("deals:delete");
     const activity = (
       await getCompanyConfiguration().catch(() => null)
@@ -551,7 +536,6 @@ async function systemEvents(
   }
 
   if (layers.has("hr")) {
-    // Document expiries: your own documents, and everyone's for HR.
     const everyone = can("employees:read");
     const employees = await db.employee.findMany({
       where: {
@@ -744,10 +728,6 @@ async function systemEvents(
   return out;
 }
 
-/**
- * Everything on one person's calendar between two dates: events they may see (their own, shared with them, their
- * team's and the company's) and, for the layers asked for, the dated work their role is part of.
- */
 export async function getCalendarFor(
   userId: string,
   start: Date,
@@ -802,7 +782,6 @@ export async function getCalendarFor(
   );
 }
 
-/** Upcoming events the user may see (dashboard widget). */
 export async function getUpcomingEventsFor(userId: string, limit = 3) {
   const now = new Date();
   return (
@@ -817,7 +796,6 @@ export async function getUpcomingEventsFor(userId: string, limit = 3) {
     .slice(0, limit);
 }
 
-/** @deprecated Ignores who may see what; use getCalendarFor. Kept for older callers. */
 export async function getCalendarEvents(
   startDate?: Date,
   endDate?: Date,
@@ -848,8 +826,6 @@ export async function getCalendarEventById(
   });
   return event ? mapEvent(event) : null;
 }
-
-// ---------- Saving ----------
 
 export interface CalendarAudienceInput {
   visibility?: CalendarVisibility;
@@ -929,7 +905,6 @@ export async function updateCalendarEvent(
 ): Promise<CalendarEvent | null> {
   const updateData: any = {};
   if (data.title !== undefined) updateData.title = data.title;
-  // Empty optional fields are cleared, not stored as empty strings.
   if (data.title_ar !== undefined) updateData.titleAr = data.title_ar || null;
   if (data.description !== undefined)
     updateData.description = data.description || null;
@@ -960,8 +935,6 @@ export async function deleteCalendarEvent(id: string): Promise<boolean> {
   return true;
 }
 
-// ---------- Personal subscription links ----------
-
 const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
@@ -979,7 +952,6 @@ export async function getCalendarFeedInfo(userId: string) {
     : null;
 }
 
-/** A new secret subscription link (the previous one stops working). The raw token is returned once. */
 export async function createCalendarFeedToken(
   userId: string,
   layers: string[],
@@ -1022,7 +994,6 @@ export async function revokeCalendarFeedToken(userId: string) {
   await db.calendarFeedToken.deleteMany({ where: { userId } });
 }
 
-/** The user behind a subscription link, if the link is valid and the user is still active. */
 export async function resolveCalendarFeedToken(token: string) {
   if (typeof token !== "string" || token.length < 30 || token.length > 100)
     return null;

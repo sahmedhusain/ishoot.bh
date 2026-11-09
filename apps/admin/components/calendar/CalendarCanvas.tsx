@@ -70,7 +70,6 @@ export function CalendarCanvas({
   const panelId = React.useId();
   const workbench = React.useRef<HTMLElement>(null);
   React.useEffect(() => {
-    // This page has its own header, so signal its commit before scrollbars alter the streamed markup.
     workbench.current?.setAttribute("data-overlay-scroll-ready", "");
   }, []);
   const [filters, setFilters] = React.useState(false);

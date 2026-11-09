@@ -34,13 +34,11 @@ import { campaignFrom } from "../../../../lib/utm";
 
 const str = (value: unknown, max = 300) =>
   typeof value === "string" ? value.slice(0, max) : "";
-/** The website's public address, for the gateway's return and notification addresses. */
 const siteUrl = (req: NextRequest) =>
   (process.env.WEB_URL || req.nextUrl.origin).replace(/\/$/, "");
 const ip = (req: NextRequest) =>
   req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 
-/** The cart as posted: product, variant and a whole quantity per line. */
 function cartLines(value: unknown): CartLine[] {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 50).map((line) => {
@@ -53,7 +51,6 @@ function cartLines(value: unknown): CartLine[] {
   });
 }
 
-/** The delivery slot chosen at checkout, as "date" and "slotId". */
 function slotChoice(value: unknown) {
   const v = (value ?? {}) as Record<string, unknown>;
   const date = str(v.date, 10);
@@ -61,7 +58,6 @@ function slotChoice(value: unknown) {
   return /^\d{4}-\d{2}-\d{2}$/.test(date) && slotId ? { date, slotId } : null;
 }
 
-/** Prices the cart (quote) or places the order (order), for the website's cart and checkout. */
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ action: string }> },
@@ -100,11 +96,9 @@ export async function POST(
             regionCode: str(body.regionCode, 20) || undefined,
           }),
         );
-      // Delivery times (and whether the area is served) for the checkout.
       if (action === "delivery")
         return NextResponse.json(await deliveryOptions(area ?? {}));
       if (action === "pay") {
-        // Pays what is owed on an order through the store's gateway, from a payment link or right after checkout.
         await consumeAbuseLimit("store-pay-ip", ip(req), 20, 600);
         const orderId = orderFromPaymentLink(str(body.token, 120));
         if (!orderId)
@@ -160,7 +154,6 @@ export async function POST(
         utm: campaignFrom(req),
       });
       await sendConfirmation(order.id, locale, siteUrl(req));
-      // The people who handle orders hear about it at once.
       const alert = getWebsiteTranslations(locale).store.orderNotification;
       const params = {
         number: order.number,
@@ -189,7 +182,6 @@ export async function POST(
   });
 }
 
-/** The order confirmation e-mail, in the customer's language. Failing to send never undoes the order. */
 async function sendConfirmation(
   orderId: string,
   locale: import("@platform/locales/registry").Locale,
@@ -199,7 +191,6 @@ async function sendConfirmation(
   if (!order?.email) return;
   const t = getWebsiteTranslations(locale).store.confirmationEmail;
   const money = (value: number) => `${value.toFixed(getCurrencyDecimals(order.currency))} ${order.currency}`;
-  // The delivery's tracking page, when the order is delivered by the company.
   const token = (await orderTrackingTokens([order.id])).get(order.id);
   const trackLink = token
     ? `<p><a href="${escapeEmailHtml(`${site}/${locale}/track/${token}`)}">${escapeEmailHtml(getWebsiteTranslations(locale).store.track)}</a></p>`

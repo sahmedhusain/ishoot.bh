@@ -18,7 +18,6 @@ import { EntityLookup } from "../shared/EntityLookup";
 const LEAD_STATUSES = ["new", "contacted", "qualified", "archived"] as const;
 const FEEDBACK_STATUSES = ["new", "in_progress", "waiting", "resolved"] as const;
 
-/** Priority, SLA, ownership and (for sales leads) qualification and conversion — on the request's own page. */
 export function RequestManagePanel({
   request,
   kind,

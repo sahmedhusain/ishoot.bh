@@ -18,7 +18,6 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   if (!(await reportsForUser(user.id)).some((r) => r.key === key)) notFound();
   const query = await searchParams;
   const text = (k: string) => (typeof query[k] === "string" ? (query[k] as string) : null);
-  // The admin language lives in the browser; the view asks again in it when it differs.
   const locale = text("locale") === "en" ? "en" : "ar";
   const compare = text("compare") === "1";
   const [result, schedules, company] = await Promise.all([

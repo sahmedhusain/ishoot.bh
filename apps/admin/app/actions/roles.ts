@@ -13,16 +13,11 @@ import {
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 
-/**
- * Saves a role and the permission cells that changed. Cells that are not submitted keep their stored value,
- * so the Roles screen can never silently revoke permissions it does not display.
- */
 export async function upsertRoleAction(data: {
   id?: string;
   nameEn: string;
   nameAr: string;
   grants: Record<string, boolean>;
-  /** Which records the role sees per area (constants/data-scope.ts): "own", "department" or "all". */
   scopes?: Record<string, string>;
 }) {
   return measureOperation("action:upsertRoleAction", async () => {

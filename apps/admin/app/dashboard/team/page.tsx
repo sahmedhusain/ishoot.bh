@@ -19,7 +19,6 @@ function periodRange(period: string) {
   return { from, to: now };
 }
 
-/** Managers see their team's results; Super Admin and admins can look at any manager's team or everyone. */
 export default async function TeamPage({ searchParams }: { searchParams: Promise<{ period?: string; manager?: string }> }) {
   const user = await requireAuth();
   const params = await searchParams;

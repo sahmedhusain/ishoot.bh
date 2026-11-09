@@ -1,7 +1,3 @@
-// Hands in-app notifications from Prisma to the notify service, which owns the inbox (docs/adr/0012). Producers
-// keep writing "Notification" rows inside their own transactions, so a notification never exists for a change that
-// rolled back; this moves each row to notify once, preserving its ID (a resend changes nothing), its read and hidden
-// state and, for scheduled ones, its time. Several app servers may run it at once: rows are locked with SKIP LOCKED.
 import {
   deliverNotifications,
   isApiError,
@@ -30,7 +26,6 @@ type PendingRow = {
 const cut = (text: string, max: number) =>
   Array.from(text).length > max ? Array.from(text).slice(0, max - 1).join("") + "…" : text;
 
-/** The row as notify expects it, trimmed to notify's limits so one long title cannot block the queue. */
 export function toNewNotification(row: PendingRow): NewNotification {
   const params: Record<string, string> = {};
   if (row.messageParams && typeof row.messageParams === "object" && !Array.isArray(row.messageParams)) {
@@ -45,7 +40,6 @@ export function toNewNotification(row: PendingRow): NewNotification {
     id: row.id,
     realm: "staff",
     recipient: row.userId,
-    // notify picks the category from the message key or entity type (contracts/catalog/notifications.json).
     priority: row.type === "warning" ? "high" : undefined,
     title: cut(row.title.trim() || row.messageKey || "Notification", 300),
     body: cut(row.message, 2000),
@@ -61,10 +55,6 @@ export function toNewNotification(row: PendingRow): NewNotification {
   };
 }
 
-/**
- * Hands up to `limit` pending notifications to notify and returns how many were handed over. A row notify refuses
- * as invalid is marked handed over too (and logged), so it cannot block the ones after it.
- */
 export async function handOverNotifications(limit = 200): Promise<number> {
   return db.$transaction(
     async (tx) => {
@@ -82,7 +72,6 @@ export async function handOverNotifications(limit = 200): Promise<number> {
         await deliverNotifications(items);
       } catch (error) {
         if (!isApiError(error) || error.status !== 422) throw error;
-        // One of them is invalid: send them one by one so the rest still arrive.
         for (const item of items) {
           try {
             await deliverNotifications([item]);
@@ -104,11 +93,9 @@ export async function handOverNotifications(limit = 200): Promise<number> {
 
 let running: Promise<void> | undefined;
 
-/** Hands over everything pending, in batches. Calls while one is running share it. */
 export function flushNotifications(): Promise<void> {
   running ??= (async () => {
     try {
-      // A cheap look first: most seconds there is nothing to hand over, and no transaction is needed.
       const pending = await db.notification.findFirst({ where: { handedOverAt: null }, select: { id: true } });
       if (!pending) return;
       while ((await handOverNotifications()) === 200);

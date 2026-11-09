@@ -12,7 +12,6 @@ export interface LatestSocialMetric {
   errorStatus: string | null;
 }
 
-/** The most recent reading of every platform/metric pair, in one query. */
 export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
   const integrations = await listIntegrations();
   const activeConditions: Prisma.Sql[] = [];

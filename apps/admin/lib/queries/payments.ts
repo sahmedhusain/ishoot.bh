@@ -254,7 +254,6 @@ async function mapApiPaymentToPayment(p: any): Promise<Payment> {
       const { getInvoiceById } = await import("./invoices");
       invoiceObj = await getInvoiceById(invoiceId).catch(() => null);
     } catch {
-      // ignore
     }
   }
 
@@ -414,10 +413,6 @@ export async function deletePayment(id: string): Promise<boolean> {
   }
 }
 
-/**
- * Derives an invoice's payment status from its payments, in minor units:
- * fully paid → paid, some paid → partially_paid, nothing paid → overdue/sent by due date. Drafts and voids are left alone.
- */
 async function reconcileInvoicePaymentStatus(
   tx: Pick<typeof db, "invoice" | "crmDeal" | "dealPipelineStage">,
   invoiceId: string,

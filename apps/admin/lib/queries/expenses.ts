@@ -6,7 +6,6 @@ import { claimUploadOrLink } from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
 import { listExpenseCategories } from "@platform/api-client";
 
-
 function mapCategory(c: any): ExpenseCategory {
   return {
     id: c.id,
@@ -110,7 +109,6 @@ function categoryFields(data: {
   };
 }
 
-/** Adds a custom category; the slug is derived from the English name and kept unique. */
 export async function createExpenseCategory(data: {
   name_en: string;
   name_ar?: string;
@@ -174,7 +172,6 @@ export async function updateExpenseCategory(
   return mapCategory(updated);
 }
 
-/** Custom categories without expenses are removed; anything in use (or built in) is hidden instead. */
 export async function deleteExpenseCategory(
   id: string,
 ): Promise<"deleted" | "hidden"> {
@@ -229,7 +226,6 @@ export async function createExpense(
     recurrence_interval?: string;
     notes?: string;
     is_billable?: boolean;
-    /** VAT included in `amount` (the gross paid). */
     input_vat_amount?: number;
     is_vat_recoverable?: boolean;
   },
@@ -277,7 +273,6 @@ export async function createExpense(
         isRecurring: expense.is_recurring || false,
         recurrenceInterval: expense.recurrence_interval || null,
         notes: expense.notes || null,
-        // Becomes approved/rejected through the expense approval policy (or immediately if the policy is off).
         status: "pending",
       },
       include: {
@@ -304,10 +299,6 @@ export async function createExpense(
   });
 }
 
-/**
- * Where an expense is recorded: a deal (which also files it under the deal's client), a client
- * directly, or the business itself. The deal wins when both are given.
- */
 async function resolveExpenseLink(input: {
   scope?: string;
   deal_id?: string | null;
@@ -417,7 +408,6 @@ export async function deleteExpense(id: string): Promise<boolean> {
   }
 }
 
-/** Costs filed under a deal or a client (a client's file includes the costs of its deals). */
 export async function getRelatedExpenses(
   filter: { dealId?: string; clientId?: string },
   take = 50,

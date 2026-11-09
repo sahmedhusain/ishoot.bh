@@ -25,7 +25,6 @@ export interface TaskFiltersState {
 
 const BUCKETS: DueBucket[] = ["overdue", "today", "week", "later", "none"];
 
-/** Tasks: my list by due date, everyone's list, or a board by status; with a quick form for new tasks. */
 export function TasksView({ rows, choices, filters, canAssign, selfId, today, projectId }: { rows: TaskRow[]; choices: TaskChoices; filters: TaskFiltersState; canAssign: boolean; selfId: string; today: string; projectId?: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.tasks;

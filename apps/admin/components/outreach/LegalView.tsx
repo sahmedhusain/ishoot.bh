@@ -78,7 +78,6 @@ function MatterForm({ initial, currency, people, onDone, onCancel }: { initial: 
   );
 }
 
-/** Legal: matters by next date, with the licence and contract registers. */
 export function LegalView({ matters, licences, contracts, filters, currency, canEdit, people, today }: { matters: LegalMatterRow[]; licences: Licence[]; contracts: ContractRow[]; filters: { status: string; q: string }; currency: string; canEdit: boolean; people: Person[]; today: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.legal;
@@ -175,7 +174,6 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
   );
 }
 
-/** One legal matter: its details (editable), history and notes. */
 export function LegalMatterView({ matter, currency, canEdit, people }: { matter: LegalMatterRecord; currency: string; canEdit: boolean; people: Person[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.legal;

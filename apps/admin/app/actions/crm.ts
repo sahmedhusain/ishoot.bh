@@ -34,9 +34,7 @@ import {
 } from "../../lib/auth";
 import { assertRecordInScope, dataScope } from "../../lib/data-scope";
 
-/** A deal outside the person's data scope cannot be changed, even by someone who knows its id. */
 async function requireDealInScope(id: string) {
-  // Scope validation handled at service layer
 }
 import {
   employeeIdForUser,
@@ -269,7 +267,6 @@ export async function globalSearchAction(query: string) {
       )
         allowed.add(category);
     }
-    // Everyone can find colleagues (the directory is open to all staff); deals follow the data scope.
     allowed.add("people");
     const results = await globalAdminSearch(
       query,
@@ -277,8 +274,6 @@ export async function globalSearchAction(query: string) {
       allowed,
       allowed.has("deals") ? await dataScope("deals") : null,
     );
-    // Commerce, work and department records: each needs its module on and read access; tasks and shipments
-    // follow the same visibility as their own pages.
     const grants = await getCurrentPermissions();
     const records = new Set<RecordSearchCategory>();
     const recordSources: [RecordSearchCategory, string, string][] = [

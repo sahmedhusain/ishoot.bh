@@ -27,7 +27,6 @@ const EMPTY: CmsPageRecord = {
   updated_at: "",
 };
 
-/** A page's editor; "new" starts an empty page. */
 export default async function CmsPageEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requirePagePermission("pages", id === "new" ? "create" : "read");

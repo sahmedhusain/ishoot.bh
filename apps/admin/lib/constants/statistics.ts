@@ -1,4 +1,3 @@
-/** Live-data counts a website statistic can show instead of a typed-in value. */
 export type StatisticPreset =
   | "projects_delivered"
   | "clients_served"

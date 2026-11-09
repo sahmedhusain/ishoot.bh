@@ -4,7 +4,6 @@ import { getCurrentUser } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-/** The browser reports that the person went idle or came back, for their status (away). */
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return new NextResponse(null, { status: 401 });

@@ -68,7 +68,6 @@ const STATUS_STYLE: Record<string, string> = {
   ended: "bg-ink/10 text-ink-muted",
 };
 
-/** Wage-support programmes with their dated terms, and every employee's application, decision and partial approval. */
 export function SupportProgramsView({
   programs,
   enrolments,

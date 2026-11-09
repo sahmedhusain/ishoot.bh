@@ -157,7 +157,6 @@ export async function deleteMomAction(id: string) {
   });
 }
 
-/** Approves and signs the minutes with the saved signature, or one drawn now when minutes are signed on the spot. */
 export async function approveAndSignMomAction(id: string, signature?: string) {
   return measureOperation("action:approveAndSignMomAction", async () => {
     await requireFeatureEnabled("crm_deals");

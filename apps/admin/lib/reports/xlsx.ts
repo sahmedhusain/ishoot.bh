@@ -1,9 +1,5 @@
 import zlib from "node:zlib";
 
-/**
- * A minimal Excel workbook (.xlsx): one sheet, a bold header row, numbers as numbers and text as inline strings.
- * Written by hand (a zip of a few XML parts) so exports need no extra dependency.
- */
 export function buildXlsx(
   sheetName: string,
   header: string[],
@@ -89,7 +85,6 @@ function crc32(data: Buffer) {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-/** A zip archive of the given files, each deflated. */
 function zip(files: [string, Buffer][]) {
   const locals: Buffer[] = [];
   const centrals: Buffer[] = [];

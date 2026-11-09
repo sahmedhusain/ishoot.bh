@@ -27,7 +27,6 @@ export interface StockLabelJobData {
 
 const MM_TO_PT = 2.83464567;
 
-/** Generates standard physical-dimension labels for thermal or sheet label printers. */
 export async function generateStockLabelsPdf(
   job: StockLabelJobData,
   company?: CompanySettings | null,
@@ -37,7 +36,6 @@ export async function generateStockLabelsPdf(
     try {
       await registerPdfFont(company.theme);
     } catch {
-      // Fallback to built-in Helvetica font
     }
   }
 
@@ -62,7 +60,6 @@ export async function generateStockLabelsPdf(
             fontFamily: "Helvetica",
           }}
         >
-          {/* Header with SKU and Product Name */}
           <View
             style={{
               flexDirection: isAr ? "row-reverse" : "row",
@@ -94,7 +91,6 @@ export async function generateStockLabelsPdf(
             </Text>
           </View>
 
-          {/* Central Serial Barcode Display */}
           <View
             style={{
               marginVertical: 3,
@@ -120,7 +116,6 @@ export async function generateStockLabelsPdf(
             </Text>
           </View>
 
-          {/* Footer with Batch & Identifier */}
           <View
             style={{
               flexDirection: isAr ? "row-reverse" : "row",

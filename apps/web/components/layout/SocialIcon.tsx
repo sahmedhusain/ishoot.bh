@@ -9,7 +9,6 @@ const GENERIC_ICONS: Record<string, LucideIcon> = {
   phone: Phone,
 };
 
-/** `name` is the platform ("Instagram"); `hint` is the stored icon name, tried when the platform is custom. */
 export function SocialIcon({ name, hint, className }: { name?: string; hint?: string; className?: string }) {
   const platform = findSocialPlatform(name) ?? findSocialPlatform(hint);
   if (platform)

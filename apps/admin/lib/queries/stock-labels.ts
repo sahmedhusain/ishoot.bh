@@ -16,7 +16,6 @@ export interface SerialLabelInput {
   idempotencyKey: string;
   template: StockLabelTemplate;
 }
-/** Reserve internal labels against real stock. This does not activate tracking or move/create stock. */
 export async function generateSerialLabels(
   input: SerialLabelInput,
   actorId: string,
@@ -109,7 +108,6 @@ export async function generateSerialLabels(
     });
     const labels: any[] = [];
     for (let index = 0; index < input.quantity; index++) {
-      // UUID-derived identifiers are globally unique internal references, not manufactured GTINs.
       const code = `INT-${generation.id}-${String(index + 1).padStart(4, "0")}`;
       await db.stockSerial.create({
         data: {
@@ -173,7 +171,6 @@ export async function getSerialLabelJob(id: string, actorId: string) {
   return job;
 }
 
-/** Reprints copy the original label payload and never allocate another identifier. */
 export async function reprintSerialLabels(
   input: { jobId: string; idempotencyKey: string },
   actorId: string,
@@ -225,7 +222,6 @@ export async function reprintSerialLabels(
   });
 }
 
-/** This records a human acknowledgment, never an inference from window.print(). */
 export async function confirmSerialLabelPrinting(
   jobId: string,
   actorId: string,

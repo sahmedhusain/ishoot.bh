@@ -42,7 +42,6 @@ import {
   pick,
 } from "./ContentBlocks";
 
-/** What data blocks read: the published snapshot plus live reviews, equipment and the contact page body. */
 export interface BlockContext {
   locale: string;
   home?: boolean;
@@ -50,20 +49,15 @@ export interface BlockContext {
   company: PublicCompanySettings;
   reviews: ComponentProps<typeof ReviewsSection>["reviews"];
   equipment: StudioEquipment[];
-  /** The contact page's own layout (contact details and the enquiry form), rendered by the page. */
   contact?: ReactNode;
   showEquipment: boolean;
-  /** Where articles are listed: /{locale}/{articles slug}. */
   articlesBase: string;
 }
 
-/** Data blocks with no entrance of their own rise into view as a whole (the others use Reveal inside). */
 const REVEAL_HERE: readonly BlockType[] = ["catalogue", "services", "testimonials", "faq", "clients", "pillars", "equipment"];
 
-/** Light sections alternate the slanted edge, as the fixed homepage did. */
 const LIGHT: readonly BlockType[] = ["about", "catalogue", "testimonials"];
 
-/** A page's visible blocks, in order. */
 export function PageBlocks({ blocks, context }: { blocks: Block[]; context: BlockContext }) {
   const { locale, website, company } = context;
   let light = 0;
@@ -86,7 +80,6 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
   );
 
   function renderBlock(block: Block, ctx: BlockContext): ReactNode {
-    // An editor's heading over a data block (only when one was written), then the block itself.
     const title = (block.data as { title?: { en: string; ar: string } }).title;
     const titled = (child: ReactNode) =>
       pick(title, locale) ? (
@@ -106,7 +99,6 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
           ...(pick(data.title, "en") ? { title_en: pick(data.title, "en"), title_ar: pick(data.title, "ar") } : {}),
           ...(pick(data.subtitle, "en") ? { subtitle_en: pick(data.subtitle, "en"), subtitle_ar: pick(data.subtitle, "ar") } : {}),
         }));
-        // Full-screen media needs a banner; without one the centred headline opens the page.
         const requested = data.style === "inherit" ? resolveWebsiteConfig(website.config).heroStyle : data.style;
         const style = requested === "cinematic" && !website.banners.length ? "centered" : requested;
         const hero = style === "cinematic" ? <ShowcaseHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} /> : style === "split" ? <SplitHero banners={banners} title={title} subtitle={subtitle} /> : <CenteredHero banners={banners} title={title} subtitle={subtitle} />;

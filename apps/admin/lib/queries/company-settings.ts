@@ -348,8 +348,6 @@ export async function getSetupCompleteness() {
 export async function updateCompanyTheme(
   input: BrandTheme,
 ): Promise<CompanySettings> {
-  // Theme updates are currently not exposed via a separate API endpoint in the client.
-  // We would need an API endpoint to update company theme.
   throw new Error("updateCompanyTheme is not yet implemented via API");
 }
 

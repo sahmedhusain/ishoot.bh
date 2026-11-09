@@ -1,5 +1,3 @@
-// Approval vocabulary shared by the engine, the Approvals Center and Settings → Approvals.
-// Runtime-free so client components can import it.
 
 import { ROUTES } from "./routes";
 
@@ -37,7 +35,6 @@ export type ApproverMode = (typeof APPROVER_MODES)[number];
 export type ApprovalConditionField =
   "minAmount" | "minDays" | "minDiscountPercent";
 
-/** Which conditions make sense for each request type. */
 export const APPROVAL_CONDITION_FIELDS: Record<
   ApprovalTargetType,
   ApprovalConditionField[]
@@ -71,16 +68,10 @@ export const APPROVAL_STATUSES = [
 ] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
-/** A pending approval older than this many days is flagged as stale on dashboards. */
 export const STALE_APPROVAL_DAYS = 3;
 
-/** Roles that receive a request when no configured step yields an approver other than the requester. */
 export const APPROVAL_FALLBACK_ROLES = ["admin", "super_admin"] as const;
 
-/**
- * Where each request is reviewed: always the item itself. Records with their own decision screen (quotations,
- * asset and employee handovers) open there; everything else opens its own approval page with the full details.
- */
 const item = (type: ApprovalTargetType) => (id: string) =>
   ROUTES.approvalItem(type, id);
 export const APPROVAL_TARGET_ROUTES: Record<

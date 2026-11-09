@@ -38,7 +38,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/** Icons selectable in CMS / web settings. Keys are stored in the DB, keep them stable. */
 export const PICKABLE_ICONS: Record<string, LucideIcon> = {
   Instagram,
   Linkedin,

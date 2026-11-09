@@ -1,10 +1,4 @@
 import { formatMessage, getTranslations } from "@platform/locales";
-/* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
-/**
- * Building blocks shared by every generated document (invoices, quotations, receipts, payslips,
- * salary certificates and minutes): one fixed letterhead and footer on every page in the company's
- * colours and font, right-to-left layout for Arabic documents and Western digits in both languages.
- */
 import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
 import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
@@ -15,7 +9,6 @@ import { resolveConfiguredPdfAsset } from "./configured-asset";
 import { DEFAULT_THEME, mix } from "@platform/database/constants/theme";
 import { PDF_FONT, registerPdfFont } from "./shared-styles";
 
-/** Document colours. primary and accent follow the company theme (set by resolvePdfBrand). */
 export const C = {
   primary: DEFAULT_THEME.primary,
   accent: DEFAULT_THEME.accent,
@@ -35,7 +28,6 @@ const styles = (style?: Style | Style[]) => (Array.isArray(style) ? style : styl
 
 export type DocLocale = "en" | "ar";
 
-/** Company artwork resolved to PDF-ready images once per document. */
 export interface PdfBrand {
   company: CompanySettings;
   logo?: Src;
@@ -48,7 +40,6 @@ export interface PdfBrand {
 }
 
 export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBrand> {
-  // One company per installation, so the theme can be applied to the shared document styles.
   C.primary = company.theme.primary;
   C.accent = company.theme.accent;
   C.soft = mix(company.theme.primary, "#FFFFFF", 0.95);
@@ -70,9 +61,6 @@ export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBran
   const letterheadFooter = (company.document_footer_url ? await resolveConfiguredPdfAsset(company.document_footer_url) : undefined) || (await asset("letterhead_footer"));
   return { company, logo, icon, fullLogo: resolvedFullLogo, stamp, signature, letterheadHeader, letterheadFooter };
 }
-
-// ---------------------------------------------------------------- formatting (Western digits in both languages)
-
 
 function numberLocale(isAr: boolean) {
   return isAr ? "ar-u-nu-latn" : "en-GB";
@@ -104,8 +92,6 @@ export function fmtMonth(year: number, month: number, isAr: boolean) {
   return new Intl.DateTimeFormat(numberLocale(isAr), { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));
 }
 
-// ---------------------------------------------------------------- page frame (identical in both languages)
-
 const LETTERHEAD_HEIGHT = 104;
 const FOOTER_HEIGHT = 58;
 
@@ -117,7 +103,6 @@ export const pageStyle: Style = {
   paddingTop: LETTERHEAD_HEIGHT + 14,
   paddingBottom: FOOTER_HEIGHT + 14,
   paddingHorizontal: 40,
-  // No page-wide lineHeight: react-pdf drops render-time text (page numbers) that inherits one.
 };
 
 function BrandMark({ brand, height = 30 }: { brand: PdfBrand; height?: number }) {
@@ -133,12 +118,6 @@ function BrandMark({ brand, height = 30 }: { brand: PdfBrand; height?: number })
   );
 }
 
-/**
- * The fixed letterhead: English details on the left, the logo in the middle and Arabic details on the
- * right, the same on every page of every document in both languages. Tax registrations are not part of
- * it: they are printed with their certificate QR code at the end of invoices, quotations and receipts.
- * An uploaded letterhead image (Settings → Brand assets) replaces it.
- */
 export function Letterhead({ brand }: { brand: PdfBrand }) {
   const company = brand.company;
   const en = getTranslations("en").admin.pdfDocs;
@@ -172,8 +151,6 @@ export function Letterhead({ brand }: { brand: PdfBrand }) {
   );
 }
 
-// ---------------------------------------------------------------- shared shapes
-
 export interface Column {
   key: string;
   label: string;
@@ -188,7 +165,6 @@ export interface CompanySignature {
   signedAt?: string | null;
 }
 
-/** A tax registration printed at the end of a document: QR code to the certificate, its name and number. */
 export interface TaxCertificateMark {
   qr?: Buffer;
   title: string;
@@ -202,10 +178,6 @@ export interface ClientAcceptance {
   method: "electronic" | "upload";
   signatureSrc?: Src | null;
 }
-
-// ---------------------------------------------------------------- language-bound components
-// Route handlers render with React's server build (no context API), so the document language is
-// bound into these components by a factory rather than provided through context.
 
 export type DocKit = ReturnType<typeof docKit>;
 
@@ -221,10 +193,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
   const date = (value: string | Date | null | undefined, month: "long" | "short" = "long") => fmtDate(value, isAr, month, timeZone);
   const pageLabel = (n: number, total: number) => formatMessage(d.page, { n: String(n), total: String(total) });
 
-  /**
-   * Text that follows the document direction; `align="end"` puts it on the trailing side. Values with
-   * no Arabic letters (phone numbers, e-mails, IBANs, references) keep their left-to-right order.
-   */
   function T({ style, align, children, ...rest }: { style?: Style | Style[]; align?: "start" | "end" | "center"; children?: React.ReactNode } & Omit<React.ComponentProps<typeof Text>, "style">) {
     const plain = (Array.isArray(children) ? children : [children]).every((c) => typeof c === "string" || typeof c === "number");
     const latinOnly = plain && !ARABIC.test((Array.isArray(children) ? children : [children]).join(""));
@@ -235,7 +203,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** A horizontal row that runs right-to-left in Arabic documents. */
   function Row({ style, children, ...rest }: { style?: Style | Style[]; children?: React.ReactNode } & Omit<React.ComponentProps<typeof View>, "style">) {
     return (
       <View {...rest} style={[{ flexDirection: isAr ? "row-reverse" : "row" } as Style, ...styles(style)]}>
@@ -244,7 +211,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** Fixed footer: contact line, the document reference and "page x of y" in the document language. */
   function Footer({ brand, reference }: { brand: PdfBrand; reference?: string }) {
     const company = brand.company;
     if (brand.letterheadFooter)
@@ -276,7 +242,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
         <View style={{ height: 0.8, backgroundColor: C.accent }} />
         <View style={{ flexDirection: isAr ? "row-reverse" : "row", justifyContent: "space-between", marginTop: 7 }}>
           <Text style={{ fontSize: 7, color: C.body }}>{contact}</Text>
-          {/* Text drawn at render time has no intrinsic width inside a row, so it is given one. */}
           <Text
             fixed
             style={{ width: 240, fontSize: 7, color: C.muted, direction: isAr ? "rtl" : "ltr", textAlign: isAr ? "left" : "right" } as Style}
@@ -287,11 +252,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /**
-   * Tax registrations at the end of a document, centred: a scannable QR code to each certificate with
-   * the certificate name written below it and the registration number. `inline` is the compact form
-   * placed between the signatures when there is a single certificate.
-   */
   function TaxCertificates({ items, inline = false }: { items: TaxCertificateMark[]; inline?: boolean }) {
     if (!items.length) return null;
     const width = inline ? 96 : 120;
@@ -310,10 +270,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /**
-   * The closing row of a document: the client's acceptance (or nothing), the tax certificate QR centred,
-   * and the company signature. Two or more certificates get their own centred row underneath.
-   */
   function ClosingRow({ start, end, certificates }: { start?: React.ReactNode; end: React.ReactNode; certificates: TaxCertificateMark[] }) {
     const single = certificates.length === 1;
     return (
@@ -332,7 +288,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** Document title with its number and up to three key facts on the trailing side. */
   function TitleBlock({ title, subtitle, number, facts = [] }: { title: string; subtitle?: string; number?: string; facts?: Array<[string, string]> }) {
     return (
       <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18 }}>
@@ -355,7 +310,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** A soft card with a small caption and its lines. */
   function Card({ label, children, style }: { label?: string; children: React.ReactNode; style?: Style }) {
     return (
       <View style={[{ flex: 1, backgroundColor: C.soft, borderRadius: 6, paddingVertical: 10, paddingHorizontal: 12 }, ...styles(style)]}>
@@ -365,7 +319,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** "Label  value" line inside cards. */
   function Field({ label, value, strong }: { label: string; value?: React.ReactNode; strong?: boolean }) {
     if (value == null || value === "") return null;
     return (
@@ -376,7 +329,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** Branded table; column order follows the document direction and the header repeats on new pages. */
   function Table({ columns, rows }: { columns: Column[]; rows: Array<Record<string, React.ReactNode>> }) {
     return (
       <View style={{ borderRadius: 6, overflow: "hidden", borderWidth: 0.8, borderColor: C.line, marginBottom: 14 }}>
@@ -408,7 +360,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** Totals panel: label/amount pairs with an optional highlighted final line. */
   function Totals({ lines, width = 230 }: { lines: Array<{ label: string; value: string; tone?: "danger" | "success" | "final" | "muted" }>; width?: number }) {
     return (
       <View style={{ width, alignSelf: endItems }}>
@@ -445,10 +396,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     return <T style={[{ fontSize: 9.5, lineHeight: 1.8, color: C.body, marginBottom: 10 }, ...styles(style)]}>{children}</T>;
   }
 
-  /**
-   * The company's signature with the seal pressed over it, as on a hand-stamped original.
-   * Until the document is signed it shows an empty signing line with `pending` underneath.
-   */
   function CompanySignatureBlock({ brand, signing, pending, label }: { brand: PdfBrand; signing?: CompanySignature | null; pending?: string; label?: string }) {
     const companyName = isAr ? brand.company.company_name_ar : brand.company.company_name_en;
     return (
@@ -472,7 +419,6 @@ export function docKit(locale: DocLocale, timeZone = "UTC") {
     );
   }
 
-  /** The client's side: their e-signature or the uploaded signed copy, or blank lines to sign by hand. */
   function ClientAcceptanceBlock({ acceptance, documentKind, width = 230 }: { acceptance?: ClientAcceptance | null; documentKind: "quotation" | "invoice"; width?: number }) {
     const c = d.client;
     const line = (label: string, value?: string | null) => (

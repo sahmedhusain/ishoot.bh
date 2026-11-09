@@ -16,7 +16,6 @@ export interface LocationOption {
   label: string;
 }
 
-/** The item a dialog acts on: a product, or one variant of it. */
 export interface StockTarget {
   productId: string;
   variantId?: string | null;
@@ -43,7 +42,6 @@ function useSubmit(onDone: () => void) {
   return { busy, error, submit };
 }
 
-/** Receive, adjust or write off stock of one item at one location. */
 export function StockChangeModal({ target, locations, currency, onClose, onDone }: { target: StockTarget; locations: LocationOption[]; currency: string; onClose: () => void; onDone: () => void }) {
   const { t } = useAdminLocale();
   const copy = t.inventory.change;
@@ -139,7 +137,6 @@ export function StockChangeModal({ target, locations, currency, onClose, onDone 
   );
 }
 
-/** Moves stock of one item from one location to another. */
 export function TransferModal({ target, locations, onClose, onDone }: { target: StockTarget; locations: LocationOption[]; onClose: () => void; onDone: () => void }) {
   const { t } = useAdminLocale();
   const copy = t.inventory.change;
@@ -193,7 +190,6 @@ export function TransferModal({ target, locations, onClose, onDone }: { target: 
   );
 }
 
-/** Every location in use, as "Main warehouse · A-01", for the dialogs' pickers. */
 export function useLocationOptions(warehouses: WarehouseRecord[]): LocationOption[] {
   const { locale } = useAdminLocale();
   return React.useMemo(

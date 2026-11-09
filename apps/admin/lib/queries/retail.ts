@@ -219,7 +219,6 @@ export async function closeCashierSession(input: CloseSessionInput, actorId: str
     if (session.status === "closed") throw new Error("Cashier session is already closed");
     await requireBranchAccess(actorId, session.register.branchId);
 
-    // Compute collections during session
     const collections = await db.paymentCollection.findMany({
       where: { sessionId: input.sessionId, status: "collected" },
     });

@@ -33,7 +33,6 @@ function revalidatePages(id?: string) {
   revalidatePath(ROUTES.cms.website);
 }
 
-/** Rich text is rendered and cleaned here, from the editor document; HTML sent by the browser is never kept. */
 function withRenderedText(blocks: Block[]): Block[] {
   return blocks.map((block) =>
     block.type === "rich_text"
@@ -57,7 +56,6 @@ function withRenderedText(blocks: Block[]): Block[] {
   );
 }
 
-/** Saves a page's draft. Custom-code blocks may only be added or changed with cms_code:edit, and are audit-logged. */
 export async function saveCmsPageAction(input: CmsPageInput) {
   return measureOperation("action:saveCmsPageAction", async () => {
     await requireFeatureEnabled("cms");
@@ -144,7 +142,6 @@ export async function deleteCmsPageAction(id: string) {
   });
 }
 
-/** Pages in their new order, and whether each shows on the website and in the menus. */
 export async function updateCmsPagesListAction(
   pages: {
     id: string;

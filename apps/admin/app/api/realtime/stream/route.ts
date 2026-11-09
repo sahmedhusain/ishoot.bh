@@ -7,10 +7,6 @@ import { myLiveTopics } from "../../../../lib/inbox";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/**
- * The signed-in person's live stream (Server-Sent Events, docs/adr/0012), passed through from the realtime service.
- * The topics follow their permissions; the stream closes when the browser leaves.
- */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return new Response(null, { status: 401 });
@@ -27,7 +23,6 @@ export async function GET(req: NextRequest) {
   return new Response(response.body, {
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
-      // no-transform keeps compression from buffering the events.
       "Cache-Control": "no-cache, no-transform",
       "X-Accel-Buffering": "no",
     },

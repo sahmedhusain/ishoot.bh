@@ -13,7 +13,6 @@ import { Field } from "../setup/LanguageFields";
 
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
-/** On a purchase order: what arrived (accepted into stock or rejected with a reason), line by line. */
 export function ReceiveGoodsPanel({ order, locations, batchProducts }: { order: PurchaseOrderRecord; locations: { id: string; label: string }[]; batchProducts: string[] }) {
   const { t } = useAdminLocale();
   const copy = t.procurement.receive;

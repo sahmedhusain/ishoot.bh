@@ -28,12 +28,10 @@ export function ContactForm({
   services?: PublicService[];
   initialIntent?: string;
   initialService?: string;
-  /** Pre-filled message, e.g. when the visitor asks about a catalogue item. */
   initialMessage?: string;
   response?: string;
 }) {
   const { t, locale, isArabic: ar, site } = useTranslation();
-  // Which optional questions the website settings ask on a quote request.
   const ask = site?.inquiry ?? { budget: true, timeline: true, location: true, reference: false };
   const currency = getCurrencyLabel(site?.currency ?? "", ar, false);
   const [intent, setIntent] = React.useState<Intent>(

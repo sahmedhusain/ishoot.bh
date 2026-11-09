@@ -44,7 +44,6 @@ interface UserProfileViewProps {
   myRequests: ProfileChangeRequest[];
 }
 
-/** What a confirmed change replaces: one row per field, current value then new value. */
 function ChangeSummary({ rows }: { rows: { label: string; from: string; to: string; ltr?: boolean }[] }) {
   const { t } = useAdminLocale();
   return (
@@ -78,18 +77,15 @@ export function UserProfileView({
   const confirmAction = useConfirmation();
   const [statusOpen, setStatusOpen] = React.useState(false);
 
-  // Contact Form (Immediate Update)
   const [phone, setPhone] = React.useState(user.phone || "");
   const [isUpdatingContact, setIsUpdatingContact] = React.useState(false);
 
-  // Identity Change Request Form (Manager Approved)
   const [proposedFullName, setProposedFullName] = React.useState("");
   const [proposedEmail, setProposedEmail] = React.useState("");
   const [changeReason, setChangeReason] = React.useState("");
   const [isSubmittingRequest, setIsSubmittingRequest] = React.useState(false);
   const [withdrawing, setWithdrawing] = React.useState<string | null>(null);
 
-  // Nothing is saved until the person confirms what changes.
   const handleUpdateContact = (e: React.FormEvent) => {
     e.preventDefault();
     const next = phone.trim();
@@ -131,7 +127,6 @@ export function UserProfileView({
     }
   };
 
-  // Identity changes go to the manager for approval, after the person confirms them here.
   const handleSubmitIdentityChange = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -233,7 +228,6 @@ export function UserProfileView({
 
   return (
     <div id="details" className="scroll-mt-20 space-y-6">
-      {/* Profile Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <ProfilePhoto userId={user.id} name={user.full_name} avatarUrl={user.avatar_url} />
@@ -293,11 +287,8 @@ export function UserProfileView({
         </div>
       </div>
 
-      {/* Grid: Contact Updates (Immediate) & Governance Profile */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Self-Service Forms */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Section 1: Immediate Contact & Signature Update */}
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
               <Phone className="w-4 h-4 text-accent" />
@@ -352,7 +343,6 @@ export function UserProfileView({
             </form>
           </div>
 
-          {/* Section 2: Identity Change Request (Manager Approved) */}
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
               <ShieldCheck className="w-4 h-4 text-accent" />
@@ -482,7 +472,6 @@ export function UserProfileView({
             </form>
           </div>
 
-          {/* Section 3: My Change Requests History */}
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-accent" />
@@ -589,9 +578,7 @@ export function UserProfileView({
           </div>
         </div>
 
-        {/* Right Col: Reporting Line & Employee Profile */}
         <div className="space-y-6">
-          {/* Manager Card */}
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -632,7 +619,6 @@ export function UserProfileView({
             )}
           </div>
 
-          {/* Linked Employee Record Card */}
           {employeeRecord && (
             <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">

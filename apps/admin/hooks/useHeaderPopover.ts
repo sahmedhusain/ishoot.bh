@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-/** Keyboard access, focus restoration and one open header menu at a time. */
 export function useHeaderPopover(name: string, initialOpen = false) {
   const [open, setOpen] = React.useState(initialOpen);
   const containerRef = React.useRef<HTMLDivElement>(null);

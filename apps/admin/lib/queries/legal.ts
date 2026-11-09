@@ -118,7 +118,6 @@ export interface LegalMatterInput {
   outcome: string;
 }
 
-/** Saves a matter; changes of status and of the next date are written to its history. */
 export async function saveLegalMatter(input: LegalMatterInput, userId: string) {
   const title = input.title.trim().slice(0, 200);
   if (
@@ -210,7 +209,6 @@ export async function addLegalNote(id: string, body: string, userId: string) {
   });
 }
 
-/** A week before each matter's next hearing or deadline, its counsel is reminded (once per date; the scheduled job). */
 export async function remindLegalDates(now = new Date()) {
   const horizon = new Date(now.getTime() + 7 * 86_400_000);
   const due = await db.legalMatter.findMany({
@@ -253,7 +251,6 @@ export async function remindLegalDates(now = new Date()) {
   return sent;
 }
 
-/** Company licences and registrations with their expiry (the company archive keeps the files and reminds). */
 export async function licenceRegister() {
   const rows = await db.companyDocument.findMany({
     where: { validUntil: { not: null } },
@@ -278,7 +275,6 @@ export async function licenceRegister() {
   }));
 }
 
-/** Every contract with its party, status and end date (contracts are made from deals). */
 export async function contractRegister() {
   const rows = await db.contract.findMany({
     orderBy: [

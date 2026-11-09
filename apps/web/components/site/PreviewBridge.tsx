@@ -4,11 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { googleFontsHref, normalizeTheme, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
-/**
- * Only in a preview shown inside the admin's setup wizard: the admin sends the theme being edited (applied at
- * once, nothing saved) and asks for a refresh after it saves the draft website. Messages from any other origin are
- * ignored.
- */
 export function PreviewBridge({ adminOrigin }: { adminOrigin: string }) {
   const router = useRouter();
   React.useEffect(() => {

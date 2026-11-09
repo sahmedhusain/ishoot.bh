@@ -10,7 +10,6 @@ import {
 import { getCurrentUser } from "../../../../../../lib/auth";
 import { generateStockLabelsPdf, type StockLabelJobData } from "../../../../../../lib/pdf/stock-label-pdf";
 
-/** Returns generated stock labels as an inline printable PDF with exact physical dimensions. */
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },

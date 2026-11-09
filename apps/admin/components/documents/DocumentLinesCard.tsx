@@ -18,7 +18,6 @@ interface DocumentLinesCardProps {
   title: React.ReactNode;
   currency: string;
   lines: DocumentLine[];
-  /** Rendered under the table, normally <DocumentTotals>. */
   children?: React.ReactNode;
 }
 

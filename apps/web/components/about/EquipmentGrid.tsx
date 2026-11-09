@@ -44,7 +44,6 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
           </h3>
         </motion.div>
 
-        {/* Category Buttons */}
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -70,7 +69,6 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
           ))}
         </motion.div>
 
-        {/* Equipment Cards Grid */}
         <motion.div
           layout={!reduced}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"

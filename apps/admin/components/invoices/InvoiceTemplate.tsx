@@ -14,7 +14,6 @@ import {
 interface InvoiceTemplateProps {
   invoice: Invoice;
   company: CompanySettings;
-  /** Stamp and signature appear only once the document is approved and signed. */
   signing?: { signatureUrl: string | null; signerName: string } | null;
 }
 
@@ -24,7 +23,6 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const inv = t.invoice;
   const currency = invoice.currency || companyCurrency;
-  // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
   const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
 
   return (
@@ -34,7 +32,6 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
       className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[1050px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible ${isAr ? "font-arabic" : "font-sans"
         }`}
     >
-      {/* Unified Brand Letterhead */}
       <DocumentLetterhead
         documentType="invoice"
         documentNumber={invoice.invoice_number}
@@ -64,7 +61,6 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
       />
 
       <div className="p-8 sm:p-10 space-y-8 print:p-6 print:space-y-6">
-        {/* Line Items Table */}
         <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full text-start text-xs border-collapse">
             <thead>
@@ -120,12 +116,10 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           </table>
         </div>
 
-        {/* Financial Summary & Terms Section */}
         <div
           data-terms-section
           className="pt-6 border-t-2 border-slate-900 grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-8 print:gap-6 print-avoid-break print:pt-4 print:mt-4 print:border-slate-800"
         >
-          {/* Left Column: Terms & Conditions and Bank Coordinates */}
           <div className="space-y-4">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5">
@@ -161,7 +155,6 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
             </div>
           </div>
 
-          {/* Right Column: Financial Calculations */}
           <div className="space-y-2 text-xs ">
             <div className="flex justify-between py-1.5 border-b border-slate-100 text-slate-600">
               <span className="font-sans text-xs">{inv.subtotal}</span>

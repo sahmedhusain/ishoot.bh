@@ -1,5 +1,3 @@
-// The identity service (backend/services/identity): signing people in for this app. Credentials in these responses
-// are secrets: keep them in httpOnly cookies and never log them.
 import type { components, paths } from "./generated/identity";
 import { ApiError } from "./errors";
 import { serviceClient, userClient, unwrap, unwrapEmpty } from "./http";
@@ -36,10 +34,6 @@ export const revokeIdentitySessionForIT = (token: string, id: string) =>
     }),
   );
 
-/**
- * Checks a password and, when the account has one, an authenticator or recovery code. Fails with the problem code
- * "mfa_required" when the password was right and a code is still needed.
- */
 export const signIn = (
   realm: Realm,
   body: {
@@ -57,7 +51,6 @@ export const signIn = (
     }),
   );
 
-/** Exchanges a refresh credential (usable once) for a new one and a new access token. */
 export const refreshSession = (realm: Realm, refreshToken: string) =>
   unwrap(
     identity().POST("/v1/identity/{realm}/sessions/refresh", {
@@ -66,7 +59,6 @@ export const refreshSession = (realm: Realm, refreshToken: string) =>
     }),
   );
 
-/** Ends the session the refresh credential belongs to. */
 export const signOut = (realm: Realm, refreshToken: string) =>
   unwrapEmpty(
     identity().POST("/v1/identity/{realm}/sessions/logout", {
@@ -78,7 +70,6 @@ export const signOut = (realm: Realm, refreshToken: string) =>
 export type StaffAccessPolicy =
   paths["/v1/identity/staff/access"]["get"]["responses"][200]["content"]["application/json"];
 
-/** Live identity-owned staff policy; legacy apps remain on their own auth until cutover. */
 export const getStaffAccess = (token: string) =>
   unwrap(userClient<paths>(token).GET("/v1/identity/staff/access"));
 
@@ -111,10 +102,8 @@ export const updateITAccountForIT = (
     }),
   );
 
-/** Staff and customer accounts, whose profiles the apps own; identity owns their credentials. */
 export type ManagedRealm = "staff" | "customer" | "it";
 
-/** Creates or updates an account as the app describes it; returns whether it was new. */
 export const syncAccount = (
   realm: ManagedRealm,
   id: string,
@@ -127,7 +116,6 @@ export const syncAccount = (
     }),
   );
 
-/** Sets an account's password; keepSessionId keeps the person's own session when they change it themselves. */
 export const setAccountPassword = (
   realm: ManagedRealm,
   id: string,
@@ -140,7 +128,6 @@ export const setAccountPassword = (
     }),
   );
 
-/** Turns two-step sign-in off for an account and signs it out everywhere. */
 export const resetAccountMFA = (
   realm: ManagedRealm,
   id: string,
@@ -152,10 +139,6 @@ export const resetAccountMFA = (
     }),
   );
 
-/**
- * A one-use reset token for an active account with the address, for the app to e-mail; null when there is none
- * (answer the person the same way either way).
- */
 export async function requestPasswordReset(
   realm: ManagedRealm,
   email: string,
@@ -175,7 +158,6 @@ export async function requestPasswordReset(
   }
 }
 
-/** Uses a reset token once; ApiError "reset_invalid" when it is unknown, used or expired. */
 export const confirmPasswordReset = (
   realm: ManagedRealm,
   token: string,
@@ -190,19 +172,15 @@ export const confirmPasswordReset = (
     }),
   );
 
-// The signed-in person's own account, with their access token (staff and customers).
 export type OwnSession = components["schemas"]["OwnSession"];
 
-/** Whether two-step sign-in is on and how many recovery codes are left. */
 export const getOwnAccount = (token: string) =>
   unwrap(userClient<paths>(token).GET("/v1/identity/me"));
 
-/** The person's active sessions, newest first; `current` marks this one. */
 export const listOwnSessions = async (token: string): Promise<OwnSession[]> =>
   (await unwrap(userClient<paths>(token).GET("/v1/identity/me/sessions")))
     .items;
 
-/** Ends one of the person's sessions. */
 export const revokeOwnSession = (token: string, id: string) =>
   unwrapEmpty(
     userClient<paths>(token).DELETE("/v1/identity/me/sessions/{id}", {
@@ -210,11 +188,9 @@ export const revokeOwnSession = (token: string, id: string) =>
     }),
   );
 
-/** Ends every session of the person except this one. */
 export const revokeOtherOwnSessions = (token: string) =>
   unwrapEmpty(userClient<paths>(token).DELETE("/v1/identity/me/sessions"));
 
-/** Changes the person's own password; ApiError "mfa_required" or "password_rejected" when refused. */
 export const changeOwnPassword = (
   token: string,
   body: {
@@ -228,7 +204,6 @@ export const changeOwnPassword = (
     userClient<paths>(token).PUT("/v1/identity/me/password", { body }),
   );
 
-/** Starts setting up an authenticator after rechecking the password. */
 export const beginMFAEnrollment = (token: string, password: string) =>
   unwrap(
     userClient<paths>(token).POST("/v1/identity/mfa/enrollment", {
@@ -236,7 +211,6 @@ export const beginMFAEnrollment = (token: string, password: string) =>
     }),
   );
 
-/** Cancels a pending authenticator setup. */
 export const cancelMFAEnrollment = (token: string, password: string) =>
   unwrapEmpty(
     userClient<paths>(token).DELETE("/v1/identity/mfa/enrollment", {
@@ -244,7 +218,6 @@ export const cancelMFAEnrollment = (token: string, password: string) =>
     }),
   );
 
-/** Confirms the authenticator; returns one-time recovery codes. Every session ends, this one included. */
 export const confirmMFAEnrollment = (
   token: string,
   password: string,
@@ -256,7 +229,6 @@ export const confirmMFAEnrollment = (
     }),
   );
 
-/** Turns two-step sign-in off. Every session ends, this one included. */
 export const disableMFA = (token: string, password: string, code: string) =>
   unwrapEmpty(
     userClient<paths>(token).POST("/v1/identity/mfa/disable", {
@@ -264,11 +236,9 @@ export const disableMFA = (token: string, password: string, code: string) =>
     }),
   );
 
-/** Confirms the session is live: not revoked, the account still active and its roles unchanged (401 otherwise). */
 export const checkSession = (token: string) =>
   unwrapEmpty(userClient<paths>(token).GET("/v1/identity/session"));
 
-/** The plaintext code is only for the server's email delivery; never return it to the browser. */
 export const issueCustomerSignInCode = (email: string, clientIp?: string) =>
   unwrap(
     identity().POST("/v1/identity/customer/sign-in-codes", {
@@ -276,7 +246,6 @@ export const issueCustomerSignInCode = (email: string, clientIp?: string) =>
     }),
   );
 
-/** Email proof and second-factor checks complete before identity creates the session. */
 export const signInCustomerWithCode = (body: {
   email: string;
   code: string;
@@ -337,7 +306,6 @@ export const deleteOwnCustomerAccount = (token: string) =>
 export const customerSignInProviders = () =>
   unwrap(identity().GET("/v1/identity/customer/oauth/providers"));
 
-/** Live policy for admin's transitional business readers; identity permits only the admin service caller. */
 export const getStaffAccessForAccount = (id: string) =>
   unwrap(
     identity().GET("/v1/identity/staff/accounts/{id}/access", {

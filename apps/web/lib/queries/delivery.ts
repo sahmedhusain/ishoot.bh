@@ -22,8 +22,6 @@ const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
 const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
-// ─── Settings ────────────────────────────────────────────────────────────────────────────────────────────────────
-
 async function settingsRow(client: Tx | typeof db = db) {
   return client.deliverySettings.upsert({
     where: { id: "default" },
@@ -34,7 +32,6 @@ async function settingsRow(client: Tx | typeof db = db) {
 
 import { getCompanyConfiguration } from "../api/company";
 
-/** The delivery time zone: the store's choice, else the company country's. */
 async function timeZoneOf(
   row: { timeZone: string | null },
   client: Tx | typeof db = db,
@@ -95,8 +92,6 @@ export async function saveDeliverySettings(input: DeliverySettingsInput) {
     create: { id: "default", ...data },
   });
 }
-
-// ─── Zones and slots ─────────────────────────────────────────────────────────────────────────────────────────────
 
 const zoneTerms = (z: {
   id: string;
@@ -159,7 +154,6 @@ export interface DeliveryZoneInput {
   id?: string;
   nameEn: string;
   nameAr: string;
-  /** One area or city per line. */
   areas: string;
   fee: string;
   minOrder: string;
@@ -213,7 +207,6 @@ export interface DeliverySlotInput {
   capacity: string;
 }
 
-/** Adds a window on each chosen weekday (or changes one window). */
 export async function saveDeliverySlot(input: DeliverySlotInput) {
   if (
     !isClockTime(input.start) ||
@@ -252,9 +245,6 @@ export async function deleteDeliverySlot(id: string) {
   await db.deliverySlot.delete({ where: { id } });
 }
 
-// ─── Checkout ────────────────────────────────────────────────────────────────────────────────────────────────────
-
-/** Active zones as pricing terms; empty when the company does not use delivery zones. */
 export async function activeZoneTerms(client: Tx | typeof db = db) {
   if (!(await isFeatureEnabled("delivery"))) return [];
   const zones = await client.deliveryZone.findMany({
@@ -264,7 +254,6 @@ export async function activeZoneTerms(client: Tx | typeof db = db) {
   return zones.map(zoneTerms);
 }
 
-/** Slots already booked per "date|slotId" from today on. */
 async function bookedSlots(client: Tx | typeof db, from: string): Promise<Map<string, number>> {
   const rows: any[] = await client.shipment.groupBy({
     by: ["slotDate", "slotId"],
@@ -283,10 +272,6 @@ async function bookedSlots(client: Tx | typeof db, from: string): Promise<Map<st
   );
 }
 
-/**
- * What the checkout shows for an address: the zone (or none, when zones exist and none covers it), and the time
- * slots the customer can choose.
- */
 export type DeliveryOptions = Awaited<ReturnType<typeof deliveryOptions>>;
 
 export async function deliveryOptions(
@@ -345,10 +330,6 @@ export interface ShipmentSlotChoice {
   slotId: string;
 }
 
-/**
- * The shipment for a new delivery order, inside the order's transaction: its zone, the chosen slot (checked again,
- * with its capacity), the promise, cash to collect and a tracking token. Only while the delivery module is on.
- */
 export async function createShipmentForOrder(
   tx: Tx,
   order: {
@@ -394,7 +375,6 @@ export async function createShipmentForOrder(
     });
     if (!row || !/^\d{4}-\d{2}-\d{2}$/.test(choice.slot.date))
       throw new Error(serverMessages.deliverySlotUnavailable);
-    // Lock the slot's day so two orders cannot take its last place.
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`slot:${row.id}:${choice.slot.date}`}))`;
     const open = upcomingSlots(
       [
@@ -448,10 +428,6 @@ export async function createShipmentForOrder(
   });
 }
 
-/**
- * When staff move an order by hand, its open shipments follow: cancelled orders cancel them, delivered orders
- * deliver them, returned orders return them. (Shipments moving orders go the other way, in queries/shipments.)
- */
 export async function followOrderStatus(
   tx: Tx,
   orderId: string,

@@ -1,5 +1,4 @@
 import { formatMessage } from "@platform/locales";
-/* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 import {
   Document,
   Image,
@@ -111,7 +110,6 @@ function Lines({
 const png = async (data?: string | null) =>
   data ? ((await resolveConfiguredPdfAsset(data)) ?? null) : null;
 
-/** The settlement statement: what is owed each way, the approvals with their signatures and the employee's acknowledgement. */
 export async function generateFinalSettlementPdf(
   s: FinalSettlementDetail,
   company: CompanySettings,

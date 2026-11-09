@@ -16,7 +16,6 @@ export const generateMetadata = () => pageMetadata("hr/handovers/[id]");
 
 export const dynamic = "force-dynamic";
 
-/** Open to HR and to whoever has to approve the handover. */
 export default async function EmployeeHandoverPage({
   params,
 }: {

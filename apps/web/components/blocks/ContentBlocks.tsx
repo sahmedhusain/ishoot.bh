@@ -6,8 +6,6 @@ import { Reveal } from "../shared/Reveal";
 import { ContentImage } from "../shared/ContentImage";
 import { SectionBadge } from "../shared/SectionBadge";
 
-// Blocks whose content is written in the page editor. Server components; the website's dark palette and shell.
-
 export const pick = (text: LocalText | undefined, locale: string) => (locale === "ar" ? text?.ar || text?.en : text?.en || text?.ar) ?? "";
 
 function Heading({ title, locale }: { title?: LocalText; locale: string }) {
@@ -23,7 +21,6 @@ function Section({ children, className = "" }: { children: React.ReactNode; clas
   );
 }
 
-/** Sanitized HTML from the article and rich-text editor (rendered and cleaned when it was saved). */
 export function RichTextBlock({ data, locale }: { data: BlockData["rich_text"]; locale: string }) {
   const html = pick(data.html, locale);
   if (!html) return null;
@@ -205,7 +202,6 @@ export function EmbedBlock({ data, locale }: { data: BlockData["embed"]; locale:
   );
 }
 
-/** A small heading over a data block (catalogue, services…) when the editor gave it one. */
 export function BlockTitle({ title, locale }: { title?: LocalText; locale: string }) {
   const text = pick(title, locale);
   return text ? (

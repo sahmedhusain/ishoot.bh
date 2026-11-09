@@ -26,9 +26,6 @@ const parseDate = (text: string) => {
   return new Date(`${text}T00:00:00Z`);
 };
 
-// ─── Campaigns ───────────────────────────────────────────────────────────────────────────────────────────────────
-
-/** What each campaign brought: orders (by utm_campaign or its coupon), their revenue, and website requests. */
 async function campaignResults(
   campaigns: { utmCampaign: string; couponCode: string | null }[],
 ) {
@@ -183,8 +180,6 @@ export async function saveCampaign(input: CampaignInput, userId: string) {
   });
 }
 
-// ─── Segments ────────────────────────────────────────────────────────────────────────────────────────────────────
-
 function readRules(value: Prisma.JsonValue): SegmentRules {
   const v = (
     value && typeof value === "object" && !Array.isArray(value) ? value : {}
@@ -202,7 +197,6 @@ function readRules(value: Prisma.JsonValue): SegmentRules {
   };
 }
 
-/** The store customers who match, with whether they agreed to marketing e-mail. */
 async function segmentMembers(rules: SegmentRules, now = new Date()) {
   const customers = await db.customer.findMany({
     select: {
@@ -295,8 +289,6 @@ export async function saveSegment(input: SegmentInput) {
     : db.customerSegment.create({ data: { name, rules: stored } });
 }
 
-// ─── Broadcasts ──────────────────────────────────────────────────────────────────────────────────────────────────
-
 export async function listBroadcasts() {
   const rows = await db.broadcast.findMany({
     orderBy: { createdAt: "desc" },
@@ -382,7 +374,6 @@ export async function saveBroadcast(input: BroadcastInput, userId: string) {
   return db.broadcast.create({ data: { ...data, createdById: userId } });
 }
 
-/** Freezes the recipients (segment members who agreed to marketing e-mail) and starts sending in batches. */
 export async function queueBroadcast(id: string) {
   const broadcast = await db.broadcast.findUnique({
     where: { id },
@@ -415,8 +406,6 @@ export async function queueBroadcast(id: string) {
   return members.length;
 }
 
-// ─── Unsubscribing ───────────────────────────────────────────────────────────────────────────────────────────────
-
 function unsubscribeSecret() {
   const secret =
     process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET;
@@ -432,7 +421,6 @@ const unsubscribeSignature = (customerId: string) =>
 export const unsubscribeToken = (customerId: string) =>
   `${customerId}.${unsubscribeSignature(customerId)}`;
 
-/** Turns marketing e-mail off for the customer a link was made for; false when the link was not made here. */
 export async function unsubscribeCustomer(token: string) {
   const [customerId, signature] = token.split(".");
   if (!customerId || !signature || !/^[0-9a-f-]{36}$/.test(customerId))
@@ -459,10 +447,6 @@ const escape = (value: string) =>
       ]!,
   );
 
-/**
- * Sends the next batch of every broadcast in progress (the scheduled job). Each e-mail carries an unsubscribe link;
- * customers who opted out since queueing are skipped. A broadcast with nothing left pending is marked sent.
- */
 export async function sendBroadcastBatch(
   send: (message: {
     to: string;

@@ -45,7 +45,6 @@ const fieldClass =
 const labelClass =
   "block space-y-1 text-xs font-medium text-ink dark:text-ink";
 
-/** Client acceptance for a quotation or invoice: a one-time signing link, or a copy signed by hand. */
 export function ClientSignaturePanel({
   documentType,
   documentId,
@@ -57,7 +56,6 @@ export function ClientSignaturePanel({
 }: {
   documentType: "quotation" | "invoice";
   documentId: string;
-  /** The document is issued and can still be signed. */
   signable: boolean;
   records: ClientSignatureRow[];
   canSend: boolean;
@@ -488,7 +486,6 @@ export function ClientSignaturePanel({
                   }
                 />
               </label>
-              {/* The scanned copy, or a link to where the signed original is kept. */}
               <LinkOrUploadField
                 label={s.file}
                 required

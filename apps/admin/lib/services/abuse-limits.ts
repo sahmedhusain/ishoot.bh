@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "../atomic";
 export function trustedClientIp(headers: Headers): string | undefined {
-  // Only configure a header that a private ingress overwrites and cannot be bypassed.
   const header = process.env.TRUSTED_CLIENT_IP_HEADER;
   if (!header) return;
   if (!/^[a-z0-9-]{1,80}$/.test(header))

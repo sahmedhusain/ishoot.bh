@@ -9,17 +9,14 @@ export type Translations = AdminTranslations;
 
 export const DEFAULT_ADMIN_LOCALE: AdminLocale = "ar";
 
-/** Default dictionary, bundled with the client. */
 export const defaultAdminTranslations: AdminTranslations = arLocale.admin;
 
-/** The default dictionary with the company's activity wording on top. */
 export function defaultTranslationsFor(
   activity: string | null | undefined,
 ): AdminTranslations {
   return withAdminActivity(arLocale.admin, "ar", activity);
 }
 
-/** Loads a dictionary on demand so the client only ships the languages actually used. */
 export async function loadAdminTranslations(
   locale: AdminLocale,
   activity?: string | null,

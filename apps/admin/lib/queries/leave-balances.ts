@@ -14,7 +14,6 @@ export interface LeaveBalance {
   nameAr: string;
   payPercent: number;
   hasPayBands: boolean;
-  /** Null for types without a balance (e.g. unpaid leave). */
   entitled: number | null;
   carriedOver: number;
   adjustments: number;
@@ -82,7 +81,6 @@ function adjustmentsIn(ledger: Ledger, typeId: string, year: number) {
     .reduce((sum, a) => sum + a.days, 0);
 }
 
-/** Unused days at the end of `year`, before the carry-over cap. */
 function closing(ledger: Ledger, type: LeaveTypeView, year: number): number {
   if (year < ledger.hireDate.getUTCFullYear()) return 0;
   const entitled =
@@ -146,7 +144,6 @@ function balanceFor(
   };
 }
 
-/** Balances for every active leave type in `year`, as of `asOf` (default: today, or year end for past years). */
 export async function getLeaveBalances(
   employeeId: string,
   year?: number,
@@ -188,7 +185,6 @@ export async function getLeaveBalance(
   return balance;
 }
 
-/** Days of a type already taken (approved) in the year before `before`, used for pay bands. */
 export async function leaveTakenBefore(
   employeeId: string,
   leaveTypeId: string,
@@ -206,7 +202,6 @@ export async function leaveTakenBefore(
   return rows.reduce((sum, r) => sum + Number(r.days), 0);
 }
 
-/** Keeps Employee.leaveBalanceDays (shown in lists) equal to this year's available annual leave. */
 export async function refreshLeaveBalanceCache(employeeId: string) {
   const annual = (await getLeaveBalances(employeeId)).find(
     (b) => b.code === "annual",

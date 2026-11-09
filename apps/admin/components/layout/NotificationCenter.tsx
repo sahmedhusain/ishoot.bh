@@ -1,6 +1,4 @@
 "use client";
-// The header's notification menu: the latest notifications, kept current live (docs/adr/0012), with quick controls to
-// mute everything for a while or turn the sound off.
 import { useConfirmation, useRealtime, useRealtimeStatus } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -42,7 +40,6 @@ import {
 } from "../../app/actions/notifications";
 import { useNotificationSettings } from "../live/LiveProvider";
 
-/** When "mute for…" ends. "forever" is stored as the year 9999 (until turned back on). */
 export function muteUntil(choice: "1h" | "8h" | "tomorrow" | "forever"): string {
   const now = new Date();
   if (choice === "1h") return new Date(now.getTime() + 3_600_000).toISOString();
@@ -58,7 +55,6 @@ export function muteUntil(choice: "1h" | "8h" | "tomorrow" | "forever"): string 
 
 const isForever = (until: string) => new Date(until).getUTCFullYear() >= 9999;
 
-/** Shows the unread count in the tab's title, e.g. "(3) Invoices", across page changes. */
 function useTitleCount(count: number) {
   React.useEffect(() => {
     const apply = () => {
@@ -133,7 +129,6 @@ export function NotificationCenter() {
     };
   }, [refresh]);
 
-  // Live: a new or changed notification, or a resync after reconnecting.
   useRealtime(
     (event) => {
       if (event.type === "notification.changed" && typeof event.data?.unread === "number")
@@ -142,7 +137,6 @@ export function NotificationCenter() {
     },
     ["notification.created", "notification.changed"],
   );
-  // Without a live connection, check every minute while the page is visible.
   React.useEffect(() => {
     if (live === "open") return;
     const timer = setInterval(() => {
@@ -154,7 +148,6 @@ export function NotificationCenter() {
     if (menu.open) void refresh();
   }, [menu.open, refresh]);
 
-  /** Runs a change. A confirmed change rethrows its failure, so the confirmation stays open and shows it. */
   const run = async (key: string, action: () => Promise<unknown>, { confirmed = false } = {}) => {
     setBusy(key);
     try {

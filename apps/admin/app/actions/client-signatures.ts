@@ -21,11 +21,9 @@ function revalidateDocument(type: ClientSignableType, id: string) {
       ? ROUTES.quotations.detail(id)
       : ROUTES.invoices.detail(id),
   );
-  // Invoice pages are also opened by number.
   if (type === "invoice") revalidatePath("/dashboard/invoices/[id]", "page");
 }
 
-/** Creates a one-time signing link for the client. The raw link is returned once and never stored. */
 export async function createSigningLinkAction(
   type: ClientSignableType,
   id: string,
@@ -63,7 +61,6 @@ export async function revokeSigningLinkAction(signatureId: string) {
   });
 }
 
-/** Records a copy the client signed by hand; a signed quotation becomes accepted. */
 export async function recordSignedCopyAction(
   type: ClientSignableType,
   id: string,

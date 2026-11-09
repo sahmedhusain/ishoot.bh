@@ -4,8 +4,6 @@ import { watchErrors } from "../../helpers";
 import { selectOption } from "../../select-option";
 import { t } from "../helpers/locale";
 
-// An employee raises an IT request with a screenshot, talks to IT and cancels it. The tickets live in the itsm
-// service (backend/services/itsm), so the admin server must reach the backend stack (API_URL).
 const s = t.itSupport;
 const PDF = Buffer.from(
   "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
@@ -55,7 +53,6 @@ test("an employee raises, follows and cancels an IT request", async ({
   ).toBeVisible();
   await expect(page.getByText("LAP-E2E-1")).toBeVisible();
 
-  // The attachment is served through the ticket, to its requester.
   const attachment = page.getByRole("link", { name: "error.pdf" });
   const response = await page.request.get(
     (await attachment.getAttribute("href"))!,

@@ -28,7 +28,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { errorMessage } from "../../lib/error-text";
 
-/** Starting palettes (primary, accent); any colour can still be picked. */
 const PALETTES: [string, string][] = [
   ["#312E81", "#4F46E5"],
   ["#0C4A6E", "#0284C7"],
@@ -52,7 +51,6 @@ type FontFilter = (typeof FILTERS)[number];
 const SAMPLE = "أبجد هوز Aa Bb 123";
 const LICENSED_FAMILIES: readonly string[] = LICENSED_FONTS.map((f) => f.family);
 
-/** Loads the theme's fonts into this page so the preview shows the real typefaces. */
 function useThemeFonts(theme: BrandTheme) {
   const href = googleFontsHref(theme);
   const faces = themeStylesheet(theme).split(":root{")[0];
@@ -77,7 +75,6 @@ function useStylesheet(href: string | null) {
   }, [href]);
 }
 
-/** Every library family at one weight, subset to the sample text, so the picker can show each font in itself. */
 const libraryPreviewHref = `https://fonts.googleapis.com/css2?${FONT_LIBRARY.map((f) => `family=${f.family.replace(/ /g, "+")}`).join("&")}&text=${encodeURIComponent(SAMPLE)}&display=swap`;
 
 function ChoiceGroup<T extends string | number>({ label, options, value, onChange, render }: { label: string; options: readonly T[]; value: T; onChange: (value: T) => void; render: (value: T) => React.ReactNode }) {
@@ -358,7 +355,6 @@ function ThemePreview({ theme }: { theme: BrandTheme }) {
   const [mode, setMode] = React.useState<"light" | "dark">("light");
   const [surface, setSurface] = React.useState<"admin" | "website">("website");
   const vars = themeVariables(theme);
-  // The website preview follows the website's own background; the admin preview follows the toggle.
   const previewMode = surface === "website" ? theme.websiteMode : mode;
   const style = { ...vars.common, ...(previewMode === "dark" ? vars.dark : vars.light), fontSize: "var(--brand-font-size)" } as React.CSSProperties;
   const heading = { fontFamily: "var(--brand-font-heading)", fontWeight: theme.headingWeight, textTransform: theme.headingCase === "uppercase" ? "uppercase" : "none" } as React.CSSProperties;
@@ -447,7 +443,6 @@ function StylePresets({ theme, onApply }: { theme: BrandTheme; onApply: (preset:
               onClick={() => onApply(preset)}
               className={`space-y-2 rounded-xl border p-3 text-start transition-colors ${active ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
             >
-              {/* A tiny page: the website background, the primary band and an accent button. */}
               <span className={`flex h-10 items-end gap-1 overflow-hidden p-1.5 ${p.websiteMode === "light" ? "bg-slate-100" : "bg-slate-900"}`} style={{ borderRadius: p.buttonShape === "pill" ? 12 : p.buttonShape === "square" ? 0 : 6 }}>
                 <span className="h-full w-2/3 rounded-sm" style={{ background: p.primary }} />
                 <span className="h-3 w-1/3" style={{ background: p.accent, borderRadius: p.buttonShape === "pill" ? 9999 : p.buttonShape === "square" ? 0 : 3 }} />

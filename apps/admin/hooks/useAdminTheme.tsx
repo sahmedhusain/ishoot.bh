@@ -36,7 +36,6 @@ export function AdminThemeProvider({
   defaultTheme = "dark",
 }: {
   children: React.ReactNode;
-  /** The company's default mode, used until a person picks their own. */
   defaultTheme?: AdminTheme;
 }) {
   const [appearance, setAppearanceState] = React.useState(DEFAULT_APPEARANCE);

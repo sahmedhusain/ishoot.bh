@@ -1,7 +1,5 @@
 import type { CollectionLayout } from "../website-presets";
 import type { SiteTone } from "../constants/website-design";
-// Website pages are lists of blocks. Runtime-free: the admin editor, the server actions and the website share it.
-// Text is stored per language ({ en, ar }); a single-language company writes both sides at once (mirrorBilingual).
 
 export const BLOCK_TYPES = [
   "hero",
@@ -34,7 +32,6 @@ export const BLOCK_TYPES = [
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
-/** Blocks that show company data kept elsewhere (banners, catalogue, services…); they hold only display options. */
 export const DATA_BLOCKS: readonly BlockType[] = [
   "hero",
   "about",
@@ -53,7 +50,6 @@ export const DATA_BLOCKS: readonly BlockType[] = [
   "downloads",
 ];
 
-/** Blocks only people with the custom-code permission (cms_code:edit) may add or change. */
 export const CODE_BLOCKS: readonly BlockType[] = ["code"];
 
 export interface LocalText {
@@ -145,7 +141,6 @@ export type Block<T extends BlockType = BlockType> = {
 const text = (en = "", ar = en): LocalText => ({ en, ar });
 const none = () => text();
 
-/** A new block of a type, with empty or sensible starting values. */
 export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
   const data: { [K in BlockType]: () => BlockData[K] } = {
     hero: () => ({ style: "inherit", title: none(), subtitle: none() }),
@@ -204,7 +199,6 @@ export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
   return data[type]() as BlockData[T];
 }
 
-/** Where each embed preset may point: the iframe only ever loads these hosts, over https. */
 export const EMBED_HOSTS: Record<EmbedPreset, RegExp> = {
   google_maps: /^(www\.)?google\.[a-z.]+$|^maps\.google\.[a-z.]+$/,
   youtube: /^(www\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)$/,
@@ -214,10 +208,6 @@ export const EMBED_HOSTS: Record<EmbedPreset, RegExp> = {
   typeform: /^([a-z0-9-]+\.)?typeform\.com$/,
 };
 
-/**
- * The address an embed's iframe loads, built from what the editor pasted (a share link, a page link or an embed
- * link). Returns "" when the link is not one the preset accepts.
- */
 export function embedSource(preset: EmbedPreset, input: string): string {
   let url: URL;
   try {
@@ -257,7 +247,6 @@ export function embedSource(preset: EmbedPreset, input: string): string {
   }
 }
 
-/** The address a video block plays: an embeddable YouTube or Vimeo link, or a direct video file. */
 export function videoSource(
   input: string,
 ): { kind: "iframe" | "file"; src: string } | null {

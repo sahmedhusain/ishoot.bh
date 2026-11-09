@@ -18,7 +18,6 @@ async function getCompanyTimeZone(): Promise<string> {
   return setting?.timeZone || "UTC";
 }
 
-// Computes real financial summary from microservices records in functional currency.
 export async function getFinancialSummary(): Promise<FinancialSummary> {
   const [accountingCurrency, invoices, payments, expenses] = await Promise.all([
     getAccountingCurrency(),
@@ -37,13 +36,11 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     (e) => (!e.currency || e.currency === accountingCurrency) && e.status !== "rejected"
   );
 
-  // Revenue = sum of payments collected for non-void invoices
   const revenue = roundMoney(
     currencyPayments.reduce((sum, p) => sum + Number((p as any).amount ?? (p as any).amountPaid ?? 0), 0),
     accountingCurrency
   );
 
-  // Operating Expenses = sum of approved expenses
   const totalExpenses = roundMoney(
     currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0),
     accountingCurrency
@@ -52,7 +49,6 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
   const netProfit = roundMoney(revenue - totalExpenses, accountingCurrency);
   const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
 
-  // Outstanding = sum of balanceDue on open invoices
   const outstanding = roundMoney(
     currencyInvoices
       .filter((i) => ["sent", "partially_paid", "overdue"].includes(i.status) || (!i.status && Number(i.balanceDue ?? 0) > 0))
@@ -60,7 +56,6 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     accountingCurrency
   );
 
-  // Overdue = sum of balanceDue on open invoices where dueDate < today
   const todayStr = new Date().toISOString().slice(0, 10);
   const overdue = roundMoney(
     currencyInvoices
@@ -185,7 +180,6 @@ export async function getExpenseCategoryTotals(): Promise<
   return totals;
 }
 
-// Invoice readers receive invoice metrics without expense or unrelated revenue data.
 export async function getInvoiceSummary() {
   const [accountingCurrency, invoices] = await Promise.all([
     getAccountingCurrency(),
@@ -215,9 +209,7 @@ export async function getInvoiceSummary() {
 }
 
 export interface ReceivablesInsight {
-  /** Share of the last 12 months' issued value that has been collected. */
   collectionRate: number;
-  /** Average days from issue to the payment that settled an invoice (last 12 months). */
   averageDaysToCollect: number;
   averageInvoiceValue: number;
   invoicesIssued: number;
@@ -234,7 +226,6 @@ export interface ReceivablesInsight {
   }>;
 }
 
-/** Receivables and client analytics (BHD) — the operational view; the P&L lives in the financial report. */
 export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
   const [accountingCurrency, invoices, payments, contacts] = await Promise.all([
     getAccountingCurrency(),

@@ -9,7 +9,6 @@ import { PayButton } from "../../../../components/store/PayButton";
 
 export const dynamic = "force-dynamic";
 
-/** Paying an order online: right after checkout, again after a failed try, or from a link the store sent. */
 export default async function PayPage({ params, searchParams }: { params: Promise<{ locale: string; token: string }>; searchParams: Promise<{ start?: string; failed?: string; pending?: string }> }) {
   const { locale, token } = await params;
   await requireSiteLanguage(locale);

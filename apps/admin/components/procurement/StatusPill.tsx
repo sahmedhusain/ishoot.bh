@@ -19,7 +19,6 @@ const TONES: Record<string, string> = {
   cancelled: "bg-ink/10 text-ink-muted line-through",
 };
 
-/** A procurement document's status, named in the interface language. */
 export function StatusPill({ status }: { status: string }) {
   const { t } = useAdminLocale();
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${TONES[status] ?? ""}`} data-testid="status">{(t.procurement.statuses as Record<string, string>)[status] ?? status}</span>;

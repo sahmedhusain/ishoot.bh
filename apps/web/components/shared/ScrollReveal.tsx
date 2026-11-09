@@ -2,12 +2,6 @@
 import { useSiteReducedMotion } from "../site/SiteTheme";
 import { useEffect } from "react";
 
-/**
- * Sections marked `data-reveal` that start below the fold fade and rise into place as they scroll into view
- * (for whole sections without a Reveal of their own; plain CSS, so long pages stay light).
- * Nothing is hidden by the server or above the fold, so the page reads the same without JavaScript, and with
- * "reduce motion" nothing moves.
- */
 export function ScrollReveal() {
   const reduced = useSiteReducedMotion();
   useEffect(() => {

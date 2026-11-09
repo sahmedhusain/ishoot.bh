@@ -15,7 +15,6 @@ import type {
   WebsiteCollection,
 } from "@platform/database/website-config";
 
-/** What every page needs to know about this company's website (from the published config and company settings). */
 export interface SiteInfo {
   activity: BusinessActivity;
   languages: Locale[];
@@ -34,7 +33,6 @@ export interface SiteInfo {
   companyNameAr?: string;
 }
 
-/** The company's own catalogue names, layered over the activity's wording. */
 export function siteCopyOverrides(
   site: Pick<SiteInfo, "collection"> & Partial<Pick<SiteInfo, "articles">>,
   locale: string,
@@ -63,9 +61,7 @@ export function collectionHref(
   return `/${locale}/${site.collection.slug}${slug ? `/${encodeURIComponent(slug)}` : ""}`;
 }
 
-/** A catalogue price in the company currency, e.g. "BHD 12.500" / "12.500 د.ب". */
 export function formatPrice(amount: number, currency: string, locale: string) {
-  // Whole prices stay short (SAR 145); others show the currency's decimals (SAR 289.50, BHD 12.500).
   const decimals = getCurrencyDecimals(currency);
   const fraction = Number.isInteger(amount) ? 0 : decimals;
   const number = new Intl.NumberFormat(
@@ -76,7 +72,6 @@ export function formatPrice(amount: number, currency: string, locale: string) {
   return locale === "ar" ? `${number} ${label}` : `${label} ${number}`;
 }
 
-/** Grid columns for a layout: wide cards for projects, three across for products and listings. */
 export function collectionGridClass(layout: CollectionLayout) {
   return layout === "product" || layout === "listing" ? "grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" : "grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2";
 }

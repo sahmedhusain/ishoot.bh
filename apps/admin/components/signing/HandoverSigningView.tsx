@@ -1,6 +1,5 @@
 "use client";
 import { formatMessage } from "@platform/locales";
-/* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
 import * as React from "react";
 import {
@@ -35,7 +34,6 @@ interface HandoverSummary {
   issuedBy: string;
 }
 
-/** The employee reads the handover on their own device, then signs it. Western digits in both languages. */
 export function HandoverSigningView({
   token,
   language,

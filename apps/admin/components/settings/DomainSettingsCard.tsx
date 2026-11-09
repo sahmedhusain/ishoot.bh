@@ -13,11 +13,6 @@ import { errorMessage } from "../../lib/error-text";
 
 type Kind = "website" | "admin";
 
-/**
- * The public website's domain and the admin's own domain, set in the setup wizard (IT manages them afterwards) and
- * used for every public link, with the DNS records to add at the registrar and a check that the domain reaches this
- * installation.
- */
 export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, canEdit, compact }: { initialWebsiteDomain?: string; initialAdminDomain?: string; canEdit: boolean; compact?: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.domains;
@@ -135,7 +130,6 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
       <div className="flex items-start gap-3">
         <Globe className="w-5 h-5 text-accent shrink-0 mt-0.5" />
         <div>
-          {/* Inside the wizard the step title is the page's h2. */}
           {compact ? <h3 className="font-bold text-ink">{copy.title}</h3> : <h2 className="font-bold text-ink">{copy.title}</h2>}
           <p className="text-xs text-ink-muted mt-1 leading-relaxed">{copy.subtitle}</p>
         </div>

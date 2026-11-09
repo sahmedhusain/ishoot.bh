@@ -15,7 +15,6 @@ export const generateMetadata = () => pageMetadata("assets/handovers/[id]");
 
 export const dynamic = "force-dynamic";
 
-/** Open to staff with asset access, the employee in the handover and its approvers. */
 export default async function AssetHandoverPage({
   params,
 }: {

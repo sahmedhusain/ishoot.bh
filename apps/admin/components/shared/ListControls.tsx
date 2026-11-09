@@ -28,7 +28,6 @@ export function ListControls({
   total: number;
   filters: { q: string; status: string; dealId?: string };
   statuses?: string[];
-  /** A company's own names for some statuses (deal stages); they win over the standard labels. */
   statusNames?: Record<string, { en: string | null; ar: string | null }>;
   exportDomain?: string;
 }) {

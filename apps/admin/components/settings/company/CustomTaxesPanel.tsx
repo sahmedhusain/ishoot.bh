@@ -28,7 +28,6 @@ const EMPTY: TaxRateInput = {
   is_active: true,
 };
 
-/** The editable fields of a stored tax (the action accepts nothing else). */
 const toInput = (tax: TaxRateRecord): TaxRateInput => ({
   id: tax.id,
   name_en: tax.name_en,
@@ -42,10 +41,6 @@ const toInput = (tax: TaxRateRecord): TaxRateInput => ({
   is_active: tax.is_active,
 });
 
-/**
- * Taxes besides VAT. Each active tax is added to new invoices and quotations like VAT, frozen on the
- * document, and its certificate is printed as a QR code at the end of invoices, quotations and receipts.
- */
 export function CustomTaxesPanel({
   initialTaxes,
   canEdit,

@@ -124,7 +124,6 @@ export async function POST(req: NextRequest) {
         companyName: textField(body, "company", 200),
         serviceType: services.join(", "),
         serviceIds: selected.map((s) => s.id),
-        // Ranges are recorded in the company currency the form showed them in.
         budgetRange:
           (
             {
@@ -151,7 +150,6 @@ export async function POST(req: NextRequest) {
       });
       let confirmationSent = resolved.confirmationStatus === "sent";
       if (!resolved.repeated) {
-        // Persistence succeeds independently of notification delivery. Never ask the visitor to resubmit a saved request.
         const reference = escape(resolved.reference);
         try {
           const settings = await getCompanySettings();
@@ -182,7 +180,6 @@ export async function POST(req: NextRequest) {
               : null;
           const confirmation = result(0);
           const notification = result(1);
-          // Queued with the notify service, which delivers and retries; IT sees each outcome.
           confirmationSent = !!confirmation?.success;
         } catch (error) {
           console.error("Request saved; notification processing failed", error);

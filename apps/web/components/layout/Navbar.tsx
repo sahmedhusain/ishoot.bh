@@ -16,9 +16,7 @@ import type { PublicCompanySettings } from "@platform/database/types";
 interface NavbarProps {
   company: PublicCompanySettings;
   pages?: { id: string; visible: boolean }[];
-  /** Menu links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
   links?: { id: string; href: string; label: string; external?: boolean }[];
-  /** The customer account page, when the online store is on. */
   accountHref?: string;
   cartEnabled?: boolean;
 }

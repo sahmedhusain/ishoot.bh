@@ -11,10 +11,6 @@ import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
 
-/**
- * Super Admin: grants or withholds individual permissions for one person on top of their role. Keys left out follow
- * the role; `true` or `false` overrides it for this person only.
- */
 export async function setUserPermissionOverridesAction(
   userId: string,
   overrides: Record<string, boolean>,
@@ -45,7 +41,6 @@ export async function setUserPermissionOverridesAction(
           throw new Error("Invalid permission resource");
       if (userId === "super-admin" || userId === "usr_super_admin")
         throw new Error("Super Admin accounts are never changed here");
-      // The legacy "write" grant follows create/edit, as on the roles screen.
       const stored: Record<string, boolean> = { ...overrides };
       for (const resource of ALL_RESOURCES) {
         const create = overrides[`${resource}:create`];

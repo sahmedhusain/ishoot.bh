@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { useTranslation } from "../../hooks/useTranslation";
 import { HeroActions, useHeroContent } from "./HeroActions";
 
-/** A bold headline on the brand colour; needs no photo or video, so it also opens websites without banners. */
 export function CenteredHero({ banners, title, subtitle }: { banners: HeroBanner[]; title: string; subtitle: string }) {
   const { t } = useTranslation();
   const theme = useSiteTheme();

@@ -12,8 +12,6 @@ import { getNextSequenceNumber } from "./sequence";
 import { getCompanySettings } from "./company-settings";
 import { getCurrencyLabel } from "@platform/config/currency";
 
-// ---------- Templates ----------
-
 export interface LetterTemplateInput {
   key?: string;
   name_en: string;
@@ -84,8 +82,6 @@ export async function saveLetterTemplate(
   });
 }
 
-// ---------- Placeholders ----------
-
 const fmtDate = (value: Date, language: "ar" | "en", timeZone = "UTC") =>
   new Intl.DateTimeFormat(language === "ar" ? "ar-u-nu-latn" : "en-GB", {
     day: "numeric",
@@ -102,7 +98,6 @@ const fmtMoney = (value: number, language: "ar" | "en", currency = "USD", decima
   return language === "ar" ? `${amount} ${symbol}` : `${symbol} ${amount}`;
 };
 
-/** The values a template's {{placeholders}} take, in one language. */
 export async function letterValues(input: {
   language: "ar" | "en";
   employeeId?: string | null;
@@ -181,7 +176,6 @@ export const fillPlaceholders = (
     (match, key: string) => values[key] ?? match,
   );
 
-/** A template filled in both languages, ready to edit into a letter. */
 export async function draftFromTemplate(
   templateId: string,
   input: {
@@ -209,8 +203,6 @@ export async function draftFromTemplate(
     bodyAr: fillPlaceholders(template.bodyAr, ar),
   };
 }
-
-// ---------- Letters ----------
 
 export interface OfficialLetterInput {
   template_id?: string | null;
@@ -317,7 +309,6 @@ export async function saveOfficialLetter(
   });
 }
 
-/** Sends the letter for approval; the approver's signature (drawn on the spot when required) goes on the letter. */
 export async function submitOfficialLetter(id: string, actorId: string) {
   return runAtomicMutation(async () => {
     const letter = await db.officialLetter.findUnique({ where: { id } });
@@ -589,7 +580,6 @@ export type OfficialLetterDetail = NonNullable<
   Awaited<ReturnType<typeof getOfficialLetter>>
 >;
 
-/** Public check of a letter's authenticity from the code printed on it. */
 export async function verifyOfficialLetter(code: string) {
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(code ?? "")) return null;
   const l = await db.officialLetter.findUnique({

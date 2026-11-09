@@ -3,8 +3,6 @@ import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { COVERAGE_SENTIMENTS } from "../constants/outreach";
 
-// ─── Media contacts ──────────────────────────────────────────────────────────────────────────────────────────────
-
 export async function listMediaContacts() {
   const rows = await db.mediaContact.findMany({
     orderBy: [{ isActive: "desc" }, { outlet: "asc" }, { name: "asc" }],
@@ -58,8 +56,6 @@ export async function saveMediaContact(input: MediaContactInput) {
     ? db.mediaContact.update({ where: { id: input.id }, data })
     : db.mediaContact.create({ data });
 }
-
-// ─── Coverage ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function listCoverage() {
   const rows = await db.mediaCoverage.findMany({
@@ -134,7 +130,6 @@ export async function saveCoverage(input: CoverageInput, userId: string) {
     : db.mediaCoverage.create({ data: { ...data, createdById: userId } });
 }
 
-/** Coverage totals: pieces, audience reached and the mix of sentiment, over a window of days. */
 export async function coverageSummary(days = 90, now = new Date()) {
   const since = new Date(now.getTime() - days * 86_400_000);
   const rows = await db.mediaCoverage.findMany({
@@ -150,7 +145,6 @@ export async function coverageSummary(days = 90, now = new Date()) {
   };
 }
 
-/** Press releases: published articles in the press_release category, newest first (also for the website's press page). */
 export async function listPressReleases(onlyPublished = false) {
   const now = new Date();
   const rows = await db.cmsArticle.findMany({

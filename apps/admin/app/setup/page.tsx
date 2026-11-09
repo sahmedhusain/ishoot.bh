@@ -14,7 +14,6 @@ import { SetupWaitingView } from "../../components/setup/SetupWaitingView";
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => companyMetadata(adminTranslations.ar.setupWizard.title);
 
-/** First-run setup: shown until the company has been set up or seeded, then always redirects to the dashboard. */
 export default async function SetupPage() {
   const user = await requireAuth();
   const company = await getCachedCompanySettings().catch(() => null);

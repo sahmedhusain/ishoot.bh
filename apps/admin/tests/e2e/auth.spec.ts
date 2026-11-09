@@ -3,7 +3,6 @@ import { t } from "../helpers/locale";
 import { expect, test } from "@playwright/test";
 import { admin, alertMessage, demo, login, testDatabase } from "../../helpers";
 
-// Sign-in tests start signed out.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("protected pages send people to the login page", async ({ page }) => {
@@ -31,7 +30,6 @@ test("the admin signs in to the company dashboard and the sign-in is audited", a
     await login(page);
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page).toHaveTitle(new RegExp(demo.company.companyNameAr));
-    // The audit entry is written after the response; it must not be lost.
     await expect
       .poll(() =>
         db.activityLog.count({ where: { userId: user.id, action: "login" } }),

@@ -119,7 +119,6 @@ async function financeFetch<T>(
     try {
       errBody = await res.json();
     } catch {
-      // non-JSON
     }
     throw await apiError(res, errBody);
   }
@@ -131,7 +130,6 @@ async function financeFetch<T>(
   return normalizeApiRecord(body) as T;
 }
 
-// Invoices
 export const listInvoices = (token?: string) =>
   financeFetch<Invoice[]>("/v1/finance/invoices", {}, token);
 
@@ -147,7 +145,6 @@ export const updateInvoiceStatus = (id: string, status: string, token?: string) 
 export const deleteInvoice = (id: string, token?: string) =>
   financeFetch<void>(`/v1/finance/invoices/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Payments
 export const listPayments = (invoiceId?: string, token?: string) => {
   const q = invoiceId ? `?invoiceId=${encodeURIComponent(invoiceId)}` : "";
   return financeFetch<Payment[]>(`/v1/finance/payments${q}`, {}, token);
@@ -156,7 +153,6 @@ export const listPayments = (invoiceId?: string, token?: string) => {
 export const recordPayment = (input: any, token?: string) =>
   financeFetch<Payment>("/v1/finance/payments", { method: "POST", body: JSON.stringify(input) }, token);
 
-// Expenses
 export const listExpenses = (token?: string) =>
   financeFetch<Expense[]>("/v1/finance/expenses", {}, token);
 
@@ -169,6 +165,5 @@ export const approveExpense = (id: string, approvedBy: string, token?: string) =
 export const listExpenseCategories = (token?: string) =>
   financeFetch<ExpenseCategory[]>("/v1/finance/expense-categories", {}, token);
 
-// Settlements
 export const listSettlements = (token?: string) =>
   financeFetch<BankSettlement[]>("/v1/finance/settlements", {}, token);

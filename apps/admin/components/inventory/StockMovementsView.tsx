@@ -25,7 +25,6 @@ interface StockMovementsViewProps {
   currency: string;
 }
 
-/** Inventory → stock movements: the ledger, filtered by product, warehouse, type and dates. */
 export function StockMovementsView({ rows, total, page, pageSize, filters, warehouses, currency }: StockMovementsViewProps) {
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.movements;

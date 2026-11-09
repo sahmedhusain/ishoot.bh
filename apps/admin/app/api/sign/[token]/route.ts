@@ -8,7 +8,6 @@ import { signingConsent } from "../../../../lib/client-signing";
 
 export const dynamic = "force-dynamic";
 
-/** Public: the client signs through their one-time link. Errors are returned as codes the page translates. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },

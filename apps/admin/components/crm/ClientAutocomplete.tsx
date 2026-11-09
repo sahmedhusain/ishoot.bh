@@ -71,7 +71,6 @@ export function ClientAutocomplete({
       effectiveInitial.find((c) => c.id === selectedContactId) || null,
     );
 
-  // New Client Form State
   const [newFullName, setNewFullName] = React.useState("");
   const [newCompany, setNewCompany] = React.useState("");
   const [newEmail, setNewEmail] = React.useState("");
@@ -85,7 +84,6 @@ export function ClientAutocomplete({
   const searchRef = React.useRef<HTMLInputElement>(null);
   const popupId = React.useId();
 
-  // Sync external changes
   React.useEffect(() => {
     if (selectedContactId) {
       const found = contacts.find((c) => c.id === selectedContactId);
@@ -95,7 +93,6 @@ export function ClientAutocomplete({
     }
   }, [selectedContactId, contacts]);
 
-  // Click outside or Escape closes the dropdown
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -116,7 +113,6 @@ export function ClientAutocomplete({
     };
   }, []);
 
-  // Debounced search
   React.useEffect(() => {
     if (!isOpen || mode !== "search") return;
     const timer = setTimeout(async () => {
@@ -183,7 +179,6 @@ export function ClientAutocomplete({
             name: created.company || created.full_name,
           }),
         );
-        // Reset form
         setNewFullName("");
         setNewCompany("");
         setNewEmail("");
@@ -206,7 +201,6 @@ export function ClientAutocomplete({
 
   return (
     <div className={`space-y-2 ${className || ""}`} ref={containerRef}>
-      {/* Header with Mode Toggle */}
       <div className="flex items-center justify-between text-xs font-semibold text-ink">
         <label className="flex items-center gap-1.5">
           <span>{effectiveLabel}</span>
@@ -261,7 +255,6 @@ export function ClientAutocomplete({
         )}
       </div>
 
-      {/* State 1: Selected Customer Card */}
       {selectedContact ? (
         <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-raised border border-outline-variant dark:bg-tone-10/60 dark:border-white/10 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
@@ -312,7 +305,6 @@ export function ClientAutocomplete({
           </button>
         </div>
       ) : mode === "create" ? (
-        /* State 2: Inline "Create New Customer" Flow */
         <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 space-y-3 animate-fade-in">
           <div className="flex items-center justify-between pb-2 border-b border-outline-variant/60 dark:border-white/10">
             <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-mint">
@@ -439,7 +431,6 @@ export function ClientAutocomplete({
           </div>
         </div>
       ) : (
-        /* State 3: Search Existing Customers */
         <div className="relative">
           <div className="relative">
             <Input

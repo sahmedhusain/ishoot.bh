@@ -118,7 +118,6 @@ test("a phone order's shipment goes out, fails once with a reason, goes out agai
   await expect(page.getByTestId("shipment-status").first()).toHaveText(
     copy.statuses.out_for_delivery,
   );
-  // Going out ships the order: the item leaves stock.
   await expect
     .poll(
       async () =>
@@ -143,7 +142,6 @@ test("a phone order's shipment goes out, fails once with a reason, goes out agai
   await expect(page.getByTestId("shipment-status").first()).toHaveText(
     copy.statuses.out_for_delivery,
   );
-  // The whole order is collected: the item plus the zone's delivery fee.
   const total = Number(
     (await db.salesOrder.findUniqueOrThrow({ where: { id: orderId } })).total,
   );

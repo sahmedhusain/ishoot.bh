@@ -39,12 +39,6 @@ import { leaveDaysRequested } from "../constants/hr";
 import { getSignatureMode } from "../queries/signature-policies";
 import { validateSignatureImage } from "./signature-image";
 
-/**
- * Approval engine: every request that needs sign-off goes through submitForApproval / decideApprovalRequest.
- * Who may decide comes from the ApprovalPolicy for the target type; nobody decides their own request unless
- * the policy allows it or no other approver exists (recorded as selfApproved).
- */
-
 type Decision = "approved" | "rejected";
 
 interface Requester {
@@ -64,7 +58,6 @@ interface PolicyStep {
   minDiscountPercent?: unknown;
 }
 
-/** Facts about the record that step conditions are checked against. Amounts use the configured accounting currency. */
 export interface ApprovalMetrics {
   amount?: number;
   days?: number;
@@ -83,7 +76,6 @@ function discountPercent(subtotal: unknown, discount: unknown): number {
   return base > 0 ? Math.round((Number(discount) / base) * 10000) / 100 : 0;
 }
 
-/** Reads the amount, days or discount of the record being approved. */
 export async function approvalMetrics(
   targetType: string,
   targetId: string,
@@ -202,7 +194,6 @@ export async function approvalMetrics(
   }
 }
 
-/** A condition with no value always holds; a value the record does not have fails the condition. */
 export function stepApplies(
   step: Pick<PolicyStep, "minAmount" | "minDays" | "minDiscountPercent">,
   metrics: ApprovalMetrics,
@@ -274,7 +265,6 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   service_request: {
     approve: async (id, decider, reason) =>
       void (await approveRequest(id, { approvedById: decider, notes: reason })),
-    // A rejected SR/CR goes back to the team with the approver's reason.
     reject: async (id, decider, reason) =>
       void (await returnRequest(id, {
         returnedById: decider,
@@ -400,7 +390,6 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   },
 };
 
-/** Lets other modules (e.g. service requests, expenses) plug in how a decision is applied to their records. */
 export function registerApprovalFinalizer(
   targetType: ApprovalTargetType,
   finalizer: Finalizer,
@@ -439,7 +428,6 @@ async function resolveStep(
         ? activeUserIds({ id: requester.managerId })
         : [];
     case "department_manager": {
-      // The requester's department head and deputy; a department without either goes to its parent's.
       const account = await db.user.findUnique({
         where: { id: requester.id },
         select: {
@@ -496,7 +484,6 @@ async function resolveStep(
   }
 }
 
-/** First step at or after `fromOrder` that yields an eligible approver. */
 async function nextApprovers(
   steps: PolicyStep[],
   fromOrder: number,
@@ -577,14 +564,12 @@ export interface SubmitForApprovalInput {
   policySnapshot?: Record<string, unknown>;
   diffPayload?: Record<string, unknown> | null;
   discountReason?: string | null;
-  /** Approve on submit with this recorded reason (e.g. a discount within the issuer's limit). */
   autoApproveReason?: string | null;
 }
 
 export interface ApprovalOutcome {
   approvalRequestId: string;
   status: "pending" | "approved" | "rejected";
-  /** True when the target has been finalized (decision applied to the record). */
   finalized: boolean;
   approverIds: string[];
 }
@@ -617,13 +602,11 @@ export async function submitForApproval(
     });
     const revision = (latest?.revision ?? 0) + 1;
     const metrics = await approvalMetrics(input.targetType, input.targetId);
-    // Steps whose thresholds the record does not reach are skipped; if none apply, nobody needs to sign off.
     const belowThreshold =
       !!policy?.enabled &&
       policy.steps.length > 0 &&
       !policy.steps.some((step) => stepApplies(step, metrics));
 
-    // Super Admin is the final authority: their own requests never wait on a lower approver.
     const superAdmin = requester.role === "super_admin";
     const requiresLiveSignature =
       (await getSignatureMode(input.targetType)) === "live";
@@ -636,7 +619,6 @@ export async function submitForApproval(
           (!policy.enabled ||
             policy.autoApproveRoles.includes(requester.role))));
     const allowSelf = policy?.allowSelfApproval ?? false;
-    // A missing policy falls back to the admin pool rather than silently approving.
     const route = autoApprove
       ? null
       : await nextApprovers(
@@ -752,7 +734,6 @@ export async function submitForApproval(
   });
 }
 
-/** Whether `actor` may decide this request right now (used by both the UI and the decide path). */
 export function canDecideApproval(
   request: {
     status: string;
@@ -764,14 +745,12 @@ export function canDecideApproval(
 ): boolean {
   if (request.status !== "pending") return false;
   if (request.approverIds.includes(actor.id)) return true;
-  // The final authority may explicitly sign their own live-signature request, never auto-sign it.
   if (
     actor.role === "super_admin" &&
     request.selfApproved &&
     request.requestedById === actor.id
   )
     return true;
-  // Super Admin may step in on anyone else's request, never silently on their own.
   return actor.role === "super_admin" && request.requestedById !== actor.id;
 }
 
@@ -780,7 +759,6 @@ export async function decideApprovalRequest(
   actorId: string,
   decision: Decision,
   reason?: string,
-  /** Drawn at the moment of approving; required when the document's signature policy is "live". */
   signature?: string | null,
 ): Promise<ApprovalOutcome> {
   return runAtomicMutation(async () => {
@@ -814,7 +792,6 @@ export async function decideApprovalRequest(
     }
     if (decision === "rejected" && !reason?.trim())
       throw new Error(serverMessages.aReasonIsRequiredToRejectA);
-    // Documents signed on the spot: the approver draws their signature now instead of applying a saved one.
     let signatureData: string | null = null;
     if (decision === "approved") {
       if (signature) {
@@ -928,7 +905,6 @@ export async function decideApprovalRequest(
   });
 }
 
-/** Latest pending approval for a record, e.g. to decide a leave request from the leave page. */
 export async function findPendingApproval(
   targetType: ApprovalTargetType,
   targetId: string,
@@ -946,7 +922,6 @@ export async function findPendingApproval(
   });
 }
 
-/** Withdraws a pending approval when the requester cancels the underlying record. */
 export async function cancelPendingApprovals(
   targetType: ApprovalTargetType,
   targetId: string,
@@ -957,10 +932,6 @@ export async function cancelPendingApprovals(
   });
 }
 
-/**
- * Reminds and escalates requests that have waited too long at their current step. Run by the maintenance worker;
- * each request is reminded once and escalated once per step.
- */
 export async function processApprovalTimeouts(
   now = new Date(),
 ): Promise<{ reminded: number; escalated: number }> {

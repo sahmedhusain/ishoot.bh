@@ -11,10 +11,6 @@ import { errorMessage } from "../../lib/error-text";
 const SIZES = { desktop: { width: 1280, height: 860 }, phone: { width: 390, height: 780 } } as const;
 type Size = keyof typeof SIZES;
 
-/**
- * The real website beside the wizard's Brand and Website steps. The theme being edited is sent to the page as
- * it changes (nothing saved); `revision` goes up after the wizard saves the draft website, which reloads it.
- */
 export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; revision: number }) {
   const { t, locale } = useAdminLocale();
   const copy = t.setupWizard.preview;
@@ -36,8 +32,6 @@ export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; rev
     return () => {
       live = false;
     };
-    // A new link only when the interface language changes; t follows the same switch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 
   React.useEffect(() => {

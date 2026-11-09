@@ -22,16 +22,13 @@ describe("retail and closing calculations", () => {
       },
       "BHD",
     );
-    // 100 + 250.500 + 50 - 20 - 10 - 150 = 220.500
     expect(cash.toString()).toBe("220500");
   });
 
   test("packaging conversion preserves exact units and detects invalid ratios", () => {
-    // 5 cartons of 12 units = 60.000000
     const result = convertPackagingQuantity("5.000000", "12.000000", true);
     expect(result).toBe("60.000000");
 
-    // Partial units rejected when indivisible
     expect(() => convertPackagingQuantity("5.500000", "12.000000", true)).toThrow(
       "Invalid packaging quantity",
     );
@@ -44,7 +41,6 @@ describe("retail and closing calculations", () => {
       ["C", null],
     ]);
 
-    // Setting C's parent to A creates a cycle: A -> B -> C -> A
     expect(() => assertPackageParent("C", "A", parents)).toThrow(
       "Package nesting cannot contain a cycle",
     );
@@ -70,7 +66,7 @@ describe("retail and closing calculations", () => {
 
     expect(() =>
       validateStockLabelTemplate({
-        widthMm: 10, // too small
+        widthMm: 10,
         heightMm: 35,
         gapMm: 3,
         copies: 1,

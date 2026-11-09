@@ -6,13 +6,11 @@ import type { WebsiteSnapshotSection } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Tells CMS editors that their edits wait for a website publication, and where to publish. */
 export function UnpublishedChangesNotice({
   section,
   status,
   canPublish,
 }: {
-  /** The collection this page edits; omit on the Website page to list every changed section. */
   section?: WebsiteSnapshotSection;
   status: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] };
   canPublish: boolean;

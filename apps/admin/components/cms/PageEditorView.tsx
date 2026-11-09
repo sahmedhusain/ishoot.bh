@@ -23,7 +23,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 const blockId = () => Math.random().toString(36).slice(2, 10);
 
-/** The page editor: address, titles, SEO and the blocks, added, reordered, duplicated, hidden or removed. */
 export function PageEditorView({ page, languages, canCode, catalogueSlug, activity }: { activity: BusinessActivity; page: CmsPageRecord; languages: readonly ContentLanguage[]; canCode: boolean; catalogueSlug: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.cmsPages;

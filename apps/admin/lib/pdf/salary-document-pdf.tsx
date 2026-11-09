@@ -36,7 +36,6 @@ interface Snapshot {
   items?: Array<PayslipItem>;
 }
 
-/** Older snapshots may still carry attendance counts; payslips never print them. */
 type PayslipItem = Record<string, unknown> & {
   lines?: Array<{
     kind: string;
@@ -75,12 +74,10 @@ const ALWAYS_SHOWN = new Set(["basicSalary", "gosiEmployee"]);
 
 const num = (value: unknown) => Number(value || 0);
 
-/** A short, stable reference printed on the document and its footer. */
 function documentReference(kind: string, id: string, issuedAt: Date | null) {
   return `${kind === "payslip" ? "PS" : "SC"}-${(issuedAt ?? new Date()).getUTCFullYear()}-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
-/** The HR approver signs; without a personal signature on file the company's signatory signs instead. */
 async function salarySignatory(
   documentId: string,
   reviewedById: string | null,
@@ -88,7 +85,6 @@ async function salarySignatory(
   company: CompanySettings,
   locale: "en" | "ar",
 ): Promise<CompanySignature> {
-  // A signature drawn when the document was approved (signing on the spot) takes precedence over the saved one.
   const drawn = reviewedById
     ? await db.approvalDecision.findFirst({
       where: {
@@ -181,7 +177,6 @@ function EmployeeCard({
   );
 }
 
-/** One row per amount; a month's named additions or deductions replace their total row (bonus, other deductions). */
 function AmountTable({
   k,
   title,
@@ -208,7 +203,6 @@ function AmountTable({
     (l) => l.kind === kind,
   );
   const expanded = kind === "addition" ? "bonus" : "otherDeductions";
-  // Social insurance shows each contribution (e.g. pension 8%, unemployment 1%) when the month was worked out under the scheme.
   const gosiLines = (
     (
       item.calculationSnapshot as {
@@ -515,7 +509,6 @@ function CertificatePage({
       <T style={{ fontSize: 10.5, fontWeight: "bold", marginBottom: 12 }}>
         {h.toWhom}
       </T>
-      {/* A certificate states the total gross salary only — no breakdown. */}
       <Paragraph>
         {formatMessage(h.certificateParagraph, { name: name, number: employee.employeeNumber, company: isAr ? company.company_name_ar : company.company_name_en, hireDate: fmtDate(employee.hireDate, isAr), title: isAr ? employee.jobTitleAr : employee.jobTitleEn, gross: fmtMoney(gross, company.default_currency, isAr) })}
       </Paragraph>

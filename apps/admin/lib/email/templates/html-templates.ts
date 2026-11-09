@@ -24,7 +24,6 @@ const alpha = (hex: string, a: number) => {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 };
 
-/** Fills the colour placeholders of a rendered email with the company's colours on neutral dark surfaces. */
 function applyEmailPalette(companyInfo: BrandEmailCompanyInfo, html: string) {
   const primary = HEX.test(companyInfo.primary ?? "")
     ? companyInfo.primary!
@@ -54,10 +53,8 @@ function applyEmailPalette(companyInfo: BrandEmailCompanyInfo, html: string) {
 }
 
 export interface BrandEmailCompanyInfo {
-  /** Company theme colours (hex); emails cannot use CSS variables, so they are written inline. */
   primary?: string;
   accent?: string;
-  /** CSS font-family of the company's body font, tried before the system fonts. */
   fontFamily?: string;
   nameEn?: string;
   nameAr?: string;

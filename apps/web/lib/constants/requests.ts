@@ -1,6 +1,4 @@
-// Service request (SR) / change request (CR) workflow, shared by the server and the UI.
 
-/** Workflow states each transition may start from. */
 export const REQUEST_TRANSITIONS = {
   assign: ["received", "under_review", "returned", "assigned", "in_progress"],
   reassign: [
@@ -19,9 +17,7 @@ export const REQUEST_TRANSITIONS = {
     "approved",
     "confirmed",
   ],
-  /** Hand finished work to the approvers defined by the service request approval policy. */
   submit: ["assigned", "in_progress"],
-  /** Applied by the approval engine once the policy's approvers sign off. */
   approve: ["pending_approval"],
   confirm: ["approved"],
   resolve: [
@@ -37,7 +33,6 @@ export const REQUEST_TRANSITIONS = {
 
 export type RequestTransition = keyof typeof REQUEST_TRANSITIONS;
 
-/** Workflow state each transition leads to. */
 export const REQUEST_TRANSITION_TARGET: Record<RequestTransition, string> = {
   assign: "assigned",
   reassign: "assigned",
@@ -58,7 +53,6 @@ export const REQUEST_TEAMS = [
 ] as const;
 export type RequestTeam = (typeof REQUEST_TEAMS)[number];
 
-/** Request statuses that end the workflow. */
 export const REQUEST_CLOSED_STATUSES = [
   "resolved",
   "archived",
@@ -74,7 +68,6 @@ export function canTransitionRequest(
   );
 }
 
-/** How the request inbox groups records (CR is retired: legacy CRs and website complaints show as feedback). */
 export const REQUEST_KINDS = [
   "service",
   "quote",
@@ -105,7 +98,6 @@ export function requestKindOf(record: {
   return "inquiry";
 }
 
-/** Reference prefix per kind of request: SR-2026-000001, INQ-…, RFQ-… (quote), CMP-… (complaint), SUG-… (suggestion). */
 export function referencePrefixFor(record: {
   requestType?: string | null;
   intent?: string | null;
@@ -121,7 +113,6 @@ export function referencePrefixFor(record: {
   return "INQ";
 }
 
-/** Request inbox sort orders, due-date filters and intake channels. */
 export const REQUEST_SORTS = [
   "urgency",
   "newest",

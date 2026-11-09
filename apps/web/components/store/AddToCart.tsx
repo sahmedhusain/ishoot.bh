@@ -18,7 +18,6 @@ interface StoreProduct {
   variants: { id: string; values: string[]; label_en: string; label_ar: string; price: number; available: number | null }[];
 }
 
-/** On a catalogue item that is a product: choose the options and quantity, and add it to the cart. */
 export function AddToCart({ product, currency }: { product: StoreProduct; currency: string }) {
   const { t, locale } = useTranslation();
   const [values, setValues] = React.useState<string[]>(() => product.variants.find((v) => v.available == null || v.available > 0)?.values ?? product.variants[0]?.values ?? []);

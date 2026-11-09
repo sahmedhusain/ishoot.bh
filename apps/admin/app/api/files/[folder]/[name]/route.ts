@@ -4,7 +4,6 @@ import { measureOperation, fileResponse } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission, getCurrentUser } from "../../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../../lib/attachment-access";
-/** The permission that guards a file stored on a record's own field, if any record holds it. */
 async function recordFileResource(_fileUrl: string) {
   return null;
 }
@@ -23,7 +22,6 @@ export async function GET(
       if (!upload.isPublic) {
         const user = await getCurrentUser();
         if (!user) return new NextResponse(null, { status: 401 });
-        // Saved profile photos are shown to every colleague; an unsaved one only to the person cropping it.
         if (folder === "avatars" && (upload.claimedAt || upload.ownerId === user.id))
           return (await fileResponse(upload)) ?? new NextResponse(null, { status: 404 });
         const attachment: any = null;
@@ -36,7 +34,6 @@ export async function GET(
             "read",
           );
         else if (companyDocument) await requirePermission("settings", "read");
-        // Whoever uploaded the file keeps access to it, e.g. an employee's own leave evidence.
         else if (recordResource) {
           if (upload.ownerId !== user.id)
             await requirePermission(recordResource, "read");

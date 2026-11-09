@@ -39,7 +39,6 @@ const toRow = (stage: DealPipelineStage): Row => ({
 
 const CLOSED = new Set(["closed_won", "closed_lost"]);
 
-/** Settings → Sales pipeline: the stages deals move through, their names, order, colour and win probability. */
 export function PipelineSettingsView({ initialStages, languages, canEdit }: { initialStages: DealPipelineStage[]; languages: readonly ContentLanguage[]; canEdit: boolean }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
@@ -68,7 +67,6 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
     const defaults = isBuiltInDealStage(id) ? DEAL_STAGE_DEFAULTS[id] : { probability: 50, color: null };
     const row: Row = { id, name_en: "", name_ar: "", probability: defaults.probability, color: defaults.color ?? "", is_active: true, is_system: false, deal_count: 0 };
     setRows((current) => {
-      // New working stages go before "invoiced", so the closing stages stay last.
       const at = current.findIndex((r) => r.id === "invoiced");
       const next = [...current];
       next.splice(at < 0 ? next.length - 2 : at, 0, row);

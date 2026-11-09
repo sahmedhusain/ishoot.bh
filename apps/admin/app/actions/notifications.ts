@@ -1,6 +1,4 @@
 "use server";
-// The signed-in person's in-app notifications, kept by the notify service (docs/adr/0012). Every action is limited
-// to their own inbox and to the categories their permissions allow.
 import { serverMessages } from "@platform/locales";
 import { measureOperation } from "@platform/database";
 import {
@@ -35,7 +33,6 @@ export async function markAllNotificationsReadAction(userId?: string) {
   });
 }
 
-/** Changes one of the signed-in person's notifications ("hide" archives it, "unhide" restores it). */
 export async function updateNotificationAction(
   id: string,
   change: "read" | "unread" | "hide" | "unhide" | "delete",
@@ -47,7 +44,6 @@ export async function updateNotificationAction(
   return { unread: result.unread };
 }
 
-/** Applies an action to the named notifications, or to every one the filter and category select. */
 export async function bulkNotificationAction(input: {
   action: "read" | "unread" | "archive" | "unarchive" | "delete";
   ids?: string[];
@@ -66,7 +62,6 @@ export async function bulkNotificationAction(input: {
   }).catch(failure);
 }
 
-/** Saves the signed-in person's notification settings. */
 export async function saveNotificationPreferencesAction(preferences: {
   mutedUntil: string | null;
   soundEnabled: boolean;
@@ -85,13 +80,11 @@ export async function saveNotificationPreferencesAction(preferences: {
   }
 }
 
-/** Silences notifications about one record (a task, an invoice…), until a time or until unmuted. */
 export async function muteNotificationRecordAction(entityType: string, entityId: string, until?: string | null) {
   validateActionArguments("muteNotificationRecordAction", { entityType, entityId, until });
   await muteRecord(await myInboxOwner(), entityType, entityId, until ?? null);
 }
 
-/** Lets notifications about a record ring again. */
 export async function unmuteNotificationRecordAction(entityType: string, entityId: string) {
   validateActionArguments("unmuteNotificationRecordAction", { entityType, entityId });
   await unmuteRecord(await myInboxOwner(), entityType, entityId).catch((error) => {

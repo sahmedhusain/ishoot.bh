@@ -9,10 +9,8 @@ export const generateMetadata = () => pageMetadata("cms/articles/[id]");
 
 export const dynamic = "force-dynamic";
 
-/** An article's editor; "new" starts an empty draft. */
 export default async function CmsArticleEditorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ category?: string }> }) {
   const { id } = await params;
-  // "New" can start in a category, e.g. a press release from the press page.
   const { category } = await searchParams;
   const user = await requirePagePermission("articles", id === "new" ? "create" : "read");
   await requireFeatureEnabled("cms");

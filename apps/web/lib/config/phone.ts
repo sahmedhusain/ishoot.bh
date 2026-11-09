@@ -72,7 +72,6 @@ for (const country of COUNTRY_DIAL_CODES) {
       countryLookup.set(name.toLocaleLowerCase(), iso);
 }
 
-/** Accepts stored country names as well as ISO codes without assigning a country to an unknown number. */
 export function countryIso(value?: string | null): CountryCode | undefined {
   return value
     ? countryLookup.get(value.trim().toLocaleLowerCase())
@@ -138,7 +137,6 @@ export function isValidPhone(
   return !!formatPhoneE164(phone, nationalNumber, fallback);
 }
 
-/** Historical local numbers remain visible when their country is unknown. New writes require E.164. */
 export function formatDocumentPhone(
   phone?: string | null,
   country = "",

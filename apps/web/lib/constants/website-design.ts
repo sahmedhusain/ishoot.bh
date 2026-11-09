@@ -18,7 +18,6 @@ export const SITE_REGIONS = [
 ] as const;
 export type SiteRegion = (typeof SITE_REGIONS)[number];
 
-/** Stored in the website snapshot, so a draft cannot change the live design. */
 export interface WebsiteDesign {
   version: 1;
   allowedModes: SiteMode[];
@@ -121,7 +120,6 @@ export function validateWebsiteDesign(value: unknown): WebsiteDesign {
   };
 }
 
-/** CMS restrictions precede a saved choice, then the system preference, then the configured default. */
 export function resolveSiteMode(
   design: WebsiteDesign,
   visitor?: string | null,
@@ -147,7 +145,6 @@ export function siteBaseTone(
   return mode === "mixed" ? design.mixedBase : mode;
 }
 
-/** Runs in the head before paint. Storage failures never prevent the CMS default from applying. */
 export function siteThemeBootstrap(design: WebsiteDesign) {
   return `(()=>{const d=${JSON.stringify(design)};let v;try{v=localStorage.getItem('site-mode')}catch{}const s=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const m=d.visitorSwitching&&d.allowedModes.includes(v)?v:d.followSystem&&d.allowedModes.includes(s)?s:d.defaultMode;const e=document.documentElement;e.dataset.siteMode=m;e.dataset.siteTone=m==='mixed'?d.mixedBase:m;e.classList.remove('light','dark');e.classList.add(e.dataset.siteTone)})()`;
 }

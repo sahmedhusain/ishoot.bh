@@ -54,7 +54,6 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Editorial Header */}
       <PageHeader
         eyebrow={qListT.commercialBadge}
         actions={<div className="flex items-center gap-3">
@@ -68,7 +67,6 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
         </div>}
       />
 
-      {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
           <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
@@ -121,7 +119,6 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
         </div>
       </div>
 
-      {/* Filter, search and paging run on the server across every quotation */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <Filter className="w-4 h-4 text-ink-muted shrink-0" />
@@ -149,7 +146,6 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
         <ListControls path={ROUTES.quotations.list} {...pagination} />
       </div>
 
-      {/* Quotations Table */}
       <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-left rtl:text-right text-sm">

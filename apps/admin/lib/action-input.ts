@@ -29,7 +29,7 @@ function valid(
       valid(value, s, key, depth + 1, action),
     );
   if (schema.kind === "literal") return value === schema.value;
-  if (schema.kind === "unknown") return true; // WebsiteConfig is separately parsed by validateWebsiteConfig.
+  if (schema.kind === "unknown") return true;
   if (schema.kind === "array")
     return (
       Array.isArray(value) &&
@@ -146,11 +146,9 @@ function valid(
   }
   return false;
 }
-/** Actions that carry a whole file (CSV imports) may send more than the usual 250 kB, within Next's 1 MB body limit. */
 const PAYLOAD_LIMITS: Partial<Record<keyof typeof contracts, number>> = {
   previewPeopleImportAction: 900_000,
   importPeopleAction: 900_000,
-  // Page blocks and articles carry editor documents with long text.
   saveCmsPageAction: 900_000,
   saveCmsArticleAction: 900_000,
 };

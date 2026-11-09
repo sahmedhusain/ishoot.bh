@@ -6,10 +6,6 @@ import {
   paymentLinkToken,
 } from "@platform/database";
 
-/**
- * Where the payment gateway sends the customer back (some gateways by GET, some by a form POST). The result always
- * comes from asking the gateway, never from these parameters alone.
- */
 async function handle(req: NextRequest) {
   return measureOperation("web:payment:return", async () => {
     const params: Record<string, string> = {};

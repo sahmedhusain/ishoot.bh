@@ -22,7 +22,6 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   return measureOperation("admin:documents/[id]/pdf:GET", async () => {
-    // Messages follow the requester's admin language; the document itself keeps its own language.
     const trans = getTranslations(
       request.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en",
     );

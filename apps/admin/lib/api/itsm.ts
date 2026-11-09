@@ -1,5 +1,3 @@
-// The itsm service (backend/services/itsm): IT tickets raised by employees. This app has already signed the
-// employee in; the service trusts it to say who the requester is and shows them only their own tickets.
 import type { components, paths } from "./generated/itsm";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
@@ -15,11 +13,9 @@ export type Requester = { id: string; name: string };
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const itsm = () => (client ??= serviceClient<paths>());
 
-/** Raises a ticket for an employee. Attachments must already be claimed in the files service. */
 export const createTicket = (body: NewTicket) =>
   unwrap(itsm().POST("/v1/itsm/requests/tickets", { body }));
 
-/** One page of an employee's tickets, newest first. */
 export const listMyTickets = (
   requesterId: string,
   options: { status?: string; cursor?: string; limit?: number } = {},
@@ -30,7 +26,6 @@ export const listMyTickets = (
     }),
   );
 
-/** An employee's ticket with its public history, or null when it is not theirs. */
 export async function getMyTicket(
   id: string,
   requesterId: string,
@@ -44,7 +39,6 @@ export async function getMyTicket(
   return data;
 }
 
-/** Adds an employee's comment to their open ticket, with optional attachments. */
 export const commentOnMyTicket = (
   id: string,
   requester: Requester,
@@ -58,7 +52,6 @@ export const commentOnMyTicket = (
     }),
   );
 
-/** Applies one of the requester transitions from the catalogue (provide_info, reopen, close, cancel). */
 export const transitionMyTicket = (
   id: string,
   requester: Requester,

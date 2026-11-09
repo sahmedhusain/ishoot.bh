@@ -84,7 +84,6 @@ export function InvoiceDetailView({
     t.invoice.clientFallback;
   const money = (value: number) => `${value.toFixed(3)} ${invoice.currency}`;
   const isOpen = invoice.status !== "draft" && invoice.status !== "void";
-  // Payments arrive newest first; the latest one is what settled a paid invoice.
   const paidOn = invoice.status === "paid" ? payments[0]?.payment_date : undefined;
 
   const statusMeta: Record<string, DocumentStatusMeta> = {
@@ -114,7 +113,6 @@ export function InvoiceDetailView({
                   <span>{t.invoiceLifecycle.markSent}</span>
                 </Button>
               )}
-              {/* Invoices with payments are locked; corrections go through a credit adjustment. */}
               {invoice.status !== "void" && invoice.amount_paid === 0 && canWrite && (
                 <Link href={ROUTES.invoices.edit(invoice.id)}>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -289,7 +287,6 @@ export function InvoiceDetailView({
         </div>
       </div>
 
-      {/* The paper invoice only appears when the browser prints this page. */}
       <div className="hidden print:block">
         <InvoiceTemplate invoice={invoice} company={company} signing={signing} />
       </div>

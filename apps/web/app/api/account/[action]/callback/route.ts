@@ -10,7 +10,6 @@ import {
 } from "../../../../../lib/customer-credentials";
 import { trustedClientIp } from "@platform/database/services/abuse-limits";
 
-/** Provider proofs and credentials are processed by identity; the website keeps only its callback cookie. */
 async function complete(
   req: NextRequest,
   provider: string,

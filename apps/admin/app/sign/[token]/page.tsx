@@ -7,7 +7,6 @@ import { ClientSigningView } from "../../../components/signing/ClientSigningView
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
 
-/** Public page the client opens from their signing link. */
 export default async function ClientSigningPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const [session, company] = await Promise.all([getSigningSession(token, signingConsent), getCompanySettings()]);

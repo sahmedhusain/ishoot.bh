@@ -15,7 +15,6 @@ import { normalizeDomain } from "@platform/database/constants/domains";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Setup wizard → Check domain (see checkDomain). */
 export async function checkDomainAction(
   kind: "website" | "admin",
   domain: string,
@@ -27,7 +26,6 @@ export async function checkDomainAction(
   });
 }
 
-/** The website's domain and the admin's own domain, set in the setup wizard. Empty clears one. Afterwards IT manages them. */
 export interface DomainSettingsInput {
   websiteDomain: string;
   adminDomain: string;
@@ -46,7 +44,6 @@ export async function saveDomainsAction(input: DomainSettingsInput) {
       throw new Error(serverMessages.invalidDomain);
     if (websiteDomain && websiteDomain === adminDomain)
       throw new Error(serverMessages.domainsMustDiffer);
-    // The system service keeps the domains (and records who set them); the admin's activity log records it too.
     const saved = await saveSiteDomains({ websiteDomain, adminDomain }, user.id);
     await createActivityLog({
       user_id: user.id,
@@ -56,7 +53,6 @@ export async function saveDomainsAction(input: DomainSettingsInput) {
       details: { websiteDomain, adminDomain },
     });
     revalidatePath("/", "layout");
-    // Links, the sitemap and page metadata on the website use the domain.
     await revalidatePublicSite(
       ["company"],
       ["/en", "/ar", ...(await publicSitePaths())],

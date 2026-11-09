@@ -2,7 +2,6 @@ import { db } from "../atomic";
 
 type SequenceClient = Pick<typeof db, "referenceSequence">;
 
-/** Next number in a yearly sequence, e.g. SR-2026-000012. Pass a transaction client to roll the number back with the record. */
 export async function getNextSequenceNumber(
   prefix: string,
   year?: number,

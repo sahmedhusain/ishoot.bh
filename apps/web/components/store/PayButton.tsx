@@ -11,10 +11,6 @@ interface Widget {
   brands: string;
 }
 
-/**
- * Starts the payment at the store's gateway: most gateways take the customer to their own page; HyperPay shows its
- * card form here, inside the gateway's own frame. Either way card details never pass through this website.
- */
 export function PayButton({ token, locale, autoStart }: { token: string; locale: string; autoStart: boolean }) {
   const { t } = useTranslation();
   const [busy, setBusy] = React.useState(false);
@@ -40,8 +36,6 @@ export function PayButton({ token, locale, autoStart }: { token: string; locale:
       setError(known(`account.errors.${err instanceof Error ? err.message : "generic"}`));
       setBusy(false);
     }
-    // known reads the current language only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, locale]);
 
   React.useEffect(() => {
@@ -51,7 +45,6 @@ export function PayButton({ token, locale, autoStart }: { token: string; locale:
     }
   }, [autoStart, start]);
 
-  // The gateway's card widget: its script finds the form below and turns it into the gateway's card frame.
   React.useEffect(() => {
     if (!hosted) return;
     const script = document.createElement("script");

@@ -263,7 +263,6 @@ export async function returnRequest(
   });
 }
 
-/** Moves finished work to pending_approval; the caller then submits it to the approval engine. */
 export async function submitRequestForApproval(
   id: string,
   input: { submittedById: string; submittedByName?: string; notes?: string },
@@ -275,7 +274,6 @@ export async function submitRequestForApproval(
   });
 }
 
-/** Applied by the approval engine when the service request policy's approvers sign off. */
 export async function approveRequest(
   id: string,
   input: { approvedById: string; approvedByName?: string; notes?: string },

@@ -539,9 +539,6 @@ function formatGregorianDate(
   ).format(date);
 }
 
-/**
- * Generates an SVG path for a Google Pixel / Material 3 Expressive scalloped "cookie" shape.
- */
 function scallopedCookiePath(
   cx: number,
   cy: number,
@@ -575,9 +572,6 @@ function widgetContainerProps(settings?: WidgetSettingsMap) {
   };
 }
 
-/**
- * 1. Welcome & Identity Profile Card (`welcome_profile`)
- */
 export function WelcomeProfileWidget({
   data,
   settings,
@@ -730,11 +724,6 @@ export function WelcomeProfileWidget({
   );
 }
 
-/**
- * 2. Dedicated Local Clock Widget (`clock_local`)
- * Pure Google Pixel Clock widget. All controls (Analog Scalloped / Analog Circle / Digital Stacked / Digital Pill,
- * 12h/24h, Show Seconds, Show Date, Show Dial Numbers, Timezone Override) live exclusively in Widget Settings.
- */
 export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -760,7 +749,6 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
     return () => clearInterval(timer);
   }, []);
 
-  // Compute hours/minutes/seconds in the selected timezone
   const parts = React.useMemo(() => {
     try {
       const dtf = new Intl.DateTimeFormat("en-US", {
@@ -896,7 +884,6 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
               </>
             ) : null}
 
-            {/* Hour hand */}
             <line
               suppressHydrationWarning
               x1="100"
@@ -908,7 +895,6 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
               strokeLinecap="round"
               className="text-ink"
             />
-            {/* Minute hand */}
             <line
               suppressHydrationWarning
               x1="100"
@@ -920,7 +906,6 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
               strokeLinecap="round"
               className="text-primary"
             />
-            {/* Sweeping Second hand */}
             {showSeconds ? (
               <>
                 <line
@@ -1033,11 +1018,6 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 3. Dedicated World Clocks Widget (`clock_world`)
- * Displays multiple global countries/cities with Country Flag, City & Country Name, UTC offset (e.g. UTC+3),
- * relative hour difference, and Day/Night icon. All city/country selection & options are in Widget Settings.
- */
 export function ClockWorldWidget({ settings }: LifestyleWidgetProps) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -1220,10 +1200,6 @@ export function ClockWorldWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 4. Google Pixel M3 Weather & Forecast Widget (`weather_local`)
- * Country & City selection live exclusively in Widget Settings (no dropdown on the widget face).
- */
 export function WeatherLocalWidget({ settings }: LifestyleWidgetProps) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -1398,9 +1374,6 @@ export function WeatherLocalWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 5. Google Calendar M3 Monthly Mini Calendar (`calendar_mini`)
- */
 export function CalendarMiniWidget({ data, settings }: LifestyleWidgetProps) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -1575,9 +1548,6 @@ export function CalendarMiniWidget({ data, settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 6. Google Keep M3 Scratchpad & Checklist Widget (`scratchpad_notes`)
- */
 const SCRATCHPAD_STORAGE_KEY = "platform_admin_scratchpad_v1";
 
 interface ScratchpadTodo {
@@ -1618,7 +1588,6 @@ export function ScratchpadNotesWidget({
         }
       }
     } catch {
-      // ignore storage errors
     }
   }, [serverNote]);
 
@@ -1629,7 +1598,6 @@ export function ScratchpadNotesWidget({
         JSON.stringify({ note: nextNote, todos: nextTodos }),
       );
     } catch {
-      // ignore storage errors
     }
   };
 
@@ -1814,9 +1782,6 @@ export function ScratchpadNotesWidget({
   );
 }
 
-/**
- * 7. Digital Wellbeing M3 Focus Timer / Pomodoro (`focus_pomodoro`)
- */
 export function FocusPomodoroWidget({ settings }: LifestyleWidgetProps) {
   const { t } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -1986,9 +1951,6 @@ export function FocusPomodoroWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 8. Google Pixel M3 Expressive Calculator & VAT Tool (`quick_calculator`)
- */
 export function QuickCalculatorWidget({ settings }: LifestyleWidgetProps) {
   const { t } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -2145,9 +2107,6 @@ export function QuickCalculatorWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 10. Milestone & Deadline Countdown Widget (`countdown_milestone`)
- */
 export function CountdownMilestoneWidget({ settings }: LifestyleWidgetProps) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -2249,9 +2208,6 @@ export function CountdownMilestoneWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 11. Daily Executive Quote & Motto Widget (`sticky_quote`)
- */
 export function StickyQuoteWidget({ settings }: LifestyleWidgetProps) {
   const { t } = useAdminLocale();
   const b = t.dashboardBoard;
@@ -2303,9 +2259,6 @@ export function StickyQuoteWidget({ settings }: LifestyleWidgetProps) {
   );
 }
 
-/**
- * 12. Quick Bookmarks & Launchpad Widget (`bookmarks_launchpad`)
- */
 export function BookmarksLaunchpadWidget({ settings }: LifestyleWidgetProps) {
   const { t } = useAdminLocale();
   const b = t.dashboardBoard;

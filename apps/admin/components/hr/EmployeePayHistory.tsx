@@ -16,7 +16,6 @@ export interface PayHistoryRow {
   runStatus: string;
 }
 
-/** An employee's recent salaries; each opens its payment page. */
 export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
   const companyCurrency = useCompanyCurrency();
   const { t, locale, isRTL } = useAdminLocale();

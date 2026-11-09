@@ -19,7 +19,6 @@ interface AttributionPanelProps {
   canReassign: boolean;
 }
 
-/** Who issued the document, who it is credited to, and every change of credit. */
 export function AttributionPanel({ entityType, entityId, info, salesPeople, canReassign }: AttributionPanelProps) {
   const { t, locale } = useAdminLocale();
   const a = t.attribution;

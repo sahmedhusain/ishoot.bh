@@ -1,6 +1,4 @@
 "use client";
-// The notifications page (docs/adr/0012): every notification with filters by state and category, actions on one or
-// many, live updates, and the person's notification settings.
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

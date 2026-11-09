@@ -22,7 +22,6 @@ interface Draft {
   isActive: boolean;
 }
 
-/** Products → categories: a nested list with inline add and edit. */
 export function ProductCategoriesView({ categories, languages, canEdit, canDelete }: { categories: ProductCategoryRecord[]; languages: readonly ContentLanguage[]; canEdit: boolean; canDelete: boolean }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
@@ -33,7 +32,6 @@ export function ProductCategoriesView({ categories, languages, canEdit, canDelet
   const [error, setError] = React.useState("");
   const name = (c: ProductCategoryRecord) => (locale === "ar" ? c.name_ar || c.name_en : c.name_en || c.name_ar);
 
-  // Parents first, each followed by its subcategories.
   const ordered = React.useMemo(() => {
     const out: { category: ProductCategoryRecord; depth: number }[] = [];
     const visit = (parent: string | null, depth: number, seen: Set<string>) => {

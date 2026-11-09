@@ -13,11 +13,9 @@ const origin = (value) => {
     return "";
   }
 };
-// The admin's live preview frames the website; nothing else may.
 const adminOrigin = origin(process.env.NEXT_PUBLIC_ADMIN_URL || process.env.ADMIN_URL);
 const securityHeaders = [
   { key: "Content-Security-Policy", value: `frame-ancestors 'self' ${[adminOrigin, ...(process.env.ADMIN_PREVIEW_ORIGINS || "").split(",").map(origin)].filter(Boolean).join(" ")}`.trim() },
-  // Report-only until a clean production run; shows what an enforced script policy would block.
   ...(process.env.NODE_ENV === "production"
     ? [{ key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; object-src 'none'; base-uri 'self'; form-action 'self'" }]
     : []),
@@ -27,17 +25,14 @@ const securityHeaders = [
     ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
     : []),
 ];
-// Customer and token pages must stay out of search results, and token links must not leak through referrers.
 const privatePages = "cart|checkout|account|pay|track|unsubscribe";
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
   serverExternalPackages: ['libphonenumber-js'],
   transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config', '@platform/api-client', '@platform/contracts'],
-  // Which service key this app signs its backend calls with (docs/adr/0011).
   env: { SERVICE_CALLER: 'web' },
   experimental: {
     optimizePackageImports: ['lucide-react', '@platform/ui'],

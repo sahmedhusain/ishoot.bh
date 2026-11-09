@@ -1,6 +1,3 @@
-// Switching modules from tests. Modules live in the system service (backend/services/system), shared by every test
-// database, so specs restore what they change. The test servers read modules without caching
-// (SYSTEM_MODULES_CACHE_MS=0 in playwright.config.ts), so a change shows on the next page load.
 import path from "node:path";
 import {
   listModules,
@@ -24,7 +21,6 @@ export async function modules(): Promise<ModuleState[]> {
   }));
 }
 
-/** A module's state, or null for a key outside the catalogue. */
 export async function getModule(
   moduleKey: string,
 ): Promise<ModuleState | null> {
@@ -34,6 +30,5 @@ export async function getModule(
 export const setModule = (moduleKey: string, isEnabled: boolean) =>
   save(moduleKey, isEnabled, ACTOR);
 
-/** Puts a module back to its catalogue default. */
 export const resetModule = (moduleKey: string) =>
   setModule(moduleKey, moduleOnByDefault(moduleKey));

@@ -15,7 +15,6 @@ interface PriceRow {
   unit_price: number;
 }
 
-/** On a product: what it was bought at, from whom, newest first. */
 export function PurchasePricesCard({ rows, currency }: { rows: PriceRow[]; currency: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.performance;

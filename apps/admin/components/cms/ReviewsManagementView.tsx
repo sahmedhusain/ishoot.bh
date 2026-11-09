@@ -78,7 +78,6 @@ export function ReviewsManagementView({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
           title={<><span>{t.reviewsView.title}</span><span className="text-xs font-bold text-accent font-sans">
@@ -87,7 +86,6 @@ export function ReviewsManagementView({
         />
       </div>
 
-      {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
           <div>
@@ -135,7 +133,6 @@ export function ReviewsManagementView({
         </Card>
       </div>
 
-      {/* Filter Tabs */}
       <div className="flex items-center gap-2 border-b border-outline-variant dark:border-white/10 pb-3">
         <button
           type="button"
@@ -174,7 +171,6 @@ export function ReviewsManagementView({
         </button>
       </div>
 
-      {/* Review List */}
       {filteredReviews.length === 0 ? (
         <Card className="p-12 text-center bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl">
           <MessageSquare className="w-10 h-10 text-ink dark:text-ink-muted mx-auto mb-3" />
@@ -251,7 +247,6 @@ export function ReviewsManagementView({
                   </div>
                 </div>
 
-                {/* Moderation Actions: Admin only adds (approves) or doesn't add (hides) */}
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant dark:border-white/5">
                   <button
                     type="button"

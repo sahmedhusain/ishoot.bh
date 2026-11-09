@@ -1,6 +1,5 @@
 import { Skeleton } from "@platform/ui";
 
-/** The shape of a page while it loads: a title, a row of figures and a large panel. */
 export default function DashboardLoading() {
   return (
     <div aria-busy="true" className="space-y-6 max-w-7xl mx-auto">

@@ -26,7 +26,6 @@ const refresh = (id?: string) => {
   revalidatePath(ROUTES.approvals());
 };
 
-/** Opens a final settlement for a leaving employee and works out every line. */
 export async function createFinalSettlementAction(input: FinalSettlementInput) {
   return measureOperation("action:createFinalSettlementAction", async () => {
     const actor = await requirePermission("payroll", "create");
@@ -139,7 +138,6 @@ export async function cancelFinalSettlementAction(id: string) {
   });
 }
 
-/** The employee acknowledges the settlement by signing on this device, at the moment of handing it over. */
 export async function signFinalSettlementAction(
   id: string,
   input: { signature: string; signer_name: string },
@@ -185,7 +183,6 @@ export async function payFinalSettlementAction(
   });
 }
 
-/** Leaving indemnity rules and the pay unused leave is paid at. */
 export async function updateSettlementRulesAction(input: {
   gratuity: GratuityRules;
   leaveEncashmentBase: "basic" | "fixed";

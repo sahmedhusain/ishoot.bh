@@ -7,7 +7,6 @@ import { getSite } from "../../lib/site";
 import { collectionHref, formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 
-/** Promotion copy is published CMS content; coupon availability and conditions are read from the live store. */
 export async function Promotions({
   locale,
   placement,

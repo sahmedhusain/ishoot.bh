@@ -25,14 +25,11 @@ import { PageHeader } from "../layout/PageHeader";
 interface LeaveManagementViewProps {
   requests: LeaveRequest[];
   leaveTypes: LeaveTypeView[];
-  /** The viewer's balances for this year, one per leave type. */
   myBalances?: LeaveBalance[];
   allEmployees: Employee[];
   myEmployee: any | null;
   currentUserId: string;
-  /** May file leave on behalf of other employees. */
   canFileForOthers: boolean;
-  /** Leave request ids the viewer may approve or reject (from the approval policy). */
   decidableIds: string[];
   currentStatus: string;
   total: number;
@@ -55,7 +52,6 @@ export function LeaveManagementView({
 
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
 
-  // Apply Modal state
   const [showApplyModal, setShowApplyModal] = React.useState(false);
   const applyFormId = React.useId();
   const applyPending = React.useRef(false);
@@ -76,13 +72,11 @@ export function LeaveManagementView({
   const [attachmentUrl, setAttachmentUrl] = React.useState("");
   const selectedType = leaveTypes.find((lt) => lt.id === leaveTypeId);
   React.useEffect(() => {
-    // Keep the duration valid for the chosen leave type.
     if ((portion === "half_am" || portion === "half_pm") && selectedType && !selectedType.allowHalfDay) setPortion("full");
     if (portion === "hours" && selectedType && !selectedType.allowHours) setPortion("full");
   }, [selectedType, portion]);
   const [reason, setReason] = React.useState("");
 
-  // Reject modal state
   const [rejectingRequestId, setRejectingRequestId] = React.useState<
     string | null
   >(null);
@@ -227,7 +221,6 @@ export function LeaveManagementView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
-      {/* Editorial Header */}
       <PageHeader
         eyebrow={t.leaveManagement.operationalAvailabilityAndHrms}
         actions={<div className="flex items-center gap-3">
@@ -245,7 +238,6 @@ export function LeaveManagementView({
 
       {!myEmployee && <NoEmployeeProfile />}
 
-      {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {myEmployee && (
           <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
@@ -286,7 +278,6 @@ export function LeaveManagementView({
 
       {myEmployee && myBalances.length > 0 && <LeaveBalancesCard balances={myBalances} year={new Date().getFullYear()} />}
 
-      {/* Status Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant pb-3">
         {[
           { id: "all", label: t.leaveManagement.allRequests },
@@ -308,7 +299,6 @@ export function LeaveManagementView({
         ))}
       </div>
 
-      {/* Leave Requests Table */}
       <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-start text-sm">
@@ -448,7 +438,6 @@ export function LeaveManagementView({
         </div>
       </Card>
 
-      {/* Apply for Leave Modal */}
       <Modal isOpen={showApplyModal} onClose={() => setShowApplyModal(false)}
         title={t.leaveManagement.applyForLeave} description={t.leaveManagement.onceApprovedYourLeaveWindow}
         busy={submitting} className="max-w-lg" footer={<div className="flex justify-end gap-3">
@@ -586,7 +575,6 @@ export function LeaveManagementView({
         </form>
       </Modal>
 
-      {/* Reject Modal */}
       <Modal isOpen={!!rejectingRequestId} onClose={() => setRejectingRequestId(null)} title={t.leaveManagement.rejectLeaveApplication}
         busy={!!loadingId} className="max-w-md" footer={<div className="flex justify-end gap-3">
           <Button type="button" variant="ghost" disabled={!!loadingId} onClick={() => setRejectingRequestId(null)}>{t.shared.cancel}</Button>

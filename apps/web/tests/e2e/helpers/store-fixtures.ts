@@ -1,7 +1,6 @@
 type PrismaClient = any;
 import { setModule } from "./modules";
 
-/** A fresh tracked product with stock at the default warehouse, and nothing left from earlier runs. */
 export async function freshStockedProduct(
   db: PrismaClient,
   input: {
@@ -119,11 +118,9 @@ export async function enableStore(db: PrismaClient) {
     update: settings,
     create: { id: "default", ...settings },
   });
-  // Each spec places several orders from one address; start every spec under the per-address limits.
   await db.abuseWindow.deleteMany({ where: { key: { startsWith: "store-" } } });
 }
 
-/** Delivery on, with one zone ("Muharraq", fee 1.5, minimum 5) and two daily windows for every zone. */
 export async function enableDelivery(db: PrismaClient) {
   await setModule("delivery", true);
   const settings = {

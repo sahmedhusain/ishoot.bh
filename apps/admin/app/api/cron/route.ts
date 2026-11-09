@@ -24,7 +24,6 @@ export async function GET(req: Request) {
       { status: 401 },
     );
   try {
-    // The notify service sends them (through the provider IT set up) and retries; this hands the queued jobs over.
     await processEmailJobs(sendEmail);
     if (process.env.WEB_URL && process.env.REVALIDATION_SECRET)
       await processRevalidationJobs({
@@ -40,7 +39,6 @@ export async function GET(req: Request) {
     const courierTracking = await syncAgencyTracking();
     const taskReminders = await remindDueTasks();
     const legalReminders = await remindLegalDates();
-    // Marketing e-mail goes out in batches, each with an unsubscribe link back to the website.
     const broadcastsSent = process.env.WEB_URL
       ? await sendBroadcastBatch(
           async (message) =>

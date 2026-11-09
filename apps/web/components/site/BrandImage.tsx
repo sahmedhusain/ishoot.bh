@@ -3,7 +3,6 @@
 import type { PublicCompanySettings } from "@platform/database/types";
 import { ContentImage } from "../shared/ContentImage";
 
-/** Both variants inherit the region's palette, including during the pre-hydration theme bootstrap. */
 export function BrandImage({
   company,
   icon = false,

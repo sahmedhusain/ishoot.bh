@@ -30,7 +30,6 @@ export async function getPublicServices(): Promise<PublicService[]> {
   });
 }
 export async function collectWebsiteDraft(config: WebsiteConfig) {
-  // Pages are created from the settings the first time; outside the snapshot transaction so they are kept.
   await listCmsPages().catch(() => undefined);
   return runAtomicMutation(async () => {
     const [
@@ -56,7 +55,6 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       getCompanySettings(),
       getPortfolioCategories(),
     ]);
-    // Query failures propagate; no redundant full-table count probes are needed.
     return {
       config: validateWebsiteConfig(config),
       brandTheme: branding.theme as typeof branding.theme | undefined,
@@ -86,7 +84,6 @@ export async function getWebsiteEditor() {
     create: {
       id: "main",
       draft: JSON.parse(JSON.stringify(defaultWebsiteConfig)),
-      // Starter copy is a draft; only an explicit publication may make it public.
     },
   });
 }
@@ -101,7 +98,6 @@ export async function getWebsiteSnapshot(
   return collectWebsiteDraft(validateWebsiteConfig(content.draft));
 }
 
-/** Snapshot sections an editor can change outside the Website page. */
 export const WEBSITE_SNAPSHOT_SECTIONS = [
   "config",
   "brandTheme",
@@ -118,7 +114,6 @@ export const WEBSITE_SNAPSHOT_SECTIONS = [
 ] as const;
 export type WebsiteSnapshotSection = (typeof WEBSITE_SNAPSHOT_SECTIONS)[number];
 
-// Postgres jsonb does not keep key order, so compare with keys sorted.
 const stableJson = (value: unknown): string =>
   JSON.stringify(value, (_key, v) =>
     v && typeof v === "object" && !Array.isArray(v)
@@ -128,10 +123,6 @@ const stableJson = (value: unknown): string =>
       : v,
   );
 
-/**
- * Which parts of the public website differ from what is live. Derived by comparing the current
- * draft with the published snapshot, so it can never drift from reality.
- */
 export async function getWebsitePublicationStatus(): Promise<{
   isPublished: boolean;
   changedSections: WebsiteSnapshotSection[];

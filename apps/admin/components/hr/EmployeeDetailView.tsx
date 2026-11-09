@@ -26,9 +26,7 @@ interface EmployeeDetailViewProps {
   employee: Employee;
   departments: Department[];
   canEdit: boolean;
-  /** May see salary and payroll settings (payroll:read). */
   canViewPay?: boolean;
-  /** May change salary and payroll settings (payroll:edit). */
   canEditPay?: boolean;
 }
 
@@ -46,7 +44,6 @@ export function EmployeeDetailView({
   const [isEditing, setIsEditing] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
-  // Edit fields state
   const [jobTitleEn, setJobTitleEn] = React.useState(employee.jobTitleEn);
   const [jobTitleAr, setJobTitleAr] = React.useState(employee.jobTitleAr || "");
   const [departmentId, setDepartmentId] = React.useState(
@@ -56,7 +53,6 @@ export function EmployeeDetailView({
   const [phone, setPhone] = React.useState(employee.phone || "");
   const [email, setEmail] = React.useState(employee.email || "");
 
-  // Current compensation
   const currentRecord =
     employee.employmentRecords?.find((r) => r.isCurrent) ||
     employee.employmentRecords?.[0];
@@ -113,7 +109,6 @@ export function EmployeeDetailView({
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
-      {/* Top Header */}
       <PageHeader
         title={<>{isArabic ? employee.firstNameAr : employee.firstNameEn}{" "}{isArabic ? employee.lastNameAr : employee.lastNameEn}</>}
         back={{ href: ROUTES.hr.employees }}
@@ -141,7 +136,6 @@ export function EmployeeDetailView({
         )}
       />
 
-      {/* On Leave Availability Warning Banner */}
       {employee.status === "on_leave" && (
         <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -171,7 +165,6 @@ export function EmployeeDetailView({
         </fieldset>
       )}
       {isEditing ? (
-        /* Edit Form */
         <form onSubmit={handleSave} className="space-y-6">
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3">
@@ -264,7 +257,6 @@ export function EmployeeDetailView({
             </div>
           </Card>
 
-          {/* Compensation Adjustment */}
           {canEditPay && (<>
             <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3">
@@ -351,11 +343,8 @@ export function EmployeeDetailView({
           </div>
         </form>
       ) : (
-        /* Read-only View */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Main 2 Cols */}
           <div className="md:col-span-2 space-y-6">
-            {/* Core Employment Details */}
             <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
                 <BriefcaseIcon className="w-4 h-4 text-accent" />
@@ -424,7 +413,6 @@ export function EmployeeDetailView({
               </div>
             </Card>
 
-            {/* Compensation Structure */}
             {canViewPay && (
               <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
                 <div className="flex items-center justify-between border-b border-outline-variant pb-3">
@@ -473,7 +461,6 @@ export function EmployeeDetailView({
             )}
           </div>
 
-          {/* Right Column: Leave Balance & User Link */}
           <div className="space-y-6">
             <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-3">
               <h3 className="text-xs font-mono uppercase tracking-widest text-ink-muted border-b border-outline-variant pb-2">

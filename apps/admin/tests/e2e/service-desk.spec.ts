@@ -109,7 +109,6 @@ test("a customer reports a problem with an order from their account; it reaches 
     priority: "high",
     emailNorm: EMAIL,
   });
-  // Due a day later (the high-priority resolution time).
   const due = request.slaDueDate!.getTime() - before;
   expect(due).toBeGreaterThan(23.9 * 3_600_000);
   expect(due).toBeLessThan(24.2 * 3_600_000);
@@ -123,7 +122,6 @@ test("staff save a reply and send email and WhatsApp through notify from the req
 }) => {
   const errors = watchErrors(page);
   await page.goto("/dashboard/requests/settings");
-  // A page's first compile in development can briefly mount it twice; act once it has settled.
   await page.waitForLoadState("networkidle");
   await page.getByTestId("canned-new").click();
   await page.locator('input[name="cannedTitle"]').fill("E2E thanks");
@@ -147,7 +145,6 @@ test("staff save a reply and send email and WhatsApp through notify from the req
   );
 
   errors.assertClean();
-  // Notify owns delivery; the isolated stack sends this reply to Mailpit.
   const inboxUrl = `http://127.0.0.1:${process.env.MAILPIT_UI_PORT || 8025}/api/v1/messages?limit=200`;
   const inbox = await page.request.get(inboxUrl);
   expect(inbox.ok()).toBe(true);
@@ -191,7 +188,6 @@ test("staff save a reply and send email and WhatsApp through notify from the req
 
   const later = watchErrors(page);
   await selectOption(panel.getByTestId("canned-pick"), { label: "E2E thanks" });
-  // The isolated stack sends WhatsApp through its sandbox. Unexpected chat links stay local too.
   await context.route("https://wa.me/**", (route) =>
     route.fulfill({
       status: 200,
@@ -231,7 +227,6 @@ test("staff save a reply and send email and WhatsApp through notify from the req
       .workflowStatus,
   ).toBe("under_review");
 
-  // The order shows the request.
   await page.goto(`/dashboard/orders/${orderId}`);
   await page.waitForLoadState("networkidle");
   await expect(page.getByTestId("order-requests").first()).toContainText(

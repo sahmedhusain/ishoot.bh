@@ -1,4 +1,3 @@
-// Catalogue keys shared by the identity service and its IT editors.
 import access from "../catalog/staff-access.json";
 import scopes from "../catalog/data-scopes.json";
 export const STAFF_RESOURCES: readonly string[] = access.resources;

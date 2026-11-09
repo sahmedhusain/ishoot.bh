@@ -21,19 +21,10 @@ type LeaveApprovedHook = (
   approverId: string,
 ) => Promise<unknown>;
 const leaveApprovedHooks: LeaveApprovedHook[] = [];
-/**
- * Runs after a leave request is approved, inside the same transaction. Modules subscribe instead of being
- * imported here, which would loop back through the approval engine.
- */
 export function onLeaveApproved(hook: LeaveApprovedHook) {
   if (!leaveApprovedHooks.includes(hook)) leaveApprovedHooks.push(hook);
 }
 
-/**
- * Checks if an employee (or linked User) has an overlapping approved leave.
- * Interval comparison: [requestStart, requestEnd] overlaps [leaveStart, leaveEnd]
- * if requestStart <= leaveEnd && requestEnd >= leaveStart.
- */
 export async function checkEmployeeAvailability(
   employeeIdOrUserId: string,
   periodStart: Date,
@@ -47,7 +38,6 @@ export async function checkEmployeeAvailability(
     leaveTypeCode?: string;
   };
 }> {
-  // First resolve the employee ID if a user ID was passed
   const employee = await db.employee.findFirst({
     where: {
       OR: [{ id: employeeIdOrUserId }, { userId: employeeIdOrUserId }],
@@ -61,11 +51,9 @@ export async function checkEmployeeAvailability(
   });
 
   if (!employee) {
-    // If no employee record exists for the user, availability constraint does not block
     return { isAvailable: true };
   }
 
-  // Find any approved leave overlapping the period
   const conflict = await db.leaveRequest.findFirst({
     where: {
       employeeId: employee.id,
@@ -93,10 +81,6 @@ export async function checkEmployeeAvailability(
   return { isAvailable: true };
 }
 
-/**
- * Batch availability check for candidate employees.
- * Single query over candidate set.
- */
 export async function checkBatchAvailability(
   employeeOrUserIds: string[],
   periodStart: Date,
@@ -149,7 +133,6 @@ export async function checkBatchAvailability(
     }
   }
 
-  // Any ID not having an employee record is assumed available
   for (const id of employeeOrUserIds) {
     if (!result.has(id)) {
       result.set(id, { isAvailable: true });
@@ -159,10 +142,6 @@ export async function checkBatchAvailability(
   return result;
 }
 
-/**
- * Asserts that an actor is NOT currently on approved leave when creating operational/financial work.
- * "An employee on approved leave cannot create new operational/financial work or make assignment/approval decisions during that period."
- */
 export async function assertActorNotOnLeave(
   actorId: string,
   workDate?: Date,
@@ -187,9 +166,6 @@ export async function assertActorNotOnLeave(
   }
 }
 
-/**
- * Asserts that an assignee is available during the scheduled work period.
- */
 export async function assertAssigneeAvailable(
   assigneeId: string,
   periodStart: Date,
@@ -216,7 +192,6 @@ export async function createLeaveRequest(data: {
   endDate: Date;
   fullDay?: boolean;
   hours?: number;
-  /** "full" (default), "half_am", "half_pm" or "hours". */
   dayPortion?: DayPortion;
   attachmentUrl?: string | null;
   reason: string;
@@ -227,7 +202,6 @@ export async function createLeaveRequest(data: {
   const portion: DayPortion =
     data.dayPortion ?? (data.fullDay === false ? "hours" : "full");
 
-  // Check existing approved or pending leaves for overlap
   const existingOverlap = await db.leaveRequest.findFirst({
     where: {
       employeeId: data.employeeId,
@@ -238,7 +212,6 @@ export async function createLeaveRequest(data: {
   });
 
   if (existingOverlap) {
-    // Two half days on the same date (morning and afternoon) may coexist.
     const halves = ["half_am", "half_pm"];
     const sameDayHalves =
       halves.includes(portion) &&
@@ -344,7 +317,6 @@ export interface LeaveConflicts {
   calendarEventsCount: number;
 }
 
-/** Open work assigned to the employee during the leave period, shown to approvers. */
 export async function getLeaveConflicts(leave: {
   startDate: Date;
   endDate: Date;
@@ -385,7 +357,6 @@ export async function getLeaveConflicts(leave: {
   return { assignedInquiriesCount, assignedDealsCount, calendarEventsCount };
 }
 
-/** Applies an approval decided by the approval engine (which enforces who may decide). */
 export async function approveLeaveRequest(
   requestId: string,
   approverId: string,
@@ -412,7 +383,6 @@ export async function approveLeaveRequest(
     );
 
   const conflicts = await getLeaveConflicts(leave);
-  // Other requests (approved or pending) already count against the balance; this one is pending too.
   const balance = await getLeaveBalance(
     leave.employeeId,
     leave.leaveTypeId,
@@ -434,7 +404,6 @@ export async function approveLeaveRequest(
     },
   });
   await refreshLeaveBalanceCache(leave.employeeId);
-  // E.g. leave types that need a handover open one for HR (see employee-handovers).
   for (const hook of leaveApprovedHooks) await hook(requestId, approverId);
   const updated = await db.leaveRequest.findUniqueOrThrow({
     where: { id: requestId },
@@ -460,7 +429,6 @@ export async function approveLeaveRequest(
   };
 }
 
-/** Applies a rejection decided by the approval engine. */
 export async function rejectLeaveRequest(
   requestId: string,
   approverId: string,
@@ -512,14 +480,12 @@ export async function rejectLeaveRequest(
 
 export async function listLeaveRequests(filters: {
   employeeId?: string;
-  /** Extra requests to include regardless of employeeId, e.g. ones awaiting the viewer's approval. */
   includeIds?: string[];
   status?: string;
   startDate?: Date;
   endDate?: Date;
   page?: number;
   pageSize?: number;
-  /** Data scope: the staff accounts whose leave the viewer may see; null or missing for everyone. */
   userIds?: string[] | null;
 }): Promise<{ items: LeaveRequest[]; total: number }> {
   const page = Math.max(1, filters.page || 1);
@@ -568,7 +534,6 @@ export async function listLeaveRequests(filters: {
       endDate: r.endDate.toISOString(),
       hours: r.hours ? Number(r.hours) : null,
       days: Number(r.days),
-      // Decimal cannot cross to client components.
       leaveType: r.leaveType ? toLeaveTypeRules(r.leaveType) : r.leaveType,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
@@ -577,7 +542,6 @@ export async function listLeaveRequests(filters: {
   };
 }
 
-/** Active leave types with their rules (half days, hours, attachments), in display order. */
 export async function listLeaveTypes(): Promise<LeaveTypeView[]> {
   return listLeaveTypeRules({ activeOnly: true });
 }

@@ -32,9 +32,7 @@ import { PageHeader } from "../layout/PageHeader";
 interface NewEmployeeFormViewProps {
   departments: Department[];
   visaExemptCountries?: string[];
-  /** Existing user account the new employee record will be linked to. */
   linkUser?: { id: string; fullName: string; email: string } | null;
-  /** Salary and payroll settings are set only by payroll managers; others leave them for payroll to complete. */
   canSetPay?: boolean;
 }
 
@@ -46,7 +44,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
 
   const [submitting, setSubmitting] = React.useState(false);
 
-  // Form State
   const [payrollSettings, setPayrollSettings] =
     React.useState(emptyPayrollSettings);
   const [firstNameEn, setFirstNameEn] = React.useState(linkUser?.fullName.split(" ")[0] ?? "");
@@ -73,7 +70,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
     "full_time" | "part_time" | "contract"
   >("full_time");
 
-  // Compensation in the company currency
   const [basicSalary, setBasicSalary] = React.useState(500);
   const [housingAllowance, setHousingAllowance] = React.useState(100);
   const [transportAllowance, setTransportAllowance] = React.useState(50);
@@ -110,7 +106,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
         ...(canSetPay && { basicSalary, housingAllowance, transportAllowance, otherAllowances, payrollSettings }),
         userId: linkUser?.id,
         identity: { ...identity, cpr_number: cprNumber.trim() || undefined },
-        // A visa is recorded for nationals who need one, once any of its details are filled in.
         credentials: visaRequired && (visa.number || visa.expiry_date || visa.cost_amount !== undefined) ? [visa] : [],
       });
 
@@ -132,7 +127,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
 
   return (
     <form inert={submitting} aria-busy={submitting} onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Editorial Header */}
       <PageHeader
         back={{ href: ROUTES.hr.employees }}
         eyebrow={t.newEmployeeForm.hrmsRegistry}
@@ -155,7 +149,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
       />
 
       <div className="space-y-6">
-        {/* Personal & Compliance Information */}
         <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
             <ShieldCheck className="w-4 h-4 text-accent" />
@@ -253,7 +246,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
           </div>
         </Card>
 
-        {/* Job & Department Details */}
         <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
             <ShieldCheck className="w-4 h-4 text-accent" />
@@ -398,7 +390,6 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
           </div>
         </Card>
 
-        {/* Compensation & Allowances */}
         {canSetPay ? (<>
           <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <div className="flex items-center justify-between border-b border-outline-variant pb-3">

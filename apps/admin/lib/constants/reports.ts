@@ -1,4 +1,3 @@
-// The report catalogue: every report with who may run it, the module it belongs to and its columns. Runtime-free.
 import type { PermissionResource } from "./permissions";
 
 export const REPORT_AREAS = [
@@ -23,12 +22,9 @@ export interface ReportDefinition {
   key: string;
   area: ReportArea;
   resource: PermissionResource;
-  /** Optional module the report needs switched on. */
   module?: string;
   columns: ReportColumn[];
-  /** Whether the report is about a date range (otherwise it is a snapshot of now). */
   ranged: boolean;
-  /** The column compared with the previous period, and the one drawn as bars. */
   measure?: string;
 }
 
@@ -39,7 +35,6 @@ const percent = (key: string): ReportColumn => ({ key, kind: "percent" });
 const date = (key: string): ReportColumn => ({ key, kind: "date" });
 
 export const REPORTS: readonly ReportDefinition[] = [
-  // Sales
   {
     key: "sales_by_product",
     area: "sales",
@@ -119,7 +114,6 @@ export const REPORTS: readonly ReportDefinition[] = [
     measure: "orders",
     columns: [text("name"), number("orders"), percent("share")],
   },
-  // Stock
   {
     key: "stock_on_hand",
     area: "stock",
@@ -169,7 +163,6 @@ export const REPORTS: readonly ReportDefinition[] = [
       money("variance_value"),
     ],
   },
-  // Procurement
   {
     key: "spend_by_supplier",
     area: "procurement",
@@ -216,7 +209,6 @@ export const REPORTS: readonly ReportDefinition[] = [
       percent("change"),
     ],
   },
-  // Delivery
   {
     key: "delivery_performance",
     area: "delivery",
@@ -234,7 +226,6 @@ export const REPORTS: readonly ReportDefinition[] = [
       money("cod_outstanding"),
     ],
   },
-  // Finance
   {
     key: "receivables_aging",
     area: "finance",
@@ -269,7 +260,6 @@ export const REPORTS: readonly ReportDefinition[] = [
       money("total"),
     ],
   },
-  // Marketing
   {
     key: "marketing_roi",
     area: "marketing",
@@ -286,7 +276,6 @@ export const REPORTS: readonly ReportDefinition[] = [
       number("return_on_spend"),
     ],
   },
-  // People
   {
     key: "headcount_by_department",
     area: "people",
@@ -311,7 +300,6 @@ export type ReportFormat = (typeof REPORT_FORMATS)[number];
 export const REPORT_FREQUENCIES = ["daily", "weekly", "monthly"] as const;
 export type ReportFrequency = (typeof REPORT_FREQUENCIES)[number];
 
-/** The period of equal length just before [from, to] ("YYYY-MM-DD", inclusive). */
 export function previousPeriod(from: string, to: string) {
   const start = new Date(`${from}T00:00:00Z`).getTime();
   const end = new Date(`${to}T00:00:00Z`).getTime();
@@ -324,13 +312,11 @@ export function previousPeriod(from: string, to: string) {
   };
 }
 
-/** Change from the previous value as a percentage (null when there was nothing before). */
 export const changePercent = (current: number, previous: number) =>
   previous
     ? Math.round(((current - previous) / Math.abs(previous)) * 1000) / 10
     : null;
 
-/** The period a scheduled report covers when it runs: the day, week or month that just ended. */
 export function scheduledPeriod(frequency: ReportFrequency, now: Date) {
   const today = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
@@ -354,7 +340,6 @@ export function scheduledPeriod(frequency: ReportFrequency, now: Date) {
   };
 }
 
-/** When a schedule runs next after `from`: tomorrow, the next Sunday, or the first of next month (early morning UTC). */
 export function nextScheduledRun(frequency: ReportFrequency, from: Date) {
   const day = new Date(
     Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), 4),

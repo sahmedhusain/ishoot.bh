@@ -18,7 +18,6 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
   const [order, suppliers, warehouses, products, company, canEdit, canExport, canCreate] = await Promise.all([getPurchaseOrder(id), listSuppliers(), listWarehouses(), procurementProductOptions(), getCachedCompanySettings(), hasPermission("procurement", "edit"), hasPermission("procurement", "export"), hasPermission("procurement", "create")]);
   if (!order) notFound();
   const receivable = canCreate && (RECEIVABLE_ORDER_STATUSES as readonly string[]).includes(order.status);
-  // Goods go to the order's warehouse (all warehouses when none was set).
   const locations = warehouses
     .filter((w) => w.is_active && (!order.warehouse || w.id === (order.warehouse as any).id))
     .flatMap((w) => w.locations.filter((l) => l.is_active).map((l) => ({ id: l.id, label: `${company.primary_language === "ar" ? w.name_ar : w.name_en} · ${l.name || l.code}` })));

@@ -28,7 +28,6 @@ interface ProductsListViewProps {
   canEdit: boolean;
 }
 
-/** Products → list: search, filters, paging and switching several products on or off sale. */
 export function ProductsListView({ rows, total, page, pageSize, filters, categories, currency, canCreate, canEdit }: ProductsListViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

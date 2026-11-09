@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CURRENCY_SYMBOLS = void 0;
-// ISO 4217 active currencies and funds; source: SIX list-one.xml, 2026-10-28.
 const currencyReference = require("../../contracts/catalog/currencies.json");
 exports.CURRENCY_CODES = currencyReference.map(({ code }) => code).filter((code) => !["XTS", "XXX"].includes(code));
 exports.isCurrencyCode = (code) => typeof code === "string" && exports.CURRENCY_CODES.includes(code);
@@ -96,9 +95,7 @@ function getCurrencySymbol(code, unicode = true) {
   if (!unicode && normalized === "AED") return "AED";
   return exports.CURRENCY_SYMBOLS[normalized] || normalized;
 }
-/** Arabic abbreviations used on Arabic screens and documents; other currencies keep their symbol. */
 exports.ARABIC_CURRENCY_LABELS = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع", EGP: "ج.م", JOD: "د.أ" };
-/** The currency's symbol; on Arabic screens a Latin abbreviation (BHD, KD, SAR…) becomes its Arabic one. Official signs stay. */
 function getCurrencyLabel(code, isArabic = false, unicode = true) {
   const normalized = (code || "").trim().toUpperCase();
   const symbol = getCurrencySymbol(normalized, unicode);

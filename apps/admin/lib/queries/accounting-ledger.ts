@@ -17,7 +17,6 @@ export interface JournalPosting {
 }
 async function requireLedgerAdministrator(actorId: string) {
   const actor = await db.user.findUnique({ where: { id: actorId } });
-  // New ledger permissions must be provisioned before delegating posting to additional roles.
   if (!actor?.isActive || actor.role !== "super_admin")
     throw new Error("Ledger administration requires a super administrator");
 }
@@ -80,7 +79,6 @@ async function postJournalRecord(
       return { id: existing.id };
     }
     await assertCompanyCurrency(input.currency);
-    // The same lock serializes period closing and posting; closing cannot race past a posting.
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('accounting-periods', 0))`;
     const periods = await db.accountingPeriod.findMany({
       where: { startsOn: { lte: postingDate }, endsOn: { gte: postingDate } },
@@ -150,7 +148,6 @@ export async function createAccountingPeriod(
   });
 }
 
-/** Closing is serialized against posting and is irreversible through this service. */
 export async function closeAccountingPeriod(periodId: string, actorId: string) {
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
@@ -180,7 +177,6 @@ export async function closeAccountingPeriod(periodId: string, actorId: string) {
   });
 }
 
-/** Reversals use today's chosen open period; the original posting remains unchanged. */
 export async function reverseJournal(
   input: {
     entryId: string;
@@ -194,7 +190,6 @@ export async function reverseJournal(
     throw new Error("A reversal reason is required");
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
-    // Two different retry keys must not reverse one entry twice.
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`reversal:${input.entryId}`}, 0))`;
     const original = await db.journalEntry.findUniqueOrThrow({
       where: { id: input.entryId },

@@ -10,7 +10,6 @@ import {
 
 const EVENT = "platform-cart-change";
 
-/** The cart in this browser (product, variant, quantity only: prices come from the server). */
 function readCart(): CartLine[] {
   try {
     const value = JSON.parse(
@@ -56,7 +55,6 @@ export function addToCart(line: CartLine) {
   writeCart(lines);
 }
 
-/** The cart, kept in step across components and tabs. */
 export function useCart() {
   const [lines, setLines] = React.useState<CartLine[]>([]);
   React.useEffect(() => {

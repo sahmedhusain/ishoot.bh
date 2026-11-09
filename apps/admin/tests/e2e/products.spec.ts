@@ -10,7 +10,6 @@ const db = testDatabase();
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  // The demo company is a media studio, which starts without the products module.
   await setModule("products", true);
   await db.product.deleteMany({ where: { sku: { startsWith: "E2E-" } } });
   await db.productCategory.deleteMany({ where: { nameEn: "E2E Clothing" } });
@@ -65,7 +64,6 @@ test("a product with a category, options and variants is created, kept unique an
       .first(),
   ).toHaveValue("E2E-TEE-S");
   await page.getByTestId("product-save").click();
-  // Creating opens the new product's own page.
   await expect(page).toHaveURL(/\/dashboard\/products\/[0-9a-f-]{36}$/, {
     timeout: 60_000,
   });
@@ -86,7 +84,6 @@ test("a product with a category, options and variants is created, kept unique an
 
   errors.assertClean();
 
-  // A SKU used by a variant cannot be another product's SKU (the refused save is the only failed request).
   await page.goto("/dashboard/products/new");
   await page.locator('input[name="productNameEn"]').fill("E2E Duplicate");
   await page.locator('input[name="productNameAr"]').fill("مكرر الاختبار");
@@ -97,7 +94,6 @@ test("a product with a category, options and variants is created, kept unique an
   );
   const later = watchErrors(page);
 
-  // The list finds the product by a variant's SKU.
   await page.goto("/dashboard/products?q=E2E-TEE-L");
   await expect(
     page.getByRole("link", { name: /تيشيرت الاختبار/ }),

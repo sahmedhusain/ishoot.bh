@@ -18,10 +18,8 @@ import { signingConsent } from "../../../../../lib/client-signing";
 
 export const dynamic = "force-dynamic";
 
-/** Days a client can still download their signed copy through the link. */
 const SIGNED_COPY_DAYS = 30;
 
-/** Public: the document behind a signing link, while the link is open (and for a while after signing). */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },

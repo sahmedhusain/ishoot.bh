@@ -57,7 +57,6 @@ export function DocumentLetterhead({
 }: DocumentLetterheadProps) {
   const isAr = language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
-  // Status codes (e.g. "partially paid", "APPROVED") read in the document's language.
   const statusLabels = adminTranslations[isAr ? "ar" : "en"].statusLabels as Record<string, string>;
   const statusText = statusLabels[statusValue.trim().toLowerCase().replace(/\s+/g, "_")] ?? statusValue;
 
@@ -77,13 +76,10 @@ export function DocumentLetterhead({
 
   return (
     <div className="w-full">
-      {/* Official Header Banner */}
       <div className="bg-primary text-white p-6 sm:p-8 border-b-4 border-accent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
-        {/* Subtle background geometry inspired by camera aperture */}
         <div className="absolute end-0 top-0 w-96 h-96 bg-white/[0.02] rounded-full pointer-events-none -me-20 -mt-20 blur-2xl" />
 
         <div className="relative z-10 space-y-2">
-          {/* Brand Logo: Icon + Wordmark beside each other */}
           <div className="flex items-center gap-3">
             <ContentImage
               src={
@@ -139,9 +135,7 @@ export function DocumentLetterhead({
         </div>
       </div>
 
-      {/* Client & Metadata Section */}
       <div className="p-6 sm:p-8 border-b border-gray-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-gray-800">
-        {/* Client Details */}
         <div className="space-y-1.5">
           <span className="text-slate-500 font-bold uppercase tracking-wider block text-[10px]">
             {clientSectionTitle}
@@ -187,7 +181,6 @@ export function DocumentLetterhead({
           )}
         </div>
 
-        {/* Dates & Reference Block */}
         <div className="space-y-2 sm:text-end flex flex-col justify-start sm:items-end">
           <div className="flex justify-between sm:justify-end gap-6 w-full">
             <span className="text-slate-500 font-bold uppercase text-[10px]">

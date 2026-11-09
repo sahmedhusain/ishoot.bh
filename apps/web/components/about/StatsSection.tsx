@@ -12,7 +12,6 @@ export function StatsSection({ stats }: { stats: WebsiteSnapshot["stats"] }) {
     <section className="relative z-40 bg-m3-surface text-m3-on-surface py-20 sm:py-28 select-none border-t border-m3-outline-variant">
       <div className="shell space-y-12">
         <Reveal className="relative p-5 sm:p-10 rounded-3xl bg-m3-surface-container-low border border-m3-outline-variant shadow-m3-2 overflow-hidden">
-          {/* Background Graphic Grid */}
           <div
             aria-hidden="true"
             className="absolute inset-0 z-0 pointer-events-none opacity-10"

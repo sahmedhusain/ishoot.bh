@@ -21,7 +21,6 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const user = await requireAuth();
 
-  // The profile shows the user's own details and requests only; requests they approve open in the Approvals Center.
   const [rawEmployees, myRequests] = await Promise.all([
     listEmployees().catch(() => []),
     getProfileChangeRequestsForUser(user.id).catch(() => []),
@@ -38,7 +37,6 @@ export default async function ProfilePage() {
     : null;
   const manager = null;
 
-  // Sign-in security (two-step status, recovery codes and sessions) lives in identity.
   const staff = await getStaffToken();
   const [security, ownSessions] = staff
     ? await Promise.all([getOwnAccount(staff.token), listOwnSessions(staff.token)])

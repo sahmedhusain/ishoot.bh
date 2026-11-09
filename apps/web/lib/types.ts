@@ -7,7 +7,6 @@ import {
   getCurrencyDecimals,
 } from "@platform/config/currency";
 import { SUPPORTED_CURRENCIES } from "./constants/finance";
-/** A role id: one of the templates (constants/permissions.ts ALL_ROLES) or a company's own role. */
 export type UserRole = string;
 
 export interface Profile {
@@ -21,15 +20,12 @@ export interface Profile {
   role: UserRole;
   avatar_url?: string;
   phone?: string;
-  /** Legacy free-text team name; department_id is the company's department. */
   department?: string;
   department_id?: string | null;
   department_name_en?: string;
   department_name_ar?: string;
   signature_url?: string;
-  /** Discount limit (% of subtotal) without approval; null uses the company default. */
   discount_limit_percent?: number | null;
-  /** Commission on collected net revenue credited to this person; null = none. */
   commission_rate_percent?: number | null;
   manager_id?: string;
   manager_name?: string;
@@ -94,14 +90,10 @@ export function getCurrencyDisplayLabel(
 
 export interface CompanySettings {
   id: string;
-  /** Brand colours, fonts, radius and default mode, always complete (defaults fill anything missing). */
   theme: BrandTheme;
-  /** False until the first-run setup wizard has been completed. */
   setup_completed: boolean;
-  /** Languages the company writes content in; with one, both sides of every bilingual field hold the same text. */
   content_languages: ContentLanguage[];
   primary_language: ContentLanguage;
-  /** What the company does (website-presets.ts); null until chosen. */
   business_activity: BusinessActivity | null;
   tagline_en?: string;
   tagline_ar?: string;
@@ -109,9 +101,7 @@ export interface CompanySettings {
   city?: string;
   country?: string;
   map_url?: string;
-  /** The public website's domain, without https:// ("example.com"). */
   website_domain?: string;
-  /** The admin's own domain, if any ("admin.example.com"). */
   admin_domain?: string;
   company_name_en: string;
   company_name_ar: string;
@@ -136,20 +126,16 @@ export interface CompanySettings {
   bank_account_number: string;
   bank_swift: string;
   time_zone?: string;
-  // Full-Sized Logo (Combined Icon + Wordmark text)
   full_logo_url?: string;
   dark_full_logo_url?: string;
-  // Document Letterhead Attachments (PDF Banners)
   document_header_url?: string;
   document_footer_url?: string;
-  // Brand Wordmark (Text only)
-  logo_url: string; // Dark text (for light background)
-  dark_logo_url?: string; // Light text (for dark background)
+  logo_url: string;
+  dark_logo_url?: string;
   logo_text_dark_url?: string;
   logo_text_light_url?: string;
-  // Brand Icon (Icon only)
-  icon_url?: string; // Light background icon
-  dark_icon_url?: string; // Dark background icon
+  icon_url?: string;
+  dark_icon_url?: string;
   icon_light_url?: string;
   icon_dark_url?: string;
   stamp_url?: string;
@@ -208,7 +194,6 @@ export interface PortfolioCategory {
   display_order: number;
 }
 
-/** A labelled fact on a catalogue item, e.g. Bedrooms: 3, Duration: 6 weeks. */
 export interface PortfolioAttribute {
   labelEn: string;
   labelAr: string;
@@ -223,7 +208,6 @@ export interface PortfolioItem {
   slug: string;
   title_en: string;
   title_ar: string;
-  /** Empty for items without a client (products, properties…). */
   client_name: string;
   year?: number;
   subtitle_en?: string;
@@ -441,7 +425,6 @@ export interface ClientContactPersonInput {
   notes?: string;
 }
 
-/** Everything the client form sends. Omitted fields keep their stored value on update. */
 export interface ClientProfileInput {
   client_kind?: "individual" | "company" | "government";
   full_name?: string;
@@ -451,7 +434,6 @@ export interface ClientProfileInput {
   phone?: string;
   job_title?: string;
   company?: string;
-  /** Arabic company or entity name. */
   company_ar?: string;
   company_origin?: "local" | "foreign";
   legal_form?: string;
@@ -474,7 +456,6 @@ export interface ClientProfileInput {
   contact_persons?: ClientContactPersonInput[];
 }
 
-/** A row of the client list: the profile plus its standing. Amounts are in the base currency. */
 export interface ClientListRow extends CRMContact {
   rank: number | null;
   tier: "A" | "B" | "C" | "none";
@@ -556,7 +537,6 @@ export interface CustomerDossier {
   };
 }
 
-/** A DealPipelineStage id (constants/crm.ts lists the built-in ones). */
 export type DealStage = string;
 
 export interface CRMDeal {
@@ -622,7 +602,6 @@ export function calculateInvoiceTotals(
   vatEnabled: boolean,
   vatPercentage: number,
   currency: SupportedCurrency = "USD",
-  /** Taxes besides VAT (company tax registry), each charged on the amount after discount. */
   otherTaxes: Array<{ code: string; rate: number }> = [],
 ) {
   if (!CURRENCY_CONFIGS[currency])
@@ -711,7 +690,6 @@ export function calculateInvoiceTotals(
   };
 }
 
-/** One tax besides VAT as frozen on a document. */
 export interface DocumentTaxLine {
   code: string;
   name_en: string;
@@ -738,7 +716,6 @@ export interface Invoice {
   vat_enabled: boolean;
   vat_percentage: number;
   vat_amount: number;
-  /** Taxes besides VAT on this invoice and their sum. */
   other_taxes?: DocumentTaxLine[];
   other_tax_amount?: number;
   total_amount: number;
@@ -856,18 +833,13 @@ export interface CalendarEvent {
   created_at: string;
   updated_at: string;
   deal?: CRMDeal;
-  /** Who sees the event: "private" | "team" | "department" | "company" | "custom". */
   visibility?: CalendarVisibility;
   audience_user_ids?: string[];
   audience_department_ids?: string[];
   audience_roles?: string[];
-  /** "event": created in the calendar; "system": shown from leave, deals, invoices, payroll… (read only). */
   source?: "event" | "system";
-  /** The calendar layer it belongs to, for filtering and colour. */
   layer?: CalendarLayer;
-  /** Page of the record behind a system event. */
   href?: string;
-  /** The viewer may change or delete it. */
   editable?: boolean;
   created_by_name?: string;
 }
@@ -908,7 +880,6 @@ export interface Notification {
   type: "info" | "warning" | "success" | "action";
   entity_type?: string;
   entity_id?: string;
-  /** Locale key (under admin.*) for title/message; `title`/`message` hold the English fallback. */
   message_key?: string;
   message_params?: Record<string, string>;
   action_url?: string;

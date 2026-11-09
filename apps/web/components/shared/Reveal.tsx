@@ -4,7 +4,6 @@ import { useSiteReducedMotion } from "../site/SiteTheme";
 import type { ReactNode } from "react";
 import { motion, useAnimationControls } from "framer-motion";
 
-/** One-time entrance; content stays visible until motion preferences resolve. */
 export function Reveal({
   children,
   className = "",
@@ -27,7 +26,6 @@ export function Reveal({
       }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{
-        // The shared motion tokens: --motion-slow and --ease-emphasized.
         duration: reduced ? 0 : 0.32,
         delay: reduced ? 0 : delay,
         ease: [0.16, 1, 0.3, 1],

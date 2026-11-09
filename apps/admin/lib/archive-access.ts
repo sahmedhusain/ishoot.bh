@@ -7,7 +7,6 @@ import {
 } from "@platform/database";
 import { hasPermission } from "./auth";
 
-/** The archive kinds the current user may see (and, for exports, also export). */
 export async function archiveKindsForCurrentUser(
   actions: PermissionAction[] = ["read"],
 ): Promise<ArchiveKind[]> {

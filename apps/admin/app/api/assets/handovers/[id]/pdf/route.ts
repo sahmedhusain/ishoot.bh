@@ -11,7 +11,6 @@ import { generateAssetHandoverPdf } from "../../../../../../lib/pdf/asset-handov
 
 export const runtime = "nodejs";
 
-/** The handover form as PDF for staff with asset access, the employee in it and its approvers. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

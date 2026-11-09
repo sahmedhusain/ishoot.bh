@@ -19,7 +19,6 @@ export default async function ItSupportPage({
   const status = TICKET_STATUSES.includes(params.status ?? "")
     ? params.status!
     : "";
-  // The itsm service can be down while the rest of the dashboard works; the page says so instead of failing.
   const page = await listMyTickets(user.id, {
     status: status || undefined,
     cursor: params.cursor || undefined,

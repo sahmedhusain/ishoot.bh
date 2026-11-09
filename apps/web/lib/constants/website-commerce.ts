@@ -255,7 +255,6 @@ export function validateWebsiteCommerce(value: unknown): WebsiteCommerce {
   };
 }
 
-/** Empty legacy branch lists retain generic pickup. Once locations exist, an eligible choice is required. */
 export function selectedPickupBranch(
   commerce: WebsiteCommerce,
   id?: string | null,
@@ -269,7 +268,6 @@ export function selectedPickupBranch(
   return { ...branch };
 }
 
-/** A category includes its descendants; the guard also makes stale content safe to render. */
 export function categoryAncestors(
   slug: string,
   parents: Record<string, string> = {},

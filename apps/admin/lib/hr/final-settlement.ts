@@ -1,23 +1,15 @@
 import { roundMoney } from "../finance/money";
 import { serverMessages } from "@platform/locales";
-/**
- * Final settlement arithmetic with no database access: leaving indemnity and unused leave.
- * Money follows the supplied currency; legacy snapshots retain three decimals. Dates are UTC calendar days.
- */
 import { monthsOfService, r3 } from "./payroll-engine";
 
 export interface GratuityRules {
   enabled: boolean;
-  /** Insured categories that earn an indemnity from the employer. */
   appliesTo: string[];
   wageBasis: "basic" | "fixed";
-  /** Years paid at `firstYearsMonths` per year; later years at `laterYearsMonths`. */
   firstYears: number;
   firstYearsMonths: number;
   laterYearsMonths: number;
-  /** Service shorter than this earns nothing. */
   minServiceMonths: number;
-  /** Optional service cutoff where another fund takes responsibility (null: all service counts). */
   serviceUntil: string | null;
 }
 
@@ -83,10 +75,6 @@ const DAY = 86_400_000;
 const inclusiveDays = (from: Date, to: Date) =>
   Math.max(0, Math.floor((to.getTime() - from.getTime()) / DAY) + 1);
 
-/**
- * Leaving indemnity: `firstYearsMonths` of monthly pay for each of the first `firstYears` years, `laterYearsMonths`
- * for each year after, prorated for part years. Only service up to `serviceUntil` counts.
- */
 export function leavingIndemnity(input: {
   rules: GratuityRules;
   category: string;
@@ -121,10 +109,6 @@ export function leavingIndemnity(input: {
   };
 }
 
-/**
- * Annual leave accrued in the leaving year up to the last working day: the yearly allowance spread over the days
- * employed in that year (monthly accrual counts completed months).
- */
 export function accruedLeaveToDate(input: {
   daysPerYear: number;
   accrual: "annual" | "monthly" | "none";
@@ -145,7 +129,6 @@ export function accruedLeaveToDate(input: {
           100,
       ) / 100
     );
-  // Completed months of service in the year, counting the last working day (as leave balances do).
   const months = monthsOfService(
     from,
     new Date(input.lastWorkingDay.getTime() + DAY),
@@ -155,7 +138,6 @@ export function accruedLeaveToDate(input: {
   );
 }
 
-/** Pay for part of a month: the calendar share of the month's fixed pay. */
 export function partMonthPay(fixedPay: number, from: Date, to: Date, currency?: string) {
   const days = new Date(
     Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 0),

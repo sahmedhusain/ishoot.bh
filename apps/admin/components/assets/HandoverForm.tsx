@@ -23,10 +23,6 @@ const CONDITIONS = [
 ] as const;
 type Employee = { id: string; name_en: string; name_ar: string };
 
-/**
- * Issue an asset to an employee or take it back. Every checklist item of the category is confirmed or noted,
- * damage is described (and optionally recovered from salary), and the employee signs now or from their profile.
- */
 export function HandoverForm({
   asset,
   kind,
@@ -53,7 +49,6 @@ export function HandoverForm({
   );
   const [date, setDate] = React.useState(today);
   const [condition, setCondition] = React.useState(asset.condition);
-  // Where a returned asset goes; a damaged return no longer assumes servicing.
   const [afterReturn, setAfterReturn] = React.useState<"available" | "maintenance" | "lost" | "retired">("available");
   const [checks, setChecks] = React.useState<
     Record<string, { ok: boolean; note: string }>
@@ -71,7 +66,6 @@ export function HandoverForm({
   const [signature, setSignature] = React.useState<string | null>(null);
   const [signer, setSigner] = React.useState("");
   const [saving, setSaving] = React.useState(false);
-  // When handovers are signed on the spot, the issuer draws their signature here rather than applying a saved one.
   const [issuerLive, setIssuerLive] = React.useState(false);
   const [issuerSignature, setIssuerSignature] = React.useState<string | null>(
     null,

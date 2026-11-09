@@ -82,7 +82,6 @@ export interface AssetInput {
   warranty_until?: string;
   condition: string;
   status?: string;
-  /** Who holds the asset when its status is set to "assigned" by hand. */
   holder_employee_id?: string;
   location?: string;
   notes?: string;
@@ -141,7 +140,6 @@ export interface HandoverInput {
   damage_notes?: string;
   damage_charge?: number;
   deduct_from_salary?: boolean;
-  /** Where a returned asset goes: "available" (default), "maintenance", "lost" or "retired". A damaged return no longer assumes servicing. */
   status_after_return?: string;
   notes?: string;
   offboarding_id?: string;
@@ -184,8 +182,6 @@ const name = (e: {
   name_ar: `${e.firstNameAr} ${e.lastNameAr}`,
 });
 
-// ---------------------------------------------------------------- categories
-
 export async function listAssetCategories(
   includeInactive = true,
 ): Promise<AssetCategoryRecord[]> {
@@ -211,7 +207,6 @@ export async function listAssetCategories(
     console.warn("listAssetCategories db fallback:", err);
   }
 
-  // Live query from SQL seeds via inventory service
   try {
     const { listCategories, listProducts } = await import("../api/inventory");
     const [cats, prods] = await Promise.all([
@@ -243,7 +238,6 @@ export async function listAssetCategories(
   return [];
 }
 
-/** A category with its own spec fields and handover checklist; keys stay stable so recorded values keep their meaning. */
 export async function saveAssetCategory(
   input: AssetCategoryInput,
   id?: string,
@@ -307,8 +301,6 @@ export async function saveAssetCategory(
     data: { ...data, code, displayOrder: await db.assetCategory.count() },
   });
 }
-
-// ---------------------------------------------------------------- assets
 
 const assetInclude = {
   category: true,
@@ -448,7 +440,6 @@ export async function listAssets(filters: AssetFilters = {}) {
     console.warn("listAssets db fallback:", err);
   }
 
-  // Load from live SQL database via inventory service
   try {
     const { listProducts, listCategories } = await import("../api/inventory");
     const [prods, cats] = await Promise.all([
@@ -589,7 +580,6 @@ export async function getAsset(id: string) {
     console.warn("getAsset db fallback:", err);
   }
 
-  // Load live from SQL database via inventory service
   try {
     const { listProducts, listCategories } = await import("../api/inventory");
     const [prods, cats] = await Promise.all([
@@ -717,7 +707,6 @@ export async function saveAsset(
         select: { status: true, holderEmployeeId: true },
       });
       if (!existing) throw new Error(serverMessages.assetNotFound);
-      // Any status can be set by hand. Only a pending handover blocks it, since it would change hands underneath the edit.
       const status = input.status || existing.status;
       if (!(ASSET_STATUSES as readonly string[]).includes(status))
         throw new Error(serverMessages.invalidInput);
@@ -760,12 +749,6 @@ export async function saveAsset(
   });
 }
 
-// ---------------------------------------------------------------- handovers
-
-/**
- * Starts issuing an asset to an employee or taking it back: condition, checklist and damage are recorded with the
- * issuer's signature. The employee then signs (in their profile, or in person now), and the handover goes to approval.
- */
 export async function startAssetHandover(
   input: HandoverInput,
   actorId: string,
@@ -826,7 +809,6 @@ export async function startAssetHandover(
     const damageNotes = clean(input.damage_notes, 1000);
     if ((charge ?? 0) > 0 && !damageNotes)
       throw new Error(serverMessages.describeTheDamageBeforeChargingFor);
-    // The issuer signs with their saved signature, or draws it now when handovers are signed on the spot.
     const creatorSignatureUrl = await resolveSigningSignature(
       "asset_handover",
       actorId,
@@ -892,10 +874,6 @@ export async function startAssetHandover(
   });
 }
 
-/**
- * The employee's signature: in their profile, on the issuer's device in person, or through a one-time signing link
- * sent to them ("link", where `actorId` is the staff member who sent it). The handover then goes to approval.
- */
 export async function signAssetHandover(
   id: string,
   input: HandoverSignature,
@@ -961,7 +939,6 @@ export async function cancelAssetHandover(id: string) {
   });
 }
 
-/** The payroll month a charge is recovered in: the first month whose payroll is not yet submitted. */
 async function nextPayrollMonth(): Promise<string> {
   const now = new Date();
   let year = now.getUTCFullYear();
@@ -1007,7 +984,6 @@ registerApprovalFinalizer("asset_handover", {
         },
       });
     } else {
-      // The returner chooses where the asset goes; damage alone no longer sends it to servicing.
       const status = h.returnStatus ?? "available";
       await db.asset.update({
         where: { id: h.assetId },
@@ -1169,7 +1145,6 @@ export async function getAssetHandover(id: string) {
     console.warn("getAssetHandover db fallback:", err);
   }
 
-  // Load live from database via workflow official letter (let-003 equipment handover)
   try {
     const { getOfficialLetter, listOfficialLetters } = await import("../api/workflow");
     const { listEmployees } = await import("../api/hr");
@@ -1249,7 +1224,6 @@ export type AssetHandoverDetail = NonNullable<
   Awaited<ReturnType<typeof getAssetHandover>>
 >;
 
-/** Assets an employee holds and handovers waiting for them, for the profile and the employee page. */
 export async function getEmployeeAssets(employeeId: string) {
   const [held, pending] = await Promise.all([
     db.asset.findMany({

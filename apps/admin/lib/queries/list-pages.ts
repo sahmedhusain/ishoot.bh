@@ -62,7 +62,6 @@ async function pageQuery<T>(
   requestedPage: number,
   batch?: ExportBatch,
 ): Promise<{ rows: T[]; total: number; page: number; pageSize: number }> {
-  // Count and rows use one snapshot, including a bounded correction for deleted last pages.
   return db.$transaction(
     async (tx) => {
       const model = (tx as any)?.[delegate] ?? (db as any)?.[delegate];
@@ -93,7 +92,6 @@ async function pageQuery<T>(
     },
   );
 }
-/** `scope`: the staff accounts whose deals the viewer may see (data scope); null or missing for all of them. */
 export async function getDealsPage(
   input: ListParameters,
   batch?: ExportBatch,
@@ -609,11 +607,9 @@ export const listDomains = {
   moms: getMomsPage,
   companyDocuments: getCompanyDocumentsPage,
 };
-// Full export is keyset-batched independently of UI pages. Only one batch is retained.
 export async function* iterateListExport(
   domain: keyof typeof listDomains,
   input: ListParameters,
-  /** Data scope for deals and expenses (other lists ignore it). */
   scope?: string[] | null,
 ) {
   let after: string | undefined;
@@ -677,7 +673,6 @@ export async function getAttachmentsPage(
 export async function getExpensesPage(
   input: ListParameters,
   batch?: ExportBatch,
-  /** The staff accounts whose expenses the viewer may see (data scope); null or missing for all of them. */
   scope?: string[] | null,
 ) {
   return runAtomicMutation(async () => {

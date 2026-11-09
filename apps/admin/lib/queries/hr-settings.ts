@@ -14,8 +14,6 @@ import {
   type LeaveTypeRules,
 } from "../hr/payroll-engine";
 
-// ---------- Policy ----------
-
 export async function getHrPolicy(): Promise<HrPolicyRules> {
   const row = await db.hrPolicy.findUnique({ where: { id: "default" } });
   const currency = await companyCurrency();
@@ -121,8 +119,6 @@ export async function updateHrPolicy(
   return getHrPolicy();
 }
 
-// ---------- Public holidays ----------
-
 export async function listPublicHolidays(year?: number) {
   const rows = await db.publicHoliday.findMany({
     where: year
@@ -178,8 +174,6 @@ export async function deletePublicHoliday(id: string) {
   await db.publicHoliday.delete({ where: { id } });
 }
 
-// ---------- Shift types ----------
-
 export interface ShiftTypeView {
   id: string;
   code: string;
@@ -230,14 +224,11 @@ export async function saveShiftType(
     : db.shiftType.create({ data });
 }
 
-// ---------- Leave types ----------
-
 export interface LeaveTypeView extends LeaveTypeRules {
   nameEn: string;
   nameAr: string;
   isPaid: boolean;
   requiresAttachment: boolean;
-  /** Approved leave of this type opens a handover for HR. */
   requiresHandover?: boolean;
   isActive: boolean;
   sortOrder: number;

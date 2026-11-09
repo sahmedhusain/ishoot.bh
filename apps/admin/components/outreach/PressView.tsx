@@ -20,7 +20,6 @@ type Summary = Awaited<ReturnType<typeof coverageSummary>>;
 
 const SENTIMENT_TONES: Record<string, string> = { positive: "text-emerald-600", neutral: "text-ink-muted", negative: "text-rose-600" };
 
-/** PR: press releases, media contacts and the coverage log. */
 export function PressView({ releases, contacts, coverage, summary, canEdit, canWriteRelease }: { releases: Release[]; contacts: MediaContactRecord[]; coverage: CoverageRecord[]; summary: Summary; canEdit: boolean; canWriteRelease: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.press;

@@ -58,7 +58,6 @@ type ManualLine = {
   note: string;
 };
 
-/** One settlement: what is owed each way, its approval, the employee's acknowledgement and the payment. */
 export function SettlementDetailView({
   settlement: s,
   canEdit,

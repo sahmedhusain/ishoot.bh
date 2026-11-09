@@ -41,7 +41,6 @@ export default async function RequestDetailPage({
     department: null,
   }));
 
-  // Replying to the customer, and the order the request is about.
   const [replies, cannedReplies, canReply] = await Promise.all([
     requestReplies(id),
     listCannedReplies(true),

@@ -26,7 +26,6 @@ interface Rfq {
   orders: { id: string; number: string; status: string }[];
 }
 
-/** One request for quotation: each supplier's prices side by side, the best marked, and the chosen ones ordered. */
 export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: Rfq; suppliers: { id: string; name: string }[]; currency: string; canEdit: boolean; canOrder: boolean }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
@@ -37,7 +36,6 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
     const prices = rfq.quotes.filter((q) => q.line_id === lineId);
     return prices.length ? prices.reduce((a, b) => (b.unit_price < a.unit_price ? b : a)) : null;
   };
-  // A line's choice is what the person picked, else the awarded price, else the cheapest one (as prices arrive).
   const [picked, setPicked] = React.useState<Record<string, string>>({});
   const choice = (lineId: string) => {
     const own = picked[lineId];

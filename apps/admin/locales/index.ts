@@ -11,7 +11,6 @@ export {
   type AdminCopyOverlay,
 } from "./admin-activity";
 
-/** Canonical server messages; clients render their localized equivalents through the error catalog. */
 export const serverMessages = en.admin.serverErrors.messages;
 export const serverTemplates = en.admin.serverErrors.templates;
 
@@ -24,7 +23,6 @@ export function getTranslations(locale: Locale): TranslationKeys {
   return (translations as Record<string, TranslationKeys>)[locale] ?? en;
 }
 
-/** Admin translations with the company's activity wording on top. */
 export function getAdminTranslations(
   locale: Locale,
   activity?: string | null,

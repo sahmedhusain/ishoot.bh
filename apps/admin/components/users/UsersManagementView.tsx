@@ -40,7 +40,6 @@ import { PageHeader } from "../layout/PageHeader";
 interface UsersManagementViewProps {
   canWrite: boolean;
   canDelete: boolean;
-  /** May create employee records (HR), used for the "create employee profile" shortcut. */
   canCreateEmployees?: boolean;
   employees: Array<{
     id: string;
@@ -53,14 +52,11 @@ interface UsersManagementViewProps {
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
   resources: string[];
   rolePermissions: Record<string, Record<string, boolean>>;
-  /** The company's departments, for the department picker. */
   departments: Array<{ id: string; name_en: string; name_ar: string }>;
-  /** Server-side paging: matching accounts, this page and the filters in use. */
   total: number;
   page: number;
   pageSize: number;
   filters: { q: string; role: string; departmentId: string; status: string };
-  /** Every active account (id and name), for manager names and pickers on any page. */
   people: Array<{ id: string; fullName: string }>;
 }
 
@@ -391,7 +387,6 @@ export function UsersManagementView({
                             : <bdi dir="ltr">{u.discount_limit_percent}%</bdi>}
                       </td>
 
-                      {/* Digital Signature Preview */}
                       <td className="p-4">
                         {u.signature_url ? (
                           <div
@@ -638,7 +633,6 @@ export function UsersManagementView({
               ))}
             </Select>
           </label>
-
 
         </form>
       </Modal>

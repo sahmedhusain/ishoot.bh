@@ -13,7 +13,6 @@ import { requireAuth } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { requireAttachmentAccess } from "../../lib/attachment-access";
 
-/** Refreshes the archive and the page of the record the file belongs to. */
 function revalidateAttachmentOwner(entityType: string, entityId: string) {
   revalidatePath(ROUTES.archive);
   const owner = entityRoute(entityType, entityId);

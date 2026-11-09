@@ -3,7 +3,6 @@ import { db } from "../atomic";
 import { createEmployee } from "./hrms";
 import { createUser } from "./users";
 
-/** Columns of the employee and account import (HR → Employees → Import), in template order. */
 export const PEOPLE_IMPORT_COLUMNS = [
   "first_name_en",
   "last_name_en",
@@ -20,7 +19,6 @@ export const PEOPLE_IMPORT_COLUMNS = [
   "manager_email",
 ] as const;
 export type PeopleImportColumn = (typeof PEOPLE_IMPORT_COLUMNS)[number];
-/** One row of the file, by column name (every cell is text, any may be empty). */
 export interface PeopleImportRow {
   first_name_en?: string;
   last_name_en?: string;
@@ -37,7 +35,6 @@ export interface PeopleImportRow {
   manager_email?: string;
 }
 
-/** Problems a row can have; the admin copy names each one (`peopleImport.problems.<code>`). */
 export type PeopleImportProblem =
   | "nameRequired"
   | "titleRequired"
@@ -55,19 +52,14 @@ export type PeopleImportProblem =
   | "managerUnknown";
 
 export interface PeopleImportCheck {
-  /** 1-based row number in the file, after the header. */
   row: number;
   problems: PeopleImportProblem[];
-  /** The row will also create a staff account. */
   account: boolean;
 }
 
 export interface PeopleImportOptions {
-  /** May set salaries (payroll:edit). */
   canSetPay: boolean;
-  /** May create staff accounts (users:write). */
   canCreateAccounts: boolean;
-  /** Roles the importer may give (never super_admin). */
   assignableRoles: string[];
 }
 
@@ -83,7 +75,6 @@ const clean = (row: PeopleImportRow) =>
     ]),
   ) as Record<PeopleImportColumn, string>;
 
-/** Checks every row without saving anything: the preview the importer reviews before importing. */
 export async function checkPeopleImport(
   input: PeopleImportRow[],
   options: PeopleImportOptions,
@@ -159,11 +150,6 @@ export async function checkPeopleImport(
   });
 }
 
-/**
- * Imports the rows that passed checkPeopleImport: an employee record for each, and a staff account where the row
- * gives a role (with a random password; the person sets their own through "Forgot password"). Managers are linked
- * once every account exists. Rows with problems are skipped.
- */
 export async function importPeople(
   input: PeopleImportRow[],
   actorId: string,

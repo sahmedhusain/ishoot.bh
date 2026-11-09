@@ -18,7 +18,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 type Row = Pick<CmsPageRecord, "id" | "slug" | "page_type" | "title_en" | "title_ar" | "is_visible" | "in_header" | "in_footer" | "blocks">;
 
-/** Website → Pages: every page in menu order, shown or hidden, in the header and footer menus or not. */
 export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish, publication }: { pages: Row[]; canEdit: boolean; canCreate: boolean; canDelete: boolean; canPublish: boolean; publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] } }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

@@ -13,7 +13,6 @@ export const generateMetadata = () => pageMetadata("hr/supports");
 
 export const dynamic = "force-dynamic";
 
-/** Wage-support programmes (e.g. Wage support fund): their dated terms, each employee's application and decision, and claims. */
 export default async function SupportsPage({
   searchParams,
 }: {

@@ -1,23 +1,16 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { brokenImages } from "./helpers";
 
-/** What one visited page links to and what is wrong with it. */
 export interface PageReport {
   url: string;
   problems: string[];
-  /** Same-origin page links, without the hash. */
   links: string[];
-  /** Links that should answer with a file: uploads, PDFs, exports and anything marked download. */
   files: string[];
 }
 
 const LOCALES = ["en", "ar"];
 const FILE_LINK = /^\/api\/(files\/|exports\/|.*\/pdf$|letterhead)/;
 
-/**
- * Visits `path` and reports: error status, crash or not-found page, broken images, new-tab links without
- * rel="noreferrer", and on the website, links that hard-code a language other than the page's own.
- */
 export async function inspectPage(
   page: Page,
   path: string,
@@ -30,7 +23,6 @@ export async function inspectPage(
     url: () => string;
     request: () => { resourceType: () => string };
   }) => {
-    // Pages, scripts, styles and images the page asked for; prefetches of other pages are not this page's problem.
     if (
       response.status() >= 400 &&
       ["document", "script", "stylesheet", "image", "font"].includes(
@@ -40,7 +32,6 @@ export async function inspectPage(
       failed.push(`${response.status()} ${response.url()}`);
   };
   page.on("response", onResponse);
-  // A development server may abort a navigation while it recompiles; one retry tells that apart from a real failure.
   const response = await page.goto(path).catch(() => page.goto(path));
   await page.waitForLoadState("networkidle").catch(() => undefined);
   page.off("response", onResponse);
@@ -106,7 +97,6 @@ export async function inspectPage(
   return { url: path, problems, links: [...links], files: [...files] };
 }
 
-/** Collapses ids in a path so the crawler visits only a couple of pages of each kind. */
 export const routePattern = (path: string) =>
   path
     .split("?")[0]
@@ -117,7 +107,6 @@ export const routePattern = (path: string) =>
     .replace(/\/c[a-z0-9]{20,}/g, "/:id")
     .replace(/\/[a-z0-9-]*\d[a-z0-9-]*$/i, "/:id");
 
-/** Breadth-first visit from `start`, at most `perPattern` pages of each route pattern and `limit` pages in all. */
 export async function crawl(
   page: Page,
   start: string[],
@@ -150,7 +139,6 @@ export async function crawl(
   return reports;
 }
 
-/** A link that should download a file answers 200 with a non-HTML body. */
 export async function checkDownload(
   request: APIRequestContext,
   path: string,

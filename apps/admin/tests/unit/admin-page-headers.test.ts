@@ -4,15 +4,11 @@ import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
 
-// Every dashboard page opens with the shared PageHeader, sets its browser title from the same copy, and has a
-// title and description in both admin dictionaries.
 const admin = path.resolve(__dirname, "../..");
 const dashboard = path.join(admin, "app/dashboard");
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
-// Pages that only send the visitor elsewhere.
 const REDIRECT_ONLY = new Set(["crm/leads", "hr", "hr/gosi", "settings", "settings/security", "settings/audit"]);
-// The calendar's workbench has its own top app bar with the page title.
 const OWN_HEADER = new Set(["calendar"]);
 
 function pageFiles(dir: string): string[] {
@@ -30,7 +26,6 @@ const pages = pageFiles(dashboard).map((file) => ({
 const registrySource = read(path.join(admin, "lib/page-registry.ts"));
 const PAGE_KEYS = [...registrySource.match(/PAGE_KEYS = \[([\s\S]*?)\] as const/)![1].matchAll(/"([^"]*)"/g)].map((m) => m[1]);
 
-// The registry, compiled with stand-in icons, for its path matching.
 const registry = { exports: {} as Record<string, any> };
 vm.runInNewContext(
   ts.transpileModule(registrySource, {
@@ -54,7 +49,6 @@ function resolveImport(from: string, specifier: string): string | null {
   return [".tsx", ".ts", "/index.tsx"].map((ext) => base + ext).find((file) => fs.existsSync(file)) ?? null;
 }
 
-/** Whether a page renders PageHeader itself or through the components it imports (two levels deep). */
 function reachesPageHeader(file: string, seen = new Set<string>(), depth = 0): boolean {
   if (seen.has(file) || depth > 2) return false;
   seen.add(file);
@@ -106,7 +100,6 @@ describe("admin page headers", () => {
     };
     walk(path.join(admin, "components"));
     walk(dashboard);
-    // PageHeader renders the attribute; setup, sign-in and public signing pages run outside the dashboard.
     expect(leftovers.filter((file) => !/^components\/(layout\/PageHeader|setup\/|auth\/|signing\/)/.test(file))).toEqual([]);
   });
 

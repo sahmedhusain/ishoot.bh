@@ -1,7 +1,4 @@
-// The dashboard widget catalogue: every widget, who may see it, the module it needs and the sizes it can take,
-// plus the default layout of each role. Runtime-free (no Prisma), so the browser can use it too.
 
-/** Widths on the 12-column grid of a wide screen: quarter, third, half, two thirds, full. */
 export type DashboardWidgetSize = "s" | "m" | "l" | "xl" | "full";
 export const DASHBOARD_WIDGET_SIZES: readonly DashboardWidgetSize[] = [
   "s",
@@ -24,9 +21,7 @@ export type DashboardWidgetKind =
 export interface DashboardWidgetDefinition {
   id: string;
   kind: DashboardWidgetKind;
-  /** Permission grants ("resource:action"); the widget shows when every one is held. */
   requires: string[];
-  /** Module the widget belongs to; off means hidden, even for Super Admin. */
   module?: string;
   sizes: readonly DashboardWidgetSize[];
   defaultSize: DashboardWidgetSize;
@@ -61,7 +56,6 @@ const panel = (
 });
 
 export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
-  // Figures & KPIs
   kpi("kpi_revenue", ["finance_analytics:read"], "invoicing"),
   kpi("kpi_receivables", ["finance_analytics:read"], "invoicing"),
   kpi("kpi_expenses", ["finance_analytics:read"], "invoicing"),
@@ -80,7 +74,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
     ["s", "m"],
     "s",
   ),
-  // Charts
   panel(
     "cashflow",
     "chart",
@@ -97,7 +90,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
     ["m", "l", "xl"],
     "m",
   ),
-  // Inboxes and lists
   panel("workload", "inbox", [], undefined, ["xl", "full"], "full"),
   panel(
     "my_tasks",
@@ -149,7 +141,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
   ),
   panel("legal_dates", "list", ["legal:read"], "legal", ["m", "l"], "m"),
   panel("company", "list", ["settings:read"], undefined, ["m", "l"], "m"),
-  // Actions and activity
   panel(
     "quick_actions",
     "actions",
@@ -159,7 +150,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
     "m",
   ),
   panel("activity", "feed", [], undefined, ["m", "l", "xl"], "l"),
-  // Archive & Custom Folders (permission & scope filtered inside loader)
   panel(
     "archive_folders",
     "folder",
@@ -176,7 +166,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
     ["m", "l", "xl", "full"],
     "l",
   ),
-  // Personal & Lifestyle Widgets (available to all authenticated users)
   panel(
     "welcome_profile",
     "lifestyle",
@@ -232,7 +221,6 @@ export interface CustomArchiveFolder {
   createdAt: string;
 }
 
-/** Desks the default layout is chosen by (the dashboard focus of the role). */
 export type DashboardDesk =
   | "executive"
   | "finance"
@@ -343,7 +331,6 @@ const DESK_LAYOUTS: Record<DashboardDesk, string[]> = {
   ],
 };
 
-/** Roles whose work is narrower than their desk start from their own layout. */
 const ROLE_LAYOUTS: Partial<Record<string, string[]>> = {
   warehouse_keeper: [
     "welcome_profile",
@@ -579,7 +566,6 @@ export function widgetGridBounds(id: string): WidgetGridBounds {
   return { minCols, maxCols, minRows: 1, maxRows: 3, defaultRows: 2 };
 }
 
-/** The layout someone starts with: their role's, or their desk's, at each widget's default size. */
 export function defaultDashboardLayout(
   role: string,
   desk: DashboardDesk,
@@ -609,9 +595,6 @@ export function presetDashboardLayout(
 
 export const MAX_DASHBOARD_WIDGETS = 40;
 
-/**
- * Unwraps either a legacy array `[{ id, size }]` or an object `{ items: [...], customFolders: [...] }`.
- */
 export function extractDashboardItems(raw: unknown): unknown[] {
   if (Array.isArray(raw)) return raw;
   if (raw && typeof raw === "object" && Array.isArray((raw as { items?: unknown }).items)) {
@@ -620,10 +603,6 @@ export function extractDashboardItems(raw: unknown): unknown[] {
   return [];
 }
 
-/**
- * A stored or submitted layout made safe: known widgets the person may see, each once, at a size the widget
- * allows, at most 40. Anything else is dropped.
- */
 export function normalizeDashboardLayout(
   raw: unknown,
   available: ReadonlySet<string>,
@@ -664,7 +643,6 @@ export function normalizeDashboardLayout(
   return items;
 }
 
-/** The widgets someone may see: every grant held and the module on. */
 export function availableDashboardWidgets(
   grants: Record<string, boolean>,
   moduleOn: (moduleKey: string) => boolean,
@@ -676,7 +654,6 @@ export function availableDashboardWidgets(
   );
 }
 
-/** The next size a widget can take (wrapping round), for the resize button. */
 export function nextDashboardSize(
   id: string,
   size: DashboardWidgetSize,

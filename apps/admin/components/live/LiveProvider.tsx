@@ -1,6 +1,4 @@
 "use client";
-// Live updates for the whole dashboard (docs/adr/0012): the browser's connection to the realtime service, the signed-in
-// person's notification settings, and the statuses of the people on screen.
 import * as React from "react";
 import {
   installSoundUnlock,
@@ -28,7 +26,6 @@ const SettingsContext = React.createContext<Settings>({
   setPreferences: () => {},
 });
 
-/** The signed-in person's notification settings, kept current across tabs and devices. */
 export const useNotificationSettings = () => React.useContext(SettingsContext);
 
 function NotificationSettingsProvider({ children }: { children: React.ReactNode }) {
@@ -42,7 +39,6 @@ function NotificationSettingsProvider({ children }: { children: React.ReactNode 
       const response = await fetch("/api/notifications?view=settings", { cache: "no-store" });
       if (response.ok) setState(await response.json());
     } catch {
-      // Keep the last settings; the next resync tries again.
     }
   }, []);
   React.useEffect(() => {
@@ -84,7 +80,6 @@ function PresenceProvider({ selfId, children }: { selfId: string; children: Reac
         const { items } = (await response.json()) as { items: Presence[] };
         for (const p of items) cache.current.set(p.userId, p);
       } catch {
-        // Statuses are a nicety; the next refresh tries again.
       }
     }
     setVersion((v) => v + 1);
@@ -107,13 +102,11 @@ function PresenceProvider({ selfId, children }: { selfId: string; children: Reac
       const response = await fetch("/api/presence/me", { cache: "no-store" });
       if (response.ok) setMine((await response.json()) as MyStatus);
     } catch {
-      // Shown as automatic until the next refresh.
     }
   }, []);
 
   React.useEffect(() => {
     void refreshMine();
-    // Disconnections of a replica that died are not announced: refresh what is on screen every minute.
     const every = setInterval(() => schedule(tracked.current.keys()), 60_000);
     return () => clearInterval(every);
   }, [refreshMine, schedule]);
@@ -150,20 +143,17 @@ function PresenceProvider({ selfId, children }: { selfId: string; children: Reac
   return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>;
 }
 
-/** A person's live status, fetched in batches with everyone else's on screen; undefined until known. */
 export function usePresence(userId: string | null | undefined): Presence | undefined {
   const ctx = React.useContext(PresenceContext);
   React.useEffect(() => (ctx && userId ? ctx.track(userId) : undefined), [ctx, userId]);
   return ctx && userId ? ctx.get(userId) : undefined;
 }
 
-/** The signed-in person's own status and the setter used after changing it. */
 export function useMyStatus() {
   const ctx = React.useContext(PresenceContext);
   return { mine: ctx?.mine ?? null, setMine: ctx?.setMine ?? (() => {}) };
 }
 
-/** What a status looks like: its colour family and whether it is do not disturb. */
 export function presenceLook(status: string | null | undefined): { tone: PresenceTone; doNotDisturb: boolean } {
   return { tone: presenceTone(status) as PresenceTone, doNotDisturb: presenceSilences(status) };
 }

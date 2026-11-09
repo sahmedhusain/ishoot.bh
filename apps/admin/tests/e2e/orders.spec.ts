@@ -39,12 +39,10 @@ async function startSale(
   quantity: string,
 ) {
   await page.goto("/dashboard/orders/new");
-  // In development a Fast Refresh (another route compiling) can briefly mount the page twice; act once settled.
   await expect(page.getByTestId("sale-search")).toHaveCount(1, {
     timeout: 30_000,
   });
   await page.getByTestId("sale-search").fill(SKU);
-  // A scanner types the code and presses Enter.
   await page.getByTestId("sale-search").press("Enter");
   await page.getByTestId("sale-lines").getByRole("spinbutton").fill(quantity);
   await expect(page.getByTestId("sale-total")).toContainText(
@@ -113,7 +111,6 @@ test("a phone order is paid later (which invoices it), packed and made ready for
   );
   expect(await stockOf(db, productId)).toEqual({ onHand: 7, reserved: 0 });
 
-  // Taking the payment issued the invoice it is recorded against.
   await expect(page.getByTestId("order-invoice")).toBeVisible();
   await page.locator('input[name="refundAmount"]').fill("1.5");
   await page.getByTestId("order-refund").click();
@@ -145,7 +142,6 @@ test("store settings set the delivery fee, and a coupon is created", async ({
   const errors = watchErrors(page);
   await db.coupon.deleteMany({ where: { code: "E2EFIVE" } });
   await page.goto("/dashboard/orders/settings");
-  // A first compile in development can briefly mount the page twice; act once it has settled.
   await expect(page.locator('input[name="deliveryFee"]')).toHaveCount(1, {
     timeout: 30_000,
   });

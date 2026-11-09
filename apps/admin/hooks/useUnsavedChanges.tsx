@@ -17,7 +17,6 @@ const HISTORY_KEY = "__admin_unsaved_position";
 
 export function UnsavedChangesProvider({ children }: { children: React.ReactNode }) {
   const router = React.useContext(AppRouterContext);
-  // Static fallback documents have no router; retain the same provider tree during hydration.
   const { t } = useAdminLocale();
   const guards = React.useRef(new Set<Guard>());
   const resolve = React.useRef<((approved: boolean) => void) | null>(null);
@@ -123,13 +122,11 @@ export function UnsavedChangesProvider({ children }: { children: React.ReactNode
       const previous = new URL(lastURL);
       const current = new URL(window.location.href);
       const samePage = previous.pathname === current.pathname && previous.search === current.search;
-      // Native fragment links create entries without calling pushState.
       if (!pending && samePage && lastURL !== current.href && (target === null || target === position)) {
         position++;
         replaceState.call(window.history, { ...lastState, ...(event.state && typeof event.state === "object" ? event.state : {}) }, "");
         return;
       }
-      // Entries belonging to another document use the browser's beforeunload guard.
       if (target === null) return;
       if (allowed === target) { allowed = null; position = target; lastURL = current.href; lastState = event.state; return; }
       if (!pending && (!hasChanges() || target === position || samePage)) { position = target; lastURL = current.href; lastState = event.state; return; }
@@ -159,7 +156,6 @@ export function UnsavedChangesProvider({ children }: { children: React.ReactNode
 
   return (
     <Context.Provider value={value}>
-      {/* shortcut: pinned Next router context; recheck its contract when upgrading Next. */}
       <AppRouterContext.Provider value={guardedRouter}>{children}</AppRouterContext.Provider>
       <ConfirmDialog isOpen={open} title={t.unsavedChanges.title} description={t.unsavedChanges.body} variant="warning" confirmLabel={t.unsavedChanges.discard} cancelLabel={t.unsavedChanges.stay} onConfirm={() => finish(true)} onClose={() => finish(false)} />
     </Context.Provider>

@@ -35,7 +35,6 @@ interface SupplierBillViewProps {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-/** One supplier bill: entered (from an order or by hand), matched, approved into an expense and paid. */
 export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights }: SupplierBillViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

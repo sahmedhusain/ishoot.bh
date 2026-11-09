@@ -1,24 +1,18 @@
-// Identity (backend/services/identity) holds staff credentials and checks every session against the account's
-// email, role and active flag. The admin still owns those profile fields, so each committed change to a User row
-// is pushed to identity here: a deactivated or re-roled person is signed out at once.
 import { AsyncLocalStorage } from "node:async_hooks";
 import { transactionContext } from "../transaction-context";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { setAccountPassword, syncAccount } from "@platform/api-client";
 
-/** The fields identity keeps a copy of. */
 const projectingStaff = new AsyncLocalStorage<boolean>();
 export const withStaffProjection = <T>(run: () => Promise<T>) =>
   projectingStaff.run(true, run);
 const SYNCED_FIELDS = ["email", "role", "roleDefinition", "isActive"];
 
-/** Users written inside an open transaction, pushed once it commits; true marks a deleted user. */
 const pendingAccountSync = new AsyncLocalStorage<{
   users: Map<string, boolean>;
   provisioned: Set<string>;
 }>();
 
-/** Local scripts and unit tests run without the backend; production always syncs. */
 const identityConfigured = () =>
   !!process.env.API_URL || process.env.NODE_ENV === "production";
 
@@ -27,7 +21,6 @@ const touchesSyncedField = (data: unknown) =>
   typeof data === "object" &&
   SYNCED_FIELDS.some((field) => field in data);
 
-/** Pushes the committed state of these users to identity; a user no longer stored is deactivated. */
 export async function pushStaffAccounts(
   client: PrismaClient,
   users: Map<string, boolean>,
@@ -46,7 +39,6 @@ export async function pushStaffAccounts(
         roles: [row.role],
         active: row.isActive,
       });
-    // The address is freed so it can be given to a new account.
     else if (deleted)
       await syncAccount("staff", id, {
         email: `${id}@deleted.invalid`,
@@ -56,10 +48,6 @@ export async function pushStaffAccounts(
   }
 }
 
-/**
- * Gives a staff account a password in identity. A new account is created there inactive, so a transaction that
- * rolls back leaves nobody able to sign in; the row's own sync activates it once committed.
- */
 export async function setStaffPassword(
   id: string,
   password: string,
@@ -77,7 +65,6 @@ export async function setStaffPassword(
   await setAccountPassword("staff", id, { password });
 }
 
-/** Prisma middleware recording which users a write changed; pushes them now, or after the open transaction commits. */
 export function staffAccountSyncMiddleware(
   client: PrismaClient,
 ): Prisma.Middleware {
@@ -101,7 +88,6 @@ export function staffAccountSyncMiddleware(
       });
       if (row) users.set(row.id, true);
     }
-    // Record the ID even when a writer selects only another field from the updated row.
     if (args?.select && ["create", "upsert", "update"].includes(action))
       args.select.id = true;
     const result = await next(params);
@@ -124,7 +110,6 @@ export function staffAccountSyncMiddleware(
   };
 }
 
-/** Runs a transaction and pushes the users it changed only after a successful commit; failures reach the caller. */
 export async function withAccountSync<T>(
   client: PrismaClient,
   run: () => Promise<T>,

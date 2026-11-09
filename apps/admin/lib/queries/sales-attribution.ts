@@ -5,7 +5,6 @@ import { companyCurrency } from "../finance/company-currency";
 
 export type AttributedDocument = "quotation" | "invoice";
 
-/** The person a new document is credited to: the requested salesperson if valid, else the issuer. */
 export async function resolveSalesOwner(
   requested: string | null | undefined,
   issuerId: string | null | undefined,
@@ -21,7 +20,6 @@ export async function resolveSalesOwner(
   return id;
 }
 
-/** People who can be credited with sales: anyone selling, plus anyone already owning documents or earning commission. */
 export async function listSalesPeople() {
   const users = await db.user.findMany({
     where: {
@@ -58,7 +56,6 @@ export async function listSalesPeople() {
   }));
 }
 
-/** Credits a quotation or invoice to someone else and keeps the change in its internal history. */
 export async function reassignSalesOwner(
   entityType: AttributedDocument,
   entityId: string,
@@ -196,7 +193,6 @@ export interface CommissionRow {
     expenseId: string | null;
     viaPayroll: boolean;
   } | null;
-  /** Paid with the salary (HR policy), so no separate payout is recorded. */
   onPayroll: boolean;
 }
 
@@ -210,10 +206,6 @@ function monthRange(month: string) {
   };
 }
 
-/**
- * Commission earned on money collected in [range.gte, range.lt) (net of VAT, BHD) on invoices credited to each
- * salesperson, at their commission rate. Shared by the commission statement and payroll.
- */
 export async function commissionsForRange(
   range: { gte: Date; lt: Date },
   userIds?: string[],
@@ -246,7 +238,6 @@ export async function commissionsForRange(
     const inv = p.invoice!;
     const amount = Number(p.amount);
     const total = Number(inv.totalAmount);
-    // Commission is earned on revenue net of VAT and any other tax collected for the government.
     const net =
       total > 0
         ? amount -
@@ -267,10 +258,6 @@ export async function commissionsForRange(
 export const commissionAmount = (collectedNet: number, ratePercent: number, currency?: string) =>
   currency ? roundMoney(collectedNet * ratePercent / 100, currency) : Math.round(collectedNet * ratePercent * 10) / 1000;
 
-/**
- * Commission is earned on money collected in the month (net of VAT, company currency) on invoices credited to
- * the salesperson, at their commission rate. Closed, paid work is what counts.
- */
 export async function getCommissionStatement(
   month: string,
 ): Promise<CommissionRow[]> {
@@ -341,7 +328,6 @@ export async function getCommissionStatement(
     .sort((a, b) => b.collectedNet - a.collectedNet);
 }
 
-/** Records a month's commission once, booking it as an approved payroll-type expense. */
 export async function recordCommissionPayout(
   userId: string,
   month: string,
@@ -357,7 +343,6 @@ export async function recordCommissionPayout(
       throw new Error(serverMessages.thisMonthSCommissionIsAlreadyRecorded);
     if (!(row.commission > 0))
       throw new Error(serverMessages.thereIsNoCommissionToPayFor);
-    // Staff on payroll receive commission with their salary when the HR policy says so.
     const [policy, employee] = await Promise.all([
       db.hrPolicy.findUnique({
         where: { id: "default" },

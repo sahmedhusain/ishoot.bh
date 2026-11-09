@@ -22,7 +22,6 @@ const iframeTitles: Record<RenderLocale, { video: string; embed: string }> = {
   },
 };
 
-/** The website-safe HTML of an editor document: only formatting, links, images, tables and known embeds survive. */
 function cleanHtml(html: string) {
   return sanitizeHtml(html, {
     allowedTags: [
@@ -71,7 +70,6 @@ function cleanHtml(html: string) {
     allowedSchemes: ["https", "http", "mailto", "tel"],
     allowedSchemesByTag: { img: ["https", "http"], iframe: ["https"] },
     allowProtocolRelative: false,
-    // Frames only for the embed providers (and their subdomains); the filter below checks the exact hosts too.
     allowedIframeDomains: [
       "youtube-nocookie.com",
       "youtube.com",
@@ -120,7 +118,6 @@ const escape = (value: unknown) =>
       ]!,
   );
 
-/** dir and text-align, the two paragraph-level attributes the editor sets. */
 function blockAttributes(attrs: Record<string, unknown> = {}) {
   const out: string[] = [];
   if (attrs.dir === "rtl" || attrs.dir === "ltr")
@@ -154,7 +151,6 @@ function marks(text: string, list: JsonNode["marks"] = []) {
   }, escape(text));
 }
 
-/** Editor JSON to HTML, for exactly the nodes in richTextExtensions(); anything else is dropped. */
 function toHtml(node: JsonNode, locale: RenderLocale): string {
   const inner = () =>
     (node.content ?? []).map((child) => toHtml(child, locale)).join("");
@@ -227,7 +223,6 @@ function toHtml(node: JsonNode, locale: RenderLocale): string {
   }
 }
 
-/** Renders a stored editor document to website HTML; anything that is not a document renders as nothing. */
 export function renderRichText(
   doc: unknown,
   locale: RenderLocale = "en",

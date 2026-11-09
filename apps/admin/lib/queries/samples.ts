@@ -24,7 +24,6 @@ const doc = (text: string) => ({
   content: [{ type: "paragraph", content: [{ type: "text", text }] }],
 });
 
-/** How much sample content there is (the Website page offers to remove it while any is left). */
 export async function sampleContentCount() {
   const counts = await Promise.all([
     db.heroBanner.count({ where: { isSample: true } }),
@@ -37,10 +36,6 @@ export async function sampleContentCount() {
   return counts.reduce((a, b) => a + b, 0);
 }
 
-/**
- * Fills the website with an activity's sample content (banners, catalogue, services, questions, figures and an
- * article), all marked as samples. Adding twice does not duplicate: earlier samples are replaced.
- */
 export async function insertSampleContent(
   activity: BusinessActivity,
   authorId: string | null,
@@ -142,7 +137,6 @@ export async function insertSampleContent(
   });
 }
 
-/** Removes every sample (and only samples); content the company wrote is never touched. */
 export async function removeSampleContent() {
   await db.$transaction([
     db.heroBanner.deleteMany({ where: { isSample: true } }),
@@ -154,10 +148,6 @@ export async function removeSampleContent() {
   ]);
 }
 
-/**
- * A complete website snapshot for an activity built from its samples, in memory: what "Show an example" previews
- * in the setup wizard. Nothing is saved.
- */
 export function exampleSnapshot(activity: BusinessActivity): WebsiteSnapshot {
   const sample = ACTIVITY_SAMPLES[activity];
   const config = resolveWebsiteConfig(websiteConfigForActivity(activity));

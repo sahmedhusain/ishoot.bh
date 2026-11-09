@@ -2,14 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme-aware UI tokens (RGB channels so Tailwind opacity modifiers work). Surfaces and ink come from the
-   company theme stylesheet each layout injects; these are the status hues and secondary greys. */
 :root,
 html.dark {
-  /* Muted greys used as secondary text; light mode darkens them to stay readable (≥4.5:1). */
+
   --ui-slate-400: 148 163 184;
   --ui-neutral-400: 163 163 163;
-  /* Status hues: bright on dark, deepened on light so text and white-on-colour stay readable. */
+
   --ui-emerald-400: 52 211 153;
   --ui-emerald-500: 16 185 129;
   --ui-amber-400: 251 191 36;
@@ -53,13 +51,6 @@ body {
   min-height: 100vh;
 }
 
-/* =========================================================================
-   ZERO-GUTTER OVERLAY SCROLLBARS (Front Layer Overlay, Zero Layout Shift)
-   Exact match to the web app: native window scrollbar hidden, internal
-   scrollable sub-containers use auto-hiding 5px floating pills.
-   ========================================================================= */
-
-/* Eliminate native window scrollbar gutter and prevent any body layout shift */
 html,
 body {
   scrollbar-width: none !important;
@@ -74,7 +65,6 @@ body::-webkit-scrollbar {
   background: transparent !important;
 }
 
-/* For internal scrollable sub-containers (modals, dropdowns, code blocks) */
 * {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -122,7 +112,6 @@ body::-webkit-scrollbar {
   ) !important;
 }
 
-/* Printed documents keep the company's exact brand colours. */
 :root {
   --document-primary: var(--brand-primary);
   --document-accent: var(--brand-accent);
@@ -136,7 +125,6 @@ body::-webkit-scrollbar {
   --brand-on-accent: var(--document-on-accent);
 }
 
-/* Brand aliases keep existing screens on the same semantic Material roles. */
 body {
   --brand-primary: var(--m3-color-primary);
   --brand-primary-light: var(--m3-color-primary);
@@ -175,18 +163,12 @@ body {
   outline-offset: 3px;
 }
 
-/* ==========================================================================
-   PRINT ISOLATION LAYER & MULTI-PAGE ENGINE
-   Ensures window.print() prints ONLY [data-print-target] documents cleanly across
-   single or multiple pages without truncation, overlapping, or element clipping.
-   ========================================================================== */
 @media print {
   @page {
     size: A4 portrait;
     margin: 10mm 10mm 12mm 10mm;
   }
 
-  /* Universal reset for clean white canvas and exact color preservation */
   html,
   body {
     background: #ffffff !important;
@@ -206,13 +188,11 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* When printing any page containing [data-print-target], hide all non-target siblings */
   body:has([data-print-target]) > *:not(:has([data-print-target])) {
     display: none !important;
     visibility: hidden !important;
   }
 
-  /* Hide entire dashboard navigation, app shell, toolbars, and controls */
   aside,
   header[data-topbar],
   [data-topbar],
@@ -231,7 +211,6 @@ body {
     overflow: hidden !important;
   }
 
-  /* Strip modal backdrops, dialog shells, blur overlays, and bounding constraints */
   [data-modal-container],
   body:has([data-print-target]) .fixed {
     position: static !important;
@@ -265,7 +244,6 @@ body {
     background: transparent !important;
   }
 
-  /* Unconstrain main content container during print */
   main,
   [role="main"] {
     margin: 0 !important;
@@ -275,7 +253,6 @@ body {
     overflow: visible !important;
   }
 
-  /* Printable document template fills canvas cleanly without height or scroll locking */
   [data-print-target] {
     width: 100% !important;
     max-width: 100% !important;
@@ -291,7 +268,6 @@ body {
     overflow: visible !important;
   }
 
-  /* Multi-page anti-clipping & table flow rules */
   tr,
   .print-avoid-break,
   .page-break-inside-avoid,
@@ -308,7 +284,6 @@ body {
     display: table-footer-group !important;
   }
 
-  /* Guarantee Terms & Conditions and Bank Details are visible in print */
   [data-terms-section] {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -323,7 +298,6 @@ body {
     break-inside: avoid !important;
   }
 
-  /* Disable animations and transitions for crisp, immediate rendering */
   * {
     animation: none !important;
     transition: none !important;
@@ -331,13 +305,10 @@ body {
   }
 }
 
-/* Arabic script must not be letter-spaced: tracking utilities break letter joining in RTL. */
 html[dir="rtl"] [class*="tracking-"] {
   letter-spacing: normal;
 }
 
-/* Bilingual fields: each line takes its direction from its own text (English stays LTR inside the
-   Arabic UI and vice versa); empty fields keep the page direction so placeholders align. */
 input:not([type="number"]):not([type="date"]):not([type="time"]):not(
     [type="color"]
   ):not([dir]),
@@ -347,13 +318,11 @@ textarea:not([dir]),
   text-align: start;
 }
 
-/* Phone numbers keep their digit order inside Arabic text. */
 a[href^="tel:"] {
   direction: ltr;
   unicode-bidi: isolate;
 }
 
-/* Modal surfaces share one scrim and elevation, including custom dialogs. */
 .modal-scrim {
   background: rgb(0 0 0 / 0.32);
 }
@@ -372,7 +341,6 @@ a[href^="tel:"] {
   color: var(--md-sys-color-inverse-primary);
 }
 
-/* The article and rich-text editor (TipTap): the same structure the website shows, in the admin's colours. */
 .rich-text-editor > * + * {
   margin-top: 0.75em;
 }
@@ -438,9 +406,6 @@ a[href^="tel:"] {
   outline: none;
 }
 
-
-
-/* State layers acknowledge input without changing the semantic colour pair. */
 .m3-button::after,
 .m3-state-layer::after {
   content: "";
@@ -531,7 +496,6 @@ input[role="switch"]:disabled {
   cursor: not-allowed;
 }
 
-/* Touch targets grow without expanding desktop table density. */
 @media (pointer: coarse) {
   :where(
     button,
@@ -559,7 +523,6 @@ input[role="switch"]:disabled {
   }
 }
 
-/* Material Web owns pointer ripple physics; keyboard focus remains a visible outline. */
 .m3-button {
   --md-ripple-hover-color: currentColor;
   --md-ripple-pressed-color: currentColor;

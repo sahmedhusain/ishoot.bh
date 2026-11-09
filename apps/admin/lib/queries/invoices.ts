@@ -235,7 +235,6 @@ async function mapApiInvoiceToInvoice(inv: any): Promise<Invoice> {
       const { getContact } = await import("@platform/api-client");
       contactObj = await getContact(contactId).catch(() => null);
     } catch {
-      // ignore
     }
   }
 
@@ -308,9 +307,7 @@ async function mapApiInvoiceToInvoice(inv: any): Promise<Invoice> {
 export async function createInvoice(data: {
   contact_id?: string;
   deal_id?: string;
-  /** Accepted quotation this invoice bills; it is marked converted in the same transaction. */
   quotation_id?: string;
-  /** Salesperson credited with the invoice; defaults to its quotation's, else the issuer. */
   sales_owner_id?: string;
   issue_date: string;
   due_date: string;
@@ -439,7 +436,6 @@ export async function createInvoice(data: {
         where: { id: data.quotation_id },
         data: { invoiceId: invoice.id, status: "converted" },
       });
-      // Crediting the invoice to someone other than the quotation's salesperson is a reassignment: keep the history.
       if (
         quotationOwner &&
         invoice.salesOwnerId &&
@@ -523,8 +519,6 @@ export async function updateInvoice(
           unit_price: Number(li.unitPrice),
         }));
 
-      // Preserve existing invoice VAT status: historical invoices never have VAT retroactively forced.
-      // An issued invoice always keeps the VAT it was issued with.
       const vat =
         existing.status === "draft"
           ? (data.vat_enabled !== undefined
@@ -536,7 +530,6 @@ export async function updateInvoice(
               vatEnabled: Boolean(existing.vatEnabled),
               vatPercentage: Number(existing.vatPercentage),
             };
-      // Likewise for other taxes: historical drafts keep their taxes; issued invoices keep their frozen taxes.
       const otherTaxes =
         existing.status === "draft"
           ? (existing.taxes && existing.taxes.length > 0
@@ -649,7 +642,6 @@ export async function updateInvoiceStatus(
             1: status,
           }),
         );
-      // Approved, then signed and stamped, before it goes to the client.
       if (status === "sent" && invoice.status === "draft" && !invoice.signedAt)
         throw new Error(
           invoice.approvalStatus === "approved"
@@ -685,7 +677,6 @@ export async function deleteInvoice(id: string): Promise<boolean> {
   }
 }
 
-/** Marks issued invoices past their due date as overdue. Run daily by the maintenance worker. */
 export async function markOverdueInvoices(
   asOf: Date = new Date(),
 ): Promise<number> {

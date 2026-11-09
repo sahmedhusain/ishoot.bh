@@ -41,12 +41,9 @@ import type { BrandTheme } from "@platform/database/constants/theme";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Step 1: who the company is, what it does and which languages it writes in. */
 export interface SetupCompanyInput {
-  /** "ar", "en" or both. */
   contentLanguages: string[];
   primaryLanguage: string;
-  /** website-presets.ts BUSINESS_ACTIVITIES */
   businessActivity: string;
   companyNameEn: string;
   companyNameAr: string;
@@ -74,7 +71,6 @@ interface SetupModuleChoice {
   isEnabled: boolean;
 }
 
-/** Step 4: how the company works (currency, tax, document numbers, modules). */
 export interface SetupConfigInput {
   defaultCurrency: SupportedCurrency;
   vatEnabled: boolean;
@@ -85,7 +81,6 @@ export interface SetupConfigInput {
   receiptNextNumber: number;
   paymentTermsDays: number;
   modules: SetupModuleChoice[];
-  /** Catalogue departments to create (existing ones are kept; nothing is removed). */
   departments: string[];
 }
 
@@ -95,7 +90,6 @@ function revalidateEverywhere() {
   revalidatePath("/", "layout");
 }
 
-/** Languages, names and the website switch show on the public site straight away. */
 async function refreshPublicSite() {
   await revalidatePublicSite(
     ["website", "company"],
@@ -148,7 +142,6 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
         email: trim(input.email),
         website: trim(input.website),
       });
-      // A new activity brings its own sales pipeline; stages that hold deals are kept.
       if (previousActivity !== input.businessActivity) {
         await applyActivityDealPipeline(input.businessActivity);
       }
@@ -240,10 +233,8 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
   });
 }
 
-/** Step: whether the company has a public website, and how it is set up for what the company does. */
 export interface SetupWebsiteInput {
   enabled: boolean;
-  /** A WebsiteConfig, checked by validateWebsiteConfig. */
   config: unknown;
 }
 
@@ -252,7 +243,6 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
     const user = await requirePermission("settings", "write");
     validateActionArguments("saveSetupWebsiteAction", { input });
     const company = await getCompanySettings();
-    // A company writing in one language fills each pair once; the website reads either side.
     const config = input.enabled
       ? validateWebsiteConfig(
           mirrorBilingual(
@@ -311,7 +301,6 @@ export async function completeSetupAction(options: {
   });
 }
 
-/** A short-lived link to the draft website for the wizard's live preview (works before the website module is on). */
 export async function setupPreviewAction(locale: string) {
   return measureOperation("action:setupPreviewAction", async () => {
     await requirePermission("settings", "write");
@@ -328,7 +317,6 @@ export async function setupPreviewAction(locale: string) {
   });
 }
 
-/** Saves the website settings as a draft while the wizard previews them; the module switch waits for Next. */
 export async function saveSetupWebsiteDraftAction(config: unknown) {
   return measureOperation("action:saveSetupWebsiteDraftAction", async () => {
     await requirePermission("settings", "write");

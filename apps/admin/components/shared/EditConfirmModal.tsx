@@ -77,14 +77,12 @@ export function EditConfirmModal({
                   </div>
 
                   <div className="flex items-center gap-3 text-xs">
-                    {/* Old Value */}
                     <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] min-w-0 break-words line-through opacity-80">
                       {formatValue(change.oldValue, t)}
                     </div>
 
                     <ArrowRight className="w-3.5 h-3.5 text-ink-muted shrink-0 rtl:rotate-180" />
 
-                    {/* New Value */}
                     <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">
                       {formatValue(change.newValue, t)}
                     </div>

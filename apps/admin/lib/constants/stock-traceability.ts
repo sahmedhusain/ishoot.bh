@@ -1,4 +1,3 @@
-/** Quantities are exact to six decimal places. Identity counts are always whole units. */
 const SCALE = BigInt(1_000_000);
 export function quantityUnits(value: string): bigint {
   if (!/^\d{1,8}(?:\.\d{1,6})?$/.test(value))
@@ -32,7 +31,6 @@ export interface SerialRange {
   start: string;
   end: string;
 }
-/** Expand only a declared fixed-width numeric range; actual membership still needs validation. */
 export function expandSerialRange(input: SerialRange, limit = 1000): string[] {
   if (
     !Number.isInteger(limit) ||
@@ -115,7 +113,6 @@ export function validateStockLabelTemplate(
     throw new Error("Invalid label dimensions or copy count");
   return template;
 }
-/** Wall-clock business date in the branch timezone, including shifts across midnight/DST. */
 export function branchBusinessDate(
   at: Date,
   timeZone: string,

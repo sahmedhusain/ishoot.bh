@@ -1,4 +1,3 @@
-// Role dashboards: approvals waiting, request/SR workload and complaints, scoped by the caller.
 import type { Prisma } from "@prisma/client";
 import { db } from "../atomic";
 import { STALE_APPROVAL_DAYS } from "../constants/approvals";
@@ -45,7 +44,6 @@ export interface ApprovalWorkload {
   queue: ApprovalQueueItem[];
   mySubmittedPending: number;
   myDecidedLast30: number;
-  /** Company-wide view of the target types the caller may read; null when they may read none. */
   org: {
     pending: number;
     stale: number;
@@ -239,7 +237,6 @@ function toRow(
   };
 }
 
-/** Resolution speed and SLA hit rate over the given resolved requests. */
 async function resolutionStats(where: Prisma.InquiryWhereInput, since: Date) {
   const resolved = await db.inquiry.findMany({
     where: {
@@ -281,7 +278,6 @@ export interface RequestWorkload {
   mine: { open: number; overdue: number; items: WorkloadRequestRow[] };
 }
 
-/** Request and SR workload. Complaints are left out unless the caller may read them. */
 export async function getRequestWorkload(
   viewerId: string,
   options: { includeComplaints: boolean },
@@ -401,7 +397,6 @@ export interface ComplaintWorkload {
   latest: (WorkloadRequestRow & { assignee: string | null })[];
 }
 
-/** Customer complaints. Only for callers with support access. */
 export async function getComplaintWorkload(
   now = new Date(),
 ): Promise<ComplaintWorkload> {

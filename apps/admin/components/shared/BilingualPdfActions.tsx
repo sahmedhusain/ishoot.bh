@@ -9,10 +9,6 @@ import { printPdfUrl } from "../../lib/pdf-print";
 
 type Language = "ar" | "en";
 
-/**
- * View, download or print a generated document in Arabic or in English, whatever the interface language.
- * `pdfUrl` builds the PDF address for a language; `download` adds the attachment flag.
- */
 export function BilingualPdfActions({
   pdfUrl,
   languages = ["ar", "en"],

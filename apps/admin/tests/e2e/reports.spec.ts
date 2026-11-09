@@ -29,7 +29,6 @@ test.beforeAll(async () => {
     price: 15,
     onHand: 20,
   });
-  // An order today, so sales reports have something to show.
   const response = await fetch(`${web}/api/store/order`, {
     method: "POST",
     headers: { "Content-Type": "application/json", origin: web },
@@ -108,7 +107,6 @@ test("a report scheduled by e-mail is run by the scheduled job", async ({
     "e2e-reports@example.test",
     "e2e-owner@example.test",
   ]);
-  // Make it due now; notify queues the report for the isolated stack's Mailpit delivery.
   await db.reportSchedule.update({
     where: { id: schedule.id },
     data: { nextRunAt: new Date(Date.now() - 60_000) },

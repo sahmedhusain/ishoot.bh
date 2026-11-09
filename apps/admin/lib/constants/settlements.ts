@@ -1,4 +1,3 @@
-// Final settlement vocabulary. Runtime-free so client components can import it.
 
 export const SETTLEMENT_REASONS = [
   "resignation",

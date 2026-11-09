@@ -9,7 +9,6 @@ import {
 import { getCurrentUser, hasPermission } from "../../../../../lib/auth";
 import { generateMomPdf } from "../../../../../lib/pdf/mom-pdf";
 
-/** Minutes of meeting as PDF, in the viewer's language; the same file is printed, downloaded and e-mailed. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

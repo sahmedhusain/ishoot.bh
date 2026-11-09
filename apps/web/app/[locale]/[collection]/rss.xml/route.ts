@@ -17,7 +17,6 @@ const escape = (value: string) =>
       })[char]!,
   );
 
-/** RSS 2.0 feed of the published articles, at /{locale}/{articles}/rss.xml. */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ locale: string; collection: string }> },

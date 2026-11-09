@@ -8,7 +8,6 @@ export interface FulfillSerializedOrderLine {
   serialCodes: string[];
 }
 
-/** Fulfill serialized order lines by checking availability, marking units as sold, and posting ledger movements. */
 export async function fulfillSerializedOrder(
   orderId: string,
   lines: FulfillSerializedOrderLine[],
@@ -97,7 +96,6 @@ export interface ReturnSerializedOrderLine {
   reason?: string;
 }
 
-/** Return previously sold serialized items back to available inventory with traceability. */
 export async function returnSerializedOrder(
   orderId: string,
   lines: ReturnSerializedOrderLine[],
@@ -182,7 +180,6 @@ export async function returnSerializedOrder(
   });
 }
 
-/** Retrieve available serials at a location ready for scanning or sale. */
 export async function getAvailableSerials(
   productId: string,
   locationId: string,

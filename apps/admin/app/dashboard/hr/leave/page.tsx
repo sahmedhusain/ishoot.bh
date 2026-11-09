@@ -12,14 +12,11 @@ export default async function LeaveManagementPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // Leave is self-service: every staff member with self_service:read can file and follow their own.
   const user = await requirePagePermission("self_service", "read");
   const query = await searchParams;
   const status = typeof query.status === "string" ? query.status : "all";
   const page = Math.max(1, Number(query.page) || 1);
 
-  // This page is "my leave" for everyone, Super Admin and HR included. Other people's requests live in
-  // HR Requests (all requests, and filing on someone's behalf) and the Approvals Center (deciding).
   const canFileForOthers = false;
   const myEmployee = null;
 
@@ -41,7 +38,6 @@ export default async function LeaveManagementPage({
       requests={requests}
       leaveTypes={leaveTypes}
       myBalances={myBalances}
-      // Only names are needed to file for someone else; salaries never leave the server here.
       allEmployees={[]}
       myEmployee={null}
       currentUserId={user.id}

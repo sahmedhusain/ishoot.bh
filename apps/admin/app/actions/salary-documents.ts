@@ -35,7 +35,6 @@ export async function requestSalaryDocumentAction(data: {
   employeeId: string;
   kind: "payslip" | "salary_certificate";
   months: string[];
-  /** The employee picks Arabic, English or both; each language is its own PDF. */
   languages: Array<"ar" | "en">;
 }) {
   return measureOperation("action:requestSalaryDocumentAction", async () => {
@@ -73,7 +72,6 @@ export async function requestSalaryDocumentAction(data: {
     }
     const { id, approvalStatus } = await runAtomicMutation(async () => {
       const docId = `saldoc_${Date.now()}`;
-      // The employee is the requester even when HR files on their behalf.
       const approval = await submitForApproval({
         targetType: "salary_document",
         targetId: docId,
@@ -115,7 +113,6 @@ export async function reviewSalaryDocumentAction(
       decision,
       notes,
     });
-    // Who may issue is defined by the salary document approval policy and enforced by the engine.
     await runAtomicMutation(async () => {
       const pending = await findPendingApproval("salary_document", id);
       if (!pending)
@@ -236,7 +233,6 @@ export async function whatsappSalaryDocumentAction(
   return { fallback: false, messageId: result.messageId };
 }
 
-/** HR filing a payslip for someone else needs that employee's payroll months. */
 export async function payslipMonthsForEmployeeAction(employeeId: string) {
   validateActionArguments("payslipMonthsForEmployeeAction", { employeeId });
   const actor = await requireAuth();

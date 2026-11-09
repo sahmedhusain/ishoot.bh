@@ -3,7 +3,7 @@ import { fetchSocialSnapshot } from "../../lib/integrations/providers";
 
 const channelId = "UC1234567890123456789012";
 const token = "owner-access-secret";
-const now = new Date("2026-03-09T06:30:00Z"); // Still March 8 in Pacific time after the DST change.
+const now = new Date("2026-03-09T06:30:00Z");
 const names = [
   "views",
   "likes",

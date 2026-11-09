@@ -23,7 +23,6 @@ const shipments: { id: string; number: string; orderId: string }[] = [];
 
 test.describe.configure({ mode: "serial" });
 
-/** A small valid PNG, standing in for a phone photo. */
 function photo() {
   const crc = (buf: Buffer) => {
     let c = ~0;
@@ -172,7 +171,6 @@ test("a route sheet puts two shipments in order and sends the driver out", async
   await selectOption(planner.locator('select[name="routeDriver"]'), driverId);
   for (const s of shipments)
     await planner.getByRole("checkbox", { name: s.number }).check();
-  // B goes first.
   await planner
     .getByRole("button", {
       name: copy.routes.up.replace("{number}", shipments[1].number),
@@ -222,7 +220,6 @@ test("the driver delivers one stop with a signature and one with a photo, and ca
   const stops = page.getByTestId("driver-stops").first();
   await expect(stops.locator("li")).toHaveCount(2);
 
-  // Stop 1 (B): the customer signs.
   const first = page.getByTestId(`driver-stop-${shipments[1].number}`).first();
   await first.getByTestId("driver-delivered").click();
   const canvas = first.locator("canvas");
@@ -240,7 +237,6 @@ test("the driver delivers one stop with a signature and one with a photo, and ca
     page.getByTestId(`driver-stop-${shipments[1].number}`),
   ).toHaveCount(0);
 
-  // Stop 2 (A): a photo.
   const second = page.getByTestId(`driver-stop-${shipments[0].number}`).first();
   await second.getByTestId("driver-delivered").click();
   await second.locator('input[name="deliveryPhoto"]').setInputFiles({
@@ -277,11 +273,9 @@ test("the driver delivers one stop with a signature and one with a photo, and ca
   expect(a.order.status).toBe("delivered");
   expect(Number(a.codCollected)).toBe(Number(a.codAmount));
 
-  // Another shipment is not theirs.
   await page.goto(`/dashboard/delivery/${other.id}`);
   await expect(page.getByTestId("shipment-history")).toHaveCount(0);
   await expect(page.getByText(other.number)).toHaveCount(0);
-  // Nor can they move it.
   await page.goto("/dashboard/driver");
   await expect(page.getByTestId(`driver-stop-${other.number}`)).toHaveCount(0);
   errors.assertClean();

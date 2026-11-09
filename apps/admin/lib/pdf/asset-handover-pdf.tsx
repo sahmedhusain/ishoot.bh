@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 import {
   Document,
   Image,
@@ -24,7 +23,6 @@ import {
   type PdfBrand,
 } from "./kit";
 
-/** A checklist box: ticked or left empty. It records what was checked, not the asset's condition. */
 function TickBox({ ticked }: { ticked: boolean }) {
   return (
     <View style={{ alignItems: "center" }}>
@@ -275,7 +273,6 @@ const pngFromDataUrl = async (data?: string) => {
     .catch(() => bytes);
 };
 
-/** The handover form: asset, condition, checklist results, damage, and every signature and approval. */
 export async function generateAssetHandoverPdf(
   h: AssetHandoverDetail,
   company: CompanySettings,

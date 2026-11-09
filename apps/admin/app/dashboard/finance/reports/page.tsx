@@ -26,7 +26,6 @@ export default async function FinancialReportsPage({
     dateTo: dateTo ? new Date(`${dateTo}T23:59:59.999Z`) : undefined,
   } as const;
   const [report, detail, vat] = await Promise.all([getFinancialSummaryReport(filters), getFinancialReportDetail(filters), companyVat()]);
-  // VAT figures appear when the company is VAT-registered, or when the period still holds VAT documents.
   const showVat = vat.vatEnabled || detail.vat.hasVatDocuments;
 
   return (

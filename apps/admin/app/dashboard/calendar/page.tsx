@@ -15,7 +15,6 @@ export const generateMetadata = () => pageMetadata("calendar");
 
 export const dynamic = "force-dynamic";
 
-/** The signed-in person's calendar: their events, what is shared with them, and the dated work of their role. */
 export default async function CalendarPage() {
   const user = await requirePagePermission("calendar", "read");
   const now = new Date();

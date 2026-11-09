@@ -86,9 +86,6 @@ const ARCHIVE_GROUP_COLOR: Record<string, CustomArchiveFolder["color"]> = {
   company: "teal",
 };
 
-/**
- * 1. Archive Vault Folders Widget (`archive_folders`)
- */
 export function ArchiveFoldersWidget({
   data,
   settings,
@@ -216,9 +213,6 @@ export function ArchiveFoldersWidget({
   );
 }
 
-/**
- * 2. Custom Workspace Folders Widget (`custom_folders`)
- */
 export function CustomFoldersWidget({
   data,
   settings,
@@ -243,7 +237,6 @@ export function CustomFoldersWidget({
   const [creating, setCreating] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
 
-  // Create form state
   const [nameEn, setNameEn] = React.useState("");
   const [nameAr, setNameAr] = React.useState("");
   const [color, setColor] = React.useState<CustomArchiveFolder["color"]>("emerald");
@@ -251,7 +244,6 @@ export function CustomFoldersWidget({
     "personal" | "department" | "role" | "company"
   >("personal");
 
-  // Add item inside active folder
   const [itemTitle, setItemTitle] = React.useState("");
   const [itemUrl, setItemUrl] = React.useState("");
 

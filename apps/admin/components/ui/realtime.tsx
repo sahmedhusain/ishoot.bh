@@ -1,10 +1,4 @@
 "use client";
-// Live updates from the realtime service (docs/adr/0012), shared by the admin and IT apps.
-//
-// One tab per browser holds the Server-Sent Events connection (Web Locks elect it) and passes every event to the
-// other tabs (BroadcastChannel); when it closes, another tab takes over. Browsers without those APIs connect from
-// each tab. Without EventSource, the app falls back to resyncing every 30 seconds. After every reconnect the client
-// sends a synthetic "realtime.resync" so components fetch what they missed.
 import * as React from "react";
 
 export type RealtimeEvent = { type: string; data?: Record<string, unknown> };
@@ -22,13 +16,10 @@ type ChannelMessage =
   | { kind: "hello" };
 
 export type RealtimeOptions = {
-  /** The app's same-origin stream route, e.g. /api/realtime/stream. */
   url: string;
-  /** Called by the leading tab when everyone's tabs went idle or became active again. */
   onActivity?: (state: "active" | "idle") => void;
 };
 
-/** One browser-wide connection, shared by every tab of the app. */
 export class RealtimeClient {
   private listeners = new Set<Listener>();
   private statusListeners = new Set<(s: RealtimeStatus) => void>();
@@ -68,7 +59,7 @@ export class RealtimeClient {
         }),
       );
     } else {
-      this.lead(); // every tab connects on its own
+      this.lead();
     }
   }
 
@@ -102,7 +93,6 @@ export class RealtimeClient {
     return () => this.statusListeners.delete(listener);
   }
 
-  /** True in the tab that holds the connection (it plays sounds and shows desktop notifications). */
   isLeader() {
     return this.leader;
   }
@@ -136,7 +126,6 @@ export class RealtimeClient {
   private lead() {
     this.leader = true;
     if (typeof EventSource === "undefined") {
-      // Very old browsers: no live stream, but components still refresh regularly.
       this.setStatus("offline");
       this.pollTimer = setInterval(() => this.dispatch({ type: RESYNC }), 30_000);
       return;
@@ -170,12 +159,11 @@ export class RealtimeClient {
         if (resync) this.dispatch({ type: RESYNC });
         return;
       }
-      if (event.type === "realtime.reconnect" || event.type === "realtime.closed") return; // the browser reconnects
+      if (event.type === "realtime.reconnect" || event.type === "realtime.closed") return;
       this.dispatch(event);
     };
     source.onerror = () => {
       if (source.readyState === EventSource.CLOSED) {
-        // An error status (signed out, server restarting): EventSource gives up, so retry with back-off.
         source.close();
         this.setStatus("reconnecting");
         const wait = Math.min(1000 * 2 ** this.retry++, 60_000) + Math.random() * 1000;
@@ -215,7 +203,6 @@ export class RealtimeClient {
 
 const RealtimeContext = React.createContext<RealtimeClient | null>(null);
 
-/** Holds the browser's live connection for everything below it. */
 export function RealtimeProvider({ url, onActivity, children }: RealtimeOptions & { children: React.ReactNode }) {
   const [client, setClient] = React.useState<RealtimeClient | null>(null);
   const activity = React.useRef(onActivity);
@@ -231,10 +218,8 @@ export function RealtimeProvider({ url, onActivity, children }: RealtimeOptions 
   return <RealtimeContext.Provider value={client}>{children}</RealtimeContext.Provider>;
 }
 
-/** The shared client (null before it starts, and outside a provider). */
 export const useRealtimeClient = () => React.useContext(RealtimeContext);
 
-/** Calls handler for live events of the given types (all when omitted), and for resyncs after a reconnect. */
 export function useRealtime(handler: (event: RealtimeEvent) => void, types?: readonly string[]) {
   const client = useRealtimeClient();
   const saved = React.useRef(handler);
@@ -251,7 +236,6 @@ export function useRealtime(handler: (event: RealtimeEvent) => void, types?: rea
   }, [client, key]);
 }
 
-/** The connection's state, for an indicator. */
 export function useRealtimeStatus(): RealtimeStatus {
   const client = useRealtimeClient();
   const [status, setStatus] = React.useState<RealtimeStatus>("connecting");

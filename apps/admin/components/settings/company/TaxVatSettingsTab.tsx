@@ -39,7 +39,6 @@ export function TaxVatSettingsTab({
     boolean | null
   >(null);
 
-
   return (
     <div className="space-y-6 animate-fade-in">
       <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-6">
@@ -75,7 +74,6 @@ export function TaxVatSettingsTab({
           )}
         </div>
 
-        {/* State Toggle Controller Banner */}
         <div
           className={`p-4 rounded-xl border transition-colors flex items-center justify-between gap-4 ${settings.vat_enabled
             ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-tone-25/40"
@@ -176,7 +174,6 @@ export function TaxVatSettingsTab({
                 </span>
               </div>
 
-              {/* Upload the certificate, or link to it where it is published (e.g. the NBR portal). */}
               <LinkOrUploadField
                 value={settings.vat_certificate_url ?? ""}
                 hint={t.taxVatSettingsTab.pdfPngOrJpgUp}
@@ -237,7 +234,6 @@ export function TaxVatSettingsTab({
         )}
       </Card>
 
-      {/* VAT Status Confirmation Modal */}
       <ConfirmDialog isOpen={pendingVatToggle !== null} onClose={() => setPendingVatToggle(null)} title={pendingVatToggle ? t.companySettingsTabs.vatModalTitleEnable : t.companySettingsTabs.vatModalTitleDisable} description={<div className="space-y-4"><p>{t.companySettingsTabs.vatModalDesc}</p>
         {pendingVatToggle ? (
           <div className="space-y-3">

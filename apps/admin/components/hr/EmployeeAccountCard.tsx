@@ -22,7 +22,6 @@ export interface AccountRequestView {
   createdAt: string;
 }
 
-/** The employee's login settings, shown in HR. Admins edit directly; HR's edits go to an admin for approval. */
 export function EmployeeAccountCard({
   account,
   email,

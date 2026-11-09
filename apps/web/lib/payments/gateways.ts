@@ -14,29 +14,20 @@ import { PAYTABS_REGIONS } from "../constants/integrations";
 import { toMinorUnits } from "../finance/money";
 import type { ConnectionCheck, Credentials } from "../integrations/providers";
 
-/**
- * One interface over every payment gateway. Each starts a payment on the gateway's own hosted page (or hosted card
- * fields), so card details never reach this server; reads a payment's state; verifies and reads webhooks; refunds;
- * and checks its credentials. Money crosses this boundary in major units (12.5 BHD); adapters convert.
- */
 interface StartPaymentInput {
-  /** Our attempt id: the gateway's reference back to us. */
   attemptId: string;
   orderNumber: string;
   amount: number;
   currency: string;
   customer: { name: string; email: string; phone: string };
   locale: "en" | "ar";
-  /** Where the gateway sends the customer back (it adds its own parameters). */
   returnUrl: string;
   cancelUrl: string;
-  /** Where gateways that take a per-payment notification address should post. */
   webhookUrl: string;
 }
 
 export type StartedPayment =
   | { sessionId: string; redirectUrl: string }
-  /** HyperPay: our page hosts the gateway's card widget (an iframe from the gateway). */
   | {
       sessionId: string;
       widget: { scriptUrl: string; integrity?: string; brands: string };
@@ -46,16 +37,12 @@ type GatewayPaymentState = "paid" | "pending" | "failed";
 
 export interface GatewayPayment {
   state: GatewayPaymentState;
-  /** The gateway's id for the captured payment, used for refunds. */
   paymentId?: string;
-  /** What was paid, in major units, when the gateway says. */
   amount?: number;
   currency?: string;
 }
 
-/** A verified webhook: which attempt (or session) it is about and what happened. Null when it is not about a payment. */
 interface GatewayEvent extends GatewayPayment {
-  /** Unique per delivery of the same event, for idempotency. */
   eventId: string;
   attemptId?: string;
   sessionId?: string;
@@ -68,16 +55,13 @@ interface WebhookRequest {
 
 export interface PaymentGateway {
   id: PaymentGatewayId;
-  /** Is this the gateway's test (sandbox) mode? */
   testMode(c: Credentials): boolean;
   start(c: Credentials, input: StartPaymentInput): Promise<StartedPayment>;
-  /** The payment's state, from the session id (and any parameters the gateway added to the return address). */
   status(
     c: Credentials,
     sessionId: string,
     returnParams: Record<string, string>,
   ): Promise<GatewayPayment>;
-  /** Verifies the webhook's signature (throws GatewayError if it does not match) and reads it. */
   webhook(
     c: Credentials,
     request: WebhookRequest,
@@ -95,14 +79,11 @@ export interface PaymentGateway {
   check(c: Credentials): Promise<ConnectionCheck>;
 }
 
-/** A gateway refused or could not be reached; the message is the gateway's own (never contains credentials). */
 export class GatewayError extends Error {}
-/** A webhook whose signature does not match. */
 export class WebhookSignatureError extends GatewayError {}
 
 const TIMEOUT_MS = 20_000;
 
-/** Base URL for a gateway's API: its sandbox or live host, or an operator's override (local sandbox stand-ins). */
 const base = (id: PaymentGatewayId, fallback: string) =>
   (
     process.env[`PAYMENT_GATEWAY_BASE_URL_${id.toUpperCase()}`] || fallback
@@ -182,7 +163,6 @@ const form = (
 });
 const hmacHex = (key: string | Buffer, text: string) =>
   crypto.createHmac("sha256", key).update(text, "utf8").digest("hex");
-/** Constant-time comparison of two strings. */
 function safeEqual(a: string, b: string) {
   const x = Buffer.from(a);
   const y = Buffer.from(b);
@@ -216,9 +196,6 @@ const nameParts = (name: string) => {
   };
 };
 
-// ---------- Stripe: Checkout Sessions ----------
-
-/** Stripe charges three-decimal currencies in whole tens of the minor unit. */
 const stripeMinor = (amount: number, currency: string) => {
   const minor = toMinorUnits(amount, currency);
   return getCurrencyDecimals(currency) === 3
@@ -369,8 +346,6 @@ function stripeSession(
   };
 }
 
-// ---------- Tap Payments: Charges ----------
-
 const TAP_PAID = new Set(["CAPTURED"]);
 const TAP_PENDING = new Set(["INITIATED", "IN_PROGRESS", "AUTHORIZED"]);
 
@@ -413,7 +388,6 @@ export const tap: PaymentGateway = {
     return { sessionId: charge.id, redirectUrl: charge.transaction.url };
   },
   async status(c, sessionId, params) {
-    // Tap appends tap_id to the return address; the stored charge id is the same.
     const id = sessionId || params.tap_id;
     return tapCharge(
       await call<Record<string, unknown>>(
@@ -482,14 +456,11 @@ function tapCharge(charge: Record<string, unknown>): GatewayPayment {
   };
 }
 
-// ---------- PayPal: Orders v2 ----------
-
 const paypalBase = (c: Credentials) =>
   base(
     "paypal",
     live(c) ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com",
   );
-/** Currencies PayPal accepts. */
 const PAYPAL_CURRENCIES = new Set([
   "AUD",
   "BRL",
@@ -588,7 +559,6 @@ export const paypal: PaymentGateway = {
       `${paypalBase(c)}/v2/checkout/orders/${encodeURIComponent(sessionId)}`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
-    // An approved order is only paid once captured; capturing is idempotent with the same request id.
     if (order.status === "APPROVED")
       order = await call<Record<string, unknown>>(
         `${paypalBase(c)}/v2/checkout/orders/${encodeURIComponent(sessionId)}/capture`,
@@ -708,8 +678,6 @@ function paypalOrder(order: Record<string, unknown>): GatewayPayment {
     currency: str(amount.currency_code) || undefined,
   };
 }
-
-// ---------- Checkout.com: Hosted Payments Page ----------
 
 const ckoBase = (c: Credentials) => {
   const prefix = c.apiPrefix?.trim() ?? "";
@@ -866,8 +834,6 @@ function ckoPayment(payment: Record<string, unknown>): GatewayPayment {
   };
 }
 
-// ---------- PayTabs: Hosted Payment Page ----------
-
 const paytabsBase = (c: Credentials) =>
   base(
     "paytabs",
@@ -877,7 +843,6 @@ const paytabsBase = (c: Credentials) =>
 
 export const paytabs: PaymentGateway = {
   id: "paytabs",
-  // PayTabs test profiles are set up by PayTabs; the API is the same, so the mode is not visible from the keys.
   testMode: () => false,
   async start(c, input) {
     need(c, "profileId", "serverKey");
@@ -1007,8 +972,6 @@ function paytabsResult(body: Record<string, unknown>): GatewayPayment {
   };
 }
 
-// ---------- Moyasar: Invoices (hosted page) ----------
-
 const moyasarAuth = (c: Credentials) => ({
   Authorization: `Basic ${Buffer.from(`${c.secretKey}:`).toString("base64")}`,
 });
@@ -1110,8 +1073,6 @@ export const moyasar: PaymentGateway = {
   },
 };
 
-// ---------- HyperPay (OPPWA): COPYandPAY widget ----------
-
 const hyperpayBase = (c: Credentials) =>
   base(
     "hyperpay",
@@ -1126,7 +1087,6 @@ const hyperpayResult = (code: string): GatewayPaymentState =>
       ? "pending"
       : "failed";
 
-// COPYandPAY accepts two decimal places; reject amounts it cannot represent without rounding.
 const hyperpayAmount = (amount: number) => {
   const value = amount.toFixed(2);
   if (

@@ -27,7 +27,6 @@ async function checkUserManagement(
 ) {
   const target = id ? await getUserById(id) : null;
   if (id && !target) throw new Error(serverMessages.userNotFound);
-  // Super Admin accounts are protected: nobody changes, suspends, archives or deletes them from user management.
   if (target?.role === "super_admin")
     throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
   if (actor.role !== "super_admin" && role === "super_admin")
@@ -155,7 +154,6 @@ export async function updateUserAction(
       throw new Error(
         "Password must contain at least 12 characters and at most 72 UTF-8 bytes",
       );
-    // Runtime allowlist: TypeScript does not filter forged server-action payloads.
     const { user } = await runAtomicMutation(async () => {
       await checkUserManagement(actor, id, data.role);
 
@@ -218,8 +216,6 @@ export async function suspendUserAction(id: string, reason: string) {
       if (!target) throw new Error(serverMessages.userNotFound);
 
       await updateUser(id, { is_active: false });
-
-      // Identity ends every session of the account once the change is synced (services/identity-sync).
 
       await createActivityLog({
         user_id: actor.id,
@@ -296,8 +292,6 @@ export async function archiveUserAction(id: string) {
 
       await updateUser(id, { is_active: false });
 
-      // Identity ends every session of the account once the change is synced (services/identity-sync).
-
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -353,7 +347,6 @@ export async function deleteUserAction(id: string) {
   });
 }
 
-/** Per-user discount margin: discounts up to this % of the subtotal need no approval. Null = company default. */
 export async function updateUserDiscountLimitAction(
   id: string,
   limit: number | null,
@@ -382,11 +375,9 @@ export async function updateUserDiscountLimitAction(
   });
 }
 
-/** Users list bulk change: a new role and/or department for several accounts at once (at most 500). */
 export interface BulkUserChange {
   userIds: string[];
   role?: string;
-  /** "" moves the accounts out of every department. */
   departmentId?: string;
 }
 
@@ -402,7 +393,6 @@ export async function bulkUpdateUsersAction(change: BulkUserChange) {
       return { success: true, updated: 0 };
     const updated = await runAtomicMutation(async () => {
       for (const id of ids) {
-        // The same guard as editing one account: no Super Admins, no roles above the actor's own.
         await checkUserManagement(actor, id, change.role);
         await updateUser(id, {
           ...(change.role !== undefined ? { role: change.role } : {}),

@@ -48,7 +48,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const shortcutOpener = React.useRef<HTMLElement | null>(null);
   const [error, setError] = React.useState("");
 
-  // Keyboard shortcut listener (Cmd+K / Ctrl+K)
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -208,7 +207,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
     }
   };
 
-  /** Role, stage and status codes read as words. */
   const badgeLabel = (category: string, badge: string) => {
     if (category === "people") {
       return badge
@@ -268,7 +266,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
   return (
     <div ref={containerRef} className="w-full min-w-0 relative group">
-      {/* M3 SearchBar Container */}
       <div className="relative flex items-center w-full">
         <span
           className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center text-on-surface-variant group-focus-within:text-primary transition-all duration-200 group-focus-within:scale-110"
@@ -340,7 +337,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         </div>
       </div>
 
-      {/* M3 SearchView Suggestion Popover */}
       {isOpen && (
         <FloatingSurface
           ref={panelRef}
@@ -349,7 +345,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           onMouseDown={(event) => event.preventDefault()}
           className="p-0 overflow-hidden shadow-2xl border border-outline-variant/80"
         >
-          {/* Category Filter Chips when results exist */}
           {availableCategories.length > 1 ? (
             <div className="flex items-center gap-1.5 overflow-x-auto px-3.5 py-2.5 bg-surface-container-low border-b border-outline-variant/60">
               <button
@@ -395,7 +390,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             </p>
           ) : null}
 
-          {/* Results or Suggested Shortcuts Body */}
           <div
             id={resultsId}
             role="listbox"
@@ -520,7 +514,6 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             })}
           </div>
 
-          {/* M3 SearchView Footer */}
           <div className="px-3.5 py-2 bg-surface-container-low border-t border-outline-variant/60 flex items-center justify-between text-[10px] text-ink-muted">
             <span>{t.quickJump.footerHint}</span>
             {loading ? (

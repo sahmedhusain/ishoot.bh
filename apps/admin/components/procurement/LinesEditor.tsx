@@ -20,7 +20,6 @@ export const emptyLine = (): LineDraft => ({ productId: "", variantId: "", descr
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 export const linesSubtotal = (lines: LineDraft[]) => round3(lines.reduce((sum, l) => sum + round3((Number(l.quantity) || 0) * (Number(l.unitPrice) || 0)), 0));
 
-/** Lines of a requisition, request for quotation or purchase order: a catalogue product or something described. */
 export function LinesEditor({ lines, onChange, products, priceLabel, showPrice = true, readOnly = false }: { lines: LineDraft[]; onChange: (lines: LineDraft[]) => void; products: ProcurementProductOption[]; priceLabel: string; showPrice?: boolean; readOnly?: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.lines;
@@ -73,5 +72,4 @@ export function LinesEditor({ lines, onChange, products, priceLabel, showPrice =
   );
 }
 
-/** Lines as the server actions take them. */
 export const linesInput = (lines: LineDraft[]) => lines.map((l) => ({ productId: l.productId || undefined, variantId: l.variantId || undefined, description: l.description, quantity: l.quantity, unitPrice: l.unitPrice }));

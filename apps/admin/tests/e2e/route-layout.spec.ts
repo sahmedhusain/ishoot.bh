@@ -180,7 +180,6 @@ for (const locale of ["en", "ar"] as const) {
               .filter({ visible: true });
             for (let index = 0; index < (await buttons.count()); index++) {
               const button = buttons.nth(index);
-              // Route links are covered by the route queue; this pass switches local panels only.
               if (
                 (await button.getAttribute("href")) ||
                 (await button.isDisabled())

@@ -16,7 +16,6 @@ const LEVEL_STYLE: Record<Level, string> = {
 };
 const LEVEL_ICON = { full: ShieldCheck, edit: PencilLine, view: Eye, none: Lock } as const;
 
-/** Summarises a role's grants on one module into a single access level, plus the extra rights worth flagging. */
 function accessFor(grants: Record<string, boolean> | undefined, resource: string) {
   const has = (action: string) => grants?.[`${resource}:${action}`] === true;
   const canEdit = has("create") || has("edit") || has("write");
@@ -25,7 +24,6 @@ function accessFor(grants: Record<string, boolean> | undefined, resource: string
   return { level, approve: has("approve"), export: has("export"), actions };
 }
 
-/** Read-only overview of what every role may do in every module. Editing lives in Settings → Roles. */
 export function RolePermissionMatrix({
   roles,
   rolePermissions,

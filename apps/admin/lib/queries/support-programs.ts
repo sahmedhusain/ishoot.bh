@@ -57,8 +57,6 @@ export function toSupportRule(
   };
 }
 
-// ---------- Programmes and their dated terms ----------
-
 export async function listSupportPrograms() {
   const programs = await db.supportProgram.findMany({
     orderBy: { createdAt: "asc" },
@@ -140,7 +138,6 @@ export interface SupportRuleInput {
   notes?: string | null;
 }
 
-/** New terms for a programme from a date; the terms in force until then end the day before. */
 export async function scheduleSupportRule(
   programId: string,
   input: SupportRuleInput,
@@ -244,8 +241,6 @@ export async function deleteSupportRule(id: string) {
       });
   });
 }
-
-// ---------- Employee enrolments ----------
 
 export interface EmployeeSupportInput {
   employee_id: string;
@@ -386,7 +381,6 @@ function normalizeEnrolment(input: EmployeeSupportInput) {
   };
 }
 
-/** Records an application to a programme or changes it; every change is kept in the enrolment's history. */
 export async function saveEmployeeSupport(
   input: EmployeeSupportInput,
   actorId: string,
@@ -472,8 +466,6 @@ export async function deleteEmployeeSupport(id: string) {
   return row.employeeId;
 }
 
-// ---------- For payroll ----------
-
 export type SupportContext = Map<
   string,
   Array<{ enrolment: SupportEnrolment; rules: SupportRule[] }>
@@ -513,7 +505,6 @@ export async function loadSupportContext(
   return map;
 }
 
-/** Support lines for one employee's month; `null` when the employee has no enrolments (legacy settings apply). */
 export function supportLinesFor(
   ctx: SupportContext,
   employeeId: string,

@@ -18,7 +18,6 @@ export interface ExpiringDocumentRow {
   days: number;
 }
 
-/** Passports, CPRs, visas and permits expiring within 60 days (or expired), soonest first. */
 export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] }) {
   const { t, locale } = useAdminLocale();
   const c = t.employeeResidency;

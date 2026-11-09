@@ -1,7 +1,6 @@
 import { domainOrigin } from "@platform/database/constants/domains";
 import { getPublicCompanySettings } from "./company";
 
-/** Deployment URL takes precedence; then the website domain from the settings, then the company website field. */
 export async function publicSiteUrl(): Promise<URL> {
   const company = await getPublicCompanySettings();
   const value =

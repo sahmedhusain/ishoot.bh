@@ -18,11 +18,9 @@ export interface ApprovalPolicyStepInput {
   roleKey?: string | null;
   userId?: string | null;
   permission?: string | null;
-  /** Conditions: the step applies only when the record reaches every value set here. */
   minAmount?: number | null;
   minDays?: number | null;
   minDiscountPercent?: number | null;
-  /** Escalation: after this many hours at the step, add a role or person as approvers. */
   escalateAfterHours?: number | null;
   escalateMode?: "role" | "user" | null;
   escalateRoleKey?: string | null;
@@ -40,7 +38,6 @@ export interface ApprovalPolicyView {
   steps: Array<ApprovalPolicyStepInput & { order: number }>;
 }
 
-/** Every target type, including ones without a stored policy (shown as enabled with no steps). */
 export async function listApprovalPolicies(): Promise<ApprovalPolicyView[]> {
   const stored = await db.approvalPolicy.findMany({
     include: { steps: { orderBy: { order: "asc" } } },

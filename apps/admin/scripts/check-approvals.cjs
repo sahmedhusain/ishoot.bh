@@ -1,5 +1,3 @@
-// Run: node scripts/check-approvals.cjs
-// Exercises the approval engine against an in-memory database: routing, maker-checker, escalation and finalizers.
 const { realConstants } = require("./lib/real-constants.cjs");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -140,7 +138,6 @@ function createDb() {
       createMany: async ({ data }) => state.notifications.push(...data),
     },
     activityLog: { create: async ({ data }) => state.activity.push(data) },
-    // Records looked up for policy conditions; this harness configures no conditional steps.
     quotation: { findUnique: async () => null },
     invoice: { findUnique: async () => null },
     expense: { findUnique: async () => null },
@@ -180,7 +177,6 @@ function createEngine(db, finalized) {
     "../queries/signature-policies": { getSignatureMode: async () => "stored" },
     "./signature-image": { validateSignatureImage: () => { } },
     "../queries/permissions": {
-      // Admins and HR hold employees:approve; Super Admin holds everything.
       hasPermission: async (role, resource, action) =>
         role === "super_admin" ||
         (role === "admin" && resource === "employees" && action === "approve"),
@@ -235,7 +231,6 @@ const leavePolicy = {
 };
 
 async function main() {
-  // 1. An accountant files leave: their manager approves, then HR; the accountant can never decide it.
   {
     const db = createDb();
     const finalized = [];
@@ -315,7 +310,6 @@ async function main() {
     );
   }
 
-  // 2. A requester's own request goes to someone else and they cannot decide it themselves.
   {
     const db = createDb();
     const finalized = [];
@@ -367,7 +361,6 @@ async function main() {
     assert.equal(finalized[0].decision, "rejected");
   }
 
-  // 2b. Super Admin's own requests are approved immediately and recorded as such.
   {
     const db = createDb();
     const finalized = [];
@@ -390,7 +383,6 @@ async function main() {
     assert.equal(finalized[0].decision, "approved");
   }
 
-  // 3. Super Admin may step in on other people's requests even when not a listed approver.
   {
     const db = createDb();
     const finalized = [];
@@ -417,7 +409,6 @@ async function main() {
     assert.equal(done.status, "approved");
   }
 
-  // 4. A sole administrator with nobody else to ask is approved immediately and flagged.
   {
     const db = createDb();
     const finalized = [];
@@ -443,7 +434,6 @@ async function main() {
     assert.equal(finalized.length, 1);
   }
 
-  // 5. Disabled policies and auto-approve roles approve on submit.
   {
     const db = createDb();
     const finalized = [];
@@ -465,7 +455,6 @@ async function main() {
     assert.equal(db.state.decisions[0].reason, "policy_auto");
   }
 
-  // 6. Payroll approval refuses runs that already moved on (e.g. paid) instead of rewriting them.
   {
     const db = createDb();
     db.state.users.push(
@@ -499,7 +488,6 @@ async function main() {
     assert.equal(db.state.payrollRuns[0].status, "paid");
   }
 
-  // 7. Resubmitting supersedes the previous round and uses the next revision.
   {
     const db = createDb();
     db.state.users.push(

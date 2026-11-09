@@ -24,7 +24,6 @@ export interface SigningLinkRow {
   createdAt: string;
 }
 
-/** Send the employee a one-time link to read and sign the handover on their own phone, like a client signing a quotation. */
 export function HandoverSigningLinkPanel({
   handoverId,
   links,

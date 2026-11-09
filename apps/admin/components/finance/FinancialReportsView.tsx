@@ -25,7 +25,6 @@ interface FinancialReportsViewProps {
   currentBasis: "cash" | "accrual";
   dateFrom?: string;
   dateTo?: string;
-  /** VAT lines appear only when the company is VAT-registered or the period holds VAT documents. */
   showVat?: boolean;
 }
 
@@ -95,7 +94,6 @@ export function FinancialReportsView({
 
   return (
     <div className="space-y-8">
-      {/* Editorial Header */}
       <PageHeader
         eyebrow={t.financialReports.accountingAndPurityStandards}
         actions={<div className="flex items-center gap-3">
@@ -110,9 +108,7 @@ export function FinancialReportsView({
         </div>}
       />
 
-      {/* Basis & Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised border border-outline-variant">
-        {/* Cash vs Accrual Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-ink-muted uppercase">{t.financialReports.accountingBasis}</span>
           <div className="inline-flex p-1 rounded-md bg-surface-sunken dark:bg-surface-raised border border-outline-variant">
@@ -137,7 +133,6 @@ export function FinancialReportsView({
           </div>
         </div>
 
-        {/* Date Filter Form */}
         <form onSubmit={handleApplyDateFilter} className="flex flex-wrap items-center gap-2">
           <input
             type="date"
@@ -174,7 +169,6 @@ export function FinancialReportsView({
         </form>
       </div>
 
-      {/* Accounting Method Notice */}
       <div className="p-4 rounded-lg bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant dark:border-white/5 text-xs space-y-1">
         <div className="font-semibold text-ink flex items-center gap-2">
           <HelpCircle className="w-4 h-4 text-accent" />
@@ -189,9 +183,7 @@ export function FinancialReportsView({
         </p>
       </div>
 
-      {/* KPI Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Operating Net Profit */}
         <div className="bg-primary text-primary-foreground p-5 rounded-lg space-y-2 shadow-xs">
           <div className="text-xs font-mono uppercase tracking-wider text-mint">
             {t.financialReports.operatingNetProfit}{currentBasis})
@@ -206,7 +198,6 @@ export function FinancialReportsView({
           </div>
         </div>
 
-        {/* Net Revenue */}
         <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
           <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {showVat ? t.financialReports.netRevenueExclVat : t.financialDetail.revenueNet}
@@ -222,7 +213,6 @@ export function FinancialReportsView({
           )}
         </div>
 
-        {/* Output VAT Collected */}
         {showVat && (
           <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
             <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
@@ -238,7 +228,6 @@ export function FinancialReportsView({
           </div>
         )}
 
-        {/* Operating Costs */}
         <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
           <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.financialReports.operatingExpensesAndCosts}
@@ -253,9 +242,7 @@ export function FinancialReportsView({
         </div>
       </div>
 
-      {/* Comprehensive Breakdown Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Revenue Breakdown */}
         <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-accent" />
@@ -297,7 +284,6 @@ export function FinancialReportsView({
           </div>
         </Card>
 
-        {/* Expenses & VAT Recoverability Breakdown */}
         <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
             <Receipt className="w-4 h-4 text-accent" />
@@ -337,8 +323,6 @@ export function FinancialReportsView({
         </Card>
       </div>
 
-      {/* FX & Settlement Realization */}
-      
     </div>
   );
 }

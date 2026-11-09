@@ -35,7 +35,6 @@ const refresh = (id?: string) => {
   void announceChange("orders", id);
 };
 
-/** Moves an order on (packing, shipped, delivered…), with the stock that goes with it. */
 export async function moveOrderAction(
   id: string,
   status: string,
@@ -75,7 +74,6 @@ export async function recordOrderPaymentAction(
     validateActionArguments("recordOrderPaymentAction", { id, input });
     if (!["cash", "card", "bank_transfer"].includes(input.method))
       throw new Error(serverMessages.storePaymentMethodInvalid);
-    // The customer's proof of a bank transfer (uploaded beforehand) is kept on the order as a private file.
     if (input.proofUrl) {
       await claimUpload(input.proofUrl, user.id);
     }
@@ -162,12 +160,10 @@ export interface StaffOrderInput {
   couponCode: string;
   fulfilment: string;
   address?: OrderAddress | null;
-  /** Paid at the counter now: cash or card; "cod" to collect on delivery; empty to take payment later. */
   paidWith: string;
   note: string;
 }
 
-/** An order taken by phone, WhatsApp or at the counter; counter sales paid now are handed over at once. */
 export async function createStaffOrderAction(input: StaffOrderInput) {
   return measureOperation("action:createStaffOrderAction", async () => {
     await requireFeatureEnabled("store");
@@ -191,7 +187,6 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
       name: input.name,
       email: input.email,
       phone: input.phone,
-      // Cash on delivery: the driver collects it (delivery orders only).
       paymentMethod: paidNow
         ? input.paidWith
         : input.paidWith === "cod" && input.fulfilment === "delivery"
@@ -212,7 +207,6 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
         },
         user.id,
       );
-      // A counter sale leaves with the customer.
       if (input.channel === "pos") {
         await notifyLowStock(await moveOrder(order.id, "packing", user.id));
         await notifyLowStock(await moveOrder(order.id, "shipped", user.id));
@@ -267,7 +261,6 @@ export async function saveCouponAction(input: CouponInput) {
   });
 }
 
-/** Reconciles a previously started payment using the gateway's stored session, never a browser-supplied payment ID. */
 export async function recheckOrderPaymentAction(
   orderId: string,
   attemptId: string,

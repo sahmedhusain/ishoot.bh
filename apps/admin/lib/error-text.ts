@@ -2,7 +2,6 @@ import { adminTranslations } from "./translations-bilingual";
 
 type Translations = (typeof adminTranslations)["en"];
 
-/** English message → key, and templated messages as patterns (built once). */
 let index: {
   exact: Map<string, string>;
   patterns: Array<{ key: string; re: RegExp }>;
@@ -14,7 +13,6 @@ function buildIndex() {
     exact: new Map(
       Object.entries(messages).map(([key, text]) => [text as string, key]),
     ),
-    // Most specific first: "Invalid input for {0}" must win over "Invalid {0}".
     patterns: Object.entries(templates)
       .sort(
         ([, a], [, b]) =>
@@ -30,11 +28,6 @@ function buildIndex() {
   };
 }
 
-/**
- * The message to show for a failed action, in the interface language. Server messages are written
- * in English; known ones are translated (status words included), anything else falls back to the
- * caller's localized message so Arabic screens never show English text.
- */
 export function errorMessage(
   error: unknown,
   t: Translations,
@@ -70,7 +63,6 @@ export function errorMessage(
       },
     );
   }
-  // Already in the interface language (e.g. validation written in Arabic), or an English UI.
   const isArabicUi =
     errors.generic === adminTranslations.ar.serverErrors.generic;
   if (message && (!isArabicUi || /[؀-ۿ]/.test(message))) return message;

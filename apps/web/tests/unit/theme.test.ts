@@ -134,7 +134,6 @@ describe("generated CSS", () => {
     expect(dark["--ui-ink"]).not.toBe(light["--ui-ink"]);
     expect(light["--brand-bg-surface"]).toBe("255 255 255");
 
-    // Material Design 3 (M3) System Tokens
     expect(common["--md-sys-shape-corner-extra-large"]).toBe("28px");
     expect(common["--md-sys-shape-corner-full"]).toBe("9999px");
     expect(common["--md-sys-motion-easing-standard"]).toBe(

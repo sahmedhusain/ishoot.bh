@@ -23,7 +23,6 @@ const MONTHS: Record<ExpenseFrequency, number> = {
   semiannual: 6,
   yearly: 12,
 };
-/** Average occurrences per month, for the monthly-equivalent cost. */
 const PER_MONTH: Record<ExpenseFrequency, number> = {
   weekly: 52 / 12,
   monthly: 1,
@@ -74,7 +73,6 @@ export interface RecurringExpenseRecord {
   is_active: boolean;
   notes?: string;
   monthly_equivalent: number;
-  /** Days until the next due date (negative when overdue). */
   days_until: number;
   recorded_count: number;
   last_recorded_at?: string;
@@ -85,7 +83,6 @@ const day = (s: string) => new Date(`${s}T00:00:00Z`);
 const todayDate = () =>
   day(new Date().toISOString().slice(0, 10));
 
-/** The due date after `date`: the same day of the month (the month's last day when shorter), or a week later. */
 export function nextDueAfter(
   date: Date,
   frequency: ExpenseFrequency,
@@ -226,7 +223,6 @@ export async function saveRecurringExpense(
         include: { _count: { select: { expenses: true } } },
       });
       if (!existing) throw new Error(serverMessages.recurringExpenseNotFound);
-      // Before anything is recorded the schedule restarts from the start date; afterwards it continues.
       const nextDueDate =
         existing._count.expenses === 0 ? data.startDate : existing.nextDueDate;
       return db.recurringExpense.update({
@@ -265,10 +261,6 @@ function advance(r: {
   return { nextDueDate: next, isActive: !(r.endDate && next > r.endDate) };
 }
 
-/**
- * Records the expense for the bill's current due date (with the actual amount when it differs) and moves
- * the schedule to the next due date. The expense goes through the expense approval policy like any other.
- */
 export async function recordRecurringExpense(
   id: string,
   actorId: string,
@@ -333,7 +325,6 @@ export async function recordRecurringExpense(
   });
 }
 
-/** Skips the current due date (e.g. a waived bill) without recording an expense. */
 export async function skipRecurringExpense(id: string) {
   const r = await db.recurringExpense.findUnique({ where: { id } });
   if (!r) throw new Error(serverMessages.recurringExpenseNotFound);
@@ -359,10 +350,6 @@ async function financeUsers() {
   return users.filter((_, i) => allowed[i]).map((u) => u.id);
 }
 
-/**
- * Daily pass: records automatic bills whose due date has come (catching up missed ones), and reminds
- * finance about manual bills due within their reminder window or overdue, once per due date.
- */
 export async function processRecurringExpenses() {
   const today = todayDate();
   let recorded = 0;
@@ -392,7 +379,6 @@ export async function processRecurringExpenses() {
     if (days > r.remindDaysBefore) return [];
     return [{ r, days, key: `recurring-expense:${r.id}:${iso(r.nextDueDate)}:${days < 0 ? "overdue" : "due"}` }];
   });
-  // Who was already told about each bill, read in one query.
   const told = new Set(
     reminders.length
       ? (

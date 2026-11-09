@@ -43,7 +43,6 @@ interface CheckoutViewProps {
 
 const formatDay = (date: string, locale: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
-/** What delivery offers for the area being typed: whether it is served and the delivery times. */
 function useDeliveryOptions(place: { area: string; city: string } | undefined) {
   const [options, setOptions] = React.useState<DeliveryOptions | null>(null);
   const key = place ? `${place.area.trim()}|${place.city.trim()}` : "";
@@ -60,8 +59,6 @@ function useDeliveryOptions(place: { area: string; city: string } | undefined) {
       live = false;
       clearTimeout(timer);
     };
-    // The key holds everything the request depends on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return options;
 }
@@ -74,7 +71,6 @@ const read = (key: string) => {
   }
 };
 
-/** Checkout: who it is for, where it goes (or pickup), how it is paid, then the order. */
 export function CheckoutView({ locale, settings, customer, addresses, country, branches, accountsEnabled, collectCoordinates }: CheckoutViewProps) {
   const { t, site } = useTranslation();
   const router = useRouter();
@@ -99,14 +95,12 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
   const [locationError, setLocationError] = React.useState("");
   React.useEffect(() => setPin({ latitude: "", longitude: "" }), [addressId]);
   const [paymentMethod, setPaymentMethod] = React.useState(methods[0] ?? "");
-  // The delivery area prices the delivery (zones) and decides the delivery times on offer.
   const savedAddress = addresses.find((a) => a.id === addressId);
   const deliveryArea = fulfilment === "delivery" ? (savedAddress ? { area: savedAddress.area, city: savedAddress.city } : { area: address.area, city: address.city }) : undefined;
   const { quote, loading, failed, retry } = useQuote(lines, coupon, fulfilment, deliveryArea);
   const delivery = useDeliveryOptions(deliveryArea);
   const [slot, setSlot] = React.useState("");
   React.useEffect(() => {
-    // A slot that is no longer offered (another area, or taken) is dropped.
     if (slot && !delivery?.slots.some((s) => `${s.date}|${s.slotId}` === slot)) setSlot("");
   }, [delivery, slot]);
   const [note, setNote] = React.useState("");
@@ -152,7 +146,6 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
       try {
         window.localStorage.removeItem(COUPON_KEY);
       } catch { }
-      // Paying online continues on the order's payment page, which takes the customer to the gateway.
       router.push(data.payToken ? `/${locale}/pay/${data.payToken}?start=1` : `/${locale}/checkout/done?number=${encodeURIComponent(data.number)}`);
     } catch (err) {
       const key = err instanceof Error ? err.message : "generic";

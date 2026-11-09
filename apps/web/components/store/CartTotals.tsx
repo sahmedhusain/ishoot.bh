@@ -4,7 +4,6 @@ import type { CartQuote } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { formatPrice } from "../../lib/site-copy";
 
-/** Subtotal, discount, delivery, VAT and total of a priced cart. */
 export function CartTotals({ quote, delivery }: { quote: CartQuote; delivery: boolean }) {
   const { t, locale } = useTranslation();
   const money = (value: number) => formatPrice(value, quote.currency, locale);

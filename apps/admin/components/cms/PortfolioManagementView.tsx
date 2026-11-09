@@ -36,7 +36,6 @@ import { PageHeader } from "../layout/PageHeader";
 interface PortfolioManagementViewProps {
   initialItems: PortfolioItem[];
   categories: PortfolioCategory[];
-  /** The website catalogue: its name, card layout and the item details its activity uses. */
   catalogue: { nameEn: string; nameAr: string; layout: CollectionLayout; fields: readonly CollectionField[]; currency: string };
   languages: readonly ContentLanguage[];
 }
@@ -574,7 +573,6 @@ export function PortfolioManagementView({
               {t.cms.featured}
             </label>
           </div>
-
 
         </form>
       </Modal>

@@ -73,10 +73,6 @@ export function Field({ label, hint, children, wide }: { label: string; hint?: s
   );
 }
 
-/**
- * One input per content language for an English/Arabic pair. With a single language there is one unlabelled
- * input, and it writes both sides so every reader of either column sees the text.
- */
 export function LanguageFields({
   label,
   hint,
@@ -91,7 +87,6 @@ export function LanguageFields({
   maxLength = 1500,
   name,
 }: {
-  /** Inputs are named `${name}En` / `${name}Ar`. */
   name?: string;
   label: string;
   hint?: string;

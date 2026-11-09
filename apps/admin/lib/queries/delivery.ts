@@ -151,7 +151,7 @@ export async function listDeliveryZones() {
     min_order: numOrNull(z.minOrder),
     free_over: numOrNull(z.freeOver),
     is_active: z.isActive,
-    slots: [], // Slots would need separate calls per zone in this API
+    slots: [],
   }));
 }
 export type DeliveryZoneRecord = Awaited<
@@ -159,8 +159,6 @@ export type DeliveryZoneRecord = Awaited<
 >[number];
 
 export async function listSharedSlots() {
-  // API doesn't have listSharedSlots directly.
-  // We'd need to fetch all slots from all zones and filter.
   return [];
 }
 
@@ -176,7 +174,6 @@ export interface DeliveryZoneInput {
 }
 
 export async function saveDeliveryZone(input: DeliveryZoneInput) {
-  // API use createDeliveryZone
   return createDeliveryZone({
     nameEn: input.nameEn,
     nameAr: input.nameAr,
@@ -198,12 +195,10 @@ export interface DeliverySlotInput {
 }
 
 export async function saveDeliverySlot(input: DeliverySlotInput) {
-  // API doesn't have a general saveDeliverySlot.
   throw new Error("saveDeliverySlot is not implemented in API");
 }
 
 export async function deleteDeliverySlot(id: string) {
-  // API doesn't have deleteDeliverySlot.
   throw new Error("deleteDeliverySlot is not implemented in API");
 }
 
@@ -244,7 +239,7 @@ export async function deliveryOptions(
         zone.id,
         now,
         settings.slotDays,
-        new Map(), // Booked slots not available in API
+        new Map(),
         timeZone,
         settings.leadMinutes,
       )
@@ -273,8 +268,6 @@ export async function createShipmentForOrder(
     requireSlot: boolean;
   },
 ) {
-  // This is a transaction-heavy function. 
-  // In the Go backend, this should be a single API call.
   throw new Error("createShipmentForOrder must be implemented as a single API call in Go backend");
 }
 
@@ -284,6 +277,5 @@ export async function followOrderStatus(
   status: string,
   byId: string | null,
 ) {
-  // This is a transaction-heavy function.
   throw new Error("followOrderStatus must be implemented as a single API call in Go backend");
 }

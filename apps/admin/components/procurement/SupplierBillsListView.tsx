@@ -22,7 +22,6 @@ interface Row {
   amount_paid: number;
 }
 
-/** Purchasing → supplier bills. */
 export function SupplierBillsListView({ rows, status, currency, canCreate }: { rows: Row[]; status: string; currency: string; canCreate: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.bills;

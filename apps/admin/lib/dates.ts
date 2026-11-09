@@ -1,10 +1,8 @@
-/** Default business timezone for dates the company sees (issue/due dates, defaults). */
 const DEFAULT_BUSINESS_TIME_ZONE =
   typeof Intl !== "undefined"
     ? Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
     : "UTC";
 
-/** YYYY-MM-DD for `date` in the business timezone. */
 export function businessDateString(
   date: Date = new Date(),
   timeZone: string = DEFAULT_BUSINESS_TIME_ZONE,

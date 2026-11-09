@@ -27,10 +27,6 @@ const path = (type: SignableDocument, id: string) =>
       ? ROUTES.invoices.detail(id)
       : ROUTES.payments.detail(id);
 
-/**
- * Sign and stamp an approved quotation, invoice or receipt: with your approved signature, or with one drawn now
- * when the document type must be signed on the spot.
- */
 export async function signDocumentAction(
   type: SignableDocument,
   id: string,
@@ -67,7 +63,6 @@ export async function signDocumentAction(
   });
 }
 
-/** Send a draft invoice for approval before it can be signed and sent. */
 export async function requestInvoiceApprovalAction(id: string) {
   return measureOperation("action:requestInvoiceApprovalAction", async () => {
     const actor = await requirePermission("invoices", "write");

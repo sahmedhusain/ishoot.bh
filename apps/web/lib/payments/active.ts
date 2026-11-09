@@ -3,7 +3,6 @@ import { isPaymentGateway, type PaymentGatewayId } from "../constants/payments";
 import { getActiveIntegrationCredentials } from "../queries/integrations";
 import { paymentGateway } from "./gateways";
 
-/** The gateway behind "Pay online": chosen in store settings and switched on in Integrations. Null otherwise. */
 export async function activePaymentGateway() {
   const settings = await db.storeSettings.findUnique({
     where: { id: "default" },

@@ -17,13 +17,6 @@ export const dynamic = "force-dynamic";
 const FILTERS: InboxFilter[] = ["all", "unread", "read", "archived", "muted"];
 const noStore = { "Cache-Control": "no-store" };
 
-/**
- * The signed-in person's notifications from the notify service (docs/adr/0012):
- *   ?view=preview[&filter=unread]   the header menu's latest eight and the unread count
- *   ?view=page&filter&category&cursor&limit
- *   ?id=<id>                        one notification (for a live pop-up)
- *   ?view=settings                  their settings and muted records
- */
 export async function GET(req: NextRequest) {
   return measureOperation("admin:notifications:GET", async () => {
     const user = await getCurrentUser();

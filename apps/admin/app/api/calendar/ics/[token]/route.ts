@@ -17,10 +17,6 @@ import { publicOrigin } from "../../../../../lib/public-origin";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Public: a person's calendar subscription (Google Calendar "From URL", Outlook, Apple Calendar). The secret token
- * identifies them; the feed lists only what they may see, in the layers they chose.
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },

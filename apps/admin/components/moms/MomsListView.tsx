@@ -83,7 +83,6 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <PageHeader
         actions={<Link href={ROUTES.moms.create}>
           <Button className="bg-accent hover:bg-tone-25 text-accent-foreground flex items-center gap-2 text-xs">
@@ -93,7 +92,6 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         </Link>}
       />
 
-      {/* Filter and Search Bar */}
       <Card className="p-4 bg-surface border border-outline-variant rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
@@ -130,7 +128,6 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         </div>
       </Card>
 
-      {/* MOM Table */}
       <Card className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-start text-xs">
@@ -231,7 +228,6 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         </div>
       </Card>
 
-      {/* Delete Confirmation Modal */}
       {deleteTargetId && (
         <ConfirmDialog
           isOpen={true}

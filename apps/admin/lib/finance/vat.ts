@@ -1,10 +1,6 @@
 import { db } from "../atomic";
 import type { DocumentTaxLine } from "../types";
 
-/**
- * The only source of a document's VAT: the company registration. When VAT is enabled every invoice
- * and quotation carries it at the company rate; when it is disabled none does. Forms cannot override it.
- */
 export async function companyVat(
   client: any = db,
 ): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
@@ -33,7 +29,6 @@ export interface ActiveTax {
   registrationNumber: string | null;
 }
 
-/** Active taxes besides VAT that apply to new invoices or quotations, in display order. */
 export async function companyTaxes(
   kind: "invoice" | "quotation",
   client: any = db,
@@ -58,7 +53,6 @@ export async function companyTaxes(
   }));
 }
 
-/** DocumentTax rows for a calculated document: the frozen name, rate, registration and amount of each tax. */
 export function documentTaxRows(
   taxes: ActiveTax[],
   amounts: Array<{ code: string; amount: number }>,
@@ -75,7 +69,6 @@ export function documentTaxRows(
   }));
 }
 
-/** The taxes frozen on an issued document, in the shape used to recalculate it. */
 export function frozenTaxes(
   rows: Array<{
     taxRateId: string | null;
@@ -96,7 +89,6 @@ export function frozenTaxes(
   }));
 }
 
-/** Frozen tax rows → the shape documents and screens use. */
 export function mapDocumentTaxLines(rows: unknown): DocumentTaxLine[] {
   if (!Array.isArray(rows)) return [];
   return rows.map((r) => ({

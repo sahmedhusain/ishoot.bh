@@ -48,7 +48,6 @@ export function AdminErrorPage({
   const [copied, setCopied] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Dynamic status code resolution
   const resolvedCode = String(
     statusCode ?? (error?.status || error?.statusCode || (error ? 500 : 404)),
   );
@@ -77,7 +76,6 @@ export function AdminErrorPage({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Dynamic titles and descriptions from localization dictionary
   const titleKey = `code${resolvedCode}Title` as keyof typeof copy;
   const descKey = `code${resolvedCode}Desc` as keyof typeof copy;
 
@@ -105,7 +103,6 @@ export function AdminErrorPage({
       dir={isRTL ? "rtl" : "ltr"}
     >
       <div className="w-full max-w-2xl rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
-        {/* Header Ribbon */}
         <div className="bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-900/50 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
@@ -140,13 +137,11 @@ export function AdminErrorPage({
           )}
         </div>
 
-        {/* Content Body */}
         <div className="p-6 space-y-5">
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             {resolvedDesc}
           </p>
 
-          {/* Prominent Technical Exception/Message Card */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-4 font-mono text-xs text-rose-600 dark:text-rose-400 break-words flex items-start gap-2">
             <Terminal className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
             <div className="flex-1">
@@ -157,7 +152,6 @@ export function AdminErrorPage({
             </div>
           </div>
 
-          {/* Quick jump to core documents for 404 / resource lookups */}
           {is404 && (
             <div className="pt-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5">
@@ -181,7 +175,6 @@ export function AdminErrorPage({
             </div>
           )}
 
-          {/* Collapsible Technical Stack Trace Details */}
           {error?.stack && (
             <div>
               <button
@@ -202,7 +195,6 @@ export function AdminErrorPage({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="pt-2 flex flex-wrap items-center gap-3">
             {reset && (
               <button

@@ -12,7 +12,6 @@ import { TicketStatusBadge, useTicketText } from "./ticket-text";
 
 interface ItSupportViewProps {
   status: string;
-  /** Null when the itsm service could not be reached. */
   page: TicketPage | null;
   canCreate: boolean;
 }

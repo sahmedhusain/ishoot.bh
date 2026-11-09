@@ -39,7 +39,6 @@ const map = (c: {
   createdAt: c.createdAt.toISOString(),
 });
 
-/** Files a drawn signature (a private PNG the user just uploaded) as a pending change; one at a time. */
 export async function requestSignatureChange(userId: string, fileUrl: string) {
   return runAtomicMutation(async () => {
     const upload = await lookupFile(fileUrl);
@@ -80,7 +79,6 @@ export async function requestSignatureChange(userId: string, fileUrl: string) {
   });
 }
 
-/** Applies an approved signature to the user. */
 export async function approveSignatureChange(
   id: string,
   deciderId: string,
@@ -155,7 +153,6 @@ export async function cancelSignatureChange(id: string, userId: string) {
   });
 }
 
-/** The user's signature change log, newest first. */
 export async function listSignatureChanges(
   userId: string,
   take = 20,

@@ -16,7 +16,6 @@ export async function companyCurrency(): Promise<string> {
   return DEFAULT_FALLBACK_CURRENCY;
 }
 
-/** Currency belongs to the company; a submitted document cannot select a different currency. */
 export async function assertCompanyCurrency(requested?: string, connection: Pick<typeof db, "$queryRaw"> = db): Promise<string> {
   let currency: string | undefined;
   try {

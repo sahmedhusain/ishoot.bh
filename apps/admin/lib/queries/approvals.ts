@@ -44,7 +44,6 @@ export async function getApprovalRequest(
 }
 
 export async function listApprovalRequests(filters: {
-  /** Only requests this user can decide now. */
   awaitingUserId?: string;
   visibleToUserId?: string;
   readableTargetTypes?: string[];
@@ -107,7 +106,6 @@ export async function listApprovalRequests(filters: {
   };
 }
 
-/** Decides an approval through the policy engine. Kept for existing callers. */
 export async function decideApproval(
   approvalRequestId: string,
   decision: "approved" | "rejected",

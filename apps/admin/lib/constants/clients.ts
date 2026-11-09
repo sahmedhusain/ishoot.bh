@@ -1,4 +1,3 @@
-// Client profile vocabulary, shared by the server and the forms. Runtime-free.
 
 export const CLIENT_KINDS = ["individual", "company", "government"] as const;
 export type ClientKind = (typeof CLIENT_KINDS)[number];
@@ -6,7 +5,6 @@ export type ClientKind = (typeof CLIENT_KINDS)[number];
 export const COMPANY_ORIGINS = ["local", "foreign"] as const;
 export type CompanyOrigin = (typeof COMPANY_ORIGINS)[number];
 
-/** Legacy legal-form identifiers; company-specific descriptions can use the other-form field. */
 export const LEGAL_FORMS = [
   "wll",
   "spc",
@@ -51,7 +49,6 @@ export const INDUSTRIES = [
   "other",
 ] as const;
 
-/** ABC ranking: clients making up the first 80% of billed revenue are A, the next 15% B, the rest C. */
 export const CLIENT_TIERS = ["A", "B", "C", "none"] as const;
 export type ClientTier = (typeof CLIENT_TIERS)[number];
 
@@ -76,10 +73,8 @@ export const CLIENT_BALANCE_FILTERS = [
   "never_billed",
 ] as const;
 export const CLIENT_ACTIVITY_FILTERS = ["active", "dormant"] as const;
-/** A client with no invoice, payment or request in this many days is dormant. */
 export const CLIENT_DORMANT_DAYS = 180;
 
-/** GCC first, then every other ISO 3166-1 country. Names live in the locale files. */
 export const COUNTRY_CODES = [
   "BH",
   "SA",
@@ -285,10 +280,6 @@ const COUNTRY_SET = new Set<string>(COUNTRY_CODES);
 export const isCountryCode = (value: unknown): value is string =>
   typeof value === "string" && COUNTRY_SET.has(value);
 
-/**
- * Country names come from the locale files (`countries`), already sorted for each language with the GCC
- * first, so the server and the browser always render the same list.
- */
 export function countryName(
   code: string | null | undefined,
   names: Record<string, string>,
@@ -297,7 +288,6 @@ export function countryName(
   return names[code] ?? code;
 }
 
-/** Countries for a picker, in the order of the locale file. */
 export function countryOptions(
   names: Record<string, string>,
 ): Array<{ code: string; name: string }> {

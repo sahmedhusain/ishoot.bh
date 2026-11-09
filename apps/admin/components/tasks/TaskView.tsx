@@ -16,7 +16,6 @@ import { PriorityPill, TaskLink, TaskStatusPill } from "./TaskBits";
 import { TaskForm } from "./TaskForm";
 import { PageHeader } from "../layout/PageHeader";
 
-/** One task: what and for whom, its status, editing, and the conversation about it. */
 export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecord; choices: TaskChoices; canAssign: boolean; selfId: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.tasks;

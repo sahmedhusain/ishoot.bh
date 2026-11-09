@@ -34,7 +34,6 @@ export default async function EmployeesPage({
     hasPermission("employees", "edit"),
     listExpiringEmployeeDocuments(60),
   ]);
-  // Salaries leave the server only for people who can read payroll.
   const employees = canViewPay ? listed : listed.map((e) => ({ ...e, employmentRecords: [] }));
 
   return (

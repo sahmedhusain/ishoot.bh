@@ -79,8 +79,6 @@ export async function submitPayrollRunForApprovalAction(runId: string) {
 
 export async function approvePayrollRunAction(runId: string) {
   return measureOperation("action:approvePayrollRunAction", async () => {
-    // Eligibility comes from the payroll approval policy, enforced by the engine (which also
-    // covers fallback approvers without payroll access).
     const actor = await requireAuth();
     validateActionArguments("approvePayrollRunAction", { runId });
 
@@ -115,7 +113,6 @@ interface PaymentInput {
   paidOn?: string | null;
 }
 
-/** Pays every salary still unpaid in an approved run. */
 export async function markPayrollRunPaidAction(
   runId: string,
   payment: PaymentInput = { method: "bank_transfer" },
@@ -147,7 +144,6 @@ export async function markPayrollRunPaidAction(
   });
 }
 
-/** One employee's salary payment, from their payment page. */
 export async function payPayrollItemAction(
   itemId: string,
   payment: PaymentInput,
@@ -175,7 +171,6 @@ export async function payPayrollItemAction(
   });
 }
 
-/** Recomputes a run that is not yet submitted, after attendance, leave or salary changes. */
 export async function recalculatePayrollRunAction(runId: string) {
   return measureOperation("action:recalculatePayrollRunAction", async () => {
     const actor = await requirePermission("payroll", "edit");
@@ -196,8 +191,6 @@ export async function recalculatePayrollRunAction(runId: string) {
   });
 }
 
-/** Add a bonus or deduction (with a reason) to one employee's salary before the run is submitted. */
-/** Sets one employee's manual additions and deductions for the month, as separate named lines. */
 export async function setPayrollLinesAction(
   itemId: string,
   data: {
@@ -239,7 +232,6 @@ export async function setPayrollLinesAction(
   });
 }
 
-/** Adds or edits a custom addition or deduction an employee receives every month. */
 export async function saveRecurringPayAction(
   employeeId: string,
   data: RecurringPayInput,
@@ -293,7 +285,6 @@ export async function deleteRecurringPayAction(recurringId: string) {
   });
 }
 
-/** Record money received from a wage-support programme (e.g. Wage support fund) for a six-month claim. */
 export async function recordSupportReimbursementAction(input: {
   employeeId: string;
   provider: string;

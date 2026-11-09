@@ -19,7 +19,6 @@ function Avatar({ name, url, size = "h-8 w-8" }: { name: string; url: string | n
   );
 }
 
-/** Departments as a collapsible tree: head and deputy first, then a few people and a link to everyone. */
 export function OrgChartView({ departments, unassigned }: { departments: OrgChartNode[]; unassigned: number }) {
   const { t, locale } = useAdminLocale();
   const copy = t.orgChart;

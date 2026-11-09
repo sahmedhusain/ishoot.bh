@@ -12,7 +12,6 @@ import {
 interface ReceiptTemplateProps {
   payment: Payment;
   company: CompanySettings;
-  /** Stamp and signature appear only once the document is approved and signed. */
   signing?: { signatureUrl: string | null; signerName: string } | null;
   locale?: "en" | "ar";
 }
@@ -46,7 +45,6 @@ export function ReceiptTemplate({
         </span>
       </div>
 
-      {/* Unified Brand Letterhead */}
       <DocumentLetterhead
         documentType="receipt"
         documentNumber={payment.receipt_number}

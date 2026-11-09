@@ -13,7 +13,6 @@ import { formatMessage } from "@platform/locales";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../lib/site";
 
-/** The contact page's own layout: contact details beside the enquiry form. Shown by the "contact details and form" block. */
 export async function ContactBody({ locale, query }: { locale: string; query: { intent?: string; service?: string; item?: string } }) {
   const ar = locale === "ar";
   const [company, website] = await Promise.all([getPublicCompanySettings(), getWebsite()]);

@@ -32,7 +32,6 @@ const request = (body: string, headers: Record<string, string>) => ({
 
 afterEach(() => vi.unstubAllGlobals());
 
-/** Replaces fetch with one answer and keeps what was sent. */
 function stubFetch(answer: unknown, status = 200) {
   const calls: { url: string; init: RequestInit }[] = [];
   vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {

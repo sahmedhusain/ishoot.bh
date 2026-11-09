@@ -12,7 +12,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
 const CONDITIONS = ["new", "excellent", "good", "fair", "poor", "damaged"] as const;
-/** Every status can be set by hand; issuing and returning through a handover keeps the signed paper trail. */
 const MANUAL_STATUSES = ["available", "assigned", "maintenance", "lost", "retired"] as const;
 
 function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {

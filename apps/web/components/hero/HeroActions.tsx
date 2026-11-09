@@ -7,7 +7,6 @@ import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
 
-/** Where a banner's button goes: its own link (catalogue and page links follow the site's addresses) or a quote request. */
 function useHeroLinks(banner?: HeroBanner) {
   const { locale, site } = useTranslation();
   const catalogue = site ? collectionHref(site, locale) : `/${locale}`;

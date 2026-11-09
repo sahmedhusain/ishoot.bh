@@ -1,11 +1,9 @@
 "use server";
-// The signed-in person's status (available, busy, in a meeting…), kept by the realtime service (docs/adr/0012).
 import { serverMessages } from "@platform/locales";
 import { clearMyStatus, isApiError, setMyStatus } from "@platform/api-client";
 import { validateActionArguments } from "../../lib/action-input";
 import { requireAuth } from "../../lib/auth";
 
-/** Sets the status the person chose, with an optional message and end time (ISO). */
 export async function setMyStatusAction(choice: { status: string; message?: string | null; expiresAt?: string | null }) {
   validateActionArguments("setMyStatusAction", { choice });
   const user = await requireAuth();
@@ -17,7 +15,6 @@ export async function setMyStatusAction(choice: { status: string; message?: stri
   }
 }
 
-/** Goes back to the automatic status (from the calendar, leave and activity). */
 export async function clearMyStatusAction() {
   validateActionArguments("clearMyStatusAction", {});
   const user = await requireAuth();

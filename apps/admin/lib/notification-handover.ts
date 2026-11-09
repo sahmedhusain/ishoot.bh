@@ -1,6 +1,3 @@
-// Moves new in-app notifications from Prisma to the notify service every second (docs/adr/0012), so they reach the
-// person's browsers within about a second of the change that caused them. NOTIFICATION_HANDOVER_MS sets the pace;
-// 0 turns it off (another server does it). Failures back off up to 30 seconds and nothing is lost: rows wait.
 import { flushNotifications } from "@platform/database/services/notification-handover";
 
 const state = globalThis as { __notificationHandover?: ReturnType<typeof setTimeout> };

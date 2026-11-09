@@ -1,4 +1,3 @@
-// Render the actual navigation for both locales and exercise permission/module boundaries.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");

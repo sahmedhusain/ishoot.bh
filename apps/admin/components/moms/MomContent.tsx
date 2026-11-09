@@ -6,7 +6,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { DocumentCard } from "../documents/DocumentCard";
 import { DocumentInfoCard } from "../documents/DocumentInfoCard";
 
-/** Screen-only meeting record. The original paper remains available to browser print. */
 export function MomContent({ mom }: { mom: MinuteOfMeetingItem }) {
   const { t, isArabic } = useAdminLocale();
   const c = t.momDetail;

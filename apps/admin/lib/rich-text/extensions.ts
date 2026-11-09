@@ -15,8 +15,6 @@ import {
   type EmbedPreset,
 } from "@platform/database/cms/blocks";
 
-// One extension list for the editor (browser) and the HTML renderer (server), so both read documents the same way.
-
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     textDirection: {
@@ -38,7 +36,6 @@ declare module "@tiptap/core" {
   }
 }
 
-/** Right-to-left or left-to-right per paragraph, heading, quote or list item (dir attribute). */
 const TextDirection = Extension.create({
   name: "textDirection",
   addGlobalAttributes() {
@@ -71,7 +68,6 @@ const TextDirection = Extension.create({
   },
 });
 
-/** An image with an optional caption: <figure><img><figcaption>. */
 const Figure = Node.create({
   name: "figure",
   group: "block",
@@ -122,7 +118,6 @@ const Figure = Node.create({
   },
 });
 
-/** Several images in a grid. */
 const Gallery = Node.create({
   name: "gallery",
   group: "block",
@@ -163,7 +158,6 @@ const Gallery = Node.create({
   },
 });
 
-/** A known embed (Vimeo, Instagram, Google Maps, Calendly, Typeform) in a frame; YouTube has its own node. */
 const Embed = Node.create({
   name: "embed",
   group: "block",

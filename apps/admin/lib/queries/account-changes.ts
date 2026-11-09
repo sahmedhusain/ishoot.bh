@@ -8,11 +8,6 @@ import { db } from "../atomic";
 import { ALL_ROLES } from "../constants/permissions";
 import { getEffectivePermissions } from "./permissions";
 
-/**
- * Account settings that sit with the login rather than the HR record: role, reporting line, account status,
- * discount limit and sales commission. Admins apply them directly; HR files them for an admin's approval.
- * Super Admin accounts are never changed here.
- */
 export interface AccountChanges {
   role?: string;
   managerId?: string | null;
@@ -81,7 +76,6 @@ export async function accountSnapshot(
   };
 }
 
-/** Keeps only fields that actually change, validated. */
 export async function normalizeAccountChanges(
   userId: string,
   input: AccountChanges,
@@ -123,7 +117,6 @@ export async function normalizeAccountChanges(
         select: { id: true },
       });
       if (!manager) throw new Error(serverMessages.chooseAnActiveManager);
-      // Walk up from the new manager: the person must not appear above themselves.
       let cursor: string | null = managerId;
       for (let depth = 0; cursor && depth < 50; depth++) {
         if (cursor === userId)
@@ -164,7 +157,6 @@ export async function normalizeAccountChanges(
   return { changes, before };
 }
 
-/** The actor may not give anyone access beyond their own (Super Admin excepted). */
 async function assertWithinActorAccess(
   actorId: string,
   userId: string,
@@ -195,7 +187,6 @@ async function assertWithinActorAccess(
     throw new Error(serverMessages.youCannotGiveARoleWithMore);
 }
 
-/** Applies validated changes and logs them. Run inside the caller's transaction. */
 export async function applyAccountChanges(
   userId: string,
   input: AccountChanges,
@@ -238,8 +229,6 @@ export async function applyAccountChanges(
       }),
     },
   });
-  // Losing access or changing role ends open sessions so new rights apply at once: identity does this when the
-  // change is synced (services/identity-sync).
   await db.activityLog.create({
     data: {
       userId: actorId,
@@ -281,7 +270,6 @@ export async function createAccountChangeRequest(
   });
 }
 
-/** Approval engine finalizers. */
 export async function approveAccountChange(
   id: string,
   deciderId: string,

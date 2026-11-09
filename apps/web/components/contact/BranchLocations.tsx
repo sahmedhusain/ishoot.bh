@@ -2,7 +2,6 @@ import { MapPin, ArrowUpRight } from "lucide-react";
 import { getTranslations } from "@platform/locales";
 import type { PublicBranch } from "@platform/database/constants/website-commerce";
 
-/** A directions link works without a paid map integration or location permission. */
 export function branchDirections(branch: PublicBranch) {
   return (
     branch.directionsUrl ||

@@ -73,7 +73,6 @@ export function Customer360DossierView({
           </div>
         ))}
 
-      {/* Top Header & Navigation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link href={ROUTES.crm.contacts}>
@@ -118,7 +117,6 @@ export function Customer360DossierView({
           </div>
         </div>
 
-        {/* Quick Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2">
           {actions.createQuotation && (
             <Link href={ROUTES.quotations.create({ clientId: contact.id })}>
@@ -167,9 +165,7 @@ export function Customer360DossierView({
         </div>
       </div>
 
-      {/* M3 KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* LTV */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.ltv}</span>
@@ -186,7 +182,6 @@ export function Customer360DossierView({
               {collectionRate}% {t.customer360.collected}
             </span>
           </div>
-          {/* Progress bar */}
           <div className="w-full h-1.5 rounded-full bg-surface-sunken dark:bg-white/10 overflow-hidden">
             <div
               className="h-full bg-accent rounded-full transition-all duration-500"
@@ -195,7 +190,6 @@ export function Customer360DossierView({
           </div>
         </Card>
 
-        {/* Total Settled */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.totalSettled}</span>
@@ -210,7 +204,6 @@ export function Customer360DossierView({
           </div>
         </Card>
 
-        {/* Outstanding Balance */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.outstandingBalance}</span>
@@ -230,7 +223,6 @@ export function Customer360DossierView({
           </div>
         </Card>
 
-        {/* Pipeline & Win Rate */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.winRate}</span>
@@ -254,7 +246,6 @@ export function Customer360DossierView({
         </Card>
       </div>
 
-      {/* Tabs Bar */}
       <div className="border-b border-outline-variant dark:border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto" role="tablist">
         {[
           { id: "overview", label: t.customer360.tabOverview, icon: User },
@@ -297,7 +288,6 @@ export function Customer360DossierView({
         })}
       </div>
 
-      {/* TAB 1: OVERVIEW */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-tab-panel>
           <ClientProfilePanel contact={contact} standing={standing} className="md:col-span-2" />
@@ -354,7 +344,6 @@ export function Customer360DossierView({
         </div>
       )}
 
-      {/* TAB 2: INQUIRIES & INTERACTIONS */}
       {activeTab === "interactions" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <h3 className="text-base font-bold text-ink flex items-center gap-2">
@@ -391,7 +380,6 @@ export function Customer360DossierView({
         </Card>
       )}
 
-      {/* TAB 3: DEALS */}
       {activeTab === "deals" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <div className="flex items-center justify-between">
@@ -443,7 +431,6 @@ export function Customer360DossierView({
         </Card>
       )}
 
-      {/* TAB 4: FINANCE & INVOICES */}
       {activeTab === "finance" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <div className="flex items-center justify-between">
@@ -528,7 +515,6 @@ export function Customer360DossierView({
         </Card>
       )}
 
-      {/* TAB 5: VAULT */}
       {activeTab === "vault" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <h3 className="text-base font-bold text-ink flex items-center gap-2">

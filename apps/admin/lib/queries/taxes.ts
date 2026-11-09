@@ -2,7 +2,6 @@ import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../atomic";
 import { getCompanyConfiguration } from "../api/company";
 
-/** A tax the company is registered for besides VAT, as the settings screen shows it. */
 export interface TaxRateRecord {
   id: string;
   code: string;
@@ -15,7 +14,6 @@ export interface TaxRateRecord {
   applies_to_invoices: boolean;
   applies_to_quotations: boolean;
   is_active: boolean;
-  /** Invoices and quotations that carry this tax; a used tax can be deactivated but not deleted. */
   documents: number;
 }
 
@@ -32,7 +30,6 @@ export interface TaxRateInput {
   is_active: boolean;
 }
 
-/** A certificate behind a QR code on a document: VAT (company settings) or a tax from the registry. */
 export interface TaxCertificate {
   code: string;
   nameEn: string;
@@ -80,7 +77,6 @@ export async function listTaxRates(): Promise<TaxRateRecord[]> {
   }));
 }
 
-/** Creates or updates a tax. The rate of a tax already on documents only affects new documents. */
 export async function saveTaxRate(input: TaxRateInput) {
   const nameEn = input.name_en?.trim().slice(0, 80);
   const nameAr = input.name_ar?.trim().slice(0, 80);
@@ -131,7 +127,6 @@ export async function saveTaxRate(input: TaxRateInput) {
   });
 }
 
-/** Removes a tax that no document uses; a used one is kept so issued documents stay intact. */
 export async function deleteTaxRate(id: string) {
   return runAtomicMutation(async () => {
     const used = await db.documentTax.count({ where: { taxRateId: id } });
@@ -140,7 +135,6 @@ export async function deleteTaxRate(id: string) {
   });
 }
 
-/** The certificate behind a document's QR code. */
 export async function getTaxCertificate(
   code: string,
 ): Promise<TaxCertificate | null> {
@@ -171,7 +165,6 @@ export async function getTaxCertificate(
   };
 }
 
-/** Active taxes for the forms' live totals. */
 export async function getActiveTaxSummary() {
   const rows =
     (await db.taxRate.findMany({

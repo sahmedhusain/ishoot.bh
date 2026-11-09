@@ -29,7 +29,6 @@ export function TaskStatusPill({ status }: { status: string }) {
   return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_TONES[status] ?? ""}`} data-testid="task-status">{(t.tasks.statuses as Record<string, string>)[status] ?? status}</span>;
 }
 
-/** The page of the record a task is about. */
 function taskLinkHref(type: string, id: string) {
   switch (type) {
     case "order":

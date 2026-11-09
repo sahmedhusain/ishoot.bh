@@ -17,7 +17,6 @@ interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];
   finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
   acceptedQuotations?: Quotation[];
-  /** Search, filters and paging, shown under the header. */
   controls?: React.ReactNode;
 }
 
@@ -35,7 +34,6 @@ export function InvoicesListView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <PageHeader
         actions={<Link href={ROUTES.invoices.create()}>
           <Button
@@ -50,7 +48,6 @@ export function InvoicesListView({
       />
       {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
-      {/* Accepted Quotations Banner (Ready for Invoicing) */}
       {acceptedQuotations.length > 0 && (
         <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 dark:bg-teal-950/20 dark:border-teal-900/40 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -115,7 +112,6 @@ export function InvoicesListView({
         </div>
       )}
 
-      {/* KPI Chips */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 bg-surface-raised border border-outline-variant rounded-xl shadow-xs space-y-1">
           <div className="text-xs font-medium text-ink-muted">
@@ -150,7 +146,6 @@ export function InvoicesListView({
         </div>
       </div>
 
-      {/* Search & Filter Toolbar + Table */}
       <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <DataTable className="w-full text-start text-xs">

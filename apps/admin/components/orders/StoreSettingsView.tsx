@@ -25,7 +25,6 @@ interface CouponRow {
   is_active: boolean;
 }
 
-/** Store settings: checkout, delivery, pickup and payment methods; and the coupons. */
 export function StoreSettingsView({ settings, coupons, gateways, currency, languages, canEdit, canCoupons }: { settings: StoreSettingsRecord; coupons: CouponRow[]; gateways: { id: string; test_mode: boolean }[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean; canCoupons: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.orders.settings;

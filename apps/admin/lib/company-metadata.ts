@@ -18,7 +18,6 @@ export async function companyMetadata(pageTitle?: string): Promise<Metadata> {
   };
 }
 
-/** A dashboard page's browser title, in the language the admin is shown in ("Invoices | Company"). */
 export async function pageMetadata(page: PageKey): Promise<Metadata> {
   const company = await getCachedCompanySettings().catch(() => null);
   const saved = (await cookies()).get("platform_admin_locale")?.value;

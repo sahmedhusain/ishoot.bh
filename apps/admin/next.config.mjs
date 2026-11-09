@@ -14,7 +14,6 @@ const origin = (value) => {
   }
 };
 const webOrigin = origin(process.env.NEXT_PUBLIC_WEB_URL || process.env.WEB_URL);
-// Report-only until a clean run in production; frame-ancestors is enforced separately below.
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
@@ -40,7 +39,6 @@ const securityHeaders = [
     : []),
 ];
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
@@ -50,11 +48,9 @@ const nextConfig = {
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
   serverExternalPackages: ['@react-pdf/renderer', 'libphonenumber-js', 'bcryptjs', 'sharp'],
   transpilePackages: [],
-  // Which service key this app signs its backend calls with (docs/adr/0011).
   env: { SERVICE_CALLER: 'admin' },
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Enables forbidden(): pages a role may not open render app/forbidden.tsx with HTTP 403.
     authInterrupts: true,
   },
   images: {

@@ -18,7 +18,6 @@ interface ProductStockPanelProps {
   name: string;
   sku: string;
   trackBatches: boolean;
-  /** The product's options and variants; no variants for a product without options. */
   options: ProductOption[];
   variants: { id: string; values: string[] }[];
   stock: {
@@ -30,7 +29,6 @@ interface ProductStockPanelProps {
   canEdit: boolean;
 }
 
-/** Products → one product → stock: where it is, its reorder levels and average cost. */
 export function ProductStockPanel({ productId, name, sku, trackBatches, options, variants: rawVariants, stock, warehouses, currency, canEdit }: ProductStockPanelProps) {
   const { t, locale } = useAdminLocale();
   const variants = rawVariants.map((v) => ({ id: v.id, label: variantLabel(options, v.values, locale) }));

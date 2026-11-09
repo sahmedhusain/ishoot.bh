@@ -53,7 +53,6 @@ const TIER_STYLE: Record<string, string> = {
 };
 const FILTER_KEYS = ["kind", "type", "origin", "country", "tier", "balance", "activity"] as const;
 
-/** Whether a company or government profile is missing its registration details. */
 function incomplete(row: ClientListRow) {
   if (row.client_kind === "company") return row.company_origin === "foreign" ? !row.registration_number : !row.cr_number;
   if (row.client_kind === "government") return !row.contact_persons_count;

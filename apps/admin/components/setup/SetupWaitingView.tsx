@@ -3,7 +3,6 @@
 import { Hourglass } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Shown to people without settings access while an administrator finishes the first-run setup. */
 export function SetupWaitingView() {
   const { t } = useAdminLocale();
   return (

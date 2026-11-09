@@ -69,7 +69,6 @@ export function NewPaymentFormView({
   const [saving, setSaving] = React.useState(false);
   const [fetchingInvoices, setFetchingInvoices] = React.useState(false);
 
-  // Upload States
   const [chequeFile, setChequeFile] = React.useState<UploadedDocument | null>(
     null,
   );
@@ -102,7 +101,7 @@ export function NewPaymentFormView({
         entityId: "pending",
         documentType: type,
       });
-      const res = { ok: true }; // polyfill for following code
+      const res = { ok: true };
       if (!res.ok || !data.success) {
         throw new Error(data.error || t.newPaymentForm.uploadFailed);
       }
@@ -244,9 +243,7 @@ export function NewPaymentFormView({
           </p>
         ) : null}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1 & Step 2 Client and Invoice Association */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Step 1: Select Client */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-ink block">
                 {t.newPaymentView.selectClientLabel} *
@@ -264,7 +261,6 @@ export function NewPaymentFormView({
               />
             </div>
 
-            {/* Step 2: Select Invoice */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-semibold text-ink">
                 <label>{t.newPaymentView.selectInvoiceLabel} *</label>
@@ -283,7 +279,6 @@ export function NewPaymentFormView({
             </div>
           </div>
 
-          {/* Invoice Financial Preview Callout */}
           {selectedInvoice && (
             <div className="p-4 rounded-2xl bg-surface-raised dark:bg-white/5 border border-outline-variant dark:border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-fade-in">
               <div>
@@ -346,7 +341,6 @@ export function NewPaymentFormView({
             </div>
           )}
 
-          {/* Payment Details Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <label className="block space-y-2">
               <span className="text-xs font-semibold text-ink block">
@@ -415,7 +409,6 @@ export function NewPaymentFormView({
             </label>
           </div>
 
-          {/* Document Attachments & Archive Integration */}
           <div className="pt-2 border-t border-outline-variant dark:border-white/10 space-y-4">
             {paymentMethod === "cheque" ? (
               <div className="space-y-4">
@@ -432,7 +425,6 @@ export function NewPaymentFormView({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Document 1: Cheque Copy */}
                   <div className="p-4 rounded-2xl bg-surface-raised/70 dark:bg-tone-15/20 border border-outline-variant dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-ink flex items-center gap-1.5">
@@ -528,7 +520,6 @@ export function NewPaymentFormView({
                     )}
                   </div>
 
-                  {/* Document 2: Bank Transfer Slip / Statement Advice */}
                   <div className="p-4 rounded-2xl bg-surface-raised/70 dark:bg-tone-15/20 border border-outline-variant dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-ink flex items-center gap-1.5">
@@ -724,7 +715,6 @@ export function NewPaymentFormView({
             )}
           </div>
 
-          {/* Form Error Banner */}
           {formError && (
             <div role="alert" className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 flex items-center gap-2.5 text-rose-800 dark:text-rose-200 text-xs font-semibold animate-fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />

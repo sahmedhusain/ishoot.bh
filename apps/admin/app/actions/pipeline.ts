@@ -20,7 +20,6 @@ function revalidatePipeline() {
   revalidatePath(ROUTES.home);
 }
 
-/** Saves the whole stage list in its new order (Settings → Sales pipeline). */
 export async function saveDealPipelineAction(stages: DealPipelineStageInput[]) {
   return measureOperation("action:saveDealPipelineAction", async () => {
     await requireFeatureEnabled("crm_deals");
@@ -42,7 +41,6 @@ export async function saveDealPipelineAction(stages: DealPipelineStageInput[]) {
   });
 }
 
-/** Rebuilds the pipeline the company's activity recommends, keeping every stage that still holds deals. */
 export async function resetDealPipelineAction() {
   return measureOperation("action:resetDealPipelineAction", async () => {
     await requireFeatureEnabled("crm_deals");

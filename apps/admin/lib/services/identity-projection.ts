@@ -103,7 +103,6 @@ async function lock(id: string) {
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`identity-projection:${id}`},0))`;
 }
 
-/** Receipts, profile changes and anonymization commit together; older deliveries cannot restore old account state. */
 export async function applyIdentityProjection(input: Projection) {
   return withStaffProjection(() =>
     runAtomicMutation(async () => {

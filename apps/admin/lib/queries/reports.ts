@@ -29,11 +29,9 @@ export interface ReportParams {
   from: string;
   to: string;
   locale: "en" | "ar";
-  /** Labels the report needs in the reader's language (channels, statuses, "website"…). */
   labels: Record<string, string>;
 }
 
-/** Sold lines in the period (orders not cancelled), with what the goods cost when they left stock. */
 async function soldLines(from: string, to: string) {
   const orders = await db.salesOrder.findMany({
     where: {
@@ -662,7 +660,6 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
   },
 };
 
-/** Amounts owed by party, in days-past-due buckets. */
 function aging(
   items: { key: string; name: string; due: Date; owed: number }[],
   now = new Date(),
@@ -704,7 +701,6 @@ export interface ReportResult {
   to: string;
   rows: Row[];
   totals: Row;
-  /** The previous period of equal length: its totals and each row's measure, by row key. */
   previous: {
     from: string;
     to: string;
@@ -713,7 +709,6 @@ export interface ReportResult {
   } | null;
 }
 
-/** Sums the money and number columns (percentages and dates are not summed). */
 function totalsOf(definition: ReportDefinition, rows: Row[]) {
   const totals: Row = {};
   for (const column of definition.columns)
@@ -724,7 +719,6 @@ function totalsOf(definition: ReportDefinition, rows: Row[]) {
   return totals;
 }
 
-/** Runs a report for a period, sorted by its measure, optionally with the previous period to compare. */
 export async function runReport(
   key: string,
   params: ReportParams & { compare?: boolean },

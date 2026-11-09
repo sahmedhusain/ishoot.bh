@@ -5,7 +5,6 @@ import { ShoppingBag } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useCart } from "./cart";
 
-/** The header's cart button, with the number of items in it. */
 export function CartLink({ className }: { className: string }) {
   const { t, locale } = useTranslation();
   const count = useCart().reduce((sum, line) => sum + line.quantity, 0);

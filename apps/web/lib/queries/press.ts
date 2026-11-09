@@ -1,6 +1,5 @@
 import { db } from "../atomic";
 
-/** Press releases: published articles in the press_release category, newest first (for the website's press page). */
 export async function listPressReleases(onlyPublished = false) {
   const now = new Date();
   const rows = await db.cmsArticle.findMany({

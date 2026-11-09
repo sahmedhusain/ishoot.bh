@@ -1,5 +1,3 @@
-// Uploads and stored files live in the files service (backend/services/files, docs/adr/0009). These helpers keep the
-// shape the domain code expects and turn the service's error codes into the platform's messages.
 import { serverMessages } from "@platform/locales";
 import {
   claimUpload as claimFileUpload,
@@ -9,7 +7,6 @@ import {
   type FileRecord,
 } from "@platform/api-client";
 
-/** A claimed upload, as the domain code stores it next to its own records. */
 export type StoredUpload = {
   id: string;
   fileUrl: string;
@@ -34,7 +31,6 @@ export const toStoredUpload = (record: FileRecord): StoredUpload => ({
   createdAt: new Date(record.createdAt),
 });
 
-/** The platform message for a files-service refusal; other errors pass through unchanged. */
 export function uploadError(error: unknown): unknown {
   if (isApiError(error, "file_content_mismatch"))
     return new Error(serverMessages.uploadedObjectDoesNotMatchTheRegistered);
@@ -60,7 +56,6 @@ export function uploadError(error: unknown): unknown {
   return error;
 }
 
-/** Verifies a user's private upload and makes it permanent. Call it before writing the record that points at it. */
 export async function claimUpload(fileUrl: string, ownerId?: string) {
   if (!ownerId || typeof fileUrl !== "string")
     throw new Error(serverMessages.invalidUploadedFile);
@@ -73,10 +68,6 @@ export async function claimUpload(fileUrl: string, ownerId?: string) {
   }
 }
 
-/**
- * A document kept elsewhere and referenced by its address (e.g. a VAT certificate on the NBR portal, a shared
- * drive file). Only plain https links are accepted, never credentials in the URL.
- */
 export function isDocumentLink(value: unknown): boolean {
   if (typeof value !== "string" || value.length > 1000 || /\s/.test(value))
     return false;
@@ -93,7 +84,6 @@ export function isDocumentLink(value: unknown): boolean {
   }
 }
 
-/** The file a document points at: a claimed upload, or an external https link recorded as it is. */
 export async function claimUploadOrLink(fileUrl: string, ownerId?: string) {
   if (isDocumentLink(fileUrl)) {
     if (!ownerId) throw new Error(serverMessages.invalidUploadedFile);
@@ -113,10 +103,6 @@ export async function claimUploadOrLink(fileUrl: string, ownerId?: string) {
   return { ...upload, isLink: false as const };
 }
 
-/**
- * Stores bytes the platform keeps at a fixed address (seed data, repairs). Storing the same address again keeps the
- * existing file, so seeds can run more than once.
- */
 export async function storeFileBytes(
   fileUrl: string,
   bytes: Uint8Array,
@@ -129,11 +115,6 @@ export async function storeFileBytes(
   }
 }
 
-/**
- * A file's bytes as an HTTP response for the apps' file routes. Public files (brand, website media) never change
- * under the same address, so browsers may cache them for a year; everything else is never cached unless the caller
- * sets its own Cache-Control. With a file name, browsers save it under that name.
- */
 export async function fileResponse(
   record: Pick<FileRecord, "fileUrl" | "mimeType" | "fileSize" | "isPublic">,
   options: {

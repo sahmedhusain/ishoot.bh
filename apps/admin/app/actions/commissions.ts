@@ -11,7 +11,6 @@ import {
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Create an effective-dated commission rule for sales attribution. */
 export async function createCommissionRuleAction(input: CommissionRuleInput) {
   validateActionArguments("createCommissionRuleAction", { input });
   await requireFeatureEnabled("finance");
@@ -21,7 +20,6 @@ export async function createCommissionRuleAction(input: CommissionRuleInput) {
   return result;
 }
 
-/** Calculate and record an immutable commission snapshot for a sale. */
 export async function recordCommissionSnapshotAction(input: RecordCommissionInput) {
   validateActionArguments("recordCommissionSnapshotAction", { input });
   await requireFeatureEnabled("finance");
@@ -31,7 +29,6 @@ export async function recordCommissionSnapshotAction(input: RecordCommissionInpu
   return result;
 }
 
-/** Reverse an earned commission snapshot with linking to the original calculation. */
 export async function reverseCommissionSnapshotAction(input: { snapshotId: string; reason: string }) {
   validateActionArguments("reverseCommissionSnapshotAction", { input });
   await requireFeatureEnabled("finance");

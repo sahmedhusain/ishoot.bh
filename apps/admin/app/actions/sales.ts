@@ -13,7 +13,6 @@ import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
 import { hasPermission, requireAuth, requirePermission } from "../../lib/auth";
 
-/** Credit a quotation or invoice to another salesperson; the change is kept in its history. */
 export async function reassignSalesOwnerAction(
   entityType: "quotation" | "invoice",
   id: string,
@@ -93,7 +92,6 @@ export async function updateUserCommissionRateAction(
   });
 }
 
-/** Finance: record a salesperson's commission for a month (books the expense once). */
 export async function recordCommissionPayoutAction(
   userId: string,
   month: string,

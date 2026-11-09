@@ -7,8 +7,6 @@ const config: Omit<Config, "content"> = {
   darkMode: "class",
   theme: {
     extend: {
-      // Every brand colour is a CSS variable (RGB channels) written by each app from the company theme,
-      // so one build serves any company and opacity modifiers (bg-primary/20) keep working.
       colors: {
         primary: {
           DEFAULT: brand("--brand-primary"),
@@ -25,7 +23,6 @@ const config: Omit<Config, "content"> = {
           glow: "rgb(var(--brand-accent) / 0.35)",
         },
         mint: brand("--brand-mint"),
-        // Tonal palette of the accent (Material-style): tone-5 near black … tone-95 near white.
         tone: Object.fromEntries(
           [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95].map((t) => [
             t,
@@ -57,7 +54,6 @@ const config: Omit<Config, "content"> = {
           DEFAULT: brand("--ui-ink"),
           muted: brand("--ui-ink-muted"),
         },
-        // Material Design 3 (M3) Semantic System Roles
         m3: {
           primary: brand("--m3-color-primary"),
           "on-primary": brand("--m3-color-on-primary"),
@@ -129,7 +125,6 @@ const config: Omit<Config, "content"> = {
         shutter: "shutter 3s ease-in-out infinite",
         marquee: "marquee 25s linear infinite",
         "fade-in": "fadeIn 0.5s ease-out forwards",
-        // Motion tokens: one entrance for pages, one for items in a list or grid, one for popovers.
         "page-in": "fadeUp var(--motion-slow) var(--ease-emphasized) both",
         "fade-up": "fadeUp var(--motion-slow) var(--ease-emphasized) both",
         "scale-in": "scaleIn var(--motion-base) var(--ease-emphasized) both",
@@ -183,7 +178,6 @@ const config: Omit<Config, "content"> = {
   },
   plugins: [
     animate,
-    // Motion tokens shared by both apps, and the one place reduced motion is honoured for all of them.
     plugin(({ addBase, addUtilities }) => {
       addBase({
         ":root": {
@@ -214,7 +208,6 @@ const config: Omit<Config, "content"> = {
         },
       });
       addUtilities({
-        // Children enter one after another (the first twelve; later ones with the twelfth).
         ".stagger-children > *": {
           animation: "fadeUp var(--motion-slow) var(--ease-emphasized) both",
         },
@@ -227,14 +220,12 @@ const config: Omit<Config, "content"> = {
         ".stagger-children > *:nth-child(n + 13)": {
           animationDelay: "calc(var(--motion-stagger) * 12)",
         },
-        // Placeholder blocks while content loads.
         ".skeleton": {
           backgroundImage:
             "linear-gradient(90deg, rgb(var(--ui-ink, 15 23 42) / 0.06) 25%, rgb(var(--ui-ink, 15 23 42) / 0.12) 37%, rgb(var(--ui-ink, 15 23 42) / 0.06) 63%)",
           backgroundSize: "400% 100%",
           animation: "shimmer 1.6s linear infinite",
         },
-        // Pressed state for clickable cards and tiles.
         ".press": {
           transition: "transform var(--motion-fast) var(--ease-standard)",
         },

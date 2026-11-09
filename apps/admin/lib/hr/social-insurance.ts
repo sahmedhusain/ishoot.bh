@@ -1,11 +1,4 @@
 import { roundMoney } from "../finance/money";
-/**
- * Social insurance (pension fund) contributions and wage-support programmes, with no database access.
- *
- * Contributions are monthly and never prorated: the configured policy counts the month in full when the employee is employed on its
- * 1st day, and not at all for a month they join after the 1st. Rates are dated components, so a change in the law
- * is a new component from its effective date and every past month keeps the rates it was paid under.
- */
 
 export type InsuredCategory = "bahraini" | "gcc" | "expat" | "exempt";
 export const INSURED_CATEGORIES = [
@@ -18,7 +11,6 @@ export type WageBasis = "basic" | "basic_housing" | "fixed";
 export const WAGE_BASES = ["basic", "basic_housing", "fixed"] as const;
 
 export interface ServiceTier {
-  /** Completed years of service from which these rates apply. */
   fromYears: number;
   employeePercent: number;
   employerPercent: number;
@@ -36,7 +28,6 @@ export interface GosiComponentRule {
   wageBasis: WageBasis;
   minWage: number | null;
   maxWage: number | null;
-  /** YYYY-MM-DD */
   effectiveFrom: string;
   effectiveTo: string | null;
   isActive: boolean;
@@ -85,7 +76,6 @@ export interface ContributionLine {
 }
 
 export interface MonthlyContributions {
-  /** False when nothing is due for the month (joined after the 1st, left before it, or exempt). */
   due: boolean;
   reason: "due" | "exempt" | "not_employed_on_first" | "no_components";
   employee: number;
@@ -101,14 +91,12 @@ const firstOfMonth = (year: number, month: number) =>
 const lastOfMonth = (year: number, month: number) =>
   new Date(Date.UTC(year, month, 0));
 
-/** The wage a component or programme is worked out on. */
 export function basisWage(pay: PayParts, basis: WageBasis): number {
   if (basis === "basic") return r3(pay.basic);
   if (basis === "basic_housing") return r3(pay.basic + pay.housing);
   return r3(pay.basic + pay.housing + pay.transport + pay.other);
 }
 
-/** Whole years of service completed by `on`. */
 export function completedYears(hireDate: Date, on: Date): number {
   let years = on.getUTCFullYear() - hireDate.getUTCFullYear();
   const anniversary = new Date(
@@ -122,7 +110,6 @@ export function completedYears(hireDate: Date, on: Date): number {
   return Math.max(0, years);
 }
 
-/** True when contributions are due for the month: employed on its 1st (or on any day, without the 1st-of-month rule). */
 export function contributionDue(
   hireDate: Date,
   exitDate: Date | null,
@@ -137,7 +124,6 @@ export function contributionDue(
   return hireDate <= last && (!exitDate || exitDate >= first);
 }
 
-/** Components in force on the 1st of the month (each code once: the latest effective one). */
 export function componentsInForce(
   components: GosiComponentRule[],
   year: number,
@@ -161,7 +147,6 @@ export function componentsInForce(
   );
 }
 
-/** The employee's registration in force on the 1st of the month, if any. */
 export function profileInForce<
   T extends Pick<GosiProfile, "effectiveFrom" | "effectiveTo">,
 >(profiles: T[], year: number, month: number): T | null {
@@ -175,7 +160,6 @@ export function profileInForce<
   );
 }
 
-/** One month of contributions for an employee under the components and their registration. */
 export function monthlyContributions(input: {
   components: GosiComponentRule[];
   profile: GosiProfile;
@@ -224,7 +208,6 @@ export function monthlyContributions(input: {
       override?.employeePercent ?? tier?.employeePercent ?? c.employeePercent;
     const employerPercent =
       override?.employerPercent ?? tier?.employerPercent ?? c.employerPercent;
-    // The wage registered with the pension fund replaces the contract pay when the company declares one.
     let wage =
       c.wageBasis === "fixed" &&
       rules.wageSource === "registered" &&
@@ -254,8 +237,6 @@ export function monthlyContributions(input: {
   };
 }
 
-// ---------- Wage-support programmes ----------
-
 export const SUPPORT_STATUSES = [
   "applied",
   "approved",
@@ -265,7 +246,6 @@ export const SUPPORT_STATUSES = [
   "ended",
 ] as const;
 export type SupportStatus = (typeof SUPPORT_STATUSES)[number];
-/** Statuses for which the programme pays. */
 export const PAYING_SUPPORT_STATUSES: readonly SupportStatus[] = [
   "approved",
   "partially_approved",
@@ -315,7 +295,6 @@ export interface SupportLine {
   nameEn: string;
   nameAr: string;
   startMonth: string;
-  /** Year of support (1 = first twelve months). */
   year: number;
   wage: number;
   percent: number | null;
@@ -330,7 +309,6 @@ export const monthsBetween = (from: string, to: string) => {
   return (ty - fy) * 12 + (tm - fm);
 };
 
-/** The programme rule in force on the 1st of the month. */
 export function ruleInForce(
   rules: SupportRule[],
   month: string,
@@ -345,10 +323,6 @@ export function ruleInForce(
   );
 }
 
-/**
- * What a programme pays towards one employee's month. `paidShare` is the share of the month's fixed pay actually
- * paid (joiners, unpaid leave), applied when the programme prorates. Null when nothing is paid.
- */
 export function supportForMonth(
   enrolment: SupportEnrolment,
   rules: SupportRule[],
@@ -371,7 +345,6 @@ export function supportForMonth(
   if (!rule) return null;
   const year = Math.floor(monthsBetween(enrolment.startMonth, month) / 12) + 1;
   const scheduled = rule.schedule.find((s) => s.year === year)?.percent ?? null;
-  // A partial approval sets its own share or a fixed monthly amount; otherwise the schedule decides.
   if (
     enrolment.approvedAmount == null &&
     enrolment.approvedPercent == null &&

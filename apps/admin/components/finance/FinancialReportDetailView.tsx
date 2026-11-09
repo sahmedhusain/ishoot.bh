@@ -27,7 +27,6 @@ function Section({ title, hint, children, action }: { title: string; hint?: stri
   );
 }
 
-/** Line-level financial detail. VAT columns appear only when VAT applies (registered, or present in the period). */
 export function FinancialReportDetailView({ detail, showVat }: { detail: FinancialReportDetail; showVat: boolean }) {
   const { t, locale } = useAdminLocale();
   const currLabel = getCurrencyLabel(useCompanyCurrency(), locale === "ar");

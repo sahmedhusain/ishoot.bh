@@ -37,7 +37,6 @@ import { requireShipmentAccess } from "../../lib/delivery-scope";
 import { validateActionArguments } from "../../lib/action-input";
 import { notifyLowStock } from "../../lib/low-stock";
 
-/** Moves a shipment on (out for delivery, delivered, failed with a reason, returned); the order follows. */
 export async function moveShipmentAction(id: string, input: MoveShipmentInput) {
   return measureOperation("action:moveShipmentAction", async () => {
     await requireFeatureEnabled("delivery");
@@ -158,10 +157,6 @@ export async function assignShipmentAction(
   });
 }
 
-/**
- * The driver hands the goods over: a photo (uploaded beforehand and claimed here as the shipment's attachment)
- * and/or the customer's signature, and the cash collected.
- */
 export async function completeDeliveryAction(
   id: string,
   input: { photoUrl?: string; signature?: string; codCollected: string },
@@ -275,7 +270,6 @@ export async function closeRouteSheetAction(id: string) {
   });
 }
 
-/** A driver hands over (or an agency remits) the cash collected; each order is marked paid with what was collected on it. */
 export async function settleCashAction(input: {
   source: string;
   shipmentIds: string[];
@@ -331,7 +325,6 @@ export async function saveCourierAgencyAction(input: CourierAgencyInput) {
   });
 }
 
-/** Gives a shipment to a courier agency: booked through its API when it has one, else with the tracking number given. */
 export async function handToAgencyAction(id: string, input: HandToAgencyInput): Promise<{
   success: boolean;
   trackingNumber: string;
@@ -364,7 +357,6 @@ export async function handToAgencyAction(id: string, input: HandToAgencyInput): 
   });
 }
 
-/** Records a courier agency's invoice for the shipments it covers, as a delivery expense. */
 export async function recordAgencyInvoiceAction(input: AgencyInvoiceInput) {
   return measureOperation("action:recordAgencyInvoiceAction", async () => {
     await requireFeatureEnabled("delivery");

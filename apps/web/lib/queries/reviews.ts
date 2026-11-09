@@ -21,7 +21,6 @@ export async function getReviews(adminOnly = true) {
       }));
     }
   } catch {
-    // Fall back to direct database
   }
   try {
     return await db.review.findMany({

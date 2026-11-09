@@ -55,7 +55,6 @@ const MODULES = [
   "hrms",
 ];
 
-/** Who is looking: their grants, the modules that are on, and the widgets they may place. */
 export async function dashboardContext() {
   const user = await requireAuth();
   const grants = await getCurrentPermissions();
@@ -76,7 +75,6 @@ export async function dashboardContext() {
 }
 export type DashboardContext = Awaited<ReturnType<typeof dashboardContext>>;
 
-/** The person's layout: what they saved, else their role's default, keeping only what they may see. */
 export async function dashboardLayoutFor(
   ctx: DashboardContext,
 ): Promise<{ layout: DashboardLayoutItem[]; custom: boolean }> {
@@ -95,7 +93,6 @@ export async function dashboardLayoutFor(
   };
 }
 
-/** Shortcuts on the quick actions widget, each shown only to people who can use it. */
 function quickActions(ctx: DashboardContext) {
   const can = (key: string) => ctx.grants[key] === true;
   const items: { key: string; href: string; show: boolean }[] = [
@@ -155,7 +152,6 @@ function quickActions(ctx: DashboardContext) {
   return items.filter((i) => i.show).map(({ key, href }) => ({ key, href }));
 }
 
-/** Loads the data of the widgets on the board only (each loader checks nothing more than the catalogue did). */
 export async function loadDashboardData(
   ctx: DashboardContext,
   layout: DashboardLayoutItem[],
@@ -176,7 +172,6 @@ export async function loadDashboardData(
     ? getFinancialSummary()
     : null;
   const cashflow = has("cashflow") ? getMonthlyCashflow(6) : null;
-  // Deals follow the person's data scope; values only for people who see finance.
   const deals = has("kpi_pipeline", "pipeline_stages", "recent_deals")
     ? dataScope("deals").then((scope) => getCRMDealOverview(true, scope))
     : null;
@@ -204,7 +199,6 @@ export async function loadDashboardData(
         total: r.total,
       }))
     : null;
-  // Drivers count only their own shipments.
   const shipments = has("kpi_shipments")
     ? (async () =>
         shipmentCounts(
@@ -403,7 +397,6 @@ export async function loadDashboardData(
     userProfile: userProfileData,
     currency: companyData.default_currency,
     companyCity: companyData.city || "",
-    // Bank and registration details only for people who see finance.
     company: has("company")
       ? canFinance
         ? companyData

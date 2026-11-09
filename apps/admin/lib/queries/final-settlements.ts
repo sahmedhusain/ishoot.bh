@@ -55,7 +55,6 @@ export {
   SETTLEMENT_STATUSES,
 } from "../constants/settlements";
 
-// Retain stored precision when summing existing settlement lines.
 const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 const DAY = 86_400_000;
 const monthKey = (year: number, month: number) =>
@@ -73,8 +72,6 @@ const monthEnd = (key: string) => {
   const [y, m] = key.split("-").map(Number);
   return utcDay(y, m, 0);
 };
-
-// ---------- Rules ----------
 
 export interface SettlementRules {
   gratuity: GratuityRules;
@@ -116,8 +113,6 @@ export async function updateSettlementRules(
   });
   return getSettlementRules();
 }
-
-// ---------- Calculation ----------
 
 interface LineDraft {
   kind: "addition" | "deduction";
@@ -161,12 +156,6 @@ const monthLabel = (key: string) => {
   return { en: `${MONTHS_EN[m - 1]} ${y}`, ar: `${MONTHS_AR[m - 1]} ${y}` };
 };
 
-/**
- * Works out everything owed to and by the employee up to their last working day: salary for months payroll has not
- * covered (with absences, overtime and the days after leaving), approved salaries not yet paid, commission, unused
- * annual leave, approved expense claims, leaving indemnity, social insurance under the 1st-of-month rule, recurring
- * additions and deductions, and loans still to be repaid. Returns the lines, totals and what they were based on.
- */
 export async function calculateSettlement(
   employeeId: string,
   lastWorkingDay: Date,
@@ -208,7 +197,6 @@ export async function calculateSettlement(
     lastWorkingDay.getUTCMonth() + 1,
   );
 
-  // 1. Approved salaries not yet paid.
   const items = await db.payrollItem.findMany({
     where: {
       employeeId,
@@ -256,9 +244,6 @@ export async function calculateSettlement(
   if (items.some((i) => i.payrollRun.status === "submitted"))
     warnings.push("payroll_awaiting_approval");
 
-  // 2. Months payroll has not covered, up to the last working day.
-  // Include gaps within recorded payroll history as well as months since its last period.
-  // Older service may predate payroll adoption; review it rather than assuming it was never paid.
   const hireMonth = monthKey(
     employee.hireDate.getUTCFullYear(),
     employee.hireDate.getUTCMonth() + 1,
@@ -395,7 +380,6 @@ export async function calculateSettlement(
         details: { from: dayKey(after), to: dayKey(end) },
       });
     }
-    // Social insurance for the month: in full if employed on its 1st, nothing for a month joined after the 1st.
     const [year, monthNumber] = month.split("-").map(Number);
     const scheme = schemeContributions(gosi, employeeId, {
       pay,
@@ -424,7 +408,6 @@ export async function calculateSettlement(
       });
   }
 
-  // 3. Recurring additions and deductions for those months; loans and advances still to be repaid after leaving.
   const recurring = await db.employeeRecurringPay.findMany({
     where: { employeeId, isActive: true },
   });
@@ -483,7 +466,6 @@ export async function calculateSettlement(
     }
   }
 
-  // 4. Commission collected since the last payroll window, less any already paid for those months.
   const rate = Number(employee.user?.commissionRatePercent ?? 0);
   if (employee.user && rate > 0 && unpaidMonths.length) {
     for (const month of unpaidMonths) {
@@ -521,7 +503,6 @@ export async function calculateSettlement(
     }
   }
 
-  // 5. Unused annual leave (or leave taken ahead of what was earned).
   const annual = typeRows.find((t) => t.code === "annual" && t.isActive);
   if (annual) {
     const rulesForType = toLeaveTypeRules(annual);
@@ -541,7 +522,6 @@ export async function calculateSettlement(
         _sum: { days: true },
       }),
     ]);
-    // Carried over from last year: last year's closing balance up to the carry-over cap.
     const lastYear = year - 1;
     const [takenLast, adjLast] = await Promise.all([
       db.leaveRequest.aggregate({
@@ -631,7 +611,6 @@ export async function calculateSettlement(
       });
   }
 
-  // 6. Approved expense claims still to be reimbursed.
   if (employee.user) {
     const claims = await db.expenseClaim.findMany({
       where: {
@@ -660,7 +639,6 @@ export async function calculateSettlement(
       warnings.push(`claims_awaiting_approval:${pendingClaims}`);
   }
 
-  // 7. Leaving indemnity for staff covered by the configured indemnity policy.
   const profile = profileInForce(
     gosi.profiles.get(employeeId) ?? [],
     lastWorkingDay.getUTCFullYear(),
@@ -687,7 +665,6 @@ export async function calculateSettlement(
       details: { ...indemnity, category, rules: rules.gratuity },
     });
 
-  // Things to settle by hand before paying.
   const [assetsHeld, openHandovers, pendingLeave] = await Promise.all([
     db.asset.count({ where: { holderEmployeeId: employeeId } }),
     db.employeeHandover.count({
@@ -797,7 +774,6 @@ export interface FinalSettlementInput {
   notes?: string | null;
 }
 
-/** Opens a settlement for a leaving employee and works out every line. One open settlement per employee. */
 export async function createFinalSettlement(
   input: FinalSettlementInput,
   actorId: string,
@@ -850,7 +826,6 @@ async function editable(id: string) {
   return settlement;
 }
 
-/** Works the figures out again (after attendance, leave, claims or pay change). Manual lines are kept. */
 export async function recalculateFinalSettlement(
   id: string,
   input?: { last_working_day?: string; reason?: string; notes?: string | null },
@@ -889,7 +864,6 @@ export interface SettlementManualLine {
   note?: string | null;
 }
 
-/** Replaces the hand-entered lines (notice pay, penalties, unreturned equipment…); calculated lines stay. */
 export async function setFinalSettlementManualLines(
   id: string,
   lines: SettlementManualLine[],
@@ -991,7 +965,6 @@ export async function cancelFinalSettlement(id: string) {
   });
 }
 
-/** The employee's acknowledgement, signed on the spot on the HR device (or with their saved signature where allowed). */
 export async function signFinalSettlementAsEmployee(
   id: string,
   input: { signature: string; signer_name: string },
@@ -1017,10 +990,6 @@ export async function signFinalSettlementAsEmployee(
   });
 }
 
-/**
- * Records payment. Everything the settlement paid out is closed with it: the salaries and claims it included,
- * recurring pay and loans, wage support and the pension registration end, and the employee is marked as left.
- */
 export async function payFinalSettlement(
   id: string,
   input: { method: string; reference?: string | null; paid_on?: string | null },
@@ -1106,7 +1075,6 @@ export async function payFinalSettlement(
       }
       const claimId = detail(line, "claimId");
       if (claimId) {
-        // Paid like any reimbursement, so the claim books its expense; a claim without a category uses the first operating one.
         await db.$queryRaw`SELECT id FROM "ExpenseClaim" WHERE id = ${claimId} FOR UPDATE`;
         const claim = await db.expenseClaim.findUnique({
           where: { id: claimId },
@@ -1194,7 +1162,6 @@ registerApprovalFinalizer("final_settlement", {
     });
     if (settlement.status !== "submitted")
       throw new Error(serverMessages.thisSettlementIsNotWaitingForApproval);
-    // The company's signature on the settlement, drawn by the final approver when signing on the spot.
     await db.finalSettlement.update({
       where: { id },
       data: { status: "approved", approvedAt: new Date() },
@@ -1222,8 +1189,6 @@ registerApprovalFinalizer("final_settlement", {
     });
   },
 });
-
-// ---------- Reading ----------
 
 export async function listFinalSettlements(
   filters: { status?: string; q?: string } = {},
@@ -1426,7 +1391,6 @@ export type FinalSettlementDetail = NonNullable<
   Awaited<ReturnType<typeof getFinalSettlement>>
 >;
 
-/** Used by the HR settings screen to preview a settlement without saving it. */
 export async function previewSettlement(
   employeeId: string,
   lastWorkingDay: string,

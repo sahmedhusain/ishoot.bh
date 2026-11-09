@@ -128,7 +128,6 @@ export async function setPermission(
   }
 }
 
-// One role query supplies the complete UI matrix, including explicit denials.
 export async function getEffectivePermissions(
   role: string,
   userOverrides?: Record<string, boolean> | null,
@@ -139,7 +138,6 @@ export async function getEffectivePermissions(
       permissions[`${resource}:${action}`] = role === "super_admin";
     }
   }
-  // Stored denials and user overrides can never restrict Super Admin.
   if (role === "super_admin") return permissions;
   const features = await getFeatureToggles();
   const known = new Map(features.map((f) => [f.moduleKey, f.isEnabled]));
@@ -176,11 +174,6 @@ export async function getEffectivePermissions(
   return permissions;
 }
 
-/**
- * Creates the role templates an installation does not have yet, named in both languages, and stores every grant
- * a template role is missing (new templates, or resources added since the role was created) with the template's
- * default. Grants that are already stored, including a company's own changes, are never touched.
- */
 export async function ensureRoleTemplates() {
   const existing = new Set(
     (await db.role.findMany({ select: { id: true } })).map((role) => role.id),
@@ -220,7 +213,6 @@ export async function ensureRoleTemplates() {
 }
 
 let templatesReady: Promise<void> | null = null;
-/** Runs ensureRoleTemplates once per server process (after a deploy that adds roles or resources). */
 export function ensureRoleTemplatesOnce() {
   templatesReady ??= ensureRoleTemplates().catch((error) => {
     templatesReady = null;

@@ -16,7 +16,6 @@ export default async function ShipmentPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const scope = await deliveryScope();
   const [shipment, canEdit, canAssign] = await Promise.all([getShipment(id), hasPermission("deliveries", "edit"), hasPermission("deliveries", "assign")]);
-  // Drivers open only their own shipments.
   if (!shipment || (scope.driverId && shipment.driver_id !== scope.driverId)) notFound();
   const [drivers, vehicles, agencies] = canAssign ? await Promise.all([listDrivers(), listVehicles(), listCourierAgencies()]) : [[], [], []];
   const company = await getCachedCompanySettings();

@@ -12,7 +12,6 @@ import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
 
-/** Adds or edits a tax besides VAT (rate, registration number, certificate, where it applies). */
 export async function saveTaxRateAction(data: TaxRateInput) {
   return measureOperation("action:saveTaxRateAction", async () => {
     const user = await requirePermission("settings", "write");

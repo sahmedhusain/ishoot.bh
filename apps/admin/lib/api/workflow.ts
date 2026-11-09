@@ -94,7 +94,6 @@ async function workflowFetch<T>(
     try {
       errBody = await res.json();
     } catch {
-      // non-JSON
     }
     throw await apiError(res, errBody);
   }
@@ -105,7 +104,6 @@ async function workflowFetch<T>(
   return res.json() as Promise<T>;
 }
 
-// Approvals
 export const listApprovals = (token?: string) =>
   workflowFetch<ApprovalRequest[]>("/v1/workflow/approvals", {}, token);
 
@@ -121,7 +119,6 @@ export const decideApproval = (id: string, decision: "approve" | "reject", comme
     body: JSON.stringify({ decision, comments }),
   }, token);
 
-// Signatures
 export const listSignatures = (token?: string) =>
   workflowFetch<SignatureRequest[]>("/v1/workflow/signatures", {}, token);
 
@@ -134,7 +131,6 @@ export const recordSignature = (id: string, signatureUrl: string, token?: string
     body: JSON.stringify({ signatureUrl }),
   }, token);
 
-// Tasks
 export const listTasks = (token?: string) =>
   workflowFetch<Task[]>("/v1/workflow/tasks", {}, token);
 
@@ -147,14 +143,12 @@ export const updateTaskStatus = (id: string, status: string, token?: string) =>
     body: JSON.stringify({ status }),
   }, token);
 
-// Calendar
 export const listCalendarEvents = (token?: string) =>
   workflowFetch<CalendarEvent[]>("/v1/workflow/calendar", {}, token);
 
 export const createCalendarEvent = (input: Partial<CalendarEvent>, token?: string) =>
   workflowFetch<CalendarEvent>("/v1/workflow/calendar", { method: "POST", body: JSON.stringify(input) }, token);
 
-// Minutes of Meeting (MOM)
 export type MinuteOfMeeting = {
   id: string;
   momNumber: string;
@@ -179,7 +173,6 @@ export const createMOM = (input: any, token?: string) =>
 export const updateMOM = (id: string, input: any, token?: string) =>
   workflowFetch<MinuteOfMeeting>(`/v1/workflow/moms/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
 
-// Official Letters & Templates
 export type LetterTemplate = {
   id: string;
   nameEn: string;

@@ -1,5 +1,4 @@
 import { roundMoney } from "../finance/money";
-// The online store's order flow and price arithmetic. Runtime-free: the cart, checkout and server agree.
 
 export const ORDER_STATUSES = [
   "placed",
@@ -20,7 +19,6 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export const ORDER_CHANNELS = ["website", "phone", "whatsapp", "pos"] as const;
 export type OrderChannel = (typeof ORDER_CHANNELS)[number];
-/** Ways to pay: on delivery, by transfer, later (invoice link), at the counter, or online (phase 6c gateways). */
 export const ORDER_PAYMENT_METHODS = [
   "cod",
   "bank_transfer",
@@ -31,7 +29,6 @@ export const ORDER_PAYMENT_METHODS = [
 ] as const;
 export type OrderPaymentMethod = (typeof ORDER_PAYMENT_METHODS)[number];
 
-/** Where an order may go next. Paid is a payment event, so an order can move on unpaid (cash on delivery). */
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   placed: ["paid", "packing", "cancelled"],
   paid: ["packing", "cancelled"],
@@ -43,9 +40,7 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 export const canMoveOrder = (from: string, to: string) =>
   (ORDER_TRANSITIONS[from as OrderStatus] ?? []).includes(to as OrderStatus);
-/** Statuses whose stock is still held (reserved) rather than gone. */
 export const RESERVED_STATUSES: OrderStatus[] = ["placed", "paid", "packing"];
-
 
 export interface PricedLine {
   unitPrice: number;
@@ -59,10 +54,6 @@ export interface CouponTerms {
   minOrder?: number | null;
 }
 
-/**
- * An order's totals: lines, then the coupon (on the goods only), then delivery (free above the threshold), then VAT
- * on the taxable goods after the discount and on delivery.
- */
 export function priceOrder(input: {
   currency?: string;
   lines: PricedLine[];
@@ -109,7 +100,6 @@ export function priceOrder(input: {
   };
 }
 
-/** Why a coupon cannot be used now, or null when it can. */
 export function couponProblem(
   coupon: {
     isActive: boolean;
@@ -135,7 +125,6 @@ export function couponProblem(
   return null;
 }
 
-/** The cart kept in the visitor's browser: product (and variant) with quantity; prices always come from the server. */
 export interface CartLine {
   productId: string;
   variantId?: string;

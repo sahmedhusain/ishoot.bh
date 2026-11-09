@@ -40,10 +40,6 @@ import { richTextExtensions } from "../../lib/rich-text/extensions";
 
 type ImageResource = "pages" | "articles";
 
-/**
- * Word or Google Docs leave classes, inline styles, comments and Office tags in what they put on the clipboard;
- * the editor keeps only the structure (headings, lists, tables, links), so strip the rest before parsing.
- */
 function cleanPastedHtml(html: string) {
   return html
     .replace(/<!--[\s\S]*?-->/g, "")
@@ -122,7 +118,6 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
     }
   };
 
-  // Pointer-down preserves the text selection; focus the actual dialog opener on click.
   const link = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setDialog({ kind: "link", value: (editor.getAttributes("link").href as string | undefined) ?? "" }); };
   const video = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setDialog({ kind: "video", value: "" }); };
   const embed = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setPreset("instagram"); setDialog({ kind: "embed", value: "" }); };
@@ -209,7 +204,6 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
   );
 }
 
-/** A document editor that feels like a word processor; it stores TipTap JSON and the server renders clean HTML. */
 export function RichTextEditor({ value, onChange, label, dir, imageResource }: { value: unknown; onChange: (doc: unknown) => void; label: string; dir: "rtl" | "ltr"; imageResource: ImageResource }) {
   const id = React.useId();
   const editor = useEditor({
@@ -220,7 +214,6 @@ export function RichTextEditor({ value, onChange, label, dir, imageResource }: {
       attributes: { class: "rich-text-editor rich-text min-h-[260px] px-5 py-4 focus:outline-none", dir, "aria-labelledby": id, role: "textbox", "aria-multiline": "true" },
       transformPastedHTML: cleanPastedHtml,
     },
-    // A plain copy: TipTap builds some objects without a prototype, which server actions cannot receive as data.
     onUpdate: ({ editor: e }) => onChange(JSON.parse(JSON.stringify(e.getJSON()))),
   });
   return (

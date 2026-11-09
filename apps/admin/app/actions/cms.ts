@@ -26,10 +26,6 @@ import {
 } from "@platform/database";
 import { safeWebsiteUrl } from "@platform/database/website-config";
 import { revalidatePath } from "next/cache";
-// The public site only caches the *published* website snapshot (tags "website"/"company"), and its
-// pages render dynamically. Collection edits here change the draft, so they refresh the admin
-// Website page (which reports unpublished changes) and reach the public site on the next publish.
-// Reviews and equipment are read live by the public pages and need no invalidation.
 import { requirePermission } from "../../lib/auth";
 import { requireFeatureEnabled } from "@platform/database";
 
@@ -398,7 +394,6 @@ export async function createPortfolioItemAction(input: {
   slug: string;
   title_en: string;
   title_ar: string;
-  /** Media projects and case studies; optional for products, listings, menu items… */
   client_name?: string;
   year?: number;
   subtitle_en?: string;
@@ -660,7 +655,6 @@ function validateStatisticData(
     (!Number.isInteger(data.sortOrder) || Math.abs(data.sortOrder) > 10000)
   )
     throw new Error(serverMessages.invalidSortOrder);
-  // Value, preset, founding year, rounding and suffix rules live in validateStatisticInput.
 }
 function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   for (const value of [data.title_en, data.title_ar])
@@ -681,12 +675,10 @@ function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   )
     throw new Error(serverMessages.invalidDisplayOrder);
 }
-/** For a company that writes in one language, fills both sides of every English/Arabic pair. */
 async function mirrorToContentLanguages<T>(input: T): Promise<T> {
   const { content_languages } = await getCompanySettings();
   return mirrorBilingual(input, content_languages);
 }
-/** Checks a catalogue item and, for a company that writes in one language, fills both sides of every pair. */
 async function preparePortfolioData(
   input: Parameters<typeof createPortfolioItemAction>[0],
 ) {

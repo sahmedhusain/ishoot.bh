@@ -48,7 +48,6 @@ export async function createCalendarEventAction(data: {
   created_by?: string;
   google_event_id?: string;
   google_calendar_id?: string;
-  /** Who sees it: only you and the people chosen, your team, your department, the company, or a custom audience. */
   visibility?: CalendarVisibility;
   audience_user_ids?: string[];
   audience_department_ids?: string[];
@@ -179,10 +178,6 @@ export async function deleteCalendarEventAction(id: string) {
   });
 }
 
-/**
- * A personal subscription link for Google Calendar (or Outlook, Apple Calendar) listing only what you may see.
- * Creating a new one stops the old link working. The raw link is returned once.
- */
 export async function createCalendarFeedAction(layers: string[]) {
   return measureOperation("action:createCalendarFeedAction", async () => {
     const user = await requirePermission("calendar", "read");
@@ -229,7 +224,6 @@ export async function revokeCalendarFeedAction() {
   });
 }
 
-/** Company-wide switch for personal calendar links (turning it off stops every link). */
 export async function setCalendarSyncEnabledAction(enabled: boolean) {
   return measureOperation("action:setCalendarSyncEnabledAction", async () => {
     const user = await requirePermission("settings", "write");

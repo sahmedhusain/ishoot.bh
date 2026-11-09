@@ -1,7 +1,4 @@
 "use client";
-// The profile photo editor (docs/adr/0012): choose a photo (file, drop or link), crop it in a circle with drag, zoom
-// and rotation, review it, then save. Nothing is saved before the review step; removing asks first. The output is a
-// square WebP (JPEG where WebP cannot be encoded), so every browser shows it.
 import * as React from "react";
 import { ImagePlus, Link2, Loader2, RotateCcw, RotateCw, Trash2, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import { formatMessage } from "@platform/locales";
@@ -11,8 +8,8 @@ import { Button } from "./button";
 import { UserAvatar } from "./user-avatar";
 import { cn } from "./utils";
 
-const VIEW = 288; // crop area, CSS pixels
-const OUTPUT = 512; // saved photo, pixels
+const VIEW = 288;
+const OUTPUT = 512;
 const MAX_ZOOM = 4;
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];
 
@@ -21,13 +18,9 @@ export interface AvatarEditorProps {
   onClose: () => void;
   name: string;
   currentUrl?: string | null;
-  /** Largest file accepted, in megabytes. */
   maxSizeMb?: number;
-  /** Fetches a link through the server and resolves to a same-origin address of the image. */
   onImportLink?: (url: string) => Promise<string>;
-  /** Saves the cropped photo. */
   onSave: (photo: Blob) => Promise<void>;
-  /** Removes the current photo. */
   onRemove?: () => Promise<void>;
 }
 
@@ -45,11 +38,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Size of the image once rotated by quarter turns. */
 const turned = (img: HTMLImageElement, turns: number) =>
   turns % 2 ? { w: img.naturalHeight, h: img.naturalWidth } : { w: img.naturalWidth, h: img.naturalHeight };
 
-/** Keeps the image covering the whole crop circle. */
 function clamp(img: HTMLImageElement, v: View): View {
   const { w, h } = turned(img, v.turns);
   const scale = (VIEW / Math.min(w, h)) * v.zoom;
@@ -207,7 +198,6 @@ export function AvatarEditor({
   React.useEffect(() => {
     const el = canvas.current;
     if (!el || step !== "crop") return;
-    // Not a React handler: wheel must be non-passive to stop the page from scrolling.
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       setView((v) => (image ? clamp(image, { ...v, zoom: Math.max(1, Math.min(MAX_ZOOM, v.zoom * Math.exp(-e.deltaY / 500))) }) : v));
@@ -222,7 +212,7 @@ export function AvatarEditor({
     out.width = out.height = OUTPUT;
     const ctx = out.getContext("2d");
     if (!ctx) return setError(copy.avatarFailed);
-    ctx.fillStyle = "#fff"; // JPEG has no transparency
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, OUTPUT, OUTPUT);
     draw(ctx, image, view, OUTPUT);
     let blob = await toBlob(out, "image/webp", 0.9);
@@ -424,7 +414,6 @@ export function AvatarEditor({
                 onKeyDown={onKeyDown}
                 className="h-full w-full cursor-grab rounded-2xl bg-ink/5 active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
-              {/* The circle the photo is cropped to; the corners outside it are dimmed. */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 rounded-2xl"

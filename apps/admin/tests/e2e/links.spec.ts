@@ -4,11 +4,9 @@ import { checkDownload, crawl } from "../../crawl";
 import { t } from "../helpers/locale";
 import { login } from "../../helpers";
 
-// Pages that end the session or belong to people outside the company.
 const SKIP = /\/logout|\/sign\/|\/acknowledge\/|\/login/;
 const GROUPS = ["legal", "hr", "finance", "clients", "assets", "company"];
 
-/** Every file link the company archive lists for whoever `page` is signed in as, across its groups. */
 async function archiveFiles(page: import("@playwright/test").Page) {
   const files = new Set<string>();
   for (const group of GROUPS) {
@@ -63,8 +61,6 @@ test("attachments open for people allowed to see them and are refused to everyon
     if (failure) problems.push(`administrator: ${failure}`);
   }
 
-  // A visitor who is not signed in gets nothing that is not public.
-  // An explicit empty session: contexts made here otherwise inherit the signed-in administrator's cookies.
   const anonymous = await apiRequest.newContext({
     baseURL,
     storageState: { cookies: [], origins: [] },
@@ -76,7 +72,6 @@ test("attachments open for people allowed to see them and are refused to everyon
   }
   await anonymous.dispose();
 
-  // A viewer sees only the kinds of files their role may read, and is refused the rest.
   const context = await browser.newContext({
     baseURL,
     storageState: { cookies: [], origins: [] },
@@ -108,7 +103,6 @@ test("files attached to records are in the company archive", async ({
 }) => {
   test.setTimeout(15 * 60_000);
   const archived = await archiveFiles(page);
-  // Record pages that carry attachments: clients, deals, invoices, payments, expenses and employees.
   const lists = [
     "/dashboard/crm/contacts",
     "/dashboard/crm/deals",

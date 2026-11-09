@@ -1,7 +1,6 @@
 "use client";
 import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
 import { formatMessage } from "@platform/locales";
-/* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
 import * as React from "react";
 import { CheckCircle2, Eraser, FileText, AlertTriangle, Download } from "lucide-react";
@@ -10,8 +9,6 @@ import type { ClientSignableDocument } from "@platform/database";
 type Labels = ReturnType<typeof import("@platform/locales").getTranslations>["admin"]["clientSigning"];
 type State = "open" | "signed" | "expired" | "revoked" | "unavailable" | "invalid";
 
-
-/** The client's review-and-sign page. Western digits in both languages; layout follows the document language. */
 export function ClientSigningView({
   token,
   language,
@@ -55,7 +52,6 @@ export function ClientSigningView({
     }).format(new Date(v));
   const fill = (text: string) => formatMessage(text, { company: company.name, email: company.email, phone: company.phone });
 
-  // Signature pad: pointer events cover mouse, pen and touch.
   React.useEffect(() => {
     const el = canvas.current;
     if (!el) return;

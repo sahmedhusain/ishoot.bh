@@ -1,4 +1,3 @@
-// Announcements and official letters vocabulary. Runtime-free so client components can import it.
 
 export const ANNOUNCEMENT_CATEGORIES = [
   "general",
@@ -34,7 +33,6 @@ export const LETTER_STATUSES = [
   "cancelled",
 ] as const;
 
-/** Placeholders a letter template may use; each is filled from the company, the recipient, an employee or the letter. */
 export const LETTER_PLACEHOLDERS = [
   "company.name",
   "company.cr",

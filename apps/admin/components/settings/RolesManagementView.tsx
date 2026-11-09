@@ -17,7 +17,6 @@ import { upsertRoleAction, deleteRoleAction } from "../../app/actions/roles";
 import type { RoleWithGrants } from "../../types/roles";
 import { PageHeader } from "../layout/PageHeader";
 
-/** "write" is a legacy aggregate of create/edit and is derived on save. */
 const MATRIX_ACTIONS = ALL_ACTIONS.filter((action): action is Exclude<PermissionAction, "write"> => action !== "write");
 
 export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGrants[] }) {
@@ -73,7 +72,6 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
     event.preventDefault();
     setSaving(true);
     try {
-      // New roles submit their full matrix; existing roles submit only the cells that changed.
       const submitted = editingRole
         ? Object.fromEntries(changedKeys.map((key) => [key, grants[key] === true]))
         : Object.fromEntries(Object.entries(grants).filter(([key]) => !key.endsWith(":write")));
@@ -242,7 +240,6 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
               ))}
             </table>
           </div>
-
 
         </form>
       </Modal>

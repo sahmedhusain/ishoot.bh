@@ -76,7 +76,6 @@ export function PreferencesView() {
     React.useState<AdminAppearance>(webAppearance);
   const [savedNotice, setSavedNotice] = React.useState(false);
 
-  // Sync draft state when saved context loads from localStorage on mount.
   React.useEffect(() => {
     setDraftTheme(theme);
   }, [theme]);
@@ -93,7 +92,6 @@ export function PreferencesView() {
     setDraftWebAppearance(webAppearance);
   }, [webAppearance]);
 
-  // Live preview of Admin appearance on documentElement while editing, reverting to saved on unmount if unconfirmed.
   const latestSavedAppearanceRef = React.useRef(appearance);
   React.useEffect(() => {
     latestSavedAppearanceRef.current = appearance;
@@ -201,7 +199,6 @@ export function PreferencesView() {
     });
   };
 
-  // Compute preview radius and spacing tokens for the interactive preview card
   const previewCardRadius =
     activeDraftAppearance.corners === "rounded"
       ? "24px"
@@ -277,7 +274,6 @@ export function PreferencesView() {
         </div>
       ) : null}
 
-      {/* Target Scope Selector: Admin Workspace vs Public Website */}
       <div className="mb-6 rounded-2xl border border-outline-variant bg-surface-container-low p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -315,7 +311,6 @@ export function PreferencesView() {
         />
       </div>
 
-      {/* Live Component & Corner Preview Canvas */}
       <section
         className="mb-6 rounded-2xl border border-outline-variant bg-surface-container-low p-5 space-y-4"
         data-appearance-preview
@@ -549,7 +544,6 @@ export function PreferencesView() {
         {copy.personalHint}
       </p>
 
-      {/* Sticky Save Confirmation Bar when unsaved changes exist */}
       {isDirty ? (
         <div className="fixed bottom-5 inset-x-4 sm:inset-x-auto sm:end-8 z-40 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/40 bg-surface-container-highest/95 backdrop-blur-md px-5 py-3.5 shadow-2xl">
           <span className="text-xs font-medium text-ink">

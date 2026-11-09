@@ -4,10 +4,6 @@ import path from "node:path";
 type PrismaClient = any;
 import { ports } from "../../../playwright.config";
 
-// A local stand-in for the few Stripe API calls the store makes (Checkout Sessions, refunds, balance), with a hosted
-// "payment page" that, like Stripe, sends a signed webhook to the website and then returns the customer. The test
-// servers point at it through PAYMENT_GATEWAY_BASE_URL_STRIPE (playwright.config.ts).
-
 export const WEBHOOK_SECRET = "whsec_e2e_stand_in_secret";
 const SECRET_KEY = "sk_test_e2e_stand_in";
 
@@ -24,7 +20,6 @@ interface Session {
 export interface StandIn {
   url: string;
   refunds: { payment_intent: string; amount: number }[];
-  /** The last webhook body sent, to replay it. */
   lastWebhook: { body: string; signature: string } | null;
   sign(body: string): string;
   close(): Promise<void>;
@@ -119,7 +114,6 @@ export async function startStripeStandIn(webUrl: string): Promise<StandIn> {
       }
       if (page[3] === "complete") {
         s.paid = true;
-        // Stripe tells the website before the customer gets back.
         const body = JSON.stringify({
           id: `evt_${crypto.randomBytes(8).toString("hex")}`,
           object: "event",
@@ -155,7 +149,6 @@ export async function startStripeStandIn(webUrl: string): Promise<StandIn> {
 
 import { setIntegration } from "./integrations";
 
-/** Turns Stripe on in Integrations with the stand-in's keys and makes it the store's "Pay online" gateway. */
 export async function useStripeStandIn(db: PrismaClient) {
   await setIntegration("stripe", true, {
     secretKey: SECRET_KEY,

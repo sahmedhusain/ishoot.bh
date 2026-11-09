@@ -14,7 +14,6 @@ import { errorMessage } from "../../lib/error-text";
 import { ShipmentStatusPill } from "./ShipmentPills";
 import { PageHeader } from "../layout/PageHeader";
 
-/** One route sheet: the stops in order, ready to print, and sending the driver out or closing the run. */
 export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

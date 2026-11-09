@@ -18,9 +18,7 @@ import {
 interface ReceiptPDFProps {
   payment: Payment;
   brand: PdfBrand;
-  /** Present only once the receipt is signed. */
   signing?: CompanySignature | null;
-  /** QR codes to the certificates of the taxes on the paid invoice. */
   certificates?: TaxCertificateMark[];
 }
 
@@ -66,7 +64,6 @@ function ReceiptBody({ k, payment, brand, signing, certificates = [] }: ReceiptP
         </Card>
       </Row>
 
-      {/* The amount, given the visual weight of a voucher. */}
       <Row style={{ borderWidth: 1, borderColor: C.primary, borderRadius: 8, overflow: "hidden", marginBottom: 16 }} wrap={false}>
         <View style={{ flex: 1, padding: 14 }}>
           <T style={{ fontSize: 10, fontWeight: "bold" }}>{t.directPayment}</T>

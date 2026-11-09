@@ -1,11 +1,8 @@
-// Sample content per business activity: what "Start with sample content" adds (marked isSample, removable in one
-// click) and what "Show an example" previews without saving anything. Runtime-free; fictional, brand-neutral.
 import type { BusinessActivity } from "../website-presets";
 
 type Pair = [en: string, ar: string];
 export interface ActivitySample {
   banner: { title: Pair; subtitle: Pair };
-  /** Catalogue items: title, subtitle, price (null when the activity shows no prices). */
   items: { title: Pair; subtitle: Pair; price: number | null }[];
   services: { name: Pair; description: Pair }[];
   stats: { value: string; label: Pair }[];
@@ -1136,7 +1133,6 @@ export const ACTIVITY_SAMPLES: Record<BusinessActivity, ActivitySample> = {
   },
 };
 
-/** Questions every sample website shows. */
 export const SAMPLE_FAQS: { question: Pair; answer: Pair }[] = [
   {
     question: ["How do I get in touch?", "كيف أتواصل معكم؟"],
@@ -1161,7 +1157,6 @@ export const SAMPLE_FAQS: { question: Pair; answer: Pair }[] = [
   },
 ];
 
-/** The article every sample website starts with. */
 export const SAMPLE_ARTICLE = {
   slug: "welcome-to-our-new-website",
   title: ["Welcome to our new website", "أهلًا بكم في موقعنا الجديد"] as Pair,
@@ -1175,6 +1170,5 @@ export const SAMPLE_ARTICLE = {
   ] as Pair,
 };
 
-/** The generated sample pictures (served by the website as SVG in the company's colours). */
 export const sampleImage = (kind: "banner" | "item", index: number) =>
   `/api/samples/${kind}-${(index % 6) + 1}.svg`;

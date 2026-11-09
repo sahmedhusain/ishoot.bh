@@ -17,7 +17,6 @@ import { AddToCart } from "../../../../components/store/AddToCart";
 import { currentCustomer, storeEnabled, orderingEnabled } from "../../../../lib/customer";
 import { WishlistButton } from "../../../../components/account/WishlistButton";
 
-/** The item's or article's own title, summary and image, so shared links and search results show it. */
 export async function generateMetadata({
   params,
 }: {
@@ -43,7 +42,6 @@ export async function generateMetadata({
   return { title, description, openGraph: { title, description, images } };
 }
 
-/** One catalogue item: a project, product, property, dish, program… shown with the details its activity uses. */
 export default async function CollectionItemPage({
   params,
 }: {
@@ -53,7 +51,6 @@ export default async function CollectionItemPage({
   const [{ website, info, config }, t, preview] = await Promise.all([getSite(), siteTranslations(locale), isWebsitePreview()]);
   if (!website) notFound();
   if (collection === info.articles.slug && collection !== info.collection.slug) {
-    // Scheduled articles stay hidden until their time, except in preview.
     const articles = preview ? website.articles ?? [] : liveArticles(website.articles);
     const article = articles.find((entry) => entry.slug === slug);
     if (!article) notFound();
@@ -70,7 +67,6 @@ export default async function CollectionItemPage({
   const isRTL = locale === "ar";
 
   const item = website.portfolio.find((project) => project.slug === slug);
-  // With the online store on, items can be saved to the customer's wishlist.
   const storeOn = !!item && (await storeEnabled());
   const customer = storeOn && config.commerce.capabilities.accounts && config.commerce.capabilities.wishlist ? { signedIn: true, profile: await currentCustomer() } : null;
   const canOrder = storeOn && !preview && (await orderingEnabled());

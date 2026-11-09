@@ -33,7 +33,6 @@ interface Requisition {
 
 const toDraft = (l: ProcurementLineRecord): LineDraft => ({ productId: l.product_id ?? "", variantId: l.variant_key, description: l.product_id ? "" : l.description, quantity: String(l.quantity), unitPrice: l.unit_price == null ? "" : String(l.unit_price) });
 
-/** One requisition: edited while a draft (or after a rejection), then sent for approval and turned into orders. */
 export function RequisitionView({ requisition, products, currency, canEdit, canProcure }: { requisition: Requisition | null; products: ProcurementProductOption[]; currency: string; canEdit: boolean; canProcure: boolean }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

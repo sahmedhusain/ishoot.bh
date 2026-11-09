@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { createLocalJWKSet, jwtVerify, type JWK } from "jose";
 
-/** Trust the identity service's public key, never a caller identity supplied in a request header. */
 export async function verifyIdentityCaller(
   authorization: string | null,
 ): Promise<boolean> {

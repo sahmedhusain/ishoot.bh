@@ -1,4 +1,3 @@
-// Tasks and projects: statuses, priorities and how due dates group. Runtime-free.
 
 export const TASK_STATUSES = [
   "todo",
@@ -8,13 +7,11 @@ export const TASK_STATUSES = [
   "cancelled",
 ] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
-/** Statuses still to be worked on. */
 export const OPEN_TASK_STATUSES: TaskStatus[] = [
   "todo",
   "in_progress",
   "review",
 ];
-/** The columns of the board, in order (cancelled tasks are listed, not boarded). */
 export const BOARD_COLUMNS: TaskStatus[] = [
   "todo",
   "in_progress",
@@ -33,7 +30,6 @@ export const PROJECT_STATUSES = [
 ] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
-/** Records a task can be about, with the page that opens them. */
 export const TASK_LINK_TYPES = [
   "order",
   "deal",
@@ -46,7 +42,6 @@ export type TaskLinkType = (typeof TASK_LINK_TYPES)[number];
 
 export type DueBucket = "overdue" | "today" | "week" | "later" | "none";
 
-/** Where a task falls by its due date, against today's date ("YYYY-MM-DD"). */
 export function dueBucket(dueDate: string | null, today: string): DueBucket {
   if (!dueDate) return "none";
   if (dueDate < today) return "overdue";
@@ -56,7 +51,6 @@ export function dueBucket(dueDate: string | null, today: string): DueBucket {
   return dueDate <= week.toISOString().slice(0, 10) ? "week" : "later";
 }
 
-/** Share of a project's tasks that are done (cancelled tasks do not count). */
 export function projectProgress(counts: Partial<Record<TaskStatus, number>>) {
   const total =
     (counts.todo ?? 0) +

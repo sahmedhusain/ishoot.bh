@@ -265,7 +265,6 @@ export function NewClaimFormView({
           {receipt ? (
             <div className="flex items-center gap-3 p-3 rounded-2xl border border-outline-variant">
               {receipt.preview ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={receipt.preview}
                   alt=""

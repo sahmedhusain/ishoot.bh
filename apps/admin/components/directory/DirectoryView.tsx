@@ -11,7 +11,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { PageHeader } from "../layout/PageHeader";
 import { PresenceAvatar } from "../live/PresenceAvatar";
 
-/** Everyone's work contacts with one-tap call, WhatsApp and email. */
 export function DirectoryView({
   entries,
   total,

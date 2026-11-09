@@ -1,4 +1,3 @@
-// Employee identity and residency documents, shared by the server and the forms. Runtime-free.
 
 export const CREDENTIAL_KINDS = [
   "visa",
@@ -28,16 +27,13 @@ export const COST_FREQUENCIES = [
 ] as const;
 export type CostFrequency = (typeof COST_FREQUENCIES)[number];
 
-/** Residency applicability follows the company's configured exemptions. */
 export const needsWorkVisa = (nationality?: string | null, exemptCountries: readonly string[] = []) =>
   !!nationality && !exemptCountries.includes(nationality);
 
-/** Documents expiring within this many days are flagged and HR is notified. */
 export const EXPIRY_WARNING_DAYS = 60;
 
 export type ExpiryStatus = "expired" | "expiring" | "valid" | "none";
 
-/** Expiry status of a date (YYYY-MM-DD or ISO) as of today. */
 export function expiryStatus(
   date: string | Date | null | undefined,
   warningDays = EXPIRY_WARNING_DAYS,
@@ -58,7 +54,6 @@ export function expiryStatus(
   };
 }
 
-/** What a recurring document costs per month (one-off costs are not recurring). */
 export function monthlyCost(
   amount: number | null | undefined,
   frequency: string | null | undefined,

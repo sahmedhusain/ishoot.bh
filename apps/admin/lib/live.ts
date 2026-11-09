@@ -1,12 +1,6 @@
-// Tells other people's open pages that records changed (docs/adr/0012), for domains still kept in Prisma. The hint
-// carries the resource and record ID only; their pages fetch again through the app, which checks permissions.
 import { publishHint } from "@platform/api-client";
 import { resourceTopic, STAFF_TOPIC } from "./inbox";
 
-/**
- * Everyone who may read the resource sees their open pages refresh; `everyone` reaches all staff instead (for records
- * that are not one permission's, such as approvals). Never fails the change itself.
- */
 export async function announceChange(
   resource: string,
   id?: string,
@@ -14,7 +8,6 @@ export async function announceChange(
     everyone?: boolean;
     topics?: string[];
     users?: { realm: "staff" | "it"; id: string }[];
-    /** What happened, when listeners react differently (e.g. "created" rings at the IT desk). */
     event?: string;
   } = {},
 ) {

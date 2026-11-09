@@ -8,7 +8,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 const PAGE_SIZE = 50;
 const chip = "inline-flex items-center justify-center w-8 h-8 rounded-full border border-outline-variant text-ink hover:bg-ink/5 transition-colors";
 
-/** Search across a customer's records, plus pagers for the related lists that span several pages. */
 export function RelatedListControls({ pagination }: { pagination: Record<string, { page: number; total: number }> }) {
   const path = usePathname(), params = useSearchParams();
   const { t } = useAdminLocale();

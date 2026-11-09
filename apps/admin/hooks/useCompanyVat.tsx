@@ -3,11 +3,8 @@
 import * as React from "react";
 
 export interface CompanyVat {
-  /** The company is VAT-registered: every invoice and quotation carries VAT. When false, no VAT UI is shown anywhere. */
   enabled: boolean;
-  /** Rate in percent (0 when disabled). */
   rate: number;
-  /** Active taxes besides VAT and where they apply (company tax registry). */
   taxes: Array<{ code: string; name_en: string; name_ar: string; rate: number; invoices: boolean; quotations: boolean }>;
 }
 

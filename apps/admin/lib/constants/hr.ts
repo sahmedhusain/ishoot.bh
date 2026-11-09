@@ -1,11 +1,8 @@
-// HR rules shared by leave calculations and the UI.
 
-/** Working week weekend days (JavaScript getUTCDay numbering, 0=Sun..6=Sat). Configurable per company/jurisdiction. */
 export const WEEKEND_DAYS: readonly number[] = [5, 6];
 
 export const STANDARD_WORKDAY_HOURS = 8;
 
-/** Working days in an inclusive date range, excluding the weekend. Partial days count as hours / 8. */
 export function leaveDaysRequested(
   start: Date,
   end: Date,
@@ -34,7 +31,6 @@ export function leaveDaysRequested(
   return days;
 }
 
-/** Categories of manual and recurring payroll lines; additions and deductions are kept apart. */
 export const PAY_LINE_CATEGORIES = {
   addition: [
     "bonus",

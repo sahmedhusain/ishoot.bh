@@ -7,10 +7,8 @@ export interface UploadOptions {
   documentType?: string;
 }
 
-/** Browsers often leave the type of a font file empty; the server checks the real bytes either way. */
 function fileTypeOf(file: File) {
   const fromName = fontMimeFromName(file.name);
-  // Fonts are often reported with legacy types (application/font-woff, application/x-font-ttf…).
   return fromName || file.type;
 }
 
@@ -19,7 +17,6 @@ export async function uploadFileDirectly(
   options: UploadOptions = {},
 ) {
   const fileType = fileTypeOf(file);
-  // 1. Init upload
   const initRes = await fetch("/api/upload/init", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,7 +34,6 @@ export async function uploadFileDirectly(
   if (!initRes.ok)
     throw new Error(initData.error || "Failed to initialize upload");
 
-  // 2. Upload to storage using signed URL
   if (initData.signedUrl) {
     const uploadRes = await fetch(initData.signedUrl, {
       method: "PUT",
@@ -52,7 +48,6 @@ export async function uploadFileDirectly(
     throw new Error(serverMessages.noSignedUrlReturnedFromInit);
   }
 
-  // 3. Finalize upload
   const finalizeRes = await fetch("/api/upload/finalize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,10 +66,6 @@ export async function uploadFileDirectly(
   return finalizeData;
 }
 
-/**
- * Uploads a file and leaves it unclaimed so a server action can claim it with the record it belongs to
- * (the action verifies the stored bytes and creates the attachment).
- */
 export async function uploadForClaim(
   file: File,
   options: Pick<UploadOptions, "entityType" | "entityId"> = {},

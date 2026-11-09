@@ -12,7 +12,6 @@ export async function decideApprovalAction(
   approvalRequestId: string,
   decision: "approved" | "rejected",
   reason?: string,
-  /** Drawn by the approver now, for documents that must be signed on the spot. */
   signature?: string,
 ) {
   return measureOperation("action:decideApprovalAction", async () => {

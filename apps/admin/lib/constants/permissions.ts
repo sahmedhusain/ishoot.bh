@@ -1,5 +1,3 @@
-// Single source of truth for the permission model. Imported by queries, seed, bootstrap and the Roles UI.
-// Keep this file free of runtime dependencies (no db) so client components and scripts can import it.
 
 export const ALL_RESOURCES = [
   "invoices",
@@ -89,7 +87,6 @@ export const ALL_ROLES = [
   "viewer",
 ] as const;
 
-/** Role ids from before the role templates, still accepted wherever a role id is read (profiles, imports). */
 export const LEGACY_ROLE_IDS: Record<string, RoleKey> = {
   production_manager: "operations_manager",
   producer: "project_lead",
@@ -108,9 +105,7 @@ export const permissionKey = (
   action: PermissionAction,
 ): PermissionKey => `${resource}:${action}`;
 
-/** Every staff member can view their own HR records and file their own requests. */
 const SELF_SERVICE: PermissionAction[] = ["read", "create"];
-/** Every employee can raise and follow their own IT tickets (the itsm service); IT works them in the IT dashboard. */
 const IT_SUPPORT: PermissionAction[] = ["read", "create", "edit"];
 const CRUD: PermissionAction[] = ["read", "write", "create", "edit", "delete"];
 
@@ -511,7 +506,6 @@ export const DEFAULT_ROLE_RULES: Record<
   },
 };
 
-// Feature toggles limit ordinary roles; Super Admin retains administrative access.
 export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   contacts: "crm_deals",
   deals: "crm_deals",
@@ -552,7 +546,6 @@ export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   legal: "legal",
 };
 
-/** Roles matrix layout. Every resource must appear exactly once (checked by scripts/check-permissions.cjs). */
 export const PERMISSION_GROUPS: ReadonlyArray<{
   key: string;
   resources: readonly PermissionResource[];
@@ -618,11 +611,6 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];
 
-/**
- * One grant as the app applies it: the stored value; else, for create and edit, the stored write grant (older
- * installs only stored write); else denied. Missing rows of the role templates are filled in from the templates
- * by ensureRoleTemplates, so a resource added later reaches existing roles as stored data, not by guesswork.
- */
 export function resolveGrant(
   role: string,
   resource: PermissionResource,
@@ -639,7 +627,6 @@ export function resolveGrant(
   return false;
 }
 
-/** Default grant for a role, used by seed/bootstrap and the "reset to defaults" action. */
 export function isDefaultAllowed(
   role: string,
   resource: PermissionResource,

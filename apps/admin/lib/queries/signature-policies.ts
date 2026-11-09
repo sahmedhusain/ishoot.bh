@@ -8,7 +8,6 @@ import {
 } from "../constants/signatures";
 import { validateSignatureImage } from "../services/signature-image";
 
-/** How a document type is signed; documents without a policy are signed with the stored signature. */
 export async function getSignatureMode(
   documentType: string,
 ): Promise<SignatureMode> {
@@ -51,10 +50,6 @@ export async function setSignaturePolicy(
   });
 }
 
-/**
- * The signature to put on a document: one drawn now (required when the policy is "live"), otherwise the
- * signer's approved saved signature. Returned as an address the PDF can print (stored file or PNG data URL).
- */
 export async function resolveSigningSignature(
   documentType: string,
   signerId: string,

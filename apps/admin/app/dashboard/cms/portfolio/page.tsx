@@ -18,7 +18,6 @@ export default async function PortfolioManagerPage() {
     getWebsiteEditor(),
     getCompanySettings(),
   ]);
-  // The catalogue is edited with the details its website type uses (price for products, client for projects…).
   const config = resolveWebsiteConfig(validateWebsiteConfig(website.draft));
   const preset = activityPreset(config.purpose);
   const fields = config.collection.layout === preset.collection.layout ? preset.collection.fields : activityFieldsForLayout(config.collection.layout);
@@ -36,7 +35,6 @@ export default async function PortfolioManagerPage() {
   );
 }
 
-/** Details for a card style chosen independently of the website type. */
 function activityFieldsForLayout(layout: string) {
   if (layout === "product") return activityPreset("products").collection.fields;
   if (layout === "listing") return activityPreset("real_estate").collection.fields;

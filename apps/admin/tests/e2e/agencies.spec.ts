@@ -116,7 +116,6 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
   });
   expect(Number(handed.agencyFee)).toBe(1.25);
 
-  // The customer sees who carries it and can track it there.
   const customer = await page.context().newPage();
   await customer.goto(`${web}/en/track/${handed.trackingToken}`);
   await expect(customer.getByTestId("track-agency")).toContainText(

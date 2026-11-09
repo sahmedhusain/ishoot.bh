@@ -30,7 +30,6 @@ interface LocationDraft {
   isActive: boolean;
 }
 
-/** Inventory → warehouses: each warehouse with its locations, edited in place. */
 export function WarehousesView({ warehouses, languages, canEdit }: { warehouses: WarehouseRecord[]; languages: readonly ContentLanguage[]; canEdit: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.warehouses;

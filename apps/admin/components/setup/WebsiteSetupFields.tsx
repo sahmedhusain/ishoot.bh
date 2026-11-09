@@ -46,7 +46,6 @@ function Toggle({ label, checked, onChange, disabled, hint }: { label: string; c
   );
 }
 
-/** A tiny drawing of each homepage opening, so the choice is visual. */
 function HeroSketch({ style }: { style: HeroStyle }) {
   if (style === "cinematic")
     return (
@@ -82,7 +81,6 @@ export interface WebsiteSetupFieldsProps {
   onChange: (config: ResolvedWebsiteConfig) => void;
   languages: readonly ContentLanguage[];
   primaryLanguage: ContentLanguage;
-  /** The company's activity, marked as recommended in the type picker. */
   companyActivity?: BusinessActivity | null;
   hasWhatsapp: boolean;
   categories?: { slug: string; name_en: string; name_ar: string }[];
@@ -106,7 +104,6 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
     [sections[index], sections[index + direction]] = [sections[index + direction], sections[index]];
     set({ sections });
   };
-  // The closing call to action is part of the shared footer, so it is not offered as a section here.
   const sections = config.sections.map((s, index) => ({ ...s, index })).filter((s) => s.id !== "cta");
   const sectionName = (id: WebsiteSection) => (id === "portfolio" ? `${copy.sectionNames.portfolio} · ${locale === "ar" ? collection.navAr : collection.navEn}` : copy.sectionNames[id]);
 

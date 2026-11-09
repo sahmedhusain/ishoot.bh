@@ -8,10 +8,6 @@ import { tooLargeMessage } from "../../../../../../lib/upload-errors";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Receives the bytes of an upload started with /api/upload/init and streams them to the files service. Only the
- * user who started the upload may send it, before it expires; the files service checks the size and real type.
- */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ folder: string; name: string }> },

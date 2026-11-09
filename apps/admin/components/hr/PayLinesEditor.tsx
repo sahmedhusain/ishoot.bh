@@ -26,7 +26,6 @@ export const toPayLineDraft = (line: { category: string; label: string; amount: 
 
 const field = "h-9 w-full rounded-lg border border-outline-variant bg-surface-sunken/60 px-2.5 text-xs text-ink focus:outline-none focus:border-accent";
 
-/** One list of named lines: additions or deductions, never mixed, each with a category, description and amount. */
 export function PayLinesEditor({ kind, lines, onChange }: { kind: PayLineKind; lines: PayLineDraft[]; onChange: (lines: PayLineDraft[]) => void }) {
   const { t } = useAdminLocale();
   const c = t.payLines;

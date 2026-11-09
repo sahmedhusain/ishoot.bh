@@ -17,7 +17,6 @@ const ASPECT: Record<CollectionLayout, string> = {
   listing: "aspect-[4/3]",
 };
 
-/** The line under a title: who and when for projects, the subtitle or location otherwise. */
 function useItemFacts(item: PortfolioItem) {
   const { locale, site } = useTranslation();
   const subtitle = pickText(item.subtitle_en, item.subtitle_ar, locale);
@@ -27,10 +26,6 @@ function useItemFacts(item: PortfolioItem) {
   return { title: pickText(item.title_en, item.title_ar, locale), subtitle, project, price, priceNote };
 }
 
-/**
- * One catalogue item, drawn for the website's layout. Video projects open in the lightbox (`onOpen`);
- * everything else links to its own page.
- */
 export function CollectionCard({ item, layout, tone: propTone, onOpen, horizontal = false }: { item: PortfolioItem; layout: CollectionLayout; tone?: "dark" | "light"; horizontal?: boolean; onOpen?: (item: PortfolioItem) => void }) {
   const { t, locale, site } = useTranslation();
   const siteTone = useSiteTone();

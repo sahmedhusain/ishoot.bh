@@ -89,7 +89,6 @@ describe.each(profiles)("company profile %s", (name) => {
   });
 
   test("logo slots hold wide wordmarks and icon slots compact marks", () => {
-    // PNG width and height live in the IHDR chunk; JPEG/WebP profiles are checked by eye.
     const size = (file: string) => {
       const bytes = fs.readFileSync(path.join(dir, "assets", file));
       return detectFileType(bytes) === "image/png"

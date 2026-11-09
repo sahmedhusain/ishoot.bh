@@ -13,7 +13,6 @@ import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Replies to the customer by e-mail or WhatsApp from a request, keeping the reply on the request. */
 export async function replyToRequestAction(
   id: string,
   input: { channel: string; body: string },

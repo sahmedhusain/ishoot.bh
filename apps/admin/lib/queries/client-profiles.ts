@@ -36,7 +36,6 @@ const oneOf = <T extends readonly string[]>(
     ? (value as T[number])
     : null;
 
-/** Turns a stored client back into form input, so a partial update can be validated as a whole profile. */
 function storedProfile(c: CRMContact): ClientProfileInput {
   return {
     client_kind: c.client_kind,
@@ -69,11 +68,6 @@ function storedProfile(c: CRMContact): ClientProfileInput {
   };
 }
 
-/**
- * Validates a client profile and returns the columns to store plus its points of contact.
- * Individuals are one person; companies and government entities need at least one point of contact,
- * and the primary one is mirrored onto the client's name, e-mail, phone and job title.
- */
 export function normalizeClientProfile(input: ClientProfileInput, companyCountry?: string) {
   const kind =
     oneOf(CLIENT_KINDS, input.client_kind) ??
@@ -142,7 +136,6 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
   )
     throw new Error(serverMessages.aBahrainVATNumberHas15);
 
-  // Points of contact.
   const persons =
     kind === "individual"
       ? []
@@ -313,7 +306,6 @@ export async function updateClientProfile(
       ...storedProfile(existing),
       ...defined,
     };
-    // A changed type starts from the new type's own fields: a full name typed for an individual replaces the stored one.
     if (defined.full_name) {
       merged.first_name = undefined;
       merged.last_name = undefined;
@@ -330,8 +322,6 @@ export async function updateClientProfile(
     return mapContact(updated);
   });
 }
-
-// ---------------------------------------------------------------- list, ranking, export
 
 export type ClientListParameters = {
   q?: string;
@@ -370,10 +360,6 @@ export function clientListParameters(input: ClientListParameters = {}) {
 }
 export type ClientListFilters = ReturnType<typeof clientListParameters>;
 
-/**
- * Billing standing per client in the base currency: billed (issued, not void), collected and outstanding.
- * Other currencies convert at the latest stored rate; with no rate they are left out of the ranking.
- */
 function standingSql(baseCurrency: string) {
   const convert = (expr: Prisma.Sql) =>
     Prisma.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} ELSE 0 END`;
@@ -546,7 +532,6 @@ async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {
   });
 }
 
-/** The client list with filters, sorting and ABC ranking. In export mode it walks every match by id. */
 export async function getClientsPage(
   input: ClientListParameters,
   batch?: { after?: string; batchSize: number },
@@ -683,7 +668,6 @@ export async function getClientsPage(
   });
 }
 
-/** One client's rank and tier among all clients, for the client page. */
 export async function getClientStanding(id: string) {
   const currency = await baseCurrency();
   const rows = await db.$queryRaw<StandingRow[]>(

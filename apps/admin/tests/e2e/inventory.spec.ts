@@ -89,7 +89,6 @@ test("stock moves only through the ledger: receipts set the average cost, nothin
   ).toContainText("30");
   errors.assertClean();
 
-  // More than is there cannot leave.
   await changeStock(page, "write_off", "40");
   await expect(alertMessage(page)).toHaveText(
     t.serverErrors.messages.stockInsufficient,
@@ -123,7 +122,6 @@ test("a reorder point alerts once when available stock falls to it", async ({
     .fill("30");
   await panel.getByRole("button", { name: copy.product.saveReorder }).click();
   await expect(panel.getByRole("status")).toHaveText(copy.product.reorderSaved);
-  // The next movement finds 28 available, at or below 30.
   await page.goto(`/dashboard/inventory?q=${SKU}`);
   await changeStock(page, "receipt", "1", "3.5");
   await expect.poll(onHand).toBe(29);

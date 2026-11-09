@@ -26,14 +26,12 @@ interface PurchaseOrderViewProps {
   products: ProcurementProductOption[];
   company: { currency: string; vatEnabled: boolean; vatPercentage: number; name: string };
   rights: { edit: boolean; export: boolean; cancel: boolean; receive?: boolean; bill?: boolean };
-  /** Receiving goods, shown while the order can still receive. */
   receivePanel?: React.ReactNode;
 }
 
 const pdfUrl = (id: string, download = false) => `/api/procurement/orders/${encodeURIComponent(id)}/pdf${download ? "?download=true" : ""}`;
 const lineDraft = (l: { product_id: string | null; variant_key: string; description: string; quantity: number; unit_price: number | null }): LineDraft => ({ productId: l.product_id ?? "", variantId: l.variant_key, description: l.product_id ? "" : l.description, quantity: String(l.quantity), unitPrice: l.unit_price == null ? "" : String(l.unit_price) });
 
-/** One purchase order: edited as a draft, then approved, sent (email, WhatsApp, PDF), received and billed. */
 export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouses, products, company, rights, receivePanel }: PurchaseOrderViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

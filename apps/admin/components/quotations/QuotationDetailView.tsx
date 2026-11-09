@@ -95,7 +95,6 @@ export function QuotationDetailView({
 
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
 
-  // Dialog states
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [discountReason, setDiscountReason] = React.useState("");
 
@@ -117,7 +116,6 @@ export function QuotationDetailView({
   const isCreator = quotation.createdById === currentUserId;
   const hasDiscount = Number(quotation.discountAmount) > 0;
 
-  // Status mapping
   const statusMeta: Record<string, DocumentStatusMeta> = {
     draft: { label: t.statusLabels.draft, color: "bg-surface-sunken text-ink dark:bg-surface-raised dark:text-ink", icon: Clock },
     submitted: { label: t.quotationDetail.pendingApproval, color: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300", icon: Clock },
@@ -129,7 +127,6 @@ export function QuotationDetailView({
     expired: { label: t.statusLabels.expired, color: "bg-stone-100 text-stone-600 dark:bg-surface-raised dark:text-ink-muted", icon: AlertCircle },
   };
 
-  // Handlers
   const handleSubmitForApproval = async () => {
     if (hasDiscount && !discountReason.trim()) {
       toast.error(t.quotationDetail.pleaseProvideJustificationForThe);
@@ -293,7 +290,6 @@ export function QuotationDetailView({
         pdf={{ type: "quotation", id: quotation.id, number: quotation.quotationNumber }}
         actions={
           <>
-            {/* Status: Draft -> Submit */}
             {quotation.status === "draft" && (
               <Button
                 onClick={() => {
@@ -311,7 +307,6 @@ export function QuotationDetailView({
               </Button>
             )}
 
-            {/* Status: Submitted -> Super Admin Review */}
             {quotation.status === "submitted" && canApprove && (
               <>
                 {isCreator ? (
@@ -342,7 +337,6 @@ export function QuotationDetailView({
               </>
             )}
 
-            {/* Status: Approved -> Issue to Client */}
             {quotation.status === "approved" && canIssue && (
               <Button
                 onClick={() => setShowIssueModal(true)}
@@ -354,7 +348,6 @@ export function QuotationDetailView({
               </Button>
             )}
 
-            {/* Status: Issued -> Accept / Reject by Client */}
             {quotation.status === "issued" && (
               <div className="flex items-center gap-2">
                 <Button
@@ -376,7 +369,6 @@ export function QuotationDetailView({
               </div>
             )}
 
-            {/* Status: Accepted -> Convert to Invoice */}
             {quotation.status === "accepted" && !quotation.invoiceId && quotation.currency === companyCurrency && (
               <Button
                 onClick={handleConvertToInvoice}
@@ -388,7 +380,6 @@ export function QuotationDetailView({
               </Button>
             )}
 
-            {/* Linked Invoice if Converted */}
             {(quotation.status === "converted" || Boolean(quotation.invoiceId)) && quotation.invoiceId && (
               <Link
                 href={ROUTES.invoices.detail(quotation.invoiceId)}
@@ -402,9 +393,7 @@ export function QuotationDetailView({
         }
       />
 
-      {/* Primary Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content: Left 2 Cols */}
         <div className="lg:col-span-2 space-y-6">
           <DocumentStatusBanner
             status={quotation.status}
@@ -454,7 +443,6 @@ export function QuotationDetailView({
           </DocumentCard>
         </div>
 
-        {/* Right 1 Col: Metadata & Audit Box */}
         <div className="space-y-6">
           <DocumentInfoCard title={qdT.particularsTitle}>
             <DocumentPartyDetails
@@ -481,7 +469,6 @@ export function QuotationDetailView({
             ]}
           />
 
-          {/* Super Admin Approval Box */}
           {approvalRequest && (
             <Card className="p-6 bg-surface-raised dark:bg-surface-raised/50 border border-outline-variant rounded-lg space-y-3">
               <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-2">

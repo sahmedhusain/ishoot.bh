@@ -5,10 +5,6 @@ import { reserveDocumentNumber } from "../api/company";
 
 type Client = Pick<typeof db, "companySetting">;
 
-/**
- * The single numbering source for invoices and receipts: the company counter (editable in Settings),
- * formatted PREFIX-YYYY-NNNN with the year of the document date. The increment is atomic.
- */
 export async function allocateDocumentNumber(
   kind: "invoice" | "receipt",
   documentDate: Date,

@@ -10,7 +10,6 @@ export function articleDate(article: Pick<PublicArticle, "publish_at">, locale: 
   return article.publish_at ? new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en", { dateStyle: "medium" }).format(new Date(article.publish_at)) : "";
 }
 
-/** Article cards: cover, date, title and excerpt. Links use the articles address the website settings give. */
 export function ArticleCards({ articles, title, locale, base }: { articles: PublicArticle[]; title?: string; locale: string; base?: string }) {
   if (!articles.length) return null;
   const href = (slug: string) => `${base ?? `/${locale}/news`}/${encodeURIComponent(slug)}`;

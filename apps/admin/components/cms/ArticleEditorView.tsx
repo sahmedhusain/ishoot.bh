@@ -18,11 +18,9 @@ import { Field, LanguageFields } from "../setup/LanguageFields";
 import { RichTextEditor } from "./RichTextEditor";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Local date-time for <input type="datetime-local"> from an ISO time, and back. */
 const toLocal = (iso: string | null) => (iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "");
 const fromLocal = (value: string) => (value ? new Date(value).toISOString() : "");
 
-/** The article editor: title, address, category, cover, excerpt, body (per content language), schedule and SEO. */
 export function ArticleEditorView({ article, languages, canPublish, canDelete, articlesSlug }: { article: CmsArticleRecord; languages: readonly ContentLanguage[]; canPublish: boolean; canDelete: boolean; articlesSlug: string }) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();

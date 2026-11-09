@@ -66,7 +66,6 @@ function CellEditor({
   const set = (key: keyof typeof form, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const present = form.status === "present" || form.status === "half_day";
   const minutes = (value: string) => (value.trim() === "" ? null : Number(value));
-  // When the times change, let the server work lateness and overtime out again.
   const timesChanged = form.checkIn !== (cell?.checkIn ?? "") || form.checkOut !== (cell?.checkOut ?? "");
 
   const save = async (event: React.FormEvent) => {

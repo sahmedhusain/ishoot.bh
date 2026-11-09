@@ -13,7 +13,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Who is leaving, why and their last working day; every line is then worked out on the settlement page. */
 export function NewSettlementForm({
   employees,
   initial,

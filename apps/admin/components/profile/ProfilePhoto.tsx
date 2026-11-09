@@ -1,5 +1,4 @@
 "use client";
-// The signed-in person's profile photo with its editor (upload or link, crop, review, then save; removing asks first).
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";

@@ -5,7 +5,6 @@ import { pickText } from "@platform/database/constants/languages";
 import { formatMessage, type TranslationKeys } from "@platform/locales";
 import { ContentImage } from "../shared/ContentImage";
 
-/** What the web address shows when the company has no public website: who it is and how to reach it. */
 export function WebsiteOffline({ company, locale, t }: { company: PublicCompanySettings; locale: string; t: TranslationKeys }) {
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);

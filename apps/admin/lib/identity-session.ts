@@ -1,13 +1,9 @@
-// Staff sessions are identity sessions (backend/services/identity): a short-lived access token and a refresh
-// credential that works once, both in httpOnly cookies. Shared by sign-in, sign-out, the proxy (renewal) and
-// getCurrentUser (verification). Server-only.
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import { refreshSession, type LoginCredential } from "@platform/api-client";
 
 export const REALM = "staff" as const;
 export const ACCESS_COOKIE = "platform_admin_access";
 export const REFRESH_COOKIE = "platform_admin_refresh";
-/** Renew the access token this many seconds before it expires. */
 const LEEWAY_SECONDS = 30;
 
 export type CookieSpec = {
@@ -22,7 +18,6 @@ export type CookieSpec = {
   };
 };
 
-// Lax, not strict: people arrive from links in e-mails (approvals, resets) and must stay signed in.
 const options = (expires: Date) =>
   ({
     httpOnly: true,
@@ -32,7 +27,6 @@ const options = (expires: Date) =>
     expires,
   }) as const;
 
-/** The cookies that hold a signed-in session. */
 export function sessionCookies(credential: LoginCredential): CookieSpec[] {
   const accessExpires = new Date(
     (decodeJwt(credential.accessToken).exp ?? 0) * 1000,
@@ -51,7 +45,6 @@ export function sessionCookies(credential: LoginCredential): CookieSpec[] {
   ];
 }
 
-/** Cookies that end the session in the browser (and the pre-identity session cookie, if one is left). */
 export const clearedCookies = (): CookieSpec[] =>
   [ACCESS_COOKIE, REFRESH_COOKIE, "platform_admin_session"].map((name) => ({
     name,
@@ -59,7 +52,6 @@ export const clearedCookies = (): CookieSpec[] =>
     options: options(new Date(0)),
   }));
 
-/** True when the access token is missing, unreadable or about to expire. */
 export function needsRenewal(accessToken: string | undefined) {
   if (!accessToken) return true;
   try {
@@ -72,9 +64,6 @@ export function needsRenewal(accessToken: string | undefined) {
   }
 }
 
-// A refresh credential works once; reusing it ends the whole session (identity detects replay). Requests that arrive
-// together share one renewal, kept briefly for requests that started with the old cookie. With several replicas,
-// route a browser to one replica (sticky sessions) for the same guarantee.
 const renewals = new Map<string, Promise<LoginCredential | null>>();
 
 export function renew(refreshToken: string): Promise<LoginCredential | null> {
@@ -106,7 +95,6 @@ const setting = (name: string) => {
   return value;
 };
 
-/** Verifies a staff access token's signature, issuer, audience and expiry; null when it is not one. */
 export async function verifyAccessToken(
   token: string | undefined,
 ): Promise<StaffToken | null> {

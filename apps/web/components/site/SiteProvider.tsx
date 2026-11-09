@@ -8,7 +8,6 @@ import type { SiteInfo } from "../../lib/site-copy";
 
 const SiteContext = React.createContext<SiteInfo | null>(null);
 
-/** Shares the website's activity, languages, catalogue and form options with client components. */
 export function SiteProvider({ site, children }: { site: SiteInfo; children: React.ReactNode }) {
   const raw = usePathname().split("/")[1];
   const locale = isLocale(raw) ? raw : site.primaryLanguage;

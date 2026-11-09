@@ -14,13 +14,11 @@ interface DocumentTaxRow {
 interface DocumentTotalsProps {
   currency: string;
   subtotal: number | string;
-  /** Shown only when the amount is above zero. */
   discount?: { amount: number | string; label: React.ReactNode; className?: string };
   vat?: { percentage: number | string; amount: number | string } | null;
   taxes?: DocumentTaxRow[];
   total: number | string;
   totalLabel?: React.ReactNode;
-  /** Invoice settlement rows under the total. */
   paid?: number;
   balance?: number;
 }

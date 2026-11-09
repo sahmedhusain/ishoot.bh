@@ -14,7 +14,6 @@ import { validateActionArguments } from "../../lib/action-input";
 import { requireAuth, requirePermission } from "../../lib/auth";
 import { publicOrigin } from "../../lib/public-origin";
 
-/** Whether a document type is signed with the saved signature or drawn on the spot. */
 export async function getSignatureModeAction(documentType: string) {
   return measureOperation("action:getSignatureModeAction", async () => {
     await requireAuth();
@@ -23,7 +22,6 @@ export async function getSignatureModeAction(documentType: string) {
   });
 }
 
-/** Super Admin: choose, per document, whether signers draw their signature at the moment of signing. */
 export async function setSignaturePolicyAction(
   documentType: string,
   mode: "stored" | "live",
@@ -47,7 +45,6 @@ export async function setSignaturePolicyAction(
   });
 }
 
-/** A one-time link the employee opens on their own phone to read and sign an asset handover. */
 export async function createHandoverSigningLinkAction(
   handoverId: string,
   days: number,
@@ -95,7 +92,6 @@ export async function revokeHandoverSigningLinkAction(requestId: string) {
   );
 }
 
-/** The employee opens their own handover on the signing page (a fresh one-time link, created for them). */
 export async function openMyHandoverSigningPageAction(handoverId: string) {
   return measureOperation(
     "action:openMyHandoverSigningPageAction",

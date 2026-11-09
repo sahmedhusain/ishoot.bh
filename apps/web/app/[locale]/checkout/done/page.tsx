@@ -7,7 +7,6 @@ import { formatMessage } from "@platform/locales";
 
 export const dynamic = "force-dynamic";
 
-/** After placing an order: its number and where to follow it. */
 export default async function OrderPlacedPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ number?: string }> }) {
   const { locale } = await params;
   await requireSiteLanguage(locale);

@@ -104,7 +104,6 @@ test("a visitor adds an item to the cart, applies a coupon and checks out as a g
   expect(
     (await db.coupon.findUniqueOrThrow({ where: { code: COUPON } })).usedCount,
   ).toBe(1);
-  // The cart is emptied, and only one is left to sell.
   await page.goto(itemPath);
   await expect(page.getByTestId("stock-state")).toHaveText(
     copy.onlyLeft.replace("{count}", "1"),

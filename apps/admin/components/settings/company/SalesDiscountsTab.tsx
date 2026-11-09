@@ -14,7 +14,6 @@ interface SalesDiscountsTabProps {
   t: Translations;
 }
 
-/** Discount approval margins: the company default here, per-user overrides on the Users page. */
 export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTabProps) {
   const s = t.salesDiscounts;
   return (

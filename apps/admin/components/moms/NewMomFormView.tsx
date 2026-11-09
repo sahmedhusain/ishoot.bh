@@ -31,7 +31,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  // Form State
   const [title, setTitle] = React.useState("");
   const [titleAr, setTitleAr] = React.useState("");
   const [meetingDate, setMeetingDate] = React.useState(
@@ -44,31 +43,24 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
   const [dealId, setDealId] = React.useState("");
   const [status, setStatus] = React.useState("draft");
 
-  // Dynamic Attendees
   const [attendees, setAttendees] = React.useState<MomAttendee[]>([
     { ...initialAttendee, role: "", organization: companyName, attended: true },
   ]);
 
-  // Agenda
   const [agenda, setAgenda] = React.useState("");
 
-  // Discussion Points
   const [discussionPoints, setDiscussionPoints] = React.useState<MomDiscussionPoint[]>([
     { topic: "", speaker: "", notes: "" },
   ]);
 
-  // Action Items
   const [actionItems, setActionItems] = React.useState<MomActionItem[]>([
     { task: "", assignee: "", dueDate: "", status: "pending" },
   ]);
 
-  // Decisions
   const [decisions, setDecisions] = React.useState<string[]>([""]);
 
-  // Notes
   const [notes] = React.useState("");
 
-  // Attendees Helpers
   const addAttendee = () => {
     setAttendees([...attendees, { name: "", role: "", email: "", organization: "", attended: true }]);
   };
@@ -83,7 +75,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
     setAttendees(attendees.filter((_, i) => i !== index));
   };
 
-  // Discussion Points Helpers
   const addDiscussionPoint = () => {
     setDiscussionPoints([...discussionPoints, { topic: "", speaker: "", notes: "" }]);
   };
@@ -98,7 +89,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
     setDiscussionPoints(discussionPoints.filter((_, i) => i !== index));
   };
 
-  // Action Items Helpers
   const addActionItem = () => {
     setActionItems([...actionItems, { task: "", assignee: "", dueDate: "", status: "pending" }]);
   };
@@ -113,7 +103,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
     setActionItems(actionItems.filter((_, i) => i !== index));
   };
 
-  // Decisions Helpers
   const addDecision = () => {
     setDecisions([...decisions, ""]);
   };
@@ -175,7 +164,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-24 text-xs">
-      {/* Header */}
       <PageHeader
         back={{ href: ROUTES.moms.list, label: t.newMomForm.backToMeetingMinutes }}
         actions={<div className="flex items-center gap-3">
@@ -205,7 +193,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       )}
 
-      {/* Main Details Card */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-6" data-page-section>
         <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-accent" />
@@ -295,7 +282,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Attendees Card */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
         <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -366,7 +352,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Agenda & Notes */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
         <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-accent" />
@@ -388,7 +373,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Discussion Points Card */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
         <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -448,7 +432,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Action Items & Deadlines Card */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
         <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -519,7 +502,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Decisions & Approvals */}
       <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
         <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
@@ -558,7 +540,6 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         </div>
       </Card>
 
-      {/* Footer Submit */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button
           type="button"

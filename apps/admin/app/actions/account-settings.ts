@@ -23,10 +23,6 @@ function revalidateAccount(userId: string, employeeId: string | null) {
   if (employeeId) revalidatePath(ROUTES.hr.employee(employeeId));
 }
 
-/**
- * Saves a person's account settings. People who manage users (admins) apply them at once; HR (employee editors)
- * file them for an admin's approval. Super Admin accounts are protected either way.
- */
 export async function saveAccountSettingsAction(
   userId: string,
   changes: {
@@ -110,7 +106,6 @@ export async function saveAccountSettingsAction(
   });
 }
 
-/** Withdraws an account change that is still waiting for approval (the person who filed it, or a user admin). */
 export async function cancelAccountChangeAction(requestId: string) {
   validateActionArguments("cancelAccountChangeAction", { requestId });
   return measureOperation("action:cancelAccountChangeAction", async () => {

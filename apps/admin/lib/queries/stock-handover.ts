@@ -81,7 +81,6 @@ async function handoverManifest(
   };
 }
 
-/** Server-authenticated staff signing only. External signing invitations are a separate boundary. */
 export async function previewStockHandover(
   input: { allocationId: string; revision: number; stage: HandoverStage },
   actorId: string,
@@ -110,7 +109,6 @@ export async function acknowledgeStockHandover(
   validateSignatureImage(input.signature);
   return runAtomicMutation(async () => {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`allocation:${input.allocationId}`}, 0))`;
-    // Authenticate before reading acknowledgment evidence, including on retries.
     const allocation = await db.stockAllocation.findUniqueOrThrow({
       where: { id: input.allocationId },
     });

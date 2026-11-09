@@ -26,7 +26,6 @@ interface Row {
   suppliers: number;
 }
 
-/** Purchasing → requests for quotation: the list and a new one from scratch (or start from a requisition). */
 export function RfqsListView({ rows, products, canEdit }: { rows: Row[]; products: ProcurementProductOption[]; canEdit: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.rfqs;

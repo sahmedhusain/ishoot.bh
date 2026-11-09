@@ -19,7 +19,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  // Restore collapsed preference from localStorage on desktop
   React.useEffect(() => {
     try {
       const saved = localStorage.getItem("platform_sidebar_collapsed");
@@ -27,7 +26,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
         setIsCollapsed(saved === "true");
       }
     } catch {
-      // Ignore localStorage errors
     }
   }, []);
 
@@ -41,7 +39,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem("platform_sidebar_collapsed", String(next));
       } catch {
-        // Ignore
       }
       return next;
     });

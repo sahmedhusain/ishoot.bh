@@ -23,8 +23,6 @@ import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-// ─── Marketing ───────────────────────────────────────────────────────────────────────────────────────────────────
-
 export async function saveCampaignAction(input: CampaignInput) {
   return measureOperation("action:saveCampaignAction", async () => {
     await requireFeatureEnabled("marketing");
@@ -88,7 +86,6 @@ export async function saveBroadcastAction(input: BroadcastInput) {
   });
 }
 
-/** Queues a broadcast for the segment's customers who agreed to marketing e-mail; the scheduled job sends it. */
 export async function sendBroadcastAction(id: string) {
   return measureOperation("action:sendBroadcastAction", async () => {
     await requireFeatureEnabled("marketing");
@@ -106,8 +103,6 @@ export async function sendBroadcastAction(id: string) {
     return { success: true, count };
   });
 }
-
-// ─── Press ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function saveMediaContactAction(input: MediaContactInput) {
   return measureOperation("action:saveMediaContactAction", async () => {
@@ -144,8 +139,6 @@ export async function saveCoverageAction(input: CoverageInput) {
     return { success: true };
   });
 }
-
-// ─── Legal ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function saveLegalMatterAction(input: LegalMatterInput) {
   return measureOperation("action:saveLegalMatterAction", async () => {

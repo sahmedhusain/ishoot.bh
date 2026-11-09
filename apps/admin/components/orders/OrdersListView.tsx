@@ -25,7 +25,6 @@ interface Row {
   placed_at: string;
 }
 
-/** Store → orders: every order with its status and payment, searchable and filtered. */
 export function OrdersListView({ rows, total, page, pageSize, filters, currency, canCreate }: { rows: Row[]; total: number; page: number; pageSize: number; filters: { q: string; status: string; channel: string }; currency: string; canCreate: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.orders;

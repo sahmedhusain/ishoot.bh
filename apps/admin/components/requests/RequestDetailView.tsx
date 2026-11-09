@@ -58,12 +58,9 @@ interface RequestDetailViewProps {
   request: ConsolidatedRequest;
   users: UserOption[];
   currentUserId: string;
-  /** Server-computed: the viewer is an approver for this request's pending approval. */
   canDecideApproval: boolean;
-  /** Server-computed: may qualify, link and convert sales leads. */
   canSell: boolean;
 }
-
 
 export function RequestDetailView({
   request,
@@ -80,7 +77,6 @@ export function RequestDetailView({
     "overview" | "comments" | "timeline" | "related"
   >("overview");
 
-  // Modals
   const [modalType, setModalType] = React.useState<
     "assign" | "return" | "resolve" | null
   >(null);
@@ -97,7 +93,6 @@ export function RequestDetailView({
   const [isActionSubmitting, setIsActionSubmitting] =
     React.useState<boolean>(false);
 
-  // New Comment State
   const [commentBody, setCommentBody] = React.useState<string>("");
   const [isClientVisible, setIsClientVisible] = React.useState<boolean>(false);
   const [isPostingComment, setIsPostingComment] =
@@ -275,7 +270,6 @@ export function RequestDetailView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-24">
-      {/* Top Breadcrumb & Reference */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href={ROUTES.requests.list}
@@ -297,7 +291,6 @@ export function RequestDetailView({
         </div>
       </div>
 
-      {/* Main Dossier Header Card */}
       <div className="p-6 rounded-3xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
         <PageHeader
           title={formatMessage(t.requestDetail.titleWithReference, { reference: request.reference })}
@@ -427,7 +420,6 @@ export function RequestDetailView({
           </div>}
         />
 
-        {/* Tab Navigation */}
         <div className="flex items-center gap-2 border-t border-outline-variant dark:border-white/5 pt-3" role="tablist">
           {[
             {
@@ -477,10 +469,8 @@ export function RequestDetailView({
         </div>
       </div>
 
-      {/* Tab 1: Overview */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" data-tab-panel>
-          {/* Left 2 Cols: Description & Details */}
           <div className="lg:col-span-2 space-y-6">
             <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-4 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
@@ -509,7 +499,6 @@ export function RequestDetailView({
               )}
             </div>
 
-            {/* Commercial & Operational Parameters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-5 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-1">
                 <span className="text-xs text-ink-muted">
@@ -557,9 +546,7 @@ export function RequestDetailView({
             )}
           </div>
 
-          {/* Right Col: Client & Assignment Info */}
           <div className="space-y-6">
-            {/* Client Card */}
             <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
@@ -632,7 +619,6 @@ export function RequestDetailView({
               </div>
             </div>
 
-            {/* Current Assignment Card */}
             <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
                 {t.requestDetail.currentAssignment}
@@ -677,10 +663,8 @@ export function RequestDetailView({
         </div>
       )}
 
-      {/* Tab 2: Comments & Discussion */}
       {activeTab === "comments" && (
         <div className="space-y-6" data-tab-panel>
-          {/* Post Comment Box */}
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -735,7 +719,6 @@ export function RequestDetailView({
             </form>
           </div>
 
-          {/* Comments List */}
           <div className="space-y-3">
             {request.comments && request.comments.length > 0 ? (
               request.comments.map((comment: any) => (
@@ -795,7 +778,6 @@ export function RequestDetailView({
         </div>
       )}
 
-      {/* Tab 3: Timeline & Audit History */}
       {activeTab === "timeline" && (
         <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-6" data-tab-panel>
           <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
@@ -840,7 +822,6 @@ export function RequestDetailView({
         </div>
       )}
 
-      {/* Tab 4: Linked Documents */}
       {activeTab === "related" && (
         <div className="space-y-4" data-tab-panel>
           <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
@@ -923,7 +904,6 @@ export function RequestDetailView({
         </div>
       )}
 
-      {/* Action Modals */}
       <Modal isOpen={!!modalType} onClose={() => setModalType(null)}
         title={modalType === "assign" ? t.requestDetail.assignOrReassignRequest : modalType === "return" ? t.requestDetail.returnRequestWithReason : t.requestDetail.resolveAndCloseRequest}
         description={request.reference || `#${request.id.slice(-6)}`} busy={isActionSubmitting} className="max-w-lg"

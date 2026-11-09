@@ -70,7 +70,6 @@ function PurchaseOrderBody({ k, order, brand, signing }: { k: DocKit; order: Pur
   );
 }
 
-/** The purchase order as sent to the supplier, in the company's letterhead. */
 export async function generatePurchaseOrderPdf(order: PurchaseOrderRecord, company: CompanySettings, locale: "en" | "ar" = "en") {
   const brand = await resolvePdfBrand(company);
   const k = docKit(locale);

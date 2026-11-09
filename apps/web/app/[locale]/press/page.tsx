@@ -7,7 +7,6 @@ import { getSite, requireSiteLanguage, siteTranslations } from "../../../lib/sit
 
 export const dynamic = "force-dynamic";
 
-/** The press page: press releases, a short "about", the logo to download and where media can write. */
 export default async function PressPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   await requireSiteLanguage(locale);

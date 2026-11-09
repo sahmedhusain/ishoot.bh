@@ -17,11 +17,8 @@ import { PageHeader } from "../layout/PageHeader";
 interface KanbanBoardProps {
   initialDeals: CRMDeal[];
   contacts?: CRMContact[];
-  /** The company's pipeline, in order. */
   stages: DealPipelineStage[];
-  /** Shows the link to Settings → Sales pipeline. */
   canCustomize?: boolean;
-  /** Search, filters and paging, shown under the header. */
   controls?: React.ReactNode;
 }
 
@@ -31,7 +28,6 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize,
 
   const columns = stages.map((stage) => ({ stage: stage.id, label: dealStageLabel(stage, t, locale), color: dealStageColor(stage) }));
 
-  // A click is not a drag: require a short move before dragging starts, so cards stay clickable.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor),

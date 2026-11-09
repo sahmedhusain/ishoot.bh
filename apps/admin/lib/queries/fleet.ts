@@ -29,12 +29,8 @@ const nameEn = (e: Named) => `${e.firstNameEn} ${e.lastNameEn}`.trim();
 const nameAr = (e: Named) =>
   `${e.firstNameAr} ${e.lastNameAr}`.trim() || nameEn(e);
 
-/** Roles whose people drive deliveries. */
 const DRIVER_ROLES = ["driver", "delivery_coordinator"];
 
-// ─── Drivers and vehicles ────────────────────────────────────────────────────────────────────────────────────────
-
-/** Active employees who drive: their user account has a driving role. */
 export async function listDrivers() {
   const rows = await db.employee.findMany({
     where: {
@@ -53,7 +49,6 @@ export async function listDrivers() {
 }
 export type DriverOption = Awaited<ReturnType<typeof listDrivers>>[number];
 
-/** The employee record behind a signed-in user, for the driver's own view. */
 export async function employeeIdForUser(userId: string) {
   return (
     (await db.employee.findUnique({ where: { userId }, select: { id: true } }))
@@ -115,8 +110,6 @@ export async function saveVehicle(input: VehicleInput) {
     : db.vehicle.create({ data });
 }
 
-// ─── Assigning ───────────────────────────────────────────────────────────────────────────────────────────────────
-
 async function requireDriver(driverId: string) {
   const driver = await db.employee.findFirst({
     where: {
@@ -129,7 +122,6 @@ async function requireDriver(driverId: string) {
   if (!driver) throw new Error(serverMessages.driverNotFound);
 }
 
-/** Gives a shipment to a driver (and vehicle). A shipment still being prepared becomes assigned. */
 export async function assignShipment(
   id: string,
   input: { driverId: string; vehicleId?: string },
@@ -173,20 +165,16 @@ export async function assignShipment(
   });
 }
 
-// ─── Route sheets ────────────────────────────────────────────────────────────────────────────────────────────────
-
 const ROUTABLE = ["pending", "assigned", "failed"];
 
 export interface RouteSheetInput {
   date: string;
   driverId: string;
   vehicleId?: string;
-  /** In delivery order. */
   shipmentIds: string[];
   note?: string;
 }
 
-/** A driver's run for a day: the shipments become assigned to the driver, numbered as stops. */
 export async function createRouteSheet(
   input: RouteSheetInput,
   byId: string | null,
@@ -253,7 +241,6 @@ export async function createRouteSheet(
   });
 }
 
-/** Shipments that can go on a route sheet: being prepared, assigned or to try again, not on an open sheet. */
 export async function routableShipments() {
   const rows = await db.shipment.findMany({
     where: {
@@ -387,7 +374,6 @@ export type RouteSheetRecord = NonNullable<
   Awaited<ReturnType<typeof getRouteSheet>>
 >;
 
-/** The driver leaves: every stop still to deliver goes out for delivery (and its order ships). */
 export async function startRouteSheet(id: string, byId: string | null) {
   const sheet = await db.routeSheet.findUnique({
     where: { id },
@@ -409,7 +395,6 @@ export async function startRouteSheet(id: string, byId: string | null) {
   return low;
 }
 
-/** The run is over: nothing may still be out for delivery. */
 export async function closeRouteSheet(id: string) {
   const sheet = await db.routeSheet.findUnique({
     where: { id },
@@ -427,9 +412,6 @@ export async function closeRouteSheet(id: string) {
   await db.routeSheet.update({ where: { id }, data: { status: "closed" } });
 }
 
-// ─── The driver's day and proof of delivery ──────────────────────────────────────────────────────────────────────
-
-/** What a driver has to do: their shipments not yet finished, in route order, then by promise. */
 export async function driverShipments(driverId: string) {
   const rows = await db.shipment.findMany({
     where: {
@@ -482,7 +464,6 @@ export async function driverShipments(driverId: string) {
 }
 export type DriverStop = Awaited<ReturnType<typeof driverShipments>>[number];
 
-/** Records the proof of delivery on a shipment (the photo is claimed by the caller as an attachment first). */
 export async function saveDeliveryProof(
   id: string,
   proof: { photoUrl?: string | null; signature?: string | null },
@@ -497,12 +478,6 @@ export async function saveDeliveryProof(
   });
 }
 
-// ─── Cash on delivery ────────────────────────────────────────────────────────────────────────────────────────────
-
-/**
- * Cash collected on delivered shipments and not yet handed over: per driver, and per courier agency (which remits
- * what it collected on the company's behalf).
- */
 export async function cashToSettle() {
   const rows = await db.shipment.findMany({
     where: {
@@ -583,11 +558,6 @@ export async function cashToSettle() {
 }
 export type CashToSettle = Awaited<ReturnType<typeof cashToSettle>>[number];
 
-/**
- * A driver hands over the cash, or an agency remits what it collected: the shipments are settled, and each order is
- * paid with what was collected on it (cash from a driver, a transfer from an agency). A shortfall or excess is kept
- * on the settlement as the difference.
- */
 export async function settleCash(
   input: {
     source: string;
@@ -645,7 +615,6 @@ export async function settleCash(
       throw new Error(serverMessages.codSettlementInvalid);
     return created;
   });
-  // The money is the company's now: each order takes what was collected on it (up to what it still owes).
   const owed = new Map<string, number>(
     (
       await db.salesOrder.findMany({
@@ -657,7 +626,6 @@ export async function settleCash(
   for (const s of shipments) {
     if (!owed.has(s.orderId)) throw new Error(serverMessages.codSettlementInvalid);
     const amount = round3(Math.min(num(s.codCollected), owed.get(s.orderId)!));
-    // Several shipments of one order share what it still owes.
     owed.set(s.orderId, owed.get(s.orderId)! - Math.max(amount, 0));
     if (amount > 0)
       await recordOrderPayment(

@@ -8,10 +8,6 @@ import { trustedClientIp } from "@platform/database/services/abuse-limits";
 import { readLoginInput } from "../../../../lib/login-input";
 import { REALM, sessionCookies } from "../../../../lib/identity-session";
 
-/**
- * Staff sign-in through identity, which checks the password and, when two-step sign-in is on, the authenticator or
- * recovery code, and limits attempts per account and address. The session lives in httpOnly cookies.
- */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/login:POST", async () => {
     const trans = getTranslations("en");
@@ -75,7 +71,6 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      // The audit write is not needed to answer the login; run it after the response is sent.
       after(() =>
         createActivityLog({
           user_id: user?.id ?? credential.subjectId,

@@ -36,7 +36,6 @@ import { PageHeader } from "../layout/PageHeader";
 interface NewExpenseFormViewProps {
   categories: ExpenseCategory[];
   defaultCurrency: SupportedCurrency;
-  /** Pre-fill from a deal or client page link. */
   dealId?: string;
   clientId?: string;
   canManageCategories?: boolean;

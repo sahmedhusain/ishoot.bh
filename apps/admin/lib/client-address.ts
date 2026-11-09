@@ -11,10 +11,6 @@ export interface AddressLabels {
   separator: string;
 }
 
-/**
- * One-line address in the document or interface language. Structured addresses follow the
- * building, road, block, area order; standard addresses use the street line and postal code.
- */
 export function formatClientAddress(
   address: ClientAddress | undefined,
   labels: AddressLabels,

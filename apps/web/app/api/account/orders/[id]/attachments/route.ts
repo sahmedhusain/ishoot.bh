@@ -16,7 +16,6 @@ import { getSite } from "../../../../../../lib/site";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Authenticated raw-body uploads stay private; evidence never modifies payment state. */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

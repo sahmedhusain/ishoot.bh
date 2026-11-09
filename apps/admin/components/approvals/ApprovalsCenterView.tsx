@@ -243,7 +243,6 @@ export function ApprovalsCenterView({
                   </div>
 
                   <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
-                    {/* Every request is decided on its own page, with the full record in front of the approver. */}
                     {item.status === "pending" && item.canDecide ? (
                       <Link
                         href={item.href}

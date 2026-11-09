@@ -221,17 +221,14 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
 }
 
 export async function deleteProduct(id: string) {
-  // No deleteProduct in API.
   throw new Error("deleteProduct is not implemented in API");
 }
 
 export async function setProductsActive(ids: string[], isActive: boolean) {
-  // No setProductsActive in API.
   throw new Error("setProductsActive is not implemented in API");
 }
 
 export async function setProductOnWebsite(id: string, onWebsite: boolean) {
-  // No setProductOnWebsite in API.
   throw new Error("setProductOnWebsite is not implemented in API");
 }
 
@@ -263,6 +260,5 @@ export async function saveProductCategory(input: ProductCategoryInput) {
 }
 
 export async function deleteProductCategory(id: string) {
-  // No deleteProductCategory in API.
   throw new Error("deleteProductCategory is not implemented in API");
 }

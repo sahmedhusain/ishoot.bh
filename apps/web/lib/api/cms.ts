@@ -107,7 +107,6 @@ async function cmsFetch<T>(
       const st = await serviceToken();
       if (st) headers.set("Authorization", `Bearer ${st}`);
     } catch {
-      // Allow unauthenticated calls for public CMS routes
     }
   }
   if (options.body && !headers.has("Content-Type")) {
@@ -125,7 +124,6 @@ async function cmsFetch<T>(
     try {
       errBody = await res.json();
     } catch {
-      // non-JSON error
     }
     throw await apiError(res, errBody);
   }
@@ -136,7 +134,6 @@ async function cmsFetch<T>(
   return res.json() as Promise<T>;
 }
 
-// Pages
 export const getPageBySlug = (slug: string) =>
   cmsFetch<CMSPage>(`/v1/cms/pages/${encodeURIComponent(slug)}`);
 
@@ -155,7 +152,6 @@ export const updatePage = (token: string, id: string, input: Partial<CMSPage>) =
 export const deletePage = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/pages/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Articles
 export const getArticleBySlug = (slug: string) =>
   cmsFetch<CMSArticle>(`/v1/cms/articles/${encodeURIComponent(slug)}`);
 
@@ -174,7 +170,6 @@ export const updateArticle = (token: string, id: string, input: Partial<CMSArtic
 export const deleteArticle = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/articles/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Reviews
 export const listReviews = (all = false) =>
   cmsFetch<CMSReview[]>(`/v1/cms/reviews?all=${all}`);
 
@@ -187,7 +182,6 @@ export const updateReview = (token: string, id: string, input: Partial<CMSReview
 export const deleteReview = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/reviews/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// FAQs
 export const listFAQs = (all = false) =>
   cmsFetch<CMSFAQ[]>(`/v1/cms/faqs?all=${all}`);
 
@@ -200,7 +194,6 @@ export const updateFAQ = (token: string, id: string, input: Partial<CMSFAQ>) =>
 export const deleteFAQ = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/faqs/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Statistics
 export const listStatistics = () =>
   cmsFetch<CMSStatistic[]>("/v1/cms/statistics");
 
@@ -210,7 +203,6 @@ export const upsertStatistic = (token: string, input: CMSStatistic) =>
 export const deleteStatistic = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/statistics/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-// Content Snapshots
 export const getContentSnapshot = (id = "main") =>
   cmsFetch<CMSContentSnapshot>(`/v1/cms/snapshots/${encodeURIComponent(id)}`);
 

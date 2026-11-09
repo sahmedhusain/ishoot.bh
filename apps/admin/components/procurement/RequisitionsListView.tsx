@@ -20,7 +20,6 @@ interface Row {
   created_at: string;
 }
 
-/** Purchasing → requisitions. */
 export function RequisitionsListView({ rows, currency }: { rows: Row[]; currency: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.requisitions;

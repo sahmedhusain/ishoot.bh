@@ -12,5 +12,4 @@ export async function notifyUsersWithPermission(
     action_url?: string;
   },
 ): Promise<void> {
-  // Web app notifications can be routed to notification service or logged
 }

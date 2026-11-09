@@ -38,7 +38,6 @@ export function useSiteReducedMotion() {
   return reduced || (!!theme && theme.design.motion !== "full");
 }
 
-/** Material motion profiles share spring physics and always defer to the visitor's reduced-motion setting. */
 export function useSiteMotionTransition(): Transition {
   const theme = useSiteTheme();
   const reduced = useSiteReducedMotion();
@@ -143,7 +142,6 @@ export function SiteModeSwitch({ locale }: { locale: string }) {
 const ToneContext = React.createContext<SiteTone | "dark">("dark");
 export const useSiteTone = () => React.useContext(ToneContext);
 
-/** A data block can override a page; header/footer/page tones apply in mixed mode only. */
 export function SiteRegion({
   region,
   tone,

@@ -78,7 +78,6 @@ test("a campaign's tracked link brings an order that counts on the campaign", as
     new RegExp(`utm_campaign=${UTM}`),
   );
 
-  // A shopper arrives from the link, signs up for news, and orders.
   const shopper = await browser.newContext({ baseURL: web });
   const visit = await shopper.newPage();
   await visit.goto(
@@ -178,7 +177,6 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
     where: { email: BUYER },
   });
   expect(broadcast.recipients.map((r) => r.customerId)).toContain(buyer.id);
-  // Only customers who agreed to marketing e-mail are on it.
   const optedOut = await db.customer.count({
     where: {
       id: { in: broadcast.recipients.map((r) => r.customerId) },
@@ -187,7 +185,6 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
   });
   expect(optedOut).toBe(0);
 
-  // The scheduled job sends in batches (no mail service in the test servers, so they are marked not sent).
   const cron = await request.get(`${admin}/api/cron`, {
     headers: { authorization: `Bearer ${cronSecret}` },
   });
@@ -197,7 +194,6 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
       .status,
   ).toBe("sent");
 
-  // The unsubscribe link in each e-mail.
   const secret =
     process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET || "";
   const token = `${buyer.id}.${crypto.createHmac("sha256", secret).update(`unsubscribe:${buyer.id}`).digest("base64url").slice(0, 32)}`;
@@ -309,7 +305,6 @@ test("a legal matter keeps its history, reminds its counsel before the hearing, 
       where: { userId: me.id, entityType: "legal_matter", entityId: id },
     }),
   ).toBe(1);
-  // Once per date.
   await request.get(`${admin}/api/cron`, {
     headers: { authorization: `Bearer ${cronSecret}` },
   });

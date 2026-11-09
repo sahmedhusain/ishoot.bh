@@ -184,7 +184,6 @@ export function ReviewSubmissionModal({
               </div>
             )}
 
-            {/* Star Rating Selector */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-m3-on-surface block">
                 {t("reviews.modal.starRating")}

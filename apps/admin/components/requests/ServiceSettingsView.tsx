@@ -11,7 +11,6 @@ import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
 import { PageHeader } from "../layout/PageHeader";
 
-/** Requests → service settings: resolution times by priority, and the saved replies. */
 export function ServiceSettingsView({ settings, replies, languages, canEditTimes }: { settings: ServiceSettingsRecord; replies: CannedReplyRecord[]; languages: readonly ContentLanguage[]; canEditTimes: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.serviceDesk.settings;

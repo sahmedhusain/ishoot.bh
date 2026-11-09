@@ -19,19 +19,13 @@ export interface DirectoryEntry {
 }
 
 export interface DirectoryFilters {
-  /** Name (either language), job title, email or phone. */
   q?: string;
-  /** A department; people in its sub-departments are included. */
   departmentId?: string;
   page?: number;
 }
 
 const DIRECTORY_PAGE = 48;
 
-/**
- * Everyone at the company with their work contact details: staff accounts and HR-only crew, searched on the
- * server and returned a page at a time. Only work-facing fields are exposed (no salary, ID or personal records).
- */
 export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
   const q = (filters.q ?? "").trim().slice(0, 120);
   const departments =

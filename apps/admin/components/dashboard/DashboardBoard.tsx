@@ -85,7 +85,6 @@ function kindToCategory(kind: DashboardWidgetKind): CategoryFilter {
   return "work";
 }
 
-/** Realistic fallback preview data used while customizing the dashboard before hitting "Done". */
 function withPreviewFallbackData(data: DashboardData): DashboardData {
   return {
     ...data,
@@ -226,9 +225,6 @@ const KPI_PREVIEW_SAMPLES: Record<
   },
 };
 
-/**
- * Distinct miniature Google Pixel / Material Design 3 visual thumbnail rendered inside the widget picker.
- */
 function WidgetMiniPreview({
   id,
   kind,
@@ -626,10 +622,6 @@ export function DashboardBoard({
     );
   };
 
-  /**
-   * Android Launcher-style pointer-drag resize handler (Corner, Inline-End Edge, or Bottom Edge).
-   * Measures the dashboard grid viewport to compute column width and row height, respecting min/max bounds.
-   */
   const startPointerResize = (
     e: React.PointerEvent,
     index: number,
@@ -924,10 +916,8 @@ export function DashboardBoard({
         }
       />
 
-      {/* Streamlined Material Design 3 Widget Drawer (Zero Redundancy) */}
       {customizing ? (
         <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 space-y-3.5 shadow-xs">
-          {/* Unified Header Row: Search + Category Filter Pills + Preset Layout Selector */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-1.5">
               {categories.map((cat) => (
@@ -985,7 +975,6 @@ export function DashboardBoard({
             </div>
           </div>
 
-          {/* Clean Visual Widget Catalogue Grid */}
           {filteredAddable.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 max-h-72 overflow-y-auto pe-1 pt-0.5">
               {filteredAddable.map((w) => {
@@ -1170,22 +1159,18 @@ export function DashboardBoard({
                   />
                 </div>
 
-                {/* Android Home Screen 2D Resize Handles (Corner + Inline-End Edge + Bottom Edge) */}
                 {customizing ? (
                   <>
-                    {/* Inline-End Edge Handle (Width / Columns) */}
                     <div
                       onPointerDown={(e) => startPointerResize(e, index, "col")}
                       title={b.resizeCornerHint}
                       className="absolute top-1/2 -translate-y-1/2 end-0 w-2.5 h-10 rounded-full bg-primary/40 hover:bg-primary cursor-ew-resize z-20 transition-colors"
                     />
-                    {/* Bottom Edge Handle (Height / Rows) */}
                     <div
                       onPointerDown={(e) => startPointerResize(e, index, "row")}
                       title={b.resizeCornerHint}
                       className="absolute bottom-0 start-1/2 -translate-x-1/2 h-2.5 w-10 rounded-full bg-primary/40 hover:bg-primary cursor-ns-resize z-20 transition-colors"
                     />
-                    {/* Bottom-End Corner Handle (2D Columns × Rows) */}
                     <div
                       onPointerDown={(e) =>
                         startPointerResize(e, index, "both")
@@ -1211,7 +1196,6 @@ export function DashboardBoard({
         </div>
       )}
 
-      {/* Full Interactive Preview Modal Before Adding a Widget from Catalogue (Portaled to document.body, No Black Blur) */}
       {previewCatalogueEntry ? (
         <WidgetPreviewModal
           entry={previewCatalogueEntry}
@@ -1226,7 +1210,6 @@ export function DashboardBoard({
         />
       ) : null}
 
-      {/* Per-Widget Material Design 3 Settings & Live Preview Modal */}
       {configuringItem && configuringIndex !== null ? (
         <WidgetSettingsModal
           item={configuringItem}
@@ -1398,7 +1381,6 @@ function WidgetSettingsModal({
   const currentSurface =
     typeof draftSettings.surface === "string" ? draftSettings.surface : "tonal";
 
-  // Helper for World Clock multi-city selection
   const selectedWorldZones = useMemo(() => {
     const raw =
       typeof draftSettings.zones === "string"
@@ -1415,7 +1397,7 @@ function WidgetSettingsModal({
   const toggleWorldZone = (key: string) => {
     const next = new Set(selectedWorldZones);
     if (next.has(key)) {
-      if (next.size <= 1) return; // keep at least 1 city
+      if (next.size <= 1) return;
       next.delete(key);
     } else {
       next.add(key);
@@ -1423,7 +1405,6 @@ function WidgetSettingsModal({
     patchDraft({ zones: Array.from(next).join(",") });
   };
 
-  // Helper for Weather Country & City selection
   const currentWeatherCity =
     typeof draftSettings.city === "string" &&
     draftSettings.city in WEATHER_CITY_PRESETS
@@ -1487,7 +1468,6 @@ function WidgetSettingsModal({
         </header>
 
         <div data-dialog-body className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
-          {/* Live Interactive Preview Box */}
           <div className="rounded-2xl bg-surface-container-lowest/75 border border-outline-variant/60 p-4 space-y-2.5">
             <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-primary">
               <span className="inline-flex items-center gap-1.5">
@@ -1514,7 +1494,6 @@ function WidgetSettingsModal({
             </div>
           </div>
 
-          {/* 1. Material You Color Theme */}
           <div className="space-y-2">
             <label className="text-xs font-extrabold text-ink block">
               {b.widgetThemeLabel}
@@ -1541,7 +1520,6 @@ function WidgetSettingsModal({
             </div>
           </div>
 
-          {/* 2. Surface Style & Android Grid Dimensions (Columns × Rows) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-extrabold text-ink block">
@@ -1621,7 +1599,6 @@ function WidgetSettingsModal({
             })}
           </p>
 
-          {/* 3. Widget-Specific Controls */}
           {item.id === "clock_local" ? (
             <div className="space-y-4 pt-3 border-t border-outline-variant/50">
               <div className="space-y-2">
@@ -2161,7 +2138,6 @@ function WidgetSettingsModal({
               </div>
             </div>
           ) : null}
-
 
           {item.id === "countdown_milestone" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-outline-variant/50">

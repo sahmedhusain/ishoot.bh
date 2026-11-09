@@ -33,10 +33,6 @@ import {
   type TaxCertificateMark,
 } from "./kit";
 
-/**
- * One QR code per tax on the document (VAT and any other tax), linking to the public certificate page
- * in the document language. A registration without an uploaded certificate prints its number only.
- */
 async function pdfTaxCertificates(
   doc: {
     vat_enabled?: boolean;
@@ -83,7 +79,6 @@ async function pdfTaxCertificates(
   return marks;
 }
 
-/** Company signature for a signed document; null until it is approved and signed. Names follow the document language. */
 async function pdfSigning(
   type: SignableDocument,
   id: string,
@@ -129,7 +124,6 @@ async function pdfSigning(
   };
 }
 
-/** The client's acceptance (signed online or a signed copy on file). */
 async function pdfAcceptance(
   type: ClientSignableType,
   id: string,
@@ -144,7 +138,6 @@ async function pdfAcceptance(
     signerTitle: acceptance.signerTitle,
     signedAt: acceptance.signedAt,
     method: acceptance.method,
-    // The drawing pad leaves blank space around the strokes; trim it so the signature fills its line.
     signatureSrc: png
       ? await sharp(Buffer.from(png, "base64"))
           .trim()
@@ -195,7 +188,6 @@ export async function generateReceiptPdfBuffer(
   return (await renderToBuffer(element as never)) as Buffer;
 }
 
-/** Quotations print through the invoice layout so the downloaded, printed and emailed PDF are one file. */
 export async function generateQuotationPdfBuffer(
   quotation: Quotation,
   company: CompanySettings,

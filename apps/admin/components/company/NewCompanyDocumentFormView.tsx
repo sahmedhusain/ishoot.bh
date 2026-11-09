@@ -159,7 +159,6 @@ export function NewCompanyDocumentFormView() {
             </label>
           </div>
 
-          {/* The document itself, or a link to where it is kept (e.g. the NBR or MOIC portal). */}
           <LinkOrUploadField
             label={t.companyDocumentsNew.assetFileLabel}
             hint={t.companyDocumentsNew.assetFileHint}

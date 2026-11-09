@@ -9,7 +9,6 @@ export const generateMetadata = () => pageMetadata("settings/roles");
 
 export default async function RolesSettingsPage() {
   const actor = await requirePagePermission("users", "read");
-  // Role design is governance: only super administrators.
   if (actor.role !== "super_admin") forbidden();
 
   const dbRoles = await getStaffRoles();

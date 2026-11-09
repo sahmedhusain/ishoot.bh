@@ -10,7 +10,6 @@ import { BUSINESS_ACTIVITIES } from "../../lib/website-presets";
 
 const FILM_WORDS =
   /cinema|cinematic|film|shoot|production|studio|crew|\bgear\b|سينما|سينمائي|فيلم|أفلام|تصوير|إنتاج|الإنتاج|استوديو|طاقم|مونتاج/i;
-// Keys that name the media activity or a video format, so they read like film on purpose.
 const MEDIA_BY_NAME = [
   /^setupWizard\.company\.activities\.media\./,
   /^setupWizard\.brand\.styleNames\.cinematic$/,

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Eraser } from "lucide-react";
 
-/** A drawing pad that reports the signature as a transparent PNG data URL (null while empty). */
 export function SignatureCanvas({ onChange, clearLabel, hint }: { onChange: (dataUrl: string | null) => void; clearLabel: string; hint: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const drawing = React.useRef(false);

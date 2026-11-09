@@ -6,7 +6,6 @@ export type DeepPartial<T> = {
       : T[K];
 };
 
-/** Layers partial dictionaries over a base; empty strings leave the base wording in place. */
 export function deepMerge<T>(
   base: T,
   ...layers: (DeepPartial<T> | undefined)[]

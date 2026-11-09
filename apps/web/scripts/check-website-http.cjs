@@ -1,5 +1,3 @@
-// Website HTTP Protocol & Public API Verification
-// Verifies public inquiry & review endpoints via HTTP without direct database coupling.
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
 
@@ -27,7 +25,6 @@ async function checkLiveHttp(origin) {
   };
 
   const res = await post("/api/inquiry", testBody);
-  // Expect either 200 (live success) or valid API problem response
   assert.ok([200, 400, 404, 503].includes(res.status), `Unexpected status ${res.status}`);
 }
 
@@ -37,7 +34,6 @@ async function checkGatewayHttp() {
       headers: { "content-type": "application/json" },
       signal: AbortSignal.timeout(3000),
     });
-    // Protected endpoint on gateway responds with 200 or 401 unauthenticated
     assert.ok([200, 401].includes(res.status), `Gateway responded with status ${res.status}`);
   } catch (err) {
     console.warn("Notice: Gateway check fallback:", err.message);

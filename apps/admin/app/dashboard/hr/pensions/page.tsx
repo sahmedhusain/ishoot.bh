@@ -11,7 +11,6 @@ export const generateMetadata = () => pageMetadata("hr/pensions");
 
 export const dynamic = "force-dynamic";
 
-/** Social insurance: the rules, dated contribution rates and every employee's registration. */
 export default async function PensionPage() {
   await requirePagePermission("payroll", "read");
   const [rules, components, registrations, canEdit] = await Promise.all([

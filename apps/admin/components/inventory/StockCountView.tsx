@@ -33,7 +33,6 @@ interface StockCountViewProps {
   canApprove: boolean;
 }
 
-/** One stock count: scan or type counts, send for review, then approve the differences into stock. */
 export function StockCountView({ count, locations, canEdit, canApprove }: StockCountViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
@@ -52,7 +51,6 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
   const inputs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const open = count.status === "counting" && canEdit;
 
-  // New lines (an item scanned that was not on the list) arrive with a refresh.
   React.useEffect(() => {
     setCounted((current) => ({ ...Object.fromEntries(count.lines.map((l) => [l.id, l.counted == null ? "" : String(l.counted)])), ...Object.fromEntries(Object.entries(current).filter(([id]) => editedLines.current.has(id))) }));
   }, [count.lines]);

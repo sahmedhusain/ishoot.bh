@@ -12,17 +12,12 @@ import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
 import { announceChange } from "../../lib/live";
 
-// IT requests live in the itsm service (backend/services/itsm). The signed-in employee is always the requester:
-// the service shows them only their own tickets.
-
 function refresh(id?: string) {
   revalidatePath(ROUTES.itSupport.list());
   if (id) revalidatePath(ROUTES.itSupport.detail(id));
-  // The IT desk's queue and the ticket page update live (docs/adr/0012).
   void announceChange("it_support", id, { topics: ["it.tickets"] });
 }
 
-/** Any staff member: raise an IT request. Attachments are uploads of this user, made permanent here. */
 export async function createItTicketAction(data: {
   category: string;
   subcategory: string;
@@ -58,13 +53,11 @@ export async function createItTicketAction(data: {
       attachments,
     });
     revalidatePath(ROUTES.itSupport.list());
-    // The IT desk hears about the new request at once (its queue refreshes and rings).
     await announceChange("it_support", ticket.id, { topics: ["it.tickets"], event: "created" });
     return { success: true, id: ticket.id };
   });
 }
 
-/** The requester adds a message to their own ticket. */
 export async function commentOnItTicketAction(id: string, body: string) {
   return measureOperation("action:commentOnItTicketAction", async () => {
     const user = await requirePermission("it_support", "edit");
@@ -75,7 +68,6 @@ export async function commentOnItTicketAction(id: string, body: string) {
   });
 }
 
-/** The requester answers, reopens, closes or cancels their own ticket (the catalogue's requester transitions). */
 export async function transitionItTicketAction(id: string, transition: string) {
   return measureOperation("action:transitionItTicketAction", async () => {
     const user = await requirePermission("it_support", "edit");

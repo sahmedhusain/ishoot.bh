@@ -51,7 +51,6 @@ export default async function EmployeeDetailPage({
       hasPermission("payroll", "edit"),
       getEmployeeResidency(id),
     ]);
-  // Salary history stays on the server for people without payroll access.
   const employee =
     found && !canViewPay ? { ...found, employmentRecords: [] } : found;
 

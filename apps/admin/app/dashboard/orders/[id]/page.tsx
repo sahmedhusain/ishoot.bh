@@ -15,7 +15,6 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const [order, attempts, requests, online, canEdit, canApprove, canInvoice, company] = await Promise.all([getOrder(id), orderPaymentAttempts(id), requestsForOrder(id), onlinePaymentAvailable(), hasPermission("orders", "edit"), hasPermission("orders", "approve"), hasPermission("invoices", "create"), getCachedCompanySettings()]);
   if (!order) notFound();
-  // A link the customer can pay what is owed with, while the store takes online payments.
   const web = (company.website_domain ? `https://${company.website_domain}` : (process.env.WEB_URL || "")).replace(/\/$/, "");
   const owed = order.total - order.amount_paid > 0.0005 && !["cancelled", "returned"].includes(order.status);
   const paymentLink = online && owed && web ? `${web}/${order.locale === "en" ? "en" : "ar"}/pay/${paymentLinkToken(order.id)}` : "";

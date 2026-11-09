@@ -17,7 +17,6 @@ interface FooterProps {
   company: PublicCompanySettings;
   socialLinks?: SocialLink[];
   pages?: { id: string; visible: boolean }[];
-  /** Footer links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
   links?: { id: string; href: string; label: string }[];
 }
 

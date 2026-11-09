@@ -34,8 +34,6 @@ const dateInput = (
 };
 const dayBefore = (value: Date) => new Date(value.getTime() - 86_400_000);
 
-// ---------- Rules ----------
-
 export async function getGosiRules(): Promise<GosiRules> {
   const row = await db.gosiSettings.findUnique({ where: { id: "default" } });
   return {
@@ -69,8 +67,6 @@ export async function updateGosiRules(input: GosiRules, actorId: string) {
   });
   return getGosiRules();
 }
-
-// ---------- Components ----------
 
 type ComponentRow = Awaited<
   ReturnType<typeof db.gosiComponent.findMany>
@@ -186,7 +182,6 @@ function normalizeComponent(input: GosiComponentInput) {
   };
 }
 
-/** Every component with its dated history, newest first within each code. */
 export async function listGosiComponents() {
   const rows = await db.gosiComponent.findMany({
     orderBy: [{ code: "asc" }, { effectiveFrom: "desc" }],
@@ -198,10 +193,6 @@ export async function listGosiComponents() {
   }));
 }
 
-/**
- * Adds a contribution, or schedules new rates for an existing one from a date: the rates in force until then
- * end the day before, so payroll for earlier months keeps them.
- */
 export async function scheduleGosiComponent(
   input: GosiComponentInput,
   actorId: string,
@@ -218,7 +209,6 @@ export async function scheduleGosiComponent(
       )
     )
       throw new Error(serverMessages.ratesAlreadyStartOnThatDate);
-    // The version in force on the new date ends the day before; a later version caps the new one.
     const previous = versions
       .filter((v) => v.effectiveFrom < data.effectiveFrom)
       .pop();
@@ -241,7 +231,6 @@ export async function scheduleGosiComponent(
   });
 }
 
-/** Corrects one dated version in place (name, rates, wage limits). Its dates stay as they are. */
 export async function updateGosiComponent(
   id: string,
   input: Omit<GosiComponentInput, "effective_from" | "code">,
@@ -257,7 +246,6 @@ export async function updateGosiComponent(
   return db.gosiComponent.update({ where: { id }, data: rest });
 }
 
-/** Stops a contribution from a date (it no longer applies from that day). */
 export async function endGosiComponent(id: string, endsOn: string) {
   const existing = await db.gosiComponent.findUnique({ where: { id } });
   if (!existing) throw new Error(serverMessages.contributionNotFound);
@@ -266,8 +254,6 @@ export async function endGosiComponent(id: string, endsOn: string) {
     throw new Error(serverMessages.theEndDateCannotBeBeforeTheContribution);
   return db.gosiComponent.update({ where: { id }, data: { effectiveTo: end } });
 }
-
-// ---------- Employee registrations ----------
 
 export interface EmployeeGosiInput {
   category: string;
@@ -312,10 +298,6 @@ export async function listEmployeeGosiRecords(employeeId: string) {
   return rows.map(toGosiProfile);
 }
 
-/**
- * Registers the employee from a date (category, GOSI number, registered wage, exceptions per contribution).
- * The registration in force until then ends the day before.
- */
 export async function saveEmployeeGosiRecord(
   employeeId: string,
   input: EmployeeGosiInput,
@@ -410,7 +392,6 @@ export async function deleteEmployeeGosiRecord(id: string) {
   if (!record) throw new Error(serverMessages.registrationNotFound);
   return runAtomicMutation(async () => {
     await db.employeeGosiRecord.delete({ where: { id } });
-    // The registration before it runs on until the next one, as if this one never existed.
     const previous = await db.employeeGosiRecord.findFirst({
       where: {
         employeeId: record.employeeId,
@@ -427,7 +408,6 @@ export async function deleteEmployeeGosiRecord(id: string) {
   });
 }
 
-/** Registers only explicitly configured nationality groups; existing employee registrations remain unchanged. */
 export async function registerUnregisteredEmployees(
   effectiveFromInput: string,
   actorId: string,
@@ -450,8 +430,6 @@ export async function registerUnregisteredEmployees(
   if (records.length) await db.employeeGosiRecord.createMany({ data: records });
   return { registered: records.length, skipped: employees.length - records.length };
 }
-
-// ---------- For payroll and settlements ----------
 
 export interface GosiContext {
   rules: GosiRules;
@@ -478,7 +456,6 @@ export async function loadGosiContext(
   return { rules, components: components.map(toComponentRule), profiles };
 }
 
-/** The month's contributions under the scheme, or null when the employee has no registration in force (legacy settings apply). */
 export function schemeContributions(
   ctx: GosiContext,
   employeeId: string,
@@ -507,7 +484,6 @@ export function schemeContributions(
   };
 }
 
-/** What the scheme takes for an employee each month over a range, for the employee's GOSI page. */
 export async function previewEmployeeContributions(
   employeeId: string,
   months: string[],
@@ -549,7 +525,6 @@ export async function previewEmployeeContributions(
   });
 }
 
-/** Employees with their current registration, for the social insurance page. */
 export async function listGosiRegistrations() {
   const employees = await db.employee.findMany({
     where: { status: { not: "terminated" } },

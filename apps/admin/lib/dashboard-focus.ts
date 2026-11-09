@@ -1,4 +1,3 @@
-/** Which desk the dashboard leads with, from the viewer's role and effective permissions. */
 export type DashboardFocus =
   "executive" | "finance" | "hr" | "sales" | "production" | "staff";
 

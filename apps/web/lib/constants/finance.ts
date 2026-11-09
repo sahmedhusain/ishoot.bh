@@ -16,7 +16,6 @@ export function assertSupportedCurrency(
     );
 }
 
-/** Digits in the running part of invoice and receipt numbers: PREFIX-YYYY-0001. */
 export const DOCUMENT_NUMBER_PADDING = 4;
 
 export const PAYABLE_INVOICE_STATUSES = [

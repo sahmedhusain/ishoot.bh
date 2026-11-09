@@ -206,7 +206,6 @@ export async function disableMfa(userId: string, code: string) {
   });
 }
 
-/** Abandon setup without changing the account's active second factor. */
 export async function cancelMfaEnrollment(userId: string) {
   await runAtomicMutation(async () => {
     await db.user.update({

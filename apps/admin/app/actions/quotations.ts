@@ -29,7 +29,6 @@ export async function createQuotationAction(data: {
   discountValue?: number;
   termsEn?: string | null;
   termsAr?: string | null;
-  /** Salesperson credited with the quotation; defaults to the issuer. */
   salesOwnerId?: string | null;
   lineItems: Array<{
     serviceId?: string | null;

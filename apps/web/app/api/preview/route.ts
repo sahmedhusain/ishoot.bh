@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Preview expired or unavailable", {
         status: 403,
       });
-    // An example link shows an activity's demo website; its activity is part of what is signed.
     const example = req.nextUrl.searchParams.get("example") ?? "";
     if (example && !isBusinessActivity(example))
       return new NextResponse("Invalid preview", { status: 403 });
@@ -34,7 +33,6 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Invalid preview", { status: 403 });
     const locale =
       req.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
-    // Only a path of this website in one of its languages; anything else opens the home page.
     const path = req.nextUrl.searchParams.get("path") ?? "";
     const target =
       /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path) && !path.includes("//")

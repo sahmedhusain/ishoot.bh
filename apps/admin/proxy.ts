@@ -9,9 +9,6 @@ import {
   type CookieSpec,
 } from "./lib/identity-session";
 
-// Keeps the staff session alive: an access token about to expire is renewed with the refresh credential before the
-// page renders, and a session that cannot be renewed goes back to the sign-in page. Pages still verify the token and
-// ask identity whether the session is live (lib/auth.ts).
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -31,7 +28,6 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname === "/setup";
   const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
-  // Public API requests stay public; an existing browser session is renewed for authenticated API calls too.
   if (
     !protectedPage &&
     !(
@@ -58,7 +54,6 @@ export async function proxy(request: NextRequest) {
       return withCookies(NextResponse.redirect(login), clearedCookies());
     }
     renewed = sessionCookies(credential);
-    // The page rendering this request reads the new cookies too.
     for (const c of renewed) request.cookies.set(c.name, c.value);
   }
 

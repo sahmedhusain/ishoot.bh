@@ -77,7 +77,6 @@ export async function processRevalidationJobs(options: {
         lastError: null,
       });
     } catch {
-      // Persist only a generic reason; never retain remote responses or authentication headers.
       await txResult(job.id, job.attempts, {
         status: job.attempts >= 8 ? "failed" : "pending",
         lastError: "Invalidation delivery failed",
@@ -95,7 +94,6 @@ async function txResult(
   attempts: number,
   data: any,
 ) {
-  // The attempt acts as a lease fence: a late worker cannot overwrite a newer attempt.
   await db.revalidationJob.updateMany({
     where: { id, attempts, status: "processing" },
     data,

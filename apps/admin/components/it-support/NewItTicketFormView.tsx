@@ -21,7 +21,6 @@ import { createItTicketAction } from "../../app/actions/it-support";
 import { PageHeader } from "../layout/PageHeader";
 import { useTicketText } from "./ticket-text";
 
-/** New requests' files go to the private "general" folder; the files service enforces the same types. */
 const ACCEPT = fileFolder("general")?.types.join(",") ?? "";
 
 export function NewItTicketFormView() {

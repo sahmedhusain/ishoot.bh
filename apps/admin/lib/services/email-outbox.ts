@@ -39,7 +39,6 @@ export async function processEmailJobs(sender: Sender, now = new Date()) {
   });
   for (const job of jobs) {
     try {
-      // Stop automatic retries after one day: provider idempotency retention is finite.
       if (
         job.attempts > 1 &&
         now.getTime() - job.createdAt.getTime() > 23 * 3600000

@@ -44,7 +44,6 @@ test("a customer signs up, signs in with a password and with an e-mailed code, k
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     copy.hello.replace("{name}", "Amal Test"),
   );
-  // The new customer is a CRM contact too.
   const customer = await db.customer.findUniqueOrThrow({
     where: { email: EMAIL },
   });
@@ -65,7 +64,6 @@ test("a customer signs up, signs in with a password and with an e-mailed code, k
     page.getByText("Road 1, Block 2, Manama, Bahrain"),
   ).toBeVisible();
 
-  // The wishlist: save the first catalogue item from its own page.
   const item = await db.portfolioItem.findFirstOrThrow({
     orderBy: { displayOrder: "asc" },
   });
@@ -93,7 +91,6 @@ test("a customer signs up, signs in with a password and with an e-mailed code, k
   );
   errors.assertClean();
 
-  // A wrong password is refused; the right one signs in.
   await page.locator('input[name="email"]').fill(EMAIL);
   await page.locator('input[name="password"]').fill("not-the-password");
   await page.getByTestId("account-submit").click();
@@ -108,7 +105,6 @@ test("a customer signs up, signs in with a password and with an e-mailed code, k
   );
   await page.getByTestId("account-sign-out").click();
 
-  // An e-mailed code (the test writes its own code, as the e-mail is not read here).
   await page.getByRole("tab", { name: copy.tabs.code }).click();
   await page.locator('input[name="email"]').fill(EMAIL);
   await page.getByTestId("account-submit").click();
@@ -134,7 +130,6 @@ test("a customer signs up, signs in with a password and with an e-mailed code, k
       .emailVerifiedAt,
   ).not.toBeNull();
 
-  // Deleting the account removes the personal details and signs out.
   await page.locator('input[name="confirmEmail"]').fill(EMAIL);
   await page.getByTestId("account-delete").click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(

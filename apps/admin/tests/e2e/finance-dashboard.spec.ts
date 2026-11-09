@@ -13,7 +13,6 @@ test.describe("Finance Dashboard & KPI Parity", () => {
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
 
-    // Check for KPI cards
     const revenueCard = page.locator('[data-test="revenue-card"], [data-testid="revenue-card"], .admin-kpi:has-text("Revenue")').first();
     await expect(revenueCard).toBeVisible({ timeout: 10000 });
 
@@ -25,7 +24,6 @@ test.describe("Finance Dashboard & KPI Parity", () => {
     await page.goto("/dashboard/finance/analytics");
     await page.waitForLoadState("networkidle");
 
-    // Aging card exists
     const agingCard = page.locator('[data-test="aging-card"], [data-testid="aging-card"], [data-page-section]').first();
     await expect(agingCard).toBeVisible({ timeout: 10000 });
   });

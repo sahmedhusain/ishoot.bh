@@ -1,7 +1,6 @@
 import { formatMessage, getTranslations } from "@platform/locales";
 import { createNotification, getAllUsers, getProduct } from "@platform/database";
 
-/** Tells everyone who can see stock that items fell to their reorder point (once per dip). */
 export async function notifyLowStock(low: any) {
   if (!low || !Array.isArray(low) || !low.length) return;
   const users = await getAllUsers().catch(() => []);

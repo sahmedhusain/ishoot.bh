@@ -100,7 +100,6 @@ export async function reverseCommissionSnapshot(snapshotId: string, reason: stri
     if (!original) throw new Error("Commission snapshot not found");
     if (original.status === "reversed") throw new Error("Commission snapshot already reversed");
 
-    // Create reversing snapshot with negative amounts
     const reversing = await db.commissionSnapshot.create({
       data: {
         orderId: original.orderId,

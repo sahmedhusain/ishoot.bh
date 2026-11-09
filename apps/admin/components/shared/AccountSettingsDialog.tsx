@@ -25,10 +25,6 @@ const fieldClass =
   "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 const labelClass = "block space-y-1 text-xs font-medium text-ink dark:text-ink";
 
-/**
- * Edit → review → confirm. Admins save directly; when `requiresApproval` the review step collects a reason and the
- * change is sent to an administrator instead.
- */
 export function AccountSettingsDialog({
   value,
   fields,

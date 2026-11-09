@@ -35,7 +35,6 @@ const profile = (c: CustomerRow): CustomerProfile => ({
   email_verified: !!c.emailVerifiedAt,
 });
 
-/** The CRM contact for a new customer: the existing one with this e-mail, else a new client contact. */
 async function linkContact(email: string, name: string, phone: string | null) {
   const existing = await db.crmContact.findFirst({
     where: { emailNorm: email, contactType: { not: "vendor" }, customer: null },
@@ -63,13 +62,11 @@ function checkName(name: string) {
   return clean;
 }
 
-/** The commerce profile for an already authenticated identity subject. Credentials stay in identity. */
 export async function getCustomerProfile(id: string) {
  const customer=await db.customer.findUnique({where:{id}});
  return customer ? profile(customer) : null;
 }
 
-/** Creates or repairs only the business projection of an identity-owned customer, preserving its account ID. */
 export async function ensureCustomerProfile(id: string, emailInput: string, input: {name?: string;locale: string;marketingOptIn?: boolean}, emailVerified=false) {
  const email=normalizeCustomerEmail(emailInput);
  if(!isValidEmail(email))throw new Error(serverMessages.customerEmailInvalid);
@@ -212,7 +209,6 @@ export async function deleteCustomerAddress(customerId: string, id: string) {
   await db.customerAddress.deleteMany({ where: { id, customerId } });
 }
 
-/** Adds the catalogue item to the wishlist, or removes it when it is there. Returns whether it is now saved. */
 export async function toggleWishlist(
   customerId: string,
   catalogueItemId: string,
@@ -262,10 +258,6 @@ export async function listWishlist(customerId: string) {
   }));
 }
 
-/**
- * "Delete my account": signs out everywhere, removes addresses, wishlist and sign-in methods, and replaces the
- * name and e-mail. Orders stay (the company must keep them) without the personal details.
- */
 export async function deleteCustomerAccount(customerId: string) {
   await db.$transaction([
     db.customerAddress.deleteMany({ where: { customerId } }),

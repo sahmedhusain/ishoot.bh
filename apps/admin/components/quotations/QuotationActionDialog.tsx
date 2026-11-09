@@ -4,7 +4,6 @@ import * as React from "react";
 import { Button, Modal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-/** Confirmation dialog shared by every quotation lifecycle step (submit, issue, approve, reject, accept). */
 export function QuotationActionDialog({
   open,
   title,

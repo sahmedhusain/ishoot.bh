@@ -13,7 +13,6 @@ import {
 
 export { STATISTIC_PRESETS, type StatisticPreset };
 
-/** Invoices that were issued to the client: everything except drafts and voids. */
 const ISSUED_INVOICE_STATUSES = ["sent", "partially_paid", "paid", "overdue"];
 
 export type StatisticInput = {
@@ -40,7 +39,6 @@ type StatisticSettings = {
   suffix: string | null;
 };
 
-/** Normalises and checks a statistic; manual rows carry no preset settings. */
 export function validateStatisticInput<T extends Partial<StatisticInput>>(
   data: T,
   now = new Date(),
@@ -127,7 +125,6 @@ async function countPreset(
   }
 }
 
-/** The value shown on the website: typed in, or counted from live data, rounded down, plus the suffix. */
 export async function computeStatisticValue(
   stat: StatisticSettings,
   now = new Date(),
@@ -138,7 +135,6 @@ export async function computeStatisticValue(
   return `${Math.floor(count / step) * step}${stat.suffix ?? ""}`;
 }
 
-/** Statistics with each value resolved; `storedValue` is what the editor typed. */
 export async function getStatistics() {
   try {
     const items = await listStatistics();
@@ -158,7 +154,6 @@ export async function getStatistics() {
       }));
     }
   } catch {
-    // Fall back to direct database
   }
   try {
     const rows = await db.statistic.findMany({

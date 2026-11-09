@@ -9,7 +9,6 @@ import { escapeEmailHtml } from "@platform/email";
 import { publicOrigin } from "../../../../lib/public-origin";
 import { REALM } from "../../../../lib/identity-session";
 
-/** E-mails a one-use reset link issued by identity. Answers the same whether or not the address has an account. */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/forgot-password:POST", async () => {
     try {
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
         );
       }
       const emailNorm = email.trim().toLowerCase().slice(0, 254);
-      await consumeAbuseLimit("forgot-password", emailNorm, 3); // 3 per minute
+      await consumeAbuseLimit("forgot-password", emailNorm, 3);
 
       const reset = await requestPasswordReset(
         REALM,
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
           idempotencyKey: `pwd-reset:${reset.token}`,
         });
       }
-      // Always return success to prevent user enumeration
       return NextResponse.json({
         success: true,
         message: getTranslations("en").admin.copy.resetLinkSent,

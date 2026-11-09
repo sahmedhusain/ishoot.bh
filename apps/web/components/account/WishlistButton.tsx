@@ -6,7 +6,6 @@ import { Heart } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { accountPost } from "./ui";
 
-/** Saves a catalogue item to the customer's wishlist; signed-out visitors are sent to sign in first. */
 export function WishlistButton({ itemId, initiallySaved, signedIn, next }: { itemId: string; initiallySaved: boolean; signedIn: boolean; next: string }) {
   const { t, locale } = useTranslation();
   const [saved, setSaved] = React.useState(initiallySaved);

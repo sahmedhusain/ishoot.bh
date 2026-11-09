@@ -10,10 +10,6 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/**
- * The tax registration certificate behind the QR code printed on invoices, quotations and receipts.
- * Public by design (clients scan it), but it only ever serves the file the company set as a certificate.
- */
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ code: string }> },
@@ -22,7 +18,6 @@ export async function GET(
     const { code } = await params;
     const certificate = await getTaxCertificate(code);
     const fileUrl = certificate?.certificateUrl;
-    // A certificate kept on an official portal is linked rather than uploaded: send the visitor there.
     if (fileUrl && isDocumentLink(fileUrl))
       return NextResponse.redirect(fileUrl, {
         status: 307,

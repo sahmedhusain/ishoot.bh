@@ -7,7 +7,6 @@ interface DocumentInfoRow {
   label: React.ReactNode;
   value: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
-  /** Dates and numbers read best in mono; names do not. */
   mono?: boolean;
 }
 
@@ -17,7 +16,6 @@ interface DocumentInfoCardProps {
   children?: React.ReactNode;
 }
 
-/** Side-column card of label/value rows. */
 export function DocumentInfoCard({ title, rows, children }: DocumentInfoCardProps) {
   return (
     <DocumentCard title={title} variant="side">
@@ -39,7 +37,6 @@ export function DocumentInfoCard({ title, rows, children }: DocumentInfoCardProp
   );
 }
 
-/** Client or payer block: name first, then contact lines. */
 export function DocumentPartyDetails({
   name,
   href,

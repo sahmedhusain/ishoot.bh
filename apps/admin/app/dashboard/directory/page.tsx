@@ -7,7 +7,6 @@ export const generateMetadata = () => pageMetadata("directory");
 
 export const dynamic = "force-dynamic";
 
-/** Every signed-in staff member can reach colleagues: work contacts only, searched on the server. */
 export default async function DirectoryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAuth();
   const query = await searchParams;

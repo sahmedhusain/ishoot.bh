@@ -15,7 +15,6 @@ import { PageHeader } from "../layout/PageHeader";
 
 const blank = (): SupplierInput => ({ companyName: "", contactName: "", email: "", phone: "", vatNumber: "", leadTimeDays: "", paymentTermsDays: "" });
 
-/** Purchasing → suppliers: the vendor contacts with their delivery and payment days. */
 type Performance = Record<string, { orders: number; average_lead_days: number | null; on_time_percent: number | null; rejected_percent: number | null; billed: number; outstanding: number }>;
 
 export function SuppliersView({ suppliers, performance, currency, search, canEdit }: { suppliers: SupplierRecord[]; performance: Performance; currency: string; search: string; canEdit: boolean }) {

@@ -154,7 +154,6 @@ export function WebSettingsView({
       >
         {t.webSettings.websiteEditorPreviewAndPublishing}
       </Link>
-      {/* Top Navigation */}
       <PageHeader
         title={<><span>{t.webSettingsView.title}</span><span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
@@ -190,10 +189,8 @@ export function WebSettingsView({
         </div>}
       />
 
-      {/* Settings Navigation Tabs */}
       <SettingsNavTabs />
 
-      {/* Web Management Sub-Tabs */}
       <div className="flex items-center gap-2 border-b border-outline-variant dark:border-white/10 pb-3 overflow-x-auto" role="tablist">
         <button
           type="button"
@@ -262,7 +259,6 @@ export function WebSettingsView({
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* TAB 1: Hero & Media Showcase */}
         {activeTab === "hero" && (
           <div className="space-y-6" data-tab-panel>
             <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-5">
@@ -346,7 +342,6 @@ export function WebSettingsView({
           </div>
         )}
 
-        {/* TAB 2: Brand Story, CEO & About */}
         {activeTab === "narrative" && (
           <div className="space-y-6" data-tab-panel>
             <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
@@ -452,7 +447,6 @@ export function WebSettingsView({
                 </label>
               </div>
 
-              {/* Mission & Vision */}
               <div className="pt-4 border-t border-outline-variant dark:border-white/10 space-y-4">
                 <div className="text-xs font-bold text-ink uppercase tracking-wider">
                   {t.webSettingsView.corporateMissionVision}
@@ -522,7 +516,6 @@ export function WebSettingsView({
           </div>
         )}
 
-        {/* TAB 2.5: Legal & Rules */}
         {activeTab === "legal" && (
           <div className="space-y-6" data-tab-panel>
             <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
@@ -599,7 +592,6 @@ export function WebSettingsView({
           </div>
         )}
 
-        {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
           <div className="space-y-6" data-tab-panel>
             <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
@@ -814,7 +806,6 @@ export function WebSettingsView({
           </div>
         )}
 
-        {/* TAB 4: CMS Content Hub & Live Stats */}
         {activeTab === "cms" && (
           <div className="space-y-6" data-tab-panel>
             <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
@@ -962,7 +953,6 @@ export function WebSettingsView({
           </div>
         )}
 
-        {/* Save Bar */}
         <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-raised border border-outline-variant dark:border-white/10 shadow-xs">
           <div className="text-xs text-ink-muted flex items-center gap-2">
             {saveSuccess ? (

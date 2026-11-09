@@ -14,7 +14,6 @@ import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
 
-/** Nationality, date of birth, CPR and passport details of an employee. */
 export async function updateEmployeeIdentityAction(
   employeeId: string,
   data: EmployeeIdentityInput,
@@ -40,7 +39,6 @@ export async function updateEmployeeIdentityAction(
   });
 }
 
-/** Adds or edits a visa, permit, licence, insurance or other document of an employee, with its cost. */
 export async function saveEmployeeCredentialAction(
   employeeId: string,
   data: EmployeeCredentialInput,

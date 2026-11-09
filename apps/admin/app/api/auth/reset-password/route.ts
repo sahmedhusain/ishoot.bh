@@ -8,7 +8,6 @@ import { confirmPasswordReset, isApiError, queueMessage } from "@platform/api-cl
 import { escapeEmailHtml } from "@platform/email";
 import { REALM } from "../../../../lib/identity-session";
 
-/** Uses an identity reset link once to set a new password; identity ends every session of the account. */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/reset-password:POST", async () => {
     try {
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
         "reset-password",
         String(email).trim().toLowerCase().slice(0, 254),
         5,
-      ); // 5 per minute
+      );
 
       let subjectId: string;
       try {

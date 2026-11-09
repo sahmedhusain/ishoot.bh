@@ -3,9 +3,6 @@
 import { formatMessage } from "@platform/locales";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-// Labels for the itsm catalogue's keys (contracts/catalog/itsm.json). A key the interface has no words for yet is
-// shown as it is, so a catalogue addition never breaks the page.
-
 const STATUS_STYLE: Record<string, string> = {
   new: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   triaged: "bg-sky-500/10 text-sky-700 dark:text-sky-300",

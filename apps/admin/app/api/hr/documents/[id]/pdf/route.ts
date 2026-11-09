@@ -18,7 +18,6 @@ export async function GET(
   }
   if (document.status !== "issued")
     return new NextResponse(null, { status: 409 });
-  // Only the languages the employee asked for are issued.
   const requested = request.nextUrl.searchParams.get("locale");
   const locale = (
     requested === "ar" || requested === "en" ? requested : document.languages[0]

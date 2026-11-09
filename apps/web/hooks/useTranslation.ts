@@ -12,7 +12,6 @@ import {
 import { useSite } from "../components/site/SiteProvider";
 import { siteCopyOverrides } from "../lib/site-copy";
 
-/** Website copy for the current language, worded for the company's activity and catalogue. */
 export function useTranslation() {
   const { locale, isRTL } = useLocale();
   const site = useSite();

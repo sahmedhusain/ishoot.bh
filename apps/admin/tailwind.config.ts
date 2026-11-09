@@ -1,8 +1,6 @@
 import type { Config } from "tailwindcss";
 import sharedConfig from "./lib/config/tailwind-preset";
 
-// Theme-aware colours resolve through CSS variables (app/globals.css), so one class is correct in
-// both light and dark mode. Brand colours, ink and fonts come from the shared preset (company theme).
 const themed = (variable: string) => `rgb(var(${variable}) / <alpha-value>)`;
 
 const config: Config = {
@@ -10,7 +8,6 @@ const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    // Class maps also live in constants (status/priority pills) and lib helpers.
     "./constants/**/*.{js,ts,jsx,tsx}",
     "./lib/**/*.{js,ts,jsx,tsx}",
     "./hooks/**/*.{js,ts,jsx,tsx}",
@@ -18,7 +15,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // M3 body, title, headline and display sizes, scaled by the saved root font size.
       fontSize: {
         xs: ["0.75rem", "1rem"],
         sm: ["0.875rem", "1.25rem"],
@@ -32,7 +28,6 @@ const config: Config = {
         "6xl": ["3.5625rem", "4rem"],
       },
       borderRadius: { "3xl": "var(--md-sys-shape-corner-extra-large)" },
-      // Latin monospace first; Arabic glyphs fall back to the company's body font instead of a system font.
       fontFamily: {
         mono: [
           "ui-monospace",
@@ -68,7 +63,6 @@ const config: Config = {
         "on-secondary-container": themed("--m3-color-on-secondary-container"),
         "tertiary-container": themed("--m3-color-tertiary-container"),
         "on-tertiary-container": themed("--m3-color-on-tertiary-container"),
-        // Secondary-text greys follow the theme so the same class reads well on white and on dark.
         slate: { 400: themed("--ui-slate-400") },
         neutral: { 400: themed("--ui-neutral-400") },
         gray: { 400: themed("--ui-gray-400") },

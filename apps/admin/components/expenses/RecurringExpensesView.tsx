@@ -47,7 +47,6 @@ function Field({ label, hint, children, wide }: { label: string; hint?: string; 
   );
 }
 
-/** Periodic company bills: what is due, what they cost a month, and recording or skipping each due date. */
 export function RecurringExpensesView({ items, categories, canWrite, canDelete }: { items: RecurringExpenseRecord[]; categories: ExpenseCategory[]; canWrite: boolean; canDelete: boolean }) {
   const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();

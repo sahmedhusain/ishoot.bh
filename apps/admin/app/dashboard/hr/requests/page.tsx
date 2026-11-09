@@ -19,7 +19,6 @@ const nameOf = (e: { firstNameEn: string; lastNameEn: string; firstNameAr: strin
   ar: `${e.firstNameAr} ${e.lastNameAr}`.trim(),
 });
 
-/** Every HR request across the company: leave, salary documents and reimbursement claims. */
 export default async function HrRequestsPage({
   searchParams,
 }: {

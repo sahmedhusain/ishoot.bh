@@ -2,11 +2,6 @@ import { NextResponse } from "next/server";
 import { measureOperation } from "@platform/database";
 import { getSite } from "../../../../lib/site";
 
-/**
- * Abstract artwork for sample content ("banner-1.svg" … "item-6.svg"), drawn in the company's own colours so a
- * sample website already looks like the brand. Fixed shapes and validated colours only; nothing from the request
- * reaches the markup except the choice of one of twelve pictures.
- */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ name: string }> },

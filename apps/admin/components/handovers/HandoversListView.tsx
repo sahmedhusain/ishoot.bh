@@ -27,7 +27,6 @@ export const HANDOVER_STATUS_STYLE: Record<string, string> = {
   cancelled: "bg-ink/10 text-ink-muted",
 };
 
-/** Exit and leave handovers: what each leaving or absent employee still has to hand over. */
 export function HandoversListView({ items, status, kind, startFor, employees, canEdit }: {
   items: Row[];
   status: string;

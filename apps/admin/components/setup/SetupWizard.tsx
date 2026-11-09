@@ -48,10 +48,8 @@ export interface SetupWizardProps {
   assets: Record<AssetSlot, string>;
   config: SetupConfigInput;
   website: { enabled: boolean; config: ResolvedWebsiteConfig };
-  /** The saved website and admin domains (the domain card saves them itself). */
   domains: { websiteDomain: string; adminDomain: string };
   modules: { moduleKey: string; nameEn: string; nameAr: string }[];
-  /** Catalogue departments the company already has (kept whatever is chosen). */
   existingDepartments: string[];
 }
 
@@ -126,7 +124,6 @@ export function SetupWizard(props: SetupWizardProps) {
   const [website, setWebsite] = React.useState(props.website);
   const [publishWebsite, setPublishWebsite] = React.useState(true);
   const [sampleContent, setSampleContent] = React.useState(false);
-  // Recommendations follow the chosen activity until the person changes that part by hand.
   const touched = React.useRef({ theme: false, modules: false, departments: false });
   const [previewRevision, setPreviewRevision] = React.useState(0);
   const [finished, setFinished] = React.useState(false);
@@ -176,7 +173,6 @@ export function SetupWizard(props: SetupWizardProps) {
     if (!touched.current.theme && style) setTheme((current) => ({ ...current, ...style.theme }));
   };
 
-  // The preview shows the website settings as they are edited: saved as a draft shortly after each change.
   const draftReady = React.useRef(false);
   React.useEffect(() => {
     if (step !== "website" || !website.enabled) return;
@@ -199,7 +195,6 @@ export function SetupWizard(props: SetupWizardProps) {
       if (!activity) return setError(t.serverErrors.messages.businessActivityInvalid);
       const missing = languages.some((l) => !(l === "en" ? company.companyNameEn : company.companyNameAr).trim());
       if (missing) return setError(languages.length > 1 ? copy.company.requiredBoth : copy.company.required);
-      // The website draft follows the activity now, so the Brand step's preview already shows it.
       return run(async () => {
         await saveSetupCompanyAction(company);
         await saveSetupWebsiteDraftAction(website.config);
@@ -211,7 +206,6 @@ export function SetupWizard(props: SetupWizardProps) {
       return go(next);
     }
     if (step === "website") {
-      // The website module follows this answer; the configuration step shows it already switched.
       setConfig((current) => ({ ...current, modules: current.modules.map((m) => (m.moduleKey === "cms" ? { ...m, isEnabled: website.enabled } : m)) }));
       return run(async () => {
         await saveSetupWebsiteAction({ enabled: website.enabled, config: website.config });
@@ -219,8 +213,6 @@ export function SetupWizard(props: SetupWizardProps) {
       }, next);
     }
     if (step === "configuration") return run(() => saveSetupConfigAction(config), next);
-    // The celebration shows while setup is finished (the page moves to the dashboard as soon as it is), and at
-    // least a moment; a failure takes it away again and shows the error.
     setFinished(true);
     return run(async () => {
       try {
@@ -282,7 +274,6 @@ export function SetupWizard(props: SetupWizardProps) {
   const enabled = (key: string) => config.modules.find((m) => m.moduleKey === key)?.isEnabled ?? true;
   const languageChoice = LANGUAGE_CHOICES.find((c) => c.languages.join() === languages.join())?.id ?? "both";
   const activityName = activity ? copy.company.activities[activity].name : copy.review.missing;
-  // Beside the Website step; below the Brand step, whose editor needs the width for its style gallery.
   const showPreview = step === "brand" || (step === "website" && website.enabled);
   const previewBeside = step === "website";
   const chosenDepartments = new Set(config.departments);

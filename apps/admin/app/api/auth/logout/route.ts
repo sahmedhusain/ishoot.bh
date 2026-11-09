@@ -10,7 +10,6 @@ import {
   verifyAccessToken,
 } from "../../../../lib/identity-session";
 
-/** Ends the identity session and clears its cookies; signing out always succeeds for the browser. */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/logout:POST", async () => {
     try {

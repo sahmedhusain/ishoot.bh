@@ -5,7 +5,6 @@ import {
   measureOperation,
 } from "@platform/database";
 
-/** A payment gateway's notification: verified against the gateway's signature, applied once however often it comes. */
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ gateway: string }> },
@@ -27,7 +26,6 @@ export async function POST(
           { error: "invalid_signature" },
           { status: 401 },
         );
-      // Anything else is ours: the gateway will retry.
       console.error(`Payment webhook for ${gateway} failed`);
       return NextResponse.json({ error: "failed" }, { status: 500 });
     }

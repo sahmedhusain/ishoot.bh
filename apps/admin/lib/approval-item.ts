@@ -11,7 +11,6 @@ import {
 import { ROUTES } from "../constants/routes";
 import { readableApprovalTypes } from "./approval-access";
 
-/** A value shown on the approval page; the page formats it in the interface language. */
 export type FactValue =
   | { kind: "text"; value: string }
   | { kind: "bilingual"; en: string; ar: string }
@@ -19,27 +18,22 @@ export type FactValue =
   | { kind: "datetime"; value: string }
   | { kind: "money"; value: number; currency: string }
   | { kind: "number"; value: number; unit?: "days" | "percent" | "people" }
-  /** A small closed list translated through `approvals.item.enums[group]`. */
   | { kind: "enum"; group: string; value: string };
 
 export interface ApprovalItemDetail {
   targetType: ApprovalTargetType;
   targetId: string;
   reference: string | null;
-  /** The person the request is about (who asked, or whose account changes). */
   subject: { name: string; email?: string | null } | null;
   facts: Array<{ key: string; value: FactValue }>;
-  /** Field-by-field before → after for change requests. */
   changes: Array<{
     key: string;
     before: FactValue | null;
     after: FactValue | null;
   }>;
-  /** Signatures and similar images compared side by side. */
   images: Array<{ key: string; url: string | null }>;
   files: Array<{ name: string; url: string }>;
   note: string | null;
-  /** The full record, when it has its own page. */
   recordUrl: string | null;
   approval: {
     id: string;
@@ -60,7 +54,6 @@ export interface ApprovalItemDetail {
   } | null;
   canDecide: boolean;
   isRequester: boolean;
-  /** The approver must draw their signature when approving (the document is signed on the spot). */
   signatureRequired: boolean;
 }
 
@@ -122,7 +115,6 @@ async function attachmentsOf(entityType: string, entityId: string) {
   return rows.map((r) => ({ name: r.fileName, url: r.fileUrl }));
 }
 
-/** What the record behind an approval says, per request type. */
 async function describe(
   targetType: ApprovalTargetType,
   id: string,
@@ -524,7 +516,6 @@ async function describe(
   }
 }
 
-/** The approval page for one record, or null when it does not exist or the viewer may not see it. */
 export async function getApprovalItem(
   targetTypeParam: string,
   targetId: string,

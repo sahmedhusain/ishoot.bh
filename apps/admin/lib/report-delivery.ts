@@ -10,10 +10,6 @@ import { sendEmail } from "@platform/email";
 import { getCachedCompanySettings } from "./cached-queries";
 import { exportReport, reportLabels, reportsFor } from "./reports";
 
-/**
- * Sends the scheduled reports that are due (the scheduled job): each covers the day, week or month that just ended,
- * with what its owner may see today. A schedule whose owner lost access or left stops quietly with an error noted.
- */
 export async function deliverReportSchedules(now = new Date()) {
   const due = await dueReportSchedules(now);
   const company = await getCachedCompanySettings();

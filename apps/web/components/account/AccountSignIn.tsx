@@ -13,7 +13,6 @@ import {
 
 type Tab = "password" | "code" | "signUp";
 
-/** Signing in to the website: password, an e-mailed code, a new account, or Google / Apple when set up. */
 export function AccountSignIn({
   locale,
   providers,
@@ -41,7 +40,6 @@ export function AccountSignIn({
   const [oauthMfa] = React.useState(notice === "mfa");
   const [needsMfa, setNeedsMfa] = React.useState(notice === "mfa");
   const [busy, setBusy] = React.useState(false);
-  // A key the texts do not have comes back as its own path; fall back to the generic wording then.
   const known = (path: string, fallback: string) =>
     t(path) === path ? t(fallback) : t(path);
   const [error, setError] = React.useState(

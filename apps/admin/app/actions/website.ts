@@ -93,7 +93,6 @@ export async function restoreWebsiteAction(revision: number) {
     await revalidatePublicSite([], paths);
   });
 }
-/** A signed link that turns on draft preview in the website and opens `path` (a page of the website, default its home). */
 export async function previewWebsiteAction(locale: string, path?: string) {
   return measureOperation("action:previewWebsiteAction", async () => {
     await requirePermission("settings", "read");
@@ -147,7 +146,6 @@ export async function updateWebsiteServiceAction(
   });
 }
 
-/** Merges part of the website settings into the draft (menus, articles address, site code) and logs it. */
 async function updateWebsiteDraft(
   userId: string,
   patch: Partial<WebsiteConfig>,
@@ -167,7 +165,6 @@ async function updateWebsiteDraft(
   revalidatePath(ROUTES.cms.menus);
 }
 
-/** Website → Menus: the header and footer menus and the articles address and name. */
 export async function saveWebsiteMenusAction(
   menus: WebsiteMenus | null,
   articles: WebsiteArticles,

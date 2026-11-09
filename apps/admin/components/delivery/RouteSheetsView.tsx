@@ -20,7 +20,6 @@ type Routable = Awaited<ReturnType<typeof routableShipments>>[number];
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-/** Delivery → route sheets: plan a driver's run from the shipments waiting to go out. */
 export function RouteSheetsView({ sheets, shipments, drivers, vehicles }: { sheets: Sheet[]; shipments: Routable[]; drivers: DriverOption[]; vehicles: VehicleRecord[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.routes;

@@ -69,7 +69,6 @@ const toInput = (c: EmployeeCredentialRecord): EmployeeCredentialInput => ({
   notes: c.notes ?? "",
 });
 
-/** Identity (nationality, CPR, passport) and residency documents of an employee, with expiries and costs. */
 export function EmployeeResidencyPanel({
   employeeId,
   residency,
@@ -185,7 +184,6 @@ export function EmployeeResidencyPanel({
         </div>
       ) : null}
 
-      {/* Identity */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-ink">{c.identity}</h3>
@@ -410,7 +408,6 @@ export function EmployeeResidencyPanel({
         )}
       </div>
 
-      {/* Documents */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-ink">{c.documents}</h3>

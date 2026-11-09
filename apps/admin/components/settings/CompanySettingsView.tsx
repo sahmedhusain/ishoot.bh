@@ -265,7 +265,6 @@ export function CompanySettingsView({
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-6xl mx-auto pb-16">
-      {/* Top Header */}
       <PageHeader
         actions={<div className="flex items-center gap-3">
           {saved && (
@@ -294,10 +293,8 @@ export function CompanySettingsView({
         </div>}
       />
 
-      {/* Top Navigation Tabs */}
       <SettingsNavTabs />
 
-      {/* Sub-Tabs for Company Settings */}
       <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container dark:bg-surface-raised border border-outline-variant overflow-x-auto" role="tablist">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -323,7 +320,6 @@ export function CompanySettingsView({
         })}
       </div>
 
-      {/* Active Tab Panel */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {activeTab === "general" && (
           <GeneralInfoTab
@@ -386,7 +382,6 @@ export function CompanySettingsView({
         )}
       </form>
 
-      {/* Save Confirmation Modal with Diff Summary */}
       {saveError && !isSaveConfirmOpen && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{saveError}</p>}
       <ConfirmDialog isOpen={isSaveConfirmOpen} onClose={() => setIsSaveConfirmOpen(false)} title={t.companySettingsView.diffModalTitle} variant="warning" loading={saving} confirmLabel={t.companySettingsView.confirmChanges} cancelLabel={t.companySettingsView.cancel} errorLabel={saveError || t.companySettingsView.saveFailed} onConfirm={executeSave} description={<div className="space-y-4"><p>{saveDiffs.length} {t.companySettingsView.diffDetected}</p>
         <p className="text-xs text-ink-muted dark:text-ink">

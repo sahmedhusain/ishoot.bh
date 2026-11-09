@@ -1,4 +1,3 @@
-// Products: units, options and variants. Runtime-free, so the admin's forms use the same rules as the server.
 
 export const PRODUCT_UNITS = [
   "piece",
@@ -17,10 +16,8 @@ export const isProductUnit = (value: unknown): value is ProductUnit =>
   typeof value === "string" &&
   (PRODUCT_UNITS as readonly string[]).includes(value);
 
-/** A product has at most this many options (size, colour, material), each with at most MAX_OPTION_VALUES values. */
 export const MAX_OPTIONS = 3;
 export const MAX_OPTION_VALUES = 20;
-/** Every combination becomes a variant, so their number is capped. */
 export const MAX_VARIANTS = 100;
 
 export interface ProductOptionValue {
@@ -36,10 +33,6 @@ export interface ProductOption {
 const clean = (value: unknown, max: number) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
 
-/**
- * Options as stored: names and values trimmed, a missing language filled from the other, empty values and
- * repeated values dropped, and options without a name or values removed. Returns null when there are too many.
- */
 export function normalizeProductOptions(
   input: unknown,
 ): ProductOption[] | null {
@@ -68,7 +61,6 @@ export function normalizeProductOptions(
   return options;
 }
 
-/** Writes must not discard or truncate option rows as tolerant catalogue reads can. */
 export function parseProductOptions(input: unknown): ProductOption[] | null {
   if (!Array.isArray(input)) return null;
   const options = normalizeProductOptions(input);
@@ -96,7 +88,6 @@ export function parseProductOptions(input: unknown): ProductOption[] | null {
   return valid ? options : null;
 }
 
-/** Every combination of the options' values, in order: [["S","Red"], ["S","Blue"], ["M","Red"], …]. */
 export function variantCombinations(options: ProductOption[]): string[][] {
   return options.reduce<string[][]>(
     (combos, option) =>
@@ -107,7 +98,6 @@ export function variantCombinations(options: ProductOption[]): string[][] {
   );
 }
 
-/** "M / Red" in the reader's language, from the English values stored on the variant. */
 export function variantLabel(
   options: ProductOption[],
   values: string[],
@@ -121,7 +111,6 @@ export function variantLabel(
     .join(" / ");
 }
 
-/** A suggested variant SKU: the product's SKU and the start of each value, e.g. TEE-001-M-RED. */
 export function variantSku(productSku: string, values: string[]) {
   const parts = values.map(
     (value) =>

@@ -16,8 +16,6 @@ import {
 import { getEffectivePermissions } from "./permissions";
 import { getNextSequenceNumber } from "./sequence";
 
-// ---------- Settings and rights ----------
-
 export async function getCommunicationSettings() {
   const row = await db.communicationSettings.findUnique({
     where: { id: "default" },
@@ -62,10 +60,6 @@ async function reportsOf(userId: string): Promise<string[]> {
   return out;
 }
 
-/**
- * What the person may post: anyone with the permission posts to any audience; reporting managers (when the company
- * allows it) post to their own team. Approving needs the approve permission.
- */
 export async function announcementRights(user: {
   id: string;
   role: string;
@@ -92,9 +86,6 @@ export async function announcementRights(user: {
   };
 }
 
-// ---------- Recipients ----------
-
-/** Everyone the announcement is addressed to (always including its author). */
 export async function announcementRecipients(a: {
   audience: string;
   audienceDepartmentIds: string[];
@@ -138,8 +129,6 @@ export async function announcementRecipients(a: {
     ).map((u) => u.id);
   return Array.from(new Set([...ids, a.createdById]));
 }
-
-// ---------- Writing ----------
 
 export interface AnnouncementInput {
   title_en: string;
@@ -253,7 +242,6 @@ export async function saveAnnouncement(
   });
 }
 
-/** Sends the announcement for approval, or publishes it at once where the approval policy allows. */
 export async function submitAnnouncement(
   id: string,
   actor: { id: string; role: string; permissions?: unknown },
@@ -335,7 +323,6 @@ registerApprovalFinalizer("announcement", {
     });
     if (a.status !== "pending_approval")
       throw new Error(serverMessages.communicationError12);
-    // The signature on an official announcement: drawn by the approver when signing on the spot, else their saved one.
     const decision = await db.approvalDecision.findFirst({
       where: {
         decidedById: decider,
@@ -381,8 +368,6 @@ export async function archiveAnnouncement(
     data: { status: "archived", pinned: false },
   });
 }
-
-// ---------- Reading ----------
 
 export type AnnouncementView = "inbox" | "unread" | "hidden" | "manage";
 
@@ -466,7 +451,6 @@ export async function listAnnouncements(
   return rows.map((a) => mapAnnouncement(a, user.id));
 }
 
-/** One announcement for its reader, author or an approver; null when the person may not see it. */
 export async function getAnnouncement(
   id: string,
   user: { id: string; role: string; permissions?: unknown },
@@ -567,7 +551,6 @@ export type AnnouncementDetail = NonNullable<
   Awaited<ReturnType<typeof getAnnouncement>>
 >;
 
-/** Read, unread, acknowledge, hide or show again: the person's own copy. */
 export async function updateAnnouncementReceipt(
   id: string,
   userId: string,

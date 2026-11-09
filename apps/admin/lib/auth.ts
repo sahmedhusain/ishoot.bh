@@ -15,7 +15,6 @@ import {
   type StaffToken,
 } from "./identity-session";
 
-/** The signed-in staff member's verified identity token (the proxy has already renewed it when needed). */
 export const getStaffToken = cache(async (): Promise<StaffToken | null> =>
   verifyAccessToken((await cookies()).get(ACCESS_COOKIE)?.value),
 );
@@ -24,7 +23,6 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
   memoizeOperation("auth:user", async () => {
     const staff = await getStaffToken();
     if (!staff) return null;
-    // Identity confirms the session is still live, so a revoked session or a deactivated account ends at once.
     try {
       await checkSession(staff.token);
     } catch (error) {
@@ -46,7 +44,6 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
         updated_at: new Date().toISOString(),
       };
     }
-    // A failed profile sync must not let an old token use newly assigned privileges.
     return user && staff.roles.length === 1 && staff.roles[0] === user.role
       ? user
       : null;
@@ -91,10 +88,6 @@ export async function requirePermission(
   return user;
 }
 
-/**
- * For pages: like requirePermission, but a missing permission renders the "no access" page (HTTP 403)
- * instead of an error. Server actions keep using requirePermission, which throws.
- */
 export async function requirePagePermission(
   resource: PermissionResource,
   action: PermissionAction,

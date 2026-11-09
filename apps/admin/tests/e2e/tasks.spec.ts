@@ -80,7 +80,6 @@ test("a manager creates a project and gives a task to someone, who is told", asy
     )
     .toBe(1);
 
-  // Moving it on the board.
   await selectOption(
     page.getByTestId(`task-${task.number}`).first().getByRole("combobox"),
     "in_progress",
@@ -122,7 +121,6 @@ test("the assignee finds it in My tasks, comments and finishes it, and can only 
   await expect(page.getByTestId("task-status").first()).toHaveText(
     copy.statuses.done,
   );
-  // The manager who asked hears it is done.
   await expect
     .poll(async () =>
       db.notification.count({
@@ -135,7 +133,6 @@ test("the assignee finds it in My tasks, comments and finishes it, and can only 
     )
     .toBe(1);
 
-  // Without the right to assign, the "who does it" list has only them.
   await page.goto("/dashboard/tasks");
   await page.getByTestId("task-new").first().click();
   const options = await page

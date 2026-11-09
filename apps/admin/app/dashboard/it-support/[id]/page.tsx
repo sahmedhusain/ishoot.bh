@@ -15,7 +15,6 @@ export default async function ItTicketPage({
 }) {
   const user = await requirePagePermission("it_support", "read");
   const { id } = await params;
-  // Another employee's ticket is "not found" in the itsm service, never "forbidden".
   const detail = await getMyTicket(id, user.id);
   if (!detail) notFound();
   return (

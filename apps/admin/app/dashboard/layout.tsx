@@ -29,7 +29,6 @@ export default async function DashboardLayout({
     Promise.resolve(0),
     getActiveTaxSummary(),
   ]);
-  // Setup wizard is only required if database is empty (company has no enough data)
   const hasEnoughCompanyData = Boolean(
     company.setup_completed ||
     company.company_name_en ||
@@ -62,7 +61,6 @@ export default async function DashboardLayout({
             <NotificationAlerts />
             <div className="admin-shell text-on-surface">
               <WorkspaceInteractions />
-              {/* Fixed Topbar spanning full width with Logo at start */}
               <Topbar
                 company={{
                   company_name_en: company.company_name_en,
@@ -76,7 +74,6 @@ export default async function DashboardLayout({
                 }}
               />
 
-              {/* Workspace below Topbar: Sidebar (fixed on side) + Main Content (scrolls independently) */}
               <div className="admin-workspace">
                 <Sidebar />
                 <main id="admin-main" className="admin-main">

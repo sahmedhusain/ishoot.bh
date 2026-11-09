@@ -10,7 +10,7 @@ interface FeatureTogglesContextType {
 
 const FeatureTogglesContext = React.createContext<FeatureTogglesContextType>({
   features: {},
-  isFeatureEnabled: () => true, // default to true if provider not found
+  isFeatureEnabled: () => true,
 });
 
 export function FeatureTogglesProvider({
@@ -28,7 +28,6 @@ export function FeatureTogglesProvider({
     return map;
   });
 
-  // Effect to sync with initialFeatures if they change from server
   React.useEffect(() => {
     const map: Record<string, boolean> = {};
     initialFeatures.forEach((f) => {
@@ -39,7 +38,6 @@ export function FeatureTogglesProvider({
 
   const isFeatureEnabled = React.useCallback(
     (moduleKey: string) => {
-      // A module never toggled follows its default: most are on, newer ones (products) start off.
       return features[moduleKey] ?? moduleOnByDefault(moduleKey);
     },
     [features]

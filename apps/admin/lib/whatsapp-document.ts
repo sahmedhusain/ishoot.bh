@@ -1,5 +1,4 @@
 import { serverMessages } from "@platform/locales";
-// Upload private PDF bytes to Meta; never expose an authenticated document URL publicly.
 export async function sendWhatsAppDocument(
   input: {
     phoneId: string;

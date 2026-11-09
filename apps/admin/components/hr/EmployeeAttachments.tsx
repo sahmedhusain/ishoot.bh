@@ -19,7 +19,6 @@ export function EmployeeAttachments({
   employeeId: string;
   attachments: { id: string; fileName: string; fileUrl: string }[];
   canEdit: boolean;
-  /** Deleting needs employees:delete, which the server enforces. */
   canDelete?: boolean;
 }) {
   const { t } = useAdminLocale();
@@ -65,7 +64,6 @@ export function EmployeeAttachments({
             });
           }}
         >
-          {/* Upload the file, or link to it (e.g. a permit on a government portal). */}
           <LinkOrUploadField
             label={h.upload}
             value={fileUrl}

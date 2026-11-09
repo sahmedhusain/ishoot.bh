@@ -5,14 +5,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-/**
- * Payroll and leave arithmetic with no database access, so every rule can be unit tested.
- *
- * Money follows the company currency; historical snapshots without currency retain three decimal places. Dates are handled as UTC calendar days ("YYYY-MM-DD").
- */
-
 export interface HrPolicyRules {
-  /** Calculation context from company settings, never an independently editable payroll currency. */
   currency?: string;
   visaExemptCountries?: string[];
   salaryTiming: "arrears" | "current";
@@ -20,7 +13,6 @@ export interface HrPolicyRules {
   attendanceCutoffDay: number | null;
   weekendDays: number[];
   workdayHours: number;
-  /** Local start of the working day (HH:MM); arriving later counts as late. */
   workdayStart: string;
   dailyRateBasis: "30" | "calendar_days" | "working_days";
   deductionBase: "basic" | "fixed";
@@ -62,8 +54,6 @@ export const r3 = (value: number) =>
   Math.round((value + Number.EPSILON) * 1000) / 1000;
 const r2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-// ---------- Calendar days ----------
-
 export const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 export const utcDay = (year: number, monthIndex: number, day: number) =>
   new Date(Date.UTC(year, monthIndex, day));
@@ -104,13 +94,9 @@ export function workingDaysBetween(
     .length;
 }
 
-// ---------- Pay periods ----------
-
 export interface PayrollWindow {
-  /** The salary month being paid. */
   salaryStart: Date;
   salaryEnd: Date;
-  /** Attendance, leave and commissions counted in this run. */
   attendanceStart: Date;
   attendanceEnd: Date;
   payDate: Date;
@@ -119,11 +105,6 @@ export interface PayrollWindow {
 const clampDay = (year: number, month: number, day: number) =>
   Math.min(day, daysInMonth(year, month));
 
-/**
- * Arrears (e.g. paid on 1 October): pays September and counts all of September.
- * Current (e.g. paid on 26 September with cut-off 25): pays September, counts 26 August – 25 September,
- * so absences on 26–30 September are deducted in October's payroll.
- */
 export function payrollWindow(
   policy: Pick<
     HrPolicyRules,
@@ -165,8 +146,6 @@ export function payrollWindow(
   };
 }
 
-// ---------- Leave ----------
-
 export interface LeaveTypeRules {
   id: string;
   code: string;
@@ -184,7 +163,6 @@ export interface LeaveTypeRules {
 
 export type DayPortion = "full" | "half_am" | "half_pm" | "hours";
 
-/** Days a request charges: working days (or calendar days for types like maternity), half days and hours. */
 export function leaveDaysCharged(
   input: { start: Date; end: Date; portion: DayPortion; hours?: number | null },
   type: Pick<
@@ -234,10 +212,6 @@ export function leaveDaysCharged(
   return days;
 }
 
-/**
- * Paid share (in days) of `days` more leave of a type, given the days already taken this year.
- * With pay bands, each part of the leave is paid at the band it falls in; past the last band it is unpaid.
- */
 export function leavePaidDays(
   type: Pick<LeaveTypeRules, "payPercent" | "payTiers">,
   alreadyTaken: number,
@@ -280,7 +254,6 @@ export function monthsOfService(hireDate: Date, asOf: Date): number {
   return Math.max(0, months);
 }
 
-/** Days earned in `year` up to `asOf`; null when the type keeps no balance. */
 export function leaveEntitlement(
   type: Pick<LeaveTypeRules, "accrual" | "daysAllowedPerYear">,
   hireDate: Date,
@@ -294,13 +267,11 @@ export function leaveEntitlement(
   if (hire > yearEnd) return 0;
   const from = hire > yearStart ? hire : yearStart;
   if (type.accrual === "annual") {
-    // The whole allowance, prorated by the days employed in the joining year.
     const yearDays = eachDay(yearStart, yearEnd).length;
     return r2(
       (type.daysAllowedPerYear * eachDay(from, yearEnd).length) / yearDays,
     );
   }
-  // Monthly: one twelfth for each completed month of service in the year up to asOf.
   const until = asOf < yearEnd ? startOfDay(asOf) : yearEnd;
   if (until < from) return 0;
   const dayAfter = new Date(until.getTime() + 86_400_000);
@@ -309,8 +280,6 @@ export function leaveEntitlement(
       Math.min(12, monthsOfService(from, dayAfter)),
   );
 }
-
-// ---------- Payroll ----------
 
 export interface AttendanceDay {
   date: string;
@@ -329,9 +298,7 @@ export interface LeaveInWindow {
   start: Date;
   end: Date;
   portion: DayPortion;
-  /** Charged days for hourly leave (hours / workday hours). */
   hourFraction?: number | null;
-  /** Days of this type already taken this year before this leave started. */
   takenBefore: number;
 }
 
@@ -383,7 +350,6 @@ export interface PayrollBreakdown {
   };
 }
 
-/** Variable pay and attendance deductions for one employee in one run. Contributions are added by the caller. */
 export function computeEmployeePayroll(
   input: EmployeePayrollInput,
 ): PayrollBreakdown {
@@ -419,7 +385,6 @@ export function computeEmployeePayroll(
   const warnings: string[] = [];
   const leaveSummary: PayrollBreakdown["summary"]["leave"] = {};
 
-  // Leave days by date with the pay share for each.
   const leaveByDay = new Map<
     string,
     { code: string; fraction: number; paid: number }
@@ -486,7 +451,6 @@ export function computeEmployeePayroll(
     if (leave) unpaidLeaveDays += leave.fraction - leave.paid;
     if (!isWorkingDay(day, policy, holidays)) continue;
     workingDays++;
-    // A part-day leave still expects the rest of the day to be worked.
     const leaveFraction = leave?.fraction ?? 0;
     if (leaveFraction >= 1) continue;
     if (!entry) {
@@ -512,7 +476,6 @@ export function computeEmployeePayroll(
     }
   }
 
-  // Joiners: days of the salary month before the hire date are not paid.
   let notEmployedDays = 0;
   let prorationDeduction = 0;
   if (policy.prorateJoiners && hire > window.salaryStart) {
@@ -536,8 +499,6 @@ export function computeEmployeePayroll(
   );
   let absenceDeduction = absentDays * dailyRate + prorationDeduction;
   let leaveDeduction = unpaidLeaveDays * dailyRate;
-  // With a 30-day or calendar basis, absent on every working day would still leave the weekends paid;
-  // nothing worked and nothing paid means no salary for the period.
   if (
     workingDays > 0 &&
     absentDays + unpaidLeaveDays >= workingDays - 1e-9 &&
@@ -549,7 +510,6 @@ export function computeEmployeePayroll(
   let latenessDeduction = policy.deductLateness
     ? (deductibleLateMinutes / 60) * hourlyRate
     : 0;
-  // Attendance deductions never take more than the fixed pay.
   const totalAttendance = absenceDeduction + leaveDeduction + latenessDeduction;
   if (totalAttendance > fixedPay && totalAttendance > 0) {
     const factor = fixedPay / totalAttendance;
@@ -590,7 +550,6 @@ export function computeEmployeePayroll(
   };
 }
 
-/** Final line: gross = fixed + variable pay; net = gross − employee contribution − all deductions. */
 export function payrollTotals(
   b: Pick<
     PayrollBreakdown,

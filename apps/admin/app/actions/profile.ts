@@ -79,7 +79,6 @@ export async function requestIdentityChangeAction(data: {
         targetType: "profile_change",
         targetId: changeRequest.id,
         requesterId: user.id,
-        // The reason travels with the request so the approver sees why the name or e-mail changes.
         diffPayload: {
           before: changeRequest.oldValues,
           after: changeRequest.newValues,
@@ -138,7 +137,6 @@ export async function decideProfileChangeAction(
   });
 }
 
-/** Submit a signature drawn on the pad; it replaces the current one only once approved. */
 export async function requestSignatureChangeAction(fileUrl: string) {
   return measureOperation("action:requestSignatureChangeAction", async () => {
     const user = await requireAuth();
@@ -184,7 +182,6 @@ export async function cancelSignatureChangeAction(id: string) {
   });
 }
 
-/** Withdraw only the signed-in person's pending identity edit and its approval. */
 export async function cancelMyProfileChangeAction(id: string) {
   validateActionArguments("cancelMyProfileChangeAction", { id });
   const user = await requireAuth();
@@ -203,10 +200,6 @@ export async function cancelMyProfileChangeAction(id: string) {
 
 const AVATAR_PREFIX = `${FILE_URL_PREFIX}avatars/`;
 
-/**
- * Makes an uploaded (cropped) photo the signed-in person's profile photo. The upload must be theirs, in the avatars
- * folder; the previous photo's file is removed.
- */
 export async function updateMyAvatarAction(fileUrl: string) {
   validateActionArguments("updateMyAvatarAction", { fileUrl });
   const user = await requireAuth();
@@ -222,7 +215,6 @@ export async function updateMyAvatarAction(fileUrl: string) {
   return { avatarUrl: fileUrl };
 }
 
-/** Removes the signed-in person's profile photo; their initials show instead. */
 export async function removeMyAvatarAction() {
   validateActionArguments("removeMyAvatarAction", {});
   const user = await requireAuth();

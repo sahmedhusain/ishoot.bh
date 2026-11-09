@@ -6,7 +6,6 @@ import { getSite } from "../../lib/site";
 import { Reveal } from "../shared/Reveal";
 import { PageBlocks } from "./PageBlocks";
 
-/** A website page built from blocks. Custom pages open with their title; built-in pages start with their first block. */
 export async function CmsPageView({ page, locale, contact }: { page: CmsPageRecord; locale: string; contact?: ReactNode }) {
   const { website, company, info } = await getSite();
   if (!website) return null;
@@ -36,7 +35,6 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
   );
 }
 
-/** The snapshot's page of a built-in type, or a custom page at an address. Hidden pages only show in preview. */
 export function findPage(pages: CmsPageRecord[] | undefined, match: { type?: CmsPageRecord["page_type"]; slug?: string }, preview: boolean) {
   const page = pages?.find((p) => (match.type ? p.page_type === match.type : p.page_type === "custom" && p.slug === match.slug));
   return page && (page.is_visible || preview) ? page : page ? null : undefined;

@@ -10,10 +10,6 @@ function documentPdfUrl(
   return `/api/documents/${encodeURIComponent(id)}/pdf?type=${type}&locale=${locale}${download ? "&download=true" : ""}`;
 }
 
-/**
- * Prints the exact PDF the download produces: the file is loaded into a hidden frame and printed
- * from the browser's PDF viewer, so there are no page headers, footers or extra margins.
- */
 export async function printDocumentPdf(
   type: PdfDocumentType,
   id: string,
@@ -32,7 +28,6 @@ export const salaryDocumentPdfUrl = (
 export const momPdfUrl = (id: string, locale: string, download = false) =>
   `/api/moms/${encodeURIComponent(id)}/pdf?locale=${locale}${download ? "&download=true" : ""}`;
 
-/** Prints any generated PDF (payslips, certificates, minutes) exactly as it downloads. */
 export async function printPdfUrl(pdfUrl: string): Promise<void> {
   const response = await fetch(pdfUrl, { cache: "no-store" });
   if (
@@ -48,20 +43,17 @@ export async function printPdfUrl(pdfUrl: string): Promise<void> {
   document.body.appendChild(frame);
   await new Promise<void>((resolve) => {
     frame.onload = () => {
-      // The PDF viewer needs a beat after load before print() picks up the document.
       setTimeout(() => {
         try {
           frame.contentWindow?.focus();
           frame.contentWindow?.print();
         } catch {
-          // Some browsers block printing a frame: fall back to opening the PDF for the user to print.
           window.open(url, "_blank", "noopener");
         }
         resolve();
       }, 300);
     };
   });
-  // Keep the frame alive long enough for the print dialog to read it.
   setTimeout(() => {
     frame.remove();
     URL.revokeObjectURL(url);

@@ -24,7 +24,6 @@ describe("store", () => {
       vatAmount: 2.2,
       total: 29.2,
     });
-    // 20% off: taxable goods 20 → 16, plus delivery 2 → VAT 1.8.
     expect(
       priceOrder({
         lines,
