@@ -3,7 +3,6 @@ import { serverMessages, serverTemplates, formatMessage } from "@platform/locale
 import { integrationProvider } from "./config/constants/integrations";
 import { checkConnection, fetchSocialSnapshot } from "./integrations/providers";
 
-/** Checks the stored credentials against the provider and records the result. */
 export async function testIntegration(providerId: string) {
   const provider = integrationProvider(providerId);
   if (!provider) throw new Error(serverMessages.unknownIntegration);
@@ -25,7 +24,6 @@ export async function testIntegration(providerId: string) {
   return result;
 }
 
-/** Pulls follower counts and recent posts for one social integration. */
 export async function syncSocialIntegration(providerId: string, now = new Date()) {
   const provider = integrationProvider(providerId);
   if (!provider || provider.kind !== "social") {

@@ -10,7 +10,7 @@ export interface CriticalActionModalProps {
   title?: string;
   description: string;
   impactDetails?: string[];
-  requiredConfirmationText?: string; // If set, user must type this exact string
+  requiredConfirmationText?: string; 
   confirmLabel?: string;
   cancelLabel?: string;
   dangerLevel?: "critical" | "warning";
@@ -60,7 +60,7 @@ export function CriticalActionModal({
         aria-labelledby="critical-action-title"
         className="it-card w-full max-w-lg overflow-hidden border-2 border-slate-700 bg-surface shadow-2xl font-mono text-xs"
       >
-        {/* Header */}
+
         <div
           className={`flex items-center justify-between border-b px-4 py-3 text-white ${
             isCritical ? "bg-rose-950 border-rose-800" : "bg-amber-950 border-amber-800"
@@ -87,11 +87,9 @@ export function CriticalActionModal({
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-5 space-y-4">
           <p className="text-ink text-xs leading-relaxed font-sans">{description}</p>
 
-          {/* Impact list */}
           {impactDetails.length > 0 && (
             <div className="p-3 border border-outline-variant bg-slate-50 dark:bg-slate-900/60 space-y-2">
               <div className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
@@ -107,7 +105,6 @@ export function CriticalActionModal({
             </div>
           )}
 
-          {/* Typing requirement guard */}
           {requiresMatch && (
             <div className="space-y-1.5 pt-1">
               <label className="block text-[11px] text-ink-muted">
@@ -130,7 +127,6 @@ export function CriticalActionModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="border-t border-outline-variant bg-slate-100 dark:bg-slate-900/80 px-4 py-3 flex items-center justify-end gap-2">
           <Button
             type="button"

@@ -71,7 +71,6 @@ export function SetupView({
   const [step, setStep] = React.useState<number>(1);
   const [busy, setBusy] = React.useState(false);
 
-  // Form states
   const [nameEn, setNameEn] = React.useState(company?.companyNameEn ?? "");
   const [nameAr, setNameAr] = React.useState(company?.companyNameAr ?? "");
   const [cr, setCr] = React.useState(company?.crNumber ?? "");
@@ -251,7 +250,6 @@ export function SetupView({
         ))}
       </ol>
 
-      {/* Step Content */}
       <Card className="it-setup-panel space-y-6 border border-outline-variant p-5 sm:p-6">
         {step === 1 && (
           <div className="space-y-4">
@@ -419,7 +417,6 @@ export function SetupView({
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-between pt-4 border-t border-outline-variant">
           {step > 1 ? (
             <Button

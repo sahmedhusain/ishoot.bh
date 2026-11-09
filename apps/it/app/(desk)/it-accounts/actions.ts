@@ -29,7 +29,6 @@ async function checkCanAssignRole(
   const isTopLevel = userRoleObjs.some((r) => !r.reportingToRole);
   if (isTopLevel) return true;
 
-  // Role delegation check: targetRole must report to user's role hierarchy
   let current = allRoles.find((r) => r.id === targetRole);
   while (current && current.reportingToRole) {
     if (userRoles.includes(current.reportingToRole)) return true;
@@ -65,7 +64,6 @@ export async function createITAccountAction(form: FormData): Promise<Outcome> {
   )
     return { ok: false, reason: "invalid" };
 
-  // Role delegation safeguard via database role hierarchy
   const canAssign = await checkCanAssignRole(user.token, user.roles, role);
   if (!canAssign) {
     return { ok: false, reason: "invalid" };
@@ -92,7 +90,6 @@ export async function updateITAccountAction(
   if (typeof role !== "string" || role.trim() === "" || role.length > 100)
     return { ok: false, reason: "invalid" };
 
-  // Role delegation safeguard via database role hierarchy
   const canAssign = await checkCanAssignRole(user.token, user.roles, role);
   if (!canAssign) {
     return { ok: false, reason: "invalid" };

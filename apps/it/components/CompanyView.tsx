@@ -53,7 +53,6 @@ export function CompanyView({
   const [tab, setTab] = React.useState<Tab>("profile");
   const [busy, setBusy] = React.useState(false);
 
-  // Form state
   const [formData, setFormData] = React.useState<CompanyConfigurationPatch>(() => {
     if (!company) return {};
     return {
@@ -185,7 +184,6 @@ export function CompanyView({
     <div className="space-y-4">
       <PageTitle title={c.title} description={c.description} />
 
-      {/* SAP Style Section Selector Dropdown Bar */}
       <div className="it-card flex flex-wrap items-center justify-between gap-3 p-2 font-mono text-xs">
         <label className="flex items-center gap-2">
           <span className="font-bold uppercase tracking-wider text-ink-muted">
@@ -206,15 +204,12 @@ export function CompanyView({
           </select>
         </label>
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: OBY6 [COMPANY MASTER DATA]
-          </span>
           {canEdit && (
             <button
               type="submit"
               form="company-form"
               disabled={busy}
-              className="it-btn-3d py-1 px-3 text-emerald-800 dark:text-emerald-300 font-bold flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#0070d2] hover:bg-[#005fb2] text-white text-xs font-semibold shadow-sm transition-colors"
             >
               {busy ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -629,7 +624,7 @@ export function CompanyView({
                       {asset?.fileUrl ? (
                         <div className="space-y-2">
                           <div className="flex h-24 items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
+
                             <img
                               src={asset.fileUrl}
                               alt={title}

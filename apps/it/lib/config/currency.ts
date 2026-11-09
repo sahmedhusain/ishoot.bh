@@ -1,4 +1,4 @@
-// ISO 4217 active currencies and funds; source: SIX list-one.xml, 2026-10-28.
+
 import currencyReference from "@platform/contracts/catalog/currencies.json";
 
 export const CURRENCY_CODES: readonly string[] = (currencyReference as Array<{ code: string }>)
@@ -98,7 +98,6 @@ export function getCurrencySymbol(code: string, unicode = true): string {
   return CURRENCY_SYMBOLS[normalized] || normalized;
 }
 
-/** Arabic abbreviations used on Arabic screens and documents; other currencies keep their symbol. */
 export const ARABIC_CURRENCY_LABELS: Record<string, string> = {
   BHD: "د.ب",
   KWD: "د.ك",
@@ -110,7 +109,6 @@ export const ARABIC_CURRENCY_LABELS: Record<string, string> = {
   JOD: "د.أ",
 };
 
-/** The currency's symbol; on Arabic screens a Latin abbreviation (BHD, KD, SAR…) becomes its Arabic one. Official signs stay. */
 export function getCurrencyLabel(code: string, isArabic = false, unicode = true): string {
   const normalized = (code || "").trim().toUpperCase();
   const symbol = getCurrencySymbol(normalized, unicode);

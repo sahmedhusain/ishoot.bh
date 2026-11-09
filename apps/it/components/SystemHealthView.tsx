@@ -13,7 +13,6 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedStatus, setSelectedStatus] = React.useState("");
 
@@ -45,14 +44,11 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={h.title} description={h.description} />
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: SM51 [SYSTEM HEALTH & SERVERS]
-          </span>
           <button
             type="button"
             onClick={refresh}
             disabled={refreshing}
-            className="it-btn-3d py-1.5 px-3 font-bold flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             <span>{h.refresh}</span>
@@ -82,7 +78,6 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 text-xs font-mono">
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />

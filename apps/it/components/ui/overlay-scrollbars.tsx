@@ -13,11 +13,9 @@ OverlayScrollbars.plugin(ClickScrollPlugin);
 const TARGETS =
   'main, .admin-main, .admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .m3-select-options, .admin-sidebar nav, [data-dialog-body], .admin-popover-body, [data-overlay-scroll], [class*="overflow-auto"], [class*="overflow-y-auto"], [class*="overflow-x-auto"], [class*="overflow-scroll"]';
 
-/** Existing elements remain the native viewport, so React children, refs and scroll events stay intact. */
 export function OverlayScrollbarsProvider() {
   React.useEffect(() => {
-    // The root provider can mount while Next is still streaming/hydrating a
-    // dashboard page. Wait for that page's commit before inserting scrollbars.
+
     let ready = !!document.querySelector("[data-overlay-scroll-ready]");
     const instances = new Map<HTMLElement, Instance>();
     const initialize = (element: HTMLElement) => {

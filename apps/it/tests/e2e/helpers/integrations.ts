@@ -1,5 +1,5 @@
-// Managing integrations from tests. Integrations live in the system service (backend/services/system),
-// shared by every test database, so specs use this helper instead of db.integrationSetting.
+
+
 import path from "node:path";
 import {
   getIntegration,

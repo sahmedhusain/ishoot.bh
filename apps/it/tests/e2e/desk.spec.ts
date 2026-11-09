@@ -7,8 +7,6 @@ import t from "@platform/locales/ar.json";
 import { watchErrors } from "../../helpers";
 import { totp } from "../../totp";
 
-// An IT engineer signs in with a password and an authenticator code, works an employee's ticket from the queue,
-// changes an SLA target and signs out. The account comes from tests/e2e/it-account.cjs (identity's bootstrap-it).
 const accountFile = path.resolve(
   process.env.E2E_IT_ACCOUNT_FILE ||
     path.join(__dirname, "../../.results/it-account.json"),
@@ -17,7 +15,7 @@ const accountFile = path.resolve(
 test.describe.configure({ mode: "serial" });
 
 test("IT works a ticket from the desk", async ({ page, browser }) => {
-  // It drives the IT dashboard, the backend and the website; a cold development build can take a while.
+
   test.slow();
   test.skip(
     !fs.existsSync(accountFile),
@@ -44,7 +42,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   });
   const watch = watchErrors(page);
 
-  // A password alone is not enough: IT accounts always need the authenticator.
   await page.goto("/login");
   await page.getByLabel(t.login.email).fill(account.email);
   await page.getByLabel(t.login.password).fill(account.password);
@@ -90,7 +87,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     page.getByText(t.statuses.resolved, { exact: true }).first(),
   ).toBeVisible();
 
-  // SLA targets: a resolution faster than the response is refused; a valid change is saved.
   await page.getByRole("link", { name: t.nav.sla }).click();
   const response = page.getByLabel(`${t.priorities.low} ${t.sla.response}`);
   const resolve = page.getByLabel(`${t.priorities.low} ${t.sla.resolve}`);
@@ -111,7 +107,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await expect(page.getByText(t.sla.saved)).toBeVisible();
   await expect(response).toHaveValue(String(Number(before) + 1));
 
-  // Modules: switching one off and back on (the system service records who did it).
   await page.getByRole("link", { name: t.nav.modules }).click();
   const reviews = page.getByRole("switch", { name: "تقييمات العملاء" });
   const wasOn = (await reviews.getAttribute("aria-checked")) === "true";
@@ -121,7 +116,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await reviews.click();
   await expect(reviews).toHaveAttribute("aria-checked", String(wasOn));
 
-  // Integrations: verifying integration cards load on the IT desk.
   await page.getByRole("link", { name: t.nav.integrations }).click();
   await expect(page).toHaveURL(/\/integrations$/);
   await expect(
@@ -130,7 +124,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await expect(page.getByTestId("integration-resend")).toBeVisible();
   await expect(page.getByTestId("integration-stripe")).toBeVisible();
 
-  // Website: domains and site-wide code are IT's; the public website runs the code at once.
   await page.getByRole("link", { name: t.nav.site }).click();
   await expect(page.getByRole("heading", { name: t.site.title })).toBeVisible();
   const websiteDomain = page.getByLabel(t.site.domains.websiteLabel);
@@ -161,7 +154,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   expect(html).toContain("G-E2E12345");
   expect(html).toContain("e2e-site-code");
 
-  // The stack is shared by every test database: put the website back as it was.
   await analytics.fill("");
   await head.fill("");
   await saveCode.click();
@@ -171,7 +163,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await saveDomains.click();
   await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
 
-  // Notifications: test messages go out through notify, locally to Mailpit and the WhatsApp sandbox.
   const stamp = Date.now();
   const testEmail = `it-test-${stamp}@example.test`;
   const testPhone = `9733${String(stamp).slice(-6)}1`;
@@ -192,7 +183,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await expect(
     page.getByText(t.notifications.testQueued).first(),
   ).toBeVisible();
-  // A number the sandbox refuses fails at once, with the reason, and can be sent again.
+
   await page.getByLabel(t.notifications.channel).selectOption("whatsapp");
   await to.fill("+97333000400");
   await sendTest.click();
@@ -228,7 +219,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     expect((await res.json()).items).toHaveLength(1);
   }).toPass({ timeout: 30_000 });
 
-  // Audit trail: the changes just made arrive through the events stream, named after the person who made them.
   await page.getByRole("link", { name: t.nav.audit }).click();
   await expect(
     page.getByRole("heading", { name: t.audit.title }),
@@ -250,7 +240,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await entry.getByText(t.audit.subjects["system.site_code.changed"]).click();
   await expect(entry.getByText(/"changedBy": "it:/)).toBeVisible();
   await expect(events.getByText(domainsChanged)).toHaveCount(0);
-  // notify's outcomes reach the trail too.
+
   await page.getByLabel(t.audit.subject).selectOption("notify.message.failed");
   await page.getByRole("button", { name: t.audit.apply }).click();
   await expect(page).toHaveURL(/subject=notify\.message\.failed/);
@@ -258,7 +248,6 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     events.getByText(t.audit.subjects["notify.message.failed"]).first(),
   ).toBeVisible();
 
-  // Account administration cannot remove the last administrator; new accounts get fresh mandatory MFA.
   await page.getByRole("link", { name: t.nav.itAccounts }).click();
   await expect(
     page.getByRole("heading", { name: t.itAccounts.title, exact: true }),

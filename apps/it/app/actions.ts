@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -9,12 +10,15 @@ import {
   claimUpload,
   commentOnQueueTicket,
   confirmMFAEnrollment,
+  confirmPasswordReset,
   disableMFA,
   getOwnAccount,
   getQueueTicket,
   getCompanySetupStatusForIT,
   isApiError,
+  queueMessage,
   registerUpload,
+  requestPasswordReset,
   retryMessageForIT,
   sendTestMessageForIT,
   setIntegrationForIT,
@@ -29,6 +33,7 @@ import {
   updateSLA,
   writeUpload,
 } from "@platform/api-client";
+import { itPublicOrigin } from "../lib/origin";
 import { testIntegration, syncSocialIntegration } from "../lib/integrations";
 import {
   checkDomain,
@@ -62,7 +67,6 @@ async function setCookies(list: CookieSpec[]) {
   for (const c of list) jar.set(c.name, c.value, c.options);
 }
 
-/** Password first; when identity asks for it, the authenticator or recovery code. */
 export async function signInAction(
   _: SignInState,
   form: FormData,
@@ -124,7 +128,6 @@ export async function setLocaleAction(locale: string) {
 
 export type Outcome = { ok: boolean };
 
-/** Expected refusals (a stale status, an invalid value) come back as a result; anything else is an error. */
 async function attempt(call: () => Promise<unknown>): Promise<Outcome> {
   try {
     await asUser(call);
@@ -149,7 +152,6 @@ export type AttachmentInput = {
   fileSize: number;
 };
 
-/** A catalogue transition; "assign" assigns the ticket to the person acting or a specified staff member. */
 export async function transitionAction(
   id: string,
   status: string,
@@ -204,7 +206,6 @@ export async function commentAction(
   return outcome;
 }
 
-/** Uploads and claims an attachment file for a ticket comment. Max 10MB. */
 export async function uploadAttachmentAction(
   form: FormData,
 ): Promise<{ ok: boolean; attachment?: AttachmentInput; error?: string }> {
@@ -258,7 +259,6 @@ export async function updateSLAAction(
   return outcome;
 }
 
-/** Switches a platform module for everyone (modules:edit). */
 export async function setModuleAction(
   key: string,
   enabled: boolean,
@@ -271,7 +271,6 @@ export async function setModuleAction(
   return outcome;
 }
 
-/** Saves an integration's settings (integrations:edit). */
 export async function saveIntegrationAction(
   provider: string,
   isActive: boolean,
@@ -290,7 +289,6 @@ export async function saveIntegrationAction(
   return outcome;
 }
 
-/** Disconnects and clears credentials of an integration (integrations:delete). */
 export async function unlinkIntegrationAction(
   provider: string,
 ): Promise<Outcome> {
@@ -302,7 +300,6 @@ export async function unlinkIntegrationAction(
   return outcome;
 }
 
-/** Tests the live connection for an integration (integrations:execute). */
 export async function testIntegrationAction(provider: string) {
   await requireAllowed("integrations", "execute");
   try {
@@ -324,7 +321,6 @@ export async function testIntegrationAction(provider: string) {
   }
 }
 
-/** Syncs social accounts now (integrations:execute). */
 export async function syncIntegrationAction(provider: string) {
   await requireAllowed("integrations", "execute");
   try {
@@ -342,7 +338,6 @@ export async function syncIntegrationAction(provider: string) {
   }
 }
 
-/** Sends a WhatsApp test message through the notify service (integrations:execute; notify checks notifications:execute). */
 export async function sendWhatsAppTestAction(to: string) {
   const user = await requireAllowed("integrations", "execute");
   try {
@@ -358,7 +353,6 @@ export async function sendWhatsAppTestAction(to: string) {
   }
 }
 
-/** Sends a test e-mail or WhatsApp message (notifications:execute). */
 export async function sendTestMessageAction(
   channel: string,
   to: string,
@@ -372,7 +366,6 @@ export async function sendTestMessageAction(
   return outcome;
 }
 
-/** Queues a failed message again (notifications:execute). */
 export async function retryMessageAction(id: string): Promise<Outcome> {
   const user = await requireAllowed("notifications", "execute");
   const outcome = await attempt(() =>
@@ -386,7 +379,6 @@ export type SiteOutcome<T> =
   | { ok: true; value: T }
   | { ok: false; reason: "invalid" | "domainsMustDiffer" };
 
-/** Expected refusals come back as a reason; anything else is an error. */
 async function attemptSite<T>(call: () => Promise<T>): Promise<SiteOutcome<T>> {
   try {
     return { ok: true, value: await asUser(call) };
@@ -399,7 +391,6 @@ async function attemptSite<T>(call: () => Promise<T>): Promise<SiteOutcome<T>> {
   }
 }
 
-/** Sets the website's and the admin's domains (domains:edit); an empty one is cleared. */
 export async function saveSiteDomainsAction(
   websiteDomain: string,
   adminDomain: string,
@@ -412,17 +403,13 @@ export async function saveSiteDomainsAction(
     }),
   );
   if (outcome.ok) {
-    // Links, the sitemap and page metadata on the website use the domain.
+
     await revalidatePublicSite(["company"]);
     revalidatePath("/site");
   }
   return outcome;
 }
 
-/**
- * Checks that a saved domain reaches this installation (domains:execute). The IT dashboard has no database, so the
- * installation it expects is the one the configured website (WEB_URL) or admin (ADMIN_URL) reports.
- */
 export async function checkSiteDomainAction(
   kind: "website" | "admin",
   domain: string,
@@ -435,7 +422,6 @@ export async function checkSiteDomainAction(
   ).catch(() => null);
 }
 
-/** Saves the site-wide analytics ids and custom code (site_code:edit); the website runs it at once. */
 export async function saveSiteCodeAction(code: SiteCode) {
   const user = await requireAllowed("site_code", "edit");
   const text = (value: unknown, max: number) =>
@@ -453,7 +439,6 @@ export async function saveSiteCodeAction(code: SiteCode) {
   return outcome;
 }
 
-/** Starts setting up an authenticator for the signed-in IT administrator. */
 export async function beginItMFAAction(password: string) {
   const user = await requireUser();
   if (!password || typeof password !== "string") return { ok: false, error: "Password required" };
@@ -473,7 +458,6 @@ export async function beginItMFAAction(password: string) {
   }
 }
 
-/** Cancels a pending authenticator setup. */
 export async function cancelItMFAAction(password: string) {
   const user = await requireUser();
   try {
@@ -484,7 +468,6 @@ export async function cancelItMFAAction(password: string) {
   }
 }
 
-/** Confirms authenticator enrollment with OTP code. */
 export async function confirmItMFAAction(password: string, code: string) {
   const user = await requireUser();
   if (!password || !code) return { ok: false, error: "Missing fields" };
@@ -496,7 +479,6 @@ export async function confirmItMFAAction(password: string, code: string) {
   }
 }
 
-/** Disables two-factor authentication for the IT administrator. */
 export async function disableItMFAAction(password: string, code: string) {
   const user = await requireUser();
   if (!password || !code) return { ok: false, error: "Missing fields" };
@@ -508,7 +490,6 @@ export async function disableItMFAAction(password: string, code: string) {
   }
 }
 
-/** Checks the IT user's current security and MFA status. */
 export async function getItSecurityStatusAction() {
   const user = await requireUser();
   try {
@@ -516,5 +497,92 @@ export async function getItSecurityStatusAction() {
     return { ok: true, mfaEnabled: Boolean(acc.mfaEnabled), email: acc.email };
   } catch {
     return { ok: false, mfaEnabled: false, email: user.email };
+  }
+}
+
+export type ForgotPasswordState = {
+  success?: boolean;
+  error?: "invalid" | "failed";
+};
+
+export async function forgotPasswordAction(
+  _: ForgotPasswordState,
+  form: FormData,
+): Promise<ForgotPasswordState> {
+  const identifier = (
+    text(form, "username", 254) || text(form, "email", 254)
+  ).trim().toLowerCase();
+  if (!identifier) return { error: "invalid" };
+
+  const header = config.clientIpHeader();
+  const clientIp = header
+    ? (await headers()).get(header)?.split(",")[0]?.trim().slice(0, 45)
+    : undefined;
+
+  try {
+    const reset = await requestPasswordReset(REALM, identifier, clientIp);
+    if (reset) {
+      const origin = await itPublicOrigin();
+      const resetUrl = `${origin}/login/reset?token=${encodeURIComponent(reset.token)}&email=${encodeURIComponent(identifier)}`;
+      await queueMessage({
+        channel: "email",
+        to: reset.email,
+        subject: "IT Account Password Reset Request",
+        text: `Hello,\n\nYou requested a password reset for your IT account. Open the following link to reset your password:\n${resetUrl}\n\nIf you did not request this, please ignore this email.\nThis link expires in 15 minutes.`,
+        html: `<p>Hello,</p><p>You requested a password reset for your IT account. Click the link below to reset your password:</p><p><a href="${resetUrl}">Reset IT Password</a></p><p>If you did not request this, please ignore this email.</p><p>This link expires in 15 minutes.</p>`,
+        actorId: "identity",
+        idempotencyKey: `it-pwd-reset:${createHash("sha256").update(reset.token).digest("hex")}`,
+      });
+    }
+    return { success: true };
+  } catch {
+    return { success: true };
+  }
+}
+
+export type ResetPasswordState = {
+  success?: boolean;
+  error?: "invalid" | "mismatch" | "too_short" | "invalid_token" | "failed";
+};
+
+export async function resetPasswordAction(
+  _: ResetPasswordState,
+  form: FormData,
+): Promise<ResetPasswordState> {
+  const token = text(form, "token", 64).trim();
+  const email = text(form, "email", 254).trim().toLowerCase();
+  const password = text(form, "password", 1024);
+  const confirmPassword = text(form, "confirmPassword", 1024);
+
+  if (!token || !email || !password) return { error: "invalid" };
+  if (password !== confirmPassword) return { error: "mismatch" };
+  if (password.length < 8) return { error: "too_short" };
+
+  const header = config.clientIpHeader();
+  const clientIp = header
+    ? (await headers()).get(header)?.split(",")[0]?.trim().slice(0, 45)
+    : undefined;
+
+  try {
+    const { subjectId } = await confirmPasswordReset(
+      REALM,
+      token,
+      password,
+      email,
+      clientIp,
+    );
+    await queueMessage({
+      channel: "email",
+      to: email,
+      subject: "Security Alert: IT Account Password Changed",
+      text: `Hello,\n\nYour IT account password was just changed. If you did not perform this action, please contact your administrator immediately.`,
+      html: `<p>Hello,</p><p>Your IT account password was just changed. If you did not perform this action, please contact your administrator immediately.</p>`,
+      actorId: "identity",
+      idempotencyKey: `it-pwd-changed:${subjectId}:${Date.now()}`,
+    });
+    return { success: true };
+  } catch (err) {
+    if (isApiError(err, "reset_invalid")) return { error: "invalid_token" };
+    return { error: "failed" };
   }
 }

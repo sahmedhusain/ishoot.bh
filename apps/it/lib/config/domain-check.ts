@@ -1,21 +1,17 @@
-// Whether a domain reaches this installation: fetches https://<domain>/api/health and compares the installation it
-// reports with the expected one. Only public addresses are called, with a short timeout and no redirects; nothing about
-// DNS is changed. Used by the admin's setup wizard (which reads the fingerprint from the database) and the IT dashboard
-// (which has no database and asks the configured website or admin instead). Imports nothing that needs the database.
+
+
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { serverMessages } from "@platform/locales";
 import { HEALTH_PATH, normalizeDomain } from "./constants/domains";
 
-/** What the domain check found. */
 export interface DomainCheckResult {
-  /** connected: the domain reaches this installation; other: it answers, but as another site or app. */
+
   state: "connected" | "other" | "unreachable" | "private";
-  /** The HTTP status the domain answered with, when it answered. */
+
   status?: number;
 }
 
-/** Private, loopback, link-local and other non-public addresses the check must never call. */
 function isPrivateAddress(address: string) {
   if (isIP(address) === 4) {
     const [a, b] = address.split(".").map(Number);
@@ -41,7 +37,6 @@ function isPrivateAddress(address: string) {
   );
 }
 
-/** The installation's fingerprint as an app's health route reports it, or null when it cannot be read. */
 export async function healthFingerprint(origin: string): Promise<string | null> {
   try {
     const response = await fetch(new URL(HEALTH_PATH, origin), {
@@ -57,7 +52,6 @@ export async function healthFingerprint(origin: string): Promise<string | null> 
   }
 }
 
-/** Checks the website ("web" app) or admin domain against this installation's fingerprint (installation.ts). */
 export async function checkDomain(
   kind: "website" | "admin",
   domain: string,

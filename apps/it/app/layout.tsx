@@ -10,11 +10,16 @@ import { ConfirmationProvider, CurrencyLocaleProvider } from "@platform/ui";
 import "./globals.css";
 import "./it-design.css";
 import { CopyProvider } from "../components/CopyProvider";
-import { copyFor, getLocale } from "../lib/i18n";
+import { copyFor } from "../lib/i18n";
+import { getCompanyBranding } from "../lib/company-branding";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const copy = copyFor(await getLocale());
-  return { title: copy.app.name, robots: { index: false, follow: false } };
+  const branding = await getCompanyBranding();
+  return {
+    title: branding.name,
+    icons: branding.iconUrl ? [{ url: branding.iconUrl }] : undefined,
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function RootLayout({
@@ -22,14 +27,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  // The default company theme; the theme moves to the system service with the settings pages (Phase 4).
   const theme = normalizeTheme(undefined);
   const fontsHref = googleFontsHref(theme);
+  const copy = copyFor("en");
+
   return (
     <html
-      lang={locale}
-      dir={locale === "ar" ? "rtl" : "ltr"}
+      lang="en"
+      dir="ltr"
       suppressHydrationWarning
       className={theme.defaultMode === "dark" ? "dark" : "light"}
     >
@@ -47,9 +52,9 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeStylesheet(theme) }}
         />
       </head>
-      <body className="it-app-body min-h-screen antialiased">
-        <CopyProvider copy={copyFor(locale)} locale={locale}>
-          <CurrencyLocaleProvider value={locale}>
+      <body className="it-app-body min-h-screen antialiased bg-[#f4f6f8] dark:bg-[#0b1320] text-slate-900 dark:text-slate-100 font-sans">
+        <CopyProvider copy={copy} locale="en">
+          <CurrencyLocaleProvider value="en">
             <ConfirmationProvider>{children}</ConfirmationProvider>
             <Toaster richColors closeButton position="top-right" />
           </CurrencyLocaleProvider>

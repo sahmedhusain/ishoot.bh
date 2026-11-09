@@ -12,7 +12,6 @@ const files = execFileSync(
   .split("\0")
   .filter(Boolean);
 
-// Folders synced by iCloud or Dropbox leave conflict copies such as "seed 2.ts" next to the real file.
 test("no sync-conflict copies are committed", () => {
   expect(
     files.filter(
@@ -28,7 +27,6 @@ test("apps keep no files in public/ (company files live in company/profiles)", (
   );
 });
 
-// Next rewrites these when it starts with another build folder (test servers); that must never be committed.
 test("tsconfig and next-env reference only the standard .next folder", () => {
   const fs = require("node:fs") as typeof import("node:fs");
   for (const app of ["admin", "web"])

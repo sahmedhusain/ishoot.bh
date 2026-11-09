@@ -1,12 +1,10 @@
 "use client";
-// A person's picture, or the first letters of their name when they have none (docs/adr/0012), with an optional dot
-// for their status. Colours come from the name, so the same person always looks the same.
+
 import * as React from "react";
 import { cn } from "./utils";
 
 export type PresenceTone = "available" | "busy" | "away" | "leave" | "offline";
 
-/** Two letters: the first of the first and last words ("Sara Al Khalifa" → "SK"), or the first two of one word. */
 export function initialsOf(name: string | null | undefined): string {
   const words = (name ?? "")
     .replace(/[.,;:!?()[\]{}"«»<>@#&*/\\|_+=~`^$%0-9]/g, " ")
@@ -32,7 +30,6 @@ const TONE_COLOURS: Record<PresenceTone, string> = {
   offline: "#9ca3af",
 };
 
-/** A small status dot; do not disturb shows a bar, offline a hollow ring. */
 export function PresenceDot({
   tone,
   doNotDisturb,
@@ -70,15 +67,15 @@ export function PresenceDot({
 
 export interface UserAvatarProps {
   name: string;
-  /** The picture's address; the initials show without one, or when it cannot be loaded. */
+
   src?: string | null;
   size?: number;
   tone?: PresenceTone | null;
   doNotDisturb?: boolean;
-  /** Accessible status text for the dot. */
+
   statusLabel?: string;
   className?: string;
-  /** Square with rounded corners instead of a circle. */
+
   rounded?: "full" | "xl";
 }
 
@@ -108,12 +105,12 @@ export function UserAvatar({
           "flex h-full w-full items-center justify-center overflow-hidden font-semibold text-white",
           rounded === "full" ? "rounded-full" : "rounded-xl",
         )}
-        // 30% lightness keeps white initials at 4.5:1 or more for every hue (yellow is the closest, about 4.9:1).
+
         style={showImage ? undefined : { background: `hsl(${hue} 52% 30%)`, fontSize: Math.max(10, size * 0.38) }}
         aria-hidden
       >
         {showImage ? (
-          // eslint-disable-next-line @next/next/no-img-element -- avatars come from same-origin file routes
+
           <img
             src={src!}
             alt=""
@@ -126,8 +123,7 @@ export function UserAvatar({
             className="h-full w-full object-cover"
           />
         ) : (
-          // Generated content, not text: the initials are decoration (the name is read out below), so a labelled
-          // button holding the avatar keeps its own accessible name.
+
           <span dir="auto" data-initials={initialsOf(name)} className="before:content-[attr(data-initials)]" />
         )}
       </span>

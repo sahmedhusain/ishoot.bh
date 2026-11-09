@@ -5,7 +5,6 @@ import { currentUser } from "../../../../../lib/session";
 
 export const dynamic = "force-dynamic";
 
-/** An attachment of a ticket, for IT staff who may read tickets. The ticket is read with their own token. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },

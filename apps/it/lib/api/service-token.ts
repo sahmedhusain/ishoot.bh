@@ -2,7 +2,6 @@ import { importJWK, SignJWT, type JWK } from "jose";
 import { generateKeyPairSync } from "node:crypto";
 import { serviceCaller, serviceTokenTtlSeconds } from "./config";
 
-/** The issuer prefix and audience the services expect (backend/pkg/authn). */
 const ISSUER_PREFIX = "service:";
 const AUDIENCE = "platform:service";
 
@@ -28,7 +27,7 @@ function loadSigner(caller: string): Promise<Signer> {
         }
       }
     } catch {
-      // ignore
+
     }
   }
   const encoded = process.env[name];
@@ -49,7 +48,6 @@ function loadSigner(caller: string): Promise<Signer> {
   return importJWK(jwk, "EdDSA").then((key) => ({ key, kid: jwk.kid! }));
 }
 
-/** A short-lived token proving this app is the caller. Reused until shortly before it expires. */
 export async function serviceToken(): Promise<string> {
   const now = Date.now();
   if (cached && now < cached.renewAt) return cached.token;
@@ -65,7 +63,7 @@ export async function serviceToken(): Promise<string> {
     .setIssuedAt()
     .setExpirationTime(Math.floor(now / 1000) + ttl)
     .sign(key);
-  // Renew at 80% of the lifetime so a token never expires in flight.
+
   cached = { token, renewAt: now + ttl * 800 };
   return token;
 }

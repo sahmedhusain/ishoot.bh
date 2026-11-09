@@ -5,10 +5,6 @@ import {
   TonalPalette,
 } from "@material/material-color-utilities";
 
-// The company's visual identity: two brand colours, fonts, corner radius, type and default mode.
-// Everything else (hover shades, tinted surfaces, glow) is derived, so a company picks a few values
-// in the setup wizard and both apps stay consistent in light and dark mode.
-
 export type FontChoice =
   | { kind: "system" }
   | { kind: "google"; family: string }
@@ -24,7 +20,7 @@ export type ThemeButtonShape = "square" | "rounded" | "pill";
 export type ThemeFontScale = "sm" | "md" | "lg";
 export type ThemeHeadingCase = "normal" | "uppercase";
 export type ThemeSurface = "tinted" | "neutral";
-/** The public website's background: dark (the original look) or light. The admin follows each person's choice. */
+
 export type WebsiteMode = "dark" | "light";
 
 export interface BrandTheme {
@@ -33,15 +29,15 @@ export interface BrandTheme {
   fonts: { body: FontChoice; heading: FontChoice };
   radius: ThemeRadius;
   defaultMode: ThemeMode;
-  /** Buttons: square corners, the theme radius, or fully rounded. */
+
   buttonShape: ThemeButtonShape;
-  /** Base text size for both apps. */
+
   fontScale: ThemeFontScale;
-  /** Weight of website headings. */
+
   headingWeight: number;
-  /** Latin website headings in capitals (Arabic has no case). */
+
   headingCase: ThemeHeadingCase;
-  /** Neutral backgrounds carry a faint tint of the primary colour, or stay pure grey. */
+
   surface: ThemeSurface;
   websiteMode: WebsiteMode;
 }
@@ -55,7 +51,7 @@ export const DEFAULT_THEME: BrandTheme = {
   },
   radius: "lg",
   defaultMode: "system",
-  // Pill buttons were the look before shapes were configurable, so themes saved earlier keep it.
+
   buttonShape: "pill",
   fontScale: "md",
   headingWeight: 700,
@@ -68,12 +64,11 @@ export type FontCategory = "sans" | "serif" | "display" | "handwriting";
 export interface LibraryFont {
   family: string;
   category: FontCategory;
-  /** "arabic" families also carry Latin glyphs; "latin" ones fall back to the system font for Arabic. */
+
   script: "arabic" | "latin";
   weights: readonly number[];
 }
 
-/** Google families offered in the setup wizard; every weight here was checked against Google Fonts. */
 export const FONT_LIBRARY: readonly LibraryFont[] = [
   {
     family: "IBM Plex Sans Arabic",
@@ -428,15 +423,10 @@ export const FONT_LIBRARY: readonly LibraryFont[] = [
   },
 ];
 
-/** Kept for existing callers: the Arabic-capable part of the library. */
 export const CURATED_FONTS = FONT_LIBRARY.filter(
   (font) => font.script === "arabic",
 );
 
-/**
- * Free fonts whose licence does not allow us to ship or re-host the files: each company downloads its own copy
- * from the publisher and uploads it, and the wizard fills in the family name for it.
- */
 export const LICENSED_FONTS = [
   {
     family: "Thmanyah Sans",
@@ -458,7 +448,6 @@ export const LICENSED_FONTS = [
   },
 ] as const;
 
-/** Font files a company may upload, by their real (sniffed) type. */
 export const FONT_FILE_TYPES = {
   "font/woff2": { extension: "woff2", format: "woff2" },
   "font/woff": { extension: "woff", format: "woff" },
@@ -469,7 +458,7 @@ export type FontMimeType = keyof typeof FONT_FILE_TYPES;
 export const FONT_EXTENSIONS = Object.values(FONT_FILE_TYPES).map(
   (t) => t.extension,
 );
-/** A public brand font upload URL (any accepted font extension). */
+
 export const FONT_UPLOAD_URL = new RegExp(
   `^/api/files/brand/[a-zA-Z0-9_-]+\\.(${FONT_EXTENSIONS.join("|")})$`,
 );
@@ -478,7 +467,6 @@ export function isFontMimeType(value: unknown): value is FontMimeType {
   return typeof value === "string" && Object.hasOwn(FONT_FILE_TYPES, value);
 }
 
-/** The font type a file name suggests, for browsers that leave font types empty. */
 export function fontMimeFromName(name: string): FontMimeType | "" {
   const extension = name.split(".").pop()?.toLowerCase();
   return (
@@ -500,7 +488,6 @@ const WEIGHT_NAMES: [RegExp, number][] = [
   [/regular|normal|book|roman/i, 400],
 ];
 
-/** The weight a font file name implies ("ThmanyahSans-Bold.otf" → 700), or null when it says nothing. */
 export function weightFromFileName(name: string): number | null {
   const stem = name.replace(/\.[^.]+$/, "");
   const numeric = stem.match(/(?:^|[^0-9])([1-9]00)(?:[^0-9]|$)/);
@@ -508,7 +495,6 @@ export function weightFromFileName(name: string): number | null {
   return WEIGHT_NAMES.find(([pattern]) => pattern.test(stem))?.[1] ?? null;
 }
 
-/** Complete looks a company can start from; colours, fonts and shapes can still be changed one by one. */
 export const STYLE_PRESETS: {
   id: string;
   theme: Omit<BrandTheme, "defaultMode">;
@@ -979,7 +965,6 @@ function fromHsl(h: number, s: number, l: number) {
   return toHex([f(0) * 255, f(8) * 255, f(4) * 255]);
 }
 
-/** Same hue and saturation, lightness moved by `delta` (−1…1). */
 export function shade(hex: string, delta: number) {
   const [h, s, l] = hsl(hex);
   return fromHsl(h, s, Math.min(1, Math.max(0, l + delta)));
@@ -993,20 +978,17 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** `hex` blended towards `toward` by `amount` (0…1); used where CSS variables cannot be (PDF, email). */
 export function mix(hex: string, toward: string, amount: number) {
   const a = rgb(hex),
     b = rgb(toward);
   return toHex(a.map((v, i) => v + (b[i] - v) * amount));
 }
 
-/** WCAG contrast ratio between two colours, 1 to 21. */
 export function contrastRatio(a: string, b: string) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** White or near-black, whichever reads better on the given background. */
 export function readableOn(background: string) {
   return contrastRatio(background, "#FFFFFF") >=
     contrastRatio(background, "#0F172A")
@@ -1041,7 +1023,6 @@ function validFont(value: unknown): FontChoice | null {
   return null;
 }
 
-/** A stored theme with anything missing or invalid replaced by the default, so rendering never fails. */
 export function normalizeTheme(value: unknown): BrandTheme {
   const input = (
     value && typeof value === "object" ? value : {}
@@ -1088,7 +1069,6 @@ export function normalizeTheme(value: unknown): BrandTheme {
   };
 }
 
-/** Problems a person choosing colours should see before saving (contrast below WCAG AA for text/buttons). */
 export function themeWarnings(theme: BrandTheme) {
   const warnings: ("primaryOnLight" | "accentOnDark" | "accentButtonText")[] =
     [];
@@ -1105,8 +1085,6 @@ const channels = (hex: string) => rgb(hex).join(" ");
 const familyCss = (font: FontChoice, fallback: string) =>
   font.kind === "system" ? fallback : `"${font.family}", ${fallback}`;
 
-/** Every CSS variable both apps read. Colours are RGB channels so Tailwind opacity modifiers work. */
-/** Lightness steps of the accent's tonal palette (tone-5 is near black, tone-95 near white). */
 export const THEME_TONES = [
   5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95,
 ] as const;
@@ -1114,7 +1092,7 @@ export const THEME_TONES = [
 export function themeVariables(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const [hue] = hsl(theme.primary);
-  // Neutral surfaces keep the same lightness steps without the primary's hue.
+
   const tintStrength = theme.surface === "neutral" ? 0.06 : 1;
   const tint = (s: number, l: number) =>
     channels(fromHsl(hue, s * tintStrength, l));
@@ -1169,7 +1147,7 @@ export function themeVariables(input: BrandTheme) {
           (letter) => `-${letter.toLowerCase()}`,
         );
         const hex = hexFromArgb(value);
-        // Official tokens are CSS colours; channel aliases support Tailwind opacity modifiers.
+
         return [
           [`--md-sys-color-${name}`, hex],
           [`--m3-color-${name}`, channels(hex)],
@@ -1199,7 +1177,7 @@ export function themeVariables(input: BrandTheme) {
       theme.headingCase === "uppercase" ? "uppercase" : "none",
     "--brand-font-body": familyCss(theme.fonts.body, sans),
     "--brand-font-heading": familyCss(theme.fonts.heading, sans),
-    // Material Design 3 Shape Scale
+
     "--md-sys-shape-corner-none": "0px",
     "--md-sys-shape-corner-extra-small": "4px",
     "--md-sys-shape-corner-small": "8px",
@@ -1207,7 +1185,7 @@ export function themeVariables(input: BrandTheme) {
     "--md-sys-shape-corner-large": "16px",
     "--md-sys-shape-corner-extra-large": "28px",
     "--md-sys-shape-corner-full": "9999px",
-    // Material Design 3 Motion Tokens
+
     "--md-sys-motion-easing-standard": "cubic-bezier(0.2, 0, 0, 1)",
     "--md-sys-motion-easing-emphasized": "cubic-bezier(0.05, 0.7, 0.1, 1.0)",
     "--md-sys-motion-easing-emphasized-decelerate":
@@ -1224,7 +1202,7 @@ export function themeVariables(input: BrandTheme) {
     "--md-sys-motion-duration-medium4": "400ms",
     "--md-sys-motion-duration-long1": "450ms",
     "--md-sys-motion-duration-long2": "500ms",
-    // Material Design 3 State Layers & Elevation
+
     "--md-sys-state-hover-opacity": "0.08",
     "--md-sys-state-focus-opacity": "0.12",
     "--md-sys-state-pressed-opacity": "0.12",
@@ -1242,7 +1220,7 @@ export function themeVariables(input: BrandTheme) {
       "0 8px 12px 6px rgba(0, 0, 0, 0.14), 0 12px 20px 7px rgba(0, 0, 0, 0.16)",
     ...tones,
   };
-  // Neutrals carry a faint tint of the primary hue (tonal surfaces), in both modes.
+
   const dark = {
     "--brand-bg-base": tint(0.25, 0.025),
     "--brand-bg-surface": tint(0.23, 0.057),
@@ -1283,7 +1261,6 @@ function fontFormat(url: string) {
   );
 }
 
-/** The stylesheet injected into each app's <head>: variables plus @font-face for uploaded fonts. */
 export function themeStylesheet(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const { common, dark, light } = themeVariables(theme);
@@ -1306,7 +1283,6 @@ export function themeStylesheet(input: BrandTheme) {
   );
 }
 
-/** Public regions inherit the same generated palettes as the admin, including native controls and logos. */
 export function websiteThemeStylesheet(input: BrandTheme) {
   const { light, dark } = themeVariables(normalizeTheme(input));
   return (["light", "dark"] as const).map(mode => block(
@@ -1329,7 +1305,6 @@ export function websiteThemeStylesheet(input: BrandTheme) {
   )).join("");
 }
 
-/** Google Fonts stylesheet for any Google families in the theme, or null when none are used. */
 export function googleFontsHref(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const families = Array.from(
@@ -1341,7 +1316,7 @@ export function googleFontsHref(input: BrandTheme) {
   );
   if (!families.length) return null;
   const query = families.map((family) => {
-    // Asking for a weight a family lacks fails the whole request, so unknown families get the default weight only.
+
     const weights = FONT_LIBRARY.find((f) => f.family === family)?.weights;
     return `family=${family.replace(/ /g, "+")}${weights ? `:wght@${weights.join(";")}` : ""}`;
   });

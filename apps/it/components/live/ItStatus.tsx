@@ -1,5 +1,5 @@
 "use client";
-// The IT account's status (docs/adr/0012): pick one and when it clears, or go back to automatic.
+
 import * as React from "react";
 import { toast } from "sonner";
 import { formatMessage } from "@platform/locales";

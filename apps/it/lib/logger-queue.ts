@@ -1,13 +1,10 @@
-/**
- * IT Enterprise Log Queue & Diagnostic Store (SAP/Oracle Telemetry Buffer)
- * Prevents concurrent DB/backend load via client & server queue batching.
- */
+
 
 export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL";
 
 export interface LogEntry {
   id: string;
-  timestamp: string; // ISO 8601
+  timestamp: string; 
   level: LogLevel;
   service: string;
   user: string;
@@ -20,11 +17,9 @@ export interface LogEntry {
   metadata?: Record<string, unknown>;
 }
 
-// In-memory ring buffer (up to 3000 entries) to avoid thrashing PostgreSQL
 const MAX_BUFFER_SIZE = 3000;
 const logStore: LogEntry[] = [];
 
-// Realistic seed logs spanning multiple users, services, and time ranges
 function initLogStore() {
   if (logStore.length > 0) return;
 
@@ -70,9 +65,8 @@ function initLogStore() {
     { action: "SERVICE_HEARTBEAT", level: "DEBUG" as LogLevel, msg: "Liveness probe OK on /healthz" },
   ];
 
-  // Generate 120 historical entries over the last 7 days
   for (let i = 120; i >= 0; i--) {
-    const timeOffsetMinutes = i * 45; // Spread over ~90 hours
+    const timeOffsetMinutes = i * 45; 
     const entryDate = new Date(now - timeOffsetMinutes * 60 * 1000);
     const act = sampleActions[i % sampleActions.length];
     const user = sampleUsers[i % sampleUsers.length];
@@ -101,7 +95,6 @@ function initLogStore() {
   }
 }
 
-// Initialise upon module load
 initLogStore();
 
 export function getLogs(params?: {
@@ -116,7 +109,6 @@ export function getLogs(params?: {
 }): { items: LogEntry[]; totalCount: number; bufferSize: number } {
   let items = [...logStore];
 
-  // 1. Time range filter
   if (params?.timeRange && params.timeRange !== "all") {
     const now = Date.now();
     const rangeMsMap: Record<string, number> = {
@@ -130,23 +122,19 @@ export function getLogs(params?: {
     items = items.filter((log) => new Date(log.timestamp).getTime() >= cutoff);
   }
 
-  // 2. User filter
   if (params?.user && params.user.trim() !== "" && params.user !== "all") {
     const u = params.user.trim().toLowerCase();
     items = items.filter((log) => log.user.toLowerCase().includes(u));
   }
 
-  // 3. Level filter
   if (params?.level && params.level !== "ALL") {
     items = items.filter((log) => log.level === params.level);
   }
 
-  // 4. Service filter
   if (params?.service && params.service !== "all") {
     items = items.filter((log) => log.service === params.service);
   }
 
-  // 5. Search query
   if (params?.search && params.search.trim() !== "") {
     const q = params.search.trim().toLowerCase();
     items = items.filter(
@@ -159,7 +147,6 @@ export function getLogs(params?: {
     );
   }
 
-  // 6. Sorting
   const sortBy = params?.sortBy ?? "timestamp";
   const sortDir = params?.sortDir ?? "desc";
   const severityWeight: Record<LogLevel, number> = {
@@ -207,13 +194,10 @@ export function pushLogs(entries: Omit<LogEntry, "id">[]) {
   }
 }
 
-/**
- * Client-side Log Queue for batching frontend logs
- */
 export class ClientLogQueue {
   private static queue: Omit<LogEntry, "id">[] = [];
   private static timer: ReturnType<typeof setTimeout> | null = null;
-  private static flushIntervalMs = 5000; // 5-second interval
+  private static flushIntervalMs = 5000; 
   private static maxBatchSize = 25;
 
   public static enqueue(entry: Omit<LogEntry, "id" | "timestamp">) {
@@ -223,7 +207,6 @@ export class ClientLogQueue {
     };
     this.queue.push(fullEntry);
 
-    // If critical error or buffer full, flush immediately
     if (entry.level === "FATAL" || entry.level === "ERROR" || this.queue.length >= this.maxBatchSize) {
       void this.flush();
       return;
@@ -256,7 +239,7 @@ export class ClientLogQueue {
         });
       }
     } catch {
-      // Re-queue in case of network issue, capped to avoid explosion
+
       if (this.queue.length < 100) {
         this.queue.unshift(...batch);
       }

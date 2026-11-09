@@ -4,7 +4,6 @@ import { AuditView, type AuditFilter } from "../../../components/AuditView";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** A calendar day (UTC) as the start of that day, or of the next one for an inclusive end date. */
 const dayStart = (day: string, next = false) => {
   const date = new Date(`${day}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return undefined;

@@ -126,7 +126,6 @@ export function ApiTesterView({ token }: { token: string }) {
         return;
       }
 
-      // Automatically append Authorization bearer
       if (!parsedHeaders["Authorization"]) {
         parsedHeaders["Authorization"] = `Bearer ${token}`;
       }
@@ -192,17 +191,13 @@ export function ApiTesterView({ token }: { token: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
+      <div>
         <PageTitle
           title={at.title}
           description={at.description}
         />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SE38 [API RUNNER]
-        </span>
       </div>
 
-      {/* Preset Endpoints Dropdown Selector */}
       <Card className="it-card p-3 space-y-2">
         <div className="text-[10px] font-bold uppercase tracking-wider font-mono text-ink-muted">
           {at.presetEndpoints}
@@ -232,10 +227,9 @@ export function ApiTesterView({ token }: { token: string }) {
         </div>
       </Card>
 
-      {/* Request Composer */}
       <Card className="it-card p-5 space-y-4">
         <form onSubmit={executeRequest} className="space-y-4 font-mono text-xs">
-          {/* Method and Path Bar */}
+
           <div className="flex flex-wrap items-center gap-2">
             <select
               value={method}
@@ -269,7 +263,6 @@ export function ApiTesterView({ token }: { token: string }) {
             </button>
           </div>
 
-          {/* Headers & Body Tabs */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
               <label className="block text-[10px] font-bold uppercase text-ink-muted mb-1">
@@ -303,7 +296,6 @@ export function ApiTesterView({ token }: { token: string }) {
         </form>
       </Card>
 
-      {/* Response Panel */}
       {responseStatus !== null && (
         <Card className="it-card p-5 space-y-4 font-mono text-xs">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant pb-3">

@@ -20,7 +20,7 @@ export interface ModalProps {
   kind?: "form" | "confirmation" | "command" | "picker";
   icon?: React.ReactNode;
   ariaLabel?: string;
-  /** Accessible name of the close button (localise it in the calling app). */
+
   closeLabel?: string;
 }
 
@@ -28,7 +28,6 @@ const ModalFooterContext = React.createContext<HTMLElement | null | undefined>(
   undefined,
 );
 
-/** A modular form can keep its own action state while placing controls in the dialog footer. */
 export function ModalFooter({ children }: { children: React.ReactNode }) {
   const host = React.useContext(ModalFooterContext);
   if (host === undefined) return <>{children}</>;
@@ -38,10 +37,6 @@ export function ModalFooter({ children }: { children: React.ReactNode }) {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Dialog behaviour for any overlay: focuses the first field, keeps Tab inside, closes on Escape,
- * restores focus to the opener and locks page scroll. Spread the returned props on the dialog card.
- */
 const openDialogs: HTMLElement[] = [];
 let bodyOverflow = "";
 
@@ -55,12 +50,12 @@ export function useDialog(isOpen: boolean, onClose: () => void) {
 
   React.useLayoutEffect(() => {
     if (!isOpen) return;
-    // Capture before editor animation frames or other passive effects can move focus.
+
     const opener = document.activeElement as HTMLElement | null;
     const card = ref.current;
     if (!card) return;
     if (!openDialogs.length) bodyOverflow = document.body.style.overflow;
-    // Register first so an underlying dialog does not reclaim the new dialog's focus.
+
     openDialogs.push(card);
     document.body.style.overflow = "hidden";
     const first = Array.from(
@@ -146,7 +141,6 @@ export function useDialog(isOpen: boolean, onClose: () => void) {
   };
 }
 
-/** Accessible dialog shell: labelled by its title, with the behaviour of useDialog plus backdrop click. */
 export function Modal({
   isOpen,
   onClose,

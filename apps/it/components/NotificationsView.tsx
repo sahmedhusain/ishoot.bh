@@ -120,7 +120,6 @@ function TestForm() {
   );
 }
 
-/** The platform's outgoing messages: what was sent, what failed and why, with retry and a test message. */
 export function NotificationsView({
   filter,
   page,
@@ -158,14 +157,8 @@ export function NotificationsView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2">
-        <PageTitle title={n.title} description={n.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SOST [NOTIFICATIONS]
-        </span>
-      </div>
+      <PageTitle title={n.title} description={n.description} />
 
-      {/* Metrics Strips */}
       <div className="grid grid-cols-3 gap-2 font-mono text-xs" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
         {(["sent", "queued", "failed"] as const).map((status) => (
           <div
@@ -188,7 +181,6 @@ export function NotificationsView({
         </div>
       )}
 
-      {/* Structured Dropdown Filter Bar */}
       <div className="it-card space-y-2">
         <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
           <div className="flex items-center gap-1.5 font-mono text-xs font-bold uppercase text-ink">
@@ -198,7 +190,7 @@ export function NotificationsView({
         </div>
 
         <form onSubmit={handleApplyFilter} className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 text-xs font-mono">
-          {/* Status Dropdown */}
+
           <div>
             <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
               {n.status}
@@ -215,7 +207,6 @@ export function NotificationsView({
             </select>
           </div>
 
-          {/* Channel Dropdown */}
           <div>
             <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
               {n.channel}
@@ -231,7 +222,6 @@ export function NotificationsView({
             </select>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-end gap-1.5">
             <button
               type="submit"
@@ -250,7 +240,6 @@ export function NotificationsView({
         </form>
       </div>
 
-      {/* Tabular Notification Log */}
       {!page ? (
         <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
           {n.unavailable}
@@ -345,7 +334,6 @@ export function NotificationsView({
         </div>
       )}
 
-      {/* Navigation Pagination */}
       <nav className="flex gap-2 pt-2 font-mono text-xs" aria-label={n.pages}>
         {filter.cursor && (
           <Link
@@ -368,7 +356,6 @@ export function NotificationsView({
   );
 }
 
-/** One message. HTML is shown as source, never rendered. */
 export function NotificationDetail({
   message: m,
   canExecute,

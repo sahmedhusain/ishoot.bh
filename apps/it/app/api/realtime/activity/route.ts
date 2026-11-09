@@ -4,7 +4,6 @@ import { currentUser } from "../../../../lib/session";
 
 export const dynamic = "force-dynamic";
 
-/** The browser reports that the IT account went idle or came back, for their status (away). */
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   if (!user) return new NextResponse(null, { status: 401 });

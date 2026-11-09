@@ -23,7 +23,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  // Maintenance Dialog State
   const [maintenanceAction, setMaintenanceAction] = React.useState<{
     type: "vacuum" | "reindex" | "purge_outbox";
     title: string;
@@ -32,7 +31,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
   } | null>(null);
   const [maintenanceBusy, setMaintenanceBusy] = React.useState(false);
 
-  // Query Runner State
   const [queryInput, setQueryInput] = React.useState(
     "SELECT schemaname, tablename, n_live_tup, n_dead_tup, last_vacuum FROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 5;"
   );
@@ -82,7 +80,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
     const q = queryInput.trim();
     if (!q) return;
 
-    // Safety check: block write/destructive queries
     const destructive = /\b(drop|delete|truncate|alter|update|insert|grant|revoke)\b/i;
     if (destructive.test(q)) {
       toast.error(dbCopy.safetyViolation);
@@ -117,14 +114,11 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           description={dbCopy.description}
         />
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: DB02 [DATABASE OPERATIONS]
-          </span>
           <button
             type="button"
             onClick={refresh}
             disabled={refreshing}
-            className="it-btn-3d py-1.5 px-3 font-bold flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             <span>{dbCopy.refresh}</span>
@@ -132,7 +126,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
         </div>
       </div>
 
-      {/* Connection Pool & Health Gauges */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 font-mono text-xs">
         <div className="it-card p-3 border-l-4 border-l-emerald-600 space-y-1">
           <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.activeConnections}</div>
@@ -161,7 +154,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
         </div>
       </div>
 
-      {/* Maintenance Danger Zone (Protected with Confirmation Modals) */}
       <div className="it-card p-4 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
           <div className="flex items-center gap-2">
@@ -260,9 +252,8 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
         </div>
       </div>
 
-      {/* Goose Migrations and Outbox Table */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Goose Schema Migrations */}
+
         <div className="it-card p-3 space-y-2 font-mono text-xs">
           <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-1.5">
             <Database className="h-4 w-4 text-sky-600" />
@@ -298,7 +289,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           </div>
         </div>
 
-        {/* Outbox Lag */}
         <div className="it-card p-3 space-y-2 font-mono text-xs">
           <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-1.5">
             <Send className="h-4 w-4 text-sky-600" />
@@ -346,7 +336,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
         </div>
       </div>
 
-      {/* Read-Only Diagnostic SQL Console */}
       <div className="it-card p-4 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
           <div className="flex items-center gap-2">
@@ -416,7 +405,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
         )}
       </div>
 
-      {/* Critical Action Modal for Database Maintenance */}
       {maintenanceAction && (
         <CriticalActionModal
           open={Boolean(maintenanceAction)}

@@ -34,7 +34,6 @@ export function IntegrationsView({
   const { copy } = useCopy();
   const c = copy.integrations;
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedGroup, setSelectedGroup] = React.useState("");
   const [selectedStatus, setSelectedStatus] = React.useState("");
@@ -61,16 +60,10 @@ export function IntegrationsView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={c.title} description={c.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SM59 [RFC DESTINATIONS & CONNECTORS]
-        </span>
-      </div>
+      <PageTitle title={c.title} description={c.description} />
 
       {!canEdit && <p className="text-xs font-mono text-ink-muted">{c.readOnly}</p>}
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 text-xs font-mono">
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />

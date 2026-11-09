@@ -1,4 +1,4 @@
-// The files service (backend/services/files): stored files and the upload protocol.
+
 import type { components, paths } from "./generated/files";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
@@ -8,11 +8,9 @@ export type FileRecord = components["schemas"]["File"];
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const files = () => (client ??= serviceClient<paths>());
 
-/** Reserves an address for a user's upload; the bytes follow with writeUpload. */
 export const registerUpload = (body: components["schemas"]["RegisterUpload"]) =>
   unwrap(files().POST("/v1/files/uploads", { body }));
 
-/** Sends the bytes of a reserved upload (exactly the registered size). */
 export const writeUpload = (
   fileUrl: string,
   ownerId: string,
@@ -32,17 +30,14 @@ export const writeUpload = (
     }),
   );
 
-/** Downloads a file from a public link into an upload the owner can claim (a profile picture given as a link). */
 export const importUpload = (body: { ownerId: string; folder: string; url: string }) =>
   unwrap(files().POST("/v1/files/uploads/import", { body }));
 
-/** Checks that an upload is still the owner's and arrived intact. */
 export const verifyUpload = (fileUrl: string, ownerId: string) =>
   unwrap(
     files().POST("/v1/files/uploads/verify", { body: { fileUrl, ownerId } }),
   );
 
-/** Verifies an upload and makes it permanent. */
 export const claimUpload = (
   fileUrl: string,
   ownerId: string,
@@ -54,7 +49,6 @@ export const claimUpload = (
     }),
   );
 
-/** The records of the given files; missing ones are left out. */
 export async function lookupFiles(fileUrls: string[]): Promise<FileRecord[]> {
   if (!fileUrls.length) return [];
   const { items } = await unwrap(
@@ -65,11 +59,9 @@ export async function lookupFiles(fileUrls: string[]): Promise<FileRecord[]> {
   return items;
 }
 
-/** One file's record, or null. */
 export const lookupFile = async (fileUrl: string) =>
   (await lookupFiles([fileUrl]))[0] ?? null;
 
-/** A stored file's bytes as a streaming response (status 200), or null when there is no such file. */
 export async function readFile(fileUrl: string): Promise<Response | null> {
   const { response, error } = await files().GET("/v1/files/content", {
     params: { query: { fileUrl } },
@@ -80,7 +72,6 @@ export async function readFile(fileUrl: string): Promise<Response | null> {
   return response;
 }
 
-/** A stored file's bytes, or null. */
 export async function readFileBytes(fileUrl: string): Promise<Buffer | null> {
   const response = await readFile(fileUrl);
   return response ? Buffer.from(await response.arrayBuffer()) : null;
@@ -88,10 +79,6 @@ export async function readFileBytes(fileUrl: string): Promise<Buffer | null> {
 
 type StoreTarget = { fileUrl: string } | { folder: string; namePrefix: string };
 
-/**
- * Stores a file the platform keeps: at a chosen address, or under a generated one in a folder (its type is read
- * from the bytes). With ifExists "keep", an existing file at the address is left as it is (seeds re-run safely).
- */
 export async function storeFile(
   target: StoreTarget,
   body: Uint8Array | ReadableStream<Uint8Array>,
@@ -99,7 +86,7 @@ export async function storeFile(
     ownerId?: string;
     fileName?: string;
     ifExists?: "fail" | "keep";
-    /** Required for a streamed body. */
+
     size?: number;
   } = {},
 ): Promise<FileRecord | null> {
@@ -127,7 +114,6 @@ export async function storeFile(
   return data;
 }
 
-/** Deletes a file and its record; a missing file is not an error. */
 export async function deleteFile(fileUrl: string): Promise<void> {
   const { response, error } = await files().DELETE("/v1/files/content", {
     params: { query: { fileUrl } },

@@ -5,10 +5,6 @@ import { currentUser } from "../../../../lib/session";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/**
- * The signed-in IT account's live stream (docs/adr/0012), opened with their own token: the realtime service picks the
- * topics their roles allow (the ticket desk, platform health) and closes it when their session is revoked.
- */
 export async function GET(req: NextRequest) {
   const user = await currentUser();
   if (!user) return new Response(null, { status: 401 });

@@ -1,4 +1,4 @@
-// Session cookies for an identity credential. Shared by sign-in (server actions) and renewal (middleware).
+
 import { decodeJwt } from "jose";
 import { refreshSession, type LoginCredential } from "@platform/api-client";
 import { config } from "./config";
@@ -26,7 +26,6 @@ const options = (expires: Date) =>
     expires,
   }) as const;
 
-/** The cookies that hold a signed-in session. The account cookie only labels the header (who is signed in). */
 export function sessionCookies(
   credential: LoginCredential,
   email: string,
@@ -54,7 +53,6 @@ export function sessionCookies(
   ];
 }
 
-/** Cookies that end the session in the browser. */
 export const clearedCookies = (): CookieSpec[] =>
   [config.accessCookie(), config.refreshCookie(), config.accountCookie()].map(
     (name) => ({
@@ -64,7 +62,6 @@ export const clearedCookies = (): CookieSpec[] =>
     }),
   );
 
-/** True when the access token is missing, unreadable or about to expire. */
 export function needsRenewal(accessToken: string | undefined) {
   if (!accessToken) return true;
   try {
@@ -75,9 +72,6 @@ export function needsRenewal(accessToken: string | undefined) {
   }
 }
 
-// A refresh credential works once, and reusing it ends the whole session (identity detects replay). Requests that
-// arrive together share one renewal; the result is kept briefly for requests that started with the old cookie.
-// With several app replicas, route a browser to one replica (sticky sessions) for the same guarantee.
 const renewals = new Map<string, Promise<LoginCredential | null>>();
 
 export function renew(refreshToken: string): Promise<LoginCredential | null> {

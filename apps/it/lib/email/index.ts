@@ -2,7 +2,6 @@ import { serverMessages } from "@platform/locales";
 import { randomUUID } from "node:crypto";
 import { getIntegration, isApiError, queueMessage } from "@platform/api-client";
 
-/** Server-only Resend credentials (the delivery webhook checks its signature with them). */
 export async function getResendCredentials() {
   const record = await getIntegration("resend");
   if (record) {
@@ -12,7 +11,7 @@ export async function getResendCredentials() {
       ? record.credentials
       : null;
   }
-  // Before the integration is saved, only the webhook's signing secret may come from the environment.
+
   return process.env.RESEND_WEBHOOK_SECRET
     ? {
         apiKey: "",
@@ -26,7 +25,7 @@ export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
-  /** Repeating a key never sends again (per recipient). Without one, every call is a new message. */
+
   idempotencyKey?: string;
   attachments?: Array<{
     filename: string;
@@ -35,11 +34,6 @@ export interface SendEmailOptions {
   }>;
 }
 
-/**
- * Hands the e-mail to the notify service (backend/services/notify), which sends it through the provider IT set up
- * (Resend), or Mailpit locally, retrying while the provider is unavailable. Success means the message is queued; IT
- * sees how each delivery went in the IT dashboard. Several recipients are separate messages.
- */
 export async function sendEmail({
   to,
   subject,
@@ -76,7 +70,7 @@ export async function sendEmail({
     }
     return { success: true, id: ids[0] };
   } catch (error) {
-    // notify refused the message itself (an invalid address, too large attachments): say so, in the person's terms.
+
     if (isApiError(error) && error.status === 422)
       return { success: false, error: serverMessages.enterAValidEMailAddress };
     return { success: false, error: serverMessages.providerAcceptanceMissing };

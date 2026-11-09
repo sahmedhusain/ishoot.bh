@@ -15,12 +15,6 @@ export const dynamic = "force-dynamic";
 const FILTERS: InboxFilter[] = ["all", "unread", "read", "archived", "muted"];
 const noStore = { "Cache-Control": "no-store" };
 
-/**
- * The signed-in IT account's notifications (docs/adr/0012), read with their own token:
- *   ?view=preview[&filter=unread]   the latest ten and the unread count
- *   ?id=<id>                        one notification (for a live pop-up)
- *   ?view=settings                  their settings, muted records and status
- */
 export async function GET(req: NextRequest) {
   const user = await currentUser();
   if (!user) return NextResponse.json(null, { status: 401 });

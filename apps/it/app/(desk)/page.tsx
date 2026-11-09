@@ -22,7 +22,7 @@ export default async function OverviewPage({
       redirect("/setup");
     }
   }
-  // The ticket service can be down while the dashboard works; the page says so instead of failing.
+
   const [stats, latest] = await Promise.all([
     asUser(() => queueStats(user.token)).catch(() => null),
     asUser(() => listQueue(user.token, { open: true, limit: 5 })).catch(

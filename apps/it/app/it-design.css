@@ -1,69 +1,44 @@
-/*
- * Old-School SAP GUI & Oracle Forms Utilitarian Enterprise Design System
- * Authentic 3D chiseled bevels, sunken text inputs, classic menu ribbons,
- * high-density tabular typography, and persistent bottom status bar.
- * Applied exclusively to the IT Portal (apps/it).
- */
+
 
 :root {
-  --it-font-base: 12px;
-  --it-bg-canvas: #d4d0c8; /* Classic Windows / SAP GUI 3D Face */
-  --it-bg-surface: #ece9d8;
-  --it-bg-input: #ffffff;
-  --it-border-light: #ffffff;
-  --it-border-shadow: #808080;
-  --it-border-dark: #404040;
-  --it-header-navy: #0a1829;
-  --it-header-title: #f1f5f9;
-  --it-ink: #000000;
-  --it-ink-muted: #555555;
-  --it-accent-gold: #c68a00;
-  --it-accent-blue: #084298;
-  --it-active-blue: #0a246a;
-  --it-active-text: #ffffff;
-  --it-font-ui: "Segoe UI", Tahoma, Arial, sans-serif;
-  --it-font-mono: Consolas, "Courier New", monospace;
+  --it-header-bg: #1a2b49;
+  --it-header-sub: #243756;
+  --it-accent-blue: #0070d2;
+  --it-accent-hover: #005fb2;
+  --it-canvas: #f4f6f8;
+  --it-surface: #ffffff;
+  --it-surface-hover: #f8fafc;
+  --it-border: #e2e8f0;
+  --it-border-subtle: #edf2f7;
+  --it-ink: #1e293b;
+  --it-ink-muted: #64748b;
+  --it-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --it-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 html.dark {
-  --it-bg-canvas: #1c2430;
-  --it-bg-surface: #253040;
-  --it-bg-input: #121820;
-  --it-border-light: #3d4f66;
-  --it-border-shadow: #0e141c;
-  --it-border-dark: #070b10;
-  --it-header-navy: #08101a;
-  --it-header-title: #e2e8f0;
-  --it-ink: #f8fafc;
+  --it-header-bg: #0b1526;
+  --it-header-sub: #132238;
+  --it-accent-blue: #0284c7;
+  --it-accent-hover: #0369a1;
+  --it-canvas: #0b1320;
+  --it-surface: #141f32;
+  --it-surface-hover: #1b2942;
+  --it-border: #1e2d42;
+  --it-border-subtle: #172436;
+  --it-ink: #f1f5f9;
   --it-ink-muted: #94a3b8;
-  --it-active-blue: #1e3a5f;
-  --it-active-text: #ffffff;
 }
 
 body.it-app-body {
-  background: var(--it-bg-canvas);
+  background: var(--it-canvas);
   color: var(--it-ink);
-  font-family: var(--it-font-ui);
-  font-size: var(--it-font-base);
-  line-height: 1.35;
+  font-family: var(--it-font-sans);
+  font-size: 13px;
+  line-height: 1.5;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-}
-
-/* Force strict 0px old-skool rectangular edges everywhere */
-.it-shell *,
-.it-shell button,
-.it-shell input,
-.it-shell select,
-.it-shell textarea,
-.it-shell .rounded-3xl,
-.it-shell .rounded-2xl,
-.it-shell .rounded-xl,
-.it-shell .rounded-lg,
-.it-shell .rounded-md,
-.it-shell .rounded-full {
-  border-radius: 0px !important;
 }
 
 .it-shell {
@@ -72,240 +47,251 @@ body.it-app-body {
   flex-direction: column;
 }
 
-/* Classic SAP Menu Ribbon across the very top */
-.it-menubar {
-  background: var(--it-bg-surface);
-  border-bottom: 1px solid var(--it-border-shadow);
-  padding: 2px 6px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 11px;
-  font-family: var(--it-font-ui);
-  user-select: none;
+.it-header {
+  background: var(--it-header-bg);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
 }
 
-.it-menu-item {
-  padding: 2px 8px;
-  cursor: pointer;
-  color: var(--it-ink);
-  transition: background 60ms ease;
+.it-global-search {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 0.35rem 0.75rem 0.35rem 2rem;
+  transition: all 0.15s ease;
+  width: 100%;
 }
-.it-menu-item:hover {
-  background: var(--it-active-blue);
-  color: var(--it-active-text);
+.it-global-search::placeholder {
+  color: rgba(255, 255, 255, 0.5);
 }
-
-/* Main Top System Bar */
-.it-topbar {
-  background: var(--it-header-navy);
-  border-bottom: 2px solid var(--it-border-dark);
-  color: var(--it-header-title);
-  padding: 4px 8px;
-}
-
-/* Classic SAP Command & Navigation Bar */
-.it-cmd-bar {
-  background: var(--it-bg-surface);
-  border-top: 1px solid var(--it-border-light);
-  border-bottom: 2px solid var(--it-border-shadow);
-  padding: 3px 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Classic Sunken Command Input */
-.it-cmd-field {
-  background: var(--it-bg-input);
-  border-top: 2px solid var(--it-border-shadow);
-  border-left: 2px solid var(--it-border-shadow);
-  border-bottom: 1px solid var(--it-border-light);
-  border-right: 1px solid var(--it-border-light);
-  color: var(--it-ink);
-  font-family: var(--it-font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  width: 175px;
+.it-global-search:focus {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #1e293b;
   outline: none;
-}
-.it-cmd-field:focus {
-  background: #ffffea;
-}
-.dark .it-cmd-field:focus {
-  background: #1e293b;
+  box-shadow: 0 0 0 2px rgba(0, 112, 210, 0.3);
 }
 
-/* Classic 3D Outset Push Buttons */
-.it-btn-3d {
-  background: var(--it-bg-surface);
-  border-top: 2px solid var(--it-border-light);
-  border-left: 2px solid var(--it-border-light);
-  border-bottom: 2px solid var(--it-border-shadow);
-  border-right: 2px solid var(--it-border-shadow);
-  color: var(--it-ink);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
+.it-tabbar {
+  background: var(--it-header-sub);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+}
+
+.it-tab {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0.6rem 0.85rem;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  user-select: none;
+  gap: 0.375rem;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
 }
-.it-btn-3d:hover {
-  background: #f4f0e0;
+.it-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
 }
-.dark .it-btn-3d:hover {
-  background: #2d3b4e;
-}
-.it-btn-3d:active {
-  border-top: 2px solid var(--it-border-shadow);
-  border-left: 2px solid var(--it-border-shadow);
-  border-bottom: 2px solid var(--it-border-light);
-  border-right: 2px solid var(--it-border-light);
-  padding: 3px 7px 1px 9px;
+.it-tab[data-active="true"],
+.it-tab.active {
+  color: #ffffff;
+  border-bottom-color: #38bdf8;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
 }
 
-/* Old-School Sunken Input / Select Fields */
-.it-field-sunken {
-  background: var(--it-bg-input);
-  border-top: 2px solid var(--it-border-shadow);
-  border-left: 2px solid var(--it-border-shadow);
-  border-bottom: 1px solid var(--it-border-light);
-  border-right: 1px solid var(--it-border-light);
-  color: var(--it-ink);
-  font-family: var(--it-font-ui);
-  font-size: 11px;
-  padding: 3px 6px;
-  outline: none;
-}
-.it-field-sunken:focus {
-  border-color: #000080;
-}
-
-/* Classic 3D Beveled Card Container */
-.it-card {
-  background: var(--it-bg-surface);
-  border-top: 2px solid var(--it-border-light);
-  border-left: 2px solid var(--it-border-light);
-  border-bottom: 2px solid var(--it-border-shadow);
-  border-right: 2px solid var(--it-border-shadow);
-  padding: 8px 12px;
-}
-
-/* Classic Sidebar */
 .it-sidebar {
-  background: var(--it-bg-surface);
-  border-inline-end: 2px solid var(--it-border-shadow);
-  border-top: 1px solid var(--it-border-light);
+  background: var(--it-surface);
+  border-right: 1px solid var(--it-border);
 }
 
 .it-nav-heading {
-  padding: 3px 8px;
-  font-family: var(--it-font-ui);
-  font-size: 10px;
-  font-weight: 700;
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--it-ink-muted);
-  background: #e2dfcf;
-  border-top: 1px solid var(--it-border-light);
-  border-bottom: 1px solid var(--it-border-shadow);
-  margin-top: 4px;
-}
-.dark .it-nav-heading {
-  background: #17202c;
 }
 
 .it-nav-item {
   color: var(--it-ink);
-  padding: 4px 10px;
-  font-size: 11px;
+  padding: 0.45rem 0.75rem;
+  font-size: 12px;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.5rem;
   text-decoration: none;
-  border: 1px solid transparent;
+  border-radius: 6px;
+  margin: 0.1rem 0.5rem;
+  transition: all 0.12s ease;
 }
 .it-nav-item:hover {
-  background: #d8d4c4;
-}
-.dark .it-nav-item:hover {
-  background: #2a374a;
+  background: var(--it-surface-hover);
+  color: var(--it-accent-blue);
 }
 .it-nav-item[aria-current="page"] {
-  background: var(--it-active-blue);
-  color: var(--it-active-text);
-  font-weight: 700;
+  background: rgba(0, 112, 210, 0.08);
+  color: var(--it-accent-blue);
+  font-weight: 600;
 }
-.it-nav-item[aria-current="page"] * {
-  color: var(--it-active-text) !important;
+.dark .it-nav-item[aria-current="page"] {
+  background: rgba(2, 132, 199, 0.15);
+  color: #38bdf8;
 }
 
-/* Classic Dense SAP Table */
+.it-card {
+  background: var(--it-surface);
+  border: 1px solid var(--it-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  padding: 1rem 1.25rem;
+}
+
+.it-btn-3d,
+.it-btn-secondary {
+  background: var(--it-surface);
+  border: 1px solid var(--it-border);
+  border-radius: 6px;
+  color: var(--it-ink);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+.it-btn-3d:hover,
+.it-btn-secondary:hover {
+  background: var(--it-surface-hover);
+  border-color: #cbd5e1;
+}
+.dark .it-btn-3d:hover,
+.dark .it-btn-secondary:hover {
+  border-color: #334155;
+}
+.it-btn-3d:active,
+.it-btn-secondary:active {
+  transform: scale(0.99);
+}
+
+.it-btn-primary {
+  background: var(--it-accent-blue);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 112, 210, 0.2);
+  transition: all 0.15s ease;
+}
+.it-btn-primary:hover {
+  background: var(--it-accent-hover);
+}
+.it-btn-primary:active {
+  transform: scale(0.99);
+}
+
+.it-field-sunken,
+.it-cmd-field,
+.it-input {
+  background: var(--it-surface);
+  border: 1px solid var(--it-border);
+  border-radius: 6px;
+  color: var(--it-ink);
+  font-size: 12px;
+  padding: 0.4rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.it-field-sunken:focus,
+.it-cmd-field:focus,
+.it-input:focus {
+  border-color: var(--it-accent-blue);
+  box-shadow: 0 0 0 3px rgba(0, 112, 210, 0.15);
+}
+
 .it-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-  background: var(--it-bg-input);
-  border: 1px solid var(--it-border-shadow);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  background: var(--it-surface);
+  border: 1px solid var(--it-border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .it-table th {
-  background: var(--it-bg-surface);
-  border-top: 1px solid var(--it-border-light);
-  border-left: 1px solid var(--it-border-light);
-  border-bottom: 2px solid var(--it-border-shadow);
-  border-right: 1px solid var(--it-border-shadow);
-  padding: 3px 6px;
+  background: var(--it-surface-hover);
+  border-bottom: 1px solid var(--it-border);
+  padding: 0.6rem 0.85rem;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   text-align: start;
-  color: var(--it-ink);
+  color: var(--it-ink-muted);
 }
 
 .it-table td {
-  border: 1px solid #d4d0c8;
-  padding: 3px 6px;
+  border-bottom: 1px solid var(--it-border-subtle);
+  padding: 0.6rem 0.85rem;
+  color: var(--it-ink);
 }
-.dark .it-table td {
-  border-color: #273546;
+
+.it-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .it-table tbody tr:hover {
-  background: #ffffcc;
-  color: #000000;
+  background: rgba(0, 112, 210, 0.02);
 }
 .dark .it-table tbody tr:hover {
-  background: #2c4263;
-  color: #ffffff;
+  background: rgba(2, 132, 199, 0.05);
 }
 
-/* User Menu Dropdown */
 .it-user-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   right: 0;
-  margin-top: 2px;
-  background: var(--it-bg-surface);
-  border-top: 2px solid var(--it-border-light);
-  border-left: 2px solid var(--it-border-light);
-  border-bottom: 2px solid var(--it-border-dark);
-  border-right: 2px solid var(--it-border-dark);
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  width: 250px;
+  background: var(--it-surface);
+  border: 1px solid var(--it-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  width: 260px;
   z-index: 100;
-  padding: 4px 0;
+  overflow: hidden;
 }
 
 .it-user-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  font-size: 11px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 12px;
   color: var(--it-ink);
   cursor: pointer;
   text-decoration: none;
@@ -313,38 +299,29 @@ body.it-app-body {
   border: none;
   width: 100%;
   text-align: start;
+  transition: background 0.12s ease;
 }
 .it-user-dropdown-item:hover {
-  background: var(--it-active-blue);
-  color: var(--it-active-text);
-}
-
-/* Classic SAP Status Bar at Bottom */
-.it-statusbar {
-  background: var(--it-bg-surface);
-  border-top: 2px solid var(--it-border-shadow);
-  color: var(--it-ink);
-  font-size: 11px;
-  font-family: var(--it-font-ui);
-  display: flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 4px;
+  background: var(--it-surface-hover);
+  color: var(--it-accent-blue);
 }
 
 .it-status-pane {
-  border-top: 1px solid var(--it-border-shadow);
-  border-left: 1px solid var(--it-border-shadow);
-  border-bottom: 1px solid var(--it-border-light);
-  border-right: 1px solid var(--it-border-light);
-  padding: 1px 6px;
-  height: 18px;
+  background: var(--it-surface-hover);
+  border: 1px solid var(--it-border);
+  border-radius: 4px;
+  padding: 0.15rem 0.45rem;
+  font-size: 11px;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
-  font-family: var(--it-font-mono);
-  margin-left: 3px;
-  white-space: nowrap;
+  color: var(--it-ink-muted);
+}
+
+.it-menubar,
+.it-statusbar,
+.it-tcode {
+  display: none !important;
 }
 
 @media (min-width: 1024px) {

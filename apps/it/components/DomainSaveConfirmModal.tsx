@@ -43,7 +43,6 @@ export function DomainSaveConfirmModal({
   const websiteChanged = (currentWebsite || "").trim() !== (newWebsite || "").trim();
   const adminChanged = (currentAdmin || "").trim() !== (newAdmin || "").trim();
 
-  // If changing admin domain, require typing "CONFIRM" or the new domain name
   const isMajorChange = adminChanged || websiteChanged;
   const targetRequiredWord = "CONFIRM";
   const isTypedCorrect = !isMajorChange || typedVerification.trim().toUpperCase() === targetRequiredWord;
@@ -57,7 +56,7 @@ export function DomainSaveConfirmModal({
         aria-labelledby="domain-confirm-title"
         className="it-card w-full max-w-xl overflow-hidden border-2 border-slate-700 bg-surface shadow-2xl font-mono text-xs"
       >
-        {/* Header */}
+
         <div className="flex items-center justify-between border-b border-amber-800 bg-amber-950 px-4 py-3 text-white">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-amber-400" />
@@ -76,15 +75,13 @@ export function DomainSaveConfirmModal({
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-5 space-y-4">
           <p className="text-xs text-ink font-sans leading-relaxed">
             {dcm.instructions}
           </p>
 
-          {/* Change Comparison Grid */}
           <div className="space-y-2 border border-outline-variant p-3 bg-slate-50 dark:bg-slate-900/60">
-            {/* Website Domain */}
+
             <div className="space-y-1">
               <div className="text-[10px] font-bold uppercase text-ink-muted">WEBSITE PUBLIC DOMAIN:</div>
               <div className="flex items-center gap-2 text-xs">
@@ -98,7 +95,6 @@ export function DomainSaveConfirmModal({
               </div>
             </div>
 
-            {/* Admin Domain */}
             <div className="space-y-1 pt-2 border-t border-outline-variant">
               <div className="text-[10px] font-bold uppercase text-ink-muted">ADMIN PORTAL DOMAIN:</div>
               <div className="flex items-center gap-2 text-xs">
@@ -113,7 +109,6 @@ export function DomainSaveConfirmModal({
             </div>
           </div>
 
-          {/* Operational Impact Warning */}
           <div className="p-3 border border-amber-600/40 bg-amber-500/10 space-y-1.5 text-ink text-[11px] font-sans">
             <div className="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
               <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -121,7 +116,6 @@ export function DomainSaveConfirmModal({
             </div>
           </div>
 
-          {/* Verification Guard */}
           <div className="space-y-3 pt-1">
             <label className="flex items-start gap-2 cursor-pointer font-sans text-xs">
               <input
@@ -154,7 +148,6 @@ export function DomainSaveConfirmModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-outline-variant bg-slate-100 dark:bg-slate-900/80 px-4 py-3 flex items-center justify-end gap-2">
           <Button
             type="button"

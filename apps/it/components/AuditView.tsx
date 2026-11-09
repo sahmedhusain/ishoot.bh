@@ -23,7 +23,6 @@ const href = (filter: AuditFilter, cursor: string) => {
   return search ? `/audit?${search}` : "/audit";
 };
 
-/** The audit trail: every change the platform's services announced, newest first. */
 export function AuditView({
   filter,
   page,
@@ -40,12 +39,7 @@ export function AuditView({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
-        <PageTitle title={a.title} description={a.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SM20 [SECURITY AUDIT]
-        </span>
-      </div>
+      <PageTitle title={a.title} description={a.description} />
 
       <div className="it-card p-4">
         <form

@@ -52,7 +52,7 @@ export const updateStaffAccountForIT = (
       body,
     }),
   );
-/** Server-only delivery material: send through notify; never return this token from a browser action. */
+
 export const inviteStaffAccountForIT = (token: string, id: string) =>
   unwrap(
     userClient<paths>(token).POST(

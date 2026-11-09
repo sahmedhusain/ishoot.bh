@@ -2,10 +2,6 @@ import { serverMessages } from "@platform/locales";
 import type { ConnectionCheck, Credentials } from "./providers";
 import type { CourierKind } from "../config/constants/delivery";
 
-/**
- * One interface over courier APIs: book a shipment (tracking number and, where offered, a label), read its tracking,
- * and check the credentials. Agencies without an API are handled by hand-entered tracking numbers instead.
- */
 export type ApiCourier = Exclude<CourierKind, "manual">;
 export const isApiCourier = (kind: string): kind is ApiCourier =>
   kind === "aramex" || kind === "dhl_express" || kind === "smsa";
@@ -17,13 +13,13 @@ export interface CourierParty {
   line1: string;
   line2?: string;
   city: string;
-  /** ISO 3166 alpha-2. */
+
   countryCode: string;
   postalCode?: string;
 }
 
 interface BookCourierInput {
-  /** Our shipment number. */
+
   reference: string;
   shipper: CourierParty;
   recipient: CourierParty;
@@ -31,7 +27,7 @@ interface BookCourierInput {
   pieces: number;
   weightKg: number;
   dimensions?: { length: number; width: number; height: number };
-  /** Cash the courier collects; 0 for none. */
+
   codAmount: number;
   declaredValue: number;
   currency: string;
@@ -39,11 +35,10 @@ interface BookCourierInput {
 
 export interface BookedCourier {
   trackingNumber: string;
-  /** The label as a PDF, or a link to the courier's own copy. */
+
   label?: { pdfBase64: string } | { url: string };
 }
 
-/** Where the courier says the parcel is: on its way, delivered, could not be delivered, or sent back. */
 type CourierState =
   | "in_transit"
   | "out_for_delivery"
@@ -129,7 +124,6 @@ const json = (headers: Record<string, string>, body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
-/** Courier event words to our states. */
 function stateFrom(text: string): CourierState {
   const t = text.toLowerCase();
   if (
@@ -147,8 +141,6 @@ function stateFrom(text: string): CourierState {
   if (t) return "in_transit";
   return "unknown";
 }
-
-// ---------- Aramex (Shipping and Tracking JSON services) ----------
 
 const aramexBase = (c: Credentials) =>
   base(
@@ -293,7 +285,7 @@ export const aramex: CourierAdapter = {
       "accountEntity",
       "accountCountryCode",
     );
-    // Fetching the last update of a made-up waybill proves the sign-in without booking anything.
+
     const body = await call<Record<string, unknown>>(
       `${aramexBase(c)}/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments`,
       json(
@@ -315,8 +307,6 @@ export const aramex: CourierAdapter = {
     };
   },
 };
-
-// ---------- DHL Express (MyDHL API) ----------
 
 const dhlBase = (c: Credentials) =>
   base(
@@ -447,8 +437,6 @@ export const dhlExpress: CourierAdapter = {
   },
 };
 
-// ---------- SMSA Express (eCommerce API) ----------
-
 const smsaBase = (c: Credentials) =>
   base(
     "smsa",
@@ -551,7 +539,6 @@ const ADAPTERS: Record<ApiCourier, CourierAdapter> = {
 export const courierAdapter = (kind: ApiCourier) => ADAPTERS[kind];
 export { stateFrom as courierStateFrom };
 
-/** Country names (and ISO codes) as typed in addresses, to the two-letter codes couriers want. */
 const COUNTRIES: Record<string, string> = {
   bahrain: "BH",
   البحرين: "BH",

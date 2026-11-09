@@ -1,13 +1,8 @@
 "use client";
-// Notification sounds, synthesised in the browser so no audio files are shipped (docs/adr/0012). Web Audio is used
-// where it exists; otherwise the same tones are rendered to a WAV once and played with an <audio> element. Browsers
-// allow sound only after the person interacted with the page, so unlockNotificationSound() runs on the first click or
-// key press.
 
 export type SoundName = "chime" | "ping" | "pop" | "bell" | "alert";
 type Tone = { freq: number; at: number; dur: number; type: OscillatorType; gain: number };
 
-/** Each sound as a few tones: frequency (Hz), start and length (s). */
 const SOUNDS: Record<SoundName, Tone[]> = {
   chime: [
     { freq: 880, at: 0, dur: 0.35, type: "sine", gain: 0.6 },
@@ -39,7 +34,6 @@ function audioContextClass(): AudioContextClass | null {
   return (window.AudioContext ?? (window as unknown as { webkitAudioContext?: AudioContextClass }).webkitAudioContext) ?? null;
 }
 
-/** Lets later sounds play: call from a user gesture. Safe to call often. */
 export function unlockNotificationSound() {
   const Ctx = audioContextClass();
   if (!Ctx) return;
@@ -47,7 +41,6 @@ export function unlockNotificationSound() {
   if (context.state === "suspended") void context.resume();
 }
 
-/** Installs one-time listeners that unlock sound on the first interaction. */
 export function installSoundUnlock() {
   if (typeof window === "undefined") return () => {};
   const unlock = () => {
@@ -80,7 +73,6 @@ function playWebAudio(ctx: AudioContext, tones: Tone[], volume: number) {
   }
 }
 
-/** Renders tones to a 16-bit mono WAV (for browsers without Web Audio). */
 function renderWav(tones: Tone[]): string {
   const rate = 22050;
   const length = Math.ceil(rate * Math.max(...tones.map((t) => t.at + t.dur + 0.02)));
@@ -116,7 +108,6 @@ function renderWav(tones: Tone[]): string {
   return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
 }
 
-/** Plays a notification sound at volume 0–100. Resolves false when the browser refused (no interaction yet). */
 export async function playNotificationSound(name: string, volume = 70): Promise<boolean> {
   const sound = (name in SOUNDS ? name : "chime") as SoundName;
   const level = Math.max(0, Math.min(100, volume)) / 100;

@@ -41,14 +41,11 @@ export function ApiKeysView({
   const [createdKey, setCreatedKey] = React.useState<ApiKeyCreated | null>(null);
   const [copied, setCopied] = React.useState(false);
 
-  // Search & Filter state
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = React.useState("");
 
-  // Revoke confirmation modal state
   const [revokeTarget, setRevokeTarget] = React.useState<ApiKeyRecord | null>(null);
 
-  // Form states
   const [name, setName] = React.useState("");
   const [scopesStr, setScopesStr] = React.useState(k.defaultScopes);
   const [rateLimit, setRateLimit] = React.useState(60);
@@ -119,14 +116,11 @@ export function ApiKeysView({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={k.title} description={k.description} />
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: SM30_API [API KEYS]
-          </span>
           {canCreate && !showCreate && !createdKey && (
             <button
               type="button"
               onClick={() => setShowCreate(true)}
-              className="it-btn-3d py-1.5 px-3 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#0070d2] hover:bg-[#005fb2] text-white text-xs font-semibold shadow-sm transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>{k.newKey}</span>
@@ -135,7 +129,6 @@ export function ApiKeysView({
         </div>
       </div>
 
-      {/* Secret Token Banner */}
       {createdKey && (
         <div className="it-card p-4 space-y-3 border-l-4 border-l-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/20 font-mono text-xs">
           <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold">
@@ -176,7 +169,6 @@ export function ApiKeysView({
         </div>
       )}
 
-      {/* Create Key Form */}
       {showCreate && (
         <div className="it-card p-4 space-y-4 font-mono text-xs">
           <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
@@ -240,7 +232,6 @@ export function ApiKeysView({
         </div>
       )}
 
-      {/* Keys Table */}
       <div className="it-card p-0 overflow-x-auto">
         <div className="p-2 border-b border-slate-300 dark:border-slate-700 bg-surface flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase font-mono text-ink">{k.existingKeys}</h2>
@@ -249,7 +240,6 @@ export function ApiKeysView({
           </span>
         </div>
 
-        {/* Filter and Search Bar */}
         <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-300 dark:border-slate-700 text-xs font-mono">
           <div className="relative min-w-[200px] flex-1">
             <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />

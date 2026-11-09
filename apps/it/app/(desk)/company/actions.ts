@@ -28,7 +28,7 @@ export async function uploadCompanyAssetAction(form:FormData){
   const upload=await registerUpload({ownerId:user.subject,folder:privateArtwork?"general":"brand",fileName:value.name,fileSize:value.size,mimeType:mime});
   await writeUpload(upload.fileUrl,user.subject,await value.arrayBuffer(),value.size);
   await claimUpload(upload.fileUrl,user.subject,{requirePrivate:privateArtwork});
-  // shortcut: uncertain saves retain claimed files; reconcile references before orphan cleanup.
+
   await saveCompanyAssetForIT(user.token,key,title,upload.fileUrl);
   revalidatePath("/company");return {fileUrl:upload.fileUrl};
  }));

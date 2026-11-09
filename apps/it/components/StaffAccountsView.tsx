@@ -132,15 +132,10 @@ export function StaffAccountsView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={n.title} description={n.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SU01_STAFF [STAFF PROVISIONING]
-        </span>
-      </div>
+      <PageTitle title={n.title} description={n.description} />
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] font-mono text-xs">
-        {/* Left Side: Accounts Directory */}
+
         <div className="it-card space-y-3 p-3">
           <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
             <span className="font-bold uppercase tracking-wider text-ink">STAFF DIRECTORY</span>
@@ -154,7 +149,6 @@ export function StaffAccountsView({
             )}
           </div>
 
-          {/* Search and Filters */}
           <div className="space-y-2 border-b border-slate-300 dark:border-slate-700 pb-2">
             <div className="relative">
               <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />
@@ -260,7 +254,6 @@ export function StaffAccountsView({
           </nav>
         </div>
 
-        {/* Right Side: Account Editor */}
         <div className="it-card space-y-4 p-4">
           <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink font-mono">

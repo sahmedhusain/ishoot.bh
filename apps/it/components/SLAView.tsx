@@ -27,12 +27,7 @@ export function SLAView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={s.title} description={s.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SPRO_SLA [SLA POLICY MAINTENANCE]
-        </span>
-      </div>
+      <PageTitle title={s.title} description={s.description} />
 
       {!canEdit && <p className="text-xs font-mono text-ink-muted">{s.readOnly}</p>}
 

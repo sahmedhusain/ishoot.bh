@@ -1,5 +1,4 @@
-// Integration catalog shared by Settings → Integrations, the sync worker and analytics.
-// Runtime-free so client components can import it. Secret fields are never sent to the browser.
+
 
 export type IntegrationKind =
   "social" | "messaging" | "email" | "sign_in" | "payments" | "couriers";
@@ -14,7 +13,7 @@ export interface IntegrationField {
 export interface IntegrationProvider {
   id: IntegrationProviderId;
   kind: IntegrationKind;
-  /** Social platforms whose posts and metrics this provider syncs. */
+
   platforms: SocialPlatformId[];
   fields: IntegrationField[];
   docsUrl: string;
@@ -155,8 +154,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     docsUrl:
       "https://developer.apple.com/documentation/sign_in_with_apple/configuring_your_environment_for_sign_in_with_apple",
   },
-  // Payment gateways: hosted checkout pages or hosted card fields only, so card details never reach this server.
-  // Test keys (or environment "test") keep a gateway in its sandbox.
+
   {
     id: "stripe",
     kind: "payments",
@@ -236,7 +234,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     ],
     docsUrl: "https://hyperpay.docs.oppwa.com/integrations/widget",
   },
-  // Courier agencies with an API: booking returns the tracking number (and a label), and tracking updates come back.
+
   {
     id: "aramex",
     kind: "couriers",
@@ -311,7 +309,6 @@ export const SOCIAL_PLAN_STATUSES = [
 ] as const;
 export type SocialPlanStatus = (typeof SOCIAL_PLAN_STATUSES)[number];
 
-/** Missing readings cannot contribute a fabricated zero to a total. */
 export function sumSocialCounts(
   values: readonly (number | null)[],
 ): number | null {
@@ -319,7 +316,6 @@ export function sumSocialCounts(
   return values.reduce<number>((sum, value) => sum + value!, 0);
 }
 
-/** Exact interactions as a share of a reported denominator; unavailable inputs stay unavailable. */
 export function engagementRate(post: {
   likes: number | null;
   comments: number | null;
@@ -339,7 +335,6 @@ export function engagementRate(post: {
   return Math.round((interactions / base) * 10000) / 100;
 }
 
-/** Only routes implemented by this installation; invalid/missing origins never become copyable setup URLs. */
 export function integrationSetupLinks(
   providerId: IntegrationProviderId,
   website: string,
@@ -355,7 +350,7 @@ export function integrationSetupLinks(
     )
       origin = candidate.origin;
   } catch {
-    /* A missing public domain is shown by the setup guide. */
+
   }
   if (!origin) return [];
   if (providerId === "resend")

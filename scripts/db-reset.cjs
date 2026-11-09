@@ -32,8 +32,10 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
-let demo = option("demo") || process.env.SEED_PRESET?.trim();
-let profile = option("profile") || process.env.COMPANY_PROFILE?.trim();
+const explicitDemo = option("demo");
+const explicitProfile = option("profile");
+let demo = explicitDemo || (flag("empty") ? undefined : process.env.SEED_PRESET?.trim());
+let profile = explicitProfile || (flag("empty") ? undefined : process.env.COMPANY_PROFILE?.trim());
 
 if (profile === "all") {
   demo = "all";
@@ -79,6 +81,8 @@ async function selectProfileInteractive() {
       break;
     case "7":
       args.push("--empty");
+      demo = undefined;
+      profile = undefined;
       break;
     case "1":
     default:
@@ -87,10 +91,6 @@ async function selectProfileInteractive() {
       break;
   }
 }
-
-if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset (e.g. commerce, services, media, all)");
-if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
-if (flag("empty") && demo) throw new Error("--empty cannot be combined with a demo preset.");
 
 const run = (command, commandArgs, extra = {}) =>
   execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
@@ -115,6 +115,15 @@ async function confirm(target) {
 
 async function main() {
   await selectProfileInteractive();
+
+  if (flag("empty")) {
+    demo = undefined;
+    profile = undefined;
+  }
+
+  if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset (e.g. commerce, services, media, all)");
+  if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
+  if (flag("empty") && explicitDemo) throw new Error("--empty cannot be combined with a demo preset.");
 
   profile = demo ? "demo" : profile || "ishoot";
   const mode = flag("empty") ? "empty" : "full";

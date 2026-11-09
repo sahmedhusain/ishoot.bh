@@ -557,7 +557,7 @@ function ITRolesSettings() {
       hint={ir.tabSubtitle}
     >
       <div className="space-y-4">
-        {/* Top Control Bar: Role Picker, Add Role, Reload Database */}
+
         <div className="flex flex-wrap items-center justify-between gap-3 p-2 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 font-mono text-xs">
           <div className="flex items-center gap-2">
             <span className="font-bold text-ink uppercase">{ir.selectRole}:</span>
@@ -597,7 +597,6 @@ function ITRolesSettings() {
           </div>
         </div>
 
-        {/* New Role Drawer / Form */}
         {showNewRoleForm && (
           <form onSubmit={(e) => void handleCreateNewRole(e)} className="p-3 border border-sky-400 bg-sky-50 dark:bg-sky-950/40 space-y-3 font-mono text-xs">
             <div className="font-bold text-sky-900 dark:text-sky-200 uppercase">{ir.newRole}</div>
@@ -616,7 +615,7 @@ function ITRolesSettings() {
                 <span className="text-[10px] text-ink-muted uppercase">{ir.nameEn}</span>
                 <input
                   required
-                  placeholder="Tier 1 Support Specialist"
+                  placeholder={ir.placeholderNameEn}
                   value={newNameEn}
                   onChange={(e) => setNewNameEn(e.target.value)}
                   className="it-field-sunken w-full text-xs"
@@ -627,7 +626,7 @@ function ITRolesSettings() {
                 <input
                   required
                   dir="rtl"
-                  placeholder="أخصائي دعم المستوى الأول"
+                  placeholder={ir.placeholderNameAr}
                   value={newNameAr}
                   onChange={(e) => setNewNameAr(e.target.value)}
                   className="it-field-sunken w-full text-xs"
@@ -660,7 +659,6 @@ function ITRolesSettings() {
           </form>
         )}
 
-        {/* Selected Role Meta & Renaming & Hierarchy */}
         <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface font-mono text-xs space-y-3">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
             <div>
@@ -718,7 +716,6 @@ function ITRolesSettings() {
           </div>
         </div>
 
-        {/* Tab & Feature Privileges Matrix */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1">
             <h3 className="text-xs font-bold uppercase tracking-wider font-mono text-ink">
@@ -773,7 +770,6 @@ function ITRolesSettings() {
           </div>
         </div>
 
-        {/* Save Role Privileges Bar */}
         <div className="flex justify-end gap-2 pt-2 border-t border-slate-300 dark:border-slate-700">
           <button
             type="button"
@@ -785,7 +781,6 @@ function ITRolesSettings() {
           </button>
         </div>
 
-        {/* Critical Confirm Modal for Role Customization */}
         {showConfirmModal && (
           <CriticalActionModal
             open={showConfirmModal}
@@ -964,30 +959,31 @@ export function SettingsView({
     <div className="space-y-4">
       <PageTitle title={s.title} description={s.description} />
 
-      {/* Structured SAP Section Dropdown Selector Bar */}
-      <div className="it-card flex flex-wrap items-center justify-between gap-3 p-2 font-mono text-xs">
-        <label className="flex items-center gap-2">
-          <span className="font-bold uppercase tracking-wider text-ink-muted">PARAM GROUP:</span>
-          <select
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as any)}
-            className="it-field-sunken font-bold text-xs"
+      <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-800 pb-px">
+        {[
+          { id: "notifications", label: s.tabs.notifications },
+          { id: "appearance", label: s.tabs.appearance },
+          { id: "account", label: s.tabs.account },
+          { id: "roles", label: s.tabs.roles },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? "border-[#0070d2] text-[#0070d2] font-semibold"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            }`}
           >
-            <option value="notifications">01 - {s.tabs.notifications}</option>
-            <option value="appearance">02 - {s.tabs.appearance}</option>
-            <option value="account">03 - {s.tabs.account}</option>
-            <option value="roles">04 - {s.tabs.roles}</option>
-          </select>
-        </label>
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SU3 [USER & SYSTEM PARAMETERS]
-        </span>
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Tab 1: Notifications & Sound */}
       {activeTab === "notifications" && (
         <div className="space-y-4">
-          {/* Pause / Mute Notifications */}
+
           <Section icon={<BellOff className="size-4" aria-hidden />} title={sn.pauseTitle} hint={sn.pauseHint}>
             {mutedUntil ? (
               <div className="flex flex-wrap items-center justify-between gap-3 p-3 border border-amber-400 bg-amber-50 dark:bg-amber-950/40">
@@ -1038,7 +1034,6 @@ export function SettingsView({
             )}
           </Section>
 
-          {/* Sound & Volume */}
           <Section icon={<Volume2 className="size-4" aria-hidden />} title={sn.soundTitle} hint={sn.soundHint}>
             <div className="space-y-3 font-mono text-xs">
               <div className="flex items-center justify-between gap-4">
@@ -1101,7 +1096,6 @@ export function SettingsView({
             </div>
           </Section>
 
-          {/* Alerts & Desktop Notifications */}
           <Section icon={<Monitor className="size-4" aria-hidden />} title={sn.alertsTitle} hint={sn.alertsHint}>
             <div className="space-y-3 font-mono text-xs">
               <div className="flex items-center justify-between gap-4">
@@ -1145,7 +1139,6 @@ export function SettingsView({
             </div>
           </Section>
 
-          {/* Category Preferences */}
           <Section icon={<Shield className="size-4" aria-hidden />} title={sn.categoriesTitle} hint={sn.categoriesHint}>
             <ul className="divide-y divide-slate-300 dark:divide-slate-700 font-mono text-xs">
               {IT_CATEGORIES.map((catKey) => {
@@ -1201,7 +1194,6 @@ export function SettingsView({
             </ul>
           </Section>
 
-          {/* Muted Items */}
           <Section icon={<BellOff className="size-4" aria-hidden />} title={sn.mutedItemsTitle} hint={sn.mutedItemsHint}>
             {!mutes.length ? (
               <p className="text-xs text-ink-muted font-mono">{sn.noMutedItems}</p>
@@ -1234,7 +1226,6 @@ export function SettingsView({
             )}
           </Section>
 
-          {/* Save preferences button */}
           <div className="it-card flex justify-end gap-2 p-2 mt-4 font-mono text-xs">
             <button
               type="button"
@@ -1249,10 +1240,9 @@ export function SettingsView({
         </div>
       )}
 
-      {/* Tab 2: Appearance & Display */}
       {activeTab === "appearance" && (
         <div className="space-y-4 font-mono text-xs">
-          {/* Theme selector */}
+
           <Section icon={<Sun className="size-4" aria-hidden />} title={sa.themeTitle} hint={sa.themeHint}>
             <div className="flex items-center gap-2">
               <span className="font-bold text-ink uppercase">THEME MODE:</span>
@@ -1268,7 +1258,6 @@ export function SettingsView({
             </div>
           </Section>
 
-          {/* Language selection */}
           <Section icon={<Languages className="size-4" aria-hidden />} title={sa.languageTitle} hint={sa.languageHint}>
             <div className="flex items-center gap-2">
               <form action={setLocaleAction.bind(null, "en")}>
@@ -1296,7 +1285,6 @@ export function SettingsView({
             </div>
           </Section>
 
-          {/* Presence status */}
           <Section icon={<User className="size-4" aria-hidden />} title={sa.statusTitle} hint={sa.statusHint}>
             <div className="space-y-2">
               {status && (
@@ -1341,7 +1329,6 @@ export function SettingsView({
         </div>
       )}
 
-      {/* Tab 3: Account info & Security */}
       {activeTab === "account" && (
         <div className="space-y-4 font-mono text-xs">
           <Section icon={<User className="size-4" aria-hidden />} title={s.account.title}>
@@ -1386,7 +1373,6 @@ export function SettingsView({
         </div>
       )}
 
-      {/* Tab 4: IT Roles & Privileges */}
       {activeTab === "roles" && <ITRolesSettings />}
     </div>
   );

@@ -1,4 +1,4 @@
-// Integration catalogue shared by Settings → Integrations, the sync worker and analytics.
+
 import catalog from "../catalog/integrations.json";
 
 export type IntegrationKind =

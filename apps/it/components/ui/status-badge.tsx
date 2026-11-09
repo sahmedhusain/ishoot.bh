@@ -33,7 +33,6 @@ const defaultVariants: Record<
   archived: "default",
 };
 
-/** Localized status names supplied once by the app, so badges never show raw codes. */
 const StatusLabelsContext = React.createContext<Record<string, string>>({});
 export const StatusLabelsProvider = StatusLabelsContext.Provider;
 

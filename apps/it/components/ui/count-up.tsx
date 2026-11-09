@@ -3,9 +3,9 @@ import * as React from "react";
 
 export interface CountUpProps {
   value: number;
-  /** How the number is shown (currency, percent…); defaults to the number with its decimals. */
+
   render?: (value: number) => React.ReactNode;
-  /** Decimal places while counting (the final value is always exact). */
+
   decimals?: number;
   duration?: number;
 }
@@ -20,10 +20,6 @@ export function prefersReducedMotion() {
   );
 }
 
-/**
- * A figure that counts up to its value when it first appears and when it changes. The server renders the final
- * value, so it reads correctly without JavaScript; with "reduce motion" it never moves.
- */
 export function CountUp({
   value,
   render,

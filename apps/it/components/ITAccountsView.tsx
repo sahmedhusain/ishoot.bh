@@ -74,15 +74,12 @@ export function ITAccountsView({
   const passwordId = React.useId();
   const [busy, setBusy] = React.useState(false);
 
-  // Tab Access Matrix View State
   const [showMatrix, setShowMatrix] = React.useState(false);
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedRoleFilter, setSelectedRoleFilter] = React.useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = React.useState("");
 
-  // Confirmation modal state for modifying access
   const [pendingUpdate, setPendingUpdate] = React.useState<{
     id: string;
     email: string;
@@ -95,7 +92,6 @@ export function ITAccountsView({
     (ITProvisioning & { email: string }) | null
   >(null);
 
-  // Dynamic role hierarchy delegation from database
   const effectiveRoleList = dbRoles;
   const userRoleObjects = dbRoles.filter((r) => userRoles.includes(r.id));
   const isTopLevelRole = userRoleObjects.some((r) => !r.reportingToRole);
@@ -169,7 +165,6 @@ export function ITAccountsView({
     }
   };
 
-  // Filtered account items based on user criteria
   const filteredItems = React.useMemo(() => {
     return page.items.filter((item) => {
       if (
@@ -200,9 +195,6 @@ export function ITAccountsView({
         />
 
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: SU10 [USER AUTHORIZATION]
-          </span>
           <Button
             type="button"
             variant="outline"
@@ -217,7 +209,6 @@ export function ITAccountsView({
         </div>
       </div>
 
-      {/* Team Lead Delegation Banner */}
       {isTeamLead && (
         <div className="p-3 border-2 border-amber-500/40 bg-amber-500/10 text-xs font-mono flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -228,7 +219,6 @@ export function ITAccountsView({
         </div>
       )}
 
-      {/* Tab Access Privilege Matrix Inspector */}
       {showMatrix && (
         <Card className="it-card p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-outline-variant pb-2">
@@ -291,7 +281,6 @@ export function ITAccountsView({
         </Card>
       )}
 
-      {/* Provisioning Credential Card */}
       {provisioning && (
         <Card role="status" className="it-card p-5 border-2 border-emerald-500/60 bg-emerald-500/5 space-y-3 font-mono text-xs">
           <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold">
@@ -327,7 +316,6 @@ export function ITAccountsView({
         </Card>
       )}
 
-      {/* Account Creation Form */}
       {canCreate && (
         <Card className="it-card p-5 space-y-4">
           <div className="flex items-center gap-2 border-b border-outline-variant pb-2 font-mono text-xs font-bold uppercase text-ink">
@@ -415,7 +403,6 @@ export function ITAccountsView({
         </Card>
       )}
 
-      {/* Enterprise Filter and Search Toolbar */}
       <div className="it-card p-3 space-y-2 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
           <div className="flex items-center gap-1.5 font-bold uppercase text-ink">
@@ -428,7 +415,7 @@ export function ITAccountsView({
         </div>
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-          {/* Search by Email */}
+
           <div className="relative">
             <input
               type="text"
@@ -440,7 +427,6 @@ export function ITAccountsView({
             <Search className="absolute start-1.5 top-2 size-3 text-slate-400" />
           </div>
 
-          {/* Role Filter Dropdown */}
           <div>
             <select
               value={selectedRoleFilter}
@@ -456,7 +442,6 @@ export function ITAccountsView({
             </select>
           </div>
 
-          {/* Status Filter Dropdown */}
           <div>
             <select
               value={selectedStatusFilter}
@@ -471,7 +456,6 @@ export function ITAccountsView({
         </div>
       </div>
 
-      {/* Existing IT Accounts List */}
       <div className="space-y-3 font-mono text-xs">
         <ul className="space-y-2.5" aria-label={n.title}>
           {filteredItems.map((account) => {
@@ -587,7 +571,6 @@ export function ITAccountsView({
         </ul>
       </div>
 
-      {/* Pagination */}
       <div className="flex gap-4 mt-6 text-xs font-mono underline">
         {cursor && <Link href="/it-accounts">{n.first}</Link>}
         {page.nextCursor && (
@@ -597,7 +580,6 @@ export function ITAccountsView({
         )}
       </div>
 
-      {/* Critical Action Modal for Access Modifications */}
       {pendingUpdate && (
         <CriticalActionModal
           open={Boolean(pendingUpdate)}

@@ -151,7 +151,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const show = (direction = 1) => {
       if (props.disabled) return;
       const computed = getComputedStyle(trigger.current!);
-      // Portaled menus keep their anchor's scoped palette, including mixed website sections.
+
       setPalette({
         ...Object.fromEntries(
           Array.from(computed)

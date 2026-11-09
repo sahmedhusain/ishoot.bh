@@ -1,5 +1,5 @@
-// The itsm desk (backend/services/itsm): IT staff working tickets with their own IT-realm access tokens. Each call
-// needs the catalogue permission the itsm OpenAPI document names (contracts/catalog/it-access.json).
+
+
 import type { components, paths } from "./generated/itsm";
 import { apiError } from "./errors";
 import { unwrap, unwrapEmpty, userClient } from "./http";
@@ -18,15 +18,12 @@ export type QueueFilter = {
 
 const desk = (token: string) => userClient<paths>(token);
 
-/** Open tickets counted per status and priority. */
 export const queueStats = (token: string) =>
   unwrap(desk(token).GET("/v1/itsm/desk/stats"));
 
-/** One page of the queue, newest first. */
 export const listQueue = (token: string, query: QueueFilter = {}) =>
   unwrap(desk(token).GET("/v1/itsm/desk/tickets", { params: { query } }));
 
-/** A ticket with internal notes and the full history, or null when there is none. */
 export async function getQueueTicket(token: string, id: string) {
   const { data, error, response } = await desk(token).GET(
     "/v1/itsm/desk/tickets/{id}",
@@ -37,7 +34,6 @@ export async function getQueueTicket(token: string, id: string) {
   return data;
 }
 
-/** Applies a catalogue transition; "assign" needs the assignee. */
 export const transitionQueueTicket = (
   token: string,
   id: string,
@@ -50,7 +46,6 @@ export const transitionQueueTicket = (
     }),
   );
 
-/** Adds a reply to the requester, or an internal note they never see, with optional attachments. */
 export const commentOnQueueTicket = (
   token: string,
   id: string,
@@ -65,11 +60,9 @@ export const commentOnQueueTicket = (
     }),
   );
 
-/** The SLA targets per priority. */
 export const listSLA = async (token: string) =>
   (await unwrap(desk(token).GET("/v1/itsm/desk/sla"))).items;
 
-/** Changes one priority's SLA targets; existing tickets keep their deadlines. */
 export const updateSLA = (
   token: string,
   priority: string,

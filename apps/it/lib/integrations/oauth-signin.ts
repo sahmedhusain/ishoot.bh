@@ -1,5 +1,5 @@
-// Customer sign-in with Google and Apple (OpenID Connect, authorization code with PKCE). Credentials come from
-// Settings → Integrations; nothing here stores tokens: the ID token only identifies the person once.
+
+
 import { serverMessages } from "@platform/locales";
 import {
   createHash,
@@ -14,7 +14,6 @@ import {
 
 export type SignInProvider = "google" | "apple";
 
-/** A sign-in the provider or the checks refused; the reason is a code for logs, never shown to the customer. */
 export class SignInRejected extends Error {}
 
 const b64url = (input: Buffer | string) =>
@@ -23,7 +22,7 @@ const fromB64url = (input: string) => Buffer.from(input, "base64url");
 
 export const randomToken = (bytes = 32) =>
   randomBytes(bytes).toString("base64url");
-/** The PKCE challenge for a verifier (S256). */
+
 export const pkceChallenge = (verifier: string) =>
   b64url(createHash("sha256").update(verifier).digest());
 
@@ -32,13 +31,12 @@ export interface SignInState {
   state: string;
   nonce: string;
   verifier: string;
-  /** Where to go after signing in (a path on this website). */
+
   next: string;
   locale: string;
   expires: number;
 }
 
-/** The sign-in state kept in a short-lived cookie, signed so it cannot be changed in the browser. */
 export function sealSignInState(state: SignInState, secret: string) {
   const body = b64url(JSON.stringify(state));
   return `${body}.${b64url(createHmac("sha256", secret).update(`signin:${body}`).digest())}`;
@@ -65,7 +63,6 @@ export function openSignInState(
   }
 }
 
-/** Only paths on this website are followed after signing in. */
 export const safeNextPath = (
   next: string | null | undefined,
   fallback: string,
@@ -118,7 +115,6 @@ export function appleAuthUrl(input: {
   return `https://appleid.apple.com/auth/authorize?${params}`;
 }
 
-/** A PEM key pasted into a one-line field (line breaks lost or written as \\n), rebuilt so it can be read. */
 export function normalizePem(text: string) {
   const match = text
     .replace(/\\n/g, "\n")
@@ -128,7 +124,6 @@ export function normalizePem(text: string) {
   return `-----BEGIN ${match[1]}-----\n${body.match(/.{1,64}/g)?.join("\n") ?? ""}\n-----END ${match[1]}-----\n`;
 }
 
-/** Apple's client secret: a short ES256 JWT signed with the key from the Apple developer account. */
 export function appleClientSecret(
   input: {
     teamId: string;
@@ -197,7 +192,6 @@ const JWKS: Record<SignInProvider, string> = {
   apple: "https://appleid.apple.com/auth/keys",
 };
 
-/** Checks the claims an ID token must have: the provider issued it, for this app, for this sign-in, not expired. */
 export function checkIdClaims(
   provider: SignInProvider,
   claims: IdClaims,
@@ -221,7 +215,6 @@ export function checkIdClaims(
   };
 }
 
-/** Verifies an RS256 ID token against the provider's published keys. */
 export async function verifyIdToken(
   provider: SignInProvider,
   token: string,
@@ -245,7 +238,6 @@ export async function verifyIdToken(
   return checkIdClaims(provider, claims, clientId, nonce);
 }
 
-/** Exchanges the code for tokens at the provider and returns who signed in. */
 export async function exchangeSignInCode(
   provider: SignInProvider,
   input: {
@@ -292,7 +284,6 @@ export async function exchangeSignInCode(
   return verifyIdToken(provider, body.id_token, clientId, input.nonce, fetcher);
 }
 
-/** Whether the saved sign-in credentials have the right shape (the real test is signing in once). */
 export function checkSignInCredentials(
   provider: SignInProvider,
   c: Record<string, string>,

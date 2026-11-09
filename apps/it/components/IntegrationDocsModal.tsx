@@ -29,13 +29,12 @@ export function IntegrationDocsModal({
     setTimeout(() => setCopied(null), 2000);
   };
 
-  // Generate hard technical specs per provider
   const specs = getProviderTechnicalSpecs(provider);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="it-card w-full max-w-2xl max-h-[90vh] flex flex-col bg-surface overflow-hidden border-2 border-slate-700 shadow-2xl font-mono text-xs">
-        {/* Header */}
+
         <div className="flex items-center justify-between border-b border-outline-variant bg-slate-900 px-4 py-3 text-white">
           <div className="flex items-center gap-2">
             <FileCode className="h-4 w-4 text-amber-400" />
@@ -53,7 +52,6 @@ export function IntegrationDocsModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="flex items-center justify-between p-3 border border-outline-variant bg-slate-100 dark:bg-slate-900/60">
             <div>
@@ -80,7 +78,6 @@ export function IntegrationDocsModal({
             </div>
           </div>
 
-          {/* Ingress Webhook Endpoint */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase text-ink-muted">INGRESS WEBHOOK CALLBACK URL</span>
@@ -98,7 +95,6 @@ export function IntegrationDocsModal({
             </div>
           </div>
 
-          {/* Signature & Security */}
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold uppercase text-ink-muted">SECURITY & SIGNATURE VERIFICATION</span>
             <div className="p-3 border border-outline-variant bg-surface space-y-1 text-[11px] font-sans">
@@ -107,7 +103,6 @@ export function IntegrationDocsModal({
             </div>
           </div>
 
-          {/* Sample JSON Payload */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase text-ink-muted">SAMPLE EVENT PAYLOAD SCHEMA (JSON)</span>
@@ -125,7 +120,6 @@ export function IntegrationDocsModal({
             </pre>
           </div>
 
-          {/* cURL Test Snippet */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase text-ink-muted">MOCK PING / DIAGNOSTIC CURL COMMAND</span>
@@ -143,7 +137,6 @@ export function IntegrationDocsModal({
             </pre>
           </div>
 
-          {/* Retry & DLQ Behavior */}
           <div className="p-3 border border-outline-variant bg-slate-50 dark:bg-slate-900/40 text-[11px] font-sans space-y-1">
             <div className="font-bold text-ink font-mono uppercase text-[10px]">RETRY & DEAD LETTER QUEUE (DLQ) POLICY</div>
             <p className="text-ink-muted">
@@ -152,7 +145,6 @@ export function IntegrationDocsModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-outline-variant bg-surface p-3 flex justify-end">
           <Button type="button" size="sm" onClick={onClose} className="font-mono text-xs">
             {idoc.close}

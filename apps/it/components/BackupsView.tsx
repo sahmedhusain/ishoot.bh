@@ -37,7 +37,6 @@ export function BackupsView({
   const [kind, setKind] = React.useState<"database" | "bucket" | "full">("database");
   const [showTriggerModal, setShowTriggerModal] = React.useState(false);
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedKindFilter, setSelectedKindFilter] = React.useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = React.useState("");
@@ -100,9 +99,6 @@ export function BackupsView({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={b.title} description={b.description} />
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: DB13 [BACKUPS & RECOVERY]
-          </span>
           {canExecute && (
             <div className="flex items-center gap-2">
               <select
@@ -145,7 +141,6 @@ export function BackupsView({
           </span>
         </div>
 
-        {/* Filter and Search Bar */}
         <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-300 dark:border-slate-700 text-xs font-mono">
           <div className="relative min-w-[200px] flex-1">
             <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />

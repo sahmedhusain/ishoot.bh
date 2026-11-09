@@ -1,6 +1,5 @@
-// Delivery: who delivers, the zones and time slots customers choose, and how a shipment moves. Runtime-free.
 
-/** Own drivers, courier agencies, or both. */
+
 export const DELIVERY_MODES = ["own", "agency", "both"] as const;
 export type DeliveryMode = (typeof DELIVERY_MODES)[number];
 
@@ -15,7 +14,6 @@ export const SHIPMENT_STATUSES = [
 ] as const;
 export type ShipmentStatus = (typeof SHIPMENT_STATUSES)[number];
 
-/** Where a shipment may go next. A failed delivery is tried again (assigned / out again) or sent back. */
 export const SHIPMENT_TRANSITIONS: Record<ShipmentStatus, ShipmentStatus[]> = {
   pending: ["assigned", "out_for_delivery", "cancelled"],
   assigned: ["pending", "out_for_delivery", "cancelled"],
@@ -29,7 +27,7 @@ export const canMoveShipment = (from: string, to: string) =>
   (SHIPMENT_TRANSITIONS[from as ShipmentStatus] ?? []).includes(
     to as ShipmentStatus,
   );
-/** Shipments still on their way to the customer. */
+
 export const OPEN_SHIPMENT_STATUSES: ShipmentStatus[] = [
   "pending",
   "assigned",
@@ -48,7 +46,6 @@ export const FAILURE_REASONS = [
 ] as const;
 export type FailureReason = (typeof FAILURE_REASONS)[number];
 
-/** The customer-facing steps of the tracking page, in order. */
 export const TRACKING_STEPS = [
   "placed",
   "packing",
@@ -56,7 +53,6 @@ export const TRACKING_STEPS = [
   "delivered",
 ] as const;
 
-/** A name for matching areas: case, spaces and Arabic letter variants do not matter. */
 export function normalizeArea(value: string) {
   return value
     .trim()
@@ -75,7 +71,6 @@ export interface ZoneTerms {
   freeOver: number | null;
 }
 
-/** The first active zone that lists the address's area or city; a zone with no areas covers everywhere else. */
 export function zoneForAddress<Z extends ZoneTerms>(
   zones: Z[],
   address: { area?: string; city?: string },
@@ -93,18 +88,16 @@ export function zoneForAddress<Z extends ZoneTerms>(
 export interface SlotTemplate {
   id: string;
   zoneId: string | null;
-  /** 0 = Sunday … 6 = Saturday. */
+
   weekday: number;
   start: string;
   end: string;
   capacity: number | null;
 }
 
-/** "HH:MM" on a 24-hour clock. */
 export const isClockTime = (value: string) =>
   /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 
-/** Time zones by company country, for slot times when the store has not chosen one. */
 const COUNTRY_TIME_ZONES: Record<string, string> = {
   BH: "Asia/Bahrain",
   SA: "Asia/Riyadh",
@@ -130,7 +123,6 @@ export function isTimeZone(value: string) {
   }
 }
 
-/** Minutes the zone is ahead of UTC at that moment. */
 function zoneOffsetMinutes(at: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -156,7 +148,6 @@ function zoneOffsetMinutes(at: Date, timeZone: string) {
   );
 }
 
-/** The moment a local date and "HH:MM" happen in the zone. */
 export function zonedMoment(date: string, time: string, timeZone: string) {
   const guess = new Date(`${date}T${time}:00Z`);
   return new Date(
@@ -164,17 +155,11 @@ export function zonedMoment(date: string, time: string, timeZone: string) {
   );
 }
 
-/** The local calendar date ("YYYY-MM-DD") in the zone. */
 export const zonedDate = (at: Date, timeZone: string) =>
   new Date(at.getTime() + zoneOffsetMinutes(at, timeZone) * 60_000)
     .toISOString()
     .slice(0, 10);
 
-/**
- * The delivery windows a customer can choose over the coming days, in the store's time zone: the zone's slots (or
- * the slots for every zone), starting at least `leadMinutes` from now, not full. `taken` counts shipments per
- * "date|slotId".
- */
 export function upcomingSlots(
   slots: SlotTemplate[],
   zoneId: string | null,
@@ -222,7 +207,6 @@ export function upcomingSlots(
   return out;
 }
 
-/** When the shipment is promised: the end of its slot, else the order time plus the delivery promise in hours. */
 export function promisedBy(
   placedAt: Date,
   slaHours: number,
@@ -242,7 +226,6 @@ export const VEHICLE_KINDS = [
   "other",
 ] as const;
 
-/** How a courier agency is reached: tracking numbers entered by hand, or its API. */
 export const COURIER_KINDS = [
   "manual",
   "aramex",
@@ -257,7 +240,6 @@ export const UNRESOLVED_COURIER_BOOKINGS = [
   "review",
 ] as const;
 
-/** Automatic booking handles one measured parcel; DHL also requires all three dimensions in centimetres. */
 export function measuredCourierParcel(
   input: {
     weightKg?: string;

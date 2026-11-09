@@ -59,7 +59,6 @@ export function DeploymentsView() {
   } | null>(null);
   const [actionBusy, setActionBusy] = React.useState(false);
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedKind, setSelectedKind] = React.useState("");
   const [selectedStatus, setSelectedStatus] = React.useState("");
@@ -112,22 +111,18 @@ export function DeploymentsView() {
         />
 
         <div className="flex items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: STMS [TRANSPORT]
-          </span>
           <button
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="it-btn-3d py-1.5 px-3 flex items-center gap-1.5 font-mono text-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            <span>REFRESH (F5)</span>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* Cluster Overview Banner */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 font-mono text-xs">
         <div className="it-card p-3 border-l-4 border-l-emerald-500 bg-surface">
           <div className="text-[10px] text-ink-muted uppercase">ENVIRONMENT</div>
@@ -157,7 +152,6 @@ export function DeploymentsView() {
         </div>
       </div>
 
-      {/* Emergency Operations Toolbar */}
       <Card className="it-card p-5 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-outline-variant pb-2">
           <div className="flex items-center gap-2">
@@ -217,7 +211,6 @@ export function DeploymentsView() {
         </div>
       </Card>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 text-xs font-mono">
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />
@@ -278,7 +271,6 @@ export function DeploymentsView() {
         )}
       </div>
 
-      {/* Microservices Matrix */}
       <Card className="it-card p-5 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-outline-variant pb-2">
           <div className="flex items-center gap-2">
@@ -326,7 +318,6 @@ export function DeploymentsView() {
         </div>
       </Card>
 
-      {/* Safe Redacted Environment Variables Audit */}
       <Card className="it-card p-5 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-outline-variant pb-2">
           <div className="flex items-center gap-2">
@@ -372,7 +363,6 @@ export function DeploymentsView() {
         </div>
       </Card>
 
-      {/* Critical Modal */}
       {criticalAction && (
         <CriticalActionModal
           open={Boolean(criticalAction)}

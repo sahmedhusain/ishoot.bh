@@ -126,7 +126,7 @@ export function ConfirmDialog({
 }
 
 interface ConfirmationRequest {
-  /** Text, or a summary of what will change (for example old and new values). */
+
   description: React.ReactNode;
   onConfirm: () => Promise<unknown> | unknown;
   title?: string;
@@ -136,7 +136,6 @@ interface ConfirmationRequest {
 
 const ConfirmationContext = React.createContext<((request: ConfirmationRequest) => void) | null>(null);
 
-/** Shared confirmation host for actions in lists and menus. */
 export function ConfirmationProvider({ children }: { children: React.ReactNode }) {
   const copy = useUiCopy();
   const [request, setRequest] = React.useState<ConfirmationRequest | null>(null);

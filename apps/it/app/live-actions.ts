@@ -1,5 +1,5 @@
 "use server";
-// The signed-in IT account's notifications and status (docs/adr/0012), with their own token.
+
 import {
   actOnMyInbox,
   clearITStatus,

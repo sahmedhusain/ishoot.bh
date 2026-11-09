@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ setting: vi.fn(), queue: vi.fn() }));
-// The notify client as @platform/email sees it: one factory per specifier, as the package resolves differently.
+
 const client = vi.hoisted(() => {
   class ApiError extends Error {
     constructor(

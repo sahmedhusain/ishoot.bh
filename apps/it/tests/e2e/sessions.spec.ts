@@ -39,7 +39,7 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
   await page.getByLabel(ar.login.email).fill(account.email);
   await page.getByLabel(ar.login.password).fill(account.password);
   await page.getByRole("button", { name: ar.login.submit }).click();
-  // Another serial IT journey may have consumed the current authenticator step.
+
   const step = Math.floor(Date.now() / 30_000);
   await expect
     .poll(() => Math.floor(Date.now() / 30_000), {
@@ -218,7 +218,7 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
         })
       ).status(),
     ).toBe(401);
-    // With access removed, middleware must reject the revoked refresh credential too.
+
     await guest.clearCookies({ name: accessCookie });
     await other.goto("/tickets");
     await expect(other).toHaveURL(/\/login$/);

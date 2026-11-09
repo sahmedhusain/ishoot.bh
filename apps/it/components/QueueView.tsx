@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Filter, RotateCcw, ListFilter, ArrowRight } from "lucide-react";
+import { Filter, RotateCcw, ArrowRight } from "lucide-react";
 import type { TicketPage } from "@platform/api-client";
 import {
   TICKET_CATEGORIES,
@@ -47,9 +47,8 @@ export function QueueView({
   const t = copy.tickets;
   const router = useRouter();
 
-  // Local filter states for dropdown form
   const [selectedScope, setSelectedScope] = React.useState<string>(
-    query.mine ? "mine" : query.open ? "open" : "all"
+    query.mine ? "mine" : query.open ? "open" : "all",
   );
   const [selectedCategory, setSelectedCategory] = React.useState<string>(query.category || "");
   const [selectedStatus, setSelectedStatus] = React.useState<string>(query.status || "");
@@ -57,7 +56,7 @@ export function QueueView({
 
   const handleApplyFilters = (e: React.FormEvent) => {
     e.preventDefault();
-    const openVal = selectedScope === "open" ? true : selectedScope === "mine" ? false : false;
+    const openVal = selectedScope === "open";
     const mineVal = selectedScope === "mine";
 
     const nextHref = buildHref(query, {
@@ -79,52 +78,43 @@ export function QueueView({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2">
-        <PageTitle title={t.title} description={t.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SM37 [QUEUE]
-        </span>
-      </div>
+    <div className="space-y-5">
+      <PageTitle title={t.title} description={t.description} />
 
-      {/* SAP / Oracle Utilitarian Dropdown Filter Bar */}
-      <div className="it-card space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
-          <div className="flex items-center gap-1.5 font-mono text-xs font-bold uppercase text-ink">
-            <ListFilter className="size-3.5 text-amber-600" />
-            <span>{t.filtersTitle}</span>
-          </div>
-          <div className="text-[10px] font-mono text-ink-muted">
-            SELECTION VARIANT: DEFAULT
-          </div>
+      <div className="it-card p-4 space-y-3">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <Filter className="size-3.5 text-sky-600" />
+          <span>{t.filtersTitle}</span>
         </div>
 
-        <form onSubmit={handleApplyFilters} className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5 text-xs font-mono">
-          {/* 1. Scope / Assignment Dropdown */}
+        <form
+          onSubmit={handleApplyFilters}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"
+        >
+
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
-              {t.scope}
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+              Scope
             </label>
             <select
               value={selectedScope}
               onChange={(e) => setSelectedScope(e.target.value)}
-              className="it-field-sunken w-full"
+              className="w-full text-xs py-1.5 px-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
             >
-              <option value="open">{t.scopeOpen}</option>
-              <option value="mine">{t.scopeMine}</option>
-              <option value="all">{t.scopeAll}</option>
+              <option value="open">{t.openOnly}</option>
+              <option value="mine">{t.mine}</option>
+              <option value="all">{t.everything}</option>
             </select>
           </div>
 
-          {/* 2. Category Dropdown */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
               {t.category}
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="it-field-sunken w-full"
+              className="w-full text-xs py-1.5 px-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
             >
               <option value="">{t.allCategories}</option>
               {TICKET_CATEGORIES.map((cat) => (
@@ -135,15 +125,14 @@ export function QueueView({
             </select>
           </div>
 
-          {/* 3. Status Dropdown */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
               {t.status}
             </label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="it-field-sunken w-full"
+              className="w-full text-xs py-1.5 px-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
             >
               <option value="">{t.allStatuses}</option>
               {TICKET_STATUSES.map((s) => (
@@ -154,15 +143,14 @@ export function QueueView({
             </select>
           </div>
 
-          {/* 4. Priority Dropdown */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
               {t.priority}
             </label>
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="it-field-sunken w-full"
+              className="w-full text-xs py-1.5 px-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
             >
               <option value="">{t.allPriorities}</option>
               {TICKET_PRIORITIES.map((p) => (
@@ -173,18 +161,17 @@ export function QueueView({
             </select>
           </div>
 
-          {/* 5. Filter Action Buttons */}
-          <div className="flex items-end gap-1.5">
+          <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="it-btn-3d flex-1 py-1.5 font-bold text-emerald-800 dark:text-emerald-300"
+              className="flex-1 py-1.5 px-3 rounded-md bg-[#0070d2] hover:bg-[#005fb2] text-white text-xs font-semibold shadow-sm transition-colors"
             >
               {t.filterApply}
             </button>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="it-btn-3d py-1.5 px-2"
+              className="py-1.5 px-2.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs transition-colors"
               title={t.filterReset}
             >
               <RotateCcw className="size-3.5" />
@@ -193,92 +180,106 @@ export function QueueView({
         </form>
       </div>
 
-      {/* Tickets Tabular Display (Dense SAP GUI Table) */}
       {!page ? (
-        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+        <div className="it-card p-12 text-center text-xs text-slate-500">
           {copy.overview.unavailable}
         </div>
       ) : page.items.length === 0 ? (
-        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+        <div className="it-card p-12 text-center text-xs text-slate-500">
           {t.empty}
         </div>
       ) : (
-        <div className="it-card p-0 overflow-x-auto">
-          <table className="it-table w-full font-mono text-xs">
-            <thead>
-              <tr>
-                <th className="w-24">TICKET #</th>
-                <th className="w-24">PRIORITY</th>
-                <th className="w-28">STATUS</th>
-                <th className="w-28">SLA TIMING</th>
-                <th>SUBJECT / DESCRIPTION</th>
-                <th className="w-32">CATEGORY</th>
-                <th className="w-36">REQUESTER</th>
-                <th className="w-36">ASSIGNEE</th>
-                <th className="w-32">CREATED</th>
-                <th className="w-16 text-center">ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {page.items.map((ticket) => {
-                const category = ticketCategory(ticket.category);
-                return (
-                  <tr key={ticket.id} className="cursor-pointer">
-                    <td className="font-bold text-sky-700 dark:text-sky-400">
-                      <Link href={`/tickets/${ticket.id}`} className="hover:underline">
-                        {number(ticket.number)}
-                      </Link>
-                    </td>
-                    <td>
-                      <span className="font-semibold">{priority(ticket.priority)}</span>
-                    </td>
-                    <td>
-                      <StatusBadge status={ticket.status} />
-                    </td>
-                    <td>
-                      {ticket.breached ? (
-                        <OverdueBadge />
-                      ) : ticket.remindedAt ? (
-                        <RemindedBadge />
-                      ) : (
-                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">ON TRACK</span>
-                      )}
-                    </td>
-                    <td className="font-sans font-semibold text-ink max-w-xs truncate">
-                      <Link href={`/tickets/${ticket.id}`} className="hover:underline block truncate">
-                        <bdi dir="auto">{ticket.title}</bdi>
-                      </Link>
-                    </td>
-                    <td className="text-ink-muted text-[11px]">
-                      {category ? name(category) : ticket.category}
-                    </td>
-                    <td className="truncate text-ink-muted text-[11px]">
-                      <bdi dir="auto">{ticket.requesterName}</bdi>
-                    </td>
-                    <td className="truncate text-[11px]">
-                      {ticket.assigneeName ? (
-                        <bdi dir="auto" className="font-semibold">{ticket.assigneeName}</bdi>
-                      ) : (
-                        <span className="text-amber-700 dark:text-amber-400 italic">{t.unassigned}</span>
-                      )}
-                    </td>
-                    <td className="text-[10px] text-ink-muted whitespace-nowrap">
-                      {date(ticket.createdAt)}
-                    </td>
-                    <td className="text-center">
-                      <Link
-                        href={`/tickets/${ticket.id}`}
-                        className="it-btn-3d py-0.5 px-1.5 text-[10px]"
-                        title="Open Ticket"
-                      >
-                        <ArrowRight className="size-3 rtl:rotate-180" />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="it-card p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 text-slate-500 uppercase text-[11px] font-semibold">
+                  <th className="py-2.5 px-4 w-24">#</th>
+                  <th className="py-2.5 px-4 w-24">Priority</th>
+                  <th className="py-2.5 px-4 w-28">Status</th>
+                  <th className="py-2.5 px-4 w-28">SLA</th>
+                  <th className="py-2.5 px-4">Subject</th>
+                  <th className="py-2.5 px-4 w-32">Category</th>
+                  <th className="py-2.5 px-4 w-36">Requester</th>
+                  <th className="py-2.5 px-4 w-36">Assignee</th>
+                  <th className="py-2.5 px-4 w-32">Created</th>
+                  <th className="py-2.5 px-4 w-12 text-center"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {page.items.map((ticket) => {
+                  const category = ticketCategory(ticket.category);
+                  return (
+                    <tr
+                      key={ticket.id}
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <td className="py-3 px-4 font-mono font-medium text-sky-700 dark:text-sky-400">
+                        <Link
+                          href={`/tickets/${ticket.id}`}
+                          className="hover:underline"
+                        >
+                          {number(ticket.number)}
+                        </Link>
+                      </td>
+                      <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">
+                        {priority(ticket.priority)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={ticket.status} />
+                      </td>
+                      <td className="py-3 px-4">
+                        {ticket.breached ? (
+                          <OverdueBadge />
+                        ) : ticket.remindedAt ? (
+                          <RemindedBadge />
+                        ) : (
+                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                            On Track
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100 max-w-xs truncate">
+                        <Link
+                          href={`/tickets/${ticket.id}`}
+                          className="hover:underline block truncate"
+                        >
+                          {ticket.title}
+                        </Link>
+                      </td>
+                      <td className="py-3 px-4 text-slate-500">
+                        {category ? name(category) : ticket.category}
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 truncate">
+                        {ticket.requesterName}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 dark:text-slate-300 truncate">
+                        {ticket.assigneeName ? (
+                          <span className="font-medium">{ticket.assigneeName}</span>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400 italic">
+                            {t.unassigned}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
+                        {date(ticket.createdAt)}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <Link
+                          href={`/tickets/${ticket.id}`}
+                          className="p-1 rounded text-slate-400 hover:text-sky-600 transition-colors inline-block"
+                          title="Open Ticket"
+                        >
+                          <ArrowRight className="size-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -286,7 +287,7 @@ export function QueueView({
         <div className="flex justify-center pt-2">
           <Link
             href={buildHref(query, { cursor: page.nextCursor })}
-            className="it-btn-3d py-1.5 px-4 font-mono font-bold"
+            className="py-2 px-5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             {t.loadMore}
           </Link>

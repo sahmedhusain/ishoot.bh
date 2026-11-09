@@ -1,4 +1,4 @@
-/** An error answered by a backend service (RFC 9457 problem details). `code` is stable; show translated copy. */
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -13,7 +13,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Builds an ApiError from a failed response. */
 export async function apiError(
   response: Response,
   body?: unknown,
@@ -36,6 +35,5 @@ export async function apiError(
   );
 }
 
-/** True when err is an ApiError with one of the codes. */
 export const isApiError = (err: unknown, ...codes: string[]): err is ApiError =>
   err instanceof ApiError && (codes.length === 0 || codes.includes(err.code));

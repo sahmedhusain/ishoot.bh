@@ -1,4 +1,4 @@
-// The signed-in IT account, for server components and server actions. Never import from client components.
+
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 import { createRemoteJWKSet, jwtVerify } from "jose";
@@ -11,13 +11,12 @@ export type ItUser = {
   sessionId: string;
   roles: string[];
   email: string;
-  /** The access token, for calls through the gateway (which checks it live against identity). */
+
   token: string;
 };
 
 let keys: ReturnType<typeof createRemoteJWKSet> | undefined;
 
-/** The signed-in IT account, or null. The token's signature, issuer, audience and expiry are verified here. */
 export async function currentUser(): Promise<ItUser | null> {
   const jar = await cookies();
   const token = jar.get(config.accessCookie())?.value;
@@ -42,14 +41,12 @@ export async function currentUser(): Promise<ItUser | null> {
   }
 }
 
-/** The signed-in IT account; anyone else goes to the sign-in page. */
 export async function requireUser(): Promise<ItUser> {
   const user = await currentUser();
   if (!user) redirect("/login");
   return user;
 }
 
-/** The signed-in IT account when their role allows the action; otherwise the forbidden page. */
 export async function requireAllowed(
   resource: string,
   action: string,
@@ -59,7 +56,6 @@ export async function requireAllowed(
   return user;
 }
 
-/** Runs a backend call as the user: an ended session signs them out, a denied one shows the forbidden page. */
 export async function asUser<T>(call: () => Promise<T>): Promise<T> {
   try {
     return await call();

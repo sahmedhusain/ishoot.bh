@@ -23,11 +23,9 @@ export function ModulesView({
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
 
-  // Search and Filter State
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedState, setSelectedState] = React.useState("");
 
-  // Confirmation Modal State for Disabling
   const [pendingDisable, setPendingDisable] = React.useState<{
     key: string;
     label: string;
@@ -50,10 +48,10 @@ export function ModulesView({
   const handleToggleClick = (module: ModuleState, label: string) => {
     if (!canEdit) return;
     if (module.enabled) {
-      // Disabling is a critical action
+
       setPendingDisable({ key: module.key, label });
     } else {
-      // Enabling is safe
+
       void toggle(module.key, true);
     }
   };
@@ -76,21 +74,15 @@ export function ModulesView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={m.title} description={m.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SM19 [SYSTEM MODULES]
-        </span>
-      </div>
+      <PageTitle title={m.title} description={m.description} />
 
-      <div className="flex items-center gap-2 border border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2.5 text-xs text-amber-800 dark:text-amber-300 font-mono">
-        <ShieldAlert className="size-4 shrink-0" aria-hidden />
+      <div className="flex items-center gap-2.5 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-800 dark:text-amber-300">
+        <ShieldAlert className="size-4 shrink-0 text-amber-600" aria-hidden />
         <p>{m.warning}</p>
       </div>
 
       {!canEdit && <p className="text-xs text-ink-muted font-mono">{m.readOnly}</p>}
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 text-xs font-mono">
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />

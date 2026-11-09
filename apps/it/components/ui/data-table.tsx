@@ -1,7 +1,6 @@
 import * as React from "react";
 import { cn } from "./utils";
 
-/** Semantic table surface. Callers retain their headers, sorting, links and empty states. */
 export function DataTable({
   className,
   children,

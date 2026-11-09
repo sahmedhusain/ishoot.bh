@@ -65,8 +65,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
   React.useEffect(() => {
     if (value !== undefined && value === lastEmitted.current) return;
     setEntry(parts(value ?? defaultValue));
-    // Only external updates reset the selected country, including countries sharing a calling code.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [value, defaultValue, fallback]);
   const code = COUNTRY_DIAL_CODES.find((country) => country.iso === entry.iso)?.dialCode ?? "";
   const rawCombined = entry.national ? `${code || "+"}${entry.national}` : "";

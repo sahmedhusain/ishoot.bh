@@ -10,7 +10,6 @@ import {
 import { t } from "../helpers/locale";
 import { selectOption } from "../../select-option";
 
-// One continuous first-run journey on a blank install: the database is prepared fresh for every run.
 test.describe.configure({ mode: "serial", retries: 0 });
 
 const copy = t.setupWizard;
@@ -28,13 +27,12 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page).toHaveURL(/\/setup$/, { timeout: 60_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.title);
 
-  // Step 1: what the company does comes first, then languages and identity
   await page.getByTestId("setup-next").click();
   await expect(alertMessage(page)).toHaveText(
     t.serverErrors.messages.businessActivityInvalid,
   );
   await page.getByTestId("activity-products").click();
-  // An English-only company fills each field once: there is no Arabic name to enter.
+
   await page.getByTestId("languages-en").click();
   await expect(page.locator('input[name="companyNameAr"]')).toHaveCount(0);
   await page.getByTestId("setup-next").click();
@@ -52,10 +50,9 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
     copy.steps.brand,
   );
-  // The single name is shown in both languages.
+
   await expect(page).toHaveTitle(/Acme Trading/);
 
-  // Step 2: the activity's recommended style is applied, then changed by hand and previewed live
   await expect(page.getByTestId("theme-preview")).toHaveAttribute(
     "style",
     /--brand-primary:\s*6 78 59/,
@@ -69,7 +66,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
     "style",
     /--brand-primary:\s*127 29 29/,
   );
-  // The real website is shown below the editor, at desktop or phone width
+
   await expect(
     page.getByTestId("website-preview").locator("iframe"),
   ).toBeVisible();
@@ -93,7 +90,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
     .poll(() => themeVariable(page, "--brand-font-heading"))
     .toContain("Cairo");
 
-  // Step 3: a logo is required, then uploaded through the normal upload flow
   await page.getByTestId("setup-next").click();
   await expect(alertMessage(page)).toHaveText(copy.assets.logoRequired);
   await page.locator("#asset-logo_light").setInputFiles(logo);
@@ -102,7 +98,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
   ).toHaveAttribute("src", /\/api\/files\/brand\//, { timeout: 60_000 });
   await page.getByTestId("setup-next").click();
 
-  // Step 4: a products website, recommended for the activity and then adjusted
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
     copy.steps.website,
   );
@@ -120,17 +115,16 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await page.getByTestId("sample-content").check();
   await page.getByTestId("setup-next").click();
 
-  // Step 5: configuration; modules follow the activity (no studio equipment for a shop)
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
     copy.steps.configuration,
   );
   await expect(page.getByLabel("مخزون المعدات")).not.toBeChecked();
   await expect(page.getByLabel("إدارة محتوى الموقع")).toBeChecked();
-  // Priced samples already exist, so the accounting currency must stay fixed.
+
   await selectOption(page.getByLabel(copy.configuration.currency), "BHD");
   await page.getByLabel(copy.configuration.invoicePrefix).fill("ACM");
   await expect(page.getByText(/ACM-\d{4}-0001/)).toBeVisible();
-  // Departments follow the activity (a shop has a warehouse, not public relations) and bring their roles
+
   const departments = page.getByTestId("setup-departments");
   await expect(
     departments.getByLabel(t.departmentCatalogue.warehouse),
@@ -146,7 +140,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
   ).toBeVisible();
   await page.getByTestId("setup-next").click();
 
-  // Step 6: review and finish (the website is published on the way)
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
     copy.steps.review,
   );
@@ -157,11 +150,10 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(
     page.getByRole("status").filter({ hasText: copy.finished }),
   ).toBeVisible();
-  // The dashboard may be compiling for the first time on a development server.
+
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: 60_000 });
   await expect(page).toHaveTitle(/Acme Trading/);
 
-  // Setup never shows again, the theme stays editable in settings, and the website is live
   await page.goto("/setup");
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/dashboard/settings/company");
@@ -174,7 +166,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(
     page.getByRole("main").getByText(t.websiteEditor.lastPublished),
   ).toBeVisible();
-  // The samples went live with the website, and one click removes them
+
   await page.goto("/dashboard/cms/portfolio");
   await expect(
     page.getByText(/Classic Chair|الكرسي الكلاسيكي/).first(),
@@ -182,7 +174,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await page.goto("/dashboard/cms/website");
   await page.getByTestId("remove-samples").click();
   await expect(page.getByTestId("add-samples")).toBeVisible();
-  // The chosen departments were created, the activity's and the one added by hand
+
   await page.goto("/dashboard/settings/departments");
   await expect(
     page.getByText(t.departmentCatalogue.warehouse).first(),

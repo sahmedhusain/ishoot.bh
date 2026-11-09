@@ -47,17 +47,14 @@ export function LogsView({
   const l = copy.logs;
   const router = useRouter();
 
-  // Observable External Search Queries
   const [traceId, setTraceId] = React.useState("");
   const [logQuery, setLogQuery] = React.useState("");
   const [busy, setBusy] = React.useState(false);
 
-  // In-App Log Telemetry State
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [bufferSize, setBufferSize] = React.useState(0);
 
-  // Filters & Sorting
   const [timeRange, setTimeRange] = React.useState<TimeRange>("24h");
   const [selectedUser, setSelectedUser] = React.useState<string>("");
   const [selectedLevel, setSelectedLevel] = React.useState<string>("ALL");
@@ -66,16 +63,13 @@ export function LogsView({
   const [sortBy, setSortBy] = React.useState<SortField>("timestamp");
   const [sortDir, setSortDir] = React.useState<SortDirection>("desc");
 
-  // Real-time Auto-refresh
   const [autoRefreshInterval, setAutoRefreshInterval] = React.useState<number>(0);
   const [inspectLog, setInspectLog] = React.useState<LogEntry | null>(null);
 
-  // Debug Toggle form state
   const [toggleService, setToggleService] = React.useState("identity");
   const [toggleLevel, setToggleLevel] = React.useState("debug");
   const [toggleTTL, setToggleTTL] = React.useState(15);
 
-  // Fetch logs from API
   const fetchLogs = React.useCallback(async () => {
     try {
       setLoading(true);
@@ -101,12 +95,10 @@ export function LogsView({
     }
   }, [timeRange, selectedUser, selectedLevel, selectedService, searchQuery, sortBy, sortDir, l.fetchFailed]);
 
-  // Initial load and dependency trigger
   React.useEffect(() => {
     void fetchLogs();
   }, [fetchLogs]);
 
-  // Auto-refresh interval listener
   React.useEffect(() => {
     if (autoRefreshInterval <= 0) return;
     const interval = setInterval(() => {
@@ -115,7 +107,6 @@ export function LogsView({
     return () => clearInterval(interval);
   }, [autoRefreshInterval, fetchLogs]);
 
-  // Export handlers
   const exportJson = () => {
     const blob = new Blob([JSON.stringify(logs, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -190,7 +181,6 @@ export function LogsView({
     window.open(`/explore?left=${encodeURIComponent(JSON.stringify({ datasource: "tempo", queries: [{ query: traceId.trim() }] }))}`, "_blank");
   };
 
-  // Metrics summary
   const errorCount = React.useMemo(() => logs.filter((x) => x.level === "ERROR" || x.level === "FATAL").length, [logs]);
   const warnCount = React.useMemo(() => logs.filter((x) => x.level === "WARN").length, [logs]);
   const uniqueUsers = React.useMemo(() => Array.from(new Set(logs.map((x) => x.user))).filter(Boolean), [logs]);
@@ -203,13 +193,12 @@ export function LogsView({
           description={l.description}
         />
 
-        {/* Telemetry Actions */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={fetchLogs}
             disabled={loading}
-            className="it-btn-3d flex items-center gap-1.5 font-mono text-xs py-1 px-3"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>{l.fetchNow}</span>
@@ -218,7 +207,7 @@ export function LogsView({
           <button
             type="button"
             onClick={exportJson}
-            className="it-btn-3d flex items-center gap-1.5 font-mono text-xs py-1 px-3"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <Download className="h-3.5 w-3.5" />
             <span>{l.exportJson}</span>
@@ -227,7 +216,7 @@ export function LogsView({
           <button
             type="button"
             onClick={exportCsv}
-            className="it-btn-3d flex items-center gap-1.5 font-mono text-xs py-1 px-3"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
           >
             <Download className="h-3.5 w-3.5" />
             <span>{l.exportCsv}</span>
@@ -235,17 +224,16 @@ export function LogsView({
         </div>
       </div>
 
-      {/* SAP / Oracle Status Telemetry Strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 font-mono text-xs">
-        <div className="it-card p-3 border-l-4 border-l-sky-500">
-          <div className="text-[10px] text-ink-muted uppercase font-bold">{l.totalInView}</div>
-          <div className="text-lg font-bold text-ink">{logs.length}</div>
-          <div className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">{l.bufferSlots}: {bufferSize}</div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
+        <div className="it-card p-3">
+          <div className="text-[10px] text-slate-500 uppercase font-bold">{l.totalInView}</div>
+          <div className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{logs.length}</div>
+          <div className="text-[10px] text-sky-600 dark:text-sky-400 font-medium">{l.bufferSlots}: {bufferSize}</div>
         </div>
 
-        <div className={`it-card p-3 border-l-4 ${errorCount > 0 ? "border-l-rose-500 bg-rose-500/5" : "border-l-emerald-500"}`}>
-          <div className="text-[10px] text-ink-muted uppercase font-bold">{l.levelFatal} / {l.levelError}</div>
-          <div className={`text-lg font-bold ${errorCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+        <div className="it-card p-3">
+          <div className="text-[10px] text-slate-500 uppercase font-bold">{l.levelFatal} / {l.levelError}</div>
+          <div className={`text-xl font-bold mt-0.5 ${errorCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
             {errorCount}
           </div>
           <div className="text-[10px] text-ink-muted font-mono">ERRORS DETECTED</div>
@@ -266,7 +254,6 @@ export function LogsView({
         </div>
       </div>
 
-      {/* Enterprise Filter Control Bar */}
       <div className="it-card p-4 space-y-3">
         <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
           <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase text-ink">
@@ -274,7 +261,6 @@ export function LogsView({
             <span>{l.filterCriteria}</span>
           </div>
 
-          {/* Auto Refresh Setting */}
           <div className="flex items-center gap-2 font-mono text-xs">
             <span className="text-ink-muted font-bold">{l.autoFetch}:</span>
             <select
@@ -292,7 +278,7 @@ export function LogsView({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 text-xs font-mono">
-          {/* 1. Time Range Dropdown */}
+
           <div>
             <label className="block text-[10px] uppercase text-ink-muted mb-1 font-bold">{l.timeWindow}</label>
             <select
@@ -308,7 +294,6 @@ export function LogsView({
             </select>
           </div>
 
-          {/* 2. User Filter (Specific user logging inspection) */}
           <div>
             <label className="block text-[10px] uppercase text-ink-muted mb-1 font-bold">{l.userActor}</label>
             <div className="flex gap-1">
@@ -331,7 +316,6 @@ export function LogsView({
             </div>
           </div>
 
-          {/* 3. Severity Level */}
           <div>
             <label className="block text-[10px] uppercase text-ink-muted mb-1 font-bold">{l.logLevel}</label>
             <select
@@ -348,7 +332,6 @@ export function LogsView({
             </select>
           </div>
 
-          {/* 4. Service */}
           <div>
             <label className="block text-[10px] uppercase text-ink-muted mb-1 font-bold">{l.service}</label>
             <select
@@ -369,7 +352,6 @@ export function LogsView({
             </select>
           </div>
 
-          {/* 5. Sort By */}
           <div>
             <label className="block text-[10px] uppercase text-ink-muted mb-1 font-bold">{l.sortBy}</label>
             <div className="flex gap-1">
@@ -394,7 +376,6 @@ export function LogsView({
           </div>
         </div>
 
-        {/* Search Input */}
         <div className="relative pt-1">
           <input
             type="text"
@@ -407,7 +388,6 @@ export function LogsView({
         </div>
       </div>
 
-      {/* In-App Log Stream Table */}
       <Card className="it-card overflow-hidden">
         <div className="overflow-x-auto max-h-[580px] overflow-y-auto">
           <table className="it-table w-full font-mono text-xs">
@@ -465,7 +445,7 @@ export function LogsView({
                       </td>
 
                       <td className="font-semibold text-slate-700 dark:text-slate-300">
-                        [{log.service}]
+                        {log.service}
                       </td>
 
                       <td className="text-slate-600 dark:text-slate-400 truncate max-w-[190px]" title={log.user}>
@@ -506,9 +486,9 @@ export function LogsView({
                             e.stopPropagation();
                             setInspectLog(log);
                           }}
-                          className="px-2 py-0.5 border border-outline-variant text-[10px] bg-surface hover:bg-slate-200 dark:hover:bg-slate-700"
+                          className="px-2.5 py-1 rounded text-xs font-medium text-sky-600 hover:text-sky-800 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
                         >
-                          VIEW
+                          View
                         </button>
                       </td>
                     </tr>
@@ -520,11 +500,10 @@ export function LogsView({
         </div>
       </Card>
 
-      {/* Log Detail Inspector Modal */}
       {inspectLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="it-card w-full max-w-3xl max-h-[85vh] flex flex-col bg-surface overflow-hidden border-2 border-slate-700 shadow-2xl">
-            {/* Modal Header */}
+
             <div className="flex items-center justify-between border-b border-outline-variant bg-slate-900 px-4 py-3 text-white font-mono">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <FileCode className="h-4 w-4 text-amber-400" />
@@ -539,7 +518,6 @@ export function LogsView({
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-xs">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 dark:bg-slate-950/60 p-3 border border-outline-variant">
                 <div>
@@ -605,7 +583,6 @@ export function LogsView({
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="border-t border-outline-variant bg-surface p-3 flex justify-end gap-2">
               <Button
                 type="button"
@@ -630,7 +607,6 @@ export function LogsView({
         </div>
       )}
 
-      {/* Observability External Integrations (Loki & Tempo) */}
       <div className="grid gap-6 sm:grid-cols-2">
         <Card className="it-card p-5 space-y-3">
           <div className="flex items-center gap-2">
@@ -673,7 +649,6 @@ export function LogsView({
         </Card>
       </div>
 
-      {/* Dynamic Backend Debug Toggles */}
       <Card className="it-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant pb-2">
           <div>

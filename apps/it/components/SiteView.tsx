@@ -58,7 +58,6 @@ function Unavailable() {
   );
 }
 
-/** The outcome's message: the saved text, or why it was refused. */
 function useOutcome() {
   const { copy } = useCopy();
   return (outcome: SiteOutcome<unknown>, saved: string) => {
@@ -427,7 +426,6 @@ function CodeCard({
   );
 }
 
-/** The website's technical settings: domains (domains:*) and site-wide tracking and code (site_code:*). */
 export function SiteView({
   domains,
   code,
@@ -436,7 +434,7 @@ export function SiteView({
   canEditCode,
 }: {
   domains: SiteDomains | null;
-  /** undefined: the role cannot see the code; null: the service could not be reached. */
+
   code: (SiteCode & Changed) | null | undefined;
   canEditDomains: boolean;
   canCheckDomains: boolean;
@@ -445,12 +443,7 @@ export function SiteView({
   const { copy } = useCopy();
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={copy.site.title} description={copy.site.description} />
-        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-          T-CODE: SICF [INTERNET DOMAINS & SCRIPT INJECTION]
-        </span>
-      </div>
+      <PageTitle title={copy.site.title} description={copy.site.description} />
 
       {!canEditDomains && (
         <p className="text-xs font-mono text-ink-muted">{copy.site.readOnly}</p>

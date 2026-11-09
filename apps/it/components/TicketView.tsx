@@ -183,7 +183,7 @@ export function TicketView({
 
   return (
     <div inert={busy} aria-busy={busy} className="space-y-4">
-      {/* Top Header & T-Code Bar */}
+
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-300 dark:border-slate-700 pb-2">
         <div className="flex items-center gap-3">
           <Link
@@ -210,9 +210,6 @@ export function TicketView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
-            T-CODE: SD01 [SERVICE TICKET]
-          </span>
           {canAssign && (
             <button
               type="button"
@@ -314,7 +311,7 @@ export function TicketView({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left 2 Cols: Description & Conversation */}
+
         <div className="lg:col-span-2 space-y-4">
           <div className="it-card p-4 space-y-3 font-mono text-xs">
             <div className="border-b border-slate-300 dark:border-slate-700 pb-1">
@@ -507,7 +504,6 @@ export function TicketView({
           </div>
         </div>
 
-        {/* Right Col: Ticket Facts & Event Log */}
         <div className="space-y-4">
           <div className="it-card p-3 font-mono text-xs space-y-2">
             <div className="border-b border-slate-300 dark:border-slate-700 pb-1">

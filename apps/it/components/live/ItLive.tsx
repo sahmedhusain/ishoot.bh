@@ -1,6 +1,5 @@
 "use client";
-// Live updates in the IT dashboard (docs/adr/0012): the account's notifications with sound, pop-ups and desktop
-// alerts, their status, and the ticket desk refreshing as tickets arrive or change.
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -48,7 +47,7 @@ function Settings({ children }: { children: React.ReactNode }) {
       setMutes(body.mutes ?? []);
       setStatus(body.status);
     } catch {
-      // The next resync tries again.
+
     }
   }, []);
   React.useEffect(() => {
@@ -60,7 +59,6 @@ function Settings({ children }: { children: React.ReactNode }) {
   return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
 }
 
-/** Sound, pop-up and desktop alert for new notifications and new tickets, unless muted or on do not disturb. */
 function Alerts() {
   const { copy } = useCopy();
   const router = useRouter();
@@ -76,7 +74,7 @@ function Alerts() {
     (event) => {
       const { preferences: prefs, status: me, copy } = latest.current;
       const data = event.data ?? {};
-      // The desk: refresh the queue and ticket pages when tickets change.
+
       if (event.type === RESYNC || (event.type === "entity.changed" && data.resource === "it_support")) {
         if (refreshTimer.current) clearTimeout(refreshTimer.current);
         refreshTimer.current = setTimeout(() => router.refresh(), 600);

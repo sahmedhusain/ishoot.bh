@@ -1,5 +1,5 @@
 "use client";
-// The IT dashboard's notification menu (docs/adr/0012): latest notifications, live, with mute and sound controls.
+
 import * as React from "react";
 import Link from "next/link";
 import { Bell, BellOff, BellRing, Check, CheckCheck, Settings, Trash2, Volume2, VolumeX } from "lucide-react";
@@ -32,7 +32,7 @@ export function ItBell() {
       setItems(body.items);
       setUnread(body.unreadCount);
     } catch {
-      // Shown as before; the next hint or resync tries again.
+
     }
   }, []);
   React.useEffect(() => {
