@@ -17,6 +17,10 @@ const origin = (value) => {
 const adminOrigin = origin(process.env.NEXT_PUBLIC_ADMIN_URL || process.env.ADMIN_URL);
 const securityHeaders = [
   { key: "Content-Security-Policy", value: `frame-ancestors 'self' ${[adminOrigin, ...(process.env.ADMIN_PREVIEW_ORIGINS || "").split(",").map(origin)].filter(Boolean).join(" ")}`.trim() },
+  // Report-only until a clean production run; shows what an enforced script policy would block.
+  ...(process.env.NODE_ENV === "production"
+    ? [{ key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; object-src 'none'; base-uri 'self'; form-action 'self'" }]
+    : []),
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   ...(process.env.NODE_ENV === "production"

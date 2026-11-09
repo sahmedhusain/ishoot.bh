@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/hr/api"
 	"platform.local/backend/services/hr/internal/app"
@@ -34,7 +35,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	})
 
 	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	g := e.Group("/v1/hr", auth)
+	g := e.Group("/v1/hr", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Departments
 	g.GET("/departments", h.listDepartments)
@@ -54,6 +55,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 
 	// Payroll
 	g.GET("/payroll", h.listPayroll)
+	g.GET("/payroll/:id", h.getPayroll)
 	g.POST("/payroll", h.createPayroll)
 	g.PUT("/payroll/:id/process", h.processPayroll)
 }
@@ -180,6 +182,17 @@ func (h *handler) listPayroll(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, runs)
+}
+
+func (h *handler) getPayroll(c echo.Context) error {
+	run, err := h.svc.GetPayrollRun(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, run)
 }
 
 type createPayrollInput struct {

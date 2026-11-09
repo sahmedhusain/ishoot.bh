@@ -51,6 +51,27 @@ export async function getMinutesOfMeetings(filters?: {
   search?: string;
 }): Promise<MinuteOfMeetingItem[]> {
   try {
+    const { listMOMs } = await import("../api/workflow");
+    const apiMoms = await listMOMs().catch(() => null);
+    if (apiMoms && apiMoms.length > 0) {
+      let mapped = apiMoms.map(mapApiMomToItem);
+      if (filters?.status) mapped = mapped.filter((m) => m.status === filters.status);
+      if (filters?.search) {
+        const s = filters.search.toLowerCase();
+        mapped = mapped.filter(
+          (m) =>
+            m.title.toLowerCase().includes(s) ||
+            m.mom_number.toLowerCase().includes(s) ||
+            (m.agenda && m.agenda.toLowerCase().includes(s)),
+        );
+      }
+      return mapped;
+    }
+  } catch (e) {
+    console.warn("api-client listMOMs failed:", e);
+  }
+
+  try {
     const where: any = {};
     if (filters?.status) where.status = filters.status;
     if (filters?.clientId) where.clientId = filters.clientId;
@@ -88,6 +109,26 @@ export async function getMinuteOfMeetingById(
   id: string,
 ): Promise<MinuteOfMeetingItem | null> {
   try {
+    const { getMOM, listMOMs } = await import("../api/workflow");
+    let mom = await getMOM(id).catch(() => null);
+    if (!mom) {
+      const all = await listMOMs().catch(() => []);
+      const matched: any = (all || []).find(
+        (m: any) =>
+          (m.id || m.ID) === id || (m.momNumber || m.MomNumber) === id,
+      );
+      if (matched) {
+        mom = await getMOM(matched.id || matched.ID).catch(() => null);
+      }
+    }
+    if (mom) {
+      return mapApiMomToItem(mom);
+    }
+  } catch (e) {
+    console.warn(`api-client getMOM ${id} failed:`, e);
+  }
+
+  try {
     const mom = await db.minuteOfMeeting.findUnique({
       where: { id },
       include: {
@@ -105,6 +146,52 @@ export async function getMinuteOfMeetingById(
     console.error(`Error fetching MOM with id ${id}:`, error);
     throw error;
   }
+}
+
+function mapApiMomToItem(m: any): MinuteOfMeetingItem {
+  let actionItems: any[] = [];
+  try {
+    const rawAction = m.actionItems ?? m.ActionItems;
+    if (rawAction) {
+      const parsed = typeof rawAction === "string" ? JSON.parse(rawAction) : rawAction;
+      actionItems = Array.isArray(parsed) ? parsed : [];
+    }
+  } catch {
+    actionItems = [];
+  }
+
+  const rawAttendees = m.attendees ?? m.Attendees ?? [];
+  const attendeesList = Array.isArray(rawAttendees)
+    ? rawAttendees.map((att: any) => {
+        if (typeof att === "string") {
+          try {
+            if (att.startsWith("{")) return JSON.parse(att);
+          } catch {}
+          return { name: att, attended: true };
+        }
+        return att;
+      })
+    : [];
+
+  return {
+    id: m.id || m.ID,
+    mom_number: m.momNumber || m.MomNumber || m.id,
+    title: m.title || m.Title || "",
+    meeting_date: (m.meetingDate || m.MeetingDate || new Date().toISOString()).slice(0, 10),
+    attendees: attendeesList,
+    agenda: m.discussion || m.Discussion || "",
+    discussion_points: [
+      {
+        topic: m.title || m.Title || "Meeting Notes",
+        notes: m.discussion || m.Discussion || "",
+      },
+    ],
+    action_items: actionItems,
+    decisions: [],
+    status: (m.status || m.Status || "draft") as any,
+    created_at: m.createdAt || m.CreatedAt || new Date().toISOString(),
+    updated_at: m.createdAt || m.CreatedAt || new Date().toISOString(),
+  };
 }
 
 export async function getNextMomNumber(

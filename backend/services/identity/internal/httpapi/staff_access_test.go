@@ -70,7 +70,8 @@ func TestStaffAccess(t *testing.T) {
 	for _, module := range catalog.Modules {
 		modules[module.Key] = module.Key != "store"
 	}
-	httpapi.RegisterStaffAccess(e, authn.NewVerifier(time.Second, signer.Trust()), app.NewStaffAccess(pool, func(context.Context) (map[string]bool, error) {
+	verifier := authn.NewVerifier(time.Second, signer.Trust())
+	httpapi.RegisterStaffAccess(e, verifier, verifier, app.NewStaffAccess(pool, func(context.Context) (map[string]bool, error) {
 		loads++
 		if duringLoad != nil {
 			duringLoad()

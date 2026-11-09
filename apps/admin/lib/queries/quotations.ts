@@ -705,6 +705,27 @@ export function isQuotationExpired(
 }
 
 export async function getQuotationById(id: string): Promise<Quotation | null> {
+  try {
+    const { getQuotation, listQuotations } = await import("@platform/api-client");
+    let q = await getQuotation(id).catch(() => null);
+    if (!q) {
+      const all = await listQuotations().catch(() => []);
+      const matched: any = all.find(
+        (item: any) =>
+          (item.id || item.ID) === id ||
+          (item.quotationNumber || item.QuotationNumber) === id,
+      );
+      if (matched) {
+        q = await getQuotation(matched.id || matched.ID).catch(() => null);
+      }
+    }
+    if (q) {
+      return await mapApiQuotationToQuotation(q);
+    }
+  } catch (e) {
+    console.warn(`api-client getQuotation ${id} failed:`, e);
+  }
+
   const q = await db.quotation.findUnique({
     where: { id },
     include: {
@@ -742,6 +763,75 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
       unitPrice: Number(li.unitPrice),
       lineTotal: Number(li.lineTotal),
     })),
+  };
+}
+
+async function mapApiQuotationToQuotation(q: any): Promise<Quotation> {
+  let clientObj: any = null;
+  const contactId = q.contactId || q.ContactID;
+  if (contactId) {
+    try {
+      const { getContact } = await import("@platform/api-client");
+      clientObj = await getContact(contactId).catch(() => null);
+    } catch {
+      // ignore
+    }
+  }
+
+  const subtotal = Number(q.subtotal || q.Subtotal || 0);
+  const discountAmount = Number(q.discount || q.Discount || 0);
+  const vatAmount = Number(q.vatAmount || q.VatAmount || 0);
+  const totalAmount = Number(q.total || q.Total || 0);
+  const items = q.items || q.lineItems || [];
+
+  return {
+    id: q.id || q.ID,
+    quotationNumber: q.quotationNumber || q.QuotationNumber || q.id,
+    revision: 1,
+    dealId: q.dealId || q.DealID || null,
+    clientId: contactId || null,
+    inquiryId: null,
+    invoiceId: null,
+    issueDate: q.issuedAt || q.IssuedAt || q.createdAt || q.CreatedAt || new Date().toISOString(),
+    validUntilDate: q.validUntil || q.ValidUntil || new Date(Date.now() + 30 * 86400000).toISOString(),
+    subtotal,
+    vatEnabled: vatAmount > 0,
+    vatPercentage: Number(q.vatRate || q.VatRate || 10),
+    vatAmount,
+    otherTaxAmount: 0,
+    taxes: [],
+    discountType: discountAmount > 0 ? "fixed" : "none",
+    discountValue: discountAmount,
+    discountAmount,
+    totalAmount,
+    currency: q.currency || q.Currency || "BHD",
+    language: "ar",
+    status: (q.status || q.Status || "draft") as any,
+    termsEn: q.terms || q.Terms || null,
+    termsAr: q.notes || q.Notes || null,
+    createdById: null,
+    createdAt: q.createdAt || q.CreatedAt || new Date().toISOString(),
+    updatedAt: q.updatedAt || q.UpdatedAt || new Date().toISOString(),
+    lineItems: items.map((li: any, idx: number) => ({
+      id: li.id || li.ID || `qi-${idx + 1}`,
+      quotationId: q.id || q.ID,
+      serviceId: null,
+      descriptionEn: li.description || li.Description || "",
+      descriptionAr: li.description || li.Description || null,
+      quantity: Number(li.quantity || li.Quantity || 1),
+      unitPrice: Number(li.unitPrice || li.UnitPrice || 0),
+      lineTotal: Number(li.amount || li.Amount || li.lineTotal || 0),
+      orderIndex: Number(li.sortOrder || li.SortOrder || idx + 1),
+    })),
+    client: clientObj
+      ? {
+          id: clientObj.id || clientObj.ID,
+          name: `${clientObj.firstName || ""} ${clientObj.lastName || ""}`.trim() || clientObj.company || clientObj.companyName || "Client",
+          companyName: clientObj.company || clientObj.companyName || undefined,
+          email: clientObj.email || null,
+          phone: clientObj.phone || null,
+        }
+      : null,
   };
 }
 

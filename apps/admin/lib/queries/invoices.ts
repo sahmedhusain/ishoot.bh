@@ -150,6 +150,16 @@ export async function getAllInvoices(options?: {
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
   try {
+    const { getInvoice } = await import("@platform/api-client");
+    const inv = await getInvoice(id).catch(() => null);
+    if (inv) {
+      return await mapApiInvoiceToInvoice(inv);
+    }
+  } catch (e) {
+    console.warn(`api-client getInvoice ${id} failed, attempting database fallback:`, e);
+  }
+
+  try {
     const inv = await db.invoice.findUnique({
       where: { id },
       include: {
@@ -174,6 +184,27 @@ export async function getInvoiceByIdOrNumber(
   idOrNumber: string,
 ): Promise<Invoice | null> {
   try {
+    const { getInvoice, listInvoices } = await import("@platform/api-client");
+    let inv = await getInvoice(idOrNumber).catch(() => null);
+    if (!inv) {
+      const all = await listInvoices().catch(() => []);
+      const matched: any = all.find(
+        (i: any) =>
+          (i.id || i.ID) === idOrNumber ||
+          (i.invoiceNumber || i.InvoiceNumber) === idOrNumber,
+      );
+      if (matched) {
+        inv = await getInvoice(matched.id || matched.ID).catch(() => null);
+      }
+    }
+    if (inv) {
+      return await mapApiInvoiceToInvoice(inv);
+    }
+  } catch (e) {
+    console.warn(`api-client getInvoiceByIdOrNumber ${idOrNumber} failed:`, e);
+  }
+
+  try {
     const inv = await db.invoice.findFirst({
       where: {
         OR: [{ id: idOrNumber }, { invoiceNumber: idOrNumber }],
@@ -194,6 +225,84 @@ export async function getInvoiceByIdOrNumber(
     console.error(`Error fetching invoice ${idOrNumber}:`, e);
     throw e;
   }
+}
+
+async function mapApiInvoiceToInvoice(inv: any): Promise<Invoice> {
+  let contactObj: any = null;
+  const contactId = inv.contactId || inv.ContactID;
+  if (contactId) {
+    try {
+      const { getContact } = await import("@platform/api-client");
+      contactObj = await getContact(contactId).catch(() => null);
+    } catch {
+      // ignore
+    }
+  }
+
+  const subtotal = Number(inv.subtotal || inv.Subtotal || 0);
+  const discountAmount = Number(inv.discount || inv.Discount || 0);
+  const vatAmount = Number(inv.vatAmount || inv.VatAmount || 0);
+  const totalAmount = Number(inv.total || inv.Total || 0);
+  const amountPaid = Number(inv.amountPaid || inv.AmountPaid || 0);
+  const balanceDue = Number(
+    inv.balanceDue ?? inv.BalanceDue ?? Math.max(0, totalAmount - amountPaid),
+  );
+  const items = inv.items || inv.lineItems || [];
+
+  return {
+    id: inv.id || inv.ID,
+    invoice_number: inv.invoiceNumber || inv.InvoiceNumber || inv.id,
+    contact_id: contactId || undefined,
+    client_id: contactId || undefined,
+    deal_id: inv.dealId || inv.DealID || undefined,
+    issue_date: (inv.issueDate || inv.IssueDate || new Date().toISOString()).slice(0, 10),
+    due_date: (inv.dueDate || inv.DueDate || new Date().toISOString()).slice(0, 10),
+    subtotal,
+    discount_type: discountAmount > 0 ? "fixed" : "none",
+    discount_value: discountAmount,
+    discount_amount: discountAmount,
+    after_discount: subtotal - discountAmount,
+    vat_enabled: vatAmount > 0,
+    vat_percentage: Number(inv.vatRate || inv.VatRate || 10),
+    vat_amount: vatAmount,
+    total_amount: totalAmount,
+    amount_paid: amountPaid,
+    amount_due: balanceDue,
+    currency: (inv.currency || inv.Currency || "BHD") as any,
+    language: "ar",
+    status: (inv.status || inv.Status || "draft") as any,
+    notes_en: inv.notes || inv.Notes || undefined,
+    notes_ar: inv.terms || inv.Terms || undefined,
+    created_at: inv.createdAt || inv.CreatedAt || new Date().toISOString(),
+    updated_at: inv.updatedAt || inv.UpdatedAt || new Date().toISOString(),
+    line_items: items.map((li: any, idx: number) => ({
+      id: li.id || li.ID || `li-${idx + 1}`,
+      invoice_id: inv.id || inv.ID,
+      description_en: li.description || li.Description || "",
+      description_ar: li.description || li.Description || "",
+      quantity: Number(li.quantity || li.Quantity || 1),
+      unit_price: Number(li.unitPrice || li.UnitPrice || 0),
+      line_total: Number(li.amount || li.Amount || li.lineTotal || 0),
+      display_order: Number(li.sortOrder || li.SortOrder || idx + 1),
+    })),
+    contact: contactObj
+      ? {
+          id: contactObj.id || contactObj.ID,
+          full_name:
+            `${contactObj.firstName || ""} ${contactObj.lastName || ""}`.trim() ||
+            contactObj.company ||
+            contactObj.companyName ||
+            "Client",
+          email: contactObj.email || "",
+          phone: contactObj.phone || undefined,
+          company: contactObj.company || contactObj.companyName || undefined,
+          job_title: contactObj.jobTitle || undefined,
+          notes: contactObj.notes || undefined,
+          created_at: contactObj.createdAt || new Date().toISOString(),
+          updated_at: contactObj.updatedAt || new Date().toISOString(),
+        }
+      : undefined,
+  };
 }
 
 export async function createInvoice(data: {

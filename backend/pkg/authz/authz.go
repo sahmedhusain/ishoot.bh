@@ -3,6 +3,9 @@
 package authz
 
 import (
+	"net/http"
+	"slices"
+
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
@@ -30,6 +33,33 @@ func Require(access catalog.Access, resource, action string) echo.MiddlewareFunc
 				return problem.Unauthenticated("")
 			}
 			if !Allowed(access, p, resource, action) {
+				return problem.Forbidden("")
+			}
+			return next(c)
+		}
+	}
+}
+
+// ServiceCallers is Echo middleware for business services that are reached by other services. A request made with a
+// service token is admitted only when its subject is one of readers (GET, HEAD, OPTIONS) or writers (every other
+// method); a writer may also read. Tokens of other realms pass through untouched: their access is decided by the
+// service's own checks. It must run after authn.Require.
+func ServiceCallers(readers, writers []string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			p, ok := authn.PrincipalFrom(c.Request().Context())
+			if !ok {
+				return problem.Unauthenticated("")
+			}
+			if p.Realm != authn.RealmService {
+				return next(c)
+			}
+			allowed := writers
+			switch c.Request().Method {
+			case http.MethodGet, http.MethodHead, http.MethodOptions:
+				allowed = append(append([]string(nil), readers...), writers...)
+			}
+			if !slices.Contains(allowed, p.Subject) {
 				return problem.Forbidden("")
 			}
 			return next(c)

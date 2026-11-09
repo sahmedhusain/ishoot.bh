@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/workflow/api"
 	"platform.local/backend/services/workflow/internal/app"
@@ -33,7 +34,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	})
 
 	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	g := e.Group("/v1/workflow", auth)
+	g := e.Group("/v1/workflow", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Approvals
 	g.GET("/approvals", h.listApprovals)
@@ -54,6 +55,20 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	// Calendar
 	g.GET("/calendar", h.listCalendarEvents)
 	g.POST("/calendar", h.createCalendarEvent)
+
+	// Minutes of Meeting (MOM)
+	g.GET("/moms", h.listMOMs)
+	g.POST("/moms", h.createMOM)
+	g.GET("/moms/:id", h.getMOM)
+	g.PUT("/moms/:id", h.updateMOM)
+
+	// Official Letters & Templates
+	g.GET("/letters", h.listOfficialLetters)
+	g.POST("/letters", h.createOfficialLetter)
+	g.GET("/letters/:id", h.getOfficialLetter)
+	g.POST("/letters/:id/issue", h.issueOfficialLetter)
+	g.GET("/letter-templates", h.listLetterTemplates)
+	g.POST("/letter-templates", h.createLetterTemplate)
 }
 
 // Approvals Handlers
@@ -216,6 +231,117 @@ func (h *handler) createCalendarEvent(c echo.Context) error {
 		in.EventType = "general"
 	}
 	created, err := h.svc.CreateCalendarEvent(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+
+// MOM Handlers
+func (h *handler) listMOMs(c echo.Context) error {
+	moms, err := h.svc.ListMOMs(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, moms)
+}
+
+func (h *handler) getMOM(c echo.Context) error {
+	mom, err := h.svc.GetMOM(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, mom)
+}
+
+func (h *handler) createMOM(c echo.Context) error {
+	var in sqlcdb.CreateMOMParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	if in.Status == "" {
+		in.Status = "draft"
+	}
+	created, err := h.svc.CreateMOM(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+
+func (h *handler) updateMOM(c echo.Context) error {
+	var in sqlcdb.UpdateMOMParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	in.ID = c.Param("id")
+	updated, err := h.svc.UpdateMOM(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+
+// Official Letters & Templates Handlers
+func (h *handler) listOfficialLetters(c echo.Context) error {
+	letters, err := h.svc.ListOfficialLetters(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, letters)
+}
+
+func (h *handler) getOfficialLetter(c echo.Context) error {
+	letter, err := h.svc.GetOfficialLetter(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, letter)
+}
+
+func (h *handler) createOfficialLetter(c echo.Context) error {
+	var in sqlcdb.CreateOfficialLetterParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	if in.Status == "" {
+		in.Status = "draft"
+	}
+	created, err := h.svc.CreateOfficialLetter(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+
+func (h *handler) issueOfficialLetter(c echo.Context) error {
+	issued, err := h.svc.IssueOfficialLetter(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, issued)
+}
+
+func (h *handler) listLetterTemplates(c echo.Context) error {
+	templates, err := h.svc.ListLetterTemplates(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, templates)
+}
+
+func (h *handler) createLetterTemplate(c echo.Context) error {
+	var in sqlcdb.CreateLetterTemplateParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	created, err := h.svc.CreateLetterTemplate(c.Request().Context(), in)
 	if err != nil {
 		return err
 	}

@@ -968,6 +968,25 @@ services:
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-3300}:3000"
 
+  # Scheduled dumps with retention: docker compose --profile backup up -d. Verify with scripts/restore-drill.sh.
+  pg-backup:
+    image: postgres:17-alpine
+    profiles: [backup]
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-platform}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      PGDATABASE: ${POSTGRES_DB:-platform_db}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-21600}
+      BACKUP_KEEP: ${BACKUP_KEEP:-28}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/pg-backup-loop.sh:/usr/local/bin/pg-backup-loop.sh:ro
+    entrypoint: ["sh", "/usr/local/bin/pg-backup-loop.sh"]
+
   pgadmin:
     image: dpage/pgadmin4:9.1
     profiles: [tools]

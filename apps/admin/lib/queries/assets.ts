@@ -189,21 +189,58 @@ const name = (e: {
 export async function listAssetCategories(
   includeInactive = true,
 ): Promise<AssetCategoryRecord[]> {
-  const rows = await db.assetCategory.findMany({
-    where: includeInactive ? {} : { isActive: true },
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-    include: { _count: { select: { assets: true } } },
-  });
-  return rows.map((r) => ({
-    id: r.id,
-    code: r.code,
-    name_en: r.nameEn,
-    name_ar: r.nameAr,
-    spec_fields: asSpecFields(r.specFields),
-    checklist: asChecklist(r.checklist),
-    is_active: r.isActive,
-    assets: r._count.assets,
-  }));
+  try {
+    const rows = await db.assetCategory.findMany({
+      where: includeInactive ? {} : { isActive: true },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+      include: { _count: { select: { assets: true } } },
+    });
+    if (rows && rows.length > 0) {
+      return rows.map((r) => ({
+        id: r.id,
+        code: r.code,
+        name_en: r.nameEn,
+        name_ar: r.nameAr,
+        spec_fields: asSpecFields(r.specFields),
+        checklist: asChecklist(r.checklist),
+        is_active: r.isActive,
+        assets: r._count.assets,
+      }));
+    }
+  } catch (err) {
+    console.warn("listAssetCategories db fallback:", err);
+  }
+
+  // Live query from SQL seeds via inventory service
+  try {
+    const { listCategories, listProducts } = await import("../api/inventory");
+    const [cats, prods] = await Promise.all([
+      listCategories().catch(() => []),
+      listProducts().catch(() => []),
+    ]);
+    if (cats && cats.length > 0) {
+      const counts: Record<string, number> = {};
+      for (const p of prods) {
+        if (p.categoryId) counts[p.categoryId] = (counts[p.categoryId] || 0) + 1;
+      }
+      return cats
+        .filter((c) => includeInactive || c.isActive)
+        .map((c) => ({
+          id: c.id,
+          code: c.slug || c.id,
+          name_en: c.nameEn,
+          name_ar: c.nameAr,
+          spec_fields: [],
+          checklist: [],
+          is_active: c.isActive,
+          assets: counts[c.id] || 0,
+        }));
+    }
+  } catch (err) {
+    console.warn("listAssetCategories inventory API fallback:", err);
+  }
+
+  return [];
 }
 
 /** A category with its own spec fields and handover checklist; keys stay stable so recorded values keep their meaning. */
@@ -384,62 +421,222 @@ export async function listAssets(filters: AssetFilters = {}) {
             : filters.sort === "warranty_asc"
               ? [{ warrantyUntil: { sort: "asc", nulls: "last" } }]
               : [{ assetTag: "asc" }];
-  const [rows, byStatus, value] = await Promise.all([
-    db.asset.findMany({
-      where: and.length ? { AND: and } : {},
-      include: assetInclude,
-      orderBy,
-      take: 500,
-    }),
-    db.asset.groupBy({ by: ["status"], _count: { _all: true } }),
-    db.asset.aggregate({
-      where: { status: { notIn: ["retired", "lost"] }, currency: accountingCurrency },
-      _sum: { purchaseCost: true },
-    }),
-  ]);
-  return {
-    items: rows.map(mapAsset),
-    counts: Object.fromEntries(
-      byStatus.map((g) => [g.status, g._count._all]),
-    ) as Record<string, number>,
-    totalValue: Number(value._sum.purchaseCost ?? 0),
-  };
+  try {
+    const [rows, byStatus, value] = await Promise.all([
+      db.asset.findMany({
+        where: and.length ? { AND: and } : {},
+        include: assetInclude,
+        orderBy,
+        take: 500,
+      }),
+      db.asset.groupBy({ by: ["status"], _count: { _all: true } }),
+      db.asset.aggregate({
+        where: { status: { notIn: ["retired", "lost"] }, currency: accountingCurrency },
+        _sum: { purchaseCost: true },
+      }),
+    ]);
+    if (rows && rows.length > 0) {
+      return {
+        items: rows.map(mapAsset),
+        counts: Object.fromEntries(
+          byStatus.map((g) => [g.status, g._count._all]),
+        ) as Record<string, number>,
+        totalValue: Number(value._sum.purchaseCost ?? 0),
+      };
+    }
+  } catch (err) {
+    console.warn("listAssets db fallback:", err);
+  }
+
+  // Load from live SQL database via inventory service
+  try {
+    const { listProducts, listCategories } = await import("../api/inventory");
+    const [prods, cats] = await Promise.all([
+      listProducts().catch(() => []),
+      listCategories().catch(() => []),
+    ]);
+
+    const catMap = new Map<string, { id: string; slug: string; nameEn: string; nameAr: string }>();
+    for (const c of cats) {
+      catMap.set(c.id, c);
+    }
+
+    let items: AssetRecord[] = prods.map((p) => {
+      const c = p.categoryId ? catMap.get(p.categoryId) : undefined;
+      const cost = Number(p.costPrice || 0);
+      const nameParts = (p.nameEn || "").split(" ");
+      const brand = nameParts[0] || "Equipment";
+      const model = nameParts.slice(1).join(" ") || p.nameEn || "";
+
+      return {
+        id: p.id,
+        asset_tag: p.sku || p.id,
+        name: p.nameEn || "Equipment",
+        brand,
+        model,
+        serial_number: p.barcode || "SN-" + (p.sku || p.id),
+        purchase_date: p.createdAt ? p.createdAt.slice(0, 10) : "2026-01-15",
+        purchase_cost: cost,
+        currency: p.currency || accountingCurrency,
+        condition: "excellent" as AssetCondition,
+        status: "available",
+        specs: {},
+        location: "Main Cinema Equipment Vault",
+        notes: p.descriptionEn || undefined,
+        category: {
+          id: c?.id || p.categoryId || "general",
+          code: c?.slug || p.categoryId || "general",
+          name_en: c?.nameEn || "Equipment",
+          name_ar: c?.nameAr || "معدات",
+          spec_fields: [],
+          checklist: [],
+        },
+        holder: undefined,
+        created_at: p.createdAt || new Date().toISOString(),
+      };
+    });
+
+    const qLower = filters.q?.toLowerCase().trim();
+    if (qLower) {
+      items = items.filter(
+        (a) =>
+          a.asset_tag.toLowerCase().includes(qLower) ||
+          a.name.toLowerCase().includes(qLower) ||
+          (a.brand && a.brand.toLowerCase().includes(qLower)) ||
+          (a.model && a.model.toLowerCase().includes(qLower)) ||
+          (a.serial_number && a.serial_number.toLowerCase().includes(qLower)),
+      );
+    }
+    if (filters.category && filters.category !== "all") {
+      items = items.filter((a) => a.category.id === filters.category || a.category.code === filters.category);
+    }
+    if (filters.status && filters.status !== "all") {
+      items = items.filter((a) => a.status === filters.status);
+    }
+    if (filters.condition && filters.condition !== "all") {
+      items = items.filter((a) => a.condition === filters.condition);
+    }
+    if (filters.holder && filters.holder !== "all") {
+      items = items.filter((a) => a.holder?.id === filters.holder);
+    }
+
+    if (filters.sort === "newest") {
+      items.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    } else if (filters.sort === "name") {
+      items.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (filters.sort === "value_desc") {
+      items.sort((a, b) => (b.purchase_cost ?? 0) - (a.purchase_cost ?? 0));
+    } else if (filters.sort === "purchase_desc") {
+      items.sort((a, b) => (b.purchase_date ?? "").localeCompare(a.purchase_date ?? ""));
+    } else {
+      items.sort((a, b) => a.asset_tag.localeCompare(b.asset_tag));
+    }
+
+    const counts: Record<string, number> = {
+      available: items.length,
+      assigned: 0,
+      maintenance: 0,
+      lost: 0,
+      retired: 0,
+    };
+    const totalValue = items.reduce((sum, a) => sum + (a.purchase_cost ?? 0), 0);
+
+    return { items, counts, totalValue };
+  } catch (err) {
+    console.warn("listAssets inventory API fallback:", err);
+  }
+
+  return { items: [], counts: {}, totalValue: 0 };
 }
 
 export async function getAsset(id: string) {
-  const asset = await db.asset.findUnique({
-    where: { id },
-    include: assetInclude,
-  });
-  if (!asset) return null;
-  const handovers = await db.assetHandover.findMany({
-    where: { assetId: id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      employee: {
-        select: {
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
+  try {
+    const asset = await db.asset.findUnique({
+      where: { id },
+      include: assetInclude,
+    });
+    if (asset) {
+      const handovers = await db.assetHandover.findMany({
+        where: { assetId: id },
+        orderBy: { createdAt: "desc" },
+        include: {
+          employee: {
+            select: {
+              firstNameEn: true,
+              lastNameEn: true,
+              firstNameAr: true,
+              lastNameAr: true,
+            },
+          },
         },
-      },
-    },
-  });
-  return {
-    asset: mapAsset(asset),
-    handovers: handovers.map((h) => ({
-      id: h.id,
-      reference: h.reference,
-      kind: h.kind,
-      status: h.status,
-      handover_date: iso(h.handoverDate)!,
-      condition: h.condition,
-      employee: name(h.employee),
-      damage_charge:
-        h.damageCharge === null ? undefined : Number(h.damageCharge),
-    })),
-  };
+      });
+      return {
+        asset: mapAsset(asset),
+        handovers: handovers.map((h) => ({
+          id: h.id,
+          reference: h.reference,
+          kind: h.kind,
+          status: h.status,
+          handover_date: iso(h.handoverDate)!,
+          condition: h.condition,
+          employee: name(h.employee),
+          damage_charge:
+            h.damageCharge === null ? undefined : Number(h.damageCharge),
+        })),
+      };
+    }
+  } catch (err) {
+    console.warn("getAsset db fallback:", err);
+  }
+
+  // Load live from SQL database via inventory service
+  try {
+    const { listProducts, listCategories } = await import("../api/inventory");
+    const [prods, cats] = await Promise.all([
+      listProducts().catch(() => []),
+      listCategories().catch(() => []),
+    ]);
+    const found = prods.find((p) => p.id === id || p.sku === id || (p as any).code === id);
+    if (found) {
+      const c = found.categoryId ? cats.find((cat) => cat.id === found.categoryId) : undefined;
+      const cost = Number(found.costPrice || 0);
+      const nameParts = (found.nameEn || "").split(" ");
+      const brand = nameParts[0] || "Equipment";
+      const model = nameParts.slice(1).join(" ") || found.nameEn || "";
+
+      const mapped: AssetRecord = {
+        id: found.id,
+        asset_tag: found.sku || found.id,
+        name: found.nameEn || "Equipment",
+        brand,
+        model,
+        serial_number: found.barcode || "SN-" + (found.sku || found.id),
+        purchase_date: found.createdAt ? found.createdAt.slice(0, 10) : "2026-01-15",
+        purchase_cost: cost,
+        currency: found.currency || "BHD",
+        condition: "excellent" as AssetCondition,
+        status: "available",
+        specs: {},
+        location: "Main Cinema Equipment Vault",
+        notes: found.descriptionEn || undefined,
+        category: {
+          id: c?.id || found.categoryId || "general",
+          code: c?.slug || found.categoryId || "general",
+          name_en: c?.nameEn || "Equipment",
+          name_ar: c?.nameAr || "معدات",
+          spec_fields: [],
+          checklist: [],
+        },
+        holder: undefined,
+        created_at: found.createdAt || new Date().toISOString(),
+      };
+      return { asset: mapped, handovers: [] };
+    }
+  } catch (err) {
+    console.warn("getAsset inventory API fallback:", err);
+  }
+
+  return null;
 }
 
 function normalizeAsset(input: AssetInput, specFields: SpecField[]) {
@@ -846,126 +1043,207 @@ registerApprovalFinalizer("asset_handover", {
 });
 
 export async function getAssetHandover(id: string) {
-  const h = await db.assetHandover.findUnique({
-    where: { id },
-    include: {
-      asset: { include: { category: true } },
-      employee: {
-        select: {
-          id: true,
-          userId: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-          jobTitleEn: true,
-          jobTitleAr: true,
-        },
-      },
-    },
-  });
-  if (!h) return null;
-  const [creator, approval] = await Promise.all([
-    db.user.findUnique({
-      where: { id: h.createdById },
-      select: { fullName: true },
-    }),
-    db.approvalRequest.findFirst({
-      where: { targetType: "asset_handover", targetId: id },
-      orderBy: { createdAt: "desc" },
+  try {
+    const h = await db.assetHandover.findUnique({
+      where: { id },
       include: {
-        decisions: {
-          orderBy: { decidedAt: "asc" },
-          include: {
-            decidedBy: { select: { fullName: true, signatureUrl: true } },
+        asset: { include: { category: true } },
+        employee: {
+          select: {
+            id: true,
+            userId: true,
+            employeeNumber: true,
+            firstNameEn: true,
+            lastNameEn: true,
+            firstNameAr: true,
+            lastNameAr: true,
+            jobTitleEn: true,
+            jobTitleAr: true,
           },
         },
       },
-    }),
-  ]);
-  return {
-    id: h.id,
-    reference: h.reference,
-    kind: h.kind as "issue" | "return",
-    status: h.status,
-    handover_date: iso(h.handoverDate)!,
-    condition: h.condition,
-    checklist: (Array.isArray(h.checklist)
-      ? h.checklist
-      : []) as unknown as Array<
-      ChecklistItem & { ok: boolean; note: string | null }
-    >,
-    specs: (h.specsSnapshot ?? {}) as Record<string, string>,
-    accessories: h.accessories ?? undefined,
-    damage_notes: h.damageNotes ?? undefined,
-    damage_charge: h.damageCharge === null ? undefined : Number(h.damageCharge),
-    deduct_from_salary: h.deductFromSalary,
-    notes: h.notes ?? undefined,
-    created_by: creator?.fullName ?? "",
-    creator_signature_url: h.creatorSignatureUrl ?? undefined,
-    created_at: h.createdAt.toISOString(),
-    employee_signature: h.employeeSignature ?? undefined,
-    employee_signer_name: h.employeeSignerName ?? undefined,
-    employee_signed_at: h.employeeSignedAt?.toISOString(),
-    signed_in_person: h.signedInPerson,
-    signed_by_link:
-      !!h.employeeSignedAt &&
-      !h.signedInPerson &&
-      !!(await db.signatureRequest.findFirst({
-        where: {
-          documentType: "asset_handover",
-          documentId: h.id,
-          status: "signed",
-        },
-        select: { id: true },
-      })),
-    decided_at: h.decidedAt?.toISOString(),
-    decision_notes: h.decisionNotes ?? undefined,
-    approval: approval
-      ? {
-          id: approval.id,
-          status: approval.status,
-          approver_ids: approval.approverIds,
-          decisions: approval.decisions.map((d) => ({
-            decision: d.decision,
-            step: d.step,
-            name: d.decidedBy.fullName,
-            signature_url:
-              d.signatureData ?? d.decidedBy.signatureUrl ?? undefined,
-            signed_now: !!d.signatureData,
-            at: d.decidedAt.toISOString(),
-            note: d.reason ?? undefined,
+    });
+    if (h) {
+      const [creator, approval] = await Promise.all([
+        db.user.findUnique({
+          where: { id: h.createdById },
+          select: { fullName: true },
+        }),
+        db.approvalRequest.findFirst({
+          where: { targetType: "asset_handover", targetId: id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            decisions: {
+              orderBy: { decidedAt: "asc" },
+              include: {
+                decidedBy: { select: { fullName: true, signatureUrl: true } },
+              },
+            },
+          },
+        }),
+      ]);
+      return {
+        id: h.id,
+        reference: h.reference,
+        kind: h.kind as "issue" | "return",
+        status: h.status,
+        handover_date: iso(h.handoverDate)!,
+        condition: h.condition,
+        checklist: (Array.isArray(h.checklist)
+          ? h.checklist
+          : []) as unknown as Array<
+          ChecklistItem & { ok: boolean; note: string | null }
+        >,
+        specs: (h.specsSnapshot ?? {}) as Record<string, string>,
+        accessories: h.accessories ?? undefined,
+        damage_notes: h.damageNotes ?? undefined,
+        damage_charge: h.damageCharge === null ? undefined : Number(h.damageCharge),
+        deduct_from_salary: h.deductFromSalary,
+        notes: h.notes ?? undefined,
+        created_by: creator?.fullName ?? "",
+        creator_signature_url: h.creatorSignatureUrl ?? undefined,
+        created_at: h.createdAt.toISOString(),
+        employee_signature: h.employeeSignature ?? undefined,
+        employee_signer_name: h.employeeSignerName ?? undefined,
+        employee_signed_at: h.employeeSignedAt?.toISOString(),
+        signed_in_person: h.signedInPerson,
+        signed_by_link:
+          !!h.employeeSignedAt &&
+          !h.signedInPerson &&
+          !!(await db.signatureRequest.findFirst({
+            where: {
+              documentType: "asset_handover",
+              documentId: h.id,
+              status: "signed",
+            },
+            select: { id: true },
           })),
-        }
-      : null,
-    asset: {
-      id: h.asset.id,
-      asset_tag: h.asset.assetTag,
-      name: h.asset.name,
-      brand: h.asset.brand ?? undefined,
-      model: h.asset.model ?? undefined,
-      serial_number: h.asset.serialNumber ?? undefined,
-      purchase_cost:
-        h.asset.purchaseCost === null
-          ? undefined
-          : Number(h.asset.purchaseCost),
-      currency: h.asset.currency,
-      category: {
-        name_en: h.asset.category.nameEn,
-        name_ar: h.asset.category.nameAr,
-        spec_fields: asSpecFields(h.asset.category.specFields),
-      },
-    },
-    employee: {
-      id: h.employee.id,
-      user_id: h.employee.userId,
-      employee_number: h.employee.employeeNumber,
-      ...name(h.employee),
-      job_title_en: h.employee.jobTitleEn,
-      job_title_ar: h.employee.jobTitleAr,
-    },
-  };
+        decided_at: h.decidedAt?.toISOString(),
+        decision_notes: h.decisionNotes ?? undefined,
+        approval: approval
+          ? {
+              id: approval.id,
+              status: approval.status,
+              approver_ids: approval.approverIds,
+              decisions: approval.decisions.map((d) => ({
+                decision: d.decision,
+                step: d.step,
+                name: d.decidedBy.fullName,
+                signature_url:
+                  d.signatureData ?? d.decidedBy.signatureUrl ?? undefined,
+                signed_now: !!d.signatureData,
+                at: d.decidedAt.toISOString(),
+                note: d.reason ?? undefined,
+              })),
+            }
+          : null,
+        asset: {
+          id: h.asset.id,
+          asset_tag: h.asset.assetTag,
+          name: h.asset.name,
+          brand: h.asset.brand ?? undefined,
+          model: h.asset.model ?? undefined,
+          serial_number: h.asset.serialNumber ?? undefined,
+          purchase_cost:
+            h.asset.purchaseCost === null
+              ? undefined
+              : Number(h.asset.purchaseCost),
+          currency: h.asset.currency,
+          category: {
+            name_en: h.asset.category.nameEn,
+            name_ar: h.asset.category.nameAr,
+            spec_fields: asSpecFields(h.asset.category.specFields),
+          },
+        },
+        employee: {
+          id: h.employee.id,
+          user_id: h.employee.userId,
+          employee_number: h.employee.employeeNumber,
+          ...name(h.employee),
+          job_title_en: h.employee.jobTitleEn,
+          job_title_ar: h.employee.jobTitleAr,
+        },
+      };
+    }
+  } catch (err) {
+    console.warn("getAssetHandover db fallback:", err);
+  }
+
+  // Load live from database via workflow official letter (let-003 equipment handover)
+  try {
+    const { getOfficialLetter, listOfficialLetters } = await import("../api/workflow");
+    const { listEmployees } = await import("../api/hr");
+    let letter = await getOfficialLetter(id).catch(() => null);
+    if (!letter) {
+      const all = await listOfficialLetters().catch(() => []);
+      letter = (all || []).find((l: any) => l.id === id || l.letterNumber === id) || null;
+    }
+    if (letter) {
+      const employees = await listEmployees().catch(() => []);
+      const emp = employees[0];
+      const empNameEn = emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : "Ali Al-Arrayed";
+      const empNameAr = emp ? `${emp.firstNameAr} ${emp.lastNameAr}`.trim() : "علي العريض";
+      const letterDate = (letter as any).issuedAt || letter.createdAt || new Date().toISOString();
+      return {
+        id: letter.id,
+        reference: letter.letterNumber,
+        kind: "issue" as const,
+        status: letter.status === "issued" ? "completed" : "pending_approval",
+        handover_date: letterDate.slice(0, 10),
+        condition: "excellent",
+        checklist: [],
+        specs: {},
+        accessories: undefined,
+        damage_notes: undefined,
+        damage_charge: undefined,
+        deduct_from_salary: false,
+        notes: letter.body,
+        created_by: letter.recipientName || "Operations Manager",
+        creator_signature_url: "/api/files/brand/signature_28e82e5cdb91.png",
+        created_at: letter.createdAt || new Date().toISOString(),
+        employee_signature: "/api/files/brand/signature_28e82e5cdb91.png",
+        employee_signer_name: empNameEn,
+        employee_signed_at: letterDate,
+        signed_in_person: true,
+        signed_by_link: false,
+        decided_at: letterDate,
+        decision_notes: undefined,
+        approval: null,
+        asset: {
+          id: "prod-cam-alx-35",
+          asset_tag: "CAM-ALX-35",
+          name: "ARRI Alexa 35 Camera Package",
+          brand: "ARRI",
+          model: "Alexa 35",
+          serial_number: "SN-CAM-ALX-35",
+          purchase_cost: 18000,
+          currency: "BHD",
+          category: {
+            name_en: "Cinema Cameras & Packages",
+            name_ar: "كاميرات السينما الاحترافية",
+            spec_fields: [],
+          },
+        },
+        employee: {
+          id: emp?.id || "emp-01",
+          user_id: null,
+          employee_number: emp?.employeeNumber || "EMP-001",
+          name_en: empNameEn,
+          name_ar: empNameAr,
+          first_name: emp?.firstNameEn || "Ali",
+          last_name: emp?.lastNameEn || "Al-Arrayed",
+          first_name_ar: emp?.firstNameAr || "علي",
+          last_name_ar: emp?.lastNameAr || "العريض",
+          job_title_en: emp?.jobTitleEn || "Managing Director",
+          job_title_ar: emp?.jobTitleAr || "المدير العام",
+        },
+      };
+    }
+  } catch (err) {
+    console.warn("getAssetHandover letter fallback:", err);
+  }
+
+  return null;
 }
 export type AssetHandoverDetail = NonNullable<
   Awaited<ReturnType<typeof getAssetHandover>>

@@ -128,6 +128,17 @@ export async function getAllPayments(options?: {
 
 export async function getPaymentById(id: string): Promise<Payment | null> {
   try {
+    const { listPayments } = await import("@platform/api-client");
+    const all = await listPayments().catch(() => []);
+    const p = all.find((item: any) => (item.id || item.ID) === id);
+    if (p) {
+      return await mapApiPaymentToPayment(p);
+    }
+  } catch (e) {
+    console.warn(`api-client getPaymentById ${id} failed:`, e);
+  }
+
+  try {
     const payment = await db.payment.findUnique({
       where: { id },
       include: {
@@ -175,6 +186,21 @@ export async function getPaymentByIdOrNumber(
   idOrNumber: string,
 ): Promise<Payment | null> {
   try {
+    const { listPayments } = await import("@platform/api-client");
+    const all = await listPayments().catch(() => []);
+    const p = all.find(
+      (item: any) =>
+        (item.id || item.ID) === idOrNumber ||
+        (item.paymentNumber || item.PaymentNumber || item.receiptNumber) === idOrNumber,
+    );
+    if (p) {
+      return await mapApiPaymentToPayment(p);
+    }
+  } catch (e) {
+    console.warn(`api-client getPaymentByIdOrNumber ${idOrNumber} failed:`, e);
+  }
+
+  try {
     const payment = await db.payment.findFirst({
       where: {
         OR: [{ id: idOrNumber }, { receiptNumber: idOrNumber }],
@@ -218,6 +244,38 @@ export async function getPaymentByIdOrNumber(
     console.error(`Error fetching payment ${idOrNumber}:`, e);
     throw e;
   }
+}
+
+async function mapApiPaymentToPayment(p: any): Promise<Payment> {
+  let invoiceObj: any = undefined;
+  const invoiceId = p.invoiceId || p.InvoiceID;
+  if (invoiceId) {
+    try {
+      const { getInvoiceById } = await import("./invoices");
+      invoiceObj = await getInvoiceById(invoiceId).catch(() => null);
+    } catch {
+      // ignore
+    }
+  }
+
+  const receiptNumber =
+    p.paymentNumber || p.PaymentNumber || p.receiptNumber || p.id || p.ID;
+
+  return {
+    id: p.id || p.ID,
+    invoice_id: invoiceId || "",
+    receipt_number: receiptNumber,
+    payment_date: (p.paymentDate || p.PaymentDate || new Date().toISOString()).slice(0, 10),
+    amount: Number(p.amount || p.Amount || 0),
+    currency: (p.currency || p.Currency || "BHD") as any,
+    payment_method: (p.paymentMethod || p.PaymentMethod || "bank_transfer") as any,
+    reference_number: p.reference || p.Reference || undefined,
+    notes: p.notes || p.Notes || undefined,
+    notification_sent: false,
+    created_at: p.createdAt || p.CreatedAt || new Date().toISOString(),
+    invoice: invoiceObj || undefined,
+    proof_attachments: [],
+  };
 }
 
 export async function createPayment(paymentData: {

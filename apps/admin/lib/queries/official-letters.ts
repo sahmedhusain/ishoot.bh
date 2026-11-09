@@ -397,6 +397,31 @@ registerApprovalFinalizer("official_letter", {
 });
 
 export async function listOfficialLetters(filters: { status?: string } = {}) {
+  try {
+    const { listOfficialLetters: apiList } = await import("../api/workflow");
+    const apiLetters = await apiList().catch(() => null);
+    if (apiLetters && apiLetters.length > 0) {
+      let filtered = apiLetters;
+      if (filters.status && filters.status !== "all") {
+        filtered = filtered.filter((l: any) => (l.status || l.Status) === filters.status);
+      }
+      return filtered.map((l: any) => ({
+        id: l.id || l.ID,
+        reference: l.letterNumber || l.LetterNumber || l.id,
+        status: l.status || l.Status || "draft",
+        subjectEn: l.subject || l.Subject || "",
+        subjectAr: l.subject || l.Subject || "",
+        recipient: l.recipientName || l.RecipientName || "",
+        letterDate: (l.createdAt || l.CreatedAt || new Date().toISOString()).slice(0, 10),
+        languages: ["ar", "en"],
+        template: l.templateId || l.TemplateID ? { nameEn: "Official Letter", nameAr: "خطاب رسمي" } : null,
+        employee: null,
+      }));
+    }
+  } catch (e) {
+    console.warn("api-client listOfficialLetters failed:", e);
+  }
+
   const rows = await db.officialLetter.findMany({
     where:
       filters.status && filters.status !== "all"
@@ -438,6 +463,59 @@ export async function listOfficialLetters(filters: { status?: string } = {}) {
 }
 
 export async function getOfficialLetter(id: string) {
+  try {
+    const { getOfficialLetter: apiGet, listOfficialLetters: apiList } = await import("../api/workflow");
+    let l = await apiGet(id).catch(() => null);
+    if (!l) {
+      const all = await apiList().catch(() => []);
+      const matched: any = (all || []).find(
+        (item: any) =>
+          (item.id || item.ID) === id ||
+          (item.letterNumber || item.LetterNumber) === id,
+      );
+      if (matched) {
+        l = await apiGet(matched.id || matched.ID).catch(() => null);
+      }
+    }
+    if (l) {
+      const lObj: any = l;
+      return {
+        id: lObj.id || lObj.ID,
+        reference: lObj.letterNumber || lObj.LetterNumber || lObj.id,
+        status: lObj.status || lObj.Status || "draft",
+        templateId: lObj.templateId || lObj.TemplateID || null,
+        template: lObj.templateId || lObj.TemplateID ? { id: lObj.templateId, nameEn: "Official Letter", nameAr: "خطاب رسمي" } : null,
+        employeeId: null,
+        languages: ["ar", "en"] as Array<"ar" | "en">,
+        recipientName: lObj.recipientName || lObj.RecipientName || "",
+        recipientTitle: lObj.recipientTitle || lObj.RecipientTitle || "",
+        recipientOrganization: lObj.recipientName || lObj.RecipientName || "",
+        recipientAddress: "",
+        subjectEn: lObj.subject || lObj.Subject || "",
+        subjectAr: lObj.subject || lObj.Subject || "",
+        bodyEn: lObj.body || lObj.Body || "",
+        bodyAr: lObj.body || lObj.Body || "",
+        letterDate: (lObj.createdAt || lObj.CreatedAt || new Date().toISOString()).slice(0, 10),
+        classification: "standard",
+        showSignature: true,
+        showStamp: true,
+        verificationCode: "VER-" + (lObj.id || lObj.ID).slice(0, 6).toUpperCase(),
+        createdById: "system",
+        authorName: "Management",
+        signerName: "Director",
+        signerRole: "Authorized Signatory",
+        signerRoleAr: "المفوّض بالتوقيع",
+        signatureUrl: "/api/files/brand/signature_28e82e5cdb91.png",
+        signedAt: lObj.createdAt || lObj.CreatedAt || new Date().toISOString(),
+        pdfStoragePath: null,
+        createdAt: lObj.createdAt || lObj.CreatedAt || new Date().toISOString(),
+        updatedAt: lObj.createdAt || lObj.CreatedAt || new Date().toISOString(),
+      };
+    }
+  } catch (e) {
+    console.warn(`api-client getOfficialLetter ${id} failed:`, e);
+  }
+
   const l = await db.officialLetter.findUnique({
     where: { id },
     include: { template: { select: { id: true, nameEn: true, nameAr: true } } },

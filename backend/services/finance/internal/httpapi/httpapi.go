@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/finance/api"
 	"platform.local/backend/services/finance/internal/app"
@@ -33,7 +34,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	})
 
 	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	g := e.Group("/v1/finance", auth)
+	g := e.Group("/v1/finance", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Invoices
 	g.GET("/invoices", h.listInvoices)
@@ -44,6 +45,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 
 	// Payments
 	g.GET("/payments", h.listPayments)
+	g.GET("/payments/:id", h.getPayment)
 	g.POST("/payments", h.recordPayment)
 
 	// Expenses
@@ -132,6 +134,17 @@ func (h *handler) listPayments(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, payments)
+}
+
+func (h *handler) getPayment(c echo.Context) error {
+	payment, err := h.svc.GetPayment(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, payment)
 }
 
 func (h *handler) recordPayment(c echo.Context) error {

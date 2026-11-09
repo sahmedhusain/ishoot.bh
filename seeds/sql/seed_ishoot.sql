@@ -2,7 +2,7 @@
 -- PURE SQL SEED: iShoot Cinema Production S.P.C.
 -- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
 -- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
--- Generated: 2026-11-08T22:48:17.662Z
+-- Generated: 2026-11-09T11:18:51.613Z
 -- ============================================================================
 BEGIN;
 
@@ -14,6 +14,7 @@ TRUNCATE TABLE
     workflow.task,
     workflow.approval_decision,
     workflow.approval_request,
+    workflow.minute_of_meeting,
     workflow.official_letter,
     workflow.letter_template,
     delivery.shipment_event,
@@ -3888,6 +3889,18 @@ INSERT INTO workflow.letter_template (id, name_en, name_ar, template_body, sort_
   ('lt-02', 'Quotation Official Cover Letter', 'خطاب تقديم عرض أسعار', 'We are pleased to submit our commercial quotation {{quotation_number}} for your review.', 2),
   ('lt-03', 'Equipment Vault Release Handover Form', 'إقرار استلام وتسليم معدات تصوير', 'The undersigned acknowledges receipt of camera packages listed in voucher {{voucher_number}} in pristine condition.', 3)
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO workflow.minute_of_meeting (id, mom_number, title, meeting_date, attendees, discussion, action_items, status, created_at) VALUES
+  ('mom-001', 'MOM-2026-001', 'Delta Energies Commercial Film - Refinery Safety & Offshore Production Alignment', '2026-02-15', ARRAY['Omar Haddad (CEO)', 'Karim Fawzi (Production Manager)', 'Reem Al Hashimi (Corporate Comms Lead)', 'Adel Rashed (HSE Director)'], 'Refinery filming safety permits & PPE certification approved. ATEX-rated camera housings verified. Helicopter Cineflex unit scheduled for offshore sweep on March 2nd.', 'Submit crew passport copies for badges; Complete sensor calibration; Deliver 3D previz for offshore tank sequence.', 'approved', '2026-02-15 14:00:00+00'),
+  ('mom-002', 'MOM-2026-002', 'Gulfwave 5G Launch Campaign - Post-Production Review & VFX Alignment', '2026-03-05', ARRAY['Yusuf Rahman (Creative Director)', 'Noor Hamdan (Post Supervisor)', 'Nasser Al Khalifa (Brand GM)'], 'Reviewed Rough Cut V2. Commended fast-paced transitions and Bahrain skyline grade. Holographic UI elements approved for final compositing.', 'Incorporate localized Arabic calligraphy end-frame title; Export broadcast-spec MXF files for Bahrain TV transmission.', 'approved', '2026-03-05 15:30:00+00'),
+  ('mom-003', 'MOM-2026-003', 'Q2 Studio Equipment Expansion & Virtual Production CapEx Review', '2026-03-20', ARRAY['Omar Haddad (CEO)', 'Layla Nasser (Finance Manager)', 'Karim Fawzi (Production Manager)'], 'Demand for car commercial virtual staging increased by 40%. Evaluated Stage B LED wall conversion with 2.6mm pitch panels. Cooke Full Frame Anamorphic set approved.', 'Finalize vendor RFQ for LED display panels; Prepare CapEx depreciation and tax amortisation schedule.', 'in_review', '2026-03-20 12:30:00+00')
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, attendees = EXCLUDED.attendees, discussion = EXCLUDED.discussion, action_items = EXCLUDED.action_items, status = EXCLUDED.status;
+
+INSERT INTO workflow.official_letter (id, letter_number, template_id, recipient_name, recipient_title, subject, body, status, issued_at, created_at) VALUES
+  ('let-001', 'LET-2026-001', 'lt-01', 'Ali Al-Arrayed', 'Managing Director & Executive Producer', 'Certificate of Employment & Executive Salary Confirmation', 'This official certificate confirms that Mr. Ali Al-Arrayed is currently employed at iShoot Media Production W.L.L as Managing Director & Executive Producer under Commercial Registration No. 104829-1.', 'issued', '2026-01-15 10:00:00+00', '2026-01-15 09:00:00+00'),
+  ('let-002', 'LET-2026-002', 'lt-02', 'Bahrain International Circuit (BIC)', 'Commercial Partnerships Director', 'Official Quotation Cover Letter - Formula 1 Bahrain GP 2026 Production Package', 'We are delighted to submit our comprehensive commercial quotation QTE-2026-001 for high-speed cinema camera operations, helicopter Cineflex coverage, and daily digital dailies turnarounds during the Formula 1 Gulf Air Bahrain Grand Prix 2026.', 'issued', '2026-02-01 11:30:00+00', '2026-02-01 11:00:00+00'),
+  ('let-003', 'LET-2026-003', 'lt-03', 'Karim Fawzi', 'Senior Production Manager', 'Equipment Vault Custody Transfer - Cinema Camera Packages', 'The undersigned hereby takes custody of Sony FX6 Cinema line package (AST-001) and Canon C70 package (AST-003) with associated Cooke anamorphic primes for the upcoming television commercial shoot.', 'draft', NULL, '2026-03-01 08:30:00+00')
+ON CONFLICT (id) DO UPDATE SET letter_number = EXCLUDED.letter_number, recipient_name = EXCLUDED.recipient_name, recipient_title = EXCLUDED.recipient_title, subject = EXCLUDED.subject, body = EXCLUDED.body, status = EXCLUDED.status, issued_at = EXCLUDED.issued_at;
 
 -- ----------------------------------------------------------------------------
 -- 11. CMS SERVICE (Pages, Articles, FAQs, Statistics, Reviews, Snapshot)

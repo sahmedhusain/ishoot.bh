@@ -17,7 +17,7 @@ const webOrigin = origin(process.env.NEXT_PUBLIC_WEB_URL || process.env.WEB_URL)
 // Report-only until a clean run in production; frame-ancestors is enforced separately below.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",

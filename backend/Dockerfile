@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # One image recipe for every backend service: docker build --build-arg SERVICE=gateway -t platform/gateway backend
-ARG GO_IMAGE=golang:1.24-alpine
+ARG GO_IMAGE=golang:1.25-alpine
 ARG RUNTIME_IMAGE=gcr.io/distroless/static-debian12:nonroot
 
 FROM ${GO_IMAGE} AS build

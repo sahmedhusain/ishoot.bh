@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/cms/api"
 	"platform.local/backend/services/cms/internal/app"
@@ -50,7 +51,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 
 	// Protected Endpoints (Staff or Service token)
 	authMiddleware := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	desk := e.Group("/v1/cms", authMiddleware)
+	desk := e.Group("/v1/cms", authMiddleware, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Pages
 	desk.POST("/pages", h.createPage)

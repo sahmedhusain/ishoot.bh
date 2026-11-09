@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/inventory/api"
 	"platform.local/backend/services/inventory/internal/app"
@@ -34,7 +35,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	})
 
 	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	g := e.Group("/v1/inventory", auth)
+	g := e.Group("/v1/inventory", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Warehouses
 	g.GET("/warehouses", h.listWarehouses)

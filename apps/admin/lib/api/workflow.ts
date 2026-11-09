@@ -153,3 +153,67 @@ export const listCalendarEvents = (token?: string) =>
 
 export const createCalendarEvent = (input: Partial<CalendarEvent>, token?: string) =>
   workflowFetch<CalendarEvent>("/v1/workflow/calendar", { method: "POST", body: JSON.stringify(input) }, token);
+
+// Minutes of Meeting (MOM)
+export type MinuteOfMeeting = {
+  id: string;
+  momNumber: string;
+  title: string;
+  meetingDate: string;
+  attendees: string[];
+  discussion: string;
+  actionItems?: string | null;
+  status: string;
+  createdAt: string;
+};
+
+export const listMOMs = (token?: string) =>
+  workflowFetch<MinuteOfMeeting[]>("/v1/workflow/moms", {}, token);
+
+export const getMOM = (id: string, token?: string) =>
+  workflowFetch<MinuteOfMeeting>(`/v1/workflow/moms/${encodeURIComponent(id)}`, {}, token);
+
+export const createMOM = (input: any, token?: string) =>
+  workflowFetch<MinuteOfMeeting>("/v1/workflow/moms", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updateMOM = (id: string, input: any, token?: string) =>
+  workflowFetch<MinuteOfMeeting>(`/v1/workflow/moms/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+// Official Letters & Templates
+export type LetterTemplate = {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  templateBody: string;
+  sortOrder: number;
+};
+
+export type OfficialLetter = {
+  id: string;
+  letterNumber: string;
+  templateId?: string | null;
+  recipientName: string;
+  recipientTitle?: string | null;
+  subject: string;
+  body: string;
+  status: string;
+  createdAt: string;
+};
+
+export const listLetterTemplates = (token?: string) =>
+  workflowFetch<LetterTemplate[]>("/v1/workflow/letter-templates", {}, token);
+
+export const createLetterTemplate = (input: any, token?: string) =>
+  workflowFetch<LetterTemplate>("/v1/workflow/letter-templates", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const listOfficialLetters = (token?: string) =>
+  workflowFetch<OfficialLetter[]>("/v1/workflow/letters", {}, token);
+
+export const getOfficialLetter = (id: string, token?: string) =>
+  workflowFetch<OfficialLetter>(`/v1/workflow/letters/${encodeURIComponent(id)}`, {}, token);
+
+export const createOfficialLetter = (input: any, token?: string) =>
+  workflowFetch<OfficialLetter>("/v1/workflow/letters", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const issueOfficialLetter = (id: string, token?: string) =>
+  workflowFetch<OfficialLetter>(`/v1/workflow/letters/${encodeURIComponent(id)}/issue`, { method: "POST" }, token);

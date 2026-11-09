@@ -36,7 +36,7 @@ ingress:
 dbRoles:
   enabled: true
   env:
-    DB_ROLES: files,identity,system,itsm,audit,notify,realtime
+    DB_ROLES: files,identity,system,itsm,audit,notify,realtime,cms,commerce,delivery,finance,hr,inventory,sales,workflow
     DB_ROLE_STATEMENT_TIMEOUT: 15s
     DB_ROLE_IDLE_IN_TRANSACTION_TIMEOUT: 60s
   resources:
@@ -74,7 +74,7 @@ services:
     configFiles:
       - routes.yaml
     # Services the gateway may call (NetworkPolicy egress); filled in as services are added.
-    talksTo: [files, itsm, identity, system]
+    talksTo: [files, itsm, identity, system, cms, commerce, delivery, finance, hr, inventory, sales, workflow]
 
   files:
     enabled: true
@@ -247,5 +247,157 @@ services:
       NATS_URL: nats://nats.nats:4222
       NATS_REPLICAS: "3"
     # Secrets (system-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), SECRETS_KEYS, SECRETS_PRIMARY_KEY_ID, SECRETS_LEGACY_INTEGRATION_KEY.
+    configFiles: []
+    talksTo: [identity]
+
+  cms:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (cms-secrets): DATABASE_URL (svc_cms through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # CMS_READERS / CMS_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  commerce:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (commerce-secrets): DATABASE_URL (svc_commerce through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # COMMERCE_READERS / COMMERCE_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  delivery:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (delivery-secrets): DATABASE_URL (svc_delivery through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # DELIVERY_READERS / DELIVERY_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  finance:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (finance-secrets): DATABASE_URL (svc_finance through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # FINANCE_READERS / FINANCE_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  hr:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (hr-secrets): DATABASE_URL (svc_hr through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # HR_READERS / HR_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  inventory:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (inventory-secrets): DATABASE_URL (svc_inventory through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # INVENTORY_READERS / INVENTORY_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  sales:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (sales-secrets): DATABASE_URL (svc_sales through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # SALES_READERS / SALES_WRITERS (comma-separated service identities) override the defaults in settings.
+    configFiles: []
+    talksTo: [identity]
+
+  workflow:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+    # Secrets (workflow-secrets): DATABASE_URL (svc_workflow through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    # WORKFLOW_READERS / WORKFLOW_WRITERS (comma-separated service identities) override the defaults in settings.
     configFiles: []
     talksTo: [identity]

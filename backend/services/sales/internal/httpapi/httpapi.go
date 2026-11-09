@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/sales/api"
 	"platform.local/backend/services/sales/internal/app"
@@ -37,7 +38,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 
 	// Protected routes
 	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
-	g := e.Group("/v1/sales", auth)
+	g := e.Group("/v1/sales", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Contacts
 	g.GET("/contacts", h.listContacts)
