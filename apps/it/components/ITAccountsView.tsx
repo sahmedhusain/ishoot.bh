@@ -95,23 +95,25 @@ export function ITAccountsView({
     (ITProvisioning & { email: string }) | null
   >(null);
 
-  const isSuperOrManager =
-    userRoles.includes("it_super_admin") ||
-    userRoles.includes("it_admin") ||
-    userRoles.includes("it_manager");
-  const isTeamLead = userRoles.includes("it_lead") && !isSuperOrManager;
-
-  // Available role definitions directly from database
+  // Dynamic role hierarchy delegation from database
   const effectiveRoleList = dbRoles;
+  const userRoleObjects = dbRoles.filter((r) => userRoles.includes(r.id));
+  const isTopLevelRole = userRoleObjects.some((r) => !r.reportingToRole);
+  const isTeamLead = !isTopLevelRole;
 
-  const availableRoles = isTeamLead
-    ? effectiveRoleList.filter(
-        (r) =>
-          r.id === "it_worker" ||
-          r.id === "it_support" ||
-          r.id === "it_engineer"
-      )
-    : effectiveRoleList;
+  const isRoleSubordinate = (roleId: string): boolean => {
+    if (isTopLevelRole) return true;
+    let current = dbRoles.find((r) => r.id === roleId);
+    while (current && current.reportingToRole) {
+      if (userRoles.includes(current.reportingToRole)) return true;
+      current = dbRoles.find((r) => r.id === current?.reportingToRole);
+    }
+    return false;
+  };
+
+  const availableRoles = isTopLevelRole
+    ? dbRoles
+    : dbRoles.filter((r) => isRoleSubordinate(r.id));
 
   const roleOptions = availableRoles.map((r) => (
     <option key={r.id} value={r.id}>
@@ -376,7 +378,7 @@ export function ITAccountsView({
               <Select
                 name="role"
                 aria-label={n.role}
-                defaultValue={availableRoles[0]?.id ?? "it_worker"}
+                defaultValue={availableRoles[0]?.id ?? ""}
                 disabled={busy}
                 className="text-xs font-mono"
               >
@@ -475,10 +477,9 @@ export function ITAccountsView({
           {filteredItems.map((account) => {
             const isSelf = account.email === userEmail;
             const targetRole = account.roles[0];
-            const isAccountAdmin = (targetRole as string) === "it_admin" || (targetRole as string) === "it_manager";
-
-            // If user is a team lead, they cannot edit admin/manager accounts
-            const canModifyThisAccount = canEdit && (!isTeamLead || !isAccountAdmin);
+            const targetRoleObj = dbRoles.find((r) => r.id === targetRole);
+            const canManageTargetRole = isTopLevelRole || (targetRoleObj ? isRoleSubordinate(targetRoleObj.id) : false);
+            const canModifyThisAccount = canEdit && canManageTargetRole;
 
             return (
               <li key={`${account.id}:${account.roles.join(",")}:${account.active}`}>
@@ -535,7 +536,7 @@ export function ITAccountsView({
                           <option
                             key={r.id}
                             value={r.id}
-                            disabled={isTeamLead && (r.id === "it_super_admin" || r.id === "it_admin" || r.id === "it_manager")}
+                            disabled={!isTopLevelRole && !isRoleSubordinate(r.id)}
                           >
                             {copy.app.languageCode === "ar" ? r.nameAr : r.nameEn} ({r.id})
                           </option>

@@ -30,7 +30,15 @@
     "close": "Close",
     "retry": "Retry",
     "tryAgain": "Try again",
-    "language": "Language"
+    "language": "Language",
+    "errorCode500": "ERROR CODE: 500",
+    "errorCode404": "ERROR CODE: 404 · SCENE NOT FOUND",
+    "notFoundTechnicalMessage": "HTTP 404: The requested URI path does not correspond to any published production record.",
+    "exceptionMessage": "Exception Message:",
+    "unknownException": "An unhandled execution error occurred.",
+    "digestReference": "Digest Reference:",
+    "showDiagnostics": "Show Technical Diagnostics",
+    "hideDiagnostics": "Hide Technical Diagnostics"
   },
   "nav": {
     "home": "Home",

@@ -30,7 +30,15 @@
     "close": "إغلاق",
     "retry": "إعادة المحاولة",
     "tryAgain": "إعادة المحاولة",
-    "language": "اللغة"
+    "language": "اللغة",
+    "errorCode500": "رمز الخطأ: 500",
+    "errorCode404": "رمز الخطأ: 404 · المشهد غير موجود",
+    "notFoundTechnicalMessage": "HTTP 404: المسار المطلوب لا يطابق أي سجل إنتاج منشور.",
+    "exceptionMessage": "رسالة الخطأ البرمجي:",
+    "unknownException": "حدث خطأ تنفيذي غير متوقع.",
+    "digestReference": "رمز المرجع:",
+    "showDiagnostics": "عرض التشخيصات الفنية",
+    "hideDiagnostics": "إخفاء التشخيصات الفنية"
   },
   "nav": {
     "home": "الرئيسية",

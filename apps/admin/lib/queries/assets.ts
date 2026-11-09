@@ -1181,8 +1181,8 @@ export async function getAssetHandover(id: string) {
     if (letter) {
       const employees = await listEmployees().catch(() => []);
       const emp = employees[0];
-      const empNameEn = emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : "Ali Al-Arrayed";
-      const empNameAr = emp ? `${emp.firstNameAr} ${emp.lastNameAr}`.trim() : "علي العريض";
+      const empNameEn = emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : (letter.recipientName || "");
+      const empNameAr = emp ? `${emp.firstNameAr || emp.firstNameEn} ${emp.lastNameAr || emp.lastNameEn}`.trim() : (letter.recipientName || "");
       const letterDate = (letter as any).issuedAt || letter.createdAt || new Date().toISOString();
       return {
         id: letter.id,
@@ -1198,7 +1198,7 @@ export async function getAssetHandover(id: string) {
         damage_charge: undefined,
         deduct_from_salary: false,
         notes: letter.body,
-        created_by: letter.recipientName || "Operations Manager",
+        created_by: letter.recipientName || "",
         creator_signature_url: "/api/files/brand/signature_28e82e5cdb91.png",
         created_at: letter.createdAt || new Date().toISOString(),
         employee_signature: "/api/files/brand/signature_28e82e5cdb91.png",

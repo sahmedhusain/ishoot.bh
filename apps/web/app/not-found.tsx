@@ -25,7 +25,7 @@ export default async function NotFound() {
 
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/25 text-accent font-mono text-xs font-bold uppercase tracking-wider">
-              ERROR CODE: 404 · SCENE NOT FOUND
+              {tEn.common.errorCode404} · {tAr.common.errorCode404}
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold text-white font-display tracking-tight">
@@ -42,8 +42,9 @@ export default async function NotFound() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-black/40 p-3 text-xs font-mono text-white/50 text-center">
-            HTTP 404: The requested URI path does not correspond to any published production record.
+          <div className="rounded-xl border border-white/10 bg-black/40 p-3 text-xs font-mono text-white/50 text-center space-y-1">
+            <div>{tEn.common.notFoundTechnicalMessage}</div>
+            <div dir="rtl" className="font-arabic text-[11px] text-white/40">{tAr.common.notFoundTechnicalMessage}</div>
           </div>
 
           <div className="flex items-center justify-center gap-3 pt-2">

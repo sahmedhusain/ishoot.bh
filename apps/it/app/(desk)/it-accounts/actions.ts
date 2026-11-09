@@ -5,6 +5,7 @@ import { IT_ROLES } from "@platform/contracts";
 import {
   createITAccountForIT,
   updateITAccountForIT,
+  listITRolesForIT,
   isApiError,
   type ITRole,
   type ITProvisioning,
@@ -14,6 +15,28 @@ import { asUser, requireAllowed } from "../../../lib/session";
 type Failure = "invalid" | "exists" | "lastAdmin" | "unavailable";
 type Outcome =
   { ok: true; provisioning?: ITProvisioning } | { ok: false; reason: Failure };
+
+async function checkCanAssignRole(
+  token: string,
+  userRoles: readonly string[],
+  targetRole: string,
+): Promise<boolean> {
+  const { items: allRoles } = await asUser(() =>
+    listITRolesForIT(token).catch(() => ({ items: [] })),
+  );
+  if (!allRoles || allRoles.length === 0) return true;
+  const userRoleObjs = allRoles.filter((r) => userRoles.includes(r.id));
+  const isTopLevel = userRoleObjs.some((r) => !r.reportingToRole);
+  if (isTopLevel) return true;
+
+  // Role delegation check: targetRole must report to user's role hierarchy
+  let current = allRoles.find((r) => r.id === targetRole);
+  while (current && current.reportingToRole) {
+    if (userRoles.includes(current.reportingToRole)) return true;
+    current = allRoles.find((r) => r.id === current?.reportingToRole);
+  }
+  return false;
+}
 
 function failed(error: unknown): { ok: false; reason: Failure } {
   if (isApiError(error)) {
@@ -42,9 +65,9 @@ export async function createITAccountAction(form: FormData): Promise<Outcome> {
   )
     return { ok: false, reason: "invalid" };
 
-  // Team Lead role delegation safeguard: team leads cannot create admins or managers
-  const isSuperOrManager = user.roles.includes("it_super_admin") || user.roles.includes("it_admin") || user.roles.includes("it_manager");
-  if (!isSuperOrManager && (role === "it_super_admin" || role === "it_admin" || role === "it_manager")) {
+  // Role delegation safeguard via database role hierarchy
+  const canAssign = await checkCanAssignRole(user.token, user.roles, role);
+  if (!canAssign) {
     return { ok: false, reason: "invalid" };
   }
 
@@ -69,9 +92,9 @@ export async function updateITAccountAction(
   if (typeof role !== "string" || role.trim() === "" || role.length > 100)
     return { ok: false, reason: "invalid" };
 
-  // Team Lead role delegation safeguard: team leads cannot promote to admin/manager
-  const isSuperOrManager = user.roles.includes("it_super_admin") || user.roles.includes("it_admin") || user.roles.includes("it_manager");
-  if (!isSuperOrManager && (role === "it_super_admin" || role === "it_admin" || role === "it_manager")) {
+  // Role delegation safeguard via database role hierarchy
+  const canAssign = await checkCanAssignRole(user.token, user.roles, role);
+  if (!canAssign) {
     return { ok: false, reason: "invalid" };
   }
 

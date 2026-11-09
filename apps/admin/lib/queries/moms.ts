@@ -182,7 +182,7 @@ function mapApiMomToItem(m: any): MinuteOfMeetingItem {
     agenda: m.discussion || m.Discussion || "",
     discussion_points: [
       {
-        topic: m.title || m.Title || "Meeting Notes",
+        topic: m.title || m.Title || "",
         notes: m.discussion || m.Discussion || "",
       },
     ],

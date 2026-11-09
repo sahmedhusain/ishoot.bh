@@ -4567,9 +4567,30 @@
       "date": "Date"
     },
     "notFound": {
-      "title": "Page not found",
-      "body": "The page or document you requested could not be found.",
-      "back": "Back to dashboard"
+      "title": "Document or Resource Not Found",
+      "body": "The document ID or URL you requested does not exist, was moved, or has been archived.",
+      "back": "Return to Dashboard",
+      "codeBadge": "ERROR CODE: 404 · NOT FOUND",
+      "jumpToRecords": "Jump directly to records:",
+      "invoices": "Invoices",
+      "quotations": "Quotations",
+      "moms": "Meeting Minutes",
+      "payments": "Payments",
+      "assets": "Assets Vault",
+      "directory": "Directory"
+    },
+    "runtimeError": {
+      "codeBadge": "ERROR CODE: 500",
+      "title": "Application Runtime Error",
+      "description": "An unexpected exception halted the execution of this page. You can retry the operation or return to the dashboard.",
+      "technicalMessage": "Technical Exception Message:",
+      "unknownException": "Unknown runtime exception",
+      "diagnosticsToggle": "Technical Stack Trace & Diagnostics",
+      "retry": "Try Again",
+      "returnHome": "Return to Dashboard",
+      "copyDiagnostics": "Copy Diagnostics",
+      "copied": "Copied!",
+      "ref": "REF: "
     },
     "serverErrors": {
       "messages": {

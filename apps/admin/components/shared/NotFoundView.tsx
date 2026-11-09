@@ -6,22 +6,22 @@ import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function NotFoundView() {
-  const { t, locale } = useAdminLocale();
-  const isAr = locale === "ar";
+  const { t, isRTL } = useAdminLocale();
+  const copy = t.notFound;
 
   const quickLinks = [
-    { href: ROUTES.invoices.list, label: isAr ? "الفواتير" : "Invoices", icon: FileText },
-    { href: ROUTES.quotations.list, label: isAr ? "عروض الأسعار" : "Quotations", icon: Receipt },
-    { href: ROUTES.moms.list, label: isAr ? "محاضر الاجتماعات" : "Meeting Minutes", icon: Calendar },
-    { href: ROUTES.payments.list, label: isAr ? "سندات القبض" : "Payments", icon: CreditCard },
-    { href: ROUTES.assets.list(), label: isAr ? "الأصول والمعدات" : "Assets Vault", icon: Box },
-    { href: ROUTES.directory, label: isAr ? "دليل الموظفين" : "Directory", icon: Users },
+    { href: ROUTES.invoices.list, label: copy.invoices, icon: FileText },
+    { href: ROUTES.quotations.list, label: copy.quotations, icon: Receipt },
+    { href: ROUTES.moms.list, label: copy.moms, icon: Calendar },
+    { href: ROUTES.payments.list, label: copy.payments, icon: CreditCard },
+    { href: ROUTES.assets.list(), label: copy.assets, icon: Box },
+    { href: ROUTES.directory, label: copy.directory, icon: Users },
   ];
 
   return (
     <main
       className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center p-6 text-center"
-      dir={isAr ? "rtl" : "ltr"}
+      dir={isRTL ? "rtl" : "ltr"}
     >
       <div className="w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-xl p-8 sm:p-10 space-y-6">
         <div className="flex flex-col items-center gap-3">
@@ -30,24 +30,22 @@ export function NotFoundView() {
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-            {isAr ? "رمز الخطأ: 404 · غير موجود" : "ERROR CODE: 404 · NOT FOUND"}
+            {copy.codeBadge}
           </div>
 
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-            {isAr ? "الوثيقة أو الصفحة المطلوبة غير متوفرة" : t.notFound?.title || "Document or Resource Not Found"}
+            {copy.title}
           </h1>
 
           <p className="max-w-md text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            {isAr
-              ? "لم يتم العثور على هذا السجل أو قد يكون تم نقله أو حذفه أو أنك لا تملك صلاحية الوصول إليه."
-              : t.notFound?.body || "The document ID or URL you requested does not exist, was moved, or has been archived."}
+            {copy.body}
           </p>
         </div>
 
         {/* Quick jump to core documents */}
         <div className="pt-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
-            {isAr ? "الانتقال السريع إلى السجلات:" : "Jump directly to records:"}
+            {copy.jumpToRecords}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {quickLinks.map((item) => {
@@ -73,7 +71,7 @@ export function NotFoundView() {
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-95 shadow-sm transition-all"
           >
             <Home className="h-4 w-4" />
-            <span>{isAr ? "العودة للرئيسية" : t.notFound?.back || "Return to Dashboard"}</span>
+            <span>{copy.back}</span>
           </Link>
         </div>
       </div>
