@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
 
@@ -30,6 +31,7 @@ import (
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/delivery/internal/app"
+	"platform.local/backend/services/delivery/internal/filesclient"
 	"platform.local/backend/services/delivery/internal/httpapi"
 	"platform.local/backend/services/delivery/internal/postgres"
 	"platform.local/backend/services/delivery/migrations"
@@ -84,6 +86,13 @@ func run(command string) error {
 	}
 
 	svc := app.New(postgres.New(pool))
+	if cfg.NATS.Configured() {
+		signer, err := authn.NewServiceSigner("delivery", cfg.Delivery.ServiceKey, 5*time.Minute)
+		if err != nil {
+			return fmt.Errorf("DELIVERY_SERVICE_KEY (to delete erased proof photos): %w", err)
+		}
+		svc.SetPrivateFileDeleter(filesclient.New(cfg.Delivery.FilesURL, signer.Transport(nil)))
+	}
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))

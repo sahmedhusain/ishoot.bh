@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Script from "next/script";
 import { getAdminTranslations, isLocale, isRtlLocale } from "@platform/locales";
 import "./globals.css";
@@ -19,12 +19,14 @@ import { UnsavedChangesProvider } from "../hooks/useUnsavedChanges";
 import { Toaster } from "sonner";
 
 export const generateMetadata = () => companyMetadata();
+export const dynamic = "force-dynamic";
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const company = await getCachedCompanySettings().catch(() => null);
   const savedLocale = (await cookies()).get("platform_admin_locale")?.value;
   const initialLocale = isLocale(savedLocale) ? savedLocale : company?.primary_language ?? "ar";
@@ -42,6 +44,7 @@ export default async function RootLayout({
         <Script
           id="admin-theme-bootstrap"
           strategy="beforeInteractive"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: appearanceBootstrapScript() + `try{var m=localStorage.getItem("platform_admin_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
           }}
@@ -59,6 +62,7 @@ export default async function RootLayout({
         ) : null}
         <style
           id="company-theme"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: themeStylesheet(theme) }}
         />
       </head>

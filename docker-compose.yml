@@ -274,6 +274,7 @@ x-delivery: &delivery
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
     AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    DELIVERY_SERVICE_KEY: ${DELIVERY_SERVICE_KEY:-}
     NATS_URL: ${NATS_URL:-nats://nats:4222}
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro

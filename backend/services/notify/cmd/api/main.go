@@ -89,7 +89,8 @@ func run(command string) error {
 	opts := app.Options{MaxAttempts: cfg.Notify.MaxAttempts, MaxAttachmentBytes: cfg.Notify.MaxAttachmentBytes}
 	jobOpts := jobs.Options{Schema: postgres.Schema, Workers: cfg.Notify.Workers, MaxAttempts: cfg.Notify.MaxAttempts,
 		SendTimeout: cfg.Notify.SendTimeout, Logger: logger.Logger,
-		InboxRetention: cfg.Notify.InboxRetention, PurgeEvery: cfg.Notify.InboxPurgeEvery}
+		InboxRetention: cfg.Notify.InboxRetention, PurgeEvery: cfg.Notify.InboxPurgeEvery,
+		MessageRetention: cfg.Notify.MessageRetention, MessagePurgeEvery: cfg.Notify.MessagePurgeEvery}
 
 	switch command {
 	case "serve":

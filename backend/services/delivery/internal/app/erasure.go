@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 
@@ -18,6 +19,11 @@ const SubjectCustomerErased = "commerce.customer.erased"
 
 const erasedName = "Erased customer"
 
+// PrivateFileDeleter deletes a private proof photo that is no longer referenced by a shipment.
+type PrivateFileDeleter interface {
+	DeletePrivate(context.Context, string) error
+}
+
 // HandleCustomerErased removes the personal data of the shipments of the erased customer's orders. The event carries IDs only. A redelivered
 // event, a malformed one, or one naming nothing changes nothing.
 func (s *Service) HandleCustomerErased(ctx context.Context, eventID string, payload []byte) error {
@@ -27,6 +33,18 @@ func (s *Service) HandleCustomerErased(ctx context.Context, eventID string, payl
 	}
 	if err := json.Unmarshal(payload, &in); err != nil || len(in.OrderIDs) == 0 {
 		return nil
+	}
+	proofPhotos, err := s.store.UnreferencedProofPhotos(ctx, in.OrderIDs)
+	if err != nil {
+		return err
+	}
+	if len(proofPhotos) > 0 && s.fileDeleter == nil {
+		return errors.New("delivery: private proof photo deleter is not configured")
+	}
+	for _, fileURL := range proofPhotos {
+		if err := s.fileDeleter.DeletePrivate(ctx, fileURL); err != nil {
+			return err
+		}
 	}
 	return s.store.Tx(ctx, func(_ *postgres.Store, tx pgx.Tx) error {
 		first, err := outbox.Handled(ctx, tx, postgres.Schema, CommerceEventsConsumer, eventID)

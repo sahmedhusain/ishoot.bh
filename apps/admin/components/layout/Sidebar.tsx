@@ -93,7 +93,7 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
-  action?: "read" | "edit" | "create" | "assign";
+  action?: "read" | "edit" | "create" | "assign" | "delete";
   moduleKey?: string;
   managersOnly?: boolean;
   superAdminOnly?: boolean;
@@ -545,6 +545,13 @@ export function Sidebar() {
             icon: FileText,
             resource: "audit_logs",
           },
+          {
+            href: ROUTES.settings.privacy,
+            label: t.nav.dataPrivacy,
+            icon: ShieldAlert,
+            resource: "contacts",
+            action: "delete",
+          },
         ],
       },
     ];
@@ -729,6 +736,7 @@ export function Sidebar() {
             ROUTES.settings.company,
             ROUTES.users.list,
             ROUTES.settings.roles,
+            ROUTES.settings.privacy,
           ]),
           {
             href: ROUTES.settings.approvals,

@@ -44,6 +44,7 @@ const SECRETS = {
   IT_SERVICE_KEY: () => serviceKey("it"),
   // Backend callers: notify reads integration credentials; identity reads module availability.
   NOTIFY_SERVICE_KEY: () => serviceKey("notify"),
+  DELIVERY_SERVICE_KEY: () => serviceKey("delivery"),
   IDENTITY_SERVICE_KEY: () => serviceKey("identity"),
   SYSTEM_SERVICE_KEY: () => serviceKey("system"),
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),

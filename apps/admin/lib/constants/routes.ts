@@ -295,6 +295,7 @@ export const ROUTES = {
     pipeline: "/dashboard/settings/pipeline",
     departments: "/dashboard/settings/departments",
     preferences: "/dashboard/settings/preferences",
+    privacy: "/dashboard/settings/privacy",
     roles: "/dashboard/settings/roles",
     security: "/dashboard/settings/security",
     web: "/dashboard/settings/web",

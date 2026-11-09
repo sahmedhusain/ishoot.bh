@@ -8,6 +8,7 @@ import { Reveal } from "../shared/Reveal";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArticleCards, articleDate } from "./ArticleCards";
 import { ShareLinks } from "./ShareLinks";
+import { sanitizeRichHtml } from "../../lib/rich-text/sanitize";
 
 const text = (en: string, ar: string, locale: string) => (locale === "ar" ? ar || en : en || ar);
 
@@ -87,7 +88,7 @@ export async function ArticleView({ article, related, locale, base, url }: { art
           {article.author_name && <p className="text-sm text-ink-muted">{formatMessage(t.articles.by, { author: article.author_name })}</p>}
         </Reveal>
         {article.cover_url && <ContentImage src={article.cover_url} alt="" className="w-full rounded-3xl aspect-[16/9] object-cover" width={1200} height={675} />}
-        <div className="rich-text" dangerouslySetInnerHTML={{ __html: body }} />
+        <div className="rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(body) }} />
         {article.tags.length > 0 && (
           <ul className="flex flex-wrap gap-2">
             {article.tags.map((tag) => <li key={tag} className="px-3 py-1 rounded-full bg-white/5 text-xs text-ink-muted">#{tag}</li>)}

@@ -36,6 +36,9 @@ type Notify struct {
 	// InboxPurgeEvery (0 keeps them).
 	InboxRetention  time.Duration `env:"INBOX_RETENTION" envDefault:"8760h" validate:"gte=0"`
 	InboxPurgeEvery time.Duration `env:"INBOX_PURGE_EVERY" envDefault:"6h" validate:"gte=0"`
+	// MessageRetention is how long successful email content and recipient details are retained.
+	MessageRetention  time.Duration `env:"MESSAGE_RETENTION" envDefault:"720h" validate:"gt=0"`
+	MessagePurgeEvery time.Duration `env:"MESSAGE_PURGE_EVERY" envDefault:"24h" validate:"gt=0"`
 	// InboxLiveWindow is how old a delivered notification may be and still ring live; older ones (a hand-over of
 	// earlier notifications) arrive quietly.
 	InboxLiveWindow time.Duration `env:"INBOX_LIVE_WINDOW" envDefault:"2m" validate:"gt=0"`

@@ -28,3 +28,10 @@ FOR UPDATE SKIP LOCKED;
 
 -- name: DeleteFilesByID :exec
 DELETE FROM files.upload_object WHERE id = ANY(@ids::text[]);
+
+-- name: LockOrphanedPrivateUploads :many
+SELECT * FROM files.upload_object
+WHERE claimed_at IS NOT NULL AND claimed_at < @older_than
+ORDER BY claimed_at
+LIMIT @batch_size
+FOR UPDATE SKIP LOCKED;

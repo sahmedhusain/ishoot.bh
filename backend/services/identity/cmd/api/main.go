@@ -147,7 +147,9 @@ func run(command string) error {
 	if err != nil {
 		return err
 	}
-	svc, err := sessions.New(postgres.New(pool), cfg.Session.TTL)
+	svc, err := sessions.NewWithLifetimes(postgres.New(pool), sessions.Lifetimes{
+		Customer: cfg.Session.TTL, Staff: cfg.Session.StaffTTL, IT: cfg.Session.ITTTL,
+	})
 	if err != nil {
 		return err
 	}

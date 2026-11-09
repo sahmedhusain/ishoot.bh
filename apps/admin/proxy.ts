@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ACCESS_COOKIE,
@@ -11,6 +12,34 @@ import {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const nonce = Buffer.from(randomUUID()).toString("base64");
+  const webOrigin = origin(process.env.NEXT_PUBLIC_WEB_URL || process.env.WEB_URL);
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    "script-src-attr 'none'",
+    `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
+    "style-src-attr 'unsafe-inline'",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "connect-src 'self' https: wss:",
+    `frame-src 'self' blob:${webOrigin ? ` ${webOrigin}` : ""}`,
+    "frame-ancestors 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https:",
+    ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
+  ].join("; ");
+  const next = () => {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-nonce", nonce);
+    requestHeaders.set("Content-Security-Policy", csp);
+    return withSecurityPolicy(
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      csp,
+    );
+  };
 
   if (pathname.startsWith("/uploads/")) {
     const target = request.nextUrl.clone();
@@ -19,7 +48,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/_next") || pathname.includes(".")) {
-    return NextResponse.next();
+    return next();
   }
 
   const api = pathname.startsWith("/api/");
@@ -41,17 +70,20 @@ export async function proxy(request: NextRequest) {
       ].includes(pathname)
     )
   )
-    return NextResponse.next();
+    return next();
 
   const access = request.cookies.get(ACCESS_COOKIE)?.value;
   let renewed: CookieSpec[] | null = null;
   if (needsRenewal(access)) {
     const credential = refresh ? await renew(refresh) : null;
     if (!credential) {
-      if (api) return withCookies(NextResponse.next(), clearedCookies());
+      if (api) return withCookies(next(), clearedCookies());
       const login = new URL("/login", request.url);
       if (pathname !== "/") login.searchParams.set("callbackUrl", pathname);
-      return withCookies(NextResponse.redirect(login), clearedCookies());
+      return withCookies(
+        withSecurityPolicy(NextResponse.redirect(login), csp),
+        clearedCookies(),
+      );
     }
     renewed = sessionCookies(credential);
     for (const c of renewed) request.cookies.set(c.name, c.value);
@@ -60,8 +92,22 @@ export async function proxy(request: NextRequest) {
   const response =
     pathname === "/"
       ? NextResponse.redirect(new URL("/dashboard", request.url))
-      : NextResponse.next({ request: { headers: request.headers } });
+      : next();
+  withSecurityPolicy(response, csp);
   return renewed ? withCookies(response, renewed) : response;
+}
+
+function origin(value?: string) {
+  try {
+    return value ? new URL(value).origin : "";
+  } catch {
+    return "";
+  }
+}
+
+function withSecurityPolicy(response: NextResponse, policy: string) {
+  response.headers.set("Content-Security-Policy", policy);
+  return response;
 }
 
 function withCookies(response: NextResponse, cookies: CookieSpec[]) {

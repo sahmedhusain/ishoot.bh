@@ -97,6 +97,7 @@
       "users": "Users & Permissions",
       "companySettings": "Company & Tax Settings",
       "auditLogs": "Audit Logs & Sessions",
+      "dataPrivacy": "Data Privacy & Compliance",
       "reviews": "Customer Reviews",
       "faqs": "Website FAQs",
       "stats": "Statistics",
@@ -111,6 +112,28 @@
       "articles": "Articles",
       "menus": "Menus",
       "leads": "Incoming Inquiries"
+    },
+    "dataPrivacyView": {
+      "title": "Data Privacy & Compliance",
+      "subtitle": "Process customer right-to-erasure requests. This action is permanent and should only be used after verifying the request.",
+      "byIdTitle": "Erase by customer ID",
+      "byIdDescription": "Erase one customer account and its associated personal details.",
+      "byEmailTitle": "Erase by e-mail address",
+      "byEmailDescription": "Erase all customer accounts and guest orders associated with an e-mail address.",
+      "customerIdLabel": "Customer ID",
+      "emailLabel": "E-mail address",
+      "eraseById": "Erase customer data",
+      "eraseByEmail": "Erase matching data",
+      "warning": "This permanently wipes personal data, saved addresses, and shipping details associated with the customer and their orders.",
+      "accountingRetention": "Order line items, totals, payments, and accounting records remain for legal and financial recordkeeping.",
+      "emailScopeWarning": "E-mail erasure applies to every matching customer account and guest order. The service does not reveal whether the address exists.",
+      "confirmIdTitle": "Confirm customer erasure",
+      "confirmEmailTitle": "Confirm e-mail erasure",
+      "confirmWord": "ERASE",
+      "typePrompt": "Type ERASE to confirm this irreversible request.",
+      "confirmButton": "Erase data",
+      "failure": "The erasure request failed. Check the identifier and your access, then try again.",
+      "success": "Customer erasure request completed."
     },
     "actions": {
       "newInvoice": "New Invoice",
@@ -11270,6 +11293,10 @@
       "settings/pipeline": {
         "title": "Sales pipeline",
         "description": "The stages a deal moves through."
+      },
+      "settings/privacy": {
+        "title": "Data Privacy & Compliance",
+        "description": "Process customer right-to-erasure requests and protect personal data."
       },
       "settings/preferences": {
         "title": "Preferences",

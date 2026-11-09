@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { categoryAncestors } from "@platform/database/constants/website-commerce";
 import { Promotions } from "../store/Promotions";
 import { PublicDocuments } from "./PublicDocuments";
@@ -58,7 +59,8 @@ const REVEAL_HERE: readonly BlockType[] = ["catalogue", "services", "testimonial
 
 const LIGHT: readonly BlockType[] = ["about", "catalogue", "testimonials"];
 
-export function PageBlocks({ blocks, context }: { blocks: Block[]; context: BlockContext }) {
+export async function PageBlocks({ blocks, context }: { blocks: Block[]; context: BlockContext }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const { locale, website, company } = context;
   let light = 0;
   return (
@@ -165,7 +167,7 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
         return <EmbedBlock data={block.data as Block<"embed">["data"]} locale={locale} />;
       case "code": {
         const data = block.data as Block<"code">["data"];
-        return <CodeBlock html={data.html} css={data.css} js={data.js} height={data.height} title={block.id} />;
+        return <CodeBlock html={data.html} css={data.css} js={data.js} height={data.height} title={block.id} nonce={nonce} />;
       }
       default:
         return null;

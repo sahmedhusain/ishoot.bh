@@ -26,6 +26,7 @@ type Repository interface {
 	Claim(ctx context.Context, url, owner string, now time.Time) (domain.File, error)
 	Delete(ctx context.Context, url string) (bool, error)
 	WithExpired(ctx context.Context, now time.Time, limit int32, fn func([]domain.File) error) (int, error)
+	WithOrphanedPrivate(ctx context.Context, olderThan time.Time, limit int32, fn func([]domain.File) error) (int, error)
 }
 
 // Options are the service's limits and bucket names (from settings).
@@ -244,6 +245,19 @@ func (s *Service) Delete(ctx context.Context, url string) error {
 // deleted before the records, so a failure leaves records to retry rather than orphaned bytes.
 func (s *Service) CleanupExpired(ctx context.Context) (int, error) {
 	return s.repo.WithExpired(ctx, s.now(), s.opts.CleanupBatch, func(files []domain.File) error {
+		for _, f := range files {
+			if err := s.objects.Delete(ctx, s.bucket(f.Public), objectKey(f.URL)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// CleanupOrphanedPrivate deletes one batch of private uploads that have been claimed and not accessed for
+// 30 days and returns how many it removed.
+func (s *Service) CleanupOrphanedPrivate(ctx context.Context) (int, error) {
+	return s.repo.WithOrphanedPrivate(ctx, s.now().Add(-30*24*time.Hour), s.opts.CleanupBatch, func(files []domain.File) error {
 		for _, f := range files {
 			if err := s.objects.Delete(ctx, s.bucket(f.Public), objectKey(f.URL)); err != nil {
 				return err

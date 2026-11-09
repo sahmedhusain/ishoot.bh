@@ -141,6 +141,25 @@ export async function getCustomer(id: string, token?: string): Promise<Customer>
   return commFetch<Customer>(`/v1/commerce/customers/${encodeURIComponent(id)}`, {}, token);
 }
 
+export async function eraseCustomer(id: string, token?: string): Promise<void> {
+  await commFetch<void>(
+    `/v1/commerce/customers/${encodeURIComponent(id)}/erase`,
+    { method: "POST" },
+    token,
+  );
+}
+
+export async function eraseCustomersByEmail(
+  email: string,
+  token?: string,
+): Promise<void> {
+  await commFetch<void>(
+    "/v1/commerce/customers/erase-by-email",
+    { method: "POST", body: JSON.stringify({ email }) },
+    token,
+  );
+}
+
 export async function createCustomer(input: Partial<Customer>, token?: string): Promise<Customer> {
   return commFetch<Customer>("/v1/commerce/customers", {
     method: "POST",

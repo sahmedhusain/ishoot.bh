@@ -125,6 +125,7 @@ const SECTIONS: Record<string, PageSection> = {
   "settings/approvals": { icon: ShieldCheck, group: "administration" },
   "settings/departments": { icon: Building2, group: "administration" },
   "settings/pipeline": { icon: Kanban, group: "administration" },
+  "settings/privacy": { icon: ShieldAlert, group: "administration" },
   "settings/security": { icon: ShieldCheck, group: "administration" },
   "settings/preferences": { icon: SlidersHorizontal, group: "personal" },
   users: { icon: ShieldCheck, group: "administration" },
@@ -155,7 +156,7 @@ const PAGE_KEYS = [
   "quotations", "quotations/[id]", "quotations/new", "reports", "reports/[key]", "requests", "requests/[id]",
   "requests/new", "requests/settings", "services", "settings", "settings/approvals", "settings/audit",
   "settings/company", "settings/departments", "settings/pipeline",
-  "settings/preferences", "settings/roles", "settings/security", "settings/web", "tasks", "tasks/[id]",
+  "settings/preferences", "settings/privacy", "settings/roles", "settings/security", "settings/web", "tasks", "tasks/[id]",
   "tasks/projects", "tasks/projects/[id]", "team", "users", "users/new",
 ] as const;
 

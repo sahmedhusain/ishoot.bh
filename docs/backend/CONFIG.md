@@ -209,6 +209,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
 | `DELIVERY_READERS` | `admin,it,web,commerce` | `min=1,dive,required` |
 | `DELIVERY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
+| `DELIVERY_SERVICE_KEY` |  | Base64url private service JWK; required when NATS erasure handling is enabled |
+| `DELIVERY_FILES_URL` | `http://files:8080` | `http_url` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -481,7 +483,9 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_SIGNING_JWK` |  |  |
 | `IDENTITY_PREVIOUS_JWKS` |  |  |
 | `IDENTITY_ACCESS_TTL` | `10m` | `gt=0` |
-| `IDENTITY_SESSION_TTL` | `168h` | `gt=0` |
+| `IDENTITY_SESSION_TTL` | `168h` | `gt=0` (customer refresh session lifetime) |
+| `IDENTITY_STAFF_TTL` | `12h` | `gt=0` |
+| `IDENTITY_IT_TTL` | `4h` | `gt=0` |
 | `IDENTITY_CLEANUP_INTERVAL` | `5m` | `gt=0` |
 | `IDENTITY_CLEANUP_BATCH` | `100` | `gt=0` |
 | `IDENTITY_CLEANUP_WORKERS` | `1` | `gt=0` |
@@ -714,6 +718,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `NOTIFY_INBOX_BODY_LIMIT` | `2097152` | `gt=0` |
 | `NOTIFY_INBOX_RETENTION` | `8760h` | `gte=0` |
 | `NOTIFY_INBOX_PURGE_EVERY` | `6h` | `gte=0` |
+| `NOTIFY_MESSAGE_RETENTION` | `720h` | `gt=0` |
+| `NOTIFY_MESSAGE_PURGE_EVERY` | `24h` | `gt=0` |
 | `NOTIFY_INBOX_LIVE_WINDOW` | `2m` | `gt=0` |
 | `NOTIFY_BODY_LIMIT` | `11534336` | `gt=0` |
 | `NOTIFY_MAX_ATTACHMENT_BYTES` | `7864320` | `gt=0` |

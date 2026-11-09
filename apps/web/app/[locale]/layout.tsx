@@ -7,6 +7,7 @@ import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
 import { isRtlLocale } from "@platform/locales/registry";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { isValidLocale } from "../../lib/i18n";
 import { getSite, requireSiteLanguage, siteTranslations } from "../../lib/site";
 import { Navbar } from "../../components/layout/Navbar";
@@ -42,6 +43,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   if (!isValidLocale(locale)) {
     notFound();
@@ -73,9 +75,9 @@ export default async function LocaleLayout({
           <link rel="stylesheet" href={fontsHref} />
         </>
       ) : null}
-      <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
-      <Script id="site-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
-      {enabled && website && !preview && code ? <SiteAnalytics code={code} /> : null}
+      <style id="company-theme" nonce={nonce} dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
+      <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
+      {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
     </head>
   );
 
@@ -127,7 +129,7 @@ export default async function LocaleLayout({
               {children}
             </SiteRegion>
             <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
-            {!preview && code ? <SiteCustomCode code={code} /> : null}
+            {!preview && code ? <SiteCustomCode code={code} nonce={nonce} /> : null}
           </SmoothScroll>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>
         </SiteThemeProvider>

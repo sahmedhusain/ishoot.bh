@@ -52,7 +52,7 @@ nofollow"`), images, tables and frames for the embed providers only; scripts, ev
 - Customers are a separate account type from staff (`Customer`); a customer session never opens the admin.
 - Passwords are bcrypt-hashed (cost 12); a missing account is compared against a fixed hash so response timing
   does not reveal which e-mails exist. Sessions are random 256-bit tokens stored only as SHA-256 hashes, in an
-  HttpOnly, SameSite=Lax cookie, for 30 days.
+  HttpOnly, SameSite=Lax cookie, for 7 days by default.
 - E-mailed sign-in codes are six digits, stored hashed, valid 10 minutes, at most 5 attempts, one live code per
   e-mail; sending is limited per e-mail and per address, as are password sign-ins and sign-ups.
 - Account API posts must come from the website's own origin.
@@ -94,6 +94,8 @@ Implemented:
 
 - Expired sessions are removed by maintenance.
 - Unclaimed **private** uploads expire after 24 hours. Each maintenance pass removes up to 25 of them from storage, then from the database. Claimed files are kept, and storage failures leave the record for a retry.
+- Private proof photos from erased orders are deleted when no remaining shipment references them; a failed files-service request leaves the erasure event retryable.
+- Successful email recipient details, bodies and attachments are scrubbed after 30 days; provider delivery evidence remains.
 - Abuse-limit windows older than their expiry plus one day are removed.
 - Each message keeps at most 100 recent verified delivery events.
 

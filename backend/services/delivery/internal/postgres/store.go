@@ -34,6 +34,34 @@ func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	})
 }
 
+// UnreferencedProofPhotos returns private proof-photo URLs only used by the orders being erased.
+func (s *Store) UnreferencedProofPhotos(ctx context.Context, orderIDs []string) ([]string, error) {
+	rows, err := s.pool.Query(ctx, `
+SELECT DISTINCT target.proof_photo_url
+FROM delivery.shipment AS target
+WHERE target.order_id = ANY($1::text[])
+  AND target.proof_photo_url IS NOT NULL AND target.proof_photo_url <> ''
+  AND NOT EXISTS (
+    SELECT 1 FROM delivery.shipment AS other
+    WHERE other.proof_photo_url = target.proof_photo_url
+      AND NOT (other.order_id = ANY($1::text[]))
+  )
+ORDER BY target.proof_photo_url`, orderIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var urls []string
+	for rows.Next() {
+		var fileURL string
+		if err := rows.Scan(&fileURL); err != nil {
+			return nil, err
+		}
+		urls = append(urls, fileURL)
+	}
+	return urls, rows.Err()
+}
+
 // Settings, Zones & Slots
 func (s *Store) GetDeliverySettings(ctx context.Context) (DeliverySettings, error) {
 	return s.q.GetDeliverySettings(ctx)

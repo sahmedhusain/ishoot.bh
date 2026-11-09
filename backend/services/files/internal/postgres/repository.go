@@ -105,6 +105,30 @@ func (r *Repository) WithExpired(ctx context.Context, now time.Time, limit int32
 	return count, err
 }
 
+// WithOrphanedPrivate locks up to limit claimed files that haven't been accessed for the given duration, calls fn
+// with them and, if fn succeeds, deletes their records in the same transaction.
+func (r *Repository) WithOrphanedPrivate(ctx context.Context, olderThan time.Time, limit int32, fn func([]domain.File) error) (int, error) {
+	count := 0
+	err := db.WithTx(ctx, r.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		q := r.q.WithTx(tx)
+		rows, err := q.LockOrphanedPrivateUploads(ctx, sqlcdb.LockOrphanedPrivateUploadsParams{OlderThan: olderThan, BatchSize: limit})
+		if err != nil || len(rows) == 0 {
+			return err
+		}
+		files := make([]domain.File, len(rows))
+		ids := make([]string, len(rows))
+		for i, row := range rows {
+			files[i], ids[i] = toDomain(row), row.ID
+		}
+		if err := fn(files); err != nil {
+			return err
+		}
+		count = len(rows)
+		return q.DeleteFilesByID(ctx, ids)
+	})
+	return count, err
+}
+
 func toDomain(row sqlcdb.FilesUploadObject) domain.File {
 	f := domain.File{
 		ID: row.ID, URL: row.FileUrl, FileName: row.FileName, Size: row.FileSize, MIMEType: row.MimeType,

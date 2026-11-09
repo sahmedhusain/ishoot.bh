@@ -39,15 +39,28 @@ type Repository interface {
 }
 
 type Service struct {
-	repo Repository
-	ttl  time.Duration
+	repo        Repository
+	customerTTL time.Duration
+	staffTTL    time.Duration
+	itTTL       time.Duration
+}
+
+// Lifetimes defines the absolute maximum session lifetime for each user realm.
+type Lifetimes struct {
+	Customer time.Duration
+	Staff    time.Duration
+	IT       time.Duration
 }
 
 func New(repo Repository, ttl time.Duration) (*Service, error) {
-	if repo == nil || ttl <= 0 {
+	return NewWithLifetimes(repo, Lifetimes{Customer: ttl, Staff: ttl, IT: ttl})
+}
+
+func NewWithLifetimes(repo Repository, lifetimes Lifetimes) (*Service, error) {
+	if repo == nil || lifetimes.Customer <= 0 || lifetimes.Staff <= 0 || lifetimes.IT <= 0 {
 		return nil, errors.New("invalid session configuration")
 	}
-	return &Service{repo: repo, ttl: ttl}, nil
+	return &Service{repo: repo, customerTTL: lifetimes.Customer, staffTTL: lifetimes.Staff, itTTL: lifetimes.IT}, nil
 }
 
 // Credential contains the one-time plaintext refresh token. Never log or persist Token.
@@ -70,9 +83,12 @@ func (s *Service) Prepare(realm authn.Realm, subject string, now time.Time) (Cre
 	if err != nil {
 		return Credential{}, err
 	}
-	ttl := s.ttl
-	if realm == authn.RealmCustomer {
-		ttl = 30 * 24 * time.Hour
+	ttl := s.staffTTL
+	switch realm {
+	case authn.RealmCustomer:
+		ttl = s.customerTTL
+	case authn.RealmIT:
+		ttl = s.itTTL
 	}
 	return Credential{Family: Family{ID: uuid.NewString(), SubjectID: subject, Realm: realm, ExpiresAt: now.Add(ttl)}, Token: token}, nil
 }

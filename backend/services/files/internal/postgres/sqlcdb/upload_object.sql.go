@@ -209,3 +209,47 @@ func (q *Queries) LockExpiredUploads(ctx context.Context, arg LockExpiredUploads
 	}
 	return items, nil
 }
+
+const lockOrphanedPrivateUploads = `-- name: LockOrphanedPrivateUploads :many
+SELECT id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at FROM files.upload_object
+WHERE claimed_at IS NOT NULL AND claimed_at < $1
+ORDER BY claimed_at
+LIMIT $2
+FOR UPDATE SKIP LOCKED
+`
+
+type LockOrphanedPrivateUploadsParams struct {
+	OlderThan time.Time
+	BatchSize int32
+}
+
+func (q *Queries) LockOrphanedPrivateUploads(ctx context.Context, arg LockOrphanedPrivateUploadsParams) ([]FilesUploadObject, error) {
+	rows, err := q.db.Query(ctx, lockOrphanedPrivateUploads, arg.OlderThan, arg.BatchSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FilesUploadObject
+	for rows.Next() {
+		var i FilesUploadObject
+		if err := rows.Scan(
+			&i.ID,
+			&i.FileUrl,
+			&i.OwnerID,
+			&i.FileName,
+			&i.FileSize,
+			&i.MimeType,
+			&i.IsPublic,
+			&i.ClaimedAt,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

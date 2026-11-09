@@ -5,6 +5,7 @@ import { embedSource, videoSource, type BlockData, type LocalText } from "@platf
 import { Reveal } from "../shared/Reveal";
 import { ContentImage } from "../shared/ContentImage";
 import { SectionBadge } from "../shared/SectionBadge";
+import { sanitizeRichHtml } from "../../lib/rich-text/sanitize";
 
 export const pick = (text: LocalText | undefined, locale: string) => (locale === "ar" ? text?.ar || text?.en : text?.en || text?.ar) ?? "";
 
@@ -27,7 +28,7 @@ export function RichTextBlock({ data, locale }: { data: BlockData["rich_text"]; 
   return (
     <Section>
       <Reveal>
-        <div className="rich-text max-w-3xl" dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="rich-text max-w-3xl" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(html) }} />
       </Reveal>
     </Section>
   );

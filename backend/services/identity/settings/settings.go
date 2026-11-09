@@ -35,7 +35,10 @@ type StaffAccess struct {
 }
 
 type Session struct {
+	// TTL is the customer session lifetime; the existing IDENTITY_SESSION_TTL setting remains its configuration key.
 	TTL             time.Duration `env:"SESSION_TTL" envDefault:"168h" validate:"gt=0"`
+	StaffTTL        time.Duration `env:"STAFF_TTL" envDefault:"12h" validate:"gt=0"`
+	ITTTL           time.Duration `env:"IT_TTL" envDefault:"4h" validate:"gt=0"`
 	CleanupInterval time.Duration `env:"CLEANUP_INTERVAL" envDefault:"5m" validate:"gt=0"`
 	CleanupBatch    int32         `env:"CLEANUP_BATCH" envDefault:"100" validate:"gt=0"`
 	CleanupWorkers  int           `env:"CLEANUP_WORKERS" envDefault:"1" validate:"gt=0"`

@@ -191,3 +191,50 @@ func TestWorkerDelivers(t *testing.T) {
 	}, 15*time.Second, 100*time.Millisecond)
 	assert.Equal(t, 1, sender.count())
 }
+
+func TestEmailRetentionScrubsContentAndKeepsDeliveryEvidence(t *testing.T) {
+	ctx := context.Background()
+	pool, _, svc, _ := setup(t)
+	old, _, err := svc.Queue(ctx, "admin", app.Input{
+		Channel: app.Email, To: "private@example.com", Subject: "Private subject", Text: "Private body",
+		IdempotencyKey: "retention-old", ActorID: "staff-1",
+		Attachments: []app.Attachment{{Filename: "proof.pdf", ContentType: "application/pdf", Content: []byte("proof")}},
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.Deliver(ctx, old.ID, 1))
+	recent, _, err := svc.Queue(ctx, "web", app.Input{
+		Channel: app.Email, To: "recent@example.com", Subject: "Recent subject", Text: "Recent body",
+		IdempotencyKey: "retention-recent-sent",
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.Deliver(ctx, recent.ID, 1))
+	_, err = pool.Exec(ctx, `UPDATE notify.message SET sent_at = now() - interval '31 days' WHERE id = $1`, old.ID)
+	require.NoError(t, err)
+
+	removed, err := svc.PurgeEmailContent(ctx, 30*24*time.Hour)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, removed)
+	purged, err := svc.Detail(ctx, old.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "sent", purged.Status)
+	assert.Equal(t, "fake", *purged.Provider)
+	assert.Equal(t, "p-"+old.ID, *purged.ProviderID)
+	assert.Equal(t, int32(1), purged.Attempts)
+	assert.Empty(t, purged.Recipient)
+	assert.Nil(t, purged.Subject)
+	assert.Nil(t, purged.Text)
+	assert.Nil(t, purged.HTML)
+	assert.Empty(t, purged.Attachments)
+	var attachmentCount int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM notify.attachment WHERE message_id=$1`, old.ID).Scan(&attachmentCount))
+	assert.Zero(t, attachmentCount)
+
+	kept, err := svc.Detail(ctx, recent.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "recent@example.com", kept.Recipient)
+	assert.Equal(t, "Recent subject", *kept.Subject)
+	assert.Equal(t, "Recent body", *kept.Text)
+	removed, err = svc.PurgeEmailContent(ctx, 30*24*time.Hour)
+	require.NoError(t, err)
+	assert.Zero(t, removed, "scrubbed records are not repeatedly modified")
+}

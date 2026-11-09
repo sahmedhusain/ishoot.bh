@@ -26,8 +26,14 @@ const (
 )
 
 type Service struct {
-	store *postgres.Store
-	now   func() time.Time
+	store       *postgres.Store
+	now         func() time.Time
+	fileDeleter PrivateFileDeleter
+}
+
+// SetPrivateFileDeleter configures deletion of proof photos no longer referenced after customer erasure.
+func (s *Service) SetPrivateFileDeleter(deleter PrivateFileDeleter) {
+	s.fileDeleter = deleter
 }
 
 func New(store *postgres.Store) *Service {
