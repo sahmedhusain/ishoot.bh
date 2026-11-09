@@ -82,6 +82,48 @@ export type StaffAccessPolicy =
 export const getStaffAccess = (token: string) =>
   unwrap(userClient<paths>(token).GET("/v1/identity/staff/access"));
 
+export type ITRoleDraft = {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  system: boolean;
+  reportingToRole?: string | null;
+  grants: Record<string, boolean>;
+};
+
+export type ITRolePage = {
+  items: ITRoleDraft[];
+  nextCursor?: string;
+};
+
+export const listITRolesForIT = (token: string, cursor?: string) =>
+  unwrap(
+    userClient<any>(token).GET("/v1/identity/desk/it-roles", {
+      params: { query: { cursor } },
+    }),
+  ) as Promise<ITRolePage>;
+
+export const saveITRoleForIT = (token: string, draft: ITRoleDraft, create: boolean) =>
+  create
+    ? (unwrapEmpty(
+        userClient<any>(token).POST("/v1/identity/desk/it-roles", {
+          body: draft,
+        }),
+      ) as Promise<void>)
+    : (unwrapEmpty(
+        userClient<any>(token).PUT("/v1/identity/desk/it-roles/{id}", {
+          params: { path: { id: draft.id } },
+          body: draft,
+        }),
+      ) as Promise<void>);
+
+export const deleteITRoleForIT = (token: string, id: string) =>
+  unwrapEmpty(
+    userClient<any>(token).DELETE("/v1/identity/desk/it-roles/{id}", {
+      params: { path: { id } },
+    }),
+  ) as Promise<void>;
+
 export const listITAccountsForIT = (token: string, cursor?: string) =>
   unwrap(
     userClient<paths>(token).GET("/v1/identity/desk/it-accounts", {
@@ -91,23 +133,23 @@ export const listITAccountsForIT = (token: string, cursor?: string) =>
 
 export const createITAccountForIT = (
   token: string,
-  input: { email: string; password: string; role: ITRole },
+  input: { email: string; password: string; role: string; reportingTo?: string | null },
 ) =>
   unwrap(
     userClient<paths>(token).POST("/v1/identity/desk/it-accounts", {
-      body: input,
+      body: input as any,
     }),
   );
 
 export const updateITAccountForIT = (
   token: string,
   id: string,
-  input: { role: ITRole; active: boolean },
+  input: { role: string; active: boolean; reportingTo?: string | null },
 ) =>
   unwrapEmpty(
     userClient<paths>(token).PUT("/v1/identity/desk/it-accounts/{id}", {
       params: { path: { id } },
-      body: input,
+      body: input as any,
     }),
   );
 

@@ -149,3 +149,29 @@ func (s *StaffAccess) ReadSubject(ctx context.Context, id string) (StaffAccessPo
 	})
 	return out, err
 }
+
+type StaffRoleItem struct {
+	ID              string  `json:"id"`
+	NameEn          string  `json:"nameEn"`
+	NameAr          string  `json:"nameAr"`
+	IsSystem        bool    `json:"isSystem"`
+	ReportingToRole *string `json:"reportingToRole"`
+	Revision        int64   `json:"revision"`
+}
+
+func (s *StaffAccess) ListRoles(ctx context.Context) ([]StaffRoleItem, error) {
+	rows, err := s.pool.Query(ctx, `SELECT id, name_en, name_ar, is_system, reporting_to_role, revision FROM identity.staff_role ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []StaffRoleItem
+	for rows.Next() {
+		var item StaffRoleItem
+		if err := rows.Scan(&item.ID, &item.NameEn, &item.NameAr, &item.IsSystem, &item.ReportingToRole, &item.Revision); err != nil {
+			return nil, err
+		}
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}

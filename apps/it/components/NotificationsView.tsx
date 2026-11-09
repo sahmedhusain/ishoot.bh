@@ -4,8 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Mail, MessageCircle, RotateCcw, Send } from "lucide-react";
-import { Card } from "@platform/ui";
+import { Mail, MessageCircle, RotateCcw, Send, Filter, ArrowRight } from "lucide-react";
 import { formatMessage } from "@platform/locales";
 import type { NotifyMessage } from "@platform/api-client";
 import { retryMessageAction, sendTestMessageAction } from "../app/actions";
@@ -16,16 +15,6 @@ export type NotificationFilter = {
   status: string;
   channel: string;
   cursor: string;
-};
-
-const field =
-  "rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent";
-const chip = (on: boolean) =>
-  `px-3 py-1.5 rounded-full text-xs font-semibold border ${on ? "border-accent text-accent bg-accent/10" : "border-outline-variant text-ink-muted hover:text-ink"}`;
-const tone: Record<string, string> = {
-  sent: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  queued: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  failed: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
 };
 
 const href = (
@@ -43,7 +32,7 @@ const href = (
 
 function ChannelIcon({ channel }: { channel: string }) {
   const Icon = channel === "whatsapp" ? MessageCircle : Mail;
-  return <Icon className="size-4 text-ink-muted" aria-hidden />;
+  return <Icon className="size-3.5 text-slate-500 shrink-0" aria-hidden />;
 }
 
 function useRetry() {
@@ -73,6 +62,7 @@ function TestForm() {
   const [channel, setChannel] = React.useState("email");
   const [to, setTo] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -87,38 +77,43 @@ function TestForm() {
       setBusy(false);
     }
   };
+
   return (
-    <form onSubmit={send} className="flex flex-wrap items-end gap-3">
-      <label className="space-y-1 text-xs font-medium text-ink">
-        <span className="block">{n.channel}</span>
+    <form onSubmit={send} className="flex flex-wrap items-end gap-2 font-mono text-xs">
+      <div>
+        <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+          {n.channel}
+        </label>
         <select
           value={channel}
           onChange={(e) => setChannel(e.target.value)}
-          className={field}
+          className="it-field-sunken"
         >
           <option value="email">{n.channels.email}</option>
           <option value="whatsapp">{n.channels.whatsapp}</option>
         </select>
-      </label>
-      <label className="space-y-1 text-xs font-medium text-ink grow min-w-48">
-        <span className="block">{n.testTo}</span>
+      </div>
+
+      <div className="grow min-w-48">
+        <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+          {n.testTo}
+        </label>
         <input
           value={to}
           onChange={(e) => setTo(e.target.value)}
           dir="ltr"
           required
-          placeholder={
-            channel === "email" ? "it@example.com" : "+1 555 0100"
-          }
-          className={`${field} w-full`}
+          placeholder={channel === "email" ? "it@example.com" : "+1 555 0100"}
+          className="it-field-sunken w-full"
         />
-      </label>
+      </div>
+
       <button
         type="submit"
         disabled={busy}
-        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60"
+        className="it-btn-3d py-1.5 px-3 font-bold text-sky-800 dark:text-sky-300 disabled:opacity-50"
       >
-        <Send className="size-4" aria-hidden />
+        <Send className="size-3.5 inline mr-1" aria-hidden />
         {n.sendTest}
       </button>
     </form>
@@ -139,123 +134,223 @@ export function NotificationsView({
 }) {
   const { copy, date } = useCopy();
   const n = copy.notifications;
+  const router = useRouter();
   const { busy, retry } = useRetry();
+
+  const [selectedStatus, setSelectedStatus] = React.useState(filter.status || "");
+  const [selectedChannel, setSelectedChannel] = React.useState(filter.channel || "");
+
+  const handleApplyFilter = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(href(filter, { status: selectedStatus, channel: selectedChannel }));
+  };
+
+  const handleReset = () => {
+    setSelectedStatus("");
+    setSelectedChannel("");
+    router.push("/notifications");
+  };
+
   const total = (status: string) =>
     summary
       .filter((s) => s.status === status)
       .reduce((sum, s) => sum + s.messages, 0);
 
   return (
-    <>
-      <PageTitle title={n.title} description={n.description} />
-      <div className="grid grid-cols-3 gap-3 mb-6" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2">
+        <PageTitle title={n.title} description={n.description} />
+        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+          T-CODE: SOST [NOTIFICATIONS]
+        </span>
+      </div>
+
+      {/* Metrics Strips */}
+      <div className="grid grid-cols-3 gap-2 font-mono text-xs" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
         {(["sent", "queued", "failed"] as const).map((status) => (
-          <Card
+          <div
             key={status}
-            className="p-4 rounded-3xl border border-outline-variant bg-surface"
+            className="it-card p-3 border-l-4 border-l-sky-600 dark:border-l-sky-400"
           >
-            <div className="text-xs text-ink-muted">{n.statuses[status]}</div>
-            <div className="text-2xl font-bold text-ink">{total(status)}</div>
-            <div className="text-[11px] text-ink-muted">{formatMessage(n.lastDay, { hours: 24 })}</div>
-          </Card>
+            <div className="text-[10px] text-ink-muted uppercase font-bold">{n.statuses[status]}</div>
+            <div className="text-xl font-bold text-ink mt-0.5">{total(status)}</div>
+            <div className="text-[10px] text-ink-muted">{formatMessage(n.lastDay, { hours: 24 })}</div>
+          </div>
         ))}
       </div>
+
       {canExecute && (
-        <Card className="p-4 mb-6 rounded-3xl border border-outline-variant bg-surface space-y-2">
-          <h2 className="text-sm font-semibold text-ink">{n.testTitle}</h2>
+        <div className="it-card space-y-2">
+          <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-1">
+            <h2 className="text-xs font-bold uppercase font-mono text-ink">{n.testTitle}</h2>
+          </div>
           <TestForm />
-        </Card>
+        </div>
       )}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Link
-          href={href(filter, { status: "" })}
-          className={chip(!filter.status)}
-        >
-          {n.all}
-        </Link>
-        {(["failed", "queued", "sent"] as const).map((status) => (
-          <Link
-            key={status}
-            href={href(filter, { status })}
-            className={chip(filter.status === status)}
-          >
-            {n.statuses[status]}
-          </Link>
-        ))}
-        <span className="mx-1 border-s border-outline-variant" />
-        {(["email", "whatsapp"] as const).map((channel) => (
-          <Link
-            key={channel}
-            href={href(filter, {
-              channel: filter.channel === channel ? "" : channel,
-            })}
-            className={chip(filter.channel === channel)}
-          >
-            {n.channels[channel]}
-          </Link>
-        ))}
-      </div>
-      {!page ? (
-        <Card
-          role="alert"
-          className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant"
-        >
-          {n.unavailable}
-        </Card>
-      ) : page.items.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant">
-          {n.empty}
-        </Card>
-      ) : (
-        <ul className="space-y-2" aria-label={n.title}>
-          {page.items.map((m) => (
-            <li
-              key={m.id}
-              className="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant bg-surface px-4 py-3"
+
+      {/* Structured Dropdown Filter Bar */}
+      <div className="it-card space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
+          <div className="flex items-center gap-1.5 font-mono text-xs font-bold uppercase text-ink">
+            <Filter className="size-3.5 text-amber-600" />
+            <span>{n.filtersTitle}</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleApplyFilter} className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 text-xs font-mono">
+          {/* Status Dropdown */}
+          <div>
+            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+              {n.status}
+            </label>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="it-field-sunken w-full"
             >
-              <ChannelIcon channel={m.channel} />
-              <Link href={`/notifications/${m.id}`} className="min-w-0 grow">
-                <span className="block truncate font-semibold text-ink">
-                  {m.subject ?? n.channels[m.channel]}
-                </span>
-                <span className="block text-xs text-ink-muted">
-                  <bdi dir="ltr">{m.recipient}</bdi>
-                  {" · "}
-                  {formatMessage(n.from, { caller: m.caller })}
-                  {" · "}
-                  <time dateTime={m.createdAt}>{date(m.createdAt)}</time>
-                </span>
-                {m.status === "failed" && m.lastError && (
-                  <span className="block text-xs text-rose-700 dark:text-rose-300 truncate">
-                    {m.lastError}
-                  </span>
-                )}
-              </Link>
-              <span
-                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${tone[m.status]}`}
-              >
-                {n.statuses[m.status]}
-              </span>
-              {canExecute && m.status === "failed" && (
-                <button
-                  type="button"
-                  onClick={() => retry(m.id)}
-                  disabled={busy === m.id}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink hover:bg-surface-container disabled:opacity-60"
-                >
-                  <RotateCcw className="size-3.5" aria-hidden />
-                  {n.retry}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+              <option value="">{n.allStatuses}</option>
+              <option value="sent">{n.statuses.sent}</option>
+              <option value="queued">{n.statuses.queued}</option>
+              <option value="failed">{n.statuses.failed}</option>
+            </select>
+          </div>
+
+          {/* Channel Dropdown */}
+          <div>
+            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+              {n.channel}
+            </label>
+            <select
+              value={selectedChannel}
+              onChange={(e) => setSelectedChannel(e.target.value)}
+              className="it-field-sunken w-full"
+            >
+              <option value="">{n.allChannels}</option>
+              <option value="email">{n.channels.email}</option>
+              <option value="whatsapp">{n.channels.whatsapp}</option>
+            </select>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-end gap-1.5">
+            <button
+              type="submit"
+              className="it-btn-3d flex-1 py-1.5 font-bold text-emerald-800 dark:text-emerald-300"
+            >
+              {n.filterApply}
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="it-btn-3d py-1.5 px-3"
+            >
+              {copy.sessions.clear}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Tabular Notification Log */}
+      {!page ? (
+        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+          {n.unavailable}
+        </div>
+      ) : page.items.length === 0 ? (
+        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+          {n.empty}
+        </div>
+      ) : (
+        <div className="it-card p-0 overflow-x-auto">
+          <table className="it-table w-full font-mono text-xs">
+            <thead>
+              <tr>
+                <th className="w-20">CHANNEL</th>
+                <th className="w-56">RECIPIENT</th>
+                <th>SUBJECT / CONTENT</th>
+                <th className="w-36">CALLER / ORIGIN</th>
+                <th className="w-40">TIMESTAMP</th>
+                <th className="w-24 text-center">STATUS</th>
+                <th className="w-24 text-center">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {page.items.map((m) => (
+                <tr key={m.id}>
+                  <td>
+                    <span className="flex items-center gap-1.5 font-semibold text-[11px]">
+                      <ChannelIcon channel={m.channel} />
+                      <span className="uppercase">{m.channel}</span>
+                    </span>
+                  </td>
+                  <td className="font-semibold truncate max-w-xs" dir="ltr">
+                    <bdi>{m.recipient}</bdi>
+                  </td>
+                  <td>
+                    <Link
+                      href={`/notifications/${m.id}`}
+                      className="font-sans font-medium text-ink hover:underline block truncate max-w-sm"
+                    >
+                      {m.subject ?? n.channels[m.channel]}
+                    </Link>
+                    {m.status === "failed" && m.lastError && (
+                      <span className="text-[10px] text-rose-700 dark:text-rose-400 block truncate">
+                        {m.lastError}
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-ink-muted text-[11px] truncate">
+                    {formatMessage(n.from, { caller: m.caller })}
+                  </td>
+                  <td className="text-[10px] text-ink-muted whitespace-nowrap">
+                    {date(m.createdAt)}
+                  </td>
+                  <td className="text-center">
+                    <span
+                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase border ${
+                        m.status === "sent"
+                          ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+                          : m.status === "queued"
+                          ? "bg-sky-500/10 text-sky-700 border-sky-500/30"
+                          : "bg-rose-500/10 text-rose-700 border-rose-500/30"
+                      }`}
+                    >
+                      {n.statuses[m.status]}
+                    </span>
+                  </td>
+                  <td className="text-center whitespace-nowrap">
+                    {canExecute && m.status === "failed" ? (
+                      <button
+                        type="button"
+                        onClick={() => retry(m.id)}
+                        disabled={busy === m.id}
+                        className="it-btn-3d py-0.5 px-2 text-[10px] text-amber-700 dark:text-amber-400"
+                        title={n.retry}
+                      >
+                        <RotateCcw className="size-3 inline mr-1" />
+                        {n.retry}
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/notifications/${m.id}`}
+                        className="it-btn-3d py-0.5 px-2 text-[10px]"
+                      >
+                        <ArrowRight className="size-3 inline rtl:rotate-180" />
+                      </Link>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-      <nav className="flex gap-3 mt-6" aria-label={n.pages}>
+
+      {/* Navigation Pagination */}
+      <nav className="flex gap-2 pt-2 font-mono text-xs" aria-label={n.pages}>
         {filter.cursor && (
           <Link
             href={href(filter, {})}
-            className="text-sm text-accent underline"
+            className="it-btn-3d py-1 px-3"
           >
             {n.newest}
           </Link>
@@ -263,13 +358,13 @@ export function NotificationsView({
         {page?.nextCursor && (
           <Link
             href={href(filter, { cursor: page.nextCursor })}
-            className="text-sm text-accent underline"
+            className="it-btn-3d py-1 px-3"
           >
             {n.older}
           </Link>
         )}
       </nav>
-    </>
+    </div>
   );
 }
 
@@ -304,50 +399,53 @@ export function NotificationDetail({
         : "—",
     ],
   ];
+
   return (
-    <>
-      <PageTitle
-        title={m.subject ?? n.channels[m.channel]}
-        actions={
-          canExecute && m.status === "failed" ? (
-            <button
-              type="button"
-              onClick={() => retry(m.id)}
-              disabled={busy === m.id}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold"
-            >
-              <RotateCcw className="size-4" aria-hidden />
-              {n.retry}
-            </button>
-          ) : null
-        }
-      />
-      <Link href="/notifications" className="text-sm text-accent underline">
-        {n.back}
-      </Link>
-      <Card className="mt-4 p-5 rounded-3xl border border-outline-variant bg-surface space-y-4">
-        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
+        <PageTitle
+          title={m.subject ?? n.channels[m.channel]}
+          actions={
+            canExecute && m.status === "failed" ? (
+              <button
+                type="button"
+                onClick={() => retry(m.id)}
+                disabled={busy === m.id}
+                className="it-btn-3d py-1 px-3 text-rose-700 dark:text-rose-400 font-bold"
+              >
+                <RotateCcw className="size-3.5 inline mr-1" />
+                {n.retry}
+              </button>
+            ) : null
+          }
+        />
+        <Link href="/notifications" className="it-btn-3d py-1 px-3 text-xs font-mono">
+          ← {n.back}
+        </Link>
+      </div>
+
+      <div className="it-card p-4 space-y-4 font-mono text-xs">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
           {rows.map(([label, value]) => (
             <React.Fragment key={label}>
-              <dt className="text-ink-muted">{label}</dt>
-              <dd className="text-ink">{value}</dd>
+              <dt className="text-ink-muted uppercase font-bold">{label}:</dt>
+              <dd className="text-ink font-semibold">{value}</dd>
             </React.Fragment>
           ))}
         </dl>
+
         {m.lastError && (
-          <p
-            role="status"
-            className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300"
-          >
-            {m.lastError}
-          </p>
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs">
+            <span className="font-bold">LAST TRANSMISSION ERROR:</span> {m.lastError}
+          </div>
         )}
+
         {m.attachments && m.attachments.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-ink mb-1">
+          <div className="border-t border-slate-300 dark:border-slate-700 pt-3">
+            <h2 className="text-xs font-bold uppercase mb-1">
               {n.attachments}
             </h2>
-            <ul className="text-xs text-ink-muted list-disc ps-5">
+            <ul className="list-disc ps-5 space-y-0.5 text-ink-muted">
               {m.attachments.map((a) => (
                 <li key={a.filename}>
                   <bdi dir="ltr">{a.filename}</bdi> · {a.contentType} ·{" "}
@@ -357,22 +455,23 @@ export function NotificationDetail({
             </ul>
           </div>
         )}
+
         {[m.text, m.html].map((body, i) =>
           body ? (
-            <div key={i}>
-              <h2 className="text-sm font-semibold text-ink mb-1">
+            <div key={i} className="border-t border-slate-300 dark:border-slate-700 pt-3">
+              <h2 className="text-xs font-bold uppercase mb-1">
                 {i === 0 ? n.text : n.html}
               </h2>
               <pre
                 dir="auto"
-                className="max-h-96 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-container p-3 font-mono text-xs text-ink"
+                className="it-field-sunken max-h-96 overflow-auto whitespace-pre-wrap p-3 text-xs"
               >
                 {body}
               </pre>
             </div>
           ) : null,
         )}
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }

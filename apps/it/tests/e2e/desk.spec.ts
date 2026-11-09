@@ -298,7 +298,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   const member = page.getByRole("form", { name: newEmail, exact: true });
   await member.getByRole("combobox", { name: t.itAccounts.role }).click();
   await page
-    .getByRole("option", { name: t.roles.it_engineer, exact: true })
+    .getByRole("option", { name: /it_engineer|IT Systems Engineer|مهندس أنظمة تقنية المعلومات/i })
     .click();
   await member.getByRole("button", { name: t.itAccounts.save }).click();
   await expect(page.getByText(t.itAccounts.saved).first()).toBeVisible();

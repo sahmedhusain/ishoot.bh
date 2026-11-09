@@ -47,8 +47,10 @@ const companyAssets = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.c
 const moduleSettings = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.module_setting) t") || [];
 const uploadObjects = queryJson("SELECT json_agg(t) FROM (SELECT * FROM files.upload_object) t") || [];
 const staffRoles = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_role) t") || [];
+const itRoles = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.it_role) t") || [];
 const staffScopes = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_role_scope) t") || [];
 const staffPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_permission) t") || [];
+const itPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.it_permission) t") || [];
 const accounts = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.account) t") || [];
 const staffAccess = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_access) t") || [];
 const departments = queryJson("SELECT json_agg(t) FROM (SELECT * FROM hr.department) t") || [];
@@ -861,6 +863,7 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     theme: themeData,
     ...assetOverrides,
     websitePublished: true,
+    setupCompletedAt: "2026-01-01T00:00:00Z",
   };
 
   lines.push(`INSERT INTO system.company (id, singleton, data, currency_locked, revision, updated_by, updated_at)`);
@@ -908,7 +911,10 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`-- 4. IDENTITY SERVICE (Roles, Scopes, Accounts & Permissions)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
   for (const role of staffRoles) {
-    lines.push(`INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES (${sqlQuote(role.id)}, ${sqlQuote(role.name_en)}, ${sqlQuote(role.name_ar)}, true, now(), 1) ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES (${sqlQuote(role.id)}, ${sqlQuote(role.name_en)}, ${sqlQuote(role.name_ar)}, true, ${sqlQuote(role.reporting_to_role)}, now(), 1) ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;`);
+  }
+  for (const role of itRoles) {
+    lines.push(`INSERT INTO identity.it_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES (${sqlQuote(role.id)}, ${sqlQuote(role.name_en)}, ${sqlQuote(role.name_ar)}, true, ${sqlQuote(role.reporting_to_role)}, now(), 1) ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;`);
   }
   for (const scope of staffScopes) {
     lines.push(`INSERT INTO identity.staff_role_scope (role_id, area, scope) VALUES (${sqlQuote(scope.role_id)}, ${sqlQuote(scope.area)}, ${sqlQuote(scope.scope)}) ON CONFLICT (role_id, area) DO NOTHING;`);
@@ -916,10 +922,13 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   for (const perm of staffPermissions) {
     lines.push(`INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(perm.id)}, ${sqlQuote(perm.role_id)}, ${sqlQuote(perm.resource)}, ${sqlQuote(perm.action)}, ${perm.allowed ? "true" : "false"}, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`);
   }
+  for (const perm of itPermissions) {
+    lines.push(`INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(perm.id)}, ${sqlQuote(perm.role_id)}, ${sqlQuote(perm.resource)}, ${sqlQuote(perm.action)}, ${perm.allowed ? "true" : "false"}, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`);
+  }
   for (const acc of accounts) {
-    lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(acc.realm)}, ${sqlQuote(acc.subject_id)}, ${sqlQuote(acc.email)}, ${sqlQuote(acc.username)}, ${sqlQuote(acc.password_hash)}, ${sqlQuote(acc.roles)}, true, false, now(), now())`);
-    lines.push(`ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();`);
+    lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(acc.realm)}, ${sqlQuote(acc.subject_id)}, ${sqlQuote(acc.email)}, ${sqlQuote(acc.username)}, ${sqlQuote(acc.password_hash)}, ${sqlQuote(acc.roles)}, true, false, ${sqlQuote(acc.reporting_to)}, now(), now())`);
+    lines.push(`ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();`);
   }
   for (const acc of staffAccess) {
     lines.push(`INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', ${sqlQuote(acc.subject_id)}, '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
@@ -936,8 +945,8 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d0000000-0000-0000-0000-000000000006', 'POST', 'Post-Production & Grading', 'ما بعد الإنتاج والمونتاج') ON CONFLICT (id) DO NOTHING;`);
 
   for (const emp of baseEmployees) {
-    lines.push(`INSERT INTO hr.employee (id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(emp.id)}, ${sqlQuote(emp.employee_number)}, ${sqlQuote(emp.first_name_en)}, ${sqlQuote(emp.last_name_en)}, ${sqlQuote(emp.first_name_ar)}, ${sqlQuote(emp.last_name_ar)}, ${sqlQuote(emp.email)}, ${sqlQuote(emp.phone)}, ${sqlQuote(emp.job_title_en)}, ${sqlQuote(emp.job_title_ar)}, ${sqlQuote(emp.department_id)}, (CURRENT_DATE - INTERVAL '365 days')::date, 'active', ${emp.basic_salary}, ${emp.housing_allowance}, ${emp.transport_allowance}, 0.000, now(), now())`);
+    lines.push(`INSERT INTO hr.employee (id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, reporting_to, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(emp.id)}, ${sqlQuote(emp.employee_number)}, ${sqlQuote(emp.first_name_en)}, ${sqlQuote(emp.last_name_en)}, ${sqlQuote(emp.first_name_ar)}, ${sqlQuote(emp.last_name_ar)}, ${sqlQuote(emp.email)}, ${sqlQuote(emp.phone)}, ${sqlQuote(emp.job_title_en)}, ${sqlQuote(emp.job_title_ar)}, ${sqlQuote(emp.department_id)}, ${sqlQuote(emp.reporting_to)}, (CURRENT_DATE - INTERVAL '365 days')::date, 'active', ${emp.basic_salary}, ${emp.housing_allowance}, ${emp.transport_allowance}, 0.000, now(), now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
 
@@ -1276,26 +1285,47 @@ INSERT INTO system.document_sequence (kind, prefix, next_number)
 VALUES ('invoice', 'INV', 101), ('receipt', 'RCT', 101)
 ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number;
 
--- Staff roles
-INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES
-  ('super_admin', 'Super Administrator', 'المسؤول العام', true, now(), 1),
-  ('admin', 'Administrator', 'مدير النظام', true, now(), 1),
-  ('finance_manager', 'Finance Manager', 'المدير المالي', true, now(), 1),
-  ('operations_manager', 'Operations Manager', 'مدير العمليات', true, now(), 1),
-  ('project_lead', 'Project Lead', 'مدير المشروع', true, now(), 1),
-  ('editor', 'Editor', 'محرر محتوى', true, now(), 1),
-  ('accountant', 'Accountant', 'محاسب', true, now(), 1),
-  ('sales', 'Sales Specialist', 'أخصائي مبيعات', true, now(), 1),
-  ('marketing', 'Marketing Specialist', 'أخصائي تسويق', true, now(), 1),
-  ('viewer', 'Viewer', 'مراقب عام', true, now(), 1)
-ON CONFLICT (id) DO NOTHING;
+-- Staff roles with hierarchy
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES
+  ('super_admin', 'Super Administrator', 'المسؤول العام', true, NULL, now(), 1),
+  ('admin', 'Administrator', 'مدير النظام', true, 'super_admin', now(), 1),
+  ('finance_manager', 'Finance Manager', 'المدير المالي', true, 'admin', now(), 1),
+  ('operations_manager', 'Operations Manager', 'مدير العمليات', true, 'admin', now(), 1),
+  ('project_lead', 'Project Lead', 'مدير المشروع', true, 'operations_manager', now(), 1),
+  ('editor', 'Editor', 'محرر محتوى', true, 'project_lead', now(), 1),
+  ('accountant', 'Accountant', 'محاسب', true, 'finance_manager', now(), 1),
+  ('sales', 'Sales Specialist', 'أخصائي مبيعات', true, 'operations_manager', now(), 1),
+  ('marketing', 'Marketing Specialist', 'أخصائي تسويق', true, 'operations_manager', now(), 1),
+  ('viewer', 'Viewer', 'مراقب عام', true, 'admin', now(), 1)
+ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;
+
+-- IT roles with hierarchy
+INSERT INTO identity.it_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES
+  ('it_admin', 'IT Super Administrator', 'مدير تقنية المعلومات العام', true, NULL, now(), 1),
+  ('it_manager', 'IT Operations Manager', 'مدير إدارة تقنية المعلومات', true, 'it_admin', now(), 1),
+  ('it_lead', 'IT Team Lead', 'قائد فريق تقنية المعلومات', true, 'it_manager', now(), 1),
+  ('it_engineer', 'IT Systems Engineer', 'مهندس أنظمة تقنية المعلومات', true, 'it_lead', now(), 1),
+  ('it_worker', 'IT Operations Worker', 'أخصائي تشغيل تقنية المعلومات', true, 'it_lead', now(), 1),
+  ('it_support', 'IT Support Specialist', 'دعم تقنية المعلومات', true, 'it_lead', now(), 1),
+  ('it_auditor', 'IT Compliance Auditor', 'مدقق امتثال تقنية المعلومات', true, 'it_manager', now(), 1)
+ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;
+
+-- Seed IT and Staff Permissions from Database snapshot
+${itPermissions.map((p) => `INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(p.id)}, ${sqlQuote(p.role_id)}, ${sqlQuote(p.resource)}, ${sqlQuote(p.action)}, true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`).join("\n")}
+${staffPermissions.map((p) => `INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(p.id)}, ${sqlQuote(p.role_id)}, ${sqlQuote(p.resource)}, ${sqlQuote(p.action)}, true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`).join("\n")}
 
 -- First Accounts (Email: admin@example.com, Password: Admin12345678!)
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES
-  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_admin"}', true, false, now(), now()),
-  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_admin"}', true, false, NULL, now(), now()),
+  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
+  ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
+  ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, 'it-manager-001', now(), now()),
+  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
 
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'super-admin', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 

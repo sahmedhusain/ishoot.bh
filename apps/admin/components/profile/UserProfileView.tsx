@@ -243,7 +243,7 @@ export function UserProfileView({
                 <bdi dir="auto">{user.full_name}</bdi>
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-sunken dark:bg-white/10 text-ink">
-                {(t.roles as Record<string, string>)[user.role] ?? user.role}
+                {user.role.replace(/^staff_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-ink-muted">
@@ -621,8 +621,7 @@ export function UserProfileView({
                     {t.userProfile.role}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-surface-sunken dark:bg-white/10 text-ink font-semibold capitalize mt-0.5 inline-block">
-                    {(t.roles as Record<string, string>)[manager.role] ??
-                      manager.role}
+                    {manager.role.replace(/^staff_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </span>
                 </div>
               </div>

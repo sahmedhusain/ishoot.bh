@@ -614,7 +614,10 @@ export function WelcomeProfileWidget({
       : profile?.jobTitleEn || profile?.jobTitleAr || "";
 
   const roleLabel = profile?.role
-    ? ((t.roles as Record<string, string>)[profile.role] ?? profile.role)
+    ? profile.role
+        .replace(/^staff_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
 
   const showHijri = settings?.showHijri !== false;
@@ -643,7 +646,7 @@ export function WelcomeProfileWidget({
             <span>{greeting}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink truncate">
-            <bdi dir="auto">{displayName || t.roles.admin}</bdi>
+            <bdi dir="auto">{displayName || (locale === "ar" ? "مدير النظام" : "Administrator")}</bdi>
           </h2>
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {designationLabel ? (

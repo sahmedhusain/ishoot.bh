@@ -55,6 +55,7 @@ type Sealer interface {
 // Input describes the account to create.
 type Input struct {
 	Email, Password, Role string
+	ReportingTo           *string
 	MinPasswordLength     int
 	RecoveryCount         int
 	// Issuer and Digits/Period label the authenticator entry.
@@ -79,7 +80,7 @@ func (in Input) Validate() error {
 		return errors.New("a valid e-mail address is required")
 	case len(in.Password) < in.MinPasswordLength || len(in.Password) > 1024:
 		return fmt.Errorf("the password must be %d to 1024 characters", in.MinPasswordLength)
-	case !slices.Contains(catalog.ITAccess.Roles, in.Role):
+	case in.Role == "" || len(in.Role) > 100 || !strings.HasPrefix(in.Role, "it_"):
 		return fmt.Errorf("unknown IT role %q", in.Role)
 	}
 	return nil
@@ -176,9 +177,14 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 		if actorID == "" {
 			if err := q.InsertAccount(ctx, sqlcdb.InsertAccountParams{
 				Realm: string(authn.RealmIT), SubjectID: subject, Email: in.Email, PasswordHash: &hash,
-				Roles: []string{in.Role}, MfaEnabled: false, MfaSecretEncrypted: nil, Now: now,
+				Roles: []string{in.Role}, MfaEnabled: true, MfaSecretEncrypted: &sealed, Now: now,
 			}); err != nil {
 				return err
+			}
+			if in.ReportingTo != nil && *in.ReportingTo != "" {
+				if _, err := tx.Exec(ctx, "UPDATE identity.account SET reporting_to = $1 WHERE realm = 'it' AND subject_id = $2", *in.ReportingTo, subject); err != nil {
+					return err
+				}
 			}
 		} else {
 			verb, actor = "recovered", "operator:"+actorID

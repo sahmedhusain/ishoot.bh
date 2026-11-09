@@ -18,7 +18,7 @@ import {
   accountSnapshot,
   listAccountChangeRequests,
   listEmployeeHandovers,
-  ALL_ROLES,
+  getStaffRoles,
 } from "@platform/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
 import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
@@ -67,7 +67,7 @@ export default async function EmployeeDetailPage({
       linkedUserId
         ? listAccountChangeRequests(linkedUserId)
         : Promise.resolve([]),
-      Promise.resolve(ALL_ROLES.map((r) => ({ id: r, nameEn: r, nameAr: r, name: r }))),
+      getStaffRoles().then((items) => items.map((r) => ({ id: r.id, nameEn: r.nameEn, nameAr: r.nameAr, name: r.nameEn }))),
       Promise.resolve([] as Array<{ id: string; fullName: string }>),
     ]);
   const year = new Date().getUTCFullYear();

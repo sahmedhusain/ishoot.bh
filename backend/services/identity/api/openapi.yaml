@@ -159,6 +159,7 @@ paths:
                     writeOnly: true,
                   }
                 role: { $ref: "#/components/schemas/ITRole" }
+                reportingTo: { type: string, nullable: true }
       responses:
         "201":
           description: Account created; provisioning secrets are returned only in this response
@@ -190,6 +191,7 @@ paths:
               properties:
                 role: { $ref: "#/components/schemas/ITRole" }
                 active: { type: boolean }
+                reportingTo: { type: string, nullable: true }
       responses:
         "204": { description: Access updated; existing sessions revoked }
         default: { $ref: "#/components/responses/Problem" }
@@ -1423,7 +1425,7 @@ components:
         revokedAt: { type: string, format: date-time, nullable: true }
     ITRole:
       type: string
-      enum: [it_admin, it_engineer, it_support, it_auditor]
+      enum: [it_admin, it_manager, it_lead, it_engineer, it_worker, it_support, it_auditor]
     ITAccount:
       type: object
       additionalProperties: false
@@ -1434,6 +1436,8 @@ components:
         roles: { type: array, items: { $ref: "#/components/schemas/ITRole" } }
         active: { type: boolean }
         mfaEnabled: { type: boolean }
+        reportingTo: { type: string, nullable: true }
+        reportingToEmail: { type: string, format: email, nullable: true }
         createdAt: { type: string, format: date-time }
         lastLoginAt: { type: string, format: date-time, nullable: true }
     ITProvisioning:

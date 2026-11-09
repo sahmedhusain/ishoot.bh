@@ -29,8 +29,13 @@ export default async function DashboardLayout({
     Promise.resolve(0),
     getActiveTaxSummary(),
   ]);
-  // A new company is configured through the first-run setup wizard before anyone uses the dashboard.
-  if (!company.setup_completed) redirect("/setup");
+  // Setup wizard is only required if database is empty (company has no enough data)
+  const hasEnoughCompanyData = Boolean(
+    company.setup_completed ||
+    company.company_name_en ||
+    company.company_name_ar
+  );
+  if (!hasEnoughCompanyData) redirect("/setup");
 
   return (
     <PermissionsProvider

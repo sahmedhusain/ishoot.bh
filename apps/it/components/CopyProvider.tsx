@@ -50,7 +50,23 @@ export function useCopy() {
     priority: (key: string) => pick(copy.priorities, key),
     transition: (key: string) => pick(copy.transitions, key),
     event: (key: string) => pick(copy.events, key),
-    role: (key: string) => pick(copy.roles, key),
+    role: (
+      key: string,
+      dbRoles?: Array<{ id: string; nameEn?: string; nameAr?: string }>,
+    ) => {
+      if (dbRoles && dbRoles.length > 0) {
+        const found = dbRoles.find((r) => r.id === key);
+        if (found) {
+          return locale === "ar"
+            ? found.nameAr || found.nameEn || key
+            : found.nameEn || found.nameAr || key;
+        }
+      }
+      return key
+        .replace(/^it_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+    },
     number: (n: number) => formatMessage(copy.tickets.number, { number: n }),
     name: (entry: { nameEn: string; nameAr: string }) =>
       locale === "ar" ? entry.nameAr : entry.nameEn,

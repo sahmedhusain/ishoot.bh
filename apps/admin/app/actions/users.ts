@@ -15,7 +15,7 @@ import {
   createActivityLog,
   setUserDiscountLimit,
   UserRole,
-  ALL_ROLES,
+  getStaffRoles,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -32,11 +32,11 @@ async function checkUserManagement(
     throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
   if (actor.role !== "super_admin" && role === "super_admin")
     throw new Error(serverMessages.onlySuperAdministratorsCanMakeSomeoneA);
-  if (
-    role &&
-    !ALL_ROLES.includes(role as any)
-  )
-    throw new Error(serverMessages.roleNotFound);
+  if (role) {
+    const dbRoles = await getStaffRoles();
+    if (!dbRoles.some((r) => r.id === role))
+      throw new Error(serverMessages.roleNotFound);
+  }
   if (actor.role !== "super_admin") {
     const [own, requested] = await Promise.all([
       getEffectivePermissions(actor.role, actor.permissions),

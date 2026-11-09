@@ -35,18 +35,18 @@ export function StaffAccessEditor({
     all: n.all,
   };
   return (
-    <fieldset disabled={disabled} className="min-w-0 space-y-5">
-      <details className="rounded-2xl border border-outline-variant p-3">
-        <summary className="cursor-pointer font-semibold">
-          {n.overrides}
+    <fieldset disabled={disabled} className="min-w-0 space-y-4 font-mono text-xs">
+      <details className="border border-slate-300 dark:border-slate-700 p-2.5 bg-surface">
+        <summary className="cursor-pointer font-bold uppercase text-ink">
+          [+] {n.overrides}
         </summary>
-        <div className="mt-3 max-h-96 overflow-auto">
-          <table className="w-full text-xs">
+        <div className="mt-2 max-h-96 overflow-auto">
+          <table className="it-table w-full text-xs">
             <thead>
               <tr>
-                <th className="p-2 text-start">{n.effective}</th>
+                <th className="text-start">{n.effective}</th>
                 {STAFF_ACTIONS.map((action) => (
-                  <th key={action} className="p-2">
+                  <th key={action} className="text-center">
                     {actionLabels[action] ?? action}
                   </th>
                 ))}
@@ -54,14 +54,14 @@ export function StaffAccessEditor({
             </thead>
             <tbody>
               {STAFF_RESOURCES.map((resource) => (
-                <tr key={resource} className="border-t border-outline-variant">
-                  <th className="p-2 text-start font-medium">
+                <tr key={resource}>
+                  <th className="text-start font-bold uppercase text-ink">
                     {resourceLabels[resource] ?? resource}
                   </th>
                   {STAFF_ACTIONS.map((action) => {
                     const key = `${resource}:${action}`;
                     return (
-                      <td key={action} className="p-1">
+                      <td key={action} className="p-0.5 text-center">
                         <select
                           aria-label={`${resourceLabels[resource] ?? resource}: ${actionLabels[action] ?? action}`}
                           value={
@@ -77,7 +77,7 @@ export function StaffAccessEditor({
                             else next[key] = event.target.value === "true";
                             onChange(next, scopes);
                           }}
-                          className="rounded-lg border border-outline-variant bg-surface p-1.5"
+                          className="it-field-sunken text-[10px] font-mono py-0.5 px-1"
                         >
                           {inherit && <option value="">{n.inherit}</option>}
                           <option value="true">{n.allow}</option>
@@ -92,21 +92,24 @@ export function StaffAccessEditor({
           </table>
         </div>
       </details>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <p className="font-semibold sm:col-span-2">{n.scopes}</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <p className="font-bold uppercase text-ink sm:col-span-2">{n.scopes}</p>
         {STAFF_SCOPE_AREAS.map((area) => (
-          <label key={area} className="space-y-1 text-sm">
-            <span>{resourceLabels[area] ?? area}</span>
+          <label key={area} className="space-y-1 block">
+            <span className="font-bold text-ink-muted uppercase text-[10px]">
+              {resourceLabels[area] ?? area}
+            </span>
             <select
               value={scopes[area] ?? ""}
               onChange={(event) => {
                 const next = { ...scopes };
-                const value=event.target.value;
-                if(value==="own"||value==="department"||value==="all")next[area]=value;
+                const value = event.target.value;
+                if (value === "own" || value === "department" || value === "all")
+                  next[area] = value;
                 else delete next[area];
                 onChange(grants, next);
               }}
-              className="block w-full rounded-xl border border-outline-variant bg-surface p-2"
+              className="it-field-sunken block w-full text-xs font-mono"
             >
               <option value="">{n.inherit}</option>
               {STAFF_SCOPES.map((scope) => (
@@ -121,6 +124,7 @@ export function StaffAccessEditor({
     </fieldset>
   );
 }
+
 export function StaffEffectiveAccess({
   permissions,
   scopes,
@@ -141,14 +145,14 @@ export function StaffEffectiveAccess({
   return (
     <div
       aria-live="polite"
-      className="max-h-80 overflow-auto rounded-2xl bg-primary/5 p-4 text-sm"
+      className="max-h-80 overflow-auto border border-slate-300 dark:border-slate-700 bg-surface p-3 font-mono text-xs"
     >
-      <h3 className="mb-3 font-semibold">{n.effective}</h3>
-      <dl className="space-y-2">
+      <h3 className="mb-2 font-bold uppercase tracking-wide text-ink">{n.effective}</h3>
+      <dl className="space-y-1.5">
         {STAFF_RESOURCES.map((resource) => (
-          <div key={resource}>
-            <dt className="font-medium">{resources[resource] ?? resource}</dt>
-            <dd className="text-ink-muted">
+          <div key={resource} className="border-b border-slate-200 dark:border-slate-800 pb-1">
+            <dt className="font-bold text-ink uppercase">{resources[resource] ?? resource}</dt>
+            <dd className="text-ink-muted text-[11px]">
               {STAFF_ACTIONS.filter(
                 (action) => permissions[`${resource}:${action}`],
               )
@@ -158,9 +162,9 @@ export function StaffEffectiveAccess({
           </div>
         ))}
         {Object.entries(scopes).map(([area, scope]) => (
-          <div key={`scope-${area}`}>
-            <dt>{resources[area] ?? area}</dt>
-            <dd>{scopeLabels[scope] ?? scope}</dd>
+          <div key={`scope-${area}`} className="border-b border-slate-200 dark:border-slate-800 pb-1">
+            <dt className="font-bold text-ink uppercase">{resources[area] ?? area}</dt>
+            <dd className="text-ink-muted text-[11px]">{scopeLabels[scope] ?? scope}</dd>
           </div>
         ))}
       </dl>

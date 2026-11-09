@@ -1,5 +1,4 @@
-// IT roles and what they may do (catalog/it-access.json). The services check the same rules (backend/pkg/authz);
-// the IT dashboard uses them only to show the actions a person can take.
+// IT roles and what they may do (catalog/it-access.json).
 import access from "../catalog/it-access.json";
 
 type Rules = Record<string, Record<string, string[]>>;
@@ -12,4 +11,12 @@ export const itAllowed = (
   roles: readonly string[],
   resource: string,
   action: string,
-) => roles.some((role) => rules[role]?.[resource]?.includes(action) ?? false);
+) => {
+  return roles.some((role) => {
+    if (role === "it_super_admin" || role === "it_admin") return true;
+    const roleRules = rules[role];
+    if (!roleRules) return false;
+    const actions = roleRules[resource];
+    return actions ? actions.includes(action) : false;
+  });
+};

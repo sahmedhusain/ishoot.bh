@@ -9,8 +9,10 @@ import {
   Copy,
   Check,
   Loader2,
+  Search,
+  Filter,
+  X,
 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
 import type { ApiKeyRecord, ApiKeyCreated } from "@platform/api-client";
 import {
   createAPIKeyAction,
@@ -18,6 +20,7 @@ import {
 } from "../app/(desk)/api-keys/actions";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
+import { CriticalActionModal } from "./CriticalActionModal";
 
 export function ApiKeysView({
   keys = [],
@@ -37,6 +40,13 @@ export function ApiKeysView({
   const [showCreate, setShowCreate] = React.useState(false);
   const [createdKey, setCreatedKey] = React.useState<ApiKeyCreated | null>(null);
   const [copied, setCopied] = React.useState(false);
+
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedStatusFilter, setSelectedStatusFilter] = React.useState("");
+
+  // Revoke confirmation modal state
+  const [revokeTarget, setRevokeTarget] = React.useState<ApiKeyRecord | null>(null);
 
   // Form states
   const [name, setName] = React.useState("");
@@ -86,42 +96,64 @@ export function ApiKeysView({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const filteredKeys = React.useMemo(() => {
+    return list.filter((item) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !item.name.toLowerCase().includes(q) &&
+          !item.keyPrefix.toLowerCase().includes(q)
+        ) {
+          return false;
+        }
+      }
+      const isRevoked = Boolean(item.revokedAt);
+      if (selectedStatusFilter === "active" && isRevoked) return false;
+      if (selectedStatusFilter === "revoked" && !isRevoked) return false;
+      return true;
+    });
+  }, [list, searchQuery, selectedStatusFilter]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={k.title} description={k.description} />
-        {canCreate && !showCreate && !createdKey && (
-          <Button
-            type="button"
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-1.5"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{k.newKey}</span>
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+            T-CODE: SM30_API [API KEYS]
+          </span>
+          {canCreate && !showCreate && !createdKey && (
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="it-btn-3d py-1.5 px-3 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>{k.newKey}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Secret Token Banner */}
       {createdKey && (
-        <Card className="rounded-3xl border border-emerald-300 bg-emerald-50/60 p-6 space-y-4 dark:border-emerald-800 dark:bg-emerald-950/30">
-          <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
-            <Check className="h-5 w-5" />
-            <h3 className="font-semibold">{k.tokenCreatedTitle}</h3>
+        <div className="it-card p-4 space-y-3 border-l-4 border-l-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/20 font-mono text-xs">
+          <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold">
+            <Check className="h-4 w-4" />
+            <h3>{k.tokenCreatedTitle}</h3>
           </div>
-          <p className="text-xs text-emerald-700 dark:text-emerald-400">
+          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-sans">
             {k.tokenWarning}
           </p>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-emerald-300 bg-surface p-3 dark:border-emerald-800">
-            <code className="flex-1 font-mono text-sm break-all">
+          <div className="flex items-center gap-2 border border-emerald-400 bg-surface p-2">
+            <code className="flex-1 font-mono text-xs break-all select-all">
               {createdKey.token}
             </code>
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={() => copyToClipboard(createdKey.token)}
-              className="flex items-center gap-1 text-xs"
+              className="it-btn-3d py-1 px-2 text-xs flex items-center gap-1"
             >
               {copied ? (
                 <Check className="h-3.5 w-3.5 text-emerald-600" />
@@ -129,155 +161,233 @@ export function ApiKeysView({
                 <Copy className="h-3.5 w-3.5" />
               )}
               <span>{copied ? k.copied : k.copy}</span>
-            </Button>
+            </button>
           </div>
 
           <div className="flex justify-end">
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={() => setCreatedKey(null)}
-              className="text-xs"
+              className="it-btn-3d py-1 px-3 text-xs"
             >
               {k.dismiss}
-            </Button>
+            </button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Create Key Form */}
       {showCreate && (
-        <Card className="rounded-3xl border border-outline-variant p-6 space-y-4">
-          <h2 className="text-base font-semibold">{k.newKeyTitle}</h2>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block space-y-1 text-sm">
-                <span>{k.name}</span>
-                <Input
+        <div className="it-card p-4 space-y-4 font-mono text-xs">
+          <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+            <h2 className="text-xs font-bold uppercase text-ink">{k.newKeyTitle}</h2>
+          </div>
+          <form onSubmit={handleCreate} className="space-y-4 font-sans text-xs">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block space-y-1">
+                <span className="font-bold text-ink-muted">{k.name}</span>
+                <input
                   required
                   placeholder={k.namePlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="it-field-sunken w-full"
                 />
               </label>
 
-              <label className="block space-y-1 text-sm">
-                <span>{k.rateLimit}</span>
-                <Input
+              <label className="block space-y-1">
+                <span className="font-bold text-ink-muted">{k.rateLimit}</span>
+                <input
                   type="number"
                   min="1"
                   max="10000"
                   value={rateLimit}
                   onChange={(e) => setRateLimit(parseInt(e.target.value, 10) || 60)}
+                  className="it-field-sunken w-full font-mono"
                 />
               </label>
 
-              <label className="block space-y-1 text-sm sm:col-span-2">
-                <span>{k.scopes}</span>
-                <Input
+              <label className="block space-y-1 sm:col-span-2">
+                <span className="font-bold text-ink-muted">{k.scopes}</span>
+                <input
                   value={scopesStr}
                   onChange={(e) => setScopesStr(e.target.value)}
+                  className="it-field-sunken w-full font-mono"
                 />
-                <span className="block text-xs text-ink-muted">{k.scopesHint}</span>
+                <span className="block text-[11px] text-ink-muted font-mono">{k.scopesHint}</span>
               </label>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <Button
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-300 dark:border-slate-700">
+              <button
                 type="button"
-                variant="outline"
                 disabled={busy}
                 onClick={() => setShowCreate(false)}
+                className="it-btn-3d py-1 px-3"
               >
                 {k.cancel}
-              </Button>
-              <Button type="submit" disabled={busy} className="flex items-center gap-1.5">
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="it-btn-3d py-1 px-4 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
+              >
+                {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>{k.createKey}</span>
-              </Button>
+              </button>
             </div>
           </form>
-        </Card>
+        </div>
       )}
 
       {/* Keys Table */}
-      <Card className="rounded-3xl border border-outline-variant p-6 space-y-4">
-        <h2 className="text-base font-semibold">{k.existingKeys}</h2>
+      <div className="it-card p-0 overflow-x-auto">
+        <div className="p-2 border-b border-slate-300 dark:border-slate-700 bg-surface flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xs font-bold uppercase font-mono text-ink">{k.existingKeys}</h2>
+          <span className="text-[10px] font-mono text-ink-muted">
+            TOTAL RECORDS: {filteredKeys.length} / {list.length}
+          </span>
+        </div>
 
-        {!list.length ? (
-          <p className="text-xs text-ink-muted py-6 text-center">{k.noKeys}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm rtl:text-right">
-              <thead>
-                <tr className="border-b border-outline-variant text-xs text-ink-muted">
-                  <th className="pb-2 font-medium">{k.name}</th>
-                  <th className="pb-2 font-medium">{k.prefix}</th>
-                  <th className="pb-2 font-medium">{k.scopes}</th>
-                  <th className="pb-2 font-medium">{k.rateLimit}</th>
-                  <th className="pb-2 font-medium">{k.lastUsed}</th>
-                  <th className="pb-2 font-medium">{k.status}</th>
-                  {canDelete && <th className="pb-2 font-medium">{k.actions}</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant">
-                {list.map((item) => {
-                  const isRevoked = Boolean(item.revokedAt);
-                  return (
-                    <tr key={item.id}>
-                      <td className="py-3 font-medium">{item.name}</td>
-                      <td className="py-3 font-mono text-xs">{item.keyPrefix}...</td>
-                      <td className="py-3 text-xs">
-                        <div className="flex flex-wrap gap-1">
-                          {item.scopes.map((s) => (
-                            <span
-                              key={s}
-                              className="rounded bg-surface-variant px-1.5 py-0.5 text-[11px] font-mono"
-                            >
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3 text-xs font-mono">{item.rateLimit}/m</td>
-                      <td className="py-3 text-xs text-ink-muted">
-                        {item.lastUsedAt ? date(item.lastUsedAt) : "—"}
-                      </td>
-                      <td className="py-3">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            isRevoked
-                              ? "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300"
-                              : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
-                          }`}
-                        >
-                          {isRevoked ? k.revokedStatus : k.activeStatus}
-                        </span>
-                      </td>
-                      {canDelete && (
-                        <td className="py-3">
-                          {!isRevoked && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              disabled={busy}
-                              onClick={() => handleRevoke(item.id)}
-                              className="text-xs text-red-600 flex items-center gap-1"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              <span>{k.revoke}</span>
-                            </Button>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Filter and Search Bar */}
+        <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-300 dark:border-slate-700 text-xs font-mono">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="absolute left-2 top-2 size-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder={k.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="it-field-sunken w-full pl-7 pr-7 py-1 text-xs font-mono"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </div>
+          <div className="flex items-center gap-1">
+            <Filter className="size-3.5 text-slate-400" />
+            <select
+              value={selectedStatusFilter}
+              onChange={(e) => setSelectedStatusFilter(e.target.value)}
+              className="it-field-sunken text-xs font-mono py-1"
+            >
+              <option value="">{k.filterStatus}: {k.filterAll}</option>
+              <option value="active">{k.filterActive}</option>
+              <option value="revoked">{k.filterRevoked}</option>
+            </select>
+          </div>
+          {(searchQuery || selectedStatusFilter) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedStatusFilter("");
+              }}
+              className="it-btn-3d py-1 px-2 text-[10px] text-rose-700 dark:text-rose-400"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {!filteredKeys.length ? (
+          <p className="p-6 text-xs font-mono text-ink-muted text-center">{k.noKeys}</p>
+        ) : (
+          <table className="it-table w-full font-mono text-xs">
+            <thead>
+              <tr>
+                <th className="text-start">{k.name}</th>
+                <th className="text-start">{k.prefix}</th>
+                <th className="text-start">{k.scopes}</th>
+                <th className="text-start">{k.rateLimit}</th>
+                <th className="text-start">{k.lastUsed}</th>
+                <th className="text-start">{k.status}</th>
+                {canDelete && <th className="text-start">{k.actions}</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredKeys.map((item) => {
+                const isRevoked = Boolean(item.revokedAt);
+                return (
+                  <tr key={item.id}>
+                    <td className="font-bold">{item.name}</td>
+                    <td className="font-mono text-xs">{item.keyPrefix}...</td>
+                    <td className="text-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {item.scopes.map((s) => (
+                          <span
+                            key={s}
+                            className="border border-slate-300 dark:border-slate-700 bg-surface px-1 py-0.5 text-[10px] font-mono"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="text-xs font-mono">{item.rateLimit}/min</td>
+                    <td className="text-xs text-ink-muted">
+                      {item.lastUsedAt ? date(item.lastUsedAt) : "—"}
+                    </td>
+                    <td>
+                      <span
+                        className={`inline-block border px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                          isRevoked
+                            ? "border-rose-400 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                            : "border-emerald-400 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        }`}
+                      >
+                        {isRevoked ? k.revokedStatus : k.activeStatus}
+                      </span>
+                    </td>
+                    {canDelete && (
+                      <td>
+                        {!isRevoked && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setRevokeTarget(item)}
+                            className="it-btn-3d py-0.5 px-2 text-[10px] text-rose-700 dark:text-rose-400 font-bold flex items-center gap-1"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span>{k.revoke}</span>
+                          </button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
-      </Card>
+      </div>
+
+      {revokeTarget && (
+        <CriticalActionModal
+          open={true}
+          title={k.revokeModalTitle}
+          description={k.revokeModalDesc}
+          impactDetails={[
+            `Target Key: ${revokeTarget.name} (${revokeTarget.keyPrefix}...)`,
+            k.revokeModalImpact,
+          ]}
+          requiredConfirmationText="REVOKE"
+          dangerLevel="critical"
+          busy={busy}
+          onCancel={() => setRevokeTarget(null)}
+          onConfirm={async () => {
+            const targetId = revokeTarget.id;
+            setRevokeTarget(null);
+            await handleRevoke(targetId);
+          }}
+        />
+      )}
     </div>
   );
 }

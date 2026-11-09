@@ -11,14 +11,12 @@ import {
   Send,
   Unlink,
   Link2,
+  FileCode,
 } from "lucide-react";
+import { IntegrationDocsModal } from "./IntegrationDocsModal";
 import {
-  Button,
-  Card,
   ConfirmDialog,
   DateDisplay,
-  Input,
-  Select,
 } from "@platform/ui";
 import {
   INTEGRATION_ENVIRONMENTS,
@@ -37,13 +35,11 @@ import {
 import { useCopy } from "./CopyProvider";
 
 const statusTone: Record<string, string> = {
-  configured: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  healthy:
-    "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  error: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  unknown:
-    "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  off: "bg-surface-sunken/10 text-ink-muted dark:text-ink border-outline-variant",
+  configured: "border-sky-400 bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300",
+  healthy: "border-emerald-400 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+  error: "border-rose-400 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
+  unknown: "border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  off: "border-slate-400 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400",
 };
 
 function SocialBrandIcon({
@@ -70,17 +66,17 @@ function SocialBrandIcon({
 }
 
 function ProviderIcon({ provider }: { provider: IntegrationProvider }) {
-  if (provider.id === "resend") return <Mail className="w-5 h-5" />;
-  if (provider.kind === "payments") return <CreditCard className="w-5 h-5" />;
-  if (provider.kind === "couriers") return <Package className="w-5 h-5" />;
+  if (provider.id === "resend") return <Mail className="w-4 h-4" />;
+  if (provider.kind === "payments") return <CreditCard className="w-4 h-4" />;
+  if (provider.kind === "couriers") return <Package className="w-4 h-4" />;
   if (provider.id === "meta")
     return (
       <span className="flex -space-x-1 rtl:space-x-reverse">
-        <SocialBrandIcon name="facebook" className="w-5 h-5" />
-        <SocialBrandIcon name="instagram" className="w-5 h-5" />
+        <SocialBrandIcon name="facebook" className="w-4 h-4" />
+        <SocialBrandIcon name="instagram" className="w-4 h-4" />
       </span>
     );
-  return <SocialBrandIcon name={provider.id} className="w-5 h-5" />;
+  return <SocialBrandIcon name={provider.id} className="w-4 h-4" />;
 }
 
 export function IntegrationCard({
@@ -115,33 +111,54 @@ export function IntegrationCard({
     ),
   );
   const [confirmUnlink, setConfirmUnlink] = React.useState(false);
-  const [error, setError] = React.useState("");
+  const [docsOpen, setDocsOpen] = React.useState(false);
   const [waTo, setWaTo] = React.useState("");
+  const [error, setError] = React.useState("");
 
-  const configured = provider.fields.some((field) =>
-    field.secret ? view.secrets[field.key]?.set : view.values[field.key],
-  );
-  const status = !view.isActive ? "off" : view.healthStatus;
+  const status = !view.isActive
+    ? "off"
+    : view.healthStatus === "healthy"
+      ? "healthy"
+      : view.healthStatus === "error"
+        ? "error"
+        : view.accountName
+          ? "configured"
+          : "unknown";
+
+  const configured = Boolean(view.accountName || view.isActive);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canEdit) return;
     setBusy("save");
     setError("");
+
     try {
-      const { ok } = await saveIntegrationAction(
+      const payload: Record<string, string> = { ...values };
+      const secrets: Record<string, string> = {};
+      for (const field of provider.fields) {
+        if (field.secret) {
+          const val = payload[field.key];
+          if (val) secrets[field.key] = val;
+          delete payload[field.key];
+        }
+      }
+
+      const res = await saveIntegrationAction(
         provider.id,
         isActive,
-        values,
-        view.config,
+        payload,
+        secrets,
       );
-      if (ok) {
+
+      if (res.ok) {
         toast.success(c.saved);
         setEditing(false);
         router.refresh();
       } else {
-        setError(c.failed);
-        toast.error(c.failed);
+        const msg = c.failed;
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : c.failed;
@@ -155,13 +172,11 @@ export function IntegrationCard({
   const handleUnlink = async () => {
     if (!canDelete) return;
     setBusy("unlink");
-    setError("");
     try {
-      const { ok } = await unlinkIntegrationAction(provider.id);
-      if (ok) {
+      const res = await unlinkIntegrationAction(provider.id);
+      if (res.ok) {
         toast.success(c.unlinked);
         setConfirmUnlink(false);
-        setEditing(false);
         router.refresh();
       } else {
         toast.error(c.failed);
@@ -180,13 +195,9 @@ export function IntegrationCard({
     try {
       const result = await testIntegrationAction(provider.id);
       if (result.ok) {
-        toast.success(
-          result.accountName
-            ? `${c.testOk} · ${result.accountName}`
-            : c.testOk,
-        );
+        toast.success(c.testOk);
       } else {
-        const msg = result.error ? `${c.testFailed}: ${result.error}` : c.testFailed;
+        const msg = result.error ?? c.testFailed;
         setError(msg);
         toast.error(msg);
       }
@@ -241,34 +252,34 @@ export function IntegrationCard({
   };
 
   return (
-    <Card
+    <div
       data-testid={`integration-${provider.id}`}
-      className="flex flex-col p-0 overflow-hidden bg-surface dark:bg-surface-raised border border-outline-variant rounded-2xl"
+      className="it-card flex flex-col p-0 overflow-hidden space-y-0"
     >
-      <div className="flex items-start gap-3 p-4 sm:p-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-ink">
+      <div className="flex items-start gap-3 p-3 bg-surface">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-ink">
           <ProviderIcon provider={provider} />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-xs font-bold font-mono text-ink uppercase">
               {provCopy?.name ?? provider.id}
             </h3>
             <span
-              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusTone[status] ?? statusTone.unknown}`}
+              className={`border px-1.5 py-0.2 text-[10px] font-bold font-mono uppercase ${statusTone[status] ?? statusTone.unknown}`}
             >
-              {c.status[status as keyof typeof c.status] ?? status}
+              [{c.status[status as keyof typeof c.status] ?? status}]
             </span>
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+          <p className="mt-0.5 text-[11px] text-ink-muted">
             {provCopy?.description ?? ""}
           </p>
           {(view.accountName || view.lastCheckedAt) && (
-            <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted">
+            <dl className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] font-mono text-ink-muted">
               {view.accountName && (
                 <div className="flex gap-1 min-w-0">
                   <dt>{c.account}:</dt>
-                  <dd className="truncate font-medium text-ink">
+                  <dd className="truncate font-bold text-ink">
                     <bdi>{view.accountName}</bdi>
                   </dd>
                 </div>
@@ -276,7 +287,7 @@ export function IntegrationCard({
               {view.lastCheckedAt && (
                 <div className="flex gap-1 min-w-0">
                   <dt>{c.lastChecked}:</dt>
-                  <dd className="font-medium text-ink">
+                  <dd className="text-ink">
                     <DateDisplay date={view.lastCheckedAt} />
                   </dd>
                 </div>
@@ -284,7 +295,7 @@ export function IntegrationCard({
               {view.lastSyncedAt && (
                 <div className="flex gap-1 min-w-0">
                   <dt>{c.lastSynced}:</dt>
-                  <dd className="font-medium text-ink">
+                  <dd className="text-ink">
                     <DateDisplay date={view.lastSyncedAt} />
                   </dd>
                 </div>
@@ -292,28 +303,28 @@ export function IntegrationCard({
             </dl>
           )}
           {view.lastError && (
-            <p className="mt-2 text-xs text-rose-600 dark:text-rose-400 font-mono break-all">
-              {view.lastError}
+            <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 font-mono font-bold break-all">
+              ERR: {view.lastError}
             </p>
           )}
         </div>
       </div>
 
       {editing ? (
-        <form onSubmit={handleSave} className="border-t border-outline-variant p-4 sm:p-5 space-y-4 bg-surface-container-low/50">
+        <form onSubmit={handleSave} className="border-t border-slate-300 dark:border-slate-700 p-3 space-y-3 bg-slate-50 dark:bg-slate-900/60 font-mono text-xs">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-ink uppercase tracking-wide">
+            <label className="text-[10px] font-bold uppercase text-ink">
               {c.enabled}
             </label>
             <input
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="size-4 rounded border-outline-variant text-accent focus:ring-accent"
+              className="size-4"
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {provider.fields.map((field) => {
               const fieldLabel =
                 c.fields[field.key as keyof typeof c.fields] ?? field.key;
@@ -323,10 +334,10 @@ export function IntegrationCard({
               if (field.key === "environment") {
                 return (
                   <div key={field.key}>
-                    <label className="block text-xs font-medium text-ink-muted mb-1">
+                    <label className="block text-[10px] font-bold text-ink-muted mb-0.5 uppercase">
                       {fieldLabel}
                     </label>
-                    <Select
+                    <select
                       value={values.environment ?? "test"}
                       onChange={(e) =>
                         setValues((prev) => ({
@@ -334,13 +345,14 @@ export function IntegrationCard({
                           environment: e.target.value,
                         }))
                       }
+                      className="it-field-sunken w-full text-xs font-mono"
                     >
                       {INTEGRATION_ENVIRONMENTS.map((env) => (
                         <option key={env} value={env}>
                           {env}
                         </option>
                       ))}
-                    </Select>
+                    </select>
                   </div>
                 );
               }
@@ -348,10 +360,10 @@ export function IntegrationCard({
               if (field.key === "region" && provider.id === "paytabs") {
                 return (
                   <div key={field.key}>
-                    <label className="block text-xs font-medium text-ink-muted mb-1">
+                    <label className="block text-[10px] font-bold text-ink-muted mb-0.5 uppercase">
                       {fieldLabel}
                     </label>
-                    <Select
+                    <select
                       value={values.region ?? "GLOBAL"}
                       onChange={(e) =>
                         setValues((prev) => ({
@@ -359,31 +371,32 @@ export function IntegrationCard({
                           region: e.target.value,
                         }))
                       }
+                      className="it-field-sunken w-full text-xs font-mono"
                     >
                       {Object.keys(PAYTABS_REGIONS).map((reg) => (
                         <option key={reg} value={reg}>
                           {reg}
                         </option>
                       ))}
-                    </Select>
+                    </select>
                   </div>
                 );
               }
 
               return (
                 <div key={field.key}>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-xs font-medium text-ink-muted">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <label className="block text-[10px] font-bold text-ink-muted uppercase">
                       {fieldLabel}
                       {field.required && <span className="text-rose-500 ms-0.5">*</span>}
                     </label>
                     {isSecret && secretInfo?.set && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
                         {c.secretSet.replace("{hint}", secretInfo.hint)}
                       </span>
                     )}
                   </div>
-                  <Input
+                  <input
                     type={isSecret ? "password" : "text"}
                     value={values[field.key] ?? ""}
                     onChange={(e) =>
@@ -397,108 +410,119 @@ export function IntegrationCard({
                         ? c.secretKeep
                         : ""
                     }
-                    className="w-full text-xs"
+                    className="it-field-sunken w-full text-xs font-mono"
                   />
                 </div>
               );
             })}
           </div>
 
-          {error && <p className="text-xs text-rose-500">{error}</p>}
+          {error && <p className="text-[11px] text-rose-500 font-bold">{error}</p>}
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-300 dark:border-slate-700">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={() => {
                 setEditing(false);
                 setError("");
               }}
               disabled={busy !== null}
+              className="it-btn-3d py-1 px-3 text-xs"
             >
               {c.cancel}
-            </Button>
-            <Button type="submit" size="sm" disabled={busy !== null}>
+            </button>
+            <button
+              type="submit"
+              disabled={busy !== null}
+              className="it-btn-3d py-1 px-4 text-xs font-bold text-emerald-800 dark:text-emerald-300"
+            >
               {busy === "save" ? c.saving : c.save}
-            </Button>
+            </button>
           </div>
         </form>
       ) : (
-        <div className="border-t border-outline-variant p-3 sm:px-5 bg-surface-container-low/30 flex flex-wrap items-center justify-between gap-2 mt-auto">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="border-t border-slate-300 dark:border-slate-700 p-2 bg-surface flex flex-wrap items-center justify-between gap-1.5 mt-auto font-mono text-xs">
+          <div className="flex flex-wrap items-center gap-1.5">
             {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setEditing(true)}
                 disabled={busy !== null}
+                className="it-btn-3d py-0.5 px-2 text-[11px]"
               >
                 {c.configure}
-              </Button>
+              </button>
             )}
 
             {configured && canExecute && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={handleTest}
                 disabled={busy !== null}
+                className="it-btn-3d py-0.5 px-2 text-[11px] text-sky-800 dark:text-sky-300 flex items-center gap-1"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 me-1.5 ${busy === "test" ? "animate-spin" : ""}`}
+                  className={`w-3 h-3 ${busy === "test" ? "animate-spin" : ""}`}
                 />
-                {busy === "test" ? c.testing : c.test}
-              </Button>
+                <span>{busy === "test" ? c.testing : c.test}</span>
+              </button>
             )}
 
             {view.isActive && provider.kind === "social" && canExecute && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={handleSync}
                 disabled={busy !== null}
+                className="it-btn-3d py-0.5 px-2 text-[11px] flex items-center gap-1"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 me-1.5 ${busy === "sync" ? "animate-spin" : ""}`}
+                  className={`w-3 h-3 ${busy === "sync" ? "animate-spin" : ""}`}
                 />
-                {busy === "sync" ? c.syncing : c.sync}
-              </Button>
+                <span>{busy === "sync" ? c.syncing : c.sync}</span>
+              </button>
             )}
 
             {view.isActive && provider.id === "whatsapp" && canExecute && (
-              <div className="flex items-center gap-1.5">
-                <Input
+              <div className="flex items-center gap-1">
+                <input
                   type="tel"
                   value={waTo}
                   onChange={(e) => setWaTo(e.target.value)}
                   placeholder={c.whatsappTo}
-                  className="w-36 text-xs h-8"
+                  className="it-field-sunken w-28 text-xs font-mono"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={handleSendWhatsApp}
                   disabled={busy !== null || !waTo.trim()}
+                  className="it-btn-3d py-0.5 px-2 text-[11px] flex items-center gap-1"
                 >
-                  <Send className="w-3.5 h-3.5 me-1" />
-                  {busy === "send" ? c.testing : c.send}
-                </Button>
+                  <Send className="w-3 h-3" />
+                  <span>{busy === "send" ? c.testing : c.send}</span>
+                </button>
               </div>
             )}
+            <button
+              type="button"
+              onClick={() => setDocsOpen(true)}
+              className="it-btn-3d py-0.5 px-2 text-[11px] flex items-center gap-1 text-amber-700 dark:text-amber-400 font-bold"
+              title="View Ingress Webhook URL, Verification Signatures & JSON Payload Schema"
+            >
+              <FileCode className="w-3 h-3 text-amber-600" />
+              <span>{c.specs}</span>
+            </button>
           </div>
 
           {configured && canDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
+              type="button"
               onClick={() => setConfirmUnlink(true)}
               disabled={busy !== null}
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 dark:text-rose-400"
+              className="it-btn-3d py-0.5 px-2 text-[11px] text-rose-700 dark:text-rose-400 font-bold flex items-center gap-1"
             >
-              <Unlink className="w-3.5 h-3.5 me-1" />
-              {c.unlink}
-            </Button>
+              <Unlink className="w-3 h-3" />
+              <span>{c.unlink}</span>
+            </button>
           )}
         </div>
       )}
@@ -511,6 +535,12 @@ export function IntegrationCard({
         onConfirm={handleUnlink}
         variant="danger"
       />
-    </Card>
+
+      <IntegrationDocsModal
+        provider={provider}
+        open={docsOpen}
+        onClose={() => setDocsOpen(false)}
+      />
+    </div>
   );
 }

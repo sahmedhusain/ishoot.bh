@@ -31,16 +31,27 @@ export async function createITAccountAction(form: FormData): Promise<Outcome> {
   const user = await requireAllowed("it_accounts", "create");
   const email = form.get("email"),
     password = form.get("password"),
-    role = form.get("role");
+    role = form.get("role"),
+    reportingTo = form.get("reportingTo");
   if (
     typeof email !== "string" ||
     typeof password !== "string" ||
     typeof role !== "string" ||
-    !IT_ROLES.includes(role)
+    role.trim() === "" ||
+    role.length > 100
   )
     return { ok: false, reason: "invalid" };
+
+  // Team Lead role delegation safeguard: team leads cannot create admins or managers
+  const isSuperOrManager = user.roles.includes("it_super_admin") || user.roles.includes("it_admin") || user.roles.includes("it_manager");
+  if (!isSuperOrManager && (role === "it_super_admin" || role === "it_admin" || role === "it_manager")) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const reportingToVal = typeof reportingTo === "string" && reportingTo.trim() !== "" ? reportingTo.trim() : null;
+
   const result = await asUser(() =>
-    createITAccountForIT(user.token, { email, password, role: role as ITRole })
+    createITAccountForIT(user.token, { email, password, role, reportingTo: reportingToVal })
       .then((provisioning) => ({ ok: true as const, provisioning }))
       .catch(failed),
   );
@@ -53,13 +64,24 @@ export async function updateITAccountAction(
   form: FormData,
 ): Promise<Outcome> {
   const user = await requireAllowed("it_accounts", "edit");
-  const role = form.get("role");
-  if (typeof role !== "string" || !IT_ROLES.includes(role))
+  const role = form.get("role"),
+    reportingTo = form.get("reportingTo");
+  if (typeof role !== "string" || role.trim() === "" || role.length > 100)
     return { ok: false, reason: "invalid" };
+
+  // Team Lead role delegation safeguard: team leads cannot promote to admin/manager
+  const isSuperOrManager = user.roles.includes("it_super_admin") || user.roles.includes("it_admin") || user.roles.includes("it_manager");
+  if (!isSuperOrManager && (role === "it_super_admin" || role === "it_admin" || role === "it_manager")) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const reportingToVal = typeof reportingTo === "string" && reportingTo.trim() !== "" ? reportingTo.trim() : null;
+
   const result = await asUser(() =>
     updateITAccountForIT(user.token, id, {
-      role: role as ITRole,
+      role,
       active: form.get("active") === "on",
+      reportingTo: reportingToVal,
     })
       .then(() => ({ ok: true as const }))
       .catch(failed),

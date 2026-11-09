@@ -178,7 +178,6 @@
       "discountFixed": "مبلغ ثابت"
     },
     "roles": {
-      "admin": "مدير النظام",
       "department": "القسم الإداري",
       "statusActive": "نشط",
       "statusInactive": "معطل"

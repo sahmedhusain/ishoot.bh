@@ -178,7 +178,6 @@
       "discountFixed": "Fixed amount"
     },
     "roles": {
-      "admin": "Administrator",
       "department": "Department",
       "statusActive": "Active",
       "statusInactive": "Disabled"

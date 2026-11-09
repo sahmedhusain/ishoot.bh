@@ -1,5 +1,5 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getUsersPage, getDepartmentTree, ALL_RESOURCES, ALL_ACTIONS, ALL_ROLES, isDefaultAllowed } from "@platform/database";
+import { getUsersPage, getDepartmentTree, getStaffRoles, ALL_RESOURCES, ALL_ACTIONS, isDefaultAllowed } from "@platform/database";
 import { listEmployees } from "@platform/api-client";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -17,15 +17,16 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   ]);
   const query = await searchParams;
   const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
-  const [result, departments, rawEmployees] = await Promise.all([
+  const [result, departments, rawEmployees, dbRoles] = await Promise.all([
     getUsersPage({ q: text("q"), role: text("role"), departmentId: text("departmentId"), status: text("status"), page: Number(text("page")) || 1 }),
     getDepartmentTree(),
     listEmployees().catch(() => []),
+    getStaffRoles(),
   ]);
-  const roles = ALL_ROLES.map((id) => ({
-    id,
-    nameEn: id.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-    nameAr: id,
+  const roles = dbRoles.map((r) => ({
+    id: r.id,
+    nameEn: r.nameEn || r.id,
+    nameAr: r.nameAr || r.id,
   }));
   const people = rawEmployees.map((e) => ({
     id: e.id,

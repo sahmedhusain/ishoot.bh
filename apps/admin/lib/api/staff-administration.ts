@@ -1,5 +1,7 @@
 import type { components, paths } from "./generated/identity";
 import { userClient, unwrap, unwrapEmpty } from "./http";
+import { serviceToken } from "./service-token";
+import { apiTimeoutMs, apiUrl } from "./config";
 
 export type StaffAccountDraft = components["schemas"]["StaffDraft"];
 export type StaffAccessTemplate = components["schemas"]["StaffAccessTemplate"];
@@ -94,3 +96,26 @@ export const deleteStaffRoleForIT = (token: string, id: string) =>
       params: { path: { id } },
     }),
   );
+
+export type DynamicStaffRole = {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  isSystem: boolean;
+  reportingToRole?: string | null;
+  revision?: number;
+};
+
+export const getDynamicStaffRoles = async (
+  token?: string,
+): Promise<{ items: DynamicStaffRole[] }> => {
+  const authToken = token || (await serviceToken());
+  const res = await fetch(`${apiUrl()}/v1/identity/staff/roles`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to load staff roles: ${res.status}`);
+  }
+  return res.json();
+};

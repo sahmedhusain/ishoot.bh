@@ -13,7 +13,6 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import { Button, Card, Input, Textarea } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SiteCode, SiteDomains } from "@platform/api-client";
 import type { DomainCheckResult } from "@platform/config/domain-check";
@@ -21,6 +20,7 @@ import {
   dnsRecords,
   normalizeDomain,
 } from "@platform/config/constants/domains";
+import { DomainSaveConfirmModal } from "./DomainSaveConfirmModal";
 import {
   checkSiteDomainAction,
   saveSiteCodeAction,
@@ -37,7 +37,7 @@ function ChangedBy({ value }: { value: Changed | null }) {
   const { copy, date } = useCopy();
   if (!value?.updatedAt) return null;
   return (
-    <p className="text-[11px] text-ink-muted">
+    <p className="text-[10px] font-mono text-ink-muted">
       {formatMessage(copy.site.changed, {
         when: date(value.updatedAt),
         who: value.updatedBy ?? "",
@@ -49,12 +49,12 @@ function ChangedBy({ value }: { value: Changed | null }) {
 function Unavailable() {
   const { copy } = useCopy();
   return (
-    <Card
+    <div
       role="alert"
-      className="p-8 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant"
+      className="it-card p-6 text-center text-xs font-mono text-ink-muted"
     >
       {copy.site.unavailable}
-    </Card>
+    </div>
   );
 }
 
@@ -94,6 +94,7 @@ function DomainsCard({
     admin: initial.adminDomain,
   };
   const [saving, setSaving] = React.useState(false);
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [checks, setChecks] = React.useState<
     Partial<Record<Kind, DomainCheckResult | "checking" | null>>
   >({});
@@ -111,6 +112,7 @@ function DomainsCard({
           admin: outcome.value.adminDomain,
         });
         setChecks({});
+        setConfirmOpen(false);
         router.refresh();
       }
     } catch {
@@ -136,15 +138,15 @@ function DomainsCard({
     const invalid =
       values[kind].trim() !== "" && !normalizeDomain(values[kind]);
     return (
-      <div className="space-y-1.5">
-        <label htmlFor={id} className="text-xs font-medium text-ink">
+      <div className="space-y-1">
+        <label htmlFor={id} className="text-xs font-bold font-mono text-ink uppercase">
           {kind === "website" ? d.websiteLabel : d.adminLabel}
         </label>
-        <div className="flex items-center rounded-lg border border-outline-variant bg-surface focus-within:ring-2 focus-within:ring-accent">
-          <span className="ps-3 text-xs text-ink-muted" dir="ltr">
+        <div className="flex items-center">
+          <span className="it-status-pane text-ink-muted" dir="ltr">
             {d.scheme}
           </span>
-          <Input
+          <input
             id={id}
             dir="ltr"
             value={values[kind]}
@@ -156,11 +158,11 @@ function DomainsCard({
               setValues((current) => ({ ...current, [kind]: e.target.value }))
             }
             aria-invalid={invalid}
-            className="border-0 focus-visible:ring-0 rounded-lg"
+            className="it-field-sunken w-full font-mono text-xs"
           />
         </div>
         <p
-          className={`text-[11px] ${invalid ? "text-rose-600" : "text-ink-muted"}`}
+          className={`text-[11px] ${invalid ? "text-rose-600 font-bold" : "text-ink-muted font-mono"}`}
         >
           {invalid
             ? d.invalid
@@ -177,62 +179,53 @@ function DomainsCard({
     if (!domain) return null;
     const state = checks[kind];
     return (
-      <div className="rounded-xl border border-outline-variant p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-ink text-start">
-            <bdi dir="ltr">{domain}</bdi>
+      <div className="border border-slate-300 dark:border-slate-700 p-3 space-y-2 bg-surface font-mono text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
+          <p className="font-bold text-ink text-start">
+            HOST: <bdi dir="ltr">{domain}</bdi>
           </p>
           {canCheck && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-full"
+            <button
+              type="button"
               disabled={state === "checking"}
               onClick={() => check(kind)}
+              className="it-btn-3d py-0.5 px-2 text-[10px] flex items-center gap-1 font-bold text-sky-800 dark:text-sky-300"
             >
               {state === "checking" ? (
-                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                <Loader2 className="size-3 animate-spin" aria-hidden />
               ) : (
-                <ShieldCheck className="size-3.5" aria-hidden />
+                <ShieldCheck className="size-3" aria-hidden />
               )}
-              {d.check}
-            </Button>
+              <span>{d.check}</span>
+            </button>
           )}
         </div>
-        <p className="text-xs text-ink-muted">{formatMessage(d.dnsIntro, { hours: 48 })}</p>
+        <p className="text-[11px] text-ink-muted font-sans">{formatMessage(d.dnsIntro, { hours: 48 })}</p>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="it-table w-full text-xs">
             <thead>
-              <tr className="text-ink-muted">
-                <th className="text-start font-medium py-1 pe-3">
-                  {d.hosting}
-                </th>
-                <th className="text-start font-medium py-1 pe-3">{d.type}</th>
-                <th className="text-start font-medium py-1 pe-3">{d.name}</th>
-                <th className="text-start font-medium py-1">{d.value}</th>
+              <tr>
+                <th className="text-start">{d.hosting}</th>
+                <th className="text-start">{d.type}</th>
+                <th className="text-start">{d.name}</th>
+                <th className="text-start">{d.value}</th>
               </tr>
             </thead>
             <tbody>
               {dnsRecords(domain).map((record) => (
-                <tr
-                  key={record.hosting}
-                  className="border-t border-outline-variant"
-                >
-                  <td className="py-1.5 pe-3">
+                <tr key={record.hosting}>
+                  <td>
                     {record.hosting === "vercel"
                       ? d.hostingVercel
                       : d.hostingServer}
                   </td>
-                  <td className="py-1.5 pe-3 font-mono" dir="ltr">
+                  <td className="font-bold" dir="ltr">
                     {record.type}
                   </td>
-                  <td className="py-1.5 pe-3 font-mono" dir="ltr">
+                  <td dir="ltr">
                     <bdi dir="auto">{record.name}</bdi>
                   </td>
-                  <td
-                    className="py-1.5 font-mono"
-                    dir={record.value ? "ltr" : undefined}
-                  >
+                  <td dir={record.value ? "ltr" : undefined}>
                     {record.value ?? d.serverAddress}
                   </td>
                 </tr>
@@ -243,12 +236,16 @@ function DomainsCard({
         {state && state !== "checking" && (
           <p
             role="status"
-            className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${state.state === "connected" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}
+            className={`border px-2 py-1 text-xs font-mono font-bold flex items-center gap-2 ${
+              state.state === "connected"
+                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
+                : "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300"
+            }`}
           >
             {state.state === "connected" ? (
-              <CheckCircle2 className="size-4 shrink-0" aria-hidden />
+              <CheckCircle2 className="size-3.5 shrink-0" aria-hidden />
             ) : (
-              <CircleAlert className="size-4 shrink-0" aria-hidden />
+              <CircleAlert className="size-3.5 shrink-0" aria-hidden />
             )}
             <span>
               {state.state === "other"
@@ -262,38 +259,50 @@ function DomainsCard({
   };
 
   return (
-    <Card
+    <div
       inert={saving}
       aria-busy={saving}
-      className="p-5 space-y-5 rounded-3xl border border-outline-variant bg-surface"
+      className="it-card p-4 space-y-4 font-mono text-xs"
     >
-      <div className="flex items-start gap-3">
-        <Globe className="size-5 text-accent shrink-0 mt-0.5" aria-hidden />
-        <div className="space-y-1">
-          <h2 className="font-bold text-ink">{d.title}</h2>
-          <p className="text-xs text-ink-muted leading-relaxed">{d.subtitle}</p>
+      <div className="flex items-start gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
+        <Globe className="size-4 text-sky-600 shrink-0 mt-0.5" aria-hidden />
+        <div className="space-y-0.5">
+          <h2 className="text-xs font-bold uppercase text-ink">{d.title}</h2>
+          <p className="text-[11px] text-ink-muted font-sans">{d.subtitle}</p>
           <ChangedBy value={initial} />
         </div>
       </div>
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-3">
         {field("website")}
         {field("admin")}
       </div>
       {canEdit && (
-        <Button
-          variant="primary"
-          size="sm"
-          className="gap-1.5 rounded-full"
+        <button
+          type="button"
           disabled={!dirty || saving}
-          onClick={save}
+          onClick={() => setConfirmOpen(true)}
+          className="it-btn-3d py-1 px-4 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
         >
           <Save className="size-3.5" aria-hidden />
-          {saving ? d.saving : d.save}
-        </Button>
+          <span>{saving ? d.saving : d.save}</span>
+        </button>
       )}
-      {records("website")}
-      {records("admin")}
-    </Card>
+      <div className="space-y-3 pt-2">
+        {records("website")}
+        {records("admin")}
+      </div>
+
+      <DomainSaveConfirmModal
+        open={confirmOpen}
+        currentWebsite={saved.website}
+        newWebsite={values.website}
+        currentAdmin={saved.admin}
+        newAdmin={values.admin}
+        busy={saving}
+        onConfirm={save}
+        onCancel={() => setConfirmOpen(false)}
+      />
+    </div>
   );
 }
 
@@ -333,31 +342,31 @@ function CodeCard({
   };
 
   return (
-    <Card
+    <div
       inert={saving}
       aria-busy={saving}
-      className="p-5 space-y-5 rounded-3xl border border-outline-variant bg-surface"
+      className="it-card p-4 space-y-4 font-mono text-xs"
     >
-      <div className="flex items-start gap-3">
-        <Code2 className="size-5 text-accent shrink-0 mt-0.5" aria-hidden />
-        <div className="space-y-1">
-          <h2 className="font-bold text-ink">{c.title}</h2>
-          <p className="text-xs text-ink-muted leading-relaxed">{c.subtitle}</p>
+      <div className="flex items-start gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
+        <Code2 className="size-4 text-sky-600 shrink-0 mt-0.5" aria-hidden />
+        <div className="space-y-0.5">
+          <h2 className="text-xs font-bold uppercase text-ink">{c.title}</h2>
+          <p className="text-[11px] text-ink-muted font-sans">{c.subtitle}</p>
           <ChangedBy value={initial} />
         </div>
       </div>
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-ink">{c.analytics}</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
+      <section className="space-y-2">
+        <h3 className="text-xs font-bold uppercase text-ink">{c.analytics}</h3>
+        <div className="grid sm:grid-cols-3 gap-3">
           {ID_FIELDS.map((key) => (
-            <div key={key} className="space-y-1.5">
+            <div key={key} className="space-y-1">
               <label
                 htmlFor={`code-${key}`}
-                className="text-xs font-medium text-ink"
+                className="text-[10px] font-bold text-ink-muted uppercase"
               >
                 {c[key]}
               </label>
-              <Input
+              <input
                 id={`code-${key}`}
                 dir="ltr"
                 disabled={!canEdit}
@@ -365,57 +374,56 @@ function CodeCard({
                 onChange={(e) =>
                   setCode({ ...code, [key]: e.target.value.trim() })
                 }
-                className="rounded-lg font-mono"
+                className="it-field-sunken w-full font-mono text-xs"
               />
-              <p className="text-[11px] text-ink-muted">{c.hints[key]}</p>
+              <p className="text-[10px] text-ink-muted font-sans">{c.hints[key]}</p>
             </div>
           ))}
         </div>
       </section>
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-ink">{c.custom}</h3>
-        <p className="flex items-start gap-2 text-xs rounded-lg bg-amber-500/10 text-amber-800 dark:text-amber-300 px-3 py-2">
-          <ShieldAlert className="size-4 shrink-0" aria-hidden />
-          {c.sandboxed}
+      <section className="space-y-2">
+        <h3 className="text-xs font-bold uppercase text-ink">{c.custom}</h3>
+        <p className="flex items-center gap-2 text-xs border border-amber-400 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 p-2 font-sans">
+          <ShieldAlert className="size-3.5 shrink-0" aria-hidden />
+          <span>{c.sandboxed}</span>
         </p>
         {(["headHtml", "bodyHtml"] as const).map((key) => (
-          <div key={key} className="space-y-1.5">
+          <div key={key} className="space-y-1">
             <label
               htmlFor={`code-${key}`}
-              className="text-xs font-medium text-ink"
+              className="text-[10px] font-bold text-ink-muted uppercase"
             >
               {c[key]}
             </label>
-            <Textarea
+            <textarea
               id={`code-${key}`}
               dir="ltr"
-              rows={6}
+              rows={5}
               maxLength={50_000}
               disabled={!canEdit}
               value={code[key]}
               onChange={(e) => setCode({ ...code, [key]: e.target.value })}
-              className="font-mono text-xs rounded-lg"
+              className="it-field-sunken w-full font-mono text-xs"
             />
           </div>
         ))}
       </section>
       {canEdit && (
-        <Button
-          variant="primary"
-          size="sm"
-          className="gap-1.5 rounded-full"
+        <button
+          type="button"
           disabled={saving}
           onClick={save}
+          className="it-btn-3d py-1 px-4 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
         >
           {saving ? (
             <Loader2 className="size-3.5 animate-spin" aria-hidden />
           ) : (
             <Save className="size-3.5" aria-hidden />
           )}
-          {saving ? c.saving : c.save}
-        </Button>
+          <span>{saving ? c.saving : c.save}</span>
+        </button>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -436,12 +444,18 @@ export function SiteView({
 }) {
   const { copy } = useCopy();
   return (
-    <>
-      <PageTitle title={copy.site.title} description={copy.site.description} />
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageTitle title={copy.site.title} description={copy.site.description} />
+        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+          T-CODE: SICF [INTERNET DOMAINS & SCRIPT INJECTION]
+        </span>
+      </div>
+
       {!canEditDomains && (
-        <p className="mb-4 text-xs text-ink-muted">{copy.site.readOnly}</p>
+        <p className="text-xs font-mono text-ink-muted">{copy.site.readOnly}</p>
       )}
-      <div className="space-y-6 pb-12">
+      <div className="space-y-4 pb-8">
         {domains ? (
           <DomainsCard
             initial={domains}
@@ -457,6 +471,6 @@ export function SiteView({
           <Unavailable />
         )}
       </div>
-    </>
+    </div>
   );
 }

@@ -40,20 +40,26 @@ export function SessionsView({
   const [ended, setEnded] = React.useState(false);
   return (
     <>
-      <PageTitle title={n.title} description={n.description} />
-      <p className="text-sm text-ink-muted mb-5">{n.coverage}</p>
-      <Card className="p-4 mb-5">
+      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2 mb-4">
+        <PageTitle title={n.title} description={n.description} />
+        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+          T-CODE: SM04S [SESSIONS]
+        </span>
+      </div>
+      <p className="text-xs font-mono text-ink-muted mb-4">{n.coverage}</p>
+      <div className="it-card p-4 mb-4">
         <form
           method="get"
           action="/sessions"
-          className="flex flex-wrap items-end gap-3"
+          className="flex flex-wrap items-end gap-3 text-xs font-mono"
         >
-          <label className="grid gap-1 text-sm">
-            <span>{n.realm}</span>
-            <Select
+          <label className="grid gap-1">
+            <span className="uppercase font-bold text-[10px] text-ink-muted">{n.realm}</span>
+            <select
               name="realm"
               aria-label={n.realm}
               defaultValue={filter.realm}
+              className="it-field-sunken"
             >
               <option value="">{n.realms.all}</option>
               {(["staff", "customer", "it"] as const).map((realm) => (
@@ -61,36 +67,39 @@ export function SessionsView({
                   {n.realms[realm]}
                 </option>
               ))}
-            </Select>
+            </select>
           </label>
-          <label className="grid gap-1 text-sm min-w-0 flex-1">
-            <span>{n.accountId}</span>
-            <Input
+          <label className="grid gap-1 min-w-0 flex-1">
+            <span className="uppercase font-bold text-[10px] text-ink-muted">{n.accountId}</span>
+            <input
               name="subjectId"
               defaultValue={filter.subjectId}
               maxLength={200}
               dir="ltr"
+              className="it-field-sunken w-full"
             />
           </label>
-          <Button type="submit">{n.filter}</Button>
-          <Link href="/sessions" className="text-sm underline">
+          <button type="submit" className="it-btn-3d py-1.5 px-4 font-bold text-emerald-800 dark:text-emerald-300">
+            {n.filter}
+          </button>
+          <Link href="/sessions" className="it-btn-3d py-1.5 px-3">
             {n.clear}
           </Link>
         </form>
-      </Card>
+      </div>
       {ended && (
-        <p role="status" className="text-sm text-ink mb-4">
-          {n.ended}
-        </p>
+        <div role="status" className="p-2 mb-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-mono">
+          ✔ {n.ended}
+        </div>
       )}
-      <Card className="overflow-hidden">
+      <div className="it-card p-0 overflow-x-auto">
         {page.items.length === 0 ? (
-          <p className="p-6 text-sm text-ink-muted">{n.empty}</p>
+          <p className="p-6 text-xs font-mono text-ink-muted">{n.empty}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-start">
+            <table className="it-table w-full font-mono text-xs">
               <thead>
-                <tr className="border-b border-outline-variant">
+                <tr>
                   {[
                     n.account,
                     n.realm,
@@ -102,7 +111,7 @@ export function SessionsView({
                   ].map((label) => (
                     <th
                       key={label}
-                      className="p-3 text-start font-medium whitespace-nowrap"
+                      className="whitespace-nowrap uppercase"
                     >
                       {label}
                     </th>
@@ -120,48 +129,51 @@ export function SessionsView({
                     <tr
                       key={session.id}
                       data-testid={`identity-session-${session.id}`}
-                      className="border-b last:border-0 border-outline-variant"
                     >
-                      <td className="p-3">
-                        <span dir="ltr">
+                      <td>
+                        <span dir="ltr" className="font-semibold text-ink">
                           {session.email || session.subjectId}
                         </span>
-                        <div className="text-xs text-ink-muted" dir="ltr">
+                        <div className="text-[10px] text-ink-muted" dir="ltr">
                           {session.subjectId}
                         </div>
                       </td>
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap uppercase">
                         {n.realms[session.realm]}
                       </td>
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap text-[10px] text-ink-muted">
                         {date(session.createdAt)}
                       </td>
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap text-[10px] text-ink-muted">
                         {date(session.expiresAt)}
                       </td>
-                      <td className="p-3 whitespace-nowrap">{n[state]}</td>
-                      <td className="p-3">
-                        <code dir="ltr" className="text-xs">
+                      <td className="whitespace-nowrap font-bold">
+                        <span className={`it-badge ${state === "active" ? "it-badge-active" : "it-badge-neutral"}`}>
+                          {n[state]}
+                        </span>
+                      </td>
+                      <td>
+                        <code dir="ltr" className="text-[10px]">
                           {session.id}
                         </code>
                         {session.id === currentSessionId && (
-                          <div className="text-xs text-ink-muted">
-                            {n.current}
+                          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                            [{n.current}]
                           </div>
                         )}
                       </td>
-                      <td className="p-3">
+                      <td className="text-center">
                         {canRevoke && state === "active" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <button
+                            type="button"
                             onClick={() => {
                               setEnded(false);
                               setSelected(session.id);
                             }}
+                            className="it-btn-3d py-0.5 px-2 text-[10px] text-rose-700 dark:text-rose-400 font-bold"
                           >
                             {n.revoke}
-                          </Button>
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -171,15 +183,15 @@ export function SessionsView({
             </table>
           </div>
         )}
-      </Card>
-      <div className="flex gap-4 mt-4 text-sm">
+      </div>
+      <div className="flex gap-2 mt-4 text-xs font-mono">
         {filter.cursor && (
-          <Link href={href(filter, "")} className="underline">
+          <Link href={href(filter, "")} className="it-btn-3d py-1 px-3">
             {n.first}
           </Link>
         )}
         {page.nextCursor && (
-          <Link href={href(filter, page.nextCursor)} className="underline">
+          <Link href={href(filter, page.nextCursor)} className="it-btn-3d py-1 px-3">
             {n.next}
           </Link>
         )}

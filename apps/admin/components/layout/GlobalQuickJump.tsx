@@ -210,8 +210,13 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
   /** Role, stage and status codes read as words. */
   const badgeLabel = (category: string, badge: string) => {
+    if (category === "people") {
+      return badge
+        .replace(/^staff_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
     const tables: Record<string, unknown> = {
-      people: t.roles,
       deals: t.stages,
       orders: t.orders.statuses,
       shipments: t.delivery.statuses,

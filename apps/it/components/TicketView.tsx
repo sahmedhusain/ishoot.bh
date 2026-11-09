@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMessage } from "@platform/locales";
-import { Button, Card } from "@platform/ui";
 import { ArrowLeft, ArrowRight, Lock, Paperclip, Send, UserPlus, X } from "lucide-react";
 import type { TicketDetail } from "@platform/api-client";
 import { ticketCategory, transitionsFrom } from "@platform/contracts";
@@ -111,12 +110,19 @@ export function TicketView({
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      await run(
-        () => commentAction(ticket.id, message, internal, attachedFiles),
-        t.sent,
-      )
-    ) {
+    const body = message.trim();
+    if (!body) return;
+    const ok = await run(
+      () =>
+        commentAction(
+          ticket.id,
+          body,
+          internal,
+          attachedFiles.length > 0 ? attachedFiles : undefined,
+        ),
+      t.commented,
+    );
+    if (ok) {
       setMessage("");
       setAttachedFiles([]);
     }
@@ -176,76 +182,82 @@ export function TicketView({
   }
 
   return (
-    <div inert={busy} aria-busy={busy} className="space-y-6">
-      <div className="flex flex-wrap items-start gap-4">
-        <Link
-          href="/tickets"
-          aria-label={copy.nav.tickets}
-          className="grid size-10 place-items-center rounded-full hover:bg-surface-container"
-        >
-          <Back className="size-5" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs text-ink-muted">
-              {number(ticket.number)}
-            </span>
-            <StatusBadge status={ticket.status} />
-            {ticket.breached && <OverdueBadge />}
-            {ticket.remindedAt && !ticket.breached && <RemindedBadge />}
+    <div inert={busy} aria-busy={busy} className="space-y-4">
+      {/* Top Header & T-Code Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-300 dark:border-slate-700 pb-2">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/tickets"
+            aria-label={copy.nav.tickets}
+            className="it-btn-3d py-1 px-2.5 flex items-center gap-1 font-mono text-xs font-bold"
+          >
+            <Back className="size-3.5" />
+            <span>[F3 BACK]</span>
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs font-bold text-sky-800 dark:text-sky-300">
+                #{number(ticket.number)}
+              </span>
+              <StatusBadge status={ticket.status} />
+              {ticket.breached && <OverdueBadge />}
+              {ticket.remindedAt && !ticket.breached && <RemindedBadge />}
+            </div>
+            <h1 className="text-sm font-bold text-ink mt-0.5">
+              <bdi dir="auto">{ticket.title}</bdi>
+            </h1>
           </div>
-          <h1 className="text-2xl font-bold text-ink mt-1">
-            <bdi dir="auto">{ticket.title}</bdi>
-          </h1>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+            T-CODE: SD01 [SERVICE TICKET]
+          </span>
           {canAssign && (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="outline"
               disabled={busy}
               onClick={() => setShowAssignInput((prev) => !prev)}
-              className="gap-1.5"
+              className="it-btn-3d py-1 px-3 font-mono text-xs font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1"
             >
-              <UserPlus className="size-3.5" aria-hidden />
-              {ticket.assigneeId
-                ? t.reassign
-                : t.assignToStaff}
-            </Button>
+              <UserPlus className="size-3" aria-hidden />
+              <span>{ticket.assigneeId ? t.reassign : t.assignToStaff}</span>
+            </button>
           )}
-          {actions.map((name) => (
-            <Button
-              key={name}
+          {actions.map((actName) => (
+            <button
+              key={actName}
               type="button"
-              size="sm"
-              variant={name === "cancel" ? "outline" : "primary"}
               disabled={busy}
               onClick={() =>
                 run(
-                  () => transitionAction(ticket.id, ticket.status, name),
+                  () => transitionAction(ticket.id, ticket.status, actName),
                   t.updated,
                 )
               }
+              className={`it-btn-3d py-1 px-3 font-mono text-xs font-bold ${
+                actName === "cancel"
+                  ? "text-rose-700 dark:text-rose-400"
+                  : "text-emerald-800 dark:text-emerald-300"
+              }`}
             >
-              {name === "assign" ? t.assignToMe : transition(name)}
-            </Button>
+              {actName === "assign" ? t.assignToMe : transition(actName)}
+            </button>
           ))}
         </div>
       </div>
-      {!canEdit && <p className="text-xs text-ink-muted">{t.readOnly}</p>}
+
+      {!canEdit && <p className="text-xs font-mono text-ink-muted">{t.readOnly}</p>}
 
       {showAssignInput && canAssign && (
-        <Card className="p-4 rounded-2xl bg-surface border border-outline-variant space-y-3">
-          <h3 className="text-xs font-bold text-ink flex items-center gap-1.5">
+        <div className="it-card p-3 space-y-3 font-mono text-xs bg-slate-50 dark:bg-slate-900/60">
+          <div className="border-b border-slate-300 dark:border-slate-700 pb-1 flex items-center gap-1.5 font-bold text-ink">
             <UserPlus className="size-3.5" aria-hidden />
-            {ticket.assigneeId
-              ? t.reassignTicketToStaff
-              : t.assignTicketToStaff}
-          </h3>
+            <span>{ticket.assigneeId ? t.reassignTicketToStaff : t.assignTicketToStaff}</span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] text-ink-muted block mb-1">
+              <label className="text-[10px] uppercase font-bold text-ink-muted block mb-0.5">
                 {t.staffIdOrEmail}
               </label>
               <input
@@ -254,11 +266,11 @@ export function TicketView({
                 value={targetAssigneeId}
                 onChange={(e) => setTargetAssigneeId(e.target.value)}
                 placeholder={t.assigneeIdPlaceholder}
-                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+                className="it-field-sunken w-full text-xs font-mono"
               />
             </div>
             <div>
-              <label className="text-[11px] text-ink-muted block mb-1">
+              <label className="text-[10px] uppercase font-bold text-ink-muted block mb-0.5">
                 {t.staffName}
               </label>
               <input
@@ -266,23 +278,20 @@ export function TicketView({
                 value={targetAssigneeName}
                 onChange={(e) => setTargetAssigneeName(e.target.value)}
                 placeholder={t.assigneeNamePlaceholder}
-                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+                className="it-field-sunken w-full text-xs font-mono"
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button
+          <div className="flex justify-end gap-2 pt-1 border-t border-slate-300 dark:border-slate-700">
+            <button
               type="button"
-              size="sm"
-              variant="outline"
               onClick={() => setShowAssignInput(false)}
+              className="it-btn-3d py-1 px-3 text-xs"
             >
               {copy.shared.common.cancel}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              size="sm"
-              variant="primary"
               disabled={busy || !targetAssigneeId.trim()}
               onClick={() =>
                 run(
@@ -296,34 +305,41 @@ export function TicketView({
                   }
                 })
               }
+              className="it-btn-3d py-1 px-4 font-bold text-emerald-800 dark:text-emerald-300 text-xs"
             >
               {t.confirmAssignment}
-            </Button>
+            </button>
           </div>
-        </Card>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6 rounded-3xl bg-surface border border-outline-variant space-y-3">
-            <p className="text-sm text-ink whitespace-pre-wrap">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left 2 Cols: Description & Conversation */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="it-card p-4 space-y-3 font-mono text-xs">
+            <div className="border-b border-slate-300 dark:border-slate-700 pb-1">
+              <span className="font-bold uppercase tracking-wider text-ink-muted text-[10px]">
+                ORIGINAL REQUEST DESCRIPTION
+              </span>
+            </div>
+            <p className="text-xs text-ink whitespace-pre-wrap font-sans leading-relaxed">
               <bdi dir="auto">{ticket.description}</bdi>
             </p>
             {ticketAttachments.length > 0 && (
-              <div className="pt-2">
-                <h2 className="text-xs font-semibold text-ink-muted mb-2">
+              <div className="pt-2 border-t border-slate-300 dark:border-slate-700">
+                <h2 className="text-[10px] font-bold uppercase text-ink-muted mb-1.5">
                   {t.attachments}
                 </h2>
-                <ul className="flex flex-wrap gap-2">
+                <ul className="flex flex-wrap gap-1.5">
                   {ticketAttachments.map((a) => (
                     <li key={a.fileUrl}>
                       <a
                         href={`/tickets/${ticket.id}/attachment?${new URLSearchParams({ fileUrl: a.fileUrl })}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink hover:border-accent"
+                        className="it-btn-3d py-0.5 px-2 text-[10px] flex items-center gap-1 font-mono"
                       >
-                        <Paperclip className="size-3.5" aria-hidden />
+                        <Paperclip className="size-3" aria-hidden />
                         <bdi dir="auto">{a.fileName}</bdi>
                       </a>
                     </li>
@@ -331,14 +347,20 @@ export function TicketView({
                 </ul>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-6 rounded-3xl bg-surface border border-outline-variant space-y-4">
-            <h2 className="text-sm font-bold text-ink">{t.conversation}</h2>
+          <div className="it-card p-4 space-y-3 font-mono text-xs">
+            <div className="border-b border-slate-300 dark:border-slate-700 pb-1 flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
+                {t.conversation}
+              </h2>
+              <span className="text-[10px] text-ink-muted">REPLIES: {comments.length}</span>
+            </div>
+
             {comments.length === 0 ? (
-              <p className="text-xs text-ink-muted">{t.noComments}</p>
+              <p className="text-xs text-ink-muted py-3 text-center font-sans">{t.noComments}</p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {comments.map((c) => {
                   const commentAtts = c.attachments?.length
                     ? c.attachments
@@ -346,29 +368,35 @@ export function TicketView({
                   return (
                     <li
                       key={c.id}
-                      className={`p-3 rounded-2xl text-sm ${c.internal ? "bg-amber-500/10 border border-amber-500/30" : c.authorRealm === "it" ? "bg-accent/5 border border-accent/20" : "bg-surface-sunken"}`}
+                      className={`p-2.5 border text-xs ${
+                        c.internal
+                          ? "border-amber-400 bg-amber-50/50 dark:bg-amber-950/20"
+                          : c.authorRealm === "it"
+                            ? "border-sky-400 bg-sky-50/50 dark:bg-sky-950/20"
+                            : "border-slate-300 dark:border-slate-700 bg-surface"
+                      }`}
                     >
-                      <div className="flex items-center justify-between gap-2 text-[11px] text-ink-muted mb-1">
-                        <span className="flex items-center gap-1.5 font-semibold text-ink">
+                      <div className="flex items-center justify-between gap-2 text-[10px] text-ink-muted mb-1 border-b border-slate-200 dark:border-slate-800 pb-0.5">
+                        <span className="flex items-center gap-1.5 font-bold uppercase text-ink">
                           {c.internal && (
-                            <Lock className="size-3" aria-label={t.internal} />
+                            <Lock className="size-3 text-amber-600" aria-label={t.internal} />
                           )}
-                          <bdi dir="auto">{c.authorName}</bdi>
+                          <bdi dir="auto">[{c.authorRealm.toUpperCase()}] {c.authorName}</bdi>
                         </span>
                         <span>{date(c.createdAt)}</span>
                       </div>
-                      <p className="whitespace-pre-wrap text-ink">
+                      <p className="whitespace-pre-wrap text-ink font-sans text-xs">
                         <bdi dir="auto">{c.body}</bdi>
                       </p>
                       {commentAtts.length > 0 && (
-                        <ul className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-ink/10">
+                        <ul className="flex flex-wrap gap-1.5 mt-2 pt-1 border-t border-slate-200 dark:border-slate-800">
                           {commentAtts.map((a) => (
                             <li key={a.fileUrl}>
                               <a
                                 href={`/tickets/${ticket.id}/attachment?${new URLSearchParams({ fileUrl: a.fileUrl })}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-outline-variant bg-surface text-xs text-ink hover:border-accent"
+                                className="it-btn-3d py-0.5 px-2 text-[10px] flex items-center gap-1"
                               >
                                 <Paperclip className="size-3" aria-hidden />
                                 <bdi dir="auto">{a.fileName}</bdi>
@@ -382,8 +410,9 @@ export function TicketView({
                 })}
               </ul>
             )}
+
             {canEdit && (
-              <form onSubmit={send} className="space-y-3">
+              <form onSubmit={send} className="space-y-2 pt-2 border-t border-slate-300 dark:border-slate-700">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -391,23 +420,31 @@ export function TicketView({
                   onChange={handleFileChange}
                   accept="image/*,application/pdf,text/plain,text/csv,.docx,.xlsx"
                 />
-                <div
-                  role="radiogroup"
-                  className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant"
-                >
-                  {[false, true].map((value) => (
-                    <button
-                      key={String(value)}
-                      type="button"
-                      role="radio"
-                      aria-checked={internal === value}
-                      onClick={() => setInternal(value)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-semibold ${internal === value ? "bg-accent text-accent-foreground" : "text-ink-muted"}`}
-                    >
-                      {value ? t.note : t.reply}
-                    </button>
-                  ))}
+
+                <div className="flex items-center gap-3 font-mono text-xs">
+                  <span className="font-bold uppercase text-[10px] text-ink-muted">TYPE:</span>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="commentType"
+                      checked={!internal}
+                      onChange={() => setInternal(false)}
+                      className="size-3.5"
+                    />
+                    <span>{t.reply}</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer text-amber-800 dark:text-amber-300 font-bold">
+                    <input
+                      type="radio"
+                      name="commentType"
+                      checked={internal}
+                      onChange={() => setInternal(true)}
+                      className="size-3.5"
+                    />
+                    <span>{t.note}</span>
+                  </label>
                 </div>
+
                 <textarea
                   required
                   maxLength={10000}
@@ -416,23 +453,24 @@ export function TicketView({
                   placeholder={
                     internal ? t.notePlaceholder : t.replyPlaceholder
                   }
-                  className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  className="it-field-sunken w-full font-mono text-xs"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />
+
                 {attachedFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-1.5 pt-1">
                     {attachedFiles.map((f, idx) => (
                       <span
                         key={f.fileUrl || idx}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-outline-variant bg-surface text-ink"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono border border-slate-400 bg-surface text-ink"
                       >
                         <Paperclip className="size-3 text-ink-muted" aria-hidden />
                         <span className="max-w-[150px] truncate">{f.fileName}</span>
                         <button
                           type="button"
                           onClick={() => removeAttachment(idx)}
-                          className="p-0.5 rounded-full hover:bg-surface-container text-ink-muted hover:text-ink"
+                          className="hover:text-rose-600 font-bold"
                           aria-label={t.removeAttachment}
                         >
                           <X className="size-3" aria-hidden />
@@ -441,60 +479,67 @@ export function TicketView({
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between gap-2">
-                  <Button
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
                     type="button"
-                    size="sm"
-                    variant="outline"
                     disabled={
                       busy || uploadingFile || attachedFiles.length >= MAX_TICKET_ATTACHMENTS
                     }
                     onClick={() => fileInputRef.current?.click()}
-                    className="gap-1.5"
+                    className="it-btn-3d py-1 px-3 text-xs flex items-center gap-1.5"
                   >
                     <Paperclip className="size-3.5" aria-hidden />
-                    {uploadingFile
-                      ? t.uploading
-                      : t.attachFile}
-                  </Button>
-                  <Button
+                    <span>{uploadingFile ? t.uploading : t.attachFile}</span>
+                  </button>
+
+                  <button
                     type="submit"
-                    size="sm"
-                    variant="primary"
                     disabled={busy || uploadingFile || !message.trim()}
-                    className="gap-2"
+                    className="it-btn-3d py-1 px-4 text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5"
                   >
-                    <Send className="size-4" aria-hidden />
-                    {t.send}
-                  </Button>
+                    <Send className="size-3.5" aria-hidden />
+                    <span>{t.send}</span>
+                  </button>
                 </div>
               </form>
             )}
-          </Card>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <Card className="p-6 rounded-3xl bg-surface border border-outline-variant">
-            <dl className="space-y-3 text-sm">
+        {/* Right Col: Ticket Facts & Event Log */}
+        <div className="space-y-4">
+          <div className="it-card p-3 font-mono text-xs space-y-2">
+            <div className="border-b border-slate-300 dark:border-slate-700 pb-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
+                METADATA & PARAMETERS
+              </h2>
+            </div>
+            <dl className="space-y-1.5 text-xs">
               {facts.map(([term, value]) => (
-                <div key={term}>
-                  <dt className="text-[11px] text-ink-muted">{term}</dt>
-                  <dd className="text-ink font-medium break-words">{value}</dd>
+                <div key={term} className="border-b border-slate-200 dark:border-slate-800 pb-1 flex flex-col">
+                  <dt className="text-[10px] font-bold uppercase text-ink-muted">{term}</dt>
+                  <dd className="text-ink font-mono font-medium break-words mt-0.5">{value}</dd>
                 </div>
               ))}
             </dl>
-          </Card>
-          <Card className="p-6 rounded-3xl bg-surface border border-outline-variant">
-            <h2 className="text-sm font-bold text-ink mb-3">{t.history}</h2>
-            <ol className="space-y-2">
+          </div>
+
+          <div className="it-card p-3 font-mono text-xs space-y-2">
+            <div className="border-b border-slate-300 dark:border-slate-700 pb-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
+                {t.history}
+              </h2>
+            </div>
+            <ol className="space-y-1.5 max-h-64 overflow-y-auto">
               {events.map((e, i) => (
-                <li key={`${e.createdAt}-${i}`} className="text-xs">
-                  <div className="text-ink font-medium">{event(e.kind)}</div>
-                  <div className="text-ink-muted">{date(e.createdAt)}</div>
+                <li key={`${e.createdAt}-${i}`} className="border-b border-slate-200 dark:border-slate-800 pb-1 text-[11px]">
+                  <div className="text-ink font-bold uppercase">{event(e.kind)}</div>
+                  <div className="text-ink-muted text-[10px]">{date(e.createdAt)}</div>
                 </li>
               ))}
             </ol>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

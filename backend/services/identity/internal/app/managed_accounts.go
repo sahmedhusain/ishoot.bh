@@ -60,7 +60,7 @@ type AccountInput struct {
 	Active   bool
 }
 
-func managedRealm(r authn.Realm) bool { return r == authn.RealmStaff || r == authn.RealmCustomer || r == authn.RealmIT }
+func managedRealm(r authn.Realm) bool { return r == authn.RealmStaff || r == authn.RealmCustomer }
 
 func normalizeEmail(email string) (string, bool) {
 	email = strings.ToLower(strings.TrimSpace(email))

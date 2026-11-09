@@ -31,7 +31,10 @@
   ],
   "roles": [
     "it_admin",
+    "it_manager",
+    "it_lead",
     "it_engineer",
+    "it_worker",
     "it_support",
     "it_auditor"
   ],
@@ -132,6 +135,49 @@
         "execute"
       ]
     },
+    "it_manager": {
+      "system_health": ["read"],
+      "logs": ["read"],
+      "runtime_config": ["read", "edit"],
+      "jobs": ["read", "execute"],
+      "database": ["read"],
+      "integrations": ["read", "create", "edit", "execute"],
+      "domains": ["read", "create", "edit", "execute"],
+      "site_code": ["read", "edit"],
+      "modules": ["read", "edit"],
+      "staff_accounts": ["read", "create", "edit", "execute"],
+      "staff_roles": ["read", "create", "edit"],
+      "audit": ["read"],
+      "notifications": ["read", "execute"],
+      "sessions": ["read", "delete"],
+      "setup": ["read", "edit"],
+      "tickets": ["read", "create", "edit", "assign", "delete"],
+      "ticket_settings": ["read", "edit"],
+      "it_accounts": ["read", "create", "edit"],
+      "api_keys": ["read", "create"],
+      "backups": ["read", "execute"]
+    },
+    "it_lead": {
+      "system_health": ["read"],
+      "logs": ["read"],
+      "runtime_config": ["read", "edit"],
+      "jobs": ["read", "execute"],
+      "database": ["read"],
+      "integrations": ["read", "edit", "execute"],
+      "domains": ["read", "edit", "execute"],
+      "site_code": ["read", "edit"],
+      "modules": ["read"],
+      "staff_accounts": ["read"],
+      "staff_roles": ["read"],
+      "audit": ["read"],
+      "notifications": ["read", "execute"],
+      "sessions": ["read"],
+      "tickets": ["read", "create", "edit", "assign"],
+      "ticket_settings": ["read", "edit"],
+      "it_accounts": ["read", "edit"],
+      "api_keys": ["read"],
+      "backups": ["read"]
+    },
     "it_engineer": {
       "system_health": [
         "read"
@@ -195,6 +241,16 @@
       "backups": [
         "read"
       ]
+    },
+    "it_worker": {
+      "system_health": ["read"],
+      "logs": ["read"],
+      "jobs": ["read", "execute"],
+      "database": ["read"],
+      "notifications": ["read"],
+      "sessions": ["read"],
+      "tickets": ["read", "create", "edit", "assign"],
+      "ticket_settings": ["read"]
     },
     "it_support": {
       "system_health": [

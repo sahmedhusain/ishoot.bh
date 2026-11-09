@@ -16,7 +16,6 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
 import type {
   CompanyConfiguration,
   CompanyConfigurationPatch,
@@ -45,6 +44,7 @@ export function CompanyView({
   setupStatus: { complete: boolean; missing: string[] } | null;
   canEdit: boolean;
   canComplete: boolean;
+  canCompleteAction?: boolean;
 }) {
   const { copy, date } = useCopy();
   const c = copy.company;
@@ -139,6 +139,7 @@ export function CompanyView({
     data.set("key", key);
     data.set("title", title);
     data.set("file", file);
+
     setBusy(true);
     try {
       const res = await uploadCompanyAssetAction(data);
@@ -174,317 +175,305 @@ export function CompanyView({
 
   if (!company) {
     return (
-      <Card className="rounded-3xl border border-outline-variant p-8 text-center text-ink-muted">
+      <div className="it-card p-8 text-center text-ink-muted font-mono text-xs">
         {c.unavailable}
-      </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle title={c.title} description={c.description} />
-        {canEdit && (
-          <Button
-            type="submit"
-            form="company-form"
-            disabled={busy}
-            className="flex items-center gap-2"
+    <div className="space-y-4">
+      <PageTitle title={c.title} description={c.description} />
+
+      {/* SAP Style Section Selector Dropdown Bar */}
+      <div className="it-card flex flex-wrap items-center justify-between gap-3 p-2 font-mono text-xs">
+        <label className="flex items-center gap-2">
+          <span className="font-bold uppercase tracking-wider text-ink-muted">
+            SECTION:
+          </span>
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as Tab)}
+            className="it-field-sunken font-bold text-xs"
           >
-            {busy ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            <span>{c.save}</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-outline-variant pb-2">
-        <button
-          type="button"
-          onClick={() => setTab("profile")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-            tab === "profile"
-              ? "bg-primary text-primary-contrast"
-              : "bg-surface text-ink hover:bg-surface-variant"
-          }`}
-        >
-          <Building2 className="h-4 w-4" />
-          <span>{c.tabs.profile}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("finance")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-            tab === "finance"
-              ? "bg-primary text-primary-contrast"
-              : "bg-surface text-ink hover:bg-surface-variant"
-          }`}
-        >
-          <Receipt className="h-4 w-4" />
-          <span>{c.tabs.finance}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("sequences")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-            tab === "sequences"
-              ? "bg-primary text-primary-contrast"
-              : "bg-surface text-ink hover:bg-surface-variant"
-          }`}
-        >
-          <FileText className="h-4 w-4" />
-          <span>{c.tabs.sequences}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("branding")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-            tab === "branding"
-              ? "bg-primary text-primary-contrast"
-              : "bg-surface text-ink hover:bg-surface-variant"
-          }`}
-        >
-          <Palette className="h-4 w-4" />
-          <span>{c.tabs.branding}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("setup")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-            tab === "setup"
-              ? "bg-primary text-primary-contrast"
-              : "bg-surface text-ink hover:bg-surface-variant"
-          }`}
-        >
-          {setupStatus?.complete ? (
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <option value="profile">100 - {c.tabs.profile}</option>
+            <option value="finance">200 - {c.tabs.finance}</option>
+            <option value="sequences">300 - {c.tabs.sequences}</option>
+            <option value="branding">400 - {c.tabs.branding}</option>
+            <option value="setup">
+              500 - {c.tabs.setup} {setupStatus?.complete ? "✔" : "⚠"}
+            </option>
+          </select>
+        </label>
+        <div className="flex items-center gap-2">
+          <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+            T-CODE: OBY6 [COMPANY MASTER DATA]
+          </span>
+          {canEdit && (
+            <button
+              type="submit"
+              form="company-form"
+              disabled={busy}
+              className="it-btn-3d py-1 px-3 text-emerald-800 dark:text-emerald-300 font-bold flex items-center gap-1.5"
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              <span>{c.save}</span>
+            </button>
           )}
-          <span>{c.tabs.setup}</span>
-        </button>
+        </div>
       </div>
 
-      <form id="company-form" onSubmit={handleSave} className="space-y-6">
-        <fieldset disabled={busy || !canEdit} className="space-y-6">
+      <form id="company-form" onSubmit={handleSave} className="space-y-4">
+        <fieldset disabled={busy || !canEdit} className="space-y-4">
           {tab === "profile" && (
-            <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
-              <h2 className="text-base font-semibold">{c.sections.basicInfo}</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.companyNameEn}</span>
-                  <Input
+            <div className="it-card space-y-4">
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.basicInfo}
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.companyNameEn}</span>
+                  <input
                     required
                     value={formData.companyNameEn ?? ""}
                     onChange={(e) => update({ companyNameEn: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.companyNameAr}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.companyNameAr}</span>
+                  <input
                     required
                     dir="rtl"
                     value={formData.companyNameAr ?? ""}
                     onChange={(e) => update({ companyNameAr: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.taglineEn}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.taglineEn}</span>
+                  <input
                     value={formData.taglineEn ?? ""}
                     onChange={(e) => update({ taglineEn: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.taglineAr}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.taglineAr}</span>
+                  <input
                     dir="rtl"
                     value={formData.taglineAr ?? ""}
                     onChange={(e) => update({ taglineAr: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.crNumber}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.crNumber}</span>
+                  <input
                     value={formData.crNumber ?? ""}
                     onChange={(e) => update({ crNumber: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.businessActivity}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.businessActivity}</span>
+                  <input
                     value={formData.businessActivity ?? ""}
                     onChange={(e) => update({ businessActivity: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
               </div>
 
-              <h2 className="text-base font-semibold pt-4 border-t border-outline-variant">
-                {c.sections.contactAddress}
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.email}</span>
-                  <Input
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2 pt-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.contactAddress}
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.email}</span>
+                  <input
                     type="email"
                     dir="ltr"
                     value={formData.email ?? ""}
                     onChange={(e) => update({ email: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.phone}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.phone}</span>
+                  <input
                     type="tel"
                     dir="ltr"
                     value={formData.phone ?? ""}
                     onChange={(e) => update({ phone: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.whatsappPhone}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.whatsappPhone}</span>
+                  <input
                     type="tel"
                     dir="ltr"
                     value={formData.whatsappPhone ?? ""}
                     onChange={(e) => update({ whatsappPhone: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.website}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.website}</span>
+                  <input
                     type="url"
                     dir="ltr"
                     value={formData.website ?? ""}
                     onChange={(e) => update({ website: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.city}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.city}</span>
+                  <input
                     value={formData.city ?? ""}
                     onChange={(e) => update({ city: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.country}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.country}</span>
+                  <input
                     value={formData.country ?? ""}
                     onChange={(e) => update({ country: e.target.value })}
+                    className="it-field-sunken w-full font-mono uppercase"
                   />
                 </label>
-                <label className="block space-y-1 text-sm sm:col-span-2">
-                  <span>{c.fields.addressEn}</span>
-                  <Input
+                <label className="block space-y-1 sm:col-span-2">
+                  <span className="font-bold text-ink-muted">{c.fields.addressEn}</span>
+                  <input
                     value={formData.addressEn ?? ""}
                     onChange={(e) => update({ addressEn: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm sm:col-span-2">
-                  <span>{c.fields.addressAr}</span>
-                  <Input
+                <label className="block space-y-1 sm:col-span-2">
+                  <span className="font-bold text-ink-muted">{c.fields.addressAr}</span>
+                  <input
                     dir="rtl"
                     value={formData.addressAr ?? ""}
                     onChange={(e) => update({ addressAr: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
               </div>
 
-              <h2 className="text-base font-semibold pt-4 border-t border-outline-variant">
-                {c.sections.socialLinks}
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="block space-y-1 text-sm">
-                  <span>{c.socialPlatforms.instagram}</span>
-                  <Input
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2 pt-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.socialLinks}
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3 text-xs">
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.socialPlatforms.instagram}</span>
+                  <input
                     dir="ltr"
                     placeholder={c.socialPlaceholders.instagram}
                     value={formData.instagramUrl ?? ""}
                     onChange={(e) => update({ instagramUrl: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.socialPlatforms.linkedin}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.socialPlatforms.linkedin}</span>
+                  <input
                     dir="ltr"
                     placeholder={c.socialPlaceholders.linkedin}
                     value={formData.linkedinUrl ?? ""}
                     onChange={(e) => update({ linkedinUrl: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.socialPlatforms.youtube}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.socialPlatforms.youtube}</span>
+                  <input
                     dir="ltr"
                     placeholder={c.socialPlaceholders.youtube}
                     value={formData.youtubeUrl ?? ""}
                     onChange={(e) => update({ youtubeUrl: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
               </div>
-            </Card>
+            </div>
           )}
 
           {tab === "finance" && (
-            <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
-              <h2 className="text-base font-semibold">{c.sections.vatTax}</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2 flex items-center gap-3">
+            <div className="it-card space-y-4">
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.vatTax}
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                <div className="sm:col-span-2 flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="vatEnabled"
                     checked={formData.vatEnabled ?? false}
                     onChange={(e) => update({ vatEnabled: e.target.checked })}
-                    className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
+                    className="size-4"
                   />
-                  <label htmlFor="vatEnabled" className="text-sm font-medium">
+                  <label htmlFor="vatEnabled" className="font-bold text-ink">
                     {c.fields.vatEnabled}
                   </label>
                 </div>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.vatId}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.vatId}</span>
+                  <input
                     value={formData.vatId ?? ""}
                     onChange={(e) => update({ vatId: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.vatPercentage}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.vatPercentage}</span>
+                  <input
                     type="number"
                     step="0.01"
                     min="0"
                     max="100"
                     value={formData.vatPercentage ?? "10.00"}
                     onChange={(e) => update({ vatPercentage: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm sm:col-span-2">
-                  <span>{c.fields.defaultCurrency}</span>
+                <label className="block space-y-1 sm:col-span-2">
+                  <span className="font-bold text-ink-muted">{c.fields.defaultCurrency}</span>
                   <div className="flex items-center gap-2">
-                    <Input
+                    <input
                       disabled={company.currencyLocked}
                       value={formData.defaultCurrency ?? ""}
                       onChange={(e) =>
                         update({ defaultCurrency: e.target.value.toUpperCase() })
                       }
-                      className="max-w-[200px]"
+                      className="it-field-sunken w-32 font-mono uppercase"
                     />
                     {company.currencyLocked && (
-                      <span className="flex items-center gap-1 text-xs text-ink-muted">
+                      <span className="flex items-center gap-1 text-[11px] font-mono text-amber-700 dark:text-amber-400">
                         <Lock className="h-3.5 w-3.5" />
                         {c.currencyLockedNotice}
                       </span>
                     )}
                   </div>
                 </label>
-                <label className="block space-y-1 text-sm sm:col-span-2">
-                  <span>{c.fields.paymentTermsDays}</span>
-                  <Input
+                <label className="block space-y-1 sm:col-span-2">
+                  <span className="font-bold text-ink-muted">{c.fields.paymentTermsDays}</span>
+                  <input
                     type="number"
                     min="0"
                     max="365"
@@ -492,68 +481,81 @@ export function CompanyView({
                     onChange={(e) =>
                       update({ paymentTermsDays: parseInt(e.target.value, 10) || 0 })
                     }
-                    className="max-w-[200px]"
+                    className="it-field-sunken w-32 font-mono"
                   />
                 </label>
               </div>
 
-              <h2 className="text-base font-semibold pt-4 border-t border-outline-variant">
-                {c.sections.bankDetails}
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.bankName}</span>
-                  <Input
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2 pt-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.bankDetails}
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.bankName}</span>
+                  <input
                     value={formData.bankName ?? ""}
                     onChange={(e) => update({ bankName: e.target.value })}
+                    className="it-field-sunken w-full"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.bankAccountNumber}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.bankAccountNumber}</span>
+                  <input
                     dir="ltr"
                     value={formData.bankAccountNumber ?? ""}
                     onChange={(e) => update({ bankAccountNumber: e.target.value })}
+                    className="it-field-sunken w-full font-mono"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.bankIban}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.bankIban}</span>
+                  <input
                     dir="ltr"
                     value={formData.bankIban ?? ""}
                     onChange={(e) => update({ bankIban: e.target.value })}
+                    className="it-field-sunken w-full font-mono uppercase"
                   />
                 </label>
-                <label className="block space-y-1 text-sm">
-                  <span>{c.fields.bankSwift}</span>
-                  <Input
+                <label className="block space-y-1">
+                  <span className="font-bold text-ink-muted">{c.fields.bankSwift}</span>
+                  <input
                     dir="ltr"
                     value={formData.bankSwift ?? ""}
                     onChange={(e) => update({ bankSwift: e.target.value })}
+                    className="it-field-sunken w-full font-mono uppercase"
                   />
                 </label>
               </div>
-            </Card>
+            </div>
           )}
 
           {tab === "sequences" && (
-            <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
-              <h2 className="text-base font-semibold">{c.sections.documentSequences}</h2>
-              <p className="text-xs text-ink-muted">{c.sections.sequencesHint}</p>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-4 rounded-2xl border border-outline-variant p-4">
-                  <h3 className="text-sm font-semibold">{c.fields.invoiceSequence}</h3>
-                  <label className="block space-y-1 text-sm">
-                    <span>{c.fields.prefix}</span>
-                    <Input
+            <div className="it-card space-y-4">
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.documentSequences}
+                </h2>
+                <p className="text-[11px] text-ink-muted mt-0.5">{c.sections.sequencesHint}</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 text-xs">
+                <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface space-y-3">
+                  <h3 className="font-bold uppercase font-mono text-ink">
+                    {c.fields.invoiceSequence}
+                  </h3>
+                  <label className="block space-y-1">
+                    <span className="font-bold text-ink-muted">{c.fields.prefix}</span>
+                    <input
                       required
                       value={formData.invoicePrefix ?? "INV"}
                       onChange={(e) => update({ invoicePrefix: e.target.value })}
+                      className="it-field-sunken w-full font-mono uppercase"
                     />
                   </label>
-                  <label className="block space-y-1 text-sm">
-                    <span>{c.fields.nextNumber}</span>
-                    <Input
+                  <label className="block space-y-1">
+                    <span className="font-bold text-ink-muted">{c.fields.nextNumber}</span>
+                    <input
                       type="number"
                       required
                       min={company.invoiceNextNumber}
@@ -561,23 +563,27 @@ export function CompanyView({
                       onChange={(e) =>
                         update({ invoiceNextNumber: parseInt(e.target.value, 10) || 1 })
                       }
+                      className="it-field-sunken w-full font-mono"
                     />
                   </label>
                 </div>
 
-                <div className="space-y-4 rounded-2xl border border-outline-variant p-4">
-                  <h3 className="text-sm font-semibold">{c.fields.receiptSequence}</h3>
-                  <label className="block space-y-1 text-sm">
-                    <span>{c.fields.prefix}</span>
-                    <Input
+                <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface space-y-3">
+                  <h3 className="font-bold uppercase font-mono text-ink">
+                    {c.fields.receiptSequence}
+                  </h3>
+                  <label className="block space-y-1">
+                    <span className="font-bold text-ink-muted">{c.fields.prefix}</span>
+                    <input
                       required
                       value={formData.receiptPrefix ?? "RCT"}
                       onChange={(e) => update({ receiptPrefix: e.target.value })}
+                      className="it-field-sunken w-full font-mono uppercase"
                     />
                   </label>
-                  <label className="block space-y-1 text-sm">
-                    <span>{c.fields.nextNumber}</span>
-                    <Input
+                  <label className="block space-y-1">
+                    <span className="font-bold text-ink-muted">{c.fields.nextNumber}</span>
+                    <input
                       type="number"
                       required
                       min={company.receiptNextNumber}
@@ -585,17 +591,22 @@ export function CompanyView({
                       onChange={(e) =>
                         update({ receiptNextNumber: parseInt(e.target.value, 10) || 1 })
                       }
+                      className="it-field-sunken w-full font-mono"
                     />
                   </label>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
           {tab === "branding" && (
-            <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
-              <h2 className="text-base font-semibold">{c.sections.brandAssets}</h2>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="it-card space-y-4">
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+                <h2 className="text-xs font-bold uppercase font-mono text-ink">
+                  {c.sections.brandAssets}
+                </h2>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-xs">
                 {[
                   { key: "logo_light", title: c.assets.logoLight, hint: "PNG, SVG, WEBP" },
                   { key: "logo_dark", title: c.assets.logoDark, hint: "PNG, SVG, WEBP" },
@@ -608,16 +619,16 @@ export function CompanyView({
                   return (
                     <div
                       key={key}
-                      className="flex flex-col justify-between rounded-2xl border border-outline-variant p-4 space-y-3"
+                      className="flex flex-col justify-between border border-slate-300 dark:border-slate-700 p-3 bg-surface space-y-3"
                     >
-                      <div className="space-y-1">
-                        <span className="text-sm font-semibold">{title}</span>
-                        <p className="text-xs text-ink-muted">{hint}</p>
+                      <div className="space-y-0.5">
+                        <span className="font-bold font-mono text-ink">{title}</span>
+                        <p className="text-[10px] text-ink-muted">{hint}</p>
                       </div>
 
                       {asset?.fileUrl ? (
                         <div className="space-y-2">
-                          <div className="flex h-24 items-center justify-center rounded-xl bg-surface-variant p-2">
+                          <div className="flex h-24 items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={asset.fileUrl}
@@ -626,23 +637,22 @@ export function CompanyView({
                             />
                           </div>
                           {canEdit && (
-                            <Button
+                            <button
                               type="button"
-                              variant="outline"
                               onClick={() => handleAssetRemove(key)}
-                              className="w-full text-xs text-red-600 flex items-center justify-center gap-1"
+                              className="it-btn-3d w-full py-1 text-xs text-rose-700 dark:text-rose-400 font-bold flex items-center justify-center gap-1"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               <span>{c.removeAsset}</span>
-                            </Button>
+                            </button>
                           )}
                         </div>
                       ) : (
                         <div>
                           {canEdit && (
-                            <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface p-4 hover:bg-surface-variant transition">
-                              <Upload className="h-5 w-5 text-ink-muted" />
-                              <span className="mt-1 text-xs text-ink-muted">
+                            <label className="flex cursor-pointer flex-col items-center justify-center border border-dashed border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/40 p-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                              <Upload className="h-4 w-4 text-ink-muted" />
+                              <span className="mt-1 text-[11px] font-mono text-ink-muted">
                                 {c.uploadAsset}
                               </span>
                               <input
@@ -662,30 +672,34 @@ export function CompanyView({
                   );
                 })}
               </div>
-            </Card>
+            </div>
           )}
 
           {tab === "setup" && (
-            <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
-              <h2 className="text-base font-semibold">{c.sections.setupStatus}</h2>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
+            <div className="it-card space-y-4 font-mono text-xs">
+              <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+                <h2 className="text-xs font-bold uppercase text-ink">
+                  {c.sections.setupStatus}
+                </h2>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 border border-slate-300 dark:border-slate-700 bg-surface">
                   {setupStatus?.complete ? (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                      <CheckCircle2 className="h-6 w-6" />
-                    </div>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold text-base">
+                      [✔ COMPLETE]
+                    </span>
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-                      <AlertCircle className="h-6 w-6" />
-                    </div>
+                    <span className="text-amber-700 dark:text-amber-400 font-bold text-base">
+                      [⚠ INCOMPLETE]
+                    </span>
                   )}
                   <div>
-                    <h3 className="text-sm font-semibold">
+                    <h3 className="font-bold text-ink">
                       {setupStatus?.complete
                         ? c.setupCompletedTitle
                         : c.setupIncompleteTitle}
                     </h3>
-                    <p className="text-xs text-ink-muted">
+                    <p className="text-[11px] text-ink-muted">
                       {company.setupCompletedAt
                         ? `${c.setupCompletedOn} ${date(company.setupCompletedAt)}`
                         : c.setupIncompleteNotice}
@@ -694,11 +708,11 @@ export function CompanyView({
                 </div>
 
                 {!setupStatus?.complete && (setupStatus?.missing?.length ?? 0) > 0 && (
-                  <div className="rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 p-4 border border-amber-200 dark:border-amber-900/50 space-y-2">
-                    <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                  <div className="p-3 border border-amber-400 bg-amber-50 dark:bg-amber-950/40 space-y-2">
+                    <span className="font-bold text-amber-800 dark:text-amber-300">
                       {c.missingFields}:
                     </span>
-                    <ul className="list-disc list-inside text-xs text-amber-700 dark:text-amber-400">
+                    <ul className="list-disc list-inside text-amber-700 dark:text-amber-400 text-[11px]">
                       {setupStatus?.missing.map((f) => (
                         <li key={f}>{f}</li>
                       ))}
@@ -707,17 +721,17 @@ export function CompanyView({
                 )}
 
                 {canComplete && !company.setupCompletedAt && (
-                  <Button
+                  <button
                     type="button"
                     onClick={handleCompleteSetup}
                     disabled={busy || !setupStatus?.complete}
-                    className="mt-4"
+                    className="it-btn-3d py-1.5 px-4 font-bold text-emerald-800 dark:text-emerald-300 disabled:opacity-50"
                   >
                     {c.markSetupComplete}
-                  </Button>
+                  </button>
                 )}
               </div>
-            </Card>
+            </div>
           )}
         </fieldset>
       </form>

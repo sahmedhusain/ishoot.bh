@@ -10,7 +10,7 @@ import {
   PEOPLE_IMPORT_LIMIT,
   type PeopleImportOptions,
   type PeopleImportRow,
-  ALL_ROLES,
+  getStaffRoles,
 } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { getCurrentPermissions, requirePermission } from "../../lib/auth";
@@ -21,7 +21,8 @@ async function importOptions(actor: {
   role: string;
 }): Promise<PeopleImportOptions> {
   const own = await getCurrentPermissions();
-  const roles = ALL_ROLES.filter((r) => r !== "super_admin").map((id) => ({ id }));
+  const dbRoles = await getStaffRoles();
+  const roles = dbRoles.filter((r) => r.id !== "super_admin").map((r) => ({ id: r.id }));
   const assignable: string[] = [];
   for (const role of roles) {
     if (actor.role === "super_admin") assignable.push(role.id);

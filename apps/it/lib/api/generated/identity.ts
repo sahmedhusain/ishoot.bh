@@ -764,15 +764,16 @@ export interface components {
             /** Format: date-time */
             revokedAt: string | null;
         };
-        /** @enum {string} */
-        ITRole: "it_admin" | "it_engineer" | "it_support" | "it_auditor";
+        ITRole: string;
         ITAccount: {
             id: string;
             /** Format: email */
             email: string;
-            roles: components["schemas"]["ITRole"][];
+            roles: string[];
             active: boolean;
             mfaEnabled: boolean;
+            reportingTo?: string | null;
+            reportingToEmail?: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

@@ -201,7 +201,7 @@ func run(command string) error {
 		}
 		httpapi.RegisterDeskStaff(e, issuer.Verifier(), app.NewDeskStaff(pool, modules), cfg.Session.JSONBodyLimit)
 		staffPolicy := app.NewStaffAccess(pool, modules)
-		httpapi.RegisterStaffAccess(e, issuer.Verifier(), staffPolicy)
+		httpapi.RegisterStaffAccess(e, issuer.Verifier(), verifier, staffPolicy)
 		httpapi.RegisterStaffAccessService(e, verifier, staffPolicy)
 	}
 	public, admin := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))

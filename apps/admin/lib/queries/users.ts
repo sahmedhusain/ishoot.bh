@@ -6,6 +6,8 @@ import {
   createITAccountForIT,
   updateITAccountForIT,
   listITAccountsForIT,
+  getDynamicStaffRoles,
+  type DynamicStaffRole,
 } from "@platform/api-client";
 import { Profile, UserRole } from "../types";
 
@@ -186,4 +188,18 @@ export async function getUsersPage(filters: UserListFilters) {
       status: filters.status || "all",
     },
   };
+}
+
+export type StaffRoleSummary = DynamicStaffRole;
+
+export async function getStaffRoles(): Promise<StaffRoleSummary[]> {
+  try {
+    const res = await getDynamicStaffRoles();
+    if (res && Array.isArray(res.items) && res.items.length > 0) {
+      return res.items;
+    }
+  } catch (e) {
+    console.error("Failed to fetch dynamic staff roles:", e);
+  }
+  return [];
 }

@@ -167,7 +167,7 @@ func TestITAccountAdministration(t *testing.T) {
 	results := make(chan error, 2)
 	var wg sync.WaitGroup
 	for _, id := range []string{root.SubjectID, result.SubjectID} {
-		wg.Go(func() { results <- manager.Update(ctx, principal, id, "it_support", true) })
+		wg.Go(func() { results <- manager.Update(ctx, principal, id, "it_support", true, nil) })
 	}
 	wg.Wait()
 	close(results)

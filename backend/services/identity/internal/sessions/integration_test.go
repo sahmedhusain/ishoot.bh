@@ -71,8 +71,8 @@ func TestSessionLifecycle(t *testing.T) {
 		}
 	})
 	t.Run("absolute expiry and logout", func(t *testing.T) {
-		first := start(authn.RealmCustomer)
-		_, err := svc.Refresh(ctx, authn.RealmCustomer, first.Token, now.Add(time.Hour))
+		first := start(authn.RealmStaff)
+		_, err := svc.Refresh(ctx, authn.RealmStaff, first.Token, now.Add(time.Hour))
 		require.ErrorIs(t, err, sessions.ErrInvalid)
 		first = start(authn.RealmIT)
 		next, err := svc.Refresh(ctx, authn.RealmIT, first.Token, now)

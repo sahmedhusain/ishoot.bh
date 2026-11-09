@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Card, Input } from "@platform/ui";
 import type { SLAPolicy } from "@platform/api-client";
 import { TICKET_PRIORITIES } from "@platform/contracts";
 import { updateSLAAction } from "../app/actions";
@@ -19,24 +18,58 @@ export function SLAView({
 }) {
   const { copy, priority, date } = useCopy();
   const s = copy.sla;
+  const [selectedPriority, setSelectedPriority] = React.useState("");
+
   const byPriority = new Map(policies.map((p) => [p.priority, p]));
+  const displayedPriorities = selectedPriority
+    ? TICKET_PRIORITIES.filter((p) => p === selectedPriority)
+    : TICKET_PRIORITIES;
+
   return (
-    <>
-      <PageTitle title={s.title} description={s.description} />
-      {!canEdit && <p className="text-xs text-ink-muted mb-4">{s.readOnly}</p>}
-      <Card className="rounded-3xl bg-surface border border-outline-variant overflow-x-auto">
-        <table className="w-full text-sm">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageTitle title={s.title} description={s.description} />
+        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+          T-CODE: SPRO_SLA [SLA POLICY MAINTENANCE]
+        </span>
+      </div>
+
+      {!canEdit && <p className="text-xs font-mono text-ink-muted">{s.readOnly}</p>}
+
+      <div className="it-card p-0 overflow-x-auto">
+        <div className="p-2 border-b border-slate-300 dark:border-slate-700 bg-surface flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xs font-bold uppercase font-mono text-ink">SERVICE LEVEL AGREEMENTS</h2>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className="it-field-sunken text-xs font-mono py-1"
+            >
+              <option value="">{s.filterPriority}: {s.filterAll}</option>
+              {TICKET_PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {priority(p)}
+                </option>
+              ))}
+            </select>
+            <span className="text-[10px] font-mono text-ink-muted">
+              TIERS: {displayedPriorities.length} / {TICKET_PRIORITIES.length}
+            </span>
+          </div>
+        </div>
+
+        <table className="it-table w-full font-mono text-xs">
           <thead>
-            <tr className="text-start text-xs text-ink-muted border-b border-outline-variant">
-              <th className="p-4 text-start font-semibold">{s.priority}</th>
-              <th className="p-4 text-start font-semibold">{s.response}</th>
-              <th className="p-4 text-start font-semibold">{s.resolve}</th>
-              <th className="p-4 text-start font-semibold">{s.updatedBy}</th>
-              {canEdit && <th className="p-4" />}
+            <tr>
+              <th className="text-start">{s.priority}</th>
+              <th className="text-start">{s.response} (MIN)</th>
+              <th className="text-start">{s.resolve} (MIN)</th>
+              <th className="text-start">{s.updatedBy}</th>
+              {canEdit && <th className="text-start">ACTIONS</th>}
             </tr>
           </thead>
           <tbody>
-            {TICKET_PRIORITIES.map((p) => {
+            {displayedPriorities.map((p) => {
               const policy = byPriority.get(p);
               return policy ? (
                 <Row
@@ -50,8 +83,8 @@ export function SLAView({
             })}
           </tbody>
         </table>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }
 
@@ -90,12 +123,12 @@ function Row({
 
   const field = (value: number, set: (n: number) => void, name: string) =>
     canEdit ? (
-      <Input
+      <input
         type="number"
         min={1}
         step={1}
         aria-label={`${label} ${name}`}
-        className="max-w-[10rem]"
+        className="it-field-sunken w-24 font-mono text-xs"
         value={value}
         onChange={(e) =>
           set(Math.max(0, Math.trunc(Number(e.target.value) || 0)))
@@ -106,22 +139,21 @@ function Row({
     );
 
   return (
-    <tr className="border-b border-outline-variant last:border-0">
-      <td className="p-4 font-semibold text-ink">{label}</td>
-      <td className="p-4">{field(response, setResponse, copy.sla.response)}</td>
-      <td className="p-4">{field(resolve, setResolve, copy.sla.resolve)}</td>
-      <td className="p-4 text-xs text-ink-muted">{updated}</td>
+    <tr>
+      <td className="font-bold text-ink uppercase">{label}</td>
+      <td>{field(response, setResponse, copy.sla.response)}</td>
+      <td>{field(resolve, setResolve, copy.sla.resolve)}</td>
+      <td className="text-xs text-ink-muted">{updated}</td>
       {canEdit && (
-        <td className="p-4 text-end">
-          <Button
+        <td>
+          <button
             type="button"
-            size="sm"
-            variant="primary"
             disabled={!changed || busy}
             onClick={save}
+            className="it-btn-3d py-0.5 px-3 font-bold text-emerald-800 dark:text-emerald-300 disabled:opacity-40"
           >
             {copy.sla.save}
-          </Button>
+          </button>
         </td>
       )}
     </tr>

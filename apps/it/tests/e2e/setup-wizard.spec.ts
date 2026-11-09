@@ -142,7 +142,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(
     departments
       .getByRole("listitem")
-      .filter({ hasText: t.roles.legal_counsel }),
+      .filter({ hasText: /legal_counsel|Legal Counsel|مستشار قانوني/i }),
   ).toBeVisible();
   await page.getByTestId("setup-next").click();
 

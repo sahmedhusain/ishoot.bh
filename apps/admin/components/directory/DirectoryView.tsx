@@ -33,8 +33,13 @@ export function DirectoryView({
   const visible = entries;
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageHref = (next: number) => `${ROUTES.directory}?${new URLSearchParams({ ...filters, page: String(next) })}`;
-  const roleNames = t.roles as unknown as Record<string, string>;
-  const roleName = (role: string | null) => (role ? (typeof roleNames[role] === "string" ? roleNames[role] : role.replace("_", " ")) : null);
+  const roleName = (role: string | null) =>
+    role
+      ? role
+          .replace(/^staff_/, "")
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+      : null;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">

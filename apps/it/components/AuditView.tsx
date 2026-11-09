@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Card } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { AuditEvent } from "@platform/api-client";
 import { useCopy } from "./CopyProvider";
@@ -14,9 +13,6 @@ export type AuditFilter = {
   to: string;
   cursor: string;
 };
-
-const field =
-  "w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent";
 
 const href = (filter: AuditFilter, cursor: string) => {
   const params = new URLSearchParams();
@@ -43,20 +39,26 @@ export function AuditView({
     (a.subjects as Record<string, string>)[subject] ?? subject;
 
   return (
-    <>
-      <PageTitle title={a.title} description={a.description} />
-      <Card className="p-4 mb-6 rounded-3xl border border-outline-variant bg-surface">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
+        <PageTitle title={a.title} description={a.description} />
+        <span className="it-status-pane font-bold text-amber-700 dark:text-amber-400">
+          T-CODE: SM20 [SECURITY AUDIT]
+        </span>
+      </div>
+
+      <div className="it-card p-4">
         <form
           method="get"
           action="/audit"
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end"
+          className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5 items-end font-mono text-xs"
         >
-          <label className="space-y-1 text-xs font-medium text-ink lg:col-span-2">
-            <span>{a.subject}</span>
+          <label className="space-y-1 lg:col-span-2">
+            <span className="block text-[10px] uppercase font-bold text-ink-muted">{a.subject}</span>
             <select
               name="subject"
               defaultValue={filter.subject}
-              className={field}
+              className="it-field-sunken w-full"
             >
               <option value="">{a.allSubjects}</option>
               {subjects.map((s) => (
@@ -69,104 +71,100 @@ export function AuditView({
               ))}
             </select>
           </label>
-          <label className="space-y-1 text-xs font-medium text-ink">
-            <span>{a.actor}</span>
+          <label className="space-y-1">
+            <span className="block text-[10px] uppercase font-bold text-ink-muted">{a.actor}</span>
             <input
               name="actor"
               defaultValue={filter.actor}
               dir="ltr"
               placeholder={a.actorPlaceholder}
-              className={field}
+              className="it-field-sunken w-full"
             />
           </label>
-          <label className="space-y-1 text-xs font-medium text-ink">
-            <span>{a.from}</span>
+          <label className="space-y-1">
+            <span className="block text-[10px] uppercase font-bold text-ink-muted">{a.from}</span>
             <input
               type="date"
               name="from"
               defaultValue={filter.from}
-              className={field}
+              className="it-field-sunken w-full"
             />
           </label>
-          <label className="space-y-1 text-xs font-medium text-ink">
-            <span>{a.to}</span>
+          <label className="space-y-1">
+            <span className="block text-[10px] uppercase font-bold text-ink-muted">{a.to}</span>
             <input
               type="date"
               name="to"
               defaultValue={filter.to}
-              className={field}
+              className="it-field-sunken w-full"
             />
           </label>
-          <div className="flex gap-2 lg:col-span-5">
+          <div className="flex gap-2 lg:col-span-5 pt-1">
             <button
               type="submit"
-              className="px-4 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold"
+              className="it-btn-3d py-1.5 px-4 font-bold text-emerald-800 dark:text-emerald-300"
             >
               {a.apply}
             </button>
             <Link
               href="/audit"
-              className="px-4 py-2 rounded-full border border-outline-variant text-sm text-ink hover:bg-surface-container"
+              className="it-btn-3d py-1.5 px-3"
             >
               {a.reset}
             </Link>
           </div>
-          <p className="text-[11px] text-ink-muted lg:col-span-5">{a.utc}</p>
+          <p className="text-[10px] text-ink-muted lg:col-span-5">{a.utc}</p>
         </form>
-      </Card>
+      </div>
 
       {!page ? (
-        <Card
-          role="alert"
-          className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant"
-        >
+        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
           {a.unavailable}
-        </Card>
+        </div>
       ) : page.items.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant">
+        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
           {a.empty}
-        </Card>
+        </div>
       ) : (
-        <ol className="space-y-2" aria-label={a.title}>
+        <ol className="space-y-1.5 font-mono text-xs" aria-label={a.title}>
           {page.items.map((event) => (
-            <li key={event.id}>
-              {/* Opening an entry before the page hydrates adds "open"; that is the reader's choice, not a mismatch. */}
+            <li key={event.id} className="it-card p-0">
               <details
                 suppressHydrationWarning
-                className="group rounded-2xl border border-outline-variant bg-surface"
+                className="group"
               >
-                <summary className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 cursor-pointer list-none">
-                  <span className="font-semibold text-ink">
+                <summary className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 cursor-pointer list-none hover:bg-slate-200/50 dark:hover:bg-slate-800/50">
+                  <span className="font-bold text-ink">
                     {label(event.subject)}
                   </span>
                   <span
-                    className="font-mono text-[11px] text-ink-muted"
+                    className="text-[10px] text-ink-muted px-1 border border-slate-400 dark:border-slate-600"
                     dir="ltr"
                   >
                     {event.subject}
                   </span>
-                  <span className="text-xs text-ink-muted ms-auto">
-                    <bdi dir="ltr">{event.actor ?? a.unknownActor}</bdi>
+                  <span className="text-[11px] text-ink-muted ms-auto">
+                    <bdi dir="ltr" className="font-semibold">{event.actor ?? a.unknownActor}</bdi>
                     {" · "}
                     <time dateTime={event.occurredAt}>
                       {date(event.occurredAt)}
                     </time>
                   </span>
                 </summary>
-                <div className="border-t border-outline-variant px-4 py-3 space-y-2 text-xs">
+                <div className="border-t border-slate-300 dark:border-slate-700 px-3 py-2 space-y-2 text-xs bg-slate-100/40 dark:bg-slate-900/40">
                   <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-ink-muted">
-                    <dt>{a.eventId}</dt>
-                    <dd className="font-mono" dir="ltr">
+                    <dt className="uppercase font-bold text-[10px]">{a.eventId}:</dt>
+                    <dd className="font-mono text-[11px]" dir="ltr">
                       {event.id}
                     </dd>
-                    <dt>{a.traceId}</dt>
-                    <dd className="font-mono" dir="ltr">
+                    <dt className="uppercase font-bold text-[10px]">{a.traceId}:</dt>
+                    <dd className="font-mono text-[11px]" dir="ltr">
                       {event.traceId ?? "—"}
                     </dd>
                   </dl>
                   <pre
                     dir="ltr"
-                    className="overflow-x-auto rounded-lg bg-surface-container p-3 font-mono text-[11px] text-ink"
+                    className="it-field-sunken overflow-x-auto p-2 font-mono text-[11px] whitespace-pre-wrap max-h-48"
                   >
                     {JSON.stringify(event.payload, null, 2)}
                   </pre>
@@ -177,11 +175,11 @@ export function AuditView({
         </ol>
       )}
 
-      <nav className="flex gap-3 mt-6" aria-label={a.pages}>
+      <nav className="flex gap-2 pt-2 font-mono text-xs" aria-label={a.pages}>
         {filter.cursor && (
           <Link
             href={href(filter, "")}
-            className="text-sm text-accent underline"
+            className="it-btn-3d py-1 px-3"
           >
             {a.newest}
           </Link>
@@ -189,12 +187,12 @@ export function AuditView({
         {page?.nextCursor && (
           <Link
             href={href(filter, page.nextCursor)}
-            className="text-sm text-accent underline"
+            className="it-btn-3d py-1 px-3"
           >
             {a.older}
           </Link>
         )}
       </nav>
-    </>
+    </div>
   );
 }

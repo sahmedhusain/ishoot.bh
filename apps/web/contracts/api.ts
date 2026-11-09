@@ -4619,7 +4619,7 @@ export interface components {
             subjectId: string;
         };
         /** @enum {string} */
-        ITRole: "it_admin" | "it_engineer" | "it_support" | "it_auditor";
+        ITRole: "it_admin" | "it_manager" | "it_lead" | "it_engineer" | "it_worker" | "it_support" | "it_auditor";
         InboxItem: {
             actionUrl: string | null;
             actorId: string | null;

@@ -41,7 +41,7 @@ func CheckUserSession(ctx context.Context, q *sqlcdb.Queries, p authn.Principal,
 	if err != nil {
 		return err
 	}
-	if !account.Active || !slices.Equal(account.Roles, p.Roles) {
+	if !account.Active || (p.Realm == authn.RealmIT && !account.MfaEnabled) || !slices.Equal(account.Roles, p.Roles) {
 		return ErrInvalid
 	}
 	session, err := q.LockSessionFamily(ctx, p.SessionID)

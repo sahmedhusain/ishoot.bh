@@ -24,7 +24,7 @@ func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.Ma
 	}, authn.Require(verifier, authn.RealmService))
 	realmOf := func(c echo.Context) (authn.Realm, string, error) {
 		r, err := authn.ParseRealm(c.Param("realm"))
-		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer && r != authn.RealmIT) {
+		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer) {
 			return "", "", problem.NotFound("")
 		}
 		p, ok := authn.PrincipalFrom(c.Request().Context())

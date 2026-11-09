@@ -3,23 +3,23 @@
 import { useCopy } from "./CopyProvider";
 
 const STATUS_STYLE: Record<string, string> = {
-  new: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  triaged: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  assigned: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  in_progress: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  waiting_on_requester: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
-  resolved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  closed: "bg-ink/5 text-ink-muted",
-  cancelled: "bg-ink/5 text-ink-muted",
+  new: "bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700",
+  triaged: "bg-sky-100 text-sky-800 border-sky-400 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700",
+  assigned: "bg-sky-100 text-sky-800 border-sky-400 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700",
+  in_progress: "bg-indigo-100 text-indigo-800 border-indigo-400 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-700",
+  waiting_on_requester: "bg-orange-100 text-orange-800 border-orange-400 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-700",
+  resolved: "bg-emerald-100 text-emerald-800 border-emerald-400 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
+  closed: "bg-slate-200 text-slate-700 border-slate-400 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600",
+  cancelled: "bg-slate-200 text-slate-700 border-slate-400 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600",
 };
 
 export function StatusBadge({ status }: { status: string }) {
   const { status: label } = useCopy();
   return (
     <span
-      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_STYLE[status] ?? STATUS_STYLE.closed}`}
+      className={`px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase border ${STATUS_STYLE[status] ?? STATUS_STYLE.closed}`}
     >
-      {label(status)}
+      [{label(status)}]
     </span>
   );
 }
@@ -27,8 +27,8 @@ export function StatusBadge({ status }: { status: string }) {
 export function OverdueBadge() {
   const { copy } = useCopy();
   return (
-    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300">
-      {copy.tickets.overdue}
+    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase bg-rose-100 text-rose-800 border border-rose-400 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700">
+      ! {copy.tickets.overdue} !
     </span>
   );
 }
@@ -36,8 +36,8 @@ export function OverdueBadge() {
 export function RemindedBadge() {
   const { copy } = useCopy();
   return (
-    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/30">
-      {copy.tickets.slaReminder}
+    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase bg-amber-100 text-amber-800 border border-amber-400 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+      * {copy.tickets.slaReminder} *
     </span>
   );
 }
@@ -52,14 +52,18 @@ export function PageTitle({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div className="flex flex-wrap items-center justify-between gap-4 pb-3 mb-4 border-b border-slate-300 dark:border-slate-700">
       <div>
-        <h1 className="text-2xl font-bold text-ink">{title}</h1>
+        <h1 className="text-base font-bold font-mono tracking-tight text-ink uppercase">
+          {title}
+        </h1>
         {description && (
-          <p className="text-sm text-ink-muted mt-1">{description}</p>
+          <p className="text-xs text-ink-muted mt-0.5 font-sans leading-tight">
+            {description}
+          </p>
         )}
       </div>
-      {actions}
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
   );
 }

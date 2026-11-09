@@ -18,7 +18,7 @@ export default async function OverviewPage({
     const status = await asUser(() =>
       getCompanySetupStatusForIT(user.token),
     ).catch(() => null);
-    if (!status?.finished) {
+    if (status && !status.finished && !status.complete) {
       redirect("/setup");
     }
   }

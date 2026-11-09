@@ -82,3 +82,4 @@ apps/it/package-lock.json
 apps/web/package-lock.json
 apps/it/next-env.d.ts
 apps/admin/next-env.d.ts
+apps/it/next-env.d.ts

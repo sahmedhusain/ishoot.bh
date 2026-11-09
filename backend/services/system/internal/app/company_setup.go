@@ -37,6 +37,6 @@ func (s *Service) SetupStatus(ctx context.Context) (CompanySetupStatus, error) {
 	missing(empty(company.IconUrl), "icon_url")
 	missing(!company.WebsitePublished, "website_publication")
 	out.Complete = len(out.Missing) == 0
-	out.Finished = company.SetupCompletedAt != nil
+	out.Finished = company.SetupCompletedAt != nil || (len(out.Missing) == 0 && company.CompanyNameEn != "")
 	return out, nil
 }

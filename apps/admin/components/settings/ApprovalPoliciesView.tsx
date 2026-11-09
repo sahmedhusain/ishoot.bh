@@ -28,8 +28,11 @@ const numberClass = `${fieldClass} w-24`;
 const toNumber = (value: string) => (value.trim() === "" ? null : Number(value));
 
 function useRoleLabel() {
-  const { t } = useAdminLocale();
-  return (role: string) => (t.roles as Record<string, string>)[role] ?? role.replaceAll("_", " ");
+  return (role: string) =>
+    role
+      .replace(/^staff_/, "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function StepEditor({

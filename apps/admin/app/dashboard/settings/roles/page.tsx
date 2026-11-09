@@ -1,6 +1,6 @@
 import { forbidden } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
-import { ALL_RESOURCES, ALL_ACTIONS, ALL_ROLES, getRoleDataScopes, resolveGrant, isDefaultAllowed } from "@platform/database";
+import { ALL_RESOURCES, ALL_ACTIONS, getStaffRoles, getRoleDataScopes, isDefaultAllowed } from "@platform/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 import type { RoleWithGrants } from "../../../../types/roles";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -12,11 +12,12 @@ export default async function RolesSettingsPage() {
   // Role design is governance: only super administrators.
   if (actor.role !== "super_admin") forbidden();
 
-  const roles = ALL_ROLES.map((id) => ({
-    id,
-    nameEn: id.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-    nameAr: id,
-    isSystem: true,
+  const dbRoles = await getStaffRoles();
+  const roles = dbRoles.map((r) => ({
+    id: r.id,
+    nameEn: r.nameEn || r.id,
+    nameAr: r.nameAr || r.id,
+    isSystem: r.isSystem,
   }));
 
   const scopes = await Promise.all(roles.map((role) => getRoleDataScopes(role.id).catch(() => ({}))));

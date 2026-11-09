@@ -287,7 +287,6 @@ export function SetupWizard(props: SetupWizardProps) {
   const previewBeside = step === "website";
   const chosenDepartments = new Set(config.departments);
   const departmentNames = t.departmentCatalogue as Record<DepartmentKey, string>;
-  const roleNames = t.roles as Record<string, string>;
   const readyRoles = Array.from(new Set([...BASE_ROLES, ...DEPARTMENT_CATALOGUE.filter((d) => chosenDepartments.has(d)).flatMap((d) => DEPARTMENT_ROLES[d])]));
   const nameIn = (lang: string) => (lang === "ar" ? company.companyNameAr : company.companyNameEn);
 
@@ -635,7 +634,7 @@ export function SetupWizard(props: SetupWizardProps) {
                       <div className="space-y-2 rounded-xl bg-ink/[0.03] p-4">
                         <p className="text-xs font-semibold text-ink">{copy.configuration.rolesReady}</p>
                         <ul className="flex flex-wrap gap-1.5" aria-label={copy.configuration.rolesReady}>
-                          {readyRoles.map((role) => <li key={role} className="rounded-full border border-outline-variant bg-surface-raised px-2.5 py-1 text-xs text-ink dark:bg-surface">{roleNames[role] ?? role}</li>)}
+                          {readyRoles.map((role) => <li key={role} className="rounded-full border border-outline-variant bg-surface-raised px-2.5 py-1 text-xs text-ink dark:bg-surface">{role.replace(/^staff_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</li>)}
                         </ul>
                         <p className="text-xs text-ink-muted">{copy.configuration.rolesHint}</p>
                       </div>

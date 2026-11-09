@@ -3,7 +3,7 @@ import {
   getCalendarFor,
   isCalendarSyncEnabled,
   getDepartmentTree,
-  ALL_ROLES,
+  getStaffRoles,
 } from "@platform/database";
 import { listEmployees } from "@platform/api-client";
 import { requirePagePermission } from "../../../lib/auth";
@@ -25,13 +25,14 @@ export default async function CalendarPage() {
   const end = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0) + 8 * 86_400_000,
   );
-  const [events, rawEmployees, departmentTree, feed, syncEnabled] =
+  const [events, rawEmployees, departmentTree, feed, syncEnabled, dbRoles] =
     await Promise.all([
       getCalendarFor(user.id, start, end),
       listEmployees().catch(() => []),
       getDepartmentTree(),
       getCalendarFeedInfo(user.id),
       isCalendarSyncEnabled(),
+      getStaffRoles(),
     ]);
   const people = rawEmployees
     .filter((e) => e.id !== user.id)
@@ -44,10 +45,10 @@ export default async function CalendarPage() {
     nameEn: d.name_en,
     nameAr: d.name_ar,
   }));
-  const roles = ALL_ROLES.map((r) => ({
-    id: r,
-    nameEn: r.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-    nameAr: r,
+  const roles = dbRoles.map((r) => ({
+    id: r.id,
+    nameEn: r.nameEn || r.id,
+    nameAr: r.nameAr || r.id,
   }));
   return (
     <>

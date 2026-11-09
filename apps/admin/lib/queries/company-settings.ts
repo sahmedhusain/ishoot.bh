@@ -96,7 +96,10 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     rules_en: s.rulesEn || undefined,
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
-    setup_completed: Boolean(s.setupCompletedAt),
+    setup_completed: Boolean(
+      s.setupCompletedAt ||
+      ((s.companyNameEn || s.companyNameAr) && (s.crNumber || s.email || s.phone))
+    ),
     content_languages: normalizeLanguages(s.contentLanguages),
     primary_language: normalizePrimaryLanguage(
       s.primaryLanguage,

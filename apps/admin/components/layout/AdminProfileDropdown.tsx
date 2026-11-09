@@ -28,7 +28,10 @@ export function AdminProfileDropdown() {
   const menu = useHeaderPopover("account");
   const p = t.accountMenu;
   const role = user?.role
-    ? ((t.roles as Record<string, string>)[user.role] ?? user.role)
+    ? user.role
+        .replace(/^staff_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
   const signOut = async () => {
     menu.setOpen(false);
