@@ -1284,11 +1284,7 @@ async function getApiPayrollItemDetail(itemId: string) {
           userId: null,
           department: ((emp as any)?.department || (emp as any)?.Department) ?? null,
         },
-        lines: [
-          { id: "l-1", kind: "addition" as const, category: "basic", label: "Basic Salary", amount: basic, note: null, source: "calculated" },
-          ...(allowances > 0 ? [{ id: "l-2", kind: "addition" as const, category: "allowance", label: "Allowances", amount: allowances, note: null, source: "calculated" }] : []),
-          ...(deductions > 0 ? [{ id: "l-3", kind: "deduction" as const, category: "deduction", label: "Statutory Deductions", amount: deductions, note: null, source: "calculated" }] : []),
-        ],
+        lines: [],
         commission: null,
         attendance: [],
         leaves: [],
