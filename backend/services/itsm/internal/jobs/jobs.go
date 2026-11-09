@@ -140,23 +140,21 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 				_ = w.Notifier.QueueEmail(ctx, args.RequesterEmail, subj, text, "",
 					fmt.Sprintf("itsm:email:%s:%s", args.TicketID, args.EventID), args.ActorID)
 			}
-		} else {
+		} else if args.AssigneeID != "" {
 			// Requester transitioned -> notify assignee if assigned
-			if args.AssigneeID != "" {
-				_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
-					Realm:      "it",
-					Recipient:  args.AssigneeID,
-					Category:   "it_tickets",
-					Priority:   "normal",
-					Title:      fmt.Sprintf("Ticket %s: %s", ticketRef, args.Detail),
-					Body:       args.TicketTitle,
-					ActionURL:  fmt.Sprintf("/tickets/%s", args.TicketID),
-					EntityType: "ticket",
-					EntityID:   args.TicketID,
-					ActorID:    args.ActorID,
-					DedupeKey:  fmt.Sprintf("itsm:inbox:%s:%s", args.TicketID, args.EventID),
-				}})
-			}
+			_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
+				Realm:      "it",
+				Recipient:  args.AssigneeID,
+				Category:   "it_tickets",
+				Priority:   "normal",
+				Title:      fmt.Sprintf("Ticket %s: %s", ticketRef, args.Detail),
+				Body:       args.TicketTitle,
+				ActionURL:  fmt.Sprintf("/tickets/%s", args.TicketID),
+				EntityType: "ticket",
+				EntityID:   args.TicketID,
+				ActorID:    args.ActorID,
+				DedupeKey:  fmt.Sprintf("itsm:inbox:%s:%s", args.TicketID, args.EventID),
+			}})
 		}
 
 	case "comment":
@@ -182,23 +180,21 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 				_ = w.Notifier.QueueEmail(ctx, args.RequesterEmail, subj, text, "",
 					fmt.Sprintf("itsm:email:comment:%s:%s", args.TicketID, args.EventID), args.ActorID)
 			}
-		} else {
+		} else if args.AssigneeID != "" {
 			// Requester replied -> notify assignee
-			if args.AssigneeID != "" {
-				_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
-					Realm:      "it",
-					Recipient:  args.AssigneeID,
-					Category:   "it_tickets",
-					Priority:   "normal",
-					Title:      fmt.Sprintf("Requester replied on ticket %s", ticketRef),
-					Body:       args.TicketTitle,
-					ActionURL:  fmt.Sprintf("/tickets/%s", args.TicketID),
-					EntityType: "ticket",
-					EntityID:   args.TicketID,
-					ActorID:    args.ActorID,
-					DedupeKey:  fmt.Sprintf("itsm:inbox:comment:%s:%s", args.TicketID, args.EventID),
-				}})
-			}
+			_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
+				Realm:      "it",
+				Recipient:  args.AssigneeID,
+				Category:   "it_tickets",
+				Priority:   "normal",
+				Title:      fmt.Sprintf("Requester replied on ticket %s", ticketRef),
+				Body:       args.TicketTitle,
+				ActionURL:  fmt.Sprintf("/tickets/%s", args.TicketID),
+				EntityType: "ticket",
+				EntityID:   args.TicketID,
+				ActorID:    args.ActorID,
+				DedupeKey:  fmt.Sprintf("itsm:inbox:comment:%s:%s", args.TicketID, args.EventID),
+			}})
 		}
 
 	case "breached":

@@ -688,7 +688,7 @@ func (s *Service) SavePreferences(ctx context.Context, o Owner, p Preferences) (
 	err := s.store.Tx(ctx, func(q *sqlcdb.Queries, _ pgx.Tx) error {
 		if err := q.UpsertPreference(ctx, sqlcdb.UpsertPreferenceParams{
 			Realm: o.Realm, UserID: o.UserID, MutedUntil: p.MutedUntil, SoundEnabled: p.SoundEnabled, Sound: p.Sound,
-			Volume: int16(p.Volume), PopupsEnabled: p.PopupsEnabled, DesktopEnabled: p.DesktopEnabled, Now: now, //nolint:gosec // checked 0 to 100 above
+			Volume: int16(p.Volume), PopupsEnabled: p.PopupsEnabled, DesktopEnabled: p.DesktopEnabled, Now: now, // #nosec G115 -- checked 0 to 100 above
 		}); err != nil {
 			return err
 		}

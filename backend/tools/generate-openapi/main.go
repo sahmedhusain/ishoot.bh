@@ -159,7 +159,7 @@ func main() {
 		}
 
 		apiFile := filepath.Join(servicesDir, svc, "api", "openapi.yaml")
-		data, err := os.ReadFile(apiFile)
+		data, err := os.ReadFile(filepath.Clean(apiFile))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading %s: %v\n", apiFile, err)
 			continue

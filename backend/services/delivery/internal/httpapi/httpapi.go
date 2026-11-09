@@ -33,7 +33,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 		return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI)
 	})
 
-	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmCustomer, authn.RealmIT)
+	auth := authn.Require(opts.Verifier, authn.RealmService)
 	g := e.Group("/v1/delivery", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Settings & Zones

@@ -161,6 +161,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
 | `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
 | `NATS_CREDENTIALS_FILE` |  |  |
+| `ERASURE_HASH_KEY` |  | `required,min=32` |
 | `OUTBOX_INTERVAL` | `1s` | `gt=0` |
 | `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
 | `OUTBOX_RETENTION` | `168h` | `gte=0` |
@@ -851,6 +852,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
 | `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
 | `NATS_CREDENTIALS_FILE` |  |  |
+| `ERASURE_HASH_KEY` |  | `required,min=32` |
 | `OUTBOX_INTERVAL` | `1s` | `gt=0` |
 | `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
 | `OUTBOX_RETENTION` | `168h` | `gte=0` |

@@ -89,9 +89,10 @@ func companyRecord(ctx context.Context, store *postgres.Store, lock bool) (Compa
 		return out, err
 	}
 	for _, seq := range sequences {
-		if seq.Kind == "invoice" {
+		switch seq.Kind {
+		case "invoice":
 			out.InvoicePrefix, out.InvoiceNextNumber = seq.Prefix, seq.NextNumber
-		} else if seq.Kind == "receipt" {
+		case "receipt":
 			out.ReceiptPrefix, out.ReceiptNextNumber = seq.Prefix, seq.NextNumber
 		}
 	}

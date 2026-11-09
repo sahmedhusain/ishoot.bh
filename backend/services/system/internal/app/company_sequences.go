@@ -7,13 +7,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
-	"strings"
-	"time"
 )
 
 var ErrReservationConflict = errors.New("idempotency key was used for another numbering command")

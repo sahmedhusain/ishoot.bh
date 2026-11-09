@@ -3,15 +3,17 @@ package httpapi
 import (
 	"encoding/json"
 	"errors"
-	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
+
+	"github.com/labstack/echo/v4"
+
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/system/internal/app"
-	"slices"
 )
 
 func (h *handler) companyRoutes(e *echo.Echo) {

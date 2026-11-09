@@ -72,49 +72,49 @@ routes:
   - name: sales
     prefix: /v1/sales/
     upstream: sales
-    realms: [service, staff, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # Finance: Invoices, payments, expenses, expense categories, settlements.
   - name: finance
     prefix: /v1/finance/
     upstream: finance
-    realms: [service, staff, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # Workflow: Approvals, digital signatures, letters, tasks, calendar.
   - name: workflow
     prefix: /v1/workflow/
     upstream: workflow
-    realms: [service, staff, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # HR: Employees, departments, leave, attendance, payroll.
   - name: hr
     prefix: /v1/hr/
     upstream: hr
-    realms: [service, staff, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # Inventory: Warehouses, products, variants, stock levels, movements, counts.
   - name: inventory
     prefix: /v1/inventory/
     upstream: inventory
-    realms: [service, staff, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # Commerce: Orders, customers, coupons, store settings, retail POS.
   - name: commerce
     prefix: /v1/commerce/
     upstream: commerce
-    realms: [service, staff, customer, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
   # Delivery: Zones, delivery slots, shipments, vehicles, route sheets, proof of delivery.
   - name: delivery
     prefix: /v1/delivery/
     upstream: delivery
-    realms: [service, staff, customer, it]
+    realms: [service]
     rateLimit: services
     bodyLimit: 5M
 

@@ -230,7 +230,8 @@ func (s *CustomerOAuth) Complete(ctx context.Context, provider, state, browserSt
 		linked, err := q.FindProviderCustomer(ctx, sqlcdb.FindProviderCustomerParams{Provider: provider, ProviderSubject: who.Subject})
 		created := false
 		var account sqlcdb.IdentityAccount
-		if errors.Is(err, pgx.ErrNoRows) {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			email, valid := normalizeEmail(who.Email)
 			if !valid || !who.EmailVerified {
 				return ErrProviderEmailMissing
@@ -244,9 +245,9 @@ func (s *CustomerOAuth) Complete(ctx context.Context, provider, state, browserSt
 			if err != nil {
 				return err
 			}
-		} else if err != nil {
+		case err != nil:
 			return err
-		} else {
+		default:
 			account, err = q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: "customer", SubjectID: linked.SubjectID})
 			if err != nil {
 				return err

@@ -13,17 +13,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
 
 type ServiceHealth struct {
-	Name      string        `json:"name"`
-	Status    string        `json:"status"` // "healthy", "unhealthy"
-	LatencyMs int64         `json:"latencyMs"`
-	Version   string        `json:"version,omitempty"`
-	CheckedAt time.Time     `json:"checkedAt"`
-	Error     string        `json:"error,omitempty"`
+	Name      string    `json:"name"`
+	Status    string    `json:"status"` // "healthy", "unhealthy"
+	LatencyMs int64     `json:"latencyMs"`
+	Version   string    `json:"version,omitempty"`
+	CheckedAt time.Time `json:"checkedAt"`
+	Error     string    `json:"error,omitempty"`
 }
 
 type ServiceEndpoints struct {
@@ -85,12 +86,12 @@ func (s *Service) SystemHealth(ctx context.Context, endpoints ServiceEndpoints) 
 }
 
 type RuntimeConfigView struct {
-	Environment      string            `json:"environment"`
-	TimeZone         string            `json:"timeZone"`
-	ActiveLogLevel   string            `json:"activeLogLevel"`
-	DebugToggles     []sqlcdb.SystemDebugToggle `json:"debugToggles"`
-	LokiURL          string            `json:"lokiUrl,omitempty"`
-	TempoURL         string            `json:"tempoUrl,omitempty"`
+	Environment    string                     `json:"environment"`
+	TimeZone       string                     `json:"timeZone"`
+	ActiveLogLevel string                     `json:"activeLogLevel"`
+	DebugToggles   []sqlcdb.SystemDebugToggle `json:"debugToggles"`
+	LokiURL        string                     `json:"lokiUrl,omitempty"`
+	TempoURL       string                     `json:"tempoUrl,omitempty"`
 }
 
 func (s *Service) RuntimeConfig(ctx context.Context) (RuntimeConfigView, error) {
@@ -137,8 +138,8 @@ func (s *Service) RemoveDebugToggle(ctx context.Context, service string) error {
 }
 
 type DatabaseStatsView struct {
-	Schemas    []SchemaVersion `json:"schemas"`
-	OutboxLag  []OutboxLagView `json:"outboxLag"`
+	Schemas    []SchemaVersion           `json:"schemas"`
+	OutboxLag  []OutboxLagView           `json:"outboxLag"`
 	RiverStats []postgres.RiverQueueStat `json:"riverStats"`
 }
 

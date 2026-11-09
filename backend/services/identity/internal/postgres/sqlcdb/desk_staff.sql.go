@@ -100,7 +100,7 @@ func (q *Queries) ListStaffAccounts(ctx context.Context, arg ListStaffAccountsPa
 }
 
 const listStaffRoles = `-- name: ListStaffRoles :many
-SELECT id, name_en, name_ar, is_system, created_at, revision FROM identity.staff_role WHERE id> $1::text ORDER BY id LIMIT $2::int
+SELECT id, name_en, name_ar, is_system, created_at, revision, reporting_to_role FROM identity.staff_role WHERE id> $1::text ORDER BY id LIMIT $2::int
 `
 
 type ListStaffRolesParams struct {
@@ -124,6 +124,7 @@ func (q *Queries) ListStaffRoles(ctx context.Context, arg ListStaffRolesParams) 
 			&i.IsSystem,
 			&i.CreatedAt,
 			&i.Revision,
+			&i.ReportingToRole,
 		); err != nil {
 			return nil, err
 		}
@@ -272,7 +273,7 @@ func (q *Queries) StaffAccountDraft(ctx context.Context, subjectID string) (Staf
 }
 
 const staffRole = `-- name: StaffRole :one
-SELECT id, name_en, name_ar, is_system, created_at, revision FROM identity.staff_role WHERE id=$1
+SELECT id, name_en, name_ar, is_system, created_at, revision, reporting_to_role FROM identity.staff_role WHERE id=$1
 `
 
 func (q *Queries) StaffRole(ctx context.Context, id string) (IdentityStaffRole, error) {
@@ -285,6 +286,7 @@ func (q *Queries) StaffRole(ctx context.Context, id string) (IdentityStaffRole, 
 		&i.IsSystem,
 		&i.CreatedAt,
 		&i.Revision,
+		&i.ReportingToRole,
 	)
 	return i, err
 }

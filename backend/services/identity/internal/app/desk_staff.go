@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/db"

@@ -9,6 +9,7 @@ import (
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
+	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/commerce/api"
 	"platform.local/backend/services/commerce/internal/app"
@@ -33,13 +34,15 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 		return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI)
 	})
 
-	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmCustomer, authn.RealmIT)
+	auth := authn.Require(opts.Verifier, authn.RealmService)
 	g := e.Group("/v1/commerce", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Customers
 	g.GET("/customers", h.listCustomers)
 	g.POST("/customers", h.createCustomer)
 	g.GET("/customers/:id", h.getCustomer)
+	g.POST("/customers/:id/erase", h.eraseCustomer)
+	g.POST("/customers/erase-by-email", h.eraseByEmail)
 	g.GET("/customers/:id/addresses", h.listCustomerAddresses)
 	g.POST("/customers/:id/addresses", h.createCustomerAddress)
 
@@ -190,7 +193,7 @@ func (h *handler) getOrder(c echo.Context) error {
 }
 
 type placeOrderInput struct {
-	Order sqlcdb.CreateOrderParams     `json:"order"`
+	Order sqlcdb.CreateOrderParams       `json:"order"`
 	Lines []sqlcdb.CreateOrderLineParams `json:"lines"`
 }
 
@@ -299,4 +302,30 @@ func (h *handler) closeRetailShift(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, res)
+}
+
+// eraseCustomer anonymizes a customer's personal data (GDPR right to erasure). Orders and their money stay.
+func (h *handler) eraseCustomer(c echo.Context) error {
+	if err := h.svc.EraseCustomer(c.Request().Context(), c.Param("id")); err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+// eraseByEmail erases everything held for an e-mail address, guest orders included. It answers 204 whether or not
+// the address is known, so it cannot be used to find out who has ordered.
+func (h *handler) eraseByEmail(c echo.Context) error {
+	var in struct {
+		Email string `json:"email" validate:"required,email,max=254"`
+	}
+	if err := httpx.BindJSON(c, &in, 4096); err != nil {
+		return err
+	}
+	if err := h.svc.EraseByEmail(c.Request().Context(), in.Email); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

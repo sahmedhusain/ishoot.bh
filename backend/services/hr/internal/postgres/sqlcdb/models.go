@@ -51,6 +51,7 @@ type HrEmployee struct {
 	OtherAllowances    pgtype.Numeric
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+	ReportingTo        *string
 }
 
 type HrInbox struct {

@@ -2,8 +2,11 @@ package httpapi
 
 import (
 	"errors"
-	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
+
+	"github.com/labstack/echo/v4"
+
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -11,7 +14,6 @@ import (
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/app"
-	"strconv"
 )
 
 func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaff, bodyLimit int64) {
@@ -28,7 +30,7 @@ func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaf
 				return 0, problem.Validation()
 			}
 		}
-		return int32(n), nil
+		return int32(n), nil // #nosec G109 -- validated range fits int32
 	}
 	g.GET("/staff-accounts", func(c echo.Context) error {
 		n, err := limit(c)

@@ -14,6 +14,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nats-io/nats.go/jetstream"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -81,7 +83,7 @@ func run(command string) error {
 		return migrate.Run(ctx, pool, migrate.Options{Schema: Schema, Migrations: migrations.FS, Logger: logger.Logger})
 	}
 
-	svc := app.New(postgres.New(pool))
+	svc := app.New(postgres.New(pool)).WithEraseKey([]byte(cfg.ErasureKey))
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))
@@ -102,7 +104,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if err != nil {
 		return err
 	}
-	e, err := httpx.New(cfg.Common, logger, metrics)
+	e, err := httpx.New(cfg.Common, logger, metrics) //nolint:contextcheck // Request contexts are supplied by Echo at request time.
 	if err != nil {
 		return err
 	}
@@ -117,10 +119,15 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if err != nil {
 		return err
 	}
+	consumerDone, err := startCommerceConsumer(ctx, cfg, logger, svc)
+	if err != nil {
+		return err
+	}
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("sales service starting")
 	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 	<-relayDone
+	<-consumerDone
 	return runErr
 }
 
@@ -147,6 +154,30 @@ func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, p
 		defer close(done)
 		defer client.Close()
 		_ = relay.Run(ctx)
+	}()
+	return done, nil
+}
+
+// startCommerceConsumer removes sales's copies of a customer's personal data when commerce reports an erasure.
+func startCommerceConsumer(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName+"-consumer", logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		handle := func(ctx context.Context, msg jetstream.Msg) error {
+			return svc.HandleCustomerErased(ctx, natsx.EventID(msg), msg.Data())
+		}
+		if err := client.Consume(ctx, app.CommerceEventsConsumer, []string{app.SubjectCustomerErased}, handle, logger.Logger); err != nil {
+			logger.Error("commerce events consumer stopped", "error", err)
+		}
 	}()
 	return done, nil
 }

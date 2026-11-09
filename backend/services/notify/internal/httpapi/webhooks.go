@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+
 	"platform.local/backend/pkg/problem"
 )
 
@@ -34,7 +35,7 @@ func verifySvixSignature(secret string, id, timestamp string, payload []byte, si
 	}
 
 	mac := hmac.New(sha256.New, key)
-	mac.Write([]byte(fmt.Sprintf("%s.%s.", id, timestamp)))
+	fmt.Fprintf(mac, "%s.%s.", id, timestamp)
 	mac.Write(payload)
 	expectedSig := "v1," + base64.StdEncoding.EncodeToString(mac.Sum(nil))
 

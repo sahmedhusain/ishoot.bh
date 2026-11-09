@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/riverqueue/river"
 	"io"
 	"net/http"
-	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/riverqueue/river"
+
+	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
 
 type ProfileProjectionArgs struct{}

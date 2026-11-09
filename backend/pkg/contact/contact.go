@@ -3,12 +3,13 @@ package contact
 
 import (
 	"errors"
-	"github.com/nyaruka/phonenumbers"
-	"golang.org/x/text/language"
-	"golang.org/x/text/language/display"
 	"net/mail"
 	"regexp"
 	"strings"
+
+	"github.com/nyaruka/phonenumbers"
+	"golang.org/x/text/language"
+	"golang.org/x/text/language/display"
 )
 
 var ErrInvalid = errors.New("invalid contact field")

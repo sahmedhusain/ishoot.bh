@@ -3,6 +3,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -24,6 +25,7 @@ const (
 	EventOrderPaid      = "commerce.order.paid"
 	EventOrderFulfilled = "commerce.order.fulfilled"
 	EventOrderCancelled = "commerce.order.cancelled"
+	EventCustomerErased = "commerce.customer.erased"
 )
 
 type Service struct {
@@ -254,4 +256,75 @@ func (s *Service) CreateRetailShift(ctx context.Context, in sqlcdb.CreateRetailS
 
 func (s *Service) CloseRetailShift(ctx context.Context, in sqlcdb.CloseRetailShiftParams) (postgres.RetailShift, error) {
 	return s.store.CloseRetailShift(ctx, in)
+}
+
+// EraseCustomer anonymizes a customer's personal data for a right-to-erasure request and announces it so other
+// services can do the same for their own copies.
+func (s *Service) EraseCustomer(ctx context.Context, id string) error {
+	return s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		found, err := eraseInTx(ctx, st, tx, id)
+		if err != nil {
+			return err
+		}
+		if !found {
+			return ErrNotFound
+		}
+		return nil
+	})
+}
+
+func eraseInTx(ctx context.Context, st *postgres.Store, tx pgx.Tx, id string) (bool, error) {
+	erased, err := st.EraseCustomer(ctx, id)
+	if err != nil || !erased.Found {
+		return false, err
+	}
+	// Only IDs travel: the event must not carry the personal data it asks others to remove.
+	return true, announceErased(ctx, tx, id, erased)
+}
+
+func announceErased(ctx context.Context, tx pgx.Tx, customerID string, erased postgres.Erased) error {
+	return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{Subject: EventCustomerErased, Payload: map[string]any{
+		"customerId": customerID, "orderIds": erased.OrderIDs, "contactIds": erased.ContactIDs, "emailHashes": erased.EmailHashes,
+	}})
+}
+
+// EraseByEmail erases everything commerce holds for an e-mail address, including guest orders, and announces it.
+// It succeeds whether or not the address was known, so callers cannot probe who has ordered.
+func (s *Service) EraseByEmail(ctx context.Context, email string) error {
+	return s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		erased, err := st.EraseByEmail(ctx, email)
+		if err != nil {
+			return err
+		}
+		return announceErased(ctx, tx, "", erased)
+	})
+}
+
+// IdentityEventsConsumer names commerce's durable consumer of identity's events (and its inbox rows).
+const IdentityEventsConsumer = "commerce-identity-events"
+
+// SubjectUserDeleted is the event identity publishes when a person deletes their own account.
+const SubjectUserDeleted = "identity.user.deleted"
+
+// HandleUserDeleted erases the commerce data of a customer who deleted their account. A customer's commerce id is
+// their identity subject. Staff and IT deletions, unknown customers and redelivered events do nothing.
+func (s *Service) HandleUserDeleted(ctx context.Context, eventID string, payload []byte) error {
+	var in struct {
+		SubjectID string `json:"subjectId"`
+		Realm     string `json:"realm"`
+	}
+	if err := json.Unmarshal(payload, &in); err != nil {
+		return nil // a malformed event can never succeed; redelivering it would only repeat the failure
+	}
+	if in.Realm != "customer" || in.SubjectID == "" {
+		return nil
+	}
+	return s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		first, err := outbox.Handled(ctx, tx, postgres.Schema, IdentityEventsConsumer, eventID)
+		if err != nil || !first {
+			return err
+		}
+		_, err = eraseInTx(ctx, st, tx, in.SubjectID)
+		return err
+	})
 }

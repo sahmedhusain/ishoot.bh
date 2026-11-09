@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"platform.local/backend/pkg/outbox"
-	"platform.local/backend/services/system/internal/postgres"
-	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"platform.local/backend/pkg/outbox"
+	"platform.local/backend/services/system/internal/postgres"
+	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
 
 var ErrFileLookupUnavailable = errors.New("company file verification unavailable")

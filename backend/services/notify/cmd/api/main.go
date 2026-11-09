@@ -165,7 +165,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 		return err
 	}
 	e.Use(telemetry.EchoMiddleware())
-	httpapi.Register(e, svc, httpapi.Options{
+	httpapi.Register(e, svc, httpapi.Options{ //nolint:contextcheck // Request contexts are supplied by Echo at request time.
 		Verifier: verifier, SendCallers: cfg.Notify.SendCallers, BodyLimit: cfg.Notify.BodyLimit,
 		InboxCallers: cfg.Notify.InboxCallers, InboxBodyLimit: cfg.Notify.InboxBodyLimit,
 		DefaultPageSize: cfg.Notify.DefaultPageSize, MaxPageSize: cfg.Notify.MaxPageSize,

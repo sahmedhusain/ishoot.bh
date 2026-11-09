@@ -8,9 +8,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"platform.local/backend/services/system/internal/app"
 	"strings"
 	"time"
+
+	"platform.local/backend/services/system/internal/app"
 )
 
 type Client struct {

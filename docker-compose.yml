@@ -255,6 +255,7 @@ x-commerce: &commerce
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
     AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
     NATS_URL: ${NATS_URL:-nats://nats:4222}
+    ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-0123456789abcdef0123456789abcdef}
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
@@ -350,6 +351,7 @@ x-sales: &sales
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
     AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
     NATS_URL: ${NATS_URL:-nats://nats:4222}
+    ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-0123456789abcdef0123456789abcdef}
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 

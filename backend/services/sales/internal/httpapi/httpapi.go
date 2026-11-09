@@ -37,7 +37,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	e.POST("/v1/sales/inquiries", h.createInquiry)
 
 	// Protected routes
-	auth := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
+	auth := authn.Require(opts.Verifier, authn.RealmService)
 	g := e.Group("/v1/sales", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Contacts

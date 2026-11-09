@@ -9,6 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
+	"time"
+
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/ratelimit"
@@ -23,7 +25,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/internal/systemclient"
 	"platform.local/backend/services/identity/settings"
-	"time"
 )
 
 type loginServices struct {

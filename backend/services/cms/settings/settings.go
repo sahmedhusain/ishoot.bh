@@ -12,10 +12,10 @@ import (
 // Config is the cms service's configuration.
 type Config struct {
 	config.Common
-	Database db.Config    `envPrefix:"DATABASE_"`
-	Auth     authn.Config `envPrefix:"AUTH_"`
-	CMS      CMS          `envPrefix:"CMS_"`
-	NATS     natsx.Config `envPrefix:"NATS_"`
+	Database db.Config     `envPrefix:"DATABASE_"`
+	Auth     authn.Config  `envPrefix:"AUTH_"`
+	CMS      CMS           `envPrefix:"CMS_"`
+	NATS     natsx.Config  `envPrefix:"NATS_"`
 	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
 }
 

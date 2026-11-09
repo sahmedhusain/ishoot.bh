@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"slices"
 	"strconv"
 	"time"
 
@@ -50,7 +49,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	public.GET("/snapshots/:id", h.getContentSnapshot)
 
 	// Protected Endpoints (Staff or Service token)
-	authMiddleware := authn.Require(opts.Verifier, authn.RealmStaff, authn.RealmService, authn.RealmIT)
+	authMiddleware := authn.Require(opts.Verifier, authn.RealmService)
 	desk := e.Group("/v1/cms", authMiddleware, authz.ServiceCallers(opts.Readers, opts.Writers))
 
 	// Pages
@@ -82,18 +81,6 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	// Snapshots
 	desk.PUT("/snapshots/:id/draft", h.saveDraft)
 	desk.POST("/snapshots/:id/publish", h.publishSnapshot)
-}
-
-func caller(allowed []string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			p, ok := authn.PrincipalFrom(c.Request().Context())
-			if !ok || !slices.Contains(allowed, p.Subject) {
-				return problem.Forbidden("")
-			}
-			return next(c)
-		}
-	}
 }
 
 // Pages Handlers

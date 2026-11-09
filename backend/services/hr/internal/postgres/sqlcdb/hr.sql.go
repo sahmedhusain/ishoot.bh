@@ -61,7 +61,7 @@ INSERT INTO hr.employee (
     $7, $8, $9, $10, $11, $12, $13,
     $14, $15, $16, $17,
     now(), now()
-) RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at
+) RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
 
 type CreateEmployeeParams struct {
@@ -125,6 +125,7 @@ func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) 
 		&i.OtherAllowances,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReportingTo,
 	)
 	return i, err
 }
@@ -264,7 +265,7 @@ func (q *Queries) GetDepartmentByID(ctx context.Context, id string) (HrDepartmen
 }
 
 const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
-SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at FROM hr.employee WHERE email = $1 LIMIT 1
+SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee WHERE email = $1 LIMIT 1
 `
 
 func (q *Queries) GetEmployeeByEmail(ctx context.Context, email string) (HrEmployee, error) {
@@ -290,12 +291,13 @@ func (q *Queries) GetEmployeeByEmail(ctx context.Context, email string) (HrEmplo
 		&i.OtherAllowances,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReportingTo,
 	)
 	return i, err
 }
 
 const getEmployeeByID = `-- name: GetEmployeeByID :one
-SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at FROM hr.employee WHERE id = $1 LIMIT 1
+SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetEmployeeByID(ctx context.Context, id string) (HrEmployee, error) {
@@ -321,6 +323,7 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id string) (HrEmployee, e
 		&i.OtherAllowances,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReportingTo,
 	)
 	return i, err
 }
@@ -513,7 +516,7 @@ func (q *Queries) ListDepartments(ctx context.Context) ([]HrDepartment, error) {
 }
 
 const listEmployees = `-- name: ListEmployees :many
-SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at FROM hr.employee ORDER BY employee_number ASC
+SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee ORDER BY employee_number ASC
 `
 
 func (q *Queries) ListEmployees(ctx context.Context) ([]HrEmployee, error) {
@@ -545,6 +548,7 @@ func (q *Queries) ListEmployees(ctx context.Context) ([]HrEmployee, error) {
 			&i.OtherAllowances,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ReportingTo,
 		); err != nil {
 			return nil, err
 		}
@@ -804,7 +808,7 @@ UPDATE hr.employee SET
     other_allowances = $16,
     updated_at = now()
 WHERE id = $1
-RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at
+RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
 
 type UpdateEmployeeParams struct {
@@ -866,6 +870,7 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 		&i.OtherAllowances,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReportingTo,
 	)
 	return i, err
 }
@@ -875,7 +880,7 @@ UPDATE hr.employee SET
     status = $2,
     updated_at = now()
 WHERE id = $1
-RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at
+RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
 
 type UpdateEmployeeStatusParams struct {
@@ -906,6 +911,7 @@ func (q *Queries) UpdateEmployeeStatus(ctx context.Context, arg UpdateEmployeeSt
 		&i.OtherAllowances,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReportingTo,
 	)
 	return i, err
 }

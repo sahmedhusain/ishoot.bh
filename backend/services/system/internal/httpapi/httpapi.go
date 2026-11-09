@@ -29,7 +29,7 @@ const (
 // Options configures the handlers.
 type Options struct {
 	CompanyReaders, CompanyWriters, SequenceCallers, CurrencyCallers []string
-	CompanyBodyLimit                                 int64
+	CompanyBodyLimit                                                 int64
 
 	Verifier *authn.Verifier
 	// ReadCallers may read settings; ModuleWriters may switch modules; IntegrationWriters may modify integrations;

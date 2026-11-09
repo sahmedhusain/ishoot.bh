@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
-	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 	"time"
+
+	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
 
 func (s *Store) Company(ctx context.Context, lock bool) (sqlcdb.SystemCompany, error) {

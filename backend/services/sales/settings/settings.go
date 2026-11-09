@@ -11,11 +11,13 @@ import (
 
 type Config struct {
 	config.Common
-	Database db.Config     `envPrefix:"DATABASE_"`
-	Auth     authn.Config  `envPrefix:"AUTH_"`
-	Sales    Sales         `envPrefix:"SALES_"`
-	NATS     natsx.Config  `envPrefix:"NATS_"`
-	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
+	Database db.Config    `envPrefix:"DATABASE_"`
+	Auth     authn.Config `envPrefix:"AUTH_"`
+	Sales    Sales        `envPrefix:"SALES_"`
+	NATS     natsx.Config `envPrefix:"NATS_"`
+	// ErasureKey keys the e-mail hashes commerce and sales exchange in erasure events; both must have the same value.
+	ErasureKey string        `env:"ERASURE_HASH_KEY" validate:"required,min=32"`
+	Outbox     outbox.Config `envPrefix:"OUTBOX_"`
 }
 
 type Sales struct {

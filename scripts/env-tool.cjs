@@ -23,6 +23,7 @@ const SECRETS = {
   REVALIDATION_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   MFA_ENCRYPTION_KEY: () => crypto.randomBytes(32).toString("base64"),
   ENCRYPTION_KEY: () => crypto.randomBytes(16).toString("hex"),
+  ERASURE_HASH_KEY: () => crypto.randomBytes(32).toString("hex"),
   CUSTOMER_AUTH_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   CRON_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   POSTGRES_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
@@ -226,6 +227,7 @@ function check() {
   need(!!env.REVALIDATION_SECRET, "REVALIDATION_SECRET is empty");
   need(Buffer.from(env.MFA_ENCRYPTION_KEY || "", "base64").length === 32, "MFA_ENCRYPTION_KEY must be 32 bytes, base64 encoded");
   need(Buffer.byteLength(env.ENCRYPTION_KEY || "", "utf8") === 32, "ENCRYPTION_KEY must be exactly 32 characters");
+  need(Buffer.byteLength(env.ERASURE_HASH_KEY || "", "utf8") >= 32, "ERASURE_HASH_KEY must be at least 32 characters");
   need(!env.SUPER_ADMIN_PASSWORD || (Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) >= 12 && Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) <= 72), "SUPER_ADMIN_PASSWORD must be 12 to 72 bytes");
   need(!!env.SUPER_ADMIN_EMAIL && !!env.SUPER_ADMIN_PASSWORD, "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD are needed to seed or bootstrap", warnings);
   for (const [key, entry] of parse(text))

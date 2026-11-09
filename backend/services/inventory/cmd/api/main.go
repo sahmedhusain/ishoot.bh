@@ -103,7 +103,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 		return err
 	}
 
-	e, err := httpx.New(cfg.Common, logger, metrics)
+	e, err := httpx.New(cfg.Common, logger, metrics) //nolint:contextcheck // Request contexts are supplied by Echo at request time.
 	if err != nil {
 		return err
 	}

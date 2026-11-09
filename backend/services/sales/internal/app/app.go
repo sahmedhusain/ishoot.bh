@@ -27,8 +27,9 @@ const (
 )
 
 type Service struct {
-	store *postgres.Store
-	now   func() time.Time
+	eraseKey []byte // keys the e-mail hashes in erasure events (pkg/erasure)
+	store    *postgres.Store
+	now      func() time.Time
 }
 
 func New(store *postgres.Store) *Service {

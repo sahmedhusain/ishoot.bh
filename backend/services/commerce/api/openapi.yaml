@@ -58,6 +58,48 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Customer" }
 
+  /v1/commerce/customers/erase-by-email:
+    post:
+      tags: [customers]
+      operationId: eraseCustomerByEmail
+      summary: Erase everything held for an e-mail address (right to erasure)
+      description: >
+        Erases every customer registered with the address and the guest orders placed with it, as eraseCustomer does,
+        and tells delivery and sales to remove their copies. Always answers 204, known address or not.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        "204":
+          description: Erasure done (or nothing was held)
+
+  /v1/commerce/customers/{id}/erase:
+    post:
+      tags: [customers]
+      operationId: eraseCustomer
+      summary: Erase a customer's personal data (right to erasure)
+      description: >
+        Anonymizes the customer record, deletes saved addresses, and removes name, e-mail, phone, address and free-text
+        notes from the customer's orders. Orders, line items, totals and payments are kept for accounting. Safe to repeat.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Personal data erased
+        "404":
+          description: Unknown customer
+
   /v1/commerce/coupons:
     get:
       tags: [coupons]

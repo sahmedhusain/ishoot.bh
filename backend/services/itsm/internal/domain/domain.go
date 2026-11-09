@@ -236,4 +236,3 @@ func (NotificationArgs) Kind() string { return "itsm.send_ticket_notification" }
 func (NotificationArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: Queue}
 }
-

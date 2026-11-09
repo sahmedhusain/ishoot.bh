@@ -11,11 +11,11 @@ import (
 
 type Config struct {
 	config.Common
-	Database  db.Config        `envPrefix:"DATABASE_"`
-	Auth      authn.Config     `envPrefix:"AUTH_"`
+	Database  db.Config         `envPrefix:"DATABASE_"`
+	Auth      authn.Config      `envPrefix:"AUTH_"`
 	Inventory InventorySettings `envPrefix:"INVENTORY_"`
-	NATS      natsx.Config     `envPrefix:"NATS_"`
-	Outbox    outbox.Config    `envPrefix:"OUTBOX_"`
+	NATS      natsx.Config      `envPrefix:"NATS_"`
+	Outbox    outbox.Config     `envPrefix:"OUTBOX_"`
 }
 
 type InventorySettings struct {

@@ -37,9 +37,9 @@ type System struct {
 	CompanyBodyLimit int64    `env:"COMPANY_BODY_LIMIT" envDefault:"1048576" validate:"gt=0"`
 	CompanyReaders   []string `env:"COMPANY_READERS" envDefault:"admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms" envSeparator:"," validate:"min=1,dive,required"`
 	// CompanyWriters may install or update company configuration on behalf of a named actor.
-	CompanyWriters   []string `env:"COMPANY_WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
-	CurrencyCallers  []string `env:"CURRENCY_CALLERS" envDefault:"admin,web,sales,finance,workflow,hr,inventory,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
-	SequenceCallers  []string `env:"SEQUENCE_CALLERS" envDefault:"admin,finance" envSeparator:"," validate:"min=1,dive,required"`
+	CompanyWriters  []string `env:"COMPANY_WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	CurrencyCallers []string `env:"CURRENCY_CALLERS" envDefault:"admin,web,sales,finance,workflow,hr,inventory,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
+	SequenceCallers []string `env:"SEQUENCE_CALLERS" envDefault:"admin,finance" envSeparator:"," validate:"min=1,dive,required"`
 	// ReadCallers are the service identities that may read settings.
 	ReadCallers []string `env:"READ_CALLERS" envDefault:"admin,web,it,notify" envSeparator:"," validate:"min=1,dive,required"`
 	// ModuleReadCallers may read module availability only, without integration credentials or site settings.

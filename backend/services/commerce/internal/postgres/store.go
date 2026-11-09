@@ -26,13 +26,23 @@ type RetailShift = sqlcdb.CommerceRetailShift
 type Store struct {
 	pool *pgxpool.Pool
 	q    *sqlcdb.Queries
+	tx   pgx.Tx // set inside Tx; lets a method run statements sqlc does not generate
+
+	eraseKey []byte // keys the e-mail hashes in erasure events (pkg/erasure)
+}
+
+// WithEraseKey returns the store hashing e-mail addresses in erasure events under key.
+func (s *Store) WithEraseKey(key []byte) *Store {
+	c := *s
+	c.eraseKey = key
+	return &c
 }
 
 func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
 
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return fn(&Store{q: s.q.WithTx(tx)}, tx)
+		return fn(&Store{q: s.q.WithTx(tx), tx: tx, eraseKey: s.eraseKey}, tx)
 	})
 }
 

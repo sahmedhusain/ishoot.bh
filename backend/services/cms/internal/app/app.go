@@ -21,9 +21,9 @@ var (
 )
 
 const (
-	EventPageChanged       = "cms.page.changed"
-	EventArticleChanged    = "cms.article.changed"
-	EventContentPublished  = "cms.content.published"
+	EventPageChanged      = "cms.page.changed"
+	EventArticleChanged   = "cms.article.changed"
+	EventContentPublished = "cms.content.published"
 )
 
 type Service struct {

@@ -24,6 +24,7 @@ type IdentityAccount struct {
 	MfaPendingSecretEncrypted *string
 	MfaPendingExpiresAt       *time.Time
 	Username                  *string
+	ReportingTo               *string
 }
 
 type IdentityCustomerCode struct {
@@ -48,6 +49,25 @@ type IdentityInbox struct {
 	Consumer  string
 	EventID   string
 	HandledAt time.Time
+}
+
+type IdentityItPermission struct {
+	ID        string
+	RoleID    string
+	Resource  string
+	Action    string
+	Allowed   bool
+	CreatedAt time.Time
+}
+
+type IdentityItRole struct {
+	ID              string
+	NameEn          string
+	NameAr          string
+	IsSystem        bool
+	ReportingToRole *string
+	Revision        int64
+	CreatedAt       time.Time
 }
 
 type IdentityLegacyResetChallenge struct {
@@ -150,12 +170,13 @@ type IdentityStaffPermission struct {
 }
 
 type IdentityStaffRole struct {
-	ID        string
-	NameEn    string
-	NameAr    string
-	IsSystem  bool
-	CreatedAt time.Time
-	Revision  int64
+	ID              string
+	NameEn          string
+	NameAr          string
+	IsSystem        bool
+	CreatedAt       time.Time
+	Revision        int64
+	ReportingToRole *string
 }
 
 type IdentityStaffRoleScope struct {
