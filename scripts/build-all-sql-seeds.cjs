@@ -679,6 +679,35 @@ function generateProductsData(baseLocations) {
     { sku: "GRP-PRM-JIB9", en: "Proaim Studio Heavy-Duty 9ft Soundstage Jib Crane", ar: "رافعة كاميرا استوديو بروايم 9 أقدام", cat: "grip", cost: 1200, price: 50, reorder: 1 },
 
     { sku: "PST-MAC-STUM", en: "Apple Mac Studio M2 Ultra (128GB Unified RAM) Workstation", ar: "محطة مونتاج وتلوين ماك ستوديو إم2 ألترا", cat: "post", cost: 3200, price: 90, reorder: 2 },
+
+    { sku: "CAM-CAN-C500", en: "Canon EOS C500 Mark II 5.9K Full Frame Camera Package", ar: "كاميرا كانون EOS C500 مارك 2 سينمائية", cat: "cameras", cost: 7800, price: 190, reorder: 1 },
+    { sku: "CAM-BLK-12K", en: "Blackmagic URSA Mini Pro 12K OLPF Cinema Kit", ar: "كاميرا بلاك ماجيك أورسا ميني برو 12K", cat: "cameras", cost: 3800, price: 110, reorder: 1 },
+
+    { sku: "LNS-SIG-FF50", en: "Sigma Cine FF 50mm T1.5 High-Speed Prime Lens", ar: "عدسة سيجما سينمائية فل فريم 50 ملم T1.5", cat: "lenses", cost: 3200, price: 65, reorder: 1 },
+    { sku: "LNS-LEI-H50", en: "Leitz Hugo 50mm T1.5 Cinema Prime Lens", ar: "عدسة لايتز هيوجو 50 ملم T1.5 سينمائية", cat: "lenses", cost: 8900, price: 140, reorder: 1 },
+
+    { sku: "LGT-APT-600C", en: "Aputure LS 600c Pro RGBWW Point-Source LED Light", ar: "إضاءة أبوتر LS 600c برو ملونة", cat: "lighting", cost: 1950, price: 50, reorder: 2 },
+    { sku: "LGT-AST-HYD8", en: "Astera Helios Tube 8-Light Wireless LED Kit", ar: "طقم أنابيب أستيرا هيليوس 8 وحدات لاسلكية", cat: "lighting", cost: 1450, price: 40, reorder: 2 },
+
+    { sku: "AUD-SND-833", en: "Sound Devices 833 8-Channel Field Recorder", ar: "جهاز تسجيل صوتي ميداني ساوند ديفايسز 833", cat: "audio", cost: 2400, price: 65, reorder: 1 },
+    { sku: "AUD-SCH-50", en: "Sennheiser MKH 50 Supercardioid Studio Mic", ar: "ميكروفون استوديو سينهايزر MKH 50", cat: "audio", cost: 680, price: 30, reorder: 3 },
+
+    { sku: "DRN-DJI-MAV3", en: "DJI Mavic 3 Enterprise Thermal Inspection Drone", ar: "طائرة درون حرارية دي جيه آي مافيك 3", cat: "drones", cost: 2600, price: 95, reorder: 1 },
+    { sku: "GMB-DJI-RS4P", en: "DJI RS 4 Pro Motorized 3-Axis Gimbal Stabilizer", ar: "مانع اهتزاز دي جيه آي RS 4 برو ثلاثي المحاور", cat: "drones", cost: 650, price: 35, reorder: 2 },
+
+    { sku: "MON-TRD-750", en: "Teradek Bolt 4K LT 750 Wireless Video Receiver", ar: "مستقبل فيديو لاسلكي تيراديك بولت 4K 750", cat: "monitors", cost: 1800, price: 50, reorder: 2 },
+    { sku: "MON-ATM-SUM1", en: "Atomos Sumo 19-inch 4K HDR Monitor & Live Switcher", ar: "شاشة أتموس سومو 19 بوصة سينمائية", cat: "monitors", cost: 1650, price: 45, reorder: 1 },
+
+    { sku: "GRP-DOLLY-PRM", en: "Proaim Portable Track Camera Dolly & 20ft Rails", ar: "دوللي ومسار كاميرا بروايم 20 قدم", cat: "grip", cost: 1100, price: 45, reorder: 1 },
+    { sku: "GRP-STEADI-PRO", en: "Tiffen Steadicam M-2 Production Stabilizer Rig", ar: "جهاز ستيديكام تيفن M-2 احترافي", cat: "grip", cost: 5800, price: 130, reorder: 1 },
+
+    { sku: "PST-RAID-64T", en: "Promise Pegasus32 R8 64TB Hardware RAID Array", ar: "نظام تخزين هاردوير بروميس بيجاسوس 64 تيرابايت", cat: "post", cost: 2400, price: 70, reorder: 1 },
+    { sku: "PST-LTO-TAP9", en: "mLogic LTO-9 Thunderbolt 3 Tape Archival Drive", ar: "جهاز أرشفة وشريط لتو-9 ثاندربرولت", cat: "post", cost: 3400, price: 85, reorder: 1 },
+
+    { sku: "ACC-BTR-VMT4", en: "Anton Bauer Titon 150 V-Mount Battery 4-Pack & Charger", ar: "طقم بطاريات أنتوت باور 150 فولت ماونت (4 بطاريات)", cat: "post", cost: 1200, price: 35, reorder: 3 },
+    { sku: "ACC-CBL-12GSDI", en: "Canare 12G-SDI Heavy-Duty Coaxial Cable Reel 100m", ar: "بكرة كابلات سينمائية 12G-SDI طوال 100 متر", cat: "post", cost: 350, price: 15, reorder: 5 },
+    { sku: "ACC-PEL-1650", en: "Pelican 1650 Protector Hard Case with TrekPak Dividers", ar: "حقيبة بليكان 1650 حماية للمعدات السينمائية", cat: "post", cost: 280, price: 12, reorder: 6 },
+    { sku: "ACC-FLT-MAT1", en: "Matthews Road Rags Portable Lighting Modifier Kit", ar: "طقم تعديل وتوجيه إضاءة ماثيوز المحمول", cat: "post", cost: 420, price: 20, reorder: 4 },
   ];
 
   const categories = [

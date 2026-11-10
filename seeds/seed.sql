@@ -2,7 +2,7 @@
 -- PURE SQL SEED: iShoot Cinema Production S.P.C.
 -- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
 -- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
--- Generated: 2026-11-10T19:03:07.780Z
+-- Generated: 2026-11-10T19:08:39.237Z
 -- ============================================================================
 BEGIN;
 
@@ -8641,6 +8641,186 @@ VALUES ('sl-' || 'prod-pst-mac-stum', 'prod-pst-mac-stum', '9beb13e4-55d1-41bc-a
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
 VALUES ('sm-' || 'prod-pst-mac-stum', 'prod-pst-mac-stum', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-cam-can-c500', 'CAM-CAN-C500', 'Canon EOS C500 Mark II 5.9K Full Frame Camera Package', 'كاميرا كانون EOS C500 مارك 2 سينمائية', 'Canon EOS C500 Mark II 5.9K Full Frame Camera Package', 'كاميرا كانون EOS C500 مارك 2 سينمائية', 'cameras', 7800.0000, 190.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-cam-can-c500', 'prod-cam-can-c500', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-cam-can-c500', 'prod-cam-can-c500', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 7800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-cam-blk-12k', 'CAM-BLK-12K', 'Blackmagic URSA Mini Pro 12K OLPF Cinema Kit', 'كاميرا بلاك ماجيك أورسا ميني برو 12K', 'Blackmagic URSA Mini Pro 12K OLPF Cinema Kit', 'كاميرا بلاك ماجيك أورسا ميني برو 12K', 'cameras', 3800.0000, 110.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-cam-blk-12k', 'prod-cam-blk-12k', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-cam-blk-12k', 'prod-cam-blk-12k', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lns-sig-ff50', 'LNS-SIG-FF50', 'Sigma Cine FF 50mm T1.5 High-Speed Prime Lens', 'عدسة سيجما سينمائية فل فريم 50 ملم T1.5', 'Sigma Cine FF 50mm T1.5 High-Speed Prime Lens', 'عدسة سيجما سينمائية فل فريم 50 ملم T1.5', 'lenses', 3200.0000, 65.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lns-sig-ff50', 'prod-lns-sig-ff50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lns-sig-ff50', 'prod-lns-sig-ff50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lns-lei-h50', 'LNS-LEI-H50', 'Leitz Hugo 50mm T1.5 Cinema Prime Lens', 'عدسة لايتز هيوجو 50 ملم T1.5 سينمائية', 'Leitz Hugo 50mm T1.5 Cinema Prime Lens', 'عدسة لايتز هيوجو 50 ملم T1.5 سينمائية', 'lenses', 8900.0000, 140.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lns-lei-h50', 'prod-lns-lei-h50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lns-lei-h50', 'prod-lns-lei-h50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 8900.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-apt-600c', 'LGT-APT-600C', 'Aputure LS 600c Pro RGBWW Point-Source LED Light', 'إضاءة أبوتر LS 600c برو ملونة', 'Aputure LS 600c Pro RGBWW Point-Source LED Light', 'إضاءة أبوتر LS 600c برو ملونة', 'lighting', 1950.0000, 50.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-apt-600c', 'prod-lgt-apt-600c', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-apt-600c', 'prod-lgt-apt-600c', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1950.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-ast-hyd8', 'LGT-AST-HYD8', 'Astera Helios Tube 8-Light Wireless LED Kit', 'طقم أنابيب أستيرا هيليوس 8 وحدات لاسلكية', 'Astera Helios Tube 8-Light Wireless LED Kit', 'طقم أنابيب أستيرا هيليوس 8 وحدات لاسلكية', 'lighting', 1450.0000, 40.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-ast-hyd8', 'prod-lgt-ast-hyd8', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-ast-hyd8', 'prod-lgt-ast-hyd8', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1450.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-snd-833', 'AUD-SND-833', 'Sound Devices 833 8-Channel Field Recorder', 'جهاز تسجيل صوتي ميداني ساوند ديفايسز 833', 'Sound Devices 833 8-Channel Field Recorder', 'جهاز تسجيل صوتي ميداني ساوند ديفايسز 833', 'audio', 2400.0000, 65.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-snd-833', 'prod-aud-snd-833', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-snd-833', 'prod-aud-snd-833', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2400.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-sch-50', 'AUD-SCH-50', 'Sennheiser MKH 50 Supercardioid Studio Mic', 'ميكروفون استوديو سينهايزر MKH 50', 'Sennheiser MKH 50 Supercardioid Studio Mic', 'ميكروفون استوديو سينهايزر MKH 50', 'audio', 680.0000, 30.0000, 'BHD', 10.00, true, true, 3.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-sch-50', 'prod-aud-sch-50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 3.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-sch-50', 'prod-aud-sch-50', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 680.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-drn-dji-mav3', 'DRN-DJI-MAV3', 'DJI Mavic 3 Enterprise Thermal Inspection Drone', 'طائرة درون حرارية دي جيه آي مافيك 3', 'DJI Mavic 3 Enterprise Thermal Inspection Drone', 'طائرة درون حرارية دي جيه آي مافيك 3', 'drones', 2600.0000, 95.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-drn-dji-mav3', 'prod-drn-dji-mav3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-drn-dji-mav3', 'prod-drn-dji-mav3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2600.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-gmb-dji-rs4p', 'GMB-DJI-RS4P', 'DJI RS 4 Pro Motorized 3-Axis Gimbal Stabilizer', 'مانع اهتزاز دي جيه آي RS 4 برو ثلاثي المحاور', 'DJI RS 4 Pro Motorized 3-Axis Gimbal Stabilizer', 'مانع اهتزاز دي جيه آي RS 4 برو ثلاثي المحاور', 'drones', 650.0000, 35.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-gmb-dji-rs4p', 'prod-gmb-dji-rs4p', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-gmb-dji-rs4p', 'prod-gmb-dji-rs4p', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 650.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-mon-trd-750', 'MON-TRD-750', 'Teradek Bolt 4K LT 750 Wireless Video Receiver', 'مستقبل فيديو لاسلكي تيراديك بولت 4K 750', 'Teradek Bolt 4K LT 750 Wireless Video Receiver', 'مستقبل فيديو لاسلكي تيراديك بولت 4K 750', 'monitors', 1800.0000, 50.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-mon-trd-750', 'prod-mon-trd-750', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-mon-trd-750', 'prod-mon-trd-750', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-mon-atm-sum1', 'MON-ATM-SUM1', 'Atomos Sumo 19-inch 4K HDR Monitor & Live Switcher', 'شاشة أتموس سومو 19 بوصة سينمائية', 'Atomos Sumo 19-inch 4K HDR Monitor & Live Switcher', 'شاشة أتموس سومو 19 بوصة سينمائية', 'monitors', 1650.0000, 45.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-mon-atm-sum1', 'prod-mon-atm-sum1', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-mon-atm-sum1', 'prod-mon-atm-sum1', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1650.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-dolly-prm', 'GRP-DOLLY-PRM', 'Proaim Portable Track Camera Dolly & 20ft Rails', 'دوللي ومسار كاميرا بروايم 20 قدم', 'Proaim Portable Track Camera Dolly & 20ft Rails', 'دوللي ومسار كاميرا بروايم 20 قدم', 'grip', 1100.0000, 45.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-dolly-prm', 'prod-grp-dolly-prm', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-dolly-prm', 'prod-grp-dolly-prm', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1100.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-steadi-pro', 'GRP-STEADI-PRO', 'Tiffen Steadicam M-2 Production Stabilizer Rig', 'جهاز ستيديكام تيفن M-2 احترافي', 'Tiffen Steadicam M-2 Production Stabilizer Rig', 'جهاز ستيديكام تيفن M-2 احترافي', 'grip', 5800.0000, 130.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-steadi-pro', 'prod-grp-steadi-pro', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-steadi-pro', 'prod-grp-steadi-pro', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 5800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-pst-raid-64t', 'PST-RAID-64T', 'Promise Pegasus32 R8 64TB Hardware RAID Array', 'نظام تخزين هاردوير بروميس بيجاسوس 64 تيرابايت', 'Promise Pegasus32 R8 64TB Hardware RAID Array', 'نظام تخزين هاردوير بروميس بيجاسوس 64 تيرابايت', 'post', 2400.0000, 70.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-pst-raid-64t', 'prod-pst-raid-64t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-pst-raid-64t', 'prod-pst-raid-64t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2400.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-pst-lto-tap9', 'PST-LTO-TAP9', 'mLogic LTO-9 Thunderbolt 3 Tape Archival Drive', 'جهاز أرشفة وشريط لتو-9 ثاندربرولت', 'mLogic LTO-9 Thunderbolt 3 Tape Archival Drive', 'جهاز أرشفة وشريط لتو-9 ثاندربرولت', 'post', 3400.0000, 85.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-pst-lto-tap9', 'prod-pst-lto-tap9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-pst-lto-tap9', 'prod-pst-lto-tap9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3400.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-acc-btr-vmt4', 'ACC-BTR-VMT4', 'Anton Bauer Titon 150 V-Mount Battery 4-Pack & Charger', 'طقم بطاريات أنتوت باور 150 فولت ماونت (4 بطاريات)', 'Anton Bauer Titon 150 V-Mount Battery 4-Pack & Charger', 'طقم بطاريات أنتوت باور 150 فولت ماونت (4 بطاريات)', 'post', 1200.0000, 35.0000, 'BHD', 10.00, true, true, 3.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-acc-btr-vmt4', 'prod-acc-btr-vmt4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 3.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-acc-btr-vmt4', 'prod-acc-btr-vmt4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-acc-cbl-12gsdi', 'ACC-CBL-12GSDI', 'Canare 12G-SDI Heavy-Duty Coaxial Cable Reel 100m', 'بكرة كابلات سينمائية 12G-SDI طوال 100 متر', 'Canare 12G-SDI Heavy-Duty Coaxial Cable Reel 100m', 'بكرة كابلات سينمائية 12G-SDI طوال 100 متر', 'post', 350.0000, 15.0000, 'BHD', 10.00, true, true, 5.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-acc-cbl-12gsdi', 'prod-acc-cbl-12gsdi', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 5.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-acc-cbl-12gsdi', 'prod-acc-cbl-12gsdi', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 350.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-acc-pel-1650', 'ACC-PEL-1650', 'Pelican 1650 Protector Hard Case with TrekPak Dividers', 'حقيبة بليكان 1650 حماية للمعدات السينمائية', 'Pelican 1650 Protector Hard Case with TrekPak Dividers', 'حقيبة بليكان 1650 حماية للمعدات السينمائية', 'post', 280.0000, 12.0000, 'BHD', 10.00, true, true, 6.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-acc-pel-1650', 'prod-acc-pel-1650', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 6.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-acc-pel-1650', 'prod-acc-pel-1650', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 280.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-acc-flt-mat1', 'ACC-FLT-MAT1', 'Matthews Road Rags Portable Lighting Modifier Kit', 'طقم تعديل وتوجيه إضاءة ماثيوز المحمول', 'Matthews Road Rags Portable Lighting Modifier Kit', 'طقم تعديل وتوجيه إضاءة ماثيوز المحمول', 'post', 420.0000, 20.0000, 'BHD', 10.00, true, true, 4.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-acc-flt-mat1', 'prod-acc-flt-mat1', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 4.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-acc-flt-mat1', 'prod-acc-flt-mat1', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 420.0000, 'inventory', 'Initial vault intake & testing', now())
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
