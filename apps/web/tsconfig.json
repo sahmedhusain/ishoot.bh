@@ -32,7 +32,10 @@
       "@platform/contracts": ["./lib/contracts/src/index.ts"],
       "@platform/contracts/catalog/*": ["./lib/contracts/catalog/*"],
       "@platform/contracts/*": ["./lib/contracts/src/*"],
-      "@platform/database": ["./lib/index.ts"],
+      "@platform/database": ["./lib/data-hub.ts"],
+      "@platform/database/types": ["./lib/types.ts"],
+      "@platform/database/website-config": ["./lib/website-config.ts"],
+      "@platform/database/website-presets": ["./lib/website-presets.ts"],
       "@platform/database/*": ["./lib/*"],
       "@platform/email": ["./lib/email/index.ts"],
       "@platform/email/*": ["./lib/email/*"],
@@ -45,10 +48,8 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".next-website-test/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-audit/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules", "tests"]
