@@ -2,7 +2,7 @@
 -- PURE SQL SEED: Northwind Studio W.L.L.
 -- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
 -- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
--- Generated: 2026-11-10T19:08:39.245Z
+-- Generated: 2026-11-10T19:12:47.788Z
 -- ============================================================================
 BEGIN;
 
