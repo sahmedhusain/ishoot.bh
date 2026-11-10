@@ -5,7 +5,7 @@
 ARG NODE_IMAGE=node:22-alpine
 
 FROM ${NODE_IMAGE} AS base
-RUN apk add --no-libc-compat --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 FROM base AS builder
@@ -13,13 +13,15 @@ ARG APP=web
 WORKDIR /app
 
 COPY package.json ./
-COPY apps/admin/package.json ./apps/admin/
-COPY apps/it/package.json ./apps/it/
-COPY apps/web/package.json ./apps/web/
-COPY backend/contracts/package.json ./backend/contracts/
+COPY apps/admin/package.json apps/admin/package-lock.json* ./apps/admin/
+COPY apps/it/package.json apps/it/package-lock.json* ./apps/it/
+COPY apps/web/package.json apps/web/package-lock.json* ./apps/web/
+COPY backend/contracts/package.json backend/contracts/package-lock.json* ./backend/contracts/
 
-RUN npm --prefix apps/${APP} install
+WORKDIR /app/apps/${APP}
+RUN npm ci || npm install
 
+WORKDIR /app
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1

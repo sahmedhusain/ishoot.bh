@@ -12,13 +12,15 @@ FROM base AS builder
 WORKDIR /app
 
 COPY package.json ./
-COPY apps/admin/package.json ./apps/admin/
-COPY apps/it/package.json ./apps/it/
-COPY apps/web/package.json ./apps/web/
-COPY backend/contracts/package.json ./backend/contracts/
+COPY apps/admin/package.json apps/admin/package-lock.json* ./apps/admin/
+COPY apps/it/package.json apps/it/package-lock.json* ./apps/it/
+COPY apps/web/package.json apps/web/package-lock.json* ./apps/web/
+COPY backend/contracts/package.json backend/contracts/package-lock.json* ./backend/contracts/
 
-RUN npm --prefix apps/it install
+WORKDIR /app/apps/it
+RUN npm ci || npm install
 
+WORKDIR /app
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
