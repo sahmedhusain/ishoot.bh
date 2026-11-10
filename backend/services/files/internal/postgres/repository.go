@@ -9,6 +9,7 @@ import (
 	"platform.local/backend/services/files/internal/domain"
 	"platform.local/backend/services/files/internal/postgres/sqlcdb"
 )
+const Schema = "files"
 type Repository struct {
 	pool	*pgxpool.Pool
 	q	*sqlcdb.Queries

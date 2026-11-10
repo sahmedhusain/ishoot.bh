@@ -14,6 +14,7 @@ import (
 	"platform.local/backend/services/itsm/internal/domain"
 	"platform.local/backend/services/itsm/internal/postgres/sqlcdb"
 )
+const Schema = "itsm"
 type (
 	Ticket		= sqlcdb.ItsmTicket
 	Comment		= sqlcdb.ItsmTicketComment

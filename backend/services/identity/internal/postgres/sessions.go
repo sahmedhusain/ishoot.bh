@@ -12,6 +12,7 @@ import (
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
 )
+const Schema = "identity"
 type Repository struct {
 	pool	*pgxpool.Pool
 	q	*sqlcdb.Queries

@@ -1,0 +1,6 @@
+openapi: 3.1.0
+info:
+  title: API Gateway
+  version: 1.0.0
+  description: API Gateway service OpenAPI specification
+paths: {}
