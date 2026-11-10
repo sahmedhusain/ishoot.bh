@@ -30,7 +30,7 @@ after the website (`cms`) module changes.
 Provider keys, required fields, secret masks and URLs come from [`contracts/catalog/integrations.json`](../../../contracts/catalog/integrations.json)
 (generated from `packages/database/src/constants/integrations.ts`). The service stores active status, non-secret config,
 health status, account names, and credentials encrypted with AES-256-GCM (`pkg/secrets`) in `system.integration_setting`.
-During migration, `SECRETS_LEGACY_INTEGRATION_KEY` allows opening existing credentials stored under Prisma's `ENCRYPTION_KEY`.
+During migration, `SECRETS_LEGACY_INTEGRATION_KEY` allows opening existing credentials stored under LegacyDB's `ENCRYPTION_KEY`.
 
 | Path                                         | Caller                           | Allowed                                         |
 | -------------------------------------------- | -------------------------------- | ----------------------------------------------- |
@@ -62,7 +62,7 @@ until the CMS wave.
 
 ## Data handoff
 
-The Prisma migrations move `"FeatureToggle"` and `"IntegrationSetting"` into the system schema with their data:
+The LegacyDB migrations move `"FeatureToggle"` and `"IntegrationSetting"` into the system schema with their data:
 - `20261102090000_move_modules_to_system_service`
 - `20261102120000_move_integrations_to_system_service`
 - `20261102150000_move_site_settings_to_system_service`: the domains from `"CompanySetting"` and the site code from
@@ -72,7 +72,7 @@ The Prisma migrations move `"FeatureToggle"` and `"IntegrationSetting"` into the
 If the system service created its tables first, legacy choices and credentials are copied, and the legacy tables
 are dropped; a value the service already has wins. `migrations/handoff_test.go` checks both orders for each.
 
-The handoff keeps choices only when Prisma and the services share one database, as in production. In local
+The handoff keeps choices only when LegacyDB and the services share one database, as in production. In local
 development the apps' database (local Supabase) and the stack's Postgres are separate, so the old choices move into
 the apps' database and the service starts from the catalogue defaults: set modules again from the IT dashboard
 (`/modules`).

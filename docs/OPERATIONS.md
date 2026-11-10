@@ -49,7 +49,7 @@ Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16`
 | IT Dashboard                          | http://localhost:3002                                       | `./run.sh dev it`                                             |
 | Postgres 17 (Compose)                 | 127.0.0.1:5432                                              | See [DATABASE.md](DATABASE.md)                                |
 | Gateway / files health                | http://127.0.0.1:9080/readyz / http://127.0.0.1:9081/readyz | Compose probes                                                |
-| Prisma Studio                         | http://localhost:5555                                       | `./run.sh db studio`                                          |
+| LegacyDB Studio                         | http://localhost:5555                                       | `./run.sh db studio`                                          |
 | Plain Postgres and pgAdmin (optional) | 127.0.0.1:5432, http://localhost:5050                       | `docker compose --profile tools up -d` (`docker-compose.yml`) |
 
 `./run.sh services up` starts the local Compose stack, `./run.sh services status` prints container health, and `./run.sh urls` lists every local address.
@@ -127,7 +127,7 @@ Each app is a standard Next.js server (`next build`, `next start`): host them on
 1. Create the database and both storage buckets; configure pooling, TLS and backups.
 2. Set the environment variables above on every app and worker (`./run.sh env init` on a server, then edit).
 3. Run `./run.sh deploy check` with the production environment. It validates `.env` and reports missing pool limits, keys, storage, cron, email and sandbox overrides.
-4. Run `./run.sh deploy prepare`: migrations, Prisma client, production build.
+4. Run `./run.sh deploy prepare`: migrations, LegacyDB client, production build.
 5. Run `./run.sh db bootstrap` once, without a profile to use the setup wizard, or with `--profile <name>` for a reviewed profile.
 6. Start the apps (`./run.sh start`, or `./run.sh deploy vercel all --prod`) and either the workers (`./run.sh worker all`) or a schedule for `/api/cron`.
 7. Sign in and finish setup. Then check Settings → Integrations for email, payment gateways, couriers and WhatsApp, and register the payment webhook and Resend webhook addresses.

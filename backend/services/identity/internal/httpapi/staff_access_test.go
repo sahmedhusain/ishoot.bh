@@ -1,5 +1,4 @@
 package httpapi_test
-
 import (
 	"context"
 	"encoding/json"
@@ -10,13 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/catalog"
@@ -32,7 +29,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestStaffAccess(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -146,7 +142,6 @@ func TestStaffAccess(t *testing.T) {
 		require.Equal(t, 401, call(valid).Code)
 		exec(`UPDATE identity.session_family SET revoked_at=NULL,expires_at=now()+interval '1 hour'`)
 	}
-	// Dependency reads neither hold account locks nor authorize state that changed during the request.
 	duringLoad = func() {
 		bounded, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()

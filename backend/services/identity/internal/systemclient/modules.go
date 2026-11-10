@@ -1,5 +1,4 @@
 package systemclient
-
 import (
 	"context"
 	"encoding/json"
@@ -9,22 +8,18 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
 	"platform.local/backend/pkg/catalog"
 )
-
 type Client struct {
-	baseURL string
-	client  *http.Client
+	baseURL	string
+	client	*http.Client
 }
-
 func New(baseURL string, transport http.RoundTripper) *Client {
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), client: &http.Client{
-		Transport: transport, Timeout: 5 * time.Second,
-		CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
+		Transport:	transport, Timeout: 5 * time.Second,
+		CheckRedirect:	func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
 	}}
 }
-
 func (s *Client) Load(ctx context.Context) (map[string]bool, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.baseURL+"/v1/system/modules", nil)
 	if err != nil {
@@ -48,8 +43,8 @@ func (s *Client) Load(ctx context.Context) (map[string]bool, error) {
 	}
 	var out struct {
 		Items []struct {
-			Key     string `json:"key"`
-			Enabled *bool  `json:"enabled"`
+			Key	string	`json:"key"`
+			Enabled	*bool	`json:"enabled"`
 		} `json:"items"`
 	}
 	if err := json.Unmarshal(body, &out); err != nil {
@@ -62,7 +57,6 @@ func (s *Client) Load(ctx context.Context) (map[string]bool, error) {
 		}
 		modules[item.Key] = *item.Enabled
 	}
-	// An incomplete response must not turn a missing, disabled module back on through catalogue defaults.
 	for _, module := range catalog.Modules {
 		if _, present := modules[module.Key]; !present {
 			return nil, errors.New("incomplete system module response")
@@ -70,14 +64,11 @@ func (s *Client) Load(ctx context.Context) (map[string]bool, error) {
 	}
 	return modules, nil
 }
-
-// SignInConfiguration exposes only the two supported OAuth integrations and their approved website domain.
 type SignInConfiguration struct {
-	Active        bool              `json:"active"`
-	Values        map[string]string `json:"values"`
-	WebsiteDomain string            `json:"websiteDomain"`
+	Active		bool			`json:"active"`
+	Values		map[string]string	`json:"values"`
+	WebsiteDomain	string			`json:"websiteDomain"`
 }
-
 func (s *Client) SignIn(ctx context.Context, provider string) (SignInConfiguration, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

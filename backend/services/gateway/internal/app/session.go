@@ -1,16 +1,11 @@
 package app
-
 import (
 	"io"
 	"net/http"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/problem"
 )
-
-// requireActiveSession fails closed if identity cannot confirm the user session. Service tokens do not represent a user session.
 func requireActiveSession(client *http.Client, endpoint string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

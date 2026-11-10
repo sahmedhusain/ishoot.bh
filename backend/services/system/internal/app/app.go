@@ -1,6 +1,4 @@
-// Package app holds the system service's use cases.
 package app
-
 import (
 	"context"
 	"encoding/json"
@@ -9,103 +7,79 @@ import (
 	"slices"
 	"strings"
 	"time"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
-
 var (
-	// ErrUnknownModule means the key is not a module in the catalogue.
-	ErrUnknownModule = errors.New("unknown module")
-	// ErrUnknownIntegration means the requested provider is not found.
-	ErrUnknownIntegration = errors.New("unknown integration")
-	// ErrValidationFailed means an input failed validation.
-	ErrValidationFailed = errors.New("validation failed")
+	ErrUnknownModule	= errors.New("unknown module")
+	ErrUnknownIntegration	= errors.New("unknown integration")
+	ErrValidationFailed	= errors.New("validation failed")
 )
-
-// Module is a catalogue module with its current state.
 type Module struct {
 	catalog.Module
-	Enabled   bool
-	UpdatedBy *string
-	UpdatedAt *time.Time
+	Enabled		bool
+	UpdatedBy	*string
+	UpdatedAt	*time.Time
 }
-
-// SecretHint tells the caller whether a secret is set and its last characters.
 type SecretHint struct {
-	Set  bool   `json:"set"`
-	Hint string `json:"hint"`
+	Set	bool	`json:"set"`
+	Hint	string	`json:"hint"`
 }
-
-// DeskIntegration is the view returned to the IT desk.
 type DeskIntegration struct {
-	Provider      string                `json:"provider"`
-	IsActive      bool                  `json:"isActive"`
-	HealthStatus  string                `json:"healthStatus"`
-	AccountName   *string               `json:"accountName"`
-	LastError     *string               `json:"lastError"`
-	LastCheckedAt *time.Time            `json:"lastCheckedAt"`
-	LastSyncedAt  *time.Time            `json:"lastSyncedAt"`
-	Values        map[string]string     `json:"values"`
-	Secrets       map[string]SecretHint `json:"secrets"`
-	Config        map[string]any        `json:"config"`
-	UpdatedBy     *string               `json:"updatedBy,omitempty"`
-	UpdatedAt     *time.Time            `json:"updatedAt,omitempty"`
+	Provider	string			`json:"provider"`
+	IsActive	bool			`json:"isActive"`
+	HealthStatus	string			`json:"healthStatus"`
+	AccountName	*string			`json:"accountName"`
+	LastError	*string			`json:"lastError"`
+	LastCheckedAt	*time.Time		`json:"lastCheckedAt"`
+	LastSyncedAt	*time.Time		`json:"lastSyncedAt"`
+	Values		map[string]string	`json:"values"`
+	Secrets		map[string]SecretHint	`json:"secrets"`
+	Config		map[string]any		`json:"config"`
+	UpdatedBy	*string			`json:"updatedBy,omitempty"`
+	UpdatedAt	*time.Time		`json:"updatedAt,omitempty"`
 }
-
-// ServiceIntegration is the view returned to backend services with decrypted credentials.
 type ServiceIntegration struct {
-	Provider      string            `json:"provider"`
-	IsActive      bool              `json:"isActive"`
-	HealthStatus  string            `json:"healthStatus"`
-	AccountName   *string           `json:"accountName"`
-	LastError     *string           `json:"lastError"`
-	LastCheckedAt *time.Time        `json:"lastCheckedAt"`
-	LastSyncedAt  *time.Time        `json:"lastSyncedAt"`
-	Credentials   map[string]string `json:"credentials"`
-	Config        map[string]any    `json:"config"`
-	UpdatedBy     *string           `json:"updatedBy,omitempty"`
-	UpdatedAt     *time.Time        `json:"updatedAt,omitempty"`
+	Provider	string			`json:"provider"`
+	IsActive	bool			`json:"isActive"`
+	HealthStatus	string			`json:"healthStatus"`
+	AccountName	*string			`json:"accountName"`
+	LastError	*string			`json:"lastError"`
+	LastCheckedAt	*time.Time		`json:"lastCheckedAt"`
+	LastSyncedAt	*time.Time		`json:"lastSyncedAt"`
+	Credentials	map[string]string	`json:"credentials"`
+	Config		map[string]any		`json:"config"`
+	UpdatedBy	*string			`json:"updatedBy,omitempty"`
+	UpdatedAt	*time.Time		`json:"updatedAt,omitempty"`
 }
-
-// SaveIntegrationInput holds fields to save an integration.
 type SaveIntegrationInput struct {
-	IsActive bool              `json:"isActive"`
-	Values   map[string]string `json:"values"`
-	Config   map[string]any    `json:"config"`
+	IsActive	bool			`json:"isActive"`
+	Values		map[string]string	`json:"values"`
+	Config		map[string]any		`json:"config"`
 }
-
-// UpdateIntegrationStatusInput updates an integration's health or sync metadata.
 type UpdateIntegrationStatusInput struct {
-	HealthStatus         *string           `json:"healthStatus"`
-	LastError            *string           `json:"lastError"`
-	AccountName          *string           `json:"accountName"`
-	LastCheckedAt        *time.Time        `json:"lastCheckedAt"`
-	LastSyncedAt         *time.Time        `json:"lastSyncedAt"`
-	Config               map[string]any    `json:"config"`
-	RefreshedCredentials map[string]string `json:"refreshedCredentials"`
-	SyncLeaseToken       *string           `json:"syncLeaseToken"`
-	SyncLeaseUntil       *time.Time        `json:"syncLeaseUntil"`
+	HealthStatus		*string			`json:"healthStatus"`
+	LastError		*string			`json:"lastError"`
+	AccountName		*string			`json:"accountName"`
+	LastCheckedAt		*time.Time		`json:"lastCheckedAt"`
+	LastSyncedAt		*time.Time		`json:"lastSyncedAt"`
+	Config			map[string]any		`json:"config"`
+	RefreshedCredentials	map[string]string	`json:"refreshedCredentials"`
+	SyncLeaseToken		*string			`json:"syncLeaseToken"`
+	SyncLeaseUntil		*time.Time		`json:"syncLeaseUntil"`
 }
-
-// Service implements the use cases.
 type Service struct {
-	fileLookup func(context.Context, string) (CompanyFile, error)
-	store      *postgres.Store
-	keyring    *secrets.Keyring
-	now        func() time.Time
+	fileLookup	func(context.Context, string) (CompanyFile, error)
+	store		*postgres.Store
+	keyring		*secrets.Keyring
+	now		func() time.Time
 }
-
-// New returns the service.
 func New(store *postgres.Store, keyring *secrets.Keyring) *Service {
 	return &Service{store: store, keyring: keyring, now: func() time.Time { return time.Now().UTC() }}
 }
-
-// Modules returns every catalogue module, in catalogue order. One nobody switched follows its default.
 func (s *Service) Modules(ctx context.Context) ([]Module, error) {
 	stored, err := s.store.ModuleSettings(ctx)
 	if err != nil {
@@ -125,8 +99,6 @@ func (s *Service) Modules(ctx context.Context) ([]Module, error) {
 	}
 	return out, nil
 }
-
-// SetModule switches a catalogue module on or off; by names who did it (a person, or a service's setup step).
 func (s *Service) SetModule(ctx context.Context, key string, enabled bool, by string) error {
 	for _, m := range catalog.Modules {
 		if m.Key == key {
@@ -136,15 +108,12 @@ func (s *Service) SetModule(ctx context.Context, key string, enabled bool, by st
 	}
 	return ErrUnknownModule
 }
-
-// SecretHintFor returns a masked hint for a secret value (e.g. "…1234").
 func SecretHintFor(value string) string {
 	if len(value) > 8 {
 		return "…" + value[len(value)-4:]
 	}
 	return ""
 }
-
 func (s *Service) decryptCredentials(provider string, ciphertext *string) map[string]string {
 	if ciphertext == nil || *ciphertext == "" || s.keyring == nil {
 		return map[string]string{}
@@ -159,7 +128,6 @@ func (s *Service) decryptCredentials(provider string, ciphertext *string) map[st
 	}
 	return out
 }
-
 func parseJSONMap(raw []byte) map[string]any {
 	if len(raw) == 0 {
 		return map[string]any{}
@@ -173,8 +141,6 @@ func parseJSONMap(raw []byte) map[string]any {
 	}
 	return out
 }
-
-// DeskIntegrations returns every catalogue integration with masked secrets, in catalogue order.
 func (s *Service) DeskIntegrations(ctx context.Context) ([]DeskIntegration, error) {
 	stored, err := s.store.IntegrationSettings(ctx)
 	if err != nil {
@@ -209,12 +175,12 @@ func (s *Service) DeskIntegrations(ctx context.Context) ([]DeskIntegration, erro
 			}
 		}
 		out[i] = DeskIntegration{
-			Provider:     p.ID,
-			IsActive:     exists && record.IsActive,
-			HealthStatus: status,
-			Values:       values,
-			Secrets:      sec,
-			Config:       parseJSONMap(record.Config),
+			Provider:	p.ID,
+			IsActive:	exists && record.IsActive,
+			HealthStatus:	status,
+			Values:		values,
+			Secrets:	sec,
+			Config:		parseJSONMap(record.Config),
 		}
 		if exists {
 			out[i].AccountName = record.AccountName
@@ -228,8 +194,6 @@ func (s *Service) DeskIntegrations(ctx context.Context) ([]DeskIntegration, erro
 	}
 	return out, nil
 }
-
-// ServiceIntegrations returns every stored integration with decrypted credentials.
 func (s *Service) ServiceIntegrations(ctx context.Context) ([]ServiceIntegration, error) {
 	stored, err := s.store.IntegrationSettings(ctx)
 	if err != nil {
@@ -239,23 +203,21 @@ func (s *Service) ServiceIntegrations(ctx context.Context) ([]ServiceIntegration
 	for i, record := range stored {
 		at := record.UpdatedAt
 		out[i] = ServiceIntegration{
-			Provider:      record.Provider,
-			IsActive:      record.IsActive,
-			HealthStatus:  record.HealthStatus,
-			AccountName:   record.AccountName,
-			LastError:     record.LastError,
-			LastCheckedAt: record.LastCheckedAt,
-			LastSyncedAt:  record.LastSyncedAt,
-			Credentials:   s.decryptCredentials(record.Provider, record.Credentials),
-			Config:        parseJSONMap(record.Config),
-			UpdatedBy:     record.UpdatedBy,
-			UpdatedAt:     &at,
+			Provider:	record.Provider,
+			IsActive:	record.IsActive,
+			HealthStatus:	record.HealthStatus,
+			AccountName:	record.AccountName,
+			LastError:	record.LastError,
+			LastCheckedAt:	record.LastCheckedAt,
+			LastSyncedAt:	record.LastSyncedAt,
+			Credentials:	s.decryptCredentials(record.Provider, record.Credentials),
+			Config:		parseJSONMap(record.Config),
+			UpdatedBy:	record.UpdatedBy,
+			UpdatedAt:	&at,
 		}
 	}
 	return out, nil
 }
-
-// ServiceIntegration returns one stored integration with decrypted credentials.
 func (s *Service) ServiceIntegration(ctx context.Context, provider string) (ServiceIntegration, error) {
 	record, err := s.store.IntegrationSetting(ctx, provider)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -266,27 +228,24 @@ func (s *Service) ServiceIntegration(ctx context.Context, provider string) (Serv
 	}
 	at := record.UpdatedAt
 	return ServiceIntegration{
-		Provider:      record.Provider,
-		IsActive:      record.IsActive,
-		HealthStatus:  record.HealthStatus,
-		AccountName:   record.AccountName,
-		LastError:     record.LastError,
-		LastCheckedAt: record.LastCheckedAt,
-		LastSyncedAt:  record.LastSyncedAt,
-		Credentials:   s.decryptCredentials(record.Provider, record.Credentials),
-		Config:        parseJSONMap(record.Config),
-		UpdatedBy:     record.UpdatedBy,
-		UpdatedAt:     &at,
+		Provider:	record.Provider,
+		IsActive:	record.IsActive,
+		HealthStatus:	record.HealthStatus,
+		AccountName:	record.AccountName,
+		LastError:	record.LastError,
+		LastCheckedAt:	record.LastCheckedAt,
+		LastSyncedAt:	record.LastSyncedAt,
+		Credentials:	s.decryptCredentials(record.Provider, record.Credentials),
+		Config:		parseJSONMap(record.Config),
+		UpdatedBy:	record.UpdatedBy,
+		UpdatedAt:	&at,
 	}, nil
 }
-
-// SetIntegration validates, encrypts credentials, and saves an integration.
 func (s *Service) SetIntegration(ctx context.Context, providerID string, in SaveIntegrationInput, by string) (ServiceIntegration, error) {
 	providerID = strings.TrimSpace(providerID)
 	if providerID == "" || len(providerID) > 64 {
 		return ServiceIntegration{}, fmt.Errorf("%w: invalid provider id", ErrValidationFailed)
 	}
-
 	p, isCatalog := catalog.Integrations.Provider(providerID)
 	existing, err := s.store.IntegrationSetting(ctx, providerID)
 	exists := err == nil
@@ -294,7 +253,6 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 	if exists {
 		currentCreds = s.decryptCredentials(providerID, existing.Credentials)
 	}
-
 	nextCreds := make(map[string]string)
 	if isCatalog {
 		for _, f := range p.Fields {
@@ -342,14 +300,12 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 			}
 		}
 	} else {
-		// Non-catalogue provider (e.g. google_calendar)
 		for k, v := range in.Values {
 			if strings.TrimSpace(v) != "" {
 				nextCreds[k] = strings.TrimSpace(v)
 			}
 		}
 	}
-
 	var sealed *string
 	if len(nextCreds) > 0 && s.keyring != nil {
 		plain, err := json.Marshal(nextCreds)
@@ -362,7 +318,6 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 		}
 		sealed = &sealedStr
 	}
-
 	if in.Config == nil {
 		in.Config = map[string]any{}
 	}
@@ -370,7 +325,6 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 	if err != nil {
 		configBytes = []byte("{}")
 	}
-
 	healthStatus := "unknown"
 	var lastError *string
 	var accountName *string
@@ -379,7 +333,6 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 		lastError = existing.LastError
 		accountName = existing.AccountName
 	}
-	// If credentials changed, reset status to unknown
 	currPlain, _ := json.Marshal(currentCreds)
 	nextPlain, _ := json.Marshal(nextCreds)
 	if string(currPlain) != string(nextPlain) {
@@ -387,48 +340,42 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 		lastError = nil
 		accountName = nil
 	}
-
 	now := s.now()
 	byStr := by
 	upsert := sqlcdb.UpsertIntegrationParams{
-		Provider:     providerID,
-		IsActive:     in.IsActive,
-		Credentials:  sealed,
-		Config:       configBytes,
-		HealthStatus: healthStatus,
-		LastError:    lastError,
-		AccountName:  accountName,
-		UpdatedBy:    &byStr,
-		UpdatedAt:    now,
+		Provider:	providerID,
+		IsActive:	in.IsActive,
+		Credentials:	sealed,
+		Config:		configBytes,
+		HealthStatus:	healthStatus,
+		LastError:	lastError,
+		AccountName:	accountName,
+		UpdatedBy:	&byStr,
+		UpdatedAt:	now,
 	}
 	err = s.change(ctx, EventIntegrationChanged, IntegrationChanged{Provider: providerID, IsActive: in.IsActive, ChangedBy: by},
 		func(st *postgres.Store) error { return st.UpsertIntegration(ctx, upsert) })
 	if err != nil {
 		return ServiceIntegration{}, err
 	}
-
 	return ServiceIntegration{
-		Provider:      providerID,
-		IsActive:      in.IsActive,
-		HealthStatus:  healthStatus,
-		AccountName:   accountName,
-		LastError:     lastError,
-		Credentials:   nextCreds,
-		Config:        in.Config,
-		UpdatedBy:     &byStr,
-		UpdatedAt:     &now,
-		LastCheckedAt: existing.LastCheckedAt,
-		LastSyncedAt:  existing.LastSyncedAt,
+		Provider:	providerID,
+		IsActive:	in.IsActive,
+		HealthStatus:	healthStatus,
+		AccountName:	accountName,
+		LastError:	lastError,
+		Credentials:	nextCreds,
+		Config:		in.Config,
+		UpdatedBy:	&byStr,
+		UpdatedAt:	&now,
+		LastCheckedAt:	existing.LastCheckedAt,
+		LastSyncedAt:	existing.LastSyncedAt,
 	}, nil
 }
-
-// UnlinkIntegration clears credentials and sets active to false.
 func (s *Service) UnlinkIntegration(ctx context.Context, providerID string, by string) error {
 	return s.change(ctx, EventIntegrationRemoved, IntegrationUnlinked{Provider: providerID, ChangedBy: by},
 		func(st *postgres.Store) error { return st.UnlinkIntegration(ctx, providerID, by, s.now()) })
 }
-
-// UpdateIntegrationStatus updates status fields and optionally refreshed credentials.
 func (s *Service) UpdateIntegrationStatus(ctx context.Context, providerID string, in UpdateIntegrationStatusInput) error {
 	existing, err := s.store.IntegrationSetting(ctx, providerID)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -437,12 +384,10 @@ func (s *Service) UpdateIntegrationStatus(ctx context.Context, providerID string
 	if err != nil {
 		return err
 	}
-
 	healthStatus := existing.HealthStatus
 	if in.HealthStatus != nil {
 		healthStatus = *in.HealthStatus
 	}
-
 	var configBytes []byte
 	if in.Config != nil {
 		var err error
@@ -453,7 +398,6 @@ func (s *Service) UpdateIntegrationStatus(ctx context.Context, providerID string
 	} else {
 		configBytes = existing.Config
 	}
-
 	credentials := existing.Credentials
 	if len(in.RefreshedCredentials) > 0 && s.keyring != nil {
 		current := s.decryptCredentials(providerID, existing.Credentials)
@@ -468,19 +412,18 @@ func (s *Service) UpdateIntegrationStatus(ctx context.Context, providerID string
 			}
 		}
 	}
-
 	now := s.now()
 	return s.store.UpdateIntegrationStatus(ctx, sqlcdb.UpdateIntegrationStatusParams{
-		Provider:       providerID,
-		HealthStatus:   healthStatus,
-		LastError:      in.LastError,
-		AccountName:    in.AccountName,
-		LastCheckedAt:  in.LastCheckedAt,
-		LastSyncedAt:   in.LastSyncedAt,
-		Config:         configBytes,
-		Credentials:    credentials,
-		SyncLeaseToken: in.SyncLeaseToken,
-		SyncLeaseUntil: in.SyncLeaseUntil,
-		UpdatedAt:      now,
+		Provider:	providerID,
+		HealthStatus:	healthStatus,
+		LastError:	in.LastError,
+		AccountName:	in.AccountName,
+		LastCheckedAt:	in.LastCheckedAt,
+		LastSyncedAt:	in.LastSyncedAt,
+		Config:		configBytes,
+		Credentials:	credentials,
+		SyncLeaseToken:	in.SyncLeaseToken,
+		SyncLeaseUntil:	in.SyncLeaseUntil,
+		UpdatedAt:	now,
 	})
 }

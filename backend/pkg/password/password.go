@@ -1,6 +1,4 @@
-// Package password verifies legacy bcrypt credentials and creates Argon2id PHC hashes.
 package password
-
 import (
 	"crypto/rand"
 	"crypto/subtle"
@@ -9,26 +7,20 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
 )
-
 var ErrInvalid = errors.New("invalid credentials")
-
-// Config bounds both new hashes and the work accepted from stored hashes. Memory is in KiB.
 type Config struct {
-	Memory         uint32 `env:"MEMORY_KIB" envDefault:"19456"`
-	Iterations     uint32 `env:"ITERATIONS" envDefault:"2"`
-	Parallelism    uint8  `env:"PARALLELISM" envDefault:"1"`
-	MaxMemory      uint32 `env:"MAX_MEMORY_KIB" envDefault:"262144"`
-	MaxIterations  uint32 `env:"MAX_ITERATIONS" envDefault:"10"`
-	MaxParallelism uint8  `env:"MAX_PARALLELISM" envDefault:"16"`
-	MaxBcryptCost  int    `env:"MAX_BCRYPT_COST" envDefault:"16"`
+	Memory		uint32	`env:"MEMORY_KIB" envDefault:"19456"`
+	Iterations	uint32	`env:"ITERATIONS" envDefault:"2"`
+	Parallelism	uint8	`env:"PARALLELISM" envDefault:"1"`
+	MaxMemory	uint32	`env:"MAX_MEMORY_KIB" envDefault:"262144"`
+	MaxIterations	uint32	`env:"MAX_ITERATIONS" envDefault:"10"`
+	MaxParallelism	uint8	`env:"MAX_PARALLELISM" envDefault:"16"`
+	MaxBcryptCost	int	`env:"MAX_BCRYPT_COST" envDefault:"16"`
 }
-
 type Hasher struct{ cfg Config }
-
 func New(cfg Config) (*Hasher, error) {
 	if cfg.Memory < 19456 || cfg.Iterations < 2 || cfg.Parallelism == 0 ||
 		cfg.Memory < 8*uint32(cfg.Parallelism) || cfg.Memory > cfg.MaxMemory ||
@@ -39,11 +31,9 @@ func New(cfg Config) (*Hasher, error) {
 	}
 	return &Hasher{cfg: cfg}, nil
 }
-
 const saltLength = 16
 const keyLength = 32
 const maxPasswordBytes = 1024
-
 func (h *Hasher) Hash(password string) (string, error) {
 	if len(password) == 0 || len(password) > maxPasswordBytes {
 		return "", ErrInvalid
@@ -55,8 +45,6 @@ func (h *Hasher) Hash(password string) (string, error) {
 	key := argon2.IDKey([]byte(password), salt, h.cfg.Iterations, h.cfg.Memory, h.cfg.Parallelism, keyLength)
 	return fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s", h.cfg.Memory, h.cfg.Iterations, h.cfg.Parallelism, base64.RawStdEncoding.EncodeToString(salt), base64.RawStdEncoding.EncodeToString(key)), nil
 }
-
-// Verify returns whether a successful login should replace the stored hash. Never rehash failed credentials.
 func (h *Hasher) Verify(password, encoded string) (bool, error) {
 	if len(password) == 0 || len(password) > maxPasswordBytes || len(encoded) > 512 {
 		return false, ErrInvalid

@@ -1,5 +1,4 @@
 package sessions_test
-
 import (
 	"context"
 	"crypto/sha256"
@@ -9,10 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/testkit"
@@ -20,7 +17,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestSessionLifecycle(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -35,7 +31,6 @@ func TestSessionLifecycle(t *testing.T) {
 		require.NoError(t, err)
 		return c
 	}
-
 	t.Run("rotation and replay revoke the family", func(t *testing.T) {
 		first := start(authn.RealmStaff)
 		next, err := svc.Refresh(ctx, authn.RealmStaff, first.Token, now.Add(time.Minute))
@@ -107,7 +102,6 @@ func TestSessionLifecycle(t *testing.T) {
 		_, err := svc.Active(ctx, authn.RealmStaff, first.Family.ID, now)
 		require.ErrorIs(t, err, sessions.ErrInvalid)
 	})
-
 	t.Run("failed replacement rolls back token consumption", func(t *testing.T) {
 		first := start(authn.RealmStaff)
 		sum := sha256.Sum256([]byte(first.Token))

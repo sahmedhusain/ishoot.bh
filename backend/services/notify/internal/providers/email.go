@@ -1,5 +1,4 @@
 package providers
-
 import (
 	"bytes"
 	"context"
@@ -19,20 +18,15 @@ import (
 	"strings"
 	"time"
 )
-
-// SMTP sends e-mail through an SMTP server (Mailpit locally, or the company's relay).
 type SMTP struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	// TLS is "none", "starttls" or "tls".
-	TLS     string
-	From    string
-	Timeout time.Duration
+	Host		string
+	Port		int
+	Username	string
+	Password	string
+	TLS	string
+	From	string
+	Timeout	time.Duration
 }
-
-// Send delivers one e-mail.
 func (s SMTP) Send(ctx context.Context, msg Message) (Result, error) {
 	from, err := mail.ParseAddress(s.From)
 	if err != nil {
@@ -96,8 +90,6 @@ func (s SMTP) Send(ctx context.Context, msg Message) (Result, error) {
 	_ = client.Quit()
 	return Result{Provider: "smtp", ProviderID: messageID(msg.ID, s.Host)}, nil
 }
-
-// smtpError makes a 5xx reply permanent; 4xx replies and connection errors may pass on retry.
 func smtpError(err error) error {
 	var tp *textproto.Error
 	if ok := asTextproto(err, &tp); ok && tp.Code >= 500 {
@@ -105,18 +97,14 @@ func smtpError(err error) error {
 	}
 	return fmt.Errorf("smtp: %w", err)
 }
-
 func asTextproto(err error, target **textproto.Error) bool {
-	if e, ok := err.(*textproto.Error); ok { //nolint:errorlint // net/smtp returns it unwrapped
+	if e, ok := err.(*textproto.Error); ok {
 		*target = e
 		return true
 	}
 	return false
 }
-
-func messageID(id, host string) string { return "<" + id + "@" + host + ">" }
-
-// buildMIME writes a multipart message: the text and HTML parts as alternatives, then the attachments.
+func messageID(id, host string) string	{ return "<" + id + "@" + host + ">" }
 func buildMIME(from, to *mail.Address, msg Message, host string) ([]byte, error) {
 	var buf bytes.Buffer
 	mixed := multipart.NewWriter(&buf)
@@ -129,7 +117,6 @@ func buildMIME(from, to *mail.Address, msg Message, host string) ([]byte, error)
 	header("MIME-Version", "1.0")
 	header("Content-Type", "multipart/mixed; boundary="+mixed.Boundary())
 	buf.WriteString("\r\n")
-
 	var alt bytes.Buffer
 	alternative := multipart.NewWriter(&alt)
 	for _, part := range []struct{ kind, body string }{{"text/plain", msg.Text}, {"text/html", msg.HTML}} {
@@ -137,8 +124,8 @@ func buildMIME(from, to *mail.Address, msg Message, host string) ([]byte, error)
 			continue
 		}
 		w, err := alternative.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              {part.kind + "; charset=utf-8"},
-			"Content-Transfer-Encoding": {"base64"},
+			"Content-Type":			{part.kind + "; charset=utf-8"},
+			"Content-Transfer-Encoding":	{"base64"},
 		})
 		if err != nil {
 			return nil, err
@@ -159,9 +146,9 @@ func buildMIME(from, to *mail.Address, msg Message, host string) ([]byte, error)
 	}
 	for _, a := range msg.Attachments {
 		w, err := mixed.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              {a.ContentType},
-			"Content-Transfer-Encoding": {"base64"},
-			"Content-Disposition":       {mime.FormatMediaType("attachment", map[string]string{"filename": a.Filename})},
+			"Content-Type":			{a.ContentType},
+			"Content-Transfer-Encoding":	{"base64"},
+			"Content-Disposition":		{mime.FormatMediaType("attachment", map[string]string{"filename": a.Filename})},
 		})
 		if err != nil {
 			return nil, err
@@ -175,8 +162,6 @@ func buildMIME(from, to *mail.Address, msg Message, host string) ([]byte, error)
 	}
 	return buf.Bytes(), nil
 }
-
-// writeBase64 writes lines of 76 characters, as RFC 2045 requires.
 func writeBase64(w io.Writer, data []byte) error {
 	encoded := base64.StdEncoding.EncodeToString(data)
 	for len(encoded) > 76 {
@@ -188,16 +173,11 @@ func writeBase64(w io.Writer, data []byte) error {
 	_, err := io.WriteString(w, encoded+"\r\n")
 	return err
 }
-
-// Resend sends e-mail through Resend with the credentials IT saved (apiKey, fromEmail). The message ID is the
-// idempotency key, so a retried send is not delivered twice.
 type Resend struct {
-	BaseURL     string
-	Credentials CredentialSource
-	Client      *http.Client
+	BaseURL		string
+	Credentials	CredentialSource
+	Client		*http.Client
 }
-
-// Send delivers one e-mail.
 func (r Resend) Send(ctx context.Context, msg Message) (Result, error) {
 	creds, err := r.Credentials.Credentials(ctx, "resend")
 	if err != nil {

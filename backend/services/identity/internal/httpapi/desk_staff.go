@@ -1,12 +1,9 @@
 package httpapi
-
 import (
 	"errors"
 	"net/http"
 	"strconv"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -15,7 +12,6 @@ import (
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/app"
 )
-
 func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaff, bodyLimit int64) {
 	g := e.Group("/v1/identity/desk", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
@@ -30,7 +26,7 @@ func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaf
 				return 0, problem.Validation()
 			}
 		}
-		return int32(n), nil // #nosec G109 -- validated range fits int32
+		return int32(n), nil
 	}
 	g.GET("/staff-accounts", func(c echo.Context) error {
 		n, err := limit(c)
@@ -60,7 +56,7 @@ func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaf
 	save := func(c echo.Context) error {
 		var in struct {
 			app.StaffDraft
-			Active *bool `json:"active" validate:"required"`
+			Active	*bool	`json:"active" validate:"required"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err

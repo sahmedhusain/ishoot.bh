@@ -1,5 +1,4 @@
 package httpapi_test
-
 import (
 	"bytes"
 	"context"
@@ -16,14 +15,12 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/config"
@@ -43,7 +40,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestITAccountAdministration(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -55,7 +51,7 @@ func TestITAccountAdministration(t *testing.T) {
 	ring, err := secrets.NewKeyring(secrets.Config{Keys: []string{"primary:" + base64.StdEncoding.EncodeToString([]byte(strings.Repeat("a", 32)))}, PrimaryKeyID: "primary"})
 	require.NoError(t, err)
 	defaults := bootstrap.Input{Email: "admin@example.test", Password: "a long enough password", Role: "it_admin", MinPasswordLength: 14,
-		RecoveryCount: 3, Issuer: "Platform IT", Digits: 6, Period: 30 * time.Second}
+		RecoveryCount:	3, Issuer: "Platform IT", Digits: 6, Period: 30 * time.Second}
 	root, err := bootstrap.CreateITAdmin(ctx, pool, hasher, ring, defaults, time.Now())
 	require.NoError(t, err)
 	sessionService, err := sessions.New(postgres.New(pool), time.Hour)
@@ -138,7 +134,6 @@ func TestITAccountAdministration(t *testing.T) {
 	require.NotContains(t, second.Body.String(), result.Secret)
 	require.NotContains(t, second.Body.String(), "passwordHash")
 	require.NotContains(t, second.Body.String(), "recoveryCodes")
-
 	otp, err := totp.New(totp.Config{Period: 30 * time.Second, Digits: 6, Window: 1})
 	require.NoError(t, err)
 	authentication, err := accounts.New(postgres.New(pool), hasher, ring, otp, sessionService, 2, testGuard{}, accounts.MFAConfig{EnrollmentTTL: time.Minute, RecoveryCount: 3, Digits: 6, Period: 30 * time.Second})
@@ -162,8 +157,6 @@ func TestITAccountAdministration(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodPut, path+"/"+result.SubjectID, token, map[string]any{"role": "it_admin", "active": true}).Code)
 	_, err = sessionService.Active(ctx, authn.RealmIT, memberSession.Family.ID, time.Now())
 	require.ErrorIs(t, err, sessions.ErrInvalid)
-
-	// Concurrent changes cannot remove both administrators. The actor's own demotion also invalidates their session.
 	results := make(chan error, 2)
 	var wg sync.WaitGroup
 	for _, id := range []string{root.SubjectID, result.SubjectID} {

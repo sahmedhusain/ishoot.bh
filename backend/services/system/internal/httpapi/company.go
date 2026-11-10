@@ -1,13 +1,10 @@
 package httpapi
-
 import (
 	"encoding/json"
 	"errors"
 	"net/http"
 	"slices"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -15,7 +12,6 @@ import (
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/system/internal/app"
 )
-
 func (h *handler) companyRoutes(e *echo.Echo) {
 	service := e.Group("/v1/system", authn.Require(h.opts.Verifier, authn.RealmService))
 	allowed := func(c echo.Context, callers []string) (authn.Principal, error) {
@@ -37,8 +33,8 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 			return err
 		}
 		var in struct {
-			Values  map[string]json.RawMessage `json:"values" validate:"required"`
-			ActorID string                     `json:"actorId" validate:"required,max=64"`
+			Values	map[string]json.RawMessage	`json:"values" validate:"required"`
+			ActorID	string				`json:"actorId" validate:"required,max=64"`
 		}
 		if err := httpx.BindJSON(c, &in, h.opts.CompanyBodyLimit); err != nil {
 			return err
@@ -74,9 +70,9 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 			return err
 		}
 		var in struct {
-			Title   string `json:"title" validate:"required,max=500"`
-			URL     string `json:"fileUrl" validate:"required,max=2048"`
-			ActorID string `json:"actorId" validate:"required,max=64"`
+			Title	string	`json:"title" validate:"required,max=500"`
+			URL	string	`json:"fileUrl" validate:"required,max=2048"`
+			ActorID	string	`json:"actorId" validate:"required,max=64"`
 		}
 		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 			return err
@@ -92,7 +88,6 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 		}
 		return h.setupStatus(c)
 	})
-
 	service.POST("/company/currency-use", func(c echo.Context) error {
 		p, err := allowed(c, h.opts.CurrencyCallers)
 		if err != nil {
@@ -109,8 +104,8 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 			return err
 		}
 		var in struct {
-			Key  string `json:"idempotencyKey" validate:"required,max=200"`
-			Date string `json:"documentDate" validate:"required,len=10"`
+			Key	string	`json:"idempotencyKey" validate:"required,max=200"`
+			Date	string	`json:"documentDate" validate:"required,len=10"`
 		}
 		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 			return err
@@ -123,7 +118,6 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 	})
 	desk := e.Group("/v1/system/desk", authn.Require(h.opts.Verifier, authn.RealmIT))
 	desk.GET("/setup/status", h.setupStatus, authz.Require(catalog.ITAccess, "setup", "read"))
-
 	desk.GET("/company", h.company, authz.Require(catalog.ITAccess, "setup", "read"))
 	desk.PUT("/company", func(c echo.Context) error {
 		var in struct {
@@ -160,8 +154,8 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 	}, authz.Require(catalog.ITAccess, "setup", "read"))
 	desk.PUT("/company/assets/:key", func(c echo.Context) error {
 		var in struct {
-			Title string `json:"title" validate:"required,max=500"`
-			URL   string `json:"fileUrl" validate:"required,max=2048"`
+			Title	string	`json:"title" validate:"required,max=500"`
+			URL	string	`json:"fileUrl" validate:"required,max=2048"`
 		}
 		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 			return err
@@ -206,7 +200,6 @@ func companyError(err error) error {
 		return err
 	}
 }
-
 func (h *handler) setupStatus(c echo.Context) error {
 	c.Response().Header().Set("Cache-Control", "no-store")
 	out, err := h.svc.SetupStatus(c.Request().Context())

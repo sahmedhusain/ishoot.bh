@@ -17,7 +17,7 @@ which checks the person again). A stream that falls `REALTIME_BUFFER` hints behi
 Services publish hints on NATS core subjects with `pkg/live`: `live.user.<realm>.<id>` for one person and
 `live.topic.<topic>` for a topic. Every replica subscribes to `live.>` and writes to the streams it holds, so replicas
 share nothing and need no sticky sessions. Hints carry IDs and counts only; browsers fetch the content through their
-app. The apps publish for domains still in Prisma with `POST /v1/realtime/publish` (never to `presence.*`).
+app. The apps publish for domains still in LegacyDB with `POST /v1/realtime/publish` (never to `presence.*`).
 
 | Hint                         | From     | Meaning                                                      |
 | ---------------------------- | -------- | ------------------------------------------------------------ |

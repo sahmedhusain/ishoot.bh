@@ -1,5 +1,4 @@
 package bootstrap_test
-
 import (
 	"context"
 	"encoding/base32"
@@ -11,12 +10,10 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/password"
@@ -29,21 +26,17 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 type allowGuard struct{}
-
-func (allowGuard) Check(context.Context, authn.Realm, string, string) error { return nil }
-
+func (allowGuard) Check(context.Context, authn.Realm, string, string) error	{ return nil }
 func input(email string) bootstrap.Input {
 	return bootstrap.Input{Email: email, Password: "a long enough password", Role: "it_admin", MinPasswordLength: 14,
-		RecoveryCount: 3, Issuer: "Platform IT", Digits: 6, Period: 30 * time.Second}
+		RecoveryCount:	3, Issuer: "Platform IT", Digits: 6, Period: 30 * time.Second}
 }
-
 func TestValidate(t *testing.T) {
 	for name, in := range map[string]bootstrap.Input{
-		"bad email":      func() bootstrap.Input { i := input("not-an-email"); return i }(),
-		"short password": func() bootstrap.Input { i := input("it@example.test"); i.Password = "short"; return i }(),
-		"unknown role":   func() bootstrap.Input { i := input("it@example.test"); i.Role = "admin"; return i }(),
+		"bad email":		func() bootstrap.Input { i := input("not-an-email"); return i }(),
+		"short password":	func() bootstrap.Input { i := input("it@example.test"); i.Password = "short"; return i }(),
+		"unknown role":		func() bootstrap.Input { i := input("it@example.test"); i.Role = "admin"; return i }(),
 	} {
 		assert.Error(t, in.Validate(), name)
 	}
@@ -53,7 +46,6 @@ func TestValidate(t *testing.T) {
 	_, err := bootstrap.CreateITAdmin(context.Background(), nil, nil, nil, limited, time.Now())
 	require.ErrorContains(t, err, "first IT account")
 }
-
 func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -66,8 +58,6 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	ring, err := secrets.NewKeyring(secrets.Config{Keys: []string{"primary:" + key}, PrimaryKeyID: "primary"})
 	require.NoError(t, err)
 	now := time.Now().UTC().Truncate(time.Second)
-
-	// Two operators racing: exactly one account is created.
 	var wg sync.WaitGroup
 	results := make(chan error, 2)
 	created := make(chan bootstrap.Result, 2)
@@ -95,11 +85,8 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	assert.Len(t, result.RecoveryCodes, 3)
 	assert.Contains(t, result.OTPAuthURL, "otpauth://totp/Platform%20IT:")
 	assert.Contains(t, result.OTPAuthURL, "secret="+result.Secret)
-
 	var email string
 	require.NoError(t, pool.QueryRow(ctx, `SELECT email FROM identity.account WHERE realm='it' AND subject_id=$1`, result.SubjectID).Scan(&email))
-
-	// The account signs in with the password and a code from the printed secret.
 	repo := postgres.New(pool)
 	sessionService, err := sessions.New(repo, time.Hour)
 	require.NoError(t, err)
@@ -117,14 +104,12 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	signedIn, err := svc.Login(ctx, login, now)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"it_admin"}, signedIn.Account.Roles)
-
 	p := authn.Principal{Realm: authn.RealmIT, Subject: result.SubjectID, SessionID: signedIn.Credential.Family.ID, Roles: []string{"it_admin"}}
 	_, err = svc.BeginMFA(ctx, p, login.Password, "", now)
 	require.NoError(t, err)
 	require.NoError(t, svc.CancelMFA(ctx, p, login.Password, "", now))
 	_, err = svc.BeginMFA(ctx, p, login.Password, "", now)
 	require.NoError(t, err)
-
 	in := input(email)
 	in.Password = "a different long password"
 	_, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "")
@@ -139,8 +124,6 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	}
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET active=true,roles=ARRAY['it_admin'] WHERE realm='it'`)
 	require.NoError(t, err)
-
-	// If the audit write fails, the previous credentials, factor, recovery codes and sessions survive.
 	_, err = pool.Exec(ctx, `CREATE FUNCTION identity.refuse_recovery() RETURNS trigger LANGUAGE plpgsql AS $$
  BEGIN IF NEW.subject='identity.user.recovered' THEN RAISE EXCEPTION 'audit unavailable'; END IF; RETURN NEW; END $$;
  CREATE TRIGGER refuse_recovery BEFORE INSERT ON identity.outbox FOR EACH ROW EXECUTE FUNCTION identity.refuse_recovery()`)
@@ -155,7 +138,6 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	require.NotNil(t, unchanged.PendingSecret)
 	_, err = pool.Exec(ctx, `DROP TRIGGER refuse_recovery ON identity.outbox; DROP FUNCTION identity.refuse_recovery()`)
 	require.NoError(t, err)
-
 	recovered, err := bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "operator-123")
 	require.NoError(t, err)
 	require.Equal(t, result.SubjectID, recovered.SubjectID)
@@ -179,7 +161,6 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, sessionService.Logout(ctx, authn.RealmIT, rotated.Credential.Token, now))
 	require.NoError(t, sessionService.Logout(ctx, authn.RealmIT, rotated.Credential.Token, now))
-
 	rows, err := pool.Query(ctx, `SELECT subject,payload FROM identity.outbox ORDER BY created_at,id`)
 	require.NoError(t, err)
 	defer rows.Close()
@@ -210,5 +191,5 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	}
 	require.NoError(t, rows.Err())
 	assert.Equal(t, map[string]int{"identity.user.created": 1, "identity.user.recovered": 1, "identity.session.started": 2,
-		"identity.session.rotated": 1, "identity.session.revoked": 1, "identity.mfa.changed": 3}, counts)
+		"identity.session.rotated":	1, "identity.session.revoked": 1, "identity.mfa.changed": 3}, counts)
 }

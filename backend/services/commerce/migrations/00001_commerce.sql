@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS commerce.customer (
     id text PRIMARY KEY,
     email text UNIQUE,
@@ -9,7 +8,6 @@ CREATE TABLE IF NOT EXISTS commerce.customer (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS commerce.customer_address (
     id text PRIMARY KEY,
     customer_id text NOT NULL REFERENCES commerce.customer(id) ON DELETE CASCADE,
@@ -24,7 +22,6 @@ CREATE TABLE IF NOT EXISTS commerce.customer_address (
     is_default boolean NOT NULL DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS cust_addr_cust_idx ON commerce.customer_address (customer_id);
-
 CREATE TABLE IF NOT EXISTS commerce.store_settings (
     id text PRIMARY KEY DEFAULT 'default',
     currency text NOT NULL DEFAULT '',
@@ -33,7 +30,6 @@ CREATE TABLE IF NOT EXISTS commerce.store_settings (
     minimum_order_amount numeric(14, 3) NOT NULL DEFAULT 0.000,
     free_shipping_threshold numeric(14, 3) NOT NULL DEFAULT 0.000
 );
-
 CREATE TABLE IF NOT EXISTS commerce.coupon (
     id text PRIMARY KEY,
     code text NOT NULL UNIQUE,
@@ -48,7 +44,6 @@ CREATE TABLE IF NOT EXISTS commerce.coupon (
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS commerce.sales_order (
     id text PRIMARY KEY,
     number text NOT NULL UNIQUE,
@@ -90,7 +85,6 @@ CREATE TABLE IF NOT EXISTS commerce.sales_order (
 CREATE INDEX IF NOT EXISTS sales_order_status_idx ON commerce.sales_order (status);
 CREATE INDEX IF NOT EXISTS sales_order_customer_idx ON commerce.sales_order (customer_id);
 CREATE INDEX IF NOT EXISTS sales_order_placed_idx ON commerce.sales_order (placed_at);
-
 CREATE TABLE IF NOT EXISTS commerce.sales_order_line (
     id text PRIMARY KEY,
     order_id text NOT NULL REFERENCES commerce.sales_order(id) ON DELETE CASCADE,
@@ -107,7 +101,6 @@ CREATE TABLE IF NOT EXISTS commerce.sales_order_line (
     sort_order integer NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS order_line_order_idx ON commerce.sales_order_line (order_id);
-
 CREATE TABLE IF NOT EXISTS commerce.sales_order_event (
     id text PRIMARY KEY,
     order_id text NOT NULL REFERENCES commerce.sales_order(id) ON DELETE CASCADE,
@@ -119,14 +112,12 @@ CREATE TABLE IF NOT EXISTS commerce.sales_order_event (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS order_event_order_idx ON commerce.sales_order_event (order_id, created_at);
-
 CREATE TABLE IF NOT EXISTS commerce.retail_register (
     id text PRIMARY KEY,
     name text NOT NULL,
     branch_id text,
     is_active boolean NOT NULL DEFAULT true
 );
-
 CREATE TABLE IF NOT EXISTS commerce.retail_shift (
     id text PRIMARY KEY,
     register_id text NOT NULL REFERENCES commerce.retail_register(id) ON DELETE CASCADE,
@@ -138,7 +129,6 @@ CREATE TABLE IF NOT EXISTS commerce.retail_shift (
     expected_cash numeric(14, 3) NOT NULL DEFAULT 0.000,
     status text NOT NULL DEFAULT 'open' -- open | closed
 );
-
 CREATE TABLE IF NOT EXISTS commerce.retail_closing (
     id text PRIMARY KEY,
     shift_id text NOT NULL REFERENCES commerce.retail_shift(id) ON DELETE CASCADE,
@@ -148,8 +138,6 @@ CREATE TABLE IF NOT EXISTS commerce.retail_closing (
     total_card numeric(14, 3) NOT NULL DEFAULT 0.000,
     notes text
 );
-
--- +goose Down
 DROP TABLE IF EXISTS commerce.retail_closing;
 DROP TABLE IF EXISTS commerce.retail_shift;
 DROP TABLE IF EXISTS commerce.retail_register;

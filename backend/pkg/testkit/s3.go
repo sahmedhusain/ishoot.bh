@@ -1,27 +1,18 @@
 package testkit
-
 import (
 	"bytes"
 	"context"
 	"fmt"
 	"testing"
 	"time"
-
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-
 	"platform.local/backend/pkg/objectstore"
 )
-
-// SeaweedFSImage is the S3 server integration tests run against; keep it in step with docker-compose.yml.
 const SeaweedFSImage = "chrislusf/seaweedfs:4.51"
-
-// S3Server describes a disposable S3 server.
 type S3Server struct {
 	Endpoint, AccessKeyID, SecretAccessKey string
 }
-
-// S3 starts a disposable S3 server for the test.
 func S3(t testing.TB) S3Server {
 	t.Helper()
 	if testing.Short() {
@@ -31,17 +22,17 @@ func S3(t testing.TB) S3Server {
 	server := S3Server{AccessKeyID: "testkit", SecretAccessKey: "testkit-secret"}
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image: SeaweedFSImage,
-			Cmd:   []string{"server", "-s3", "-dir=/data", "-master.volumeSizeLimitMB=64"},
+			Image:	SeaweedFSImage,
+			Cmd:	[]string{"server", "-s3", "-dir=/data", "-master.volumeSizeLimitMB=64"},
 			Env: map[string]string{
-				"AWS_ACCESS_KEY_ID":     server.AccessKeyID,
-				"AWS_SECRET_ACCESS_KEY": server.SecretAccessKey,
+				"AWS_ACCESS_KEY_ID":		server.AccessKeyID,
+				"AWS_SECRET_ACCESS_KEY":	server.SecretAccessKey,
 			},
-			ExposedPorts: []string{"8333/tcp"},
+			ExposedPorts:	[]string{"8333/tcp"},
 			WaitingFor: wait.ForHTTP("/healthz").WithPort("8333/tcp").
 				WithStatusCodeMatcher(func(int) bool { return true }).WithStartupTimeout(time.Minute),
 		},
-		Started: true,
+		Started:	true,
 	}
 	container, err := testcontainers.GenericContainer(ctx, req)
 	if err != nil {
@@ -60,14 +51,11 @@ func S3(t testing.TB) S3Server {
 	warmUp(t, server)
 	return server
 }
-
-// warmUp waits until the server accepts writes: a fresh SeaweedFS allocates its first volume on the first write,
-// which can take longer than a test's request timeout.
 func warmUp(t testing.TB, server S3Server) {
 	t.Helper()
 	store := objectstore.New(objectstore.Config{
-		Endpoint: server.Endpoint, Region: "us-east-1", AccessKeyID: server.AccessKeyID,
-		SecretAccessKey: server.SecretAccessKey, UsePathStyle: true, Timeout: 30 * time.Second,
+		Endpoint:	server.Endpoint, Region: "us-east-1", AccessKeyID: server.AccessKeyID,
+		SecretAccessKey:	server.SecretAccessKey, UsePathStyle: true, Timeout: 30 * time.Second,
 	})
 	ctx := context.Background()
 	deadline := time.Now().Add(2 * time.Minute)

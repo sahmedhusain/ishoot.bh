@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS finance.invoice (
     id text PRIMARY KEY,
     invoice_number text NOT NULL UNIQUE,
@@ -23,7 +22,6 @@ CREATE TABLE IF NOT EXISTS finance.invoice (
 );
 CREATE INDEX IF NOT EXISTS invoice_number_idx ON finance.invoice (invoice_number);
 CREATE INDEX IF NOT EXISTS invoice_status_due_idx ON finance.invoice (status, due_date);
-
 CREATE TABLE IF NOT EXISTS finance.invoice_item (
     id text PRIMARY KEY,
     invoice_id text NOT NULL REFERENCES finance.invoice(id) ON DELETE CASCADE,
@@ -34,7 +32,6 @@ CREATE TABLE IF NOT EXISTS finance.invoice_item (
     sort_order integer NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS inv_item_idx ON finance.invoice_item (invoice_id, sort_order);
-
 CREATE TABLE IF NOT EXISTS finance.payment (
     id text PRIMARY KEY,
     payment_number text NOT NULL UNIQUE,
@@ -50,7 +47,6 @@ CREATE TABLE IF NOT EXISTS finance.payment (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS payment_invoice_idx ON finance.payment (invoice_id);
-
 CREATE TABLE IF NOT EXISTS finance.expense_category (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -58,7 +54,6 @@ CREATE TABLE IF NOT EXISTS finance.expense_category (
     code text NOT NULL UNIQUE,
     sort_order integer NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS finance.expense (
     id text PRIMARY KEY,
     title text NOT NULL,
@@ -76,7 +71,6 @@ CREATE TABLE IF NOT EXISTS finance.expense (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS expense_category_date_idx ON finance.expense (category_id, expense_date);
-
 CREATE TABLE IF NOT EXISTS finance.bank_settlement (
     id text PRIMARY KEY,
     settlement_number text NOT NULL UNIQUE,
@@ -88,8 +82,6 @@ CREATE TABLE IF NOT EXISTS finance.bank_settlement (
     notes text,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
--- +goose Down
 DROP TABLE IF EXISTS finance.bank_settlement;
 DROP TABLE IF EXISTS finance.expense;
 DROP TABLE IF EXISTS finance.expense_category;

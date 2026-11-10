@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"crypto/hmac"
@@ -11,11 +10,9 @@ import (
 	"fmt"
 	"math/big"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -23,32 +20,26 @@ import (
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
 )
-
-// CustomerCodes owns email proof, attempt accounting and session creation; the website only delivers the code.
 type CustomerCodes struct {
-	pool        *pgxpool.Pool
-	guard       accounts.Guard
-	verifyGuard accounts.Guard
-	sessions    *sessions.Service
-	login       *accounts.Service
-	key         []byte
+	pool		*pgxpool.Pool
+	guard		accounts.Guard
+	verifyGuard	accounts.Guard
+	sessions	*sessions.Service
+	login		*accounts.Service
+	key		[]byte
 }
-
 func NewCustomerCodes(pool *pgxpool.Pool, guard accounts.Guard, sessionService *sessions.Service, login *accounts.Service, key []byte, verifyGuard accounts.Guard) *CustomerCodes {
 	return &CustomerCodes{pool: pool, guard: guard, verifyGuard: verifyGuard, sessions: sessionService, login: login, key: append([]byte(nil), key...)}
 }
-
 func (s *CustomerCodes) digest(email, code string) string {
 	h := hmac.New(sha256.New, s.key)
 	_, _ = h.Write([]byte("customer-code:" + email + ":" + code))
 	return hex.EncodeToString(h.Sum(nil))
 }
-
 type CustomerCode struct {
-	Code      string    `json:"code"`
-	ExpiresAt time.Time `json:"expiresAt"`
+	Code		string		`json:"code"`
+	ExpiresAt	time.Time	`json:"expiresAt"`
 }
-
 func (s *CustomerCodes) Issue(ctx context.Context, email, ip string) (CustomerCode, error) {
 	email, ok := normalizeEmail(email)
 	if !ok {
@@ -71,7 +62,6 @@ func (s *CustomerCodes) Issue(ctx context.Context, email, ip string) (CustomerCo
 	})
 	return out, err
 }
-
 func (s *CustomerCodes) SignIn(ctx context.Context, email, code, otp, ip, agent string) (accounts.Result, error) {
 	email, ok := normalizeEmail(email)
 	if !ok || len(code) != 6 || len(otp) > 64 || len(agent) > 512 || len(ip) > 45 {
@@ -140,14 +130,13 @@ func (s *CustomerCodes) SignIn(ctx context.Context, email, code, otp, ip, agent 
 	}
 	return result, nil
 }
-
 func (s *CustomerCodes) startVerified(ctx context.Context, tx pgx.Tx, account sqlcdb.IdentityAccount, otp, ip, agent string, now time.Time) (accounts.Result, error) {
 	if account.Realm != "customer" || !account.Active {
 		return accounts.Result{}, accounts.ErrInvalid
 	}
 	q := sqlcdb.New(tx)
 	current := accounts.Account{Email: account.Email, Roles: account.Roles, Active: true, Realm: authn.RealmCustomer, SubjectID: account.SubjectID,
-		MFAEnabled: account.MfaEnabled, MFASecret: account.MfaSecretEncrypted, LastStep: account.MfaLastStep}
+		MFAEnabled:	account.MfaEnabled, MFASecret: account.MfaSecretEncrypted, LastStep: account.MfaLastStep}
 	factor, err := s.login.CheckFactor(current, otp, now)
 	if err != nil {
 		return accounts.Result{}, err
@@ -183,7 +172,7 @@ func (s *CustomerCodes) startVerified(ctx context.Context, tx pgx.Tx, account sq
 		return accounts.Result{}, err
 	}
 	err = outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session.started", Payload: map[string]any{
-		"subjectId": account.SubjectID, "realm": "customer", "sessionId": credential.Family.ID, "changedBy": "customer:" + account.SubjectID, "reason": "login",
+		"subjectId":	account.SubjectID, "realm": "customer", "sessionId": credential.Family.ID, "changedBy": "customer:" + account.SubjectID, "reason": "login",
 	}})
 	if err != nil {
 		return accounts.Result{}, err

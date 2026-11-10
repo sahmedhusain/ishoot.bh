@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS sales.contact (
     id text PRIMARY KEY,
     first_name text NOT NULL,
@@ -15,7 +14,6 @@ CREATE TABLE IF NOT EXISTS sales.contact (
 );
 CREATE INDEX IF NOT EXISTS contact_email_idx ON sales.contact (email);
 CREATE INDEX IF NOT EXISTS contact_phone_idx ON sales.contact (phone);
-
 CREATE TABLE IF NOT EXISTS sales.deal (
     id text PRIMARY KEY,
     title text NOT NULL,
@@ -32,7 +30,6 @@ CREATE TABLE IF NOT EXISTS sales.deal (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS deal_stage_status_idx ON sales.deal (stage, status);
-
 CREATE TABLE IF NOT EXISTS sales.inquiry (
     id text PRIMARY KEY,
     inquiry_type text NOT NULL DEFAULT 'general',
@@ -49,7 +46,6 @@ CREATE TABLE IF NOT EXISTS sales.inquiry (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS inquiry_status_idx ON sales.inquiry (status);
-
 CREATE TABLE IF NOT EXISTS sales.quotation (
     id text PRIMARY KEY,
     quotation_number text NOT NULL UNIQUE,
@@ -72,7 +68,6 @@ CREATE TABLE IF NOT EXISTS sales.quotation (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS quotation_number_idx ON sales.quotation (quotation_number);
-
 CREATE TABLE IF NOT EXISTS sales.quotation_item (
     id text PRIMARY KEY,
     quotation_id text NOT NULL REFERENCES sales.quotation(id) ON DELETE CASCADE,
@@ -83,7 +78,6 @@ CREATE TABLE IF NOT EXISTS sales.quotation_item (
     sort_order integer NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS q_item_quotation_idx ON sales.quotation_item (quotation_id, sort_order);
-
 CREATE TABLE IF NOT EXISTS sales.campaign (
     id text PRIMARY KEY,
     name text NOT NULL,
@@ -94,8 +88,6 @@ CREATE TABLE IF NOT EXISTS sales.campaign (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
--- +goose Down
 DROP TABLE IF EXISTS sales.campaign;
 DROP TABLE IF EXISTS sales.quotation_item;
 DROP TABLE IF EXISTS sales.quotation;

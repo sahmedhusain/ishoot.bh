@@ -1,17 +1,4 @@
-// Command db-roles gives each backend service its own database login (svc_<service>) that owns the service's schema
-// and nothing else (ADR 0002). It runs with the database owner's credentials before the services migrate, on every
-// deploy; it is idempotent and also rotates passwords.
-//
-// Environment:
-//
-//	DATABASE_URL                       the database owner's connection
-//	DB_ROLES                           services, comma-separated (files,identity,system,itsm)
-//	DB_ROLE_PASSWORD_<SERVICE>         each login's password (at least 16 characters)
-//	DB_ROLE_STATEMENT_TIMEOUT          default per-statement limit (15s); _<SERVICE> overrides it
-//	DB_ROLE_IDLE_IN_TRANSACTION_TIMEOUT  (60s)
-//	DB_ROLE_CONNECTION_LIMIT           per-login Postgres connections (-1: no limit)
 package main
-
 import (
 	"context"
 	"errors"
@@ -23,21 +10,18 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("tool", "db-roles")
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
-		return // a one-shot job has nothing to probe
+		return
 	}
 	if err := run(logger); err != nil {
 		fmt.Fprintln(os.Stderr, "db-roles:", err)
 		os.Exit(1)
 	}
 }
-
 func run(logger *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -56,7 +40,6 @@ func run(logger *slog.Logger) error {
 	defer pool.Close()
 	return Apply(ctx, pool, roles, logger)
 }
-
 func rolesFromEnv(get func(string) string) ([]Role, error) {
 	duration := func(name, fallback string) (time.Duration, error) {
 		v := get(name)
@@ -95,7 +78,7 @@ func rolesFromEnv(get func(string) string) ([]Role, error) {
 			return nil, err
 		}
 		roles = append(roles, Role{Service: service, Password: get("DB_ROLE_PASSWORD_" + upper),
-			StatementTimeout: own, IdleInTransactionTimeout: idle, ConnectionLimit: limit})
+			StatementTimeout:	own, IdleInTransactionTimeout: idle, ConnectionLimit: limit})
 	}
 	if len(roles) == 0 {
 		return nil, errors.New("DB_ROLES is empty")

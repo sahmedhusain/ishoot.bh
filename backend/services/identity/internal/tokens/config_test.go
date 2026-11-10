@@ -1,5 +1,4 @@
 package tokens
-
 import (
 	"crypto/ed25519"
 	"crypto/rand"
@@ -7,10 +6,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
-
 	"github.com/stretchr/testify/require"
 )
-
 func TestLoadIssuerKeys(t *testing.T) {
 	public, private, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)

@@ -1,6 +1,4 @@
-// Package httpapi exposes the audit trail over HTTP, as described in api/openapi.yaml.
 package httpapi
-
 import (
 	"encoding/base64"
 	"errors"
@@ -8,10 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -19,22 +15,15 @@ import (
 	"platform.local/backend/services/audit/api"
 	"platform.local/backend/services/audit/internal/app"
 )
-
-// CodeNotFound is returned for an unknown event.
 const CodeNotFound = "event_not_found"
-
-// Options configures the handlers.
 type Options struct {
-	Verifier                     *authn.Verifier
-	DefaultPageSize, MaxPageSize int32
+	Verifier			*authn.Verifier
+	DefaultPageSize, MaxPageSize	int32
 }
-
 type handler struct {
-	svc  *app.Service
-	opts Options
+	svc	*app.Service
+	opts	Options
 }
-
-// Register adds the routes. Only IT staff with audit:read see the trail.
 func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	h := &handler{svc: svc, opts: opts}
 	e.GET("/v1/audit/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
@@ -43,10 +32,9 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.GET("/events/:id", h.get)
 	desk.GET("/subjects", h.subjects)
 }
-
 func (h *handler) list(c echo.Context) error {
 	q := app.Query{
-		Subject: c.QueryParam("subject"), Service: c.QueryParam("service"), Actor: c.QueryParam("actor"), Limit: h.opts.DefaultPageSize,
+		Subject:	c.QueryParam("subject"), Service: c.QueryParam("service"), Actor: c.QueryParam("actor"), Limit: h.opts.DefaultPageSize,
 	}
 	var errs []problem.FieldError
 	for name, max := range map[string]int{"subject": 200, "service": 64, "actor": 200} {
@@ -91,7 +79,6 @@ func (h *handler) list(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, out)
 }
-
 func decodeCursor(raw string) (time.Time, string, bool) {
 	b, err := base64.RawURLEncoding.DecodeString(raw)
 	if err != nil {
@@ -107,7 +94,6 @@ func decodeCursor(raw string) (time.Time, string, bool) {
 	}
 	return t, id, true
 }
-
 func (h *handler) get(c echo.Context) error {
 	ev, err := h.svc.Get(c.Request().Context(), c.Param("id"))
 	if errors.Is(err, app.ErrNotFound) {
@@ -118,7 +104,6 @@ func (h *handler) get(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, ev)
 }
-
 func (h *handler) subjects(c echo.Context) error {
 	items, err := h.svc.Subjects(c.Request().Context())
 	if err != nil {

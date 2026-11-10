@@ -1,20 +1,16 @@
 package app
-
 import (
 	"context"
 	"errors"
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 func staffRole(ctx context.Context, q *sqlcdb.Queries, id string) (StaffRoleDraft, error) {
 	row, err := q.StaffRole(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {

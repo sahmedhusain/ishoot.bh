@@ -1,7 +1,3 @@
--- The outbox and inbox of ADR 0003, as pkg/outbox.DDL("itsm") writes them: events are written with the change
--- and published by the relay; consumers record the events they handled.
-
--- +goose Up
 CREATE TABLE IF NOT EXISTS "itsm".outbox (
     id           uuid        NOT NULL,
     subject      text        NOT NULL,
@@ -23,7 +19,5 @@ CREATE TABLE IF NOT EXISTS "itsm".inbox (
     handled_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT inbox_pkey PRIMARY KEY (consumer, event_id)
 );
-
--- +goose Down
 DROP TABLE IF EXISTS "itsm".inbox;
 DROP TABLE IF EXISTS "itsm".outbox;

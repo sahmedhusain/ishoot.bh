@@ -1,5 +1,4 @@
 package httpapi
-
 import (
 	"errors"
 	"math"
@@ -8,9 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
@@ -19,7 +16,6 @@ import (
 	"platform.local/backend/services/identity/internal/guard"
 	"platform.local/backend/services/identity/internal/tokens"
 )
-
 func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *tokens.Issuer, svc *app.CustomerCodes, callers []string, limit int64) {
 	g := e.Group("/v1/identity/customer", authn.Require(verifier, authn.RealmService), func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -33,8 +29,8 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 	})
 	g.POST("/sign-in-codes", func(c echo.Context) error {
 		var in struct {
-			Email    string `json:"email" validate:"required,max=254"`
-			ClientIP string `json:"clientIp" validate:"max=45"`
+			Email		string	`json:"email" validate:"required,max=254"`
+			ClientIP	string	`json:"clientIp" validate:"max=45"`
 		}
 		if err := httpx.BindJSON(c, &in, limit); err != nil {
 			return err
@@ -47,11 +43,11 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 	})
 	g.POST("/sessions/code", func(c echo.Context) error {
 		var in struct {
-			Email     string `json:"email" validate:"required,max=254"`
-			Code      string `json:"code" validate:"required,len=6,numeric"`
-			OTP       string `json:"otp" validate:"max=64"`
-			ClientIP  string `json:"clientIp" validate:"max=45"`
-			UserAgent string `json:"userAgent" validate:"max=512"`
+			Email		string	`json:"email" validate:"required,max=254"`
+			Code		string	`json:"code" validate:"required,len=6,numeric"`
+			OTP		string	`json:"otp" validate:"max=64"`
+			ClientIP	string	`json:"clientIp" validate:"max=45"`
+			UserAgent	string	`json:"userAgent" validate:"max=512"`
 		}
 		if err := httpx.BindJSON(c, &in, limit); err != nil {
 			return err
@@ -66,15 +62,14 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 			return err
 		}
 		return c.JSON(http.StatusOK, struct {
-			Email      string        `json:"email"`
-			Credential loginResponse `json:"credential"`
+			Email		string		`json:"email"`
+			Credential	loginResponse	`json:"credential"`
 		}{Email: strings.ToLower(strings.TrimSpace(in.Email)), Credential: loginResponse{
-			refreshResponse: refreshResponse{SessionID: f.ID, SubjectID: f.SubjectID, Realm: f.Realm, ExpiresAt: f.ExpiresAt, RefreshToken: result.Credential.Token},
-			AccessToken:     token, Roles: result.Account.Roles,
+			refreshResponse:	refreshResponse{SessionID: f.ID, SubjectID: f.SubjectID, Realm: f.Realm, ExpiresAt: f.ExpiresAt, RefreshToken: result.Credential.Token},
+			AccessToken:		token, Roles: result.Account.Roles,
 		}})
 	})
 }
-
 func codeError(c echo.Context, err error) error {
 	var limited *guard.Limited
 	switch {

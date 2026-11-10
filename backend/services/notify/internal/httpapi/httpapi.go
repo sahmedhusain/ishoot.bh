@@ -1,6 +1,4 @@
-// Package httpapi exposes the notify use cases over HTTP, as described in api/openapi.yaml.
 package httpapi
-
 import (
 	"encoding/base64"
 	"errors"
@@ -9,10 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -21,43 +17,32 @@ import (
 	"platform.local/backend/services/notify/api"
 	"platform.local/backend/services/notify/internal/app"
 )
-
-// Error codes returned as Problem detail.
 const (
-	CodeNotFound   = "message_not_found"
-	CodeNotFailed  = "message_not_failed"
-	CodeValidation = "validation_failed"
+	CodeNotFound	= "message_not_found"
+	CodeNotFailed	= "message_not_failed"
+	CodeValidation	= "validation_failed"
 )
-
-// Options configures the handlers.
 type Options struct {
-	Verifier *authn.Verifier
-	// SendCallers are the service identities that may queue messages.
-	SendCallers []string
-	// InboxCallers are the service identities that may deliver in-app notifications and act for their people.
-	InboxCallers                 []string
-	BodyLimit                    int64
-	InboxBodyLimit               int64
-	DefaultPageSize, MaxPageSize int32
+	Verifier	*authn.Verifier
+	SendCallers	[]string
+	InboxCallers			[]string
+	BodyLimit			int64
+	InboxBodyLimit			int64
+	DefaultPageSize, MaxPageSize	int32
 }
-
 type handler struct {
-	svc  *app.Service
-	opts Options
+	svc	*app.Service
+	opts	Options
 }
-
-// Register adds the routes.
 func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	h := &handler{svc: svc, opts: opts}
 	e.GET("/v1/notify/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
-
 	services := e.Group("/v1/notify", authn.Require(opts.Verifier, authn.RealmService))
 	send := caller(opts.SendCallers)
 	services.POST("/messages", h.queue, send)
 	services.GET("/messages/:id", h.status, send)
 	registerInbox(e, services, h)
 	h.registerWebhooks(e)
-
 	desk := e.Group("/v1/notify/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	desk.GET("/messages", h.list, authz.Require(catalog.ITAccess, "notifications", "read"))
 	desk.GET("/summary", h.summary, authz.Require(catalog.ITAccess, "notifications", "read"))
@@ -65,7 +50,6 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.POST("/messages/:id/retry", h.retry, authz.Require(catalog.ITAccess, "notifications", "execute"))
 	desk.POST("/test", h.test, authz.Require(catalog.ITAccess, "notifications", "execute"))
 }
-
 func caller(allowed []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -77,7 +61,6 @@ func caller(allowed []string) echo.MiddlewareFunc {
 		}
 	}
 }
-
 func fail(err error) error {
 	switch {
 	case errors.Is(err, app.ErrValidation):
@@ -89,32 +72,28 @@ func fail(err error) error {
 	}
 	return err
 }
-
 type attachmentJSON struct {
-	Filename    string `json:"filename" validate:"required,max=200"`
-	ContentType string `json:"contentType" validate:"max=200"`
-	// Content is the file, base64-encoded.
-	Content string `json:"content" validate:"required"`
+	Filename	string	`json:"filename" validate:"required,max=200"`
+	ContentType	string	`json:"contentType" validate:"max=200"`
+	Content	string	`json:"content" validate:"required"`
 }
-
 type queueJSON struct {
-	Channel        string           `json:"channel" validate:"required,oneof=email whatsapp"`
-	To             string           `json:"to" validate:"required,max=320"`
-	Subject        string           `json:"subject" validate:"max=998"`
-	Text           string           `json:"text"`
-	HTML           string           `json:"html"`
-	Attachments    []attachmentJSON `json:"attachments" validate:"max=10,dive"`
-	IdempotencyKey string           `json:"idempotencyKey" validate:"required,max=200"`
-	ActorID        string           `json:"actorId" validate:"max=64"`
+	Channel		string			`json:"channel" validate:"required,oneof=email whatsapp"`
+	To		string			`json:"to" validate:"required,max=320"`
+	Subject		string			`json:"subject" validate:"max=998"`
+	Text		string			`json:"text"`
+	HTML		string			`json:"html"`
+	Attachments	[]attachmentJSON	`json:"attachments" validate:"max=10,dive"`
+	IdempotencyKey	string			`json:"idempotencyKey" validate:"required,max=200"`
+	ActorID		string			`json:"actorId" validate:"max=64"`
 }
-
 func (h *handler) queue(c echo.Context) error {
 	var in queueJSON
 	if err := httpx.BindJSON(c, &in, h.opts.BodyLimit); err != nil {
 		return err
 	}
 	input := app.Input{Channel: in.Channel, To: in.To, Subject: in.Subject, Text: in.Text, HTML: in.HTML,
-		IdempotencyKey: in.IdempotencyKey, ActorID: in.ActorID}
+		IdempotencyKey:	in.IdempotencyKey, ActorID: in.ActorID}
 	for i, a := range in.Attachments {
 		content, err := base64.StdEncoding.DecodeString(a.Content)
 		if err != nil {
@@ -133,7 +112,6 @@ func (h *handler) queue(c echo.Context) error {
 	}
 	return c.JSON(status, msg)
 }
-
 func (h *handler) status(c echo.Context) error {
 	p, _ := authn.PrincipalFrom(c.Request().Context())
 	msg, err := h.svc.ForCaller(c.Request().Context(), p.Subject, c.Param("id"))
@@ -142,7 +120,6 @@ func (h *handler) status(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, msg)
 }
-
 func (h *handler) list(c echo.Context) error {
 	q := app.ListQuery{Status: c.QueryParam("status"), Channel: c.QueryParam("channel"), Limit: h.opts.DefaultPageSize}
 	var errs []problem.FieldError
@@ -182,7 +159,6 @@ func (h *handler) list(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, out)
 }
-
 func (h *handler) summary(c echo.Context) error {
 	counts, err := h.svc.Counts(c.Request().Context())
 	if err != nil {
@@ -190,7 +166,6 @@ func (h *handler) summary(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, map[string]any{"items": counts})
 }
-
 func (h *handler) detail(c echo.Context) error {
 	msg, err := h.svc.Detail(c.Request().Context(), c.Param("id"))
 	if err != nil {
@@ -198,7 +173,6 @@ func (h *handler) detail(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, msg)
 }
-
 func (h *handler) retry(c echo.Context) error {
 	p, _ := authn.PrincipalFrom(c.Request().Context())
 	msg, err := h.svc.Retry(c.Request().Context(), c.Param("id"), string(authn.RealmIT)+":"+p.Subject)
@@ -207,12 +181,10 @@ func (h *handler) retry(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, msg)
 }
-
 type testJSON struct {
-	Channel string `json:"channel" validate:"required,oneof=email whatsapp"`
-	To      string `json:"to" validate:"required,max=320"`
+	Channel	string	`json:"channel" validate:"required,oneof=email whatsapp"`
+	To	string	`json:"to" validate:"required,max=320"`
 }
-
 func (h *handler) test(c echo.Context) error {
 	var in testJSON
 	if err := httpx.BindJSON(c, &in, 4096); err != nil {

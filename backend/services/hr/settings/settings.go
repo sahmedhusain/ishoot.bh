@@ -1,6 +1,4 @@
-// Package settings is the hr service's configuration.
 package settings
-
 import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
@@ -8,17 +6,15 @@ import (
 	"platform.local/backend/pkg/natsx"
 	"platform.local/backend/pkg/outbox"
 )
-
 type Config struct {
 	config.Common
-	Database db.Config     `envPrefix:"DATABASE_"`
-	Auth     authn.Config  `envPrefix:"AUTH_"`
-	HR       HR            `envPrefix:"HR_"`
-	NATS     natsx.Config  `envPrefix:"NATS_"`
-	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
+	Database	db.Config	`envPrefix:"DATABASE_"`
+	Auth		authn.Config	`envPrefix:"AUTH_"`
+	HR		HR		`envPrefix:"HR_"`
+	NATS		natsx.Config	`envPrefix:"NATS_"`
+	Outbox		outbox.Config	`envPrefix:"OUTBOX_"`
 }
-
 type HR struct {
-	Readers []string `env:"READERS" envDefault:"admin,it,finance,workflow" envSeparator:"," validate:"min=1,dive,required"`
-	Writers []string `env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	Readers	[]string	`env:"READERS" envDefault:"admin,it,finance,workflow" envSeparator:"," validate:"min=1,dive,required"`
+	Writers	[]string	`env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
 }

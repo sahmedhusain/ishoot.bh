@@ -1,5 +1,4 @@
 package jobs
-
 import (
 	"bytes"
 	"context"
@@ -10,27 +9,21 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
-
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 type ProfileProjectionArgs struct{}
-
-func (ProfileProjectionArgs) Kind() string { return "identity.project_business_profiles" }
+func (ProfileProjectionArgs) Kind() string	{ return "identity.project_business_profiles" }
 func (ProfileProjectionArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: Queue, UniqueOpts: river.UniqueOpts{ByArgs: true}}
 }
-
 type ProfileProjectionWorker struct {
 	river.WorkerDefaults[ProfileProjectionArgs]
-	Pool             *pgxpool.Pool
-	Transport        http.RoundTripper
-	AdminURL, WebURL string
+	Pool			*pgxpool.Pool
+	Transport		http.RoundTripper
+	AdminURL, WebURL	string
 }
-
 func (w *ProfileProjectionWorker) Work(ctx context.Context, _ *river.Job[ProfileProjectionArgs]) error {
 	q := sqlcdb.New(w.Pool)
 	rows, err := q.PendingProfileProjections(ctx, 50)
@@ -38,7 +31,6 @@ func (w *ProfileProjectionWorker) Work(ctx context.Context, _ *river.Job[Profile
 		return err
 	}
 	client := &http.Client{Transport: w.Transport, Timeout: 3 * time.Second, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }}
-
 	var failures []error
 	for _, row := range rows {
 		if err := ctx.Err(); err != nil {
@@ -51,7 +43,6 @@ func (w *ProfileProjectionWorker) Work(ctx context.Context, _ *river.Job[Profile
 	return errors.Join(failures...)
 }
 func (w *ProfileProjectionWorker) deliver(ctx context.Context, client *http.Client, q *sqlcdb.Queries, row sqlcdb.PendingProfileProjectionsRow) error {
-
 	raw, err := json.Marshal(map[string]any{"realm": row.Realm, "subjectId": row.SubjectID, "version": row.Version, "deleted": row.Deleted, "email": row.Email, "roles": row.Roles, "active": row.Active, "displayName": row.DisplayName, "overrides": json.RawMessage(row.PermissionOverrides), "roleNameEn": row.RoleNameEn, "roleNameAr": row.RoleNameAr, "roleSystem": row.RoleSystem, "roleVersion": row.RoleVersion})
 	if err != nil {
 		return err

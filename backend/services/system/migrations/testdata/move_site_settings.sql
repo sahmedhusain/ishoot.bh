@@ -1,9 +1,4 @@
--- Hands the website's technical settings to the system service (docs/adr/0010): the website and admin domains from
--- "CompanySetting", and the site-wide analytics ids and custom code from the website content. They land in
--- system.site_setting (backend/services/system/migrations/00003_site.sql), which this creates when the service has not
--- run yet. A value the service already has wins over the legacy one. Safe to run again.
 CREATE SCHEMA IF NOT EXISTS system;
-
 CREATE TABLE IF NOT EXISTS system.site_setting (
     id             boolean     NOT NULL DEFAULT true,
     website_domain text,
@@ -15,9 +10,7 @@ CREATE TABLE IF NOT EXISTS system.site_setting (
     CONSTRAINT site_setting_single_row CHECK (id),
     CONSTRAINT site_setting_domains_differ CHECK (website_domain IS NULL OR website_domain IS DISTINCT FROM admin_domain)
 );
-
 INSERT INTO system.site_setting (id) VALUES (true) ON CONFLICT (id) DO NOTHING;
-
 DO $$
 DECLARE
   legacy_website text;
@@ -36,9 +29,7 @@ BEGIN
        AND COALESCE(s.website_domain, legacy_website) IS DISTINCT FROM COALESCE(s.admin_domain, legacy_admin);
     ALTER TABLE public."CompanySetting" DROP COLUMN "websiteDomain", DROP COLUMN "adminDomain";
   END IF;
-
   IF to_regclass('public."WebsiteContent"') IS NOT NULL THEN
-    -- The live website runs the published code; a website never published runs none yet, so its draft's is kept.
     SELECT COALESCE(published -> 'code', draft -> 'code') INTO legacy_code
       FROM public."WebsiteContent" WHERE id = 'main';
     IF jsonb_typeof(legacy_code) = 'object' THEN

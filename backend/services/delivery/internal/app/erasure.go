@@ -1,35 +1,22 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/delivery/internal/postgres"
 )
-
-// CommerceEventsConsumer names delivery's durable consumer of commerce's events (and its inbox rows).
 const CommerceEventsConsumer = "delivery-commerce-events"
-
-// SubjectCustomerErased is the event commerce publishes after it erased a customer's personal data.
 const SubjectCustomerErased = "commerce.customer.erased"
-
 const erasedName = "Erased customer"
-
-// PrivateFileDeleter deletes a private proof photo that is no longer referenced by a shipment.
 type PrivateFileDeleter interface {
 	DeletePrivate(context.Context, string) error
 }
-
-// HandleCustomerErased removes the personal data of the shipments of the erased customer's orders. The event carries IDs only. A redelivered
-// event, a malformed one, or one naming nothing changes nothing.
 func (s *Service) HandleCustomerErased(ctx context.Context, eventID string, payload []byte) error {
 	var in struct {
-		OrderIDs   []string `json:"orderIds"`
-		ContactIDs []string `json:"contactIds"`
+		OrderIDs	[]string	`json:"orderIds"`
+		ContactIDs	[]string	`json:"contactIds"`
 	}
 	if err := json.Unmarshal(payload, &in); err != nil || len(in.OrderIDs) == 0 {
 		return nil

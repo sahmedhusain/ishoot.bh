@@ -1,40 +1,29 @@
-// Package postgres stores hr entities in the hr schema.
 package postgres
-
 import (
 	"context"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/hr/internal/postgres/sqlcdb"
 )
-
 const Schema = "hr"
-
 type Department = sqlcdb.HrDepartment
 type Employee = sqlcdb.HrEmployee
 type LeaveRequest = sqlcdb.HrLeaveRequest
 type AttendanceEntry = sqlcdb.HrAttendanceEntry
 type PayrollRun = sqlcdb.HrPayrollRun
 type PayrollItem = sqlcdb.HrPayrollItem
-
 type Store struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
 }
-
-func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return fn(&Store{q: s.q.WithTx(tx)}, tx)
 	})
 }
-
-// Departments
 func (s *Store) ListDepartments(ctx context.Context) ([]Department, error) {
 	return s.q.ListDepartments(ctx)
 }
@@ -50,8 +39,6 @@ func (s *Store) UpdateDepartment(ctx context.Context, p sqlcdb.UpdateDepartmentP
 func (s *Store) DeleteDepartment(ctx context.Context, id string) error {
 	return s.q.DeleteDepartment(ctx, id)
 }
-
-// Employees
 func (s *Store) ListEmployees(ctx context.Context) ([]Employee, error) {
 	return s.q.ListEmployees(ctx)
 }
@@ -73,8 +60,6 @@ func (s *Store) UpdateEmployeeStatus(ctx context.Context, p sqlcdb.UpdateEmploye
 func (s *Store) DeleteEmployee(ctx context.Context, id string) error {
 	return s.q.DeleteEmployee(ctx, id)
 }
-
-// Leave Requests
 func (s *Store) ListLeaveRequests(ctx context.Context) ([]LeaveRequest, error) {
 	return s.q.ListLeaveRequests(ctx)
 }
@@ -90,8 +75,6 @@ func (s *Store) CreateLeaveRequest(ctx context.Context, p sqlcdb.CreateLeaveRequ
 func (s *Store) UpdateLeaveRequestStatus(ctx context.Context, p sqlcdb.UpdateLeaveRequestStatusParams) (LeaveRequest, error) {
 	return s.q.UpdateLeaveRequestStatus(ctx, p)
 }
-
-// Attendance
 func (s *Store) ListAttendanceByDate(ctx context.Context, date pgtype.Date) ([]AttendanceEntry, error) {
 	return s.q.ListAttendanceByDate(ctx, date)
 }
@@ -101,8 +84,6 @@ func (s *Store) ListAttendanceByEmployee(ctx context.Context, employeeID string)
 func (s *Store) RecordAttendance(ctx context.Context, p sqlcdb.RecordAttendanceParams) (AttendanceEntry, error) {
 	return s.q.RecordAttendance(ctx, p)
 }
-
-// Payroll
 func (s *Store) ListPayrollRuns(ctx context.Context) ([]PayrollRun, error) {
 	return s.q.ListPayrollRuns(ctx)
 }

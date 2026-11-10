@@ -1,19 +1,16 @@
 package totp
-
 import (
 	"testing"
 	"time"
-
 	"github.com/stretchr/testify/require"
 )
-
 func TestRFC6238Vectors(t *testing.T) {
 	v, err := New(Config{Period: 30 * time.Second, Digits: 8, Window: 1})
 	require.NoError(t, err)
 	secret := []byte("12345678901234567890")
 	for _, tc := range []struct {
-		timestamp int64
-		code      string
+		timestamp	int64
+		code		string
 	}{{59, "94287082"}, {1111111109, "07081804"}, {1111111111, "14050471"}, {1234567890, "89005924"}, {2000000000, "69279037"}, {20000000000, "65353130"}} {
 		got, err := v.Code(secret, tc.timestamp/30)
 		require.NoError(t, err)
@@ -54,7 +51,6 @@ func TestLegacyWindowAndInvalidInputs(t *testing.T) {
 	_, err = New(Config{Period: 30 * time.Second, Digits: 6, Window: 3})
 	require.Error(t, err)
 }
-
 func TestRecoveryCodeCompatibility(t *testing.T) {
 	codes, hashes, err := NewRecoveryCodes(10)
 	require.NoError(t, err)

@@ -1,39 +1,23 @@
 package main
-
 import (
 	"context"
 	"fmt"
 	"log/slog"
 	"regexp"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
 var serviceName = regexp.MustCompile(`^[a-z][a-z0-9_]{0,40}$`)
-
-// Role is one service's database login and the schema it owns.
 type Role struct {
-	Service string // also the schema name (ADR 0002)
-	// Password of the login; rotated on every run, so changing the secret and re-running is the rotation.
-	Password string
-	// StatementTimeout and IdleInTransactionTimeout are the role's defaults, so they hold behind PgBouncer too.
-	StatementTimeout         time.Duration
-	IdleInTransactionTimeout time.Duration
-	// ConnectionLimit caps the role's connections to Postgres (-1: none).
-	ConnectionLimit int
+	Service	string
+	Password	string
+	StatementTimeout		time.Duration
+	IdleInTransactionTimeout	time.Duration
+	ConnectionLimit	int
 }
-
-// Login is the role's name: svc_<service>.
-func (r Role) Login() string { return "svc_" + r.Service }
-
-// lockKey serialises concurrent runs (several migrate jobs starting at once).
+func (r Role) Login() string	{ return "svc_" + r.Service }
 const lockKey = 7_365_201_011
-
-// Apply makes each role exist with its password and defaults, own its schema and everything in it, and nothing
-// else. It is idempotent: run it before every migration. Objects someone else created in the schema (a Prisma
-// hand-off moving a table in, an earlier install that used one login for everything) are handed to the role.
 func Apply(ctx context.Context, pool *pgxpool.Pool, roles []Role, logger *slog.Logger) error {
 	for _, r := range roles {
 		if !serviceName.MatchString(r.Service) {
@@ -56,7 +40,6 @@ func Apply(ctx context.Context, pool *pgxpool.Pool, roles []Role, logger *slog.L
 		return nil
 	})
 }
-
 func apply(ctx context.Context, tx pgx.Tx, r Role) error {
 	login, schema := pgx.Identifier{r.Login()}.Sanitize(), pgx.Identifier{r.Service}.Sanitize()
 	var exists bool
@@ -67,7 +50,6 @@ func apply(ctx context.Context, tx pgx.Tx, r Role) error {
 	if !exists {
 		verb = "CREATE"
 	}
-	// The password cannot be a bind parameter in a role statement; format(%L) quotes it on the server.
 	var stmt string
 	if err := tx.QueryRow(ctx, `SELECT format('%s ROLE %I WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION CONNECTION LIMIT %s PASSWORD %L',
 		$1::text, $2::text, $3::int, $4::text)`, verb, r.Login(), r.ConnectionLimit, r.Password).Scan(&stmt); err != nil {
@@ -94,7 +76,6 @@ func apply(ctx context.Context, tx pgx.Tx, r Role) error {
 			return err
 		}
 	}
-	// Hand every object in the schema to the role. Sequences owned by a column follow their table.
 	rows, err := tx.Query(ctx, `
 SELECT format('ALTER %s %I.%I OWNER TO %I', CASE c.relkind WHEN 'S' THEN 'SEQUENCE' WHEN 'v' THEN 'VIEW'
          WHEN 'm' THEN 'MATERIALIZED VIEW' WHEN 'f' THEN 'FOREIGN TABLE' ELSE 'TABLE' END, n.nspname, c.relname, $2::text)

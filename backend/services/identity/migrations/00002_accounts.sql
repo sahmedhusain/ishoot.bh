@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE identity.account (
  realm text NOT NULL CHECK (realm IN ('staff', 'customer', 'it')),
  subject_id text NOT NULL CHECK (length(subject_id) > 0),
@@ -24,6 +23,5 @@ CREATE TABLE identity.mfa_recovery_code (
  PRIMARY KEY (realm, subject_id, code_hash),
  FOREIGN KEY (realm, subject_id) REFERENCES identity.account(realm, subject_id) ON DELETE CASCADE
 );
--- +goose Down
 DROP TABLE identity.mfa_recovery_code;
 DROP TABLE identity.account;

@@ -1,12 +1,9 @@
 package main
-
 import (
 	"context"
 	"fmt"
-
 	"github.com/jackc/pgx/v5"
 )
-
 const sourceProviderLinks = `WITH source_provider_links AS (
  SELECT p.provider,p.provider_subject,c.id AS subject_id,c."createdAt" AT TIME ZONE 'UTC' AS created_at
  FROM public."Customer" c CROSS JOIN LATERAL (VALUES ('google',NULLIF(c."googleSub",'')),('apple',NULLIF(c."appleSub",''))) p(provider,provider_subject)
@@ -25,11 +22,10 @@ const sourceCustomerCodes = `WITH source_customer_codes AS (
  FROM public."CustomerAuthCode" WHERE "usedAt" IS NULL AND "expiresAt" AT TIME ZONE 'UTC'>now() AND attempts<5
  ORDER BY lower(btrim(email)),"createdAt" DESC,id DESC
 ) `
-
 func validateCredentialHandoff(ctx context.Context, tx pgx.Tx, maxCost int) error {
 	checks := []struct {
-		sql, message string
-		args         []any
+		sql, message	string
+		args		[]any
 	}{
 		{sourceProviderLinks + `SELECT count(*) FROM source_provider_links WHERE length(provider_subject)>512 OR btrim(provider_subject)=''`, "invalid provider link(s)", nil},
 		{sourceProviderLinks + `SELECT count(*) FROM source_provider_links s JOIN identity.customer_provider p ON p.provider=s.provider AND (p.provider_subject=s.provider_subject OR p.subject_id=s.subject_id) WHERE p.provider_subject<>s.provider_subject OR p.subject_id<>s.subject_id`, "conflicting provider link(s)", nil},
@@ -49,11 +45,10 @@ func validateCredentialHandoff(ctx context.Context, tx pgx.Tx, maxCost int) erro
 	}
 	return nil
 }
-
 func copyCredentialHandoff(ctx context.Context, tx pgx.Tx, report *summary) error {
 	copies := []struct {
-		sql   string
-		count *int64
+		sql	string
+		count	*int64
 	}{
 		{sourceProviderLinks + `INSERT INTO identity.customer_provider(provider,provider_subject,subject_id,created_at) SELECT provider,provider_subject,subject_id,created_at FROM source_provider_links ON CONFLICT DO NOTHING`, &report.ProvidersInserted},
 		{sourceResetChallenges + `INSERT INTO identity.legacy_reset_challenge(id,subject_id,code_hash,kind,attempts,expires_at,created_at) SELECT id,subject_id,code_hash,kind,attempts,expires_at,created_at FROM source_reset_challenges ON CONFLICT(id) DO NOTHING`, &report.ResetChallengesInserted},

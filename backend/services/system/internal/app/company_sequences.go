@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"crypto/sha256"
@@ -9,17 +8,13 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
-
 var ErrReservationConflict = errors.New("idempotency key was used for another numbering command")
-
 func (s *Service) ReserveNumber(ctx context.Context, caller, key, kind, date string) (string, error) {
 	parsed, err := time.Parse(time.DateOnly, date)
 	if err != nil || parsed.Year() < 1 || (kind != "invoice" && kind != "receipt") || key == "" || len(key) > 200 || strings.ContainsAny(key, "\r\n\t") {

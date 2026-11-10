@@ -1,11 +1,8 @@
 package catalog
-
 import (
 	"testing"
-
 	"github.com/stretchr/testify/assert"
 )
-
 func TestNotificationCategoryFor(t *testing.T) {
 	for _, tc := range []struct{ realm, key, entity, want string }{
 		{"staff", "approvals.notifications.awaitingYou", "leave_request", "approvals"},
@@ -13,13 +10,12 @@ func TestNotificationCategoryFor(t *testing.T) {
 		{"staff", "", "sales_order", "sales"},
 		{"staff", "inventory.notifications.lowStock", "product", "inventory"},
 		{"staff", "unknown.key", "unknown", "system"},
-		{"it", "approvals.notifications.awaitingYou", "", "system"}, // approvals are a staff category
+		{"it", "approvals.notifications.awaitingYou", "", "system"},
 		{"it", "", "ticket", "it_tickets"},
 	} {
 		assert.Equal(t, tc.want, Notifications.CategoryFor(tc.realm, tc.key, tc.entity), "%+v", tc)
 	}
 }
-
 func TestNotificationCategoryAllowedFor(t *testing.T) {
 	finance, _ := Notifications.Category("finance")
 	approvals, _ := Notifications.Category("approvals")
@@ -35,7 +31,6 @@ func TestNotificationCategoryAllowedFor(t *testing.T) {
 	security, _ := Notifications.Category("security")
 	assert.True(t, security.Mandatory)
 }
-
 func TestPresence(t *testing.T) {
 	assert.Equal(t, "in_meeting", Presence.Automatic("calendar"))
 	assert.Equal(t, "offline", Presence.Automatic("disconnected"))

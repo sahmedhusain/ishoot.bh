@@ -1,42 +1,38 @@
 package app
-
 import (
 	"encoding/json"
 	"regexp"
 	"slices"
 	"strings"
 )
-
 type ThemeFontFile struct {
-	Weight int    `json:"weight"`
-	URL    string `json:"url"`
+	Weight	int	`json:"weight"`
+	URL	string	`json:"url"`
 }
 type ThemeFont struct {
-	Kind   string          `json:"kind"`
-	Family string          `json:"family,omitempty"`
-	Files  []ThemeFontFile `json:"files,omitempty"`
+	Kind	string		`json:"kind"`
+	Family	string		`json:"family,omitempty"`
+	Files	[]ThemeFontFile	`json:"files,omitempty"`
 }
 type BrandTheme struct {
-	Primary string `json:"primary"`
-	Accent  string `json:"accent"`
-	Fonts   struct {
-		Body    ThemeFont `json:"body"`
-		Heading ThemeFont `json:"heading"`
-	} `json:"fonts"`
-	Radius        string `json:"radius"`
-	DefaultMode   string `json:"defaultMode"`
-	ButtonShape   string `json:"buttonShape"`
-	FontScale     string `json:"fontScale"`
-	HeadingWeight int    `json:"headingWeight"`
-	HeadingCase   string `json:"headingCase"`
-	Surface       string `json:"surface"`
-	WebsiteMode   string `json:"websiteMode"`
+	Primary	string	`json:"primary"`
+	Accent	string	`json:"accent"`
+	Fonts	struct {
+		Body	ThemeFont	`json:"body"`
+		Heading	ThemeFont	`json:"heading"`
+	}	`json:"fonts"`
+	Radius		string	`json:"radius"`
+	DefaultMode	string	`json:"defaultMode"`
+	ButtonShape	string	`json:"buttonShape"`
+	FontScale	string	`json:"fontScale"`
+	HeadingWeight	int	`json:"headingWeight"`
+	HeadingCase	string	`json:"headingCase"`
+	Surface		string	`json:"surface"`
+	WebsiteMode	string	`json:"websiteMode"`
 }
-
 var themeHex = regexp.MustCompile(`^#[a-fA-F0-9]{6}$`)
 var fontFamily = regexp.MustCompile(`^[A-Za-z0-9 ]{1,60}$`)
 var brandFontURL = regexp.MustCompile(`^/api/files/brand/[a-zA-Z0-9_-]+\.(woff2?|ttf|otf)$`)
-
 func defaultTheme() BrandTheme {
 	out := BrandTheme{Primary: "#1E3A8A", Accent: "#2563EB", Radius: "lg", DefaultMode: "system", ButtonShape: "pill", FontScale: "md", HeadingWeight: 700, HeadingCase: "normal", Surface: "tinted", WebsiteMode: "dark"}
 	out.Fonts.Body = ThemeFont{Kind: "google", Family: "IBM Plex Sans Arabic"}
@@ -70,7 +66,6 @@ func validThemeFont(font ThemeFont) (ThemeFont, bool) {
 	}
 	return ThemeFont{Kind: "upload", Family: font.Family, Files: files}, true
 }
-
 func themeValue[T any](values map[string]json.RawMessage, key string, fallback T) T {
 	var out T
 	if json.Unmarshal(values[key], &out) != nil {
@@ -96,8 +91,6 @@ func themeFont(raw json.RawMessage) (ThemeFont, bool) {
 	}
 	return validThemeFont(font)
 }
-
-// Theme normalization preserves the existing renderer's defaults for each omitted or invalid choice.
 func normalizeCompanyTheme(raw json.RawMessage) BrandTheme {
 	out := defaultTheme()
 	var values map[string]json.RawMessage

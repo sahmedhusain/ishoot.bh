@@ -1,5 +1,4 @@
 package main
-
 import (
 	"bufio"
 	"context"
@@ -10,19 +9,13 @@ import (
 	"os"
 	"strings"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/term"
-
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/services/identity/internal/bootstrap"
 	"platform.local/backend/services/identity/settings"
 )
-
-// provisionIT creates the first IT account or recovers an existing administrator (see the service README).
-// The password is read from the terminal without echo, or from the first line of standard input when piped.
-// The authenticator secret and recovery codes are printed once, to standard output only.
 func provisionIT(ctx context.Context, command string, args []string, cfg settings.Login, pool *pgxpool.Pool) error {
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
 	email := flags.String("email", "", "e-mail address of the IT account")
@@ -47,8 +40,8 @@ func provisionIT(ctx context.Context, command string, args []string, cfg setting
 		return err
 	}
 	in := bootstrap.Input{
-		Email: *email, Password: plain, Role: *role, MinPasswordLength: cfg.ITPasswordMinLength,
-		RecoveryCount: cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period,
+		Email:	*email, Password: plain, Role: *role, MinPasswordLength: cfg.ITPasswordMinLength,
+		RecoveryCount:	cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period,
 	}
 	var result bootstrap.Result
 	if command == "recover-it" {
@@ -63,7 +56,6 @@ func provisionIT(ctx context.Context, command string, args []string, cfg setting
 		result.SubjectID, result.OTPAuthURL, result.Secret, strings.Join(result.RecoveryCodes, "\n  "))
 	return nil
 }
-
 func readPassword(in *os.File, prompt io.Writer) (string, error) {
 	if fd := int(in.Fd()); term.IsTerminal(fd) {
 		fmt.Fprint(prompt, "Password: ")

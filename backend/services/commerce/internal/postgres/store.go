@@ -1,18 +1,12 @@
-// Package postgres stores commerce entities in the commerce schema.
 package postgres
-
 import (
 	"context"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/commerce/internal/postgres/sqlcdb"
 )
-
 const Schema = "commerce"
-
 type Customer = sqlcdb.CommerceCustomer
 type CustomerAddress = sqlcdb.CommerceCustomerAddress
 type StoreSettings = sqlcdb.CommerceStoreSetting
@@ -22,31 +16,23 @@ type SalesOrderLine = sqlcdb.CommerceSalesOrderLine
 type SalesOrderEvent = sqlcdb.CommerceSalesOrderEvent
 type RetailRegister = sqlcdb.CommerceRetailRegister
 type RetailShift = sqlcdb.CommerceRetailShift
-
 type Store struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
-	tx   pgx.Tx // set inside Tx; lets a method run statements sqlc does not generate
-
-	eraseKey []byte // keys the e-mail hashes in erasure events (pkg/erasure)
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
+	tx	pgx.Tx
+	eraseKey	[]byte
 }
-
-// WithEraseKey returns the store hashing e-mail addresses in erasure events under key.
 func (s *Store) WithEraseKey(key []byte) *Store {
 	c := *s
 	c.eraseKey = key
 	return &c
 }
-
-func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return fn(&Store{q: s.q.WithTx(tx), tx: tx, eraseKey: s.eraseKey}, tx)
 	})
 }
-
-// Customers & Addresses
 func (s *Store) ListCustomers(ctx context.Context) ([]Customer, error) {
 	return s.q.ListCustomers(ctx)
 }
@@ -68,16 +54,12 @@ func (s *Store) ListCustomerAddresses(ctx context.Context, customerID string) ([
 func (s *Store) CreateCustomerAddress(ctx context.Context, p sqlcdb.CreateCustomerAddressParams) (CustomerAddress, error) {
 	return s.q.CreateCustomerAddress(ctx, p)
 }
-
-// Store Settings
 func (s *Store) GetStoreSettings(ctx context.Context) (StoreSettings, error) {
 	return s.q.GetStoreSettings(ctx)
 }
 func (s *Store) UpsertStoreSettings(ctx context.Context, p sqlcdb.UpsertStoreSettingsParams) (StoreSettings, error) {
 	return s.q.UpsertStoreSettings(ctx, p)
 }
-
-// Coupons
 func (s *Store) ListCoupons(ctx context.Context) ([]Coupon, error) {
 	return s.q.ListCoupons(ctx)
 }
@@ -87,8 +69,6 @@ func (s *Store) GetCouponByCode(ctx context.Context, code string) (Coupon, error
 func (s *Store) CreateCoupon(ctx context.Context, p sqlcdb.CreateCouponParams) (Coupon, error) {
 	return s.q.CreateCoupon(ctx, p)
 }
-
-// Orders, Lines & Events
 func (s *Store) ListOrders(ctx context.Context) ([]SalesOrder, error) {
 	return s.q.ListOrders(ctx)
 }
@@ -122,8 +102,6 @@ func (s *Store) ListOrderEvents(ctx context.Context, orderID string) ([]SalesOrd
 func (s *Store) CreateOrderEvent(ctx context.Context, p sqlcdb.CreateOrderEventParams) (SalesOrderEvent, error) {
 	return s.q.CreateOrderEvent(ctx, p)
 }
-
-// Retail POS
 func (s *Store) ListRetailRegisters(ctx context.Context) ([]RetailRegister, error) {
 	return s.q.ListRetailRegisters(ctx)
 }

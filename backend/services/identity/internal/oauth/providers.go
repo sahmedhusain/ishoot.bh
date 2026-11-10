@@ -1,7 +1,4 @@
-// Package oauth exchanges provider codes and validates their signed identity claims. State and account linking
-// belong to identity's transactional use cases; no provider credentials or tokens leave the backend.
 package oauth
-
 import (
 	"context"
 	"crypto/ecdsa"
@@ -17,30 +14,24 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jws"
 	"github.com/lestrrat-go/jwx/v3/jwt"
-
 	"platform.local/backend/pkg/authn"
 )
-
 var ErrRejected = errors.New("provider sign-in rejected")
-
 type Providers struct {
-	client *http.Client
-	keys   map[string]authn.KeySource
+	client	*http.Client
+	keys	map[string]authn.KeySource
 }
-
 func New() *Providers {
 	client := &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	return &Providers{client: client, keys: map[string]authn.KeySource{
-		"google": authn.NewRemoteKeys("https://www.googleapis.com/oauth2/v3/certs", client, time.Hour, time.Minute),
-		"apple":  authn.NewRemoteKeys("https://appleid.apple.com/auth/keys", client, time.Hour, time.Minute),
+		"google":	authn.NewRemoteKeys("https://www.googleapis.com/oauth2/v3/certs", client, time.Hour, time.Minute),
+		"apple":	authn.NewRemoteKeys("https://appleid.apple.com/auth/keys", client, time.Hour, time.Minute),
 	}}
 }
-
 func clientID(provider string, values map[string]string) string {
 	if provider == "google" {
 		return values["clientId"]
@@ -50,7 +41,6 @@ func clientID(provider string, values map[string]string) string {
 	}
 	return ""
 }
-
 func AuthorizationURL(provider string, values map[string]string, redirect, state, nonce, verifier, locale string) (string, error) {
 	id := clientID(provider, values)
 	if id == "" || state == "" || nonce == "" || verifier == "" {
@@ -58,7 +48,7 @@ func AuthorizationURL(provider string, values map[string]string, redirect, state
 	}
 	digest := sha256.Sum256([]byte(verifier))
 	q := url.Values{"client_id": {id}, "redirect_uri": {redirect}, "response_type": {"code"}, "scope": {"openid email profile"},
-		"state": {state}, "nonce": {nonce}, "code_challenge": {base64.RawURLEncoding.EncodeToString(digest[:])}, "code_challenge_method": {"S256"}}
+		"state":	{state}, "nonce": {nonce}, "code_challenge": {base64.RawURLEncoding.EncodeToString(digest[:])}, "code_challenge_method": {"S256"}}
 	endpoint := "https://accounts.google.com/o/oauth2/v2/auth"
 	if provider == "google" {
 		q.Set("prompt", "select_account")
@@ -70,14 +60,12 @@ func AuthorizationURL(provider string, values map[string]string, redirect, state
 	}
 	return endpoint + "?" + q.Encode(), nil
 }
-
 type Identity struct {
-	Subject       string
-	Email         string
-	EmailVerified bool
-	Name          string
+	Subject		string
+	Email		string
+	EmailVerified	bool
+	Name		string
 }
-
 func appleSecret(values map[string]string, now time.Time) (string, error) {
 	block, _ := pem.Decode([]byte(strings.ReplaceAll(values["privateKey"], `\n`, "\n")))
 	if block == nil || values["keyId"] == "" || values["teamId"] == "" || values["serviceId"] == "" {
@@ -105,7 +93,6 @@ func appleSecret(values map[string]string, now time.Time) (string, error) {
 	signed, err := jwt.Sign(token, jwt.WithKey(jwa.ES256(), key))
 	return string(signed), err
 }
-
 func (p *Providers) Exchange(ctx context.Context, provider string, values map[string]string, code, verifier, redirect, nonce string) (Identity, error) {
 	if (provider != "google" && provider != "apple") || code == "" || len(code) > 8192 || verifier == "" || nonce == "" {
 		return Identity{}, ErrRejected
@@ -150,7 +137,6 @@ func (p *Providers) Exchange(ctx context.Context, provider string, values map[st
 	}
 	return p.verify(ctx, provider, result.IDToken, id, nonce)
 }
-
 func (p *Providers) verify(ctx context.Context, provider, encoded, audience, nonce string) (Identity, error) {
 	message, err := jws.Parse([]byte(encoded))
 	if err != nil || len(message.Signatures()) != 1 {

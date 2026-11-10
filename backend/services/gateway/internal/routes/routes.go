@@ -1,7 +1,4 @@
-// Package routes loads the gateway's route table: which path prefixes go to which upstream service, which realms
-// may call them and which rate limit applies. The table is configuration (a mounted file), not code.
 package routes
-
 import (
 	"fmt"
 	"os"
@@ -9,55 +6,38 @@ import (
 	"slices"
 	"strings"
 	"time"
-
 	"github.com/labstack/gommon/bytes"
 	"go.yaml.in/yaml/v3"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/ratelimit"
 )
-
-// Public marks a route that needs no token (sign-in, webhooks, public website reads).
 const Public = "public"
-
-// Table is the parsed routes file.
 type Table struct {
-	// DefaultBodyLimit applies to routes without their own (e.g. "1M"); HTTP_BODY_LIMIT is the hard ceiling.
-	DefaultBodyLimit string               `yaml:"defaultBodyLimit"`
-	RateLimits       map[string]RateLimit `yaml:"rateLimits"`
-	Routes           []Route              `yaml:"routes"`
+	DefaultBodyLimit	string			`yaml:"defaultBodyLimit"`
+	RateLimits		map[string]RateLimit	`yaml:"rateLimits"`
+	Routes			[]Route			`yaml:"routes"`
 }
-
-// RateLimit is a named rule in the routes file.
 type RateLimit struct {
-	Requests int           `yaml:"requests"`
-	Window   time.Duration `yaml:"window"`
-	Burst    int           `yaml:"burst"`
+	Requests	int		`yaml:"requests"`
+	Window		time.Duration	`yaml:"window"`
+	Burst		int		`yaml:"burst"`
 }
-
-// Route sends requests under Prefix to Upstream.
 type Route struct {
-	Name        string   `yaml:"name"`
-	Prefix      string   `yaml:"prefix"`
-	Upstream    string   `yaml:"upstream"`
-	Realms      []string `yaml:"realms"`
-	StripPrefix bool     `yaml:"stripPrefix"`
-	RateLimit   string   `yaml:"rateLimit"`
-	BodyLimit   string   `yaml:"bodyLimit"`
+	Name		string		`yaml:"name"`
+	Prefix		string		`yaml:"prefix"`
+	Upstream	string		`yaml:"upstream"`
+	Realms		[]string	`yaml:"realms"`
+	StripPrefix	bool		`yaml:"stripPrefix"`
+	RateLimit	string		`yaml:"rateLimit"`
+	BodyLimit	string		`yaml:"bodyLimit"`
 }
-
-// BodyLimit returns the route's request body limit.
 func (t Table) BodyLimit(route Route) string {
 	if route.BodyLimit != "" {
 		return route.BodyLimit
 	}
 	return t.DefaultBodyLimit
 }
-
-// IsPublic reports whether the route admits callers without a token.
-func (r Route) IsPublic() bool { return slices.Contains(r.Realms, Public) }
-
-// AuthRealms returns the realms whose tokens the route accepts.
+func (r Route) IsPublic() bool	{ return slices.Contains(r.Realms, Public) }
 func (r Route) AuthRealms() []authn.Realm {
 	out := make([]authn.Realm, 0, len(r.Realms))
 	for _, name := range r.Realms {
@@ -67,14 +47,10 @@ func (r Route) AuthRealms() []authn.Realm {
 	}
 	return out
 }
-
-// Rule returns the route's rate-limit rule.
 func (t Table) Rule(route Route) ratelimit.Rule {
 	limit := t.RateLimits[route.RateLimit]
 	return ratelimit.Rule{Name: route.RateLimit, Requests: limit.Requests, Window: limit.Window, Burst: limit.Burst}
 }
-
-// NeedsAuth reports whether any route requires a token.
 func (t Table) NeedsAuth() bool {
 	for _, r := range t.Routes {
 		if !r.IsPublic() {
@@ -83,8 +59,6 @@ func (t Table) NeedsAuth() bool {
 	}
 	return false
 }
-
-// Load reads and validates a routes file against the configured upstream names.
 func Load(path string, upstreams map[string]string) (Table, error) {
 	body, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
@@ -92,8 +66,6 @@ func Load(path string, upstreams map[string]string) (Table, error) {
 	}
 	return Parse(body, upstreams)
 }
-
-// Parse decodes and validates a routes document.
 func Parse(body []byte, upstreams map[string]string) (Table, error) {
 	var table Table
 	dec := yaml.NewDecoder(strings.NewReader(string(body)))
@@ -103,7 +75,6 @@ func Parse(body []byte, upstreams map[string]string) (Table, error) {
 	}
 	return table, table.validate(upstreams)
 }
-
 func (t Table) validate(upstreams map[string]string) error {
 	if _, err := bytes.Parse(t.DefaultBodyLimit); err != nil || t.DefaultBodyLimit == "" {
 		return fmt.Errorf("routes: defaultBodyLimit %q must be a size such as 1M", t.DefaultBodyLimit)

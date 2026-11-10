@@ -1,8 +1,4 @@
-// Command config-doc writes docs/backend/CONFIG.md: every environment variable each service reads, with its
-// default and validation rule, taken from the services' Config structs so the document cannot drift from the code.
-// Run through `make gen`.
 package main
-
 import (
 	"fmt"
 	"io"
@@ -11,7 +7,6 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-
 	audit "platform.local/backend/services/audit/settings"
 	cms "platform.local/backend/services/cms/settings"
 	commerce "platform.local/backend/services/commerce/settings"
@@ -29,33 +24,29 @@ import (
 	system "platform.local/backend/services/system/settings"
 	workflow "platform.local/backend/services/workflow/settings"
 )
-
-// services lists each service's Config type. Add a line when a service is added.
 var services = map[string]any{
-	"audit":     audit.Config{},
-	"cms":       cms.Config{},
-	"commerce":  commerce.Config{},
-	"delivery":  delivery.Config{},
-	"files":     files.Config{},
-	"finance":   finance.Config{},
-	"gateway":   gateway.Config{},
-	"hr":        hr.Config{},
-	"identity":  identity.Config{},
-	"inventory": inventory.Config{},
-	"itsm":      itsm.Config{},
-	"notify":    notify.Config{},
-	"realtime":  realtime.Config{},
-	"sales":     sales.Config{},
-	"system":    system.Config{},
-	"workflow":  workflow.Config{},
+	"audit":	audit.Config{},
+	"cms":		cms.Config{},
+	"commerce":	commerce.Config{},
+	"delivery":	delivery.Config{},
+	"files":	files.Config{},
+	"finance":	finance.Config{},
+	"gateway":	gateway.Config{},
+	"hr":		hr.Config{},
+	"identity":	identity.Config{},
+	"inventory":	inventory.Config{},
+	"itsm":		itsm.Config{},
+	"notify":	notify.Config{},
+	"realtime":	realtime.Config{},
+	"sales":	sales.Config{},
+	"system":	system.Config{},
+	"workflow":	workflow.Config{},
 }
-
 type variable struct{ name, def, rules string }
-
 func main() {
 	out := os.Stdout
 	if len(os.Args) > 1 {
-		f, err := os.Create(filepath.Clean(os.Args[1])) //nolint:gosec // developer tool; the Makefile passes the output path
+		f, err := os.Create(filepath.Clean(os.Args[1]))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "config-doc:", err)
 			os.Exit(1)
@@ -65,7 +56,6 @@ func main() {
 	}
 	write(out)
 }
-
 func write(w io.Writer) {
 	fmt.Fprintln(w, "# Backend configuration")
 	fmt.Fprintln(w)
@@ -83,7 +73,6 @@ func write(w io.Writer) {
 		}
 	}
 }
-
 func collect(t reflect.Type, prefix string) []variable {
 	var out []variable
 	for i := range t.NumField() {
@@ -100,7 +89,6 @@ func collect(t reflect.Type, prefix string) []variable {
 	}
 	return out
 }
-
 func code(s string) string {
 	if s == "" {
 		return ""

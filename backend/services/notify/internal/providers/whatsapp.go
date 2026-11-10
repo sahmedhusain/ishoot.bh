@@ -1,5 +1,4 @@
 package providers
-
 import (
 	"bytes"
 	"context"
@@ -10,18 +9,11 @@ import (
 	"net/url"
 	"strings"
 )
-
-// WhatsApp sends text messages through the WhatsApp Cloud API (or the local sandbox, which speaks the same API).
-// Business-initiated chats outside the 24-hour window need an approved template, which the provider refuses
-// permanently.
 type WhatsApp struct {
-	// BaseURL is the Graph API with its version, e.g. https://graph.facebook.com/v21.0.
-	BaseURL     string
-	Credentials CredentialSource
-	Client      *http.Client
+	BaseURL		string
+	Credentials	CredentialSource
+	Client		*http.Client
 }
-
-// Send delivers one text message.
 func (w WhatsApp) Send(ctx context.Context, msg Message) (Result, error) {
 	creds, err := w.Credentials.Credentials(ctx, "whatsapp")
 	if err != nil {
@@ -31,7 +23,7 @@ func (w WhatsApp) Send(ctx context.Context, msg Message) (Result, error) {
 		return Result{}, Permanent("the whatsapp integration needs a phone number ID and a token")
 	}
 	raw, err := json.Marshal(map[string]any{
-		"messaging_product": "whatsapp", "to": msg.To, "type": "text", "text": map[string]string{"body": msg.Text},
+		"messaging_product":	"whatsapp", "to": msg.To, "type": "text", "text": map[string]string{"body": msg.Text},
 	})
 	if err != nil {
 		return Result{}, err

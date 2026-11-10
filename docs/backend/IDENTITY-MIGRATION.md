@@ -59,7 +59,7 @@ tools until the full migration and restore rehearsal succeeds.
 - Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.
 - Rehearse migration and restore with real customer, MFA and recovery-code data; verify permission parity and run the staff, customer, setup, OAuth, MFA, reset and logout regression and browser suites.
 
-`User` and `Customer` also contain business relationships used by Prisma. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [docs/ARCHITECTURE.md](../ARCHITECTURE.md#architectural-decisions--core-principles) for the intended boundaries.
+`User` and `Customer` also contain business relationships used by LegacyDB. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [docs/ARCHITECTURE.md](../ARCHITECTURE.md#architectural-decisions--core-principles) for the intended boundaries.
 
 ## Pending staff/frontend cutover
 
@@ -86,7 +86,7 @@ and customer deletion. The identity River worker signs deliveries to `/api/inter
 or web. The receiving app trusts only identity's public service keys from `SERVICE_KEYS_FILE`, updates business
 profiles and version receipts atomically, and rejects reordered deliveries. Role metadata has its own revision.
 Credentials and MFA material are never projected. Customer deletion can therefore finish anonymization after an
-interrupted browser request. The Prisma receipt migration must precede enabling the delivery worker.
+interrupted browser request. The LegacyDB receipt migration must precede enabling the delivery worker.
 
 Configure `IDENTITY_PROJECTION_ADMIN_URL` / `_WEB_URL` for worker-reachable app origins and keep
 `IDENTITY_SERVICE_KEY` configured. Compose defaults use host.docker.internal because the apps run on the host;
@@ -95,5 +95,5 @@ No delivery or recovery rehearsal has run yet, per the implementation-first inst
 
 Admin permission reads now call the current user's live identity policy. Transitional scoped business queries use
 an admin-service-only identity target-policy endpoint, including user-specific scope overrides. They fail closed
-on an unavailable policy. The old Prisma account synchronization still needs retirement as HR/setup/user callers
+on an unavailable policy. The old LegacyDB account synchronization still needs retirement as HR/setup/user callers
 move; do not deploy the partial cutover as a finished ownership migration.

@@ -1,80 +1,62 @@
 package catalog
-
 import (
 	"fmt"
 	"slices"
 	"strings"
 )
-
-// NotificationCatalog is the in-app notification model (ADR 0012): realms, priorities, sounds and categories.
 type NotificationCatalog struct {
-	Realms           []string               `json:"realms"`
-	Priorities       []string               `json:"priorities"`
-	DefaultPriority  string                 `json:"defaultPriority"`
-	Sounds           []string               `json:"sounds"`
-	DefaultSound     string                 `json:"defaultSound"`
-	DefaultVolume    int                    `json:"defaultVolume"`
-	FallbackCategory string                 `json:"fallbackCategory"`
-	Categories       []NotificationCategory `json:"categories"`
+	Realms			[]string		`json:"realms"`
+	Priorities		[]string		`json:"priorities"`
+	DefaultPriority		string			`json:"defaultPriority"`
+	Sounds			[]string		`json:"sounds"`
+	DefaultSound		string			`json:"defaultSound"`
+	DefaultVolume		int			`json:"defaultVolume"`
+	FallbackCategory	string			`json:"fallbackCategory"`
+	Categories		[]NotificationCategory	`json:"categories"`
 }
-
-// NotificationCategory groups notifications people configure together. A category with permissions reaches only
-// people holding one of them ("resource:action" in the realm's access model); one without is personal.
 type NotificationCategory struct {
-	Key                string   `json:"key"`
-	Realms             []string `json:"realms"`
-	NameEn             string   `json:"nameEn"`
-	NameAr             string   `json:"nameAr"`
-	DescriptionEn      string   `json:"descriptionEn"`
-	DescriptionAr      string   `json:"descriptionAr"`
-	Mandatory          bool     `json:"mandatory"`
-	Priority           string   `json:"priority"`
-	Permissions        []string `json:"permissions"`
-	MessageKeyPrefixes []string `json:"messageKeyPrefixes"`
-	EntityTypes        []string `json:"entityTypes"`
+	Key			string		`json:"key"`
+	Realms			[]string	`json:"realms"`
+	NameEn			string		`json:"nameEn"`
+	NameAr			string		`json:"nameAr"`
+	DescriptionEn		string		`json:"descriptionEn"`
+	DescriptionAr		string		`json:"descriptionAr"`
+	Mandatory		bool		`json:"mandatory"`
+	Priority		string		`json:"priority"`
+	Permissions		[]string	`json:"permissions"`
+	MessageKeyPrefixes	[]string	`json:"messageKeyPrefixes"`
+	EntityTypes		[]string	`json:"entityTypes"`
 }
-
-// PresenceCatalog is the status model realtime applies (ADR 0012).
 type PresenceCatalog struct {
-	Tones            []string         `json:"tones"`
-	Statuses         []PresenceStatus `json:"statuses"`
-	WindowKinds      []WindowKind     `json:"windowKinds"`
-	Durations        []string         `json:"durations"`
-	MessageMaxLength int              `json:"messageMaxLength"`
+	Tones			[]string		`json:"tones"`
+	Statuses		[]PresenceStatus	`json:"statuses"`
+	WindowKinds		[]WindowKind		`json:"windowKinds"`
+	Durations		[]string		`json:"durations"`
+	MessageMaxLength	int			`json:"messageMaxLength"`
 }
-
-// PresenceStatus is one status. Manual statuses can be chosen; Automatic names what sets it without a choice
-// (connected, idle, calendar, leave, disconnected). Silences means notifications stay quiet while it holds.
 type PresenceStatus struct {
-	Key       string `json:"key"`
-	Tone      string `json:"tone"`
-	Manual    bool   `json:"manual"`
-	Automatic string `json:"automatic"`
-	Silences  bool   `json:"silences"`
-	NameEn    string `json:"nameEn"`
-	NameAr    string `json:"nameAr"`
+	Key		string	`json:"key"`
+	Tone		string	`json:"tone"`
+	Manual		bool	`json:"manual"`
+	Automatic	string	`json:"automatic"`
+	Silences	bool	`json:"silences"`
+	NameEn		string	`json:"nameEn"`
+	NameAr		string	`json:"nameAr"`
 }
-
-// WindowKind is a kind of scheduled time (a meeting, leave) and the status it gives while it lasts.
 type WindowKind struct {
-	Key    string `json:"key"`
-	Status string `json:"status"`
+	Key	string	`json:"key"`
+	Status	string	`json:"status"`
 }
-
-// The loaded notification and presence catalogues.
 var (
-	Notifications NotificationCatalog
-	Presence      PresenceCatalog
+	Notifications	NotificationCatalog
+	Presence	PresenceCatalog
 )
-
 func init() {
 	must(decode("notifications.json", &Notifications))
 	must(decode("presence.json", &Presence))
 	must(Notifications.validate())
 	must(Presence.validate())
 }
-
-// Category returns a category by key.
 func (n NotificationCatalog) Category(key string) (NotificationCategory, bool) {
 	for _, c := range n.Categories {
 		if c.Key == key {
@@ -83,11 +65,7 @@ func (n NotificationCatalog) Category(key string) (NotificationCategory, bool) {
 	}
 	return NotificationCategory{}, false
 }
-
-// InRealm reports whether the category is used in realm.
-func (c NotificationCategory) InRealm(realm string) bool { return slices.Contains(c.Realms, realm) }
-
-// AllowedFor reports whether a person in realm whose permission check is allows may receive the category.
+func (c NotificationCategory) InRealm(realm string) bool	{ return slices.Contains(c.Realms, realm) }
 func (c NotificationCategory) AllowedFor(realm string, allows func(resource, action string) bool) bool {
 	if !c.InRealm(realm) {
 		return false
@@ -103,9 +81,6 @@ func (c NotificationCategory) AllowedFor(realm string, allows func(resource, act
 	}
 	return false
 }
-
-// CategoryFor picks the category of a notification that did not name one: by message key, then entity type, then
-// the fallback. Only categories of realm are considered.
 func (n NotificationCatalog) CategoryFor(realm, messageKey, entityType string) string {
 	for _, c := range n.Categories {
 		if !c.InRealm(realm) {
@@ -124,7 +99,6 @@ func (n NotificationCatalog) CategoryFor(realm, messageKey, entityType string) s
 	}
 	return n.FallbackCategory
 }
-
 func (n NotificationCatalog) validate() error {
 	if !slices.Contains(n.Priorities, n.DefaultPriority) {
 		return fmt.Errorf("catalog: notifications: default priority %q is not a priority", n.DefaultPriority)
@@ -174,8 +148,6 @@ func (n NotificationCatalog) validate() error {
 	}
 	return nil
 }
-
-// Status returns a status by key.
 func (p PresenceCatalog) Status(key string) (PresenceStatus, bool) {
 	for _, s := range p.Statuses {
 		if s.Key == key {
@@ -184,8 +156,6 @@ func (p PresenceCatalog) Status(key string) (PresenceStatus, bool) {
 	}
 	return PresenceStatus{}, false
 }
-
-// Automatic returns the status set automatically by trigger (connected, idle, calendar, leave, disconnected).
 func (p PresenceCatalog) Automatic(trigger string) string {
 	for _, s := range p.Statuses {
 		if s.Automatic == trigger {
@@ -194,8 +164,6 @@ func (p PresenceCatalog) Automatic(trigger string) string {
 	}
 	return ""
 }
-
-// WindowStatus returns the status a window of kind gives.
 func (p PresenceCatalog) WindowStatus(kind string) (string, bool) {
 	for _, w := range p.WindowKinds {
 		if w.Key == kind {
@@ -204,7 +172,6 @@ func (p PresenceCatalog) WindowStatus(kind string) (string, bool) {
 	}
 	return "", false
 }
-
 func (p PresenceCatalog) validate() error {
 	seen := map[string]bool{}
 	for _, s := range p.Statuses {

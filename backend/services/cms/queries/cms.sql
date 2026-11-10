@@ -1,16 +1,7 @@
--- name: GetPageBySlug :one
 SELECT * FROM cms.page WHERE slug = $1 LIMIT 1;
-
--- name: GetPageByID :one
 SELECT * FROM cms.page WHERE id = $1 LIMIT 1;
-
--- name: ListVisiblePages :many
 SELECT * FROM cms.page WHERE is_visible = true ORDER BY sort_order ASC, title_en ASC;
-
--- name: ListAllPages :many
 SELECT * FROM cms.page ORDER BY sort_order ASC, created_at DESC;
-
--- name: CreatePage :one
 INSERT INTO cms.page (
     id, slug, page_type, title_en, title_ar,
     seo_title_en, seo_title_ar, seo_description_en, seo_description_ar,
@@ -20,8 +11,6 @@ INSERT INTO cms.page (
     $6, $7, $8, $9,
     $10, $11, $12, $13, $14, now(), now()
 ) RETURNING *;
-
--- name: UpdatePage :one
 UPDATE cms.page SET
     slug = $2,
     page_type = $3,
@@ -39,26 +28,14 @@ UPDATE cms.page SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: DeletePage :exec
 DELETE FROM cms.page WHERE id = $1;
-
--- name: GetArticleBySlug :one
 SELECT * FROM cms.article WHERE slug = $1 LIMIT 1;
-
--- name: GetArticleByID :one
 SELECT * FROM cms.article WHERE id = $1 LIMIT 1;
-
--- name: ListPublishedArticles :many
 SELECT * FROM cms.article
 WHERE status = 'published' AND (publish_at IS NULL OR publish_at <= now())
 ORDER BY featured DESC, publish_at DESC NULLS LAST, created_at DESC;
-
--- name: ListAllArticles :many
 SELECT * FROM cms.article
 ORDER BY created_at DESC;
-
--- name: CreateArticle :one
 INSERT INTO cms.article (
     id, slug, title_en, title_ar, excerpt_en, excerpt_ar,
     body_en, body_ar, body_html_en, body_html_ar, cover_url,
@@ -72,8 +49,6 @@ INSERT INTO cms.article (
     $18, $19, $20, $21,
     now(), now()
 ) RETURNING *;
-
--- name: UpdateArticle :one
 UPDATE cms.article SET
     slug = $2,
     title_en = $3,
@@ -98,17 +73,9 @@ UPDATE cms.article SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: DeleteArticle :exec
 DELETE FROM cms.article WHERE id = $1;
-
--- name: ListApprovedReviews :many
 SELECT * FROM cms.review WHERE is_approved = true ORDER BY sort_order ASC, created_at DESC;
-
--- name: ListAllReviews :many
 SELECT * FROM cms.review ORDER BY sort_order ASC, created_at DESC;
-
--- name: CreateReview :one
 INSERT INTO cms.review (
     id, author_en, author_ar, company_en, company_ar,
     quote_en, quote_ar, rating, is_approved, sort_order, year, created_at
@@ -116,8 +83,6 @@ INSERT INTO cms.review (
     $1, $2, $3, $4, $5,
     $6, $7, $8, $9, $10, $11, now()
 ) RETURNING *;
-
--- name: UpdateReview :one
 UPDATE cms.review SET
     author_en = $2,
     author_ar = $3,
@@ -131,17 +96,9 @@ UPDATE cms.review SET
     year = $11
 WHERE id = $1
 RETURNING *;
-
--- name: DeleteReview :exec
 DELETE FROM cms.review WHERE id = $1;
-
--- name: ListPublishedFAQs :many
 SELECT * FROM cms.faq WHERE is_published = true ORDER BY sort_order ASC, created_at ASC;
-
--- name: ListAllFAQs :many
 SELECT * FROM cms.faq ORDER BY sort_order ASC, created_at ASC;
-
--- name: CreateFAQ :one
 INSERT INTO cms.faq (
     id, question_en, question_ar, answer_en, answer_ar,
     category, is_published, sort_order, created_at
@@ -149,8 +106,6 @@ INSERT INTO cms.faq (
     $1, $2, $3, $4, $5,
     $6, $7, $8, now()
 ) RETURNING *;
-
--- name: UpdateFAQ :one
 UPDATE cms.faq SET
     question_en = $2,
     question_ar = $3,
@@ -161,14 +116,8 @@ UPDATE cms.faq SET
     sort_order = $8
 WHERE id = $1
 RETURNING *;
-
--- name: DeleteFAQ :exec
 DELETE FROM cms.faq WHERE id = $1;
-
--- name: ListStatistics :many
 SELECT * FROM cms.statistic ORDER BY sort_order ASC, id ASC;
-
--- name: UpsertStatistic :one
 INSERT INTO cms.statistic (
     id, metric_value, label_en, label_ar, sub_label_en, sub_label_ar, icon, sort_order
 ) VALUES (
@@ -182,14 +131,8 @@ INSERT INTO cms.statistic (
     icon = EXCLUDED.icon,
     sort_order = EXCLUDED.sort_order
 RETURNING *;
-
--- name: DeleteStatistic :exec
 DELETE FROM cms.statistic WHERE id = $1;
-
--- name: GetContentSnapshot :one
 SELECT * FROM cms.content_snapshot WHERE id = $1 LIMIT 1;
-
--- name: UpsertContentDraft :one
 INSERT INTO cms.content_snapshot (id, draft, revision, updated_at)
 VALUES ($1, $2, $3, now())
 ON CONFLICT (id) DO UPDATE SET
@@ -197,8 +140,6 @@ ON CONFLICT (id) DO UPDATE SET
     revision = cms.content_snapshot.revision + 1,
     updated_at = now()
 RETURNING *;
-
--- name: PublishContentSnapshot :one
 INSERT INTO cms.content_snapshot (id, draft, published, revision, published_at, updated_at)
 VALUES ($1, $2, $2, 1, now(), now())
 ON CONFLICT (id) DO UPDATE SET

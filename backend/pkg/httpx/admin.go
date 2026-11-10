@@ -1,20 +1,13 @@
 package httpx
-
 import (
 	"encoding/json"
 	"net/http"
 	"net/http/pprof"
-
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/health"
 	"platform.local/backend/pkg/logx"
 )
-
-// AdminHandler serves the internal endpoints: liveness, readiness, metrics, the runtime log level and, when
-// enabled, pprof. It is bound to the admin address, which only the cluster (probes, Prometheus, the IT
-// dashboard's backend) can reach.
 func AdminHandler(cfg config.Common, logger *logx.Logger, checker *health.Checker, metrics *Metrics) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /livez", func(w http.ResponseWriter, _ *http.Request) {
@@ -58,7 +51,6 @@ func AdminHandler(cfg config.Common, logger *logx.Logger, checker *health.Checke
 	}
 	return mux
 }
-
 func validLevel(level string) bool {
 	switch level {
 	case "debug", "info", "warn", "error":
@@ -66,7 +58,6 @@ func validLevel(level string) bool {
 	}
 	return false
 }
-
 func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")

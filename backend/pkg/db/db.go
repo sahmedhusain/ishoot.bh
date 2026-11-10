@@ -1,7 +1,4 @@
-// Package db opens the PostgreSQL connection pool every service uses, with tracing, optional query logging for
-// development, a server-side statement timeout and a helper for transactions.
 package db
-
 import (
 	"context"
 	"errors"
@@ -9,44 +6,30 @@ import (
 	"log/slog"
 	"strconv"
 	"time"
-
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/multitracer"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/tracelog"
-
 	"platform.local/backend/pkg/health"
 )
-
-// Config is embedded in a service config with envPrefix:"DATABASE_".
 type Config struct {
-	// URL is the request path's connection, through PgBouncer where there is one.
-	URL string `env:"URL" validate:"required"`
-	// DirectURL reaches Postgres itself, for work that needs a session: migrations (locks) and River workers
-	// (LISTEN, leader election). Empty: URL is direct too.
-	DirectURL         string        `env:"DIRECT_URL"`
-	MaxConns          int32         `env:"MAX_CONNS" envDefault:"10" validate:"gt=0"`
-	MinConns          int32         `env:"MIN_CONNS" envDefault:"0" validate:"gte=0"`
-	MaxConnLifetime   time.Duration `env:"MAX_CONN_LIFETIME" envDefault:"30m" validate:"gt=0"`
-	MaxConnIdleTime   time.Duration `env:"MAX_CONN_IDLE_TIME" envDefault:"5m" validate:"gt=0"`
-	HealthCheckPeriod time.Duration `env:"HEALTH_CHECK_PERIOD" envDefault:"30s" validate:"gt=0"`
-	// StatementTimeout applies on direct connections. Behind PgBouncer (transaction pooling) the login's own default
-	// applies instead (tools/db-roles: DB_ROLE_STATEMENT_TIMEOUT_<SERVICE>), as the pooler cannot keep it per client.
-	StatementTimeout time.Duration `env:"STATEMENT_TIMEOUT" envDefault:"15s" validate:"gt=0"`
-	// LogQueries logs every SQL statement at debug level. For development only; arguments are never logged.
-	LogQueries bool `env:"LOG_QUERIES" envDefault:"false"`
+	URL	string	`env:"URL" validate:"required"`
+	DirectURL		string		`env:"DIRECT_URL"`
+	MaxConns		int32		`env:"MAX_CONNS" envDefault:"10" validate:"gt=0"`
+	MinConns		int32		`env:"MIN_CONNS" envDefault:"0" validate:"gte=0"`
+	MaxConnLifetime		time.Duration	`env:"MAX_CONN_LIFETIME" envDefault:"30m" validate:"gt=0"`
+	MaxConnIdleTime		time.Duration	`env:"MAX_CONN_IDLE_TIME" envDefault:"5m" validate:"gt=0"`
+	HealthCheckPeriod	time.Duration	`env:"HEALTH_CHECK_PERIOD" envDefault:"30s" validate:"gt=0"`
+	StatementTimeout	time.Duration	`env:"STATEMENT_TIMEOUT" envDefault:"15s" validate:"gt=0"`
+	LogQueries	bool	`env:"LOG_QUERIES" envDefault:"false"`
 }
-
-// Session returns the configuration for a command that needs a whole session (migrate, worker): DirectURL when set.
 func (c Config) Session() Config {
 	if c.DirectURL != "" {
 		c.URL = c.DirectURL
 	}
 	return c
 }
-
-// Open connects and verifies the connection.
 func Open(ctx context.Context, cfg Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 	poolCfg, err := pgxpool.ParseConfig(cfg.URL)
 	if err != nil {
@@ -58,16 +41,14 @@ func Open(ctx context.Context, cfg Config, logger *slog.Logger) (*pgxpool.Pool, 
 	poolCfg.MaxConnIdleTime = cfg.MaxConnIdleTime
 	poolCfg.HealthCheckPeriod = cfg.HealthCheckPeriod
 	poolCfg.ConnConfig.RuntimeParams["statement_timeout"] = strconv.FormatInt(cfg.StatementTimeout.Milliseconds(), 10)
-
 	tracers := []pgx.QueryTracer{otelpgx.NewTracer()}
 	if cfg.LogQueries {
 		tracers = append(tracers, &tracelog.TraceLog{
-			Logger:   tracelog.LoggerFunc(queryLogger(logger)),
-			LogLevel: tracelog.LogLevelDebug,
+			Logger:		tracelog.LoggerFunc(queryLogger(logger)),
+			LogLevel:	tracelog.LogLevelDebug,
 		})
 	}
 	poolCfg.ConnConfig.Tracer = multitracer.New(tracers...)
-
 	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("db: opening pool: %w", err)
@@ -78,8 +59,6 @@ func Open(ctx context.Context, cfg Config, logger *slog.Logger) (*pgxpool.Pool, 
 	}
 	return pool, nil
 }
-
-// queryLogger keeps the SQL and timing but drops bound arguments, which may hold personal data or secrets.
 func queryLogger(logger *slog.Logger) func(context.Context, tracelog.LogLevel, string, map[string]any) {
 	return func(ctx context.Context, _ tracelog.LogLevel, msg string, data map[string]any) {
 		attrs := []any{slog.String("pgx", msg)}
@@ -95,18 +74,12 @@ func queryLogger(logger *slog.Logger) func(context.Context, tracelog.LogLevel, s
 		logger.DebugContext(ctx, "sql", attrs...)
 	}
 }
-
-// Check is a readiness check for the pool.
 func Check(pool *pgxpool.Pool) health.Check {
 	return func(ctx context.Context) error { return pool.Ping(ctx) }
 }
-
-// Beginner starts transactions (a pool or a connection).
 type Beginner interface {
 	BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error)
 }
-
-// WithTx runs fn in a transaction, committing if it returns nil and rolling back otherwise (including on panic).
 func WithTx(ctx context.Context, db Beginner, opts pgx.TxOptions, fn func(pgx.Tx) error) (err error) {
 	tx, err := db.BeginTx(ctx, opts)
 	if err != nil {

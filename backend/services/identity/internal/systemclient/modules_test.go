@@ -1,5 +1,4 @@
 package systemclient
-
 import (
 	"context"
 	"encoding/json"
@@ -7,12 +6,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/catalog"
 )
-
 func TestModuleSource(t *testing.T) {
 	items := make([]map[string]any, 0, len(catalog.Modules))
 	for _, module := range catalog.Modules {
@@ -21,10 +17,10 @@ func TestModuleSource(t *testing.T) {
 	valid, err := json.Marshal(map[string]any{"items": items})
 	require.NoError(t, err)
 	for _, tc := range []struct {
-		name   string
-		status int
-		body   string
-		ok     bool
+		name	string
+		status	int
+		body	string
+		ok	bool
 	}{
 		{"complete", 200, string(valid), true},
 		{"upstream failure", 503, string(valid), false},
@@ -53,7 +49,6 @@ func TestModuleSource(t *testing.T) {
 		})
 	}
 }
-
 func TestModuleSourceRefusesRedirects(t *testing.T) {
 	visited := false
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { visited = true }))

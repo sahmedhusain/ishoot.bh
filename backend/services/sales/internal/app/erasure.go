@@ -1,32 +1,21 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/erasure"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/sales/internal/postgres"
 )
-
-// CommerceEventsConsumer names sales's durable consumer of commerce's events (and its inbox rows).
 const CommerceEventsConsumer = "sales-commerce-events"
-
-// SubjectCustomerErased is the event commerce publishes after it erased a customer's personal data.
 const SubjectCustomerErased = "commerce.customer.erased"
-
 const erasedName = "Erased customer"
-
-// HandleCustomerErased removes the personal data of the CRM contacts of the erased customer. The event carries IDs only. A redelivered
-// event, a malformed one, or one naming nothing changes nothing.
 func (s *Service) HandleCustomerErased(ctx context.Context, eventID string, payload []byte) error {
 	var in struct {
-		OrderIDs    []string `json:"orderIds"`
-		ContactIDs  []string `json:"contactIds"`
-		EmailHashes []string `json:"emailHashes"`
+		OrderIDs	[]string	`json:"orderIds"`
+		ContactIDs	[]string	`json:"contactIds"`
+		EmailHashes	[]string	`json:"emailHashes"`
 	}
 	if err := json.Unmarshal(payload, &in); err != nil || len(in.ContactIDs) == 0 && len(in.EmailHashes) == 0 {
 		return nil
@@ -53,16 +42,11 @@ func (s *Service) HandleCustomerErased(ctx context.Context, eventID string, payl
 		return err
 	})
 }
-
-// WithEraseKey returns the service hashing e-mail addresses under key, as commerce does (pkg/erasure).
 func (s *Service) WithEraseKey(key []byte) *Service {
 	c := *s
 	c.eraseKey = key
 	return &c
 }
-
-// matchingEmails returns the IDs of rows in sales.<table> whose e-mail hashes to one of hashes. Postgres cannot
-// compute the keyed hash, so the table is read in pages of IDs and addresses; erasure is rare, so this is fine.
 func matchingEmails(ctx context.Context, tx pgx.Tx, key []byte, hashes []string, table, column string) ([]string, error) {
 	var matches []string
 	if len(hashes) == 0 {

@@ -1,6 +1,4 @@
-// Package settings is the sales service's configuration.
 package settings
-
 import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
@@ -8,19 +6,16 @@ import (
 	"platform.local/backend/pkg/natsx"
 	"platform.local/backend/pkg/outbox"
 )
-
 type Config struct {
 	config.Common
-	Database db.Config    `envPrefix:"DATABASE_"`
-	Auth     authn.Config `envPrefix:"AUTH_"`
-	Sales    Sales        `envPrefix:"SALES_"`
-	NATS     natsx.Config `envPrefix:"NATS_"`
-	// ErasureKey keys the e-mail hashes commerce and sales exchange in erasure events; both must have the same value.
-	ErasureKey string        `env:"ERASURE_HASH_KEY" validate:"required,min=32"`
-	Outbox     outbox.Config `envPrefix:"OUTBOX_"`
+	Database	db.Config	`envPrefix:"DATABASE_"`
+	Auth		authn.Config	`envPrefix:"AUTH_"`
+	Sales		Sales		`envPrefix:"SALES_"`
+	NATS		natsx.Config	`envPrefix:"NATS_"`
+	ErasureKey	string		`env:"ERASURE_HASH_KEY" validate:"required,min=32"`
+	Outbox		outbox.Config	`envPrefix:"OUTBOX_"`
 }
-
 type Sales struct {
-	Readers []string `env:"READERS" envDefault:"admin,web,it,finance,workflow" envSeparator:"," validate:"min=1,dive,required"`
-	Writers []string `env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	Readers	[]string	`env:"READERS" envDefault:"admin,web,it,finance,workflow" envSeparator:"," validate:"min=1,dive,required"`
+	Writers	[]string	`env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
 }

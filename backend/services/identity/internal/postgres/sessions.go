@@ -1,14 +1,10 @@
-// Package postgres persists identity state with generated sqlc queries.
 package postgres
-
 import (
 	"context"
 	"errors"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -16,14 +12,11 @@ import (
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
 )
-
 type Repository struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
 }
-
-func New(pool *pgxpool.Pool) *Repository { return &Repository{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Repository	{ return &Repository{pool: pool, q: sqlcdb.New(pool)} }
 func (p *Repository) Create(ctx context.Context, f sessions.Family, tokenHash string) error {
 	return db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := p.q.WithTx(tx)
@@ -36,17 +29,13 @@ func (p *Repository) Create(ctx context.Context, f sessions.Family, tokenHash st
 		return sessionEvent(ctx, tx, "started", f, "login")
 	})
 }
-
 func (p *Repository) Rotate(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time) (sessions.Family, error) {
 	family, _, err := p.rotate(ctx, realm, oldHash, nextHash, now, false)
 	return family, err
 }
-
-// RotateAccount locks the account before its session family, so account changes and refreshes cannot race.
 func (p *Repository) RotateAccount(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time) (sessions.Family, accounts.Account, error) {
 	return p.rotate(ctx, realm, oldHash, nextHash, now, true)
 }
-
 func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time, checkAccount bool) (sessions.Family, accounts.Account, error) {
 	var family sessions.Family
 	var account accounts.Account
@@ -82,7 +71,6 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 				accountInvalid = !row.Active
 			}
 		}
-		// Read consumed_at only after locking the family, so concurrent waiters see committed consumption.
 		row, err := q.LockSessionFamily(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			result = sessions.ErrInvalid
@@ -130,7 +118,6 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 	}
 	return family, account, nil
 }
-
 func (p *Repository) Revoke(ctx context.Context, realm authn.Realm, tokenHash string, now time.Time) error {
 	return db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := p.q.WithTx(tx)
@@ -157,13 +144,11 @@ func (p *Repository) Revoke(ctx context.Context, realm authn.Realm, tokenHash st
 		return sessionEvent(ctx, tx, "revoked", toFamily(row), "logout")
 	})
 }
-
 func sessionEvent(ctx context.Context, tx pgx.Tx, verb string, f sessions.Family, reason string) error {
 	return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session." + verb, Payload: map[string]any{
-		"subjectId": f.SubjectID, "realm": f.Realm, "sessionId": f.ID, "changedBy": string(f.Realm) + ":" + f.SubjectID, "reason": reason,
+		"subjectId":	f.SubjectID, "realm": f.Realm, "sessionId": f.ID, "changedBy": string(f.Realm) + ":" + f.SubjectID, "reason": reason,
 	}})
 }
-
 func (p *Repository) Active(ctx context.Context, realm authn.Realm, id string, now time.Time) (sessions.Family, error) {
 	row, err := p.q.ActiveSessionFamily(ctx, sqlcdb.ActiveSessionFamilyParams{ID: id, Realm: string(realm), ExpiresAt: now})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -171,12 +156,9 @@ func (p *Repository) Active(ctx context.Context, realm authn.Realm, id string, n
 	}
 	return toFamily(row), err
 }
-
 func toFamily(row sqlcdb.IdentitySessionFamily) sessions.Family {
 	return sessions.Family{ID: row.ID, SubjectID: row.SubjectID, Realm: authn.Realm(row.Realm), ExpiresAt: row.ExpiresAt.UTC()}
 }
-
-// DeleteExpired removes only families whose absolute expiry has passed. Cascading deletes remove their token history.
 func (p *Repository) DeleteExpired(ctx context.Context, now time.Time, batch int32) (int64, error) {
 	if batch <= 0 {
 		return 0, errors.New("cleanup batch must be positive")

@@ -1,12 +1,9 @@
 package postgres
-
 import (
 	"context"
 	"time"
-
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
-
 func (s *Store) Company(ctx context.Context, lock bool) (sqlcdb.SystemCompany, error) {
 	if lock {
 		return s.q.LockCompany(ctx)
@@ -16,7 +13,7 @@ func (s *Store) Company(ctx context.Context, lock bool) (sqlcdb.SystemCompany, e
 func (s *Store) SaveCompany(ctx context.Context, id string, data []byte, actor string, now time.Time) error {
 	return s.q.SaveCompany(ctx, sqlcdb.SaveCompanyParams{ID: id, Data: data, Actor: actor, Now: now})
 }
-func (s *Store) LockCompanyCurrency(ctx context.Context) error { return s.q.LockCompanyCurrency(ctx) }
+func (s *Store) LockCompanyCurrency(ctx context.Context) error	{ return s.q.LockCompanyCurrency(ctx) }
 func (s *Store) DocumentSequences(ctx context.Context) ([]sqlcdb.SystemDocumentSequence, error) {
 	return s.q.DocumentSequences(ctx)
 }

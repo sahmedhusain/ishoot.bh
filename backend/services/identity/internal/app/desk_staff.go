@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
@@ -8,11 +7,9 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/db"
@@ -21,49 +18,46 @@ import (
 	"platform.local/backend/services/identity/internal/bootstrap"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 var ErrRoleExists = errors.New("role already exists")
 var ErrRoleAssigned = errors.New("role is assigned or protected")
-
 type StaffDraft struct {
-	Email       string            `json:"email"`
-	DisplayName string            `json:"displayName"`
-	Role        string            `json:"role"`
-	Active      bool              `json:"active"`
-	Overrides   map[string]bool   `json:"overrides"`
-	DataScopes  map[string]string `json:"dataScopes"`
-	CopiedFrom  string            `json:"copiedFrom,omitempty"`
+	Email		string			`json:"email"`
+	DisplayName	string			`json:"displayName"`
+	Role		string			`json:"role"`
+	Active		bool			`json:"active"`
+	Overrides	map[string]bool		`json:"overrides"`
+	DataScopes	map[string]string	`json:"dataScopes"`
+	CopiedFrom	string			`json:"copiedFrom,omitempty"`
 }
 type AccessTemplate struct {
-	Role       string            `json:"role"`
-	Overrides  map[string]bool   `json:"overrides"`
-	DataScopes map[string]string `json:"dataScopes"`
+	Role		string			`json:"role"`
+	Overrides	map[string]bool		`json:"overrides"`
+	DataScopes	map[string]string	`json:"dataScopes"`
 }
 type StaffDeskAccount struct {
 	ITAccount
-	DisplayName string `json:"displayName"`
+	DisplayName	string	`json:"displayName"`
 }
 type StaffDeskPage struct {
-	Items      []StaffDeskAccount `json:"items"`
-	NextCursor string             `json:"nextCursor"`
+	Items		[]StaffDeskAccount	`json:"items"`
+	NextCursor	string			`json:"nextCursor"`
 }
 type StaffRoleDraft struct {
-	ID         string            `json:"id"`
-	NameEn     string            `json:"nameEn"`
-	NameAr     string            `json:"nameAr"`
-	System     bool              `json:"system"`
-	Grants     map[string]bool   `json:"grants"`
-	DataScopes map[string]string `json:"dataScopes"`
+	ID		string			`json:"id"`
+	NameEn		string			`json:"nameEn"`
+	NameAr		string			`json:"nameAr"`
+	System		bool			`json:"system"`
+	Grants		map[string]bool		`json:"grants"`
+	DataScopes	map[string]string	`json:"dataScopes"`
 }
 type StaffRolePage struct {
-	Items      []StaffRoleDraft `json:"items"`
-	NextCursor string           `json:"nextCursor"`
+	Items		[]StaffRoleDraft	`json:"items"`
+	NextCursor	string			`json:"nextCursor"`
 }
 type DeskStaff struct {
-	pool    *pgxpool.Pool
-	modules func(context.Context) (map[string]bool, error)
+	pool	*pgxpool.Pool
+	modules	func(context.Context) (map[string]bool, error)
 }
-
 func NewDeskStaff(pool *pgxpool.Pool, modules func(context.Context) (map[string]bool, error)) *DeskStaff {
 	return &DeskStaff{pool: pool, modules: modules}
 }

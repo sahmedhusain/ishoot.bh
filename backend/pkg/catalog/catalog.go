@@ -1,10 +1,4 @@
-// Package catalog exposes the shared constants (ADR 0007): permission resources, actions and role templates for the
-// staff and IT realms, modules, data scopes and the IT ticket workflow. The data comes from contracts/catalog,
-// copied into data/ by `go generate`; it is decoded strictly and checked for consistency when the package loads.
 package catalog
-
-//go:generate go run ../../tools/catalog-sync -in ../../contracts/catalog -out data
-
 import (
 	"bytes"
 	"embed"
@@ -13,144 +7,106 @@ import (
 	"fmt"
 	"slices"
 )
-
-//go:embed data/*.json
 var files embed.FS
-
-// Access is the permission model of one realm.
 type Access struct {
-	Resources        []string                       `json:"resources"`
-	Actions          []string                       `json:"actions"`
-	Roles            []string                       `json:"roles"`
-	LegacyRoleIDs    map[string]string              `json:"legacyRoleIds,omitempty"`
-	ResourceModules  map[string]string              `json:"resourceModules,omitempty"`
-	PermissionGroups []PermissionGroup              `json:"permissionGroups,omitempty"`
-	DefaultRoleRules map[string]map[string][]string `json:"defaultRoleRules"`
+	Resources		[]string			`json:"resources"`
+	Actions			[]string			`json:"actions"`
+	Roles			[]string			`json:"roles"`
+	LegacyRoleIDs		map[string]string		`json:"legacyRoleIds,omitempty"`
+	ResourceModules		map[string]string		`json:"resourceModules,omitempty"`
+	PermissionGroups	[]PermissionGroup		`json:"permissionGroups,omitempty"`
+	DefaultRoleRules	map[string]map[string][]string	`json:"defaultRoleRules"`
 }
-
-// PermissionGroup orders resources in the roles matrix.
 type PermissionGroup struct {
-	Key       string   `json:"key"`
-	Resources []string `json:"resources"`
+	Key		string		`json:"key"`
+	Resources	[]string	`json:"resources"`
 }
-
-// Module is an optional area a company can switch on or off.
 type Module struct {
-	Key              string `json:"key"`
-	NameEn           string `json:"nameEn"`
-	NameAr           string `json:"nameAr"`
-	EnabledByDefault bool   `json:"enabledByDefault"`
+	Key			string	`json:"key"`
+	NameEn			string	`json:"nameEn"`
+	NameAr			string	`json:"nameAr"`
+	EnabledByDefault	bool	`json:"enabledByDefault"`
 }
-
-// DataScopes controls which records a role sees per area.
 type DataScopes struct {
-	Areas    []string                     `json:"areas"`
-	Scopes   []string                     `json:"scopes"`
-	Defaults map[string]map[string]string `json:"defaults"`
+	Areas		[]string			`json:"areas"`
+	Scopes		[]string			`json:"scopes"`
+	Defaults	map[string]map[string]string	`json:"defaults"`
 }
-
-// ITSM is the IT ticket workflow.
 type ITSM struct {
-	Statuses             []string              `json:"statuses"`
-	OpenStatuses         []string              `json:"openStatuses"`
-	Transitions          map[string]Transition `json:"transitions"`
-	RequesterTransitions []string              `json:"requesterTransitions"`
-	Priorities           []string              `json:"priorities"`
-	DefaultPriority      string                `json:"defaultPriority"`
-	Categories           []TicketCategory      `json:"categories"`
+	Statuses		[]string		`json:"statuses"`
+	OpenStatuses		[]string		`json:"openStatuses"`
+	Transitions		map[string]Transition	`json:"transitions"`
+	RequesterTransitions	[]string		`json:"requesterTransitions"`
+	Priorities		[]string		`json:"priorities"`
+	DefaultPriority		string			`json:"defaultPriority"`
+	Categories		[]TicketCategory	`json:"categories"`
 }
-
-// Transition moves a ticket from any of From to To.
 type Transition struct {
-	From []string `json:"from"`
-	To   string   `json:"to"`
+	From	[]string	`json:"from"`
+	To	string		`json:"to"`
 }
-
-// TicketCategory is a top-level ticket category with its subcategories.
 type TicketCategory struct {
-	Key           string        `json:"key"`
-	NameEn        string        `json:"nameEn"`
-	NameAr        string        `json:"nameAr"`
-	Subcategories []Subcategory `json:"subcategories"`
-	LinksAsset    bool          `json:"linksAsset"`
+	Key		string		`json:"key"`
+	NameEn		string		`json:"nameEn"`
+	NameAr		string		`json:"nameAr"`
+	Subcategories	[]Subcategory	`json:"subcategories"`
+	LinksAsset	bool		`json:"linksAsset"`
 }
-
-// Subcategory refines a ticket category.
 type Subcategory struct {
-	Key    string `json:"key"`
-	NameEn string `json:"nameEn"`
-	NameAr string `json:"nameAr"`
+	Key	string	`json:"key"`
+	NameEn	string	`json:"nameEn"`
+	NameAr	string	`json:"nameAr"`
 }
-
-// FileRules lists the file types and storage folders uploads may use.
 type FileRules struct {
-	URLPrefix string       `json:"urlPrefix"`
-	Types     []FileType   `json:"types"`
-	Folders   []FileFolder `json:"folders"`
+	URLPrefix	string		`json:"urlPrefix"`
+	Types		[]FileType	`json:"types"`
+	Folders		[]FileFolder	`json:"folders"`
 }
-
-// FileType is an accepted media type, the file extensions it may carry (the first is used for new files) and the
-// byte signatures that identify it: a file matches when every part of any one signature matches.
 type FileType struct {
-	MIME       string            `json:"mime"`
-	Extensions []string          `json:"extensions"`
-	Signatures [][]SignaturePart `json:"signatures"`
+	MIME		string			`json:"mime"`
+	Extensions	[]string		`json:"extensions"`
+	Signatures	[][]SignaturePart	`json:"signatures"`
 }
-
-// SignaturePart is a run of bytes (hex) expected at an offset.
 type SignaturePart struct {
-	Offset int    `json:"offset"`
-	Hex    string `json:"hex"`
-	bytes  []byte
+	Offset	int	`json:"offset"`
+	Hex	string	`json:"hex"`
+	bytes	[]byte
 }
-
-// FileFolder is a storage folder: public folders hold brand and website files anyone may read.
 type FileFolder struct {
-	Key    string   `json:"key"`
-	Public bool     `json:"public"`
-	Types  []string `json:"types"`
+	Key	string		`json:"key"`
+	Public	bool		`json:"public"`
+	Types	[]string	`json:"types"`
 }
-
-// IntegrationField is one configuration value an integration takes.
 type IntegrationField struct {
-	Key       string `json:"key"`
-	Secret    bool   `json:"secret,omitempty"`
-	Required  bool   `json:"required,omitempty"`
-	MaxLength int    `json:"maxLength,omitempty"`
+	Key		string	`json:"key"`
+	Secret		bool	`json:"secret,omitempty"`
+	Required	bool	`json:"required,omitempty"`
+	MaxLength	int	`json:"maxLength,omitempty"`
 }
-
-// IntegrationProvider defines an external service connection.
 type IntegrationProvider struct {
-	ID        string             `json:"id"`
-	Kind      string             `json:"kind"`
-	Platforms []string           `json:"platforms"`
-	Fields    []IntegrationField `json:"fields"`
-	DocsURL   string             `json:"docsUrl"`
+	ID		string			`json:"id"`
+	Kind		string			`json:"kind"`
+	Platforms	[]string		`json:"platforms"`
+	Fields		[]IntegrationField	`json:"fields"`
+	DocsURL		string			`json:"docsUrl"`
 }
-
-// IntegrationCatalog lists external services and their constraints.
 type IntegrationCatalog struct {
-	Providers          []IntegrationProvider `json:"providers"`
-	Environments       []string              `json:"environments"`
-	PaytabsRegions     map[string]string     `json:"paytabsRegions"`
-	SocialPlatforms    []string              `json:"socialPlatforms"`
-	SocialOwnerMetrics []string              `json:"socialOwnerMetrics"`
+	Providers		[]IntegrationProvider	`json:"providers"`
+	Environments		[]string		`json:"environments"`
+	PaytabsRegions		map[string]string	`json:"paytabsRegions"`
+	SocialPlatforms		[]string		`json:"socialPlatforms"`
+	SocialOwnerMetrics	[]string		`json:"socialOwnerMetrics"`
 }
-
-// The loaded catalogue.
 var (
-	StaffAccess  Access
-	ITAccess     Access
-	Modules      []Module
-	Scopes       DataScopes
-	Tickets      ITSM
-	Files        FileRules
-	Integrations IntegrationCatalog
+	StaffAccess	Access
+	ITAccess	Access
+	Modules		[]Module
+	Scopes		DataScopes
+	Tickets		ITSM
+	Files		FileRules
+	Integrations	IntegrationCatalog
 )
-
-// SuperAdminRole holds every staff permission regardless of stored grants.
 const SuperAdminRole = "super_admin"
-
 func init() {
 	var modules struct {
 		Modules []Module `json:"modules"`
@@ -170,13 +126,11 @@ func init() {
 	must(Files.validate())
 	must(Integrations.validate())
 }
-
 func must(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
-
 func decode(name string, into any) error {
 	body, err := files.ReadFile("data/" + name)
 	if err != nil {
@@ -189,31 +143,23 @@ func decode(name string, into any) error {
 	}
 	return nil
 }
-
-// DefaultAllows reports whether role's template grants action on resource. The staff super admin always passes.
 func (a Access) DefaultAllows(role, resource, action string) bool {
 	if a.isStaff() && role == SuperAdminRole {
 		return true
 	}
 	return slices.Contains(a.DefaultRoleRules[role][resource], action)
 }
-
-// CanonicalRole maps a retired role ID to its replacement.
 func (a Access) CanonicalRole(role string) string {
 	if replacement, ok := a.LegacyRoleIDs[role]; ok {
 		return replacement
 	}
 	return role
 }
-
-// ModuleOf returns the module a resource belongs to, if any.
 func (a Access) ModuleOf(resource string) (string, bool) {
 	module, ok := a.ResourceModules[resource]
 	return module, ok
 }
-
-func (a Access) isStaff() bool { return slices.Contains(a.Roles, SuperAdminRole) }
-
+func (a Access) isStaff() bool	{ return slices.Contains(a.Roles, SuperAdminRole) }
 func (a Access) validate(realm string) error {
 	for role, rules := range a.DefaultRoleRules {
 		if !slices.Contains(a.Roles, role) {
@@ -237,8 +183,6 @@ func (a Access) validate(realm string) error {
 	}
 	return nil
 }
-
-// ModuleEnabledByDefault reports whether a module is on before anyone chose (unknown modules are on).
 func ModuleEnabledByDefault(key string) bool {
 	for _, m := range Modules {
 		if m.Key == key {
@@ -247,8 +191,6 @@ func ModuleEnabledByDefault(key string) bool {
 	}
 	return true
 }
-
-// DefaultScope returns the data scope a role has in an area before the company narrows it.
 func (d DataScopes) DefaultScope(role, area string) string {
 	if role == SuperAdminRole {
 		return "all"
@@ -258,7 +200,6 @@ func (d DataScopes) DefaultScope(role, area string) string {
 	}
 	return "all"
 }
-
 func (d DataScopes) validate(staff Access) error {
 	for role, areas := range d.Defaults {
 		if !slices.Contains(staff.Roles, role) {
@@ -272,8 +213,6 @@ func (d DataScopes) validate(staff Access) error {
 	}
 	return nil
 }
-
-// Next returns the status a ticket in status moves to by transition, if the transition is allowed from there.
 func (t ITSM) Next(status, transition string) (string, bool) {
 	tr, ok := t.Transitions[transition]
 	if !ok || !slices.Contains(tr.From, status) {
@@ -281,11 +220,7 @@ func (t ITSM) Next(status, transition string) (string, bool) {
 	}
 	return tr.To, true
 }
-
-// IsOpen reports whether a ticket in status still needs work.
-func (t ITSM) IsOpen(status string) bool { return slices.Contains(t.OpenStatuses, status) }
-
-// Category returns a category by key.
+func (t ITSM) IsOpen(status string) bool	{ return slices.Contains(t.OpenStatuses, status) }
 func (t ITSM) Category(key string) (TicketCategory, bool) {
 	for _, c := range t.Categories {
 		if c.Key == key {
@@ -294,7 +229,6 @@ func (t ITSM) Category(key string) (TicketCategory, bool) {
 	}
 	return TicketCategory{}, false
 }
-
 func (t ITSM) validate() error {
 	known := func(s string) bool { return slices.Contains(t.Statuses, s) }
 	for _, s := range t.OpenStatuses {
@@ -329,8 +263,6 @@ func (t ITSM) validate() error {
 	}
 	return nil
 }
-
-// DetectType returns the media type whose signature matches the file's first bytes, or "".
 func (f FileRules) DetectType(head []byte) string {
 	for _, t := range f.Types {
 		for _, signature := range t.Signatures {
@@ -341,8 +273,6 @@ func (f FileRules) DetectType(head []byte) string {
 	}
 	return ""
 }
-
-// SniffLength is how many leading bytes DetectType needs to see.
 func (f FileRules) SniffLength() int {
 	n := 0
 	for _, t := range f.Types {
@@ -354,7 +284,6 @@ func (f FileRules) SniffLength() int {
 	}
 	return n
 }
-
 func matchesAll(head []byte, signature []SignaturePart) bool {
 	for _, part := range signature {
 		end := part.Offset + len(part.bytes)
@@ -364,8 +293,6 @@ func matchesAll(head []byte, signature []SignaturePart) bool {
 	}
 	return true
 }
-
-// Folder returns a folder by key.
 func (f FileRules) Folder(key string) (FileFolder, bool) {
 	for _, folder := range f.Folders {
 		if folder.Key == key {
@@ -374,8 +301,6 @@ func (f FileRules) Folder(key string) (FileFolder, bool) {
 	}
 	return FileFolder{}, false
 }
-
-// Type returns an accepted type by media type.
 func (f FileRules) Type(mime string) (FileType, bool) {
 	for _, t := range f.Types {
 		if t.MIME == mime {
@@ -384,10 +309,7 @@ func (f FileRules) Type(mime string) (FileType, bool) {
 	}
 	return FileType{}, false
 }
-
-// Allows reports whether the folder accepts the media type.
-func (f FileFolder) Allows(mime string) bool { return slices.Contains(f.Types, mime) }
-
+func (f FileFolder) Allows(mime string) bool	{ return slices.Contains(f.Types, mime) }
 func (f FileRules) validate() error {
 	if f.URLPrefix == "" || f.URLPrefix[0] != '/' || f.URLPrefix[len(f.URLPrefix)-1] != '/' {
 		return fmt.Errorf("catalog: files: urlPrefix must start and end with /")
@@ -419,8 +341,6 @@ func (f FileRules) validate() error {
 	}
 	return nil
 }
-
-// Provider returns a provider by ID.
 func (c IntegrationCatalog) Provider(id string) (IntegrationProvider, bool) {
 	for _, p := range c.Providers {
 		if p.ID == id {
@@ -429,7 +349,6 @@ func (c IntegrationCatalog) Provider(id string) (IntegrationProvider, bool) {
 	}
 	return IntegrationProvider{}, false
 }
-
 func (c IntegrationCatalog) validate() error {
 	seen := make(map[string]struct{}, len(c.Providers))
 	for _, p := range c.Providers {

@@ -1,5 +1,4 @@
 package accounts_test
-
 import (
 	"context"
 	"encoding/base64"
@@ -9,11 +8,9 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/password"
@@ -25,11 +22,8 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 type allowGuard struct{}
-
-func (allowGuard) Check(context.Context, authn.Realm, string, string) error { return nil }
-
+func (allowGuard) Check(context.Context, authn.Realm, string, string) error	{ return nil }
 func TestLoginAtomicityAndMFA(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -52,7 +46,6 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Second)
 	legacy, err := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.MinCost)
 	require.NoError(t, err)
-	// Fixed fixture written by the existing Node MFA encryptor with user ID user-123 as AAD.
 	const legacyMFA = "MTIzNDU2Nzg5MDEy.WAqUAxCQ3k3ssm1UH8s12w==.KMdZE+lMPbU7vI5DnqCbdg=="
 	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('staff','user-123','alice@example.test',$1,ARRAY['admin'],true,$2),('customer','customer-1','alice@example.test',NULL,ARRAY[]::text[],false,NULL)`, string(legacy), legacyMFA)
 	require.NoError(t, err)
@@ -81,7 +74,6 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	require.True(t, strings.HasPrefix(stored, "$argon2id$"))
 	_, err = svc.Login(ctx, input, now)
 	require.ErrorIs(t, err, accounts.ErrInvalid, "a TOTP step cannot be replayed")
-
 	_, err = svc.Refresh(ctx, authn.RealmCustomer, result.Credential.Token, now)
 	require.ErrorIs(t, err, sessions.ErrInvalid)
 	refreshed, err := svc.Refresh(ctx, authn.RealmStaff, result.Credential.Token, now)
@@ -93,8 +85,6 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	require.ErrorIs(t, err, sessions.ErrInvalid)
 	_, err = sessionService.Active(ctx, authn.RealmStaff, result.Credential.Family.ID, now)
 	require.ErrorIs(t, err, sessions.ErrInvalid, "disabled accounts revoke the session family on refresh")
-
-	// IT accounts cannot log in without MFA enrollment, and one recovery code cannot create two sessions.
 	stronger, err := hasher.Hash("it-password")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash) VALUES ('it','it-1','it@example.test',$1)`, stronger)
@@ -136,8 +126,6 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	var count int
 	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.session_family WHERE realm='it' AND subject_id='it-1'`).Scan(&count))
 	require.Equal(t, 1, count)
-
-	// A password reset or deactivation between the slow password check and the commit invalidates the snapshot.
 	snapshot, err := repo.FindByEmail(ctx, authn.RealmIT, "it@example.test")
 	require.NoError(t, err)
 	prepared, err := sessionService.Prepare(authn.RealmIT, "it-1", now)

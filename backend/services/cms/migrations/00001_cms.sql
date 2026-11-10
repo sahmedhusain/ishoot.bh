@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS cms.page (
     id text PRIMARY KEY,
     slug text NOT NULL UNIQUE,
@@ -18,7 +17,6 @@ CREATE TABLE IF NOT EXISTS cms.page (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS page_sort_idx ON cms.page (sort_order ASC);
-
 CREATE TABLE IF NOT EXISTS cms.article (
     id text PRIMARY KEY,
     slug text NOT NULL UNIQUE,
@@ -45,7 +43,6 @@ CREATE TABLE IF NOT EXISTS cms.article (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS article_status_idx ON cms.article (status, publish_at DESC);
-
 CREATE TABLE IF NOT EXISTS cms.review (
     id text PRIMARY KEY,
     author_en text NOT NULL,
@@ -60,7 +57,6 @@ CREATE TABLE IF NOT EXISTS cms.review (
     year text NOT NULL DEFAULT '2026',
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS cms.faq (
     id text PRIMARY KEY,
     question_en text NOT NULL,
@@ -72,7 +68,6 @@ CREATE TABLE IF NOT EXISTS cms.faq (
     sort_order integer NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS cms.statistic (
     id text PRIMARY KEY,
     metric_value text NOT NULL,
@@ -83,7 +78,6 @@ CREATE TABLE IF NOT EXISTS cms.statistic (
     icon text,
     sort_order integer NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS cms.content_snapshot (
     id text PRIMARY KEY DEFAULT 'main',
     draft jsonb NOT NULL,
@@ -92,8 +86,6 @@ CREATE TABLE IF NOT EXISTS cms.content_snapshot (
     published_at timestamptz,
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
--- +goose Down
 DROP TABLE IF EXISTS cms.content_snapshot;
 DROP TABLE IF EXISTS cms.statistic;
 DROP TABLE IF EXISTS cms.faq;

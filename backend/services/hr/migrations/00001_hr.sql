@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS hr.department (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -7,7 +6,6 @@ CREATE TABLE IF NOT EXISTS hr.department (
     head_id text,
     parent_id text REFERENCES hr.department(id) ON DELETE SET NULL
 );
-
 CREATE TABLE IF NOT EXISTS hr.employee (
     id text PRIMARY KEY,
     employee_number text NOT NULL UNIQUE,
@@ -30,7 +28,6 @@ CREATE TABLE IF NOT EXISTS hr.employee (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS employee_dept_status_idx ON hr.employee (department_id, status);
-
 CREATE TABLE IF NOT EXISTS hr.leave_request (
     id text PRIMARY KEY,
     employee_id text NOT NULL REFERENCES hr.employee(id) ON DELETE CASCADE,
@@ -45,7 +42,6 @@ CREATE TABLE IF NOT EXISTS hr.leave_request (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS leave_emp_status_idx ON hr.leave_request (employee_id, status);
-
 CREATE TABLE IF NOT EXISTS hr.attendance_entry (
     id text PRIMARY KEY,
     employee_id text NOT NULL REFERENCES hr.employee(id) ON DELETE CASCADE,
@@ -57,7 +53,6 @@ CREATE TABLE IF NOT EXISTS hr.attendance_entry (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS attendance_emp_date_idx ON hr.attendance_entry (employee_id, entry_date);
-
 CREATE TABLE IF NOT EXISTS hr.payroll_run (
     id text PRIMARY KEY,
     period_month integer NOT NULL,
@@ -72,7 +67,6 @@ CREATE TABLE IF NOT EXISTS hr.payroll_run (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS payroll_period_idx ON hr.payroll_run (period_year, period_month);
-
 CREATE TABLE IF NOT EXISTS hr.payroll_item (
     id text PRIMARY KEY,
     payroll_run_id text NOT NULL REFERENCES hr.payroll_run(id) ON DELETE CASCADE,
@@ -84,8 +78,6 @@ CREATE TABLE IF NOT EXISTS hr.payroll_item (
     status text NOT NULL DEFAULT 'pending'
 );
 CREATE INDEX IF NOT EXISTS payroll_item_run_idx ON hr.payroll_item (payroll_run_id);
-
--- +goose Down
 DROP TABLE IF EXISTS hr.payroll_item;
 DROP TABLE IF EXISTS hr.payroll_run;
 DROP TABLE IF EXISTS hr.attendance_entry;

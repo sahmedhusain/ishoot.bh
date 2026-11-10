@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS identity.customer_code (
  email text PRIMARY KEY,
  id text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text,
@@ -9,5 +8,4 @@ CREATE TABLE IF NOT EXISTS identity.customer_code (
  used_at timestamptz
 );
 CREATE INDEX IF NOT EXISTS customer_code_expiry_idx ON identity.customer_code(expires_at);
--- +goose Down
 DROP TABLE identity.customer_code;

@@ -1,7 +1,4 @@
--- name: GetDeliverySettings :one
 SELECT * FROM delivery.delivery_settings WHERE id = 'default' LIMIT 1;
-
--- name: UpsertDeliverySettings :one
 INSERT INTO delivery.delivery_settings (
     id, mode, sla_hours, time_zone, slot_days, lead_minutes, require_slot, updated_at
 ) VALUES (
@@ -16,82 +13,44 @@ ON CONFLICT (id) DO UPDATE SET
     require_slot = EXCLUDED.require_slot,
     updated_at = now()
 RETURNING *;
-
--- name: ListDeliveryZones :many
 SELECT * FROM delivery.delivery_zone ORDER BY sort_order ASC, name_en ASC;
-
--- name: GetDeliveryZoneByID :one
 SELECT * FROM delivery.delivery_zone WHERE id = $1 LIMIT 1;
-
--- name: CreateDeliveryZone :one
 INSERT INTO delivery.delivery_zone (
     id, name_en, name_ar, areas, fee, min_order, free_over, is_active, sort_order, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now()
 ) RETURNING *;
-
--- name: ListDeliverySlotsByZone :many
 SELECT * FROM delivery.delivery_slot WHERE zone_id = $1 ORDER BY weekday ASC, slot_start ASC;
-
--- name: CreateDeliverySlot :one
 INSERT INTO delivery.delivery_slot (
     id, zone_id, weekday, slot_start, slot_end, capacity, is_active, created_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, now()
 ) RETURNING *;
-
--- name: ListVehicles :many
 SELECT * FROM delivery.vehicle ORDER BY name ASC;
-
--- name: GetVehicleByID :one
 SELECT * FROM delivery.vehicle WHERE id = $1 LIMIT 1;
-
--- name: CreateVehicle :one
 INSERT INTO delivery.vehicle (
     id, plate, name, kind, notes, is_active, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, now(), now()
 ) RETURNING *;
-
--- name: ListRouteSheets :many
 SELECT * FROM delivery.route_sheet ORDER BY run_date DESC, created_at DESC;
-
--- name: GetRouteSheetByID :one
 SELECT * FROM delivery.route_sheet WHERE id = $1 LIMIT 1;
-
--- name: CreateRouteSheet :one
 INSERT INTO delivery.route_sheet (
     id, number, driver_id, vehicle_id, status, run_date, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, now(), now()
 ) RETURNING *;
-
--- name: UpdateRouteSheetStatus :one
 UPDATE delivery.route_sheet SET
     status = $2,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: ListShipments :many
 SELECT * FROM delivery.shipment ORDER BY created_at DESC;
-
--- name: GetShipmentByID :one
 SELECT * FROM delivery.shipment WHERE id = $1 LIMIT 1;
-
--- name: GetShipmentByNumber :one
 SELECT * FROM delivery.shipment WHERE number = $1 LIMIT 1;
-
--- name: GetShipmentByTrackingToken :one
 SELECT * FROM delivery.shipment WHERE tracking_token = $1 LIMIT 1;
-
--- name: ListShipmentsByOrder :many
 SELECT * FROM delivery.shipment WHERE order_id = $1 ORDER BY created_at ASC;
-
--- name: ListShipmentsByDriver :many
 SELECT * FROM delivery.shipment WHERE driver_id = $1 AND status = $2 ORDER BY route_stop ASC, promised_by ASC;
-
--- name: CreateShipment :one
 INSERT INTO delivery.shipment (
     id, number, order_id, status, method, zone_id, slot_id, slot_date,
     slot_start, slot_end, promised_by, recipient_name, recipient_phone,
@@ -105,8 +64,6 @@ INSERT INTO delivery.shipment (
     $20, $21, $22, $23, $24, $25,
     now(), now()
 ) RETURNING *;
-
--- name: UpdateShipmentStatus :one
 UPDATE delivery.shipment SET
     status = $2,
     failure_reason = $3,
@@ -115,8 +72,6 @@ UPDATE delivery.shipment SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: AssignShipmentDriver :one
 UPDATE delivery.shipment SET
     driver_id = $2,
     vehicle_id = $3,
@@ -126,8 +81,6 @@ UPDATE delivery.shipment SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: RecordProofOfDelivery :one
 UPDATE delivery.shipment SET
     proof_photo_url = $2,
     proof_signature = $3,
@@ -137,11 +90,7 @@ UPDATE delivery.shipment SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: ListShipmentEvents :many
 SELECT * FROM delivery.shipment_event WHERE shipment_id = $1 ORDER BY at ASC;
-
--- name: CreateShipmentEvent :one
 INSERT INTO delivery.shipment_event (
     id, shipment_id, status, reason, note, by_id, at
 ) VALUES (

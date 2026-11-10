@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"crypto/rand"
@@ -11,12 +10,10 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -25,25 +22,21 @@ import (
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/systemclient"
 )
-
 var ErrProviderEmailMissing = errors.New("provider did not confirm an email address")
 var ErrProviderConflict = errors.New("provider identity already linked")
 var oauthNext = regexp.MustCompile(`^/(en|ar)(/[A-Za-z0-9_/-]*)?$`)
-
 type CustomerOAuth struct {
-	guard          accounts.Guard
-	pool           *pgxpool.Pool
-	codes          *CustomerCodes
-	secrets        accounts.SecretReader
-	providers      *oauth.Providers
-	configuration  func(context.Context, string) (systemclient.SignInConfiguration, error)
-	fallbackOrigin string
+	guard		accounts.Guard
+	pool		*pgxpool.Pool
+	codes		*CustomerCodes
+	secrets		accounts.SecretReader
+	providers	*oauth.Providers
+	configuration	func(context.Context, string) (systemclient.SignInConfiguration, error)
+	fallbackOrigin	string
 }
-
 func NewCustomerOAuth(pool *pgxpool.Pool, codes *CustomerCodes, secrets accounts.SecretReader, source func(context.Context, string) (systemclient.SignInConfiguration, error), fallbackOrigin string, guard accounts.Guard) *CustomerOAuth {
 	return &CustomerOAuth{guard: guard, pool: pool, codes: codes, secrets: secrets, providers: oauth.New(), configuration: source, fallbackOrigin: strings.TrimRight(fallbackOrigin, "/")}
 }
-
 func randomOAuthToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -51,18 +44,15 @@ func randomOAuthToken() (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
-
 type OAuthBegin struct {
-	State            string    `json:"state"`
-	AuthorizationURL string    `json:"authorizationUrl"`
-	ExpiresAt        time.Time `json:"expiresAt"`
+	State			string		`json:"state"`
+	AuthorizationURL	string		`json:"authorizationUrl"`
+	ExpiresAt		time.Time	`json:"expiresAt"`
 }
-
 type oauthSecret struct {
-	Nonce    string `json:"nonce"`
-	Verifier string `json:"verifier"`
+	Nonce		string	`json:"nonce"`
+	Verifier	string	`json:"verifier"`
 }
-
 func (s *CustomerOAuth) config(ctx context.Context, provider string) (systemclient.SignInConfiguration, error) {
 	if provider != "google" && provider != "apple" {
 		return systemclient.SignInConfiguration{}, oauth.ErrRejected
@@ -76,7 +66,6 @@ func (s *CustomerOAuth) config(ctx context.Context, provider string) (systemclie
 	}
 	return configuration, nil
 }
-
 func (s *CustomerOAuth) Begin(ctx context.Context, provider, redirect, next, locale, ip string) (OAuthBegin, error) {
 	if (locale != "en" && locale != "ar") || len(next) > 2000 || !oauthNext.MatchString(next) || strings.Contains(next, "//") {
 		return OAuthBegin{}, ErrValidation
@@ -130,15 +119,13 @@ func (s *CustomerOAuth) Begin(ctx context.Context, provider, redirect, next, loc
 	})
 	return out, err
 }
-
 type OAuthCompletion struct {
-	Result accounts.Result
-	Email  string
-	Name   string
-	Next   string
-	Locale string
+	Result	accounts.Result
+	Email	string
+	Name	string
+	Next	string
+	Locale	string
 }
-
 func (s *CustomerOAuth) Complete(ctx context.Context, provider, state, browserState, code, otp, name, ip, agent string) (OAuthCompletion, error) {
 	if len(state) != 43 || subtle.ConstantTimeCompare([]byte(state), []byte(browserState)) != 1 || len(code) > 8192 || len(otp) > 64 || len([]rune(name)) > 120 || len(ip) > 45 || len(agent) > 512 {
 		return OAuthCompletion{}, oauth.ErrRejected
@@ -281,7 +268,6 @@ func (s *CustomerOAuth) Complete(ctx context.Context, provider, state, browserSt
 	})
 	return out, err
 }
-
 func (s *CustomerOAuth) Available(ctx context.Context) map[string]bool {
 	result := map[string]bool{"google": false, "apple": false}
 	if s.configuration == nil {

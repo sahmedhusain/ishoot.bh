@@ -26,7 +26,7 @@ See [CONFIG](../../../docs/backend/CONFIG.md) for database, authentication, S3, 
 
 ## Jobs and failure handling
 
-River runs expired-upload cleanup periodically. A batch locks only expired unclaimed rows using `SKIP LOCKED`, removes their bytes, then removes records. Failures retain the records for retry. Claimed uploads are permanent; they are not automatically removed if a later business transaction fails. Claims across services are not atomic with Prisma writes.
+River runs expired-upload cleanup periodically. A batch locks only expired unclaimed rows using `SKIP LOCKED`, removes their bytes, then removes records. Failures retain the records for retry. Claimed uploads are permanent; they are not automatically removed if a later business transaction fails. Claims across services are not atomic with LegacyDB writes.
 
 If readiness fails, check database connectivity and access to the private S3 bucket. For upload failures, correlate `X-Request-ID` in gateway and service logs, check declared versus actual bytes, and check S3 write availability. A non-seekable upload cannot be retried internally; the app must resend its bytes.
 

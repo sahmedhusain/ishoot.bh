@@ -1,15 +1,11 @@
 package main
-
 import (
 	"bytes"
 	"os"
 	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestDocumentIsCurrent fails when a Config struct changed but docs/backend/CONFIG.md was not regenerated.
 func TestDocumentIsCurrent(t *testing.T) {
 	var buf bytes.Buffer
 	write(&buf)

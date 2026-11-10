@@ -1,11 +1,4 @@
-// Command api runs the audit service. Subcommands:
-//
-//	serve        the HTTP API the IT dashboard reads the trail from (default)
-//	worker       records every event from the EVENTS stream
-//	migrate      create or upgrade the audit schema, then exit
-//	healthcheck  probe this container's readiness (Docker HEALTHCHECK)
 package main
-
 import (
 	"context"
 	"errors"
@@ -14,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
@@ -31,7 +23,6 @@ import (
 	"platform.local/backend/services/audit/migrations"
 	"platform.local/backend/services/audit/settings"
 )
-
 func main() {
 	command := "serve"
 	if len(os.Args) > 1 {
@@ -42,11 +33,9 @@ func main() {
 		os.Exit(1)
 	}
 }
-
 func run(command string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
 	var cfg settings.Config
 	if err := config.Load(&cfg); err != nil {
 		return err
@@ -55,33 +44,29 @@ func run(command string) error {
 		return httpx.Probe(ctx, cfg.Admin.Addr, cfg.Admin.ReadinessTimeout)
 	}
 	logger := logx.New(os.Stdout, logx.Options{
-		Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv,
+		Level:	cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv,
 	})
 	shutdownTracing, err := telemetry.Setup(ctx, cfg.Common)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = shutdownTracing(context.WithoutCancel(ctx)) }()
-
 	dbCfg := cfg.Database
 	if command == "migrate" || command == "worker" {
-		dbCfg = dbCfg.Session() // past the pooler: they need a whole session
+		dbCfg = dbCfg.Session()
 	}
 	pool, err := db.Open(ctx, dbCfg, logger.Logger)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
-
 	if command == "migrate" {
 		return migrate.Run(ctx, pool, migrate.Options{Schema: postgres.Schema, Migrations: migrations.FS, Logger: logger.Logger})
 	}
-
 	svc := app.New(postgres.New(pool))
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))
 	metrics := httpx.NewMetrics(cfg.ServiceName)
-
 	switch command {
 	case "serve":
 		return serve(ctx, cfg, logger, svc, metrics, httpx.AdminHandler(cfg.Common, logger, checker, metrics))
@@ -90,7 +75,6 @@ func run(command string) error {
 	}
 	return fmt.Errorf("unknown command %q (serve, worker, migrate, healthcheck)", command)
 }
-
 func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service, metrics *httpx.Metrics, admin http.Handler) error {
 	if !cfg.Auth.Configured() {
 		return errors.New("set AUTH_ISSUER and AUTH_JWKS_URL: the trail is read by IT accounts")
@@ -99,20 +83,18 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	if err != nil {
 		return err
 	}
-	// Middleware uses each incoming request's context, not the process shutdown context.
-	e, err := httpx.New(cfg.Common, logger, metrics) //nolint:contextcheck // Request contexts are supplied by Echo at request time.
+	e, err := httpx.New(cfg.Common, logger, metrics)
 	if err != nil {
 		return err
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
-		Verifier: verifier, DefaultPageSize: cfg.Audit.DefaultPageSize, MaxPageSize: cfg.Audit.MaxPageSize,
+		Verifier:	verifier, DefaultPageSize: cfg.Audit.DefaultPageSize, MaxPageSize: cfg.Audit.MaxPageSize,
 	})
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("audit service starting")
 	return httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 }
-
 func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service, checker *health.Checker, metrics *httpx.Metrics) error {
 	if !cfg.NATS.Configured() {
 		return errors.New("set NATS_URL: the worker reads the events from NATS")
@@ -127,7 +109,6 @@ func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *ap
 	if err != nil {
 		return err
 	}
-	// A consumer that cannot start stops the worker, so the orchestrator restarts it.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	done := make(chan error, 1)
@@ -140,7 +121,6 @@ func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *ap
 		done <- err
 	}()
 	logger.Info("audit worker started")
-	// The worker serves only the admin listener (probes, metrics, log level).
 	_, adminServer := httpx.Servers(cfg.Common, nil, httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	runErr := httpx.Run(ctx, cfg.Common, logger, adminServer)
 	return errors.Join(runErr, <-done)

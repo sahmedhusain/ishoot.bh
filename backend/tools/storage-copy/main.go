@@ -1,15 +1,4 @@
-// Command storage-copy copies existing files into the files service's buckets (ADR 0009). It walks the file records
-// (files.upload_object), so only known files are copied, each into the bucket its record says, and files already
-// present are skipped: it can be re-run safely. Sources:
-//
-//	-from-dir <path>    the old local upload folder (<folder>/<name> under it)
-//	-from-s3 <endpoint> an S3-compatible source, e.g. Supabase Storage's S3 protocol
-//	                    (with -from-access-key, -from-secret-key, -from-region)
-//
-// The target and database come from the files service's own environment (DATABASE_URL, S3_*, FILES_*_BUCKET).
-// Run: go run ./tools/storage-copy -from-dir ./legacy-uploads
 package main
-
 import (
 	"context"
 	"errors"
@@ -20,26 +9,22 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/objectstore"
 	"platform.local/backend/services/files/settings"
 )
-
 type source interface {
 	open(ctx context.Context, bucket, key string) (io.ReadCloser, int64, error)
 }
-
 type dirSource struct{ root string }
-
 func (d dirSource) open(_ context.Context, _, key string) (io.ReadCloser, int64, error) {
 	path := filepath.Join(d.root, filepath.FromSlash(key))
 	if !strings.HasPrefix(path, filepath.Clean(d.root)+string(filepath.Separator)) {
 		return nil, 0, fmt.Errorf("key %q escapes the source folder", key)
 	}
-	f, err := os.Open(path) //nolint:gosec // the path is checked to stay inside the operator's source folder
+	f, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, 0, objectstore.ErrNotFound
 	}
@@ -53,21 +38,17 @@ func (d dirSource) open(_ context.Context, _, key string) (io.ReadCloser, int64,
 	}
 	return f, info.Size(), nil
 }
-
 type s3Source struct{ store *objectstore.S3 }
-
 func (s s3Source) open(ctx context.Context, bucket, key string) (io.ReadCloser, int64, error) {
 	body, info, err := s.store.Get(ctx, bucket, key)
 	return body, info.Size, err
 }
-
 type record struct {
-	url    string
-	public bool
-	size   int64
-	mime   string
+	url	string
+	public	bool
+	size	int64
+	mime	string
 }
-
 func main() {
 	fromDir := flag.String("from-dir", "", "old local upload folder")
 	fromS3 := flag.String("from-s3", "", "S3-compatible source endpoint")
@@ -83,7 +64,7 @@ func main() {
 	var src source = dirSource{root: *fromDir}
 	if *fromS3 != "" {
 		src = s3Source{store: objectstore.New(objectstore.Config{
-			Endpoint: *fromS3, Region: *region, AccessKeyID: *accessKey, SecretAccessKey: *secretKey, UsePathStyle: true,
+			Endpoint:	*fromS3, Region: *region, AccessKeyID: *accessKey, SecretAccessKey: *secretKey, UsePathStyle: true,
 		})}
 	}
 	var cfg settings.Config
@@ -96,10 +77,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-// summary counts what a run did.
 type summary struct{ copied, present, missing, failed int }
-
 func run(ctx context.Context, cfg settings.Config, src source, dryRun bool, logger *slog.Logger) (summary, error) {
 	pool, err := db.Open(ctx, cfg.Database, logger)
 	if err != nil {
@@ -107,7 +85,6 @@ func run(ctx context.Context, cfg settings.Config, src source, dryRun bool, logg
 	}
 	defer pool.Close()
 	target := objectstore.New(cfg.S3)
-
 	rows, err := pool.Query(ctx, `SELECT file_url, is_public, file_size, mime_type FROM files.upload_object ORDER BY created_at`)
 	if err != nil {
 		return summary{}, err
@@ -123,7 +100,6 @@ func run(ctx context.Context, cfg settings.Config, src source, dryRun bool, logg
 	if err := rows.Err(); err != nil {
 		return summary{}, err
 	}
-
 	var copied, present, missing, failed int
 	for _, r := range records {
 		bucket := cfg.Files.PrivateBucket
@@ -179,8 +155,6 @@ func run(ctx context.Context, cfg settings.Config, src source, dryRun bool, logg
 	}
 	return result, nil
 }
-
-// withServiceName reads the process environment, filling SERVICE_NAME so the files service's settings validate.
 func withServiceName() map[string]string {
 	env := map[string]string{}
 	for _, kv := range os.Environ() {

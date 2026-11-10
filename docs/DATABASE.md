@@ -81,7 +81,7 @@ All demo people and companies are fictional and use `example.com` or `.example` 
 ## 5. Changing the schema
 
 1. For Go microservices: add or edit goose SQL migrations under `backend/services/<name>/migrations/` and run `sqlc generate`.
-2. For legacy handoff schema: edit `packages/database/prisma/schema.prisma` and create a migration:
+2. For legacy handoff schema: edit `packages/database/LegacyDB/schema.LegacyDB` and create a migration:
    ```bash
    ./run.sh db new describe_the_change
    ```

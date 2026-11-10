@@ -1,16 +1,12 @@
-// Package app holds identity's account administration use cases.
 package app
-
 import (
 	"context"
 	"errors"
 	"slices"
 	"strings"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -18,43 +14,37 @@ import (
 	"platform.local/backend/services/identity/internal/bootstrap"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 var (
-	ErrValidation = errors.New("invalid account settings")
-	ErrNotFound   = errors.New("account not found")
-	ErrLastAdmin  = errors.New("the last active IT administrator must be retained")
+	ErrValidation	= errors.New("invalid account settings")
+	ErrNotFound	= errors.New("account not found")
+	ErrLastAdmin	= errors.New("the last active IT administrator must be retained")
 )
-
 type ITAccount struct {
-	ID               string     `json:"id"`
-	Email            string     `json:"email"`
-	Roles            []string   `json:"roles"`
-	Active           bool       `json:"active"`
-	MFAEnabled       bool       `json:"mfaEnabled"`
-	ReportingTo      *string    `json:"reportingTo,omitempty"`
-	ReportingToEmail *string    `json:"reportingToEmail,omitempty"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	LastLoginAt      *time.Time `json:"lastLoginAt"`
+	ID			string		`json:"id"`
+	Email			string		`json:"email"`
+	Roles			[]string	`json:"roles"`
+	Active			bool		`json:"active"`
+	MFAEnabled		bool		`json:"mfaEnabled"`
+	ReportingTo		*string		`json:"reportingTo,omitempty"`
+	ReportingToEmail	*string		`json:"reportingToEmail,omitempty"`
+	CreatedAt		time.Time	`json:"createdAt"`
+	LastLoginAt		*time.Time	`json:"lastLoginAt"`
 }
-
 type ITAccountPage struct {
-	Items             []ITAccount `json:"items"`
-	NextCursor        string      `json:"nextCursor"`
-	PasswordMinLength int         `json:"passwordMinLength"`
+	Items			[]ITAccount	`json:"items"`
+	NextCursor		string		`json:"nextCursor"`
+	PasswordMinLength	int		`json:"passwordMinLength"`
 }
-
 type ITAccounts struct {
-	pool     *pgxpool.Pool
-	hasher   bootstrap.Hasher
-	sealer   bootstrap.Sealer
-	defaults bootstrap.Input
-	permits  chan struct{}
+	pool		*pgxpool.Pool
+	hasher		bootstrap.Hasher
+	sealer		bootstrap.Sealer
+	defaults	bootstrap.Input
+	permits		chan struct{}
 }
-
 func NewITAccounts(pool *pgxpool.Pool, hasher bootstrap.Hasher, sealer bootstrap.Sealer, defaults bootstrap.Input, maxConcurrent int) *ITAccounts {
 	return &ITAccounts{pool: pool, hasher: hasher, sealer: sealer, defaults: defaults, permits: make(chan struct{}, maxConcurrent)}
 }
-
 func (s *ITAccounts) List(ctx context.Context, actor authn.Principal, cursor string, limit int32) (ITAccountPage, error) {
 	page := ITAccountPage{Items: []ITAccount{}, PasswordMinLength: s.defaults.MinPasswordLength}
 	if len(cursor) > 200 || limit < 1 || limit > 200 {
@@ -77,7 +67,6 @@ func (s *ITAccounts) List(ctx context.Context, actor authn.Principal, cursor str
 			return err
 		}
 		defer rows.Close()
-
 		var items []ITAccount
 		for rows.Next() {
 			var item ITAccount
@@ -99,7 +88,6 @@ func (s *ITAccounts) List(ctx context.Context, actor authn.Principal, cursor str
 	})
 	return page, err
 }
-
 func (s *ITAccounts) Create(ctx context.Context, actor authn.Principal, email, password, role string, reportingTo *string) (bootstrap.Result, error) {
 	in := s.defaults
 	in.Email, in.Password, in.Role = strings.ToLower(strings.TrimSpace(email)), password, role
@@ -115,7 +103,6 @@ func (s *ITAccounts) Create(ctx context.Context, actor authn.Principal, email, p
 	}
 	return bootstrap.CreateITAccount(ctx, s.pool, s.hasher, s.sealer, in, time.Now().UTC(), actor)
 }
-
 func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role string, active bool, reportingTo *string) error {
 	id = strings.TrimSpace(id)
 	role = strings.TrimSpace(role)
@@ -131,8 +118,6 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 		if err := accounts.CheckITAccess(ctx, q, actor, "it_accounts", "edit", now); err != nil {
 			return err
 		}
-
-		// Ensure role exists in database
 		var roleCount int
 		if err := tx.QueryRow(ctx, "SELECT count(*) FROM identity.it_role").Scan(&roleCount); err != nil {
 			return err
@@ -148,7 +133,6 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 		} else if !strings.HasPrefix(role, "it_") {
 			return ErrValidation
 		}
-
 		target, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(authn.RealmIT), SubjectID: id})
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
@@ -156,7 +140,6 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 		if err != nil {
 			return err
 		}
-
 		roles := []string{role}
 		if target.Active && target.PasswordHash != nil && slices.Contains(target.Roles, "it_admin") && (!active || role != "it_admin") {
 			n, err := q.CountActiveITAdmins(ctx)
@@ -167,7 +150,6 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 				return ErrLastAdmin
 			}
 		}
-
 		if _, err := tx.Exec(ctx, `
 			UPDATE identity.account
 			SET roles = $1, active = $2, reporting_to = $3, updated_at = $4
@@ -175,12 +157,11 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 		`, roles, active, reportingTo, now, id); err != nil {
 			return err
 		}
-
 		if err := q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: string(authn.RealmIT), SubjectID: id, RevokedAt: &now}); err != nil {
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
-			"subjectId": id, "realm": authn.RealmIT, "changedBy": "it:" + actor.Subject,
+			"subjectId":	id, "realm": authn.RealmIT, "changedBy": "it:" + actor.Subject,
 		}})
 	})
 }

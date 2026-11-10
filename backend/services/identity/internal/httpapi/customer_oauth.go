@@ -1,13 +1,10 @@
 package httpapi
-
 import (
 	"errors"
 	"net/http"
 	"slices"
 	"time"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
@@ -15,7 +12,6 @@ import (
 	"platform.local/backend/services/identity/internal/oauth"
 	"platform.local/backend/services/identity/internal/tokens"
 )
-
 func RegisterCustomerOAuth(e *echo.Echo, verifier *authn.Verifier, issuer *tokens.Issuer, svc *app.CustomerOAuth, callers []string, limit int64) {
 	g := e.Group("/v1/identity/customer/oauth", authn.Require(verifier, authn.RealmService), func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -30,10 +26,10 @@ func RegisterCustomerOAuth(e *echo.Echo, verifier *authn.Verifier, issuer *token
 	g.GET("/providers", func(c echo.Context) error { return c.JSON(http.StatusOK, svc.Available(c.Request().Context())) })
 	g.POST("/:provider", func(c echo.Context) error {
 		var in struct {
-			RedirectURI string `json:"redirectUri" validate:"required,max=2048"`
-			Next        string `json:"next" validate:"required,max=2000"`
-			Locale      string `json:"locale" validate:"required,oneof=en ar"`
-			ClientIP    string `json:"clientIp" validate:"max=45"`
+			RedirectURI	string	`json:"redirectUri" validate:"required,max=2048"`
+			Next		string	`json:"next" validate:"required,max=2000"`
+			Locale		string	`json:"locale" validate:"required,oneof=en ar"`
+			ClientIP	string	`json:"clientIp" validate:"max=45"`
 		}
 		if err := httpx.BindJSON(c, &in, limit); err != nil {
 			return err
@@ -46,13 +42,13 @@ func RegisterCustomerOAuth(e *echo.Echo, verifier *authn.Verifier, issuer *token
 	})
 	g.POST("/:provider/complete", func(c echo.Context) error {
 		var in struct {
-			State        string `json:"state" validate:"required,len=43"`
-			BrowserState string `json:"browserState" validate:"required,len=43"`
-			Code         string `json:"code" validate:"max=8192"`
-			OTP          string `json:"otp" validate:"max=64"`
-			Name         string `json:"name" validate:"max=120"`
-			ClientIP     string `json:"clientIp" validate:"max=45"`
-			UserAgent    string `json:"userAgent" validate:"max=512"`
+			State		string	`json:"state" validate:"required,len=43"`
+			BrowserState	string	`json:"browserState" validate:"required,len=43"`
+			Code		string	`json:"code" validate:"max=8192"`
+			OTP		string	`json:"otp" validate:"max=64"`
+			Name		string	`json:"name" validate:"max=120"`
+			ClientIP	string	`json:"clientIp" validate:"max=45"`
+			UserAgent	string	`json:"userAgent" validate:"max=512"`
 		}
 		if err := httpx.BindJSON(c, &in, limit); err != nil {
 			return err
@@ -67,17 +63,16 @@ func RegisterCustomerOAuth(e *echo.Echo, verifier *authn.Verifier, issuer *token
 			return err
 		}
 		return c.JSON(http.StatusOK, struct {
-			Email      string        `json:"email"`
-			Name       string        `json:"name"`
-			Next       string        `json:"next"`
-			Locale     string        `json:"locale"`
-			Credential loginResponse `json:"credential"`
+			Email		string		`json:"email"`
+			Name		string		`json:"name"`
+			Next		string		`json:"next"`
+			Locale		string		`json:"locale"`
+			Credential	loginResponse	`json:"credential"`
 		}{Email: out.Email, Name: out.Name, Next: out.Next, Locale: out.Locale, Credential: loginResponse{
-			refreshResponse: refreshResponse{SessionID: f.ID, SubjectID: f.SubjectID, Realm: f.Realm, ExpiresAt: f.ExpiresAt, RefreshToken: out.Result.Credential.Token}, AccessToken: token, Roles: out.Result.Account.Roles,
+			refreshResponse:	refreshResponse{SessionID: f.ID, SubjectID: f.SubjectID, Realm: f.Realm, ExpiresAt: f.ExpiresAt, RefreshToken: out.Result.Credential.Token}, AccessToken: token, Roles: out.Result.Account.Roles,
 		}})
 	})
 }
-
 func oauthError(c echo.Context, err error) error {
 	switch {
 	case errors.Is(err, oauth.ErrRejected):

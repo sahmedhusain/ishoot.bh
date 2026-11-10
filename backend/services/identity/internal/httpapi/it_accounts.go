@@ -1,13 +1,10 @@
 package httpapi
-
 import (
 	"errors"
 	"net/http"
 	"strconv"
-
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -16,16 +13,13 @@ import (
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/app"
 )
-
 func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccounts, bodyLimit int64) {
-	// IT Accounts endpoints
 	g := e.Group("/v1/identity/desk/it-accounts", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Response().Header().Set("Cache-Control", "no-store")
 			return next(c)
 		}
 	}, authn.Require(verifier, authn.RealmIT))
-
 	g.GET("", func(c echo.Context) error {
 		limit := 50
 		if raw := c.QueryParam("limit"); raw != "" {
@@ -42,13 +36,12 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.JSON(http.StatusOK, page)
 	}, authz.Require(catalog.ITAccess, "it_accounts", "read"))
-
 	g.POST("", func(c echo.Context) error {
 		var in struct {
-			Email       string  `json:"email" validate:"required,max=254"`
-			Password    string  `json:"password" validate:"required,max=1024"`
-			Role        string  `json:"role" validate:"required,max=100"`
-			ReportingTo *string `json:"reportingTo,omitempty"`
+			Email		string	`json:"email" validate:"required,max=254"`
+			Password	string	`json:"password" validate:"required,max=1024"`
+			Role		string	`json:"role" validate:"required,max=100"`
+			ReportingTo	*string	`json:"reportingTo,omitempty"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err
@@ -60,12 +53,11 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.JSON(http.StatusCreated, result)
 	}, authz.Require(catalog.ITAccess, "it_accounts", "create"))
-
 	g.PUT("/:id", func(c echo.Context) error {
 		var in struct {
-			Role        string  `json:"role" validate:"required,max=100"`
-			Active      *bool   `json:"active" validate:"required"`
-			ReportingTo *string `json:"reportingTo,omitempty"`
+			Role		string	`json:"role" validate:"required,max=100"`
+			Active		*bool	`json:"active" validate:"required"`
+			ReportingTo	*string	`json:"reportingTo,omitempty"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err
@@ -76,15 +68,12 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.NoContent(http.StatusNoContent)
 	}, authz.Require(catalog.ITAccess, "it_accounts", "edit"))
-
-	// IT Roles endpoints
 	r := e.Group("/v1/identity/desk/it-roles", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Response().Header().Set("Cache-Control", "no-store")
 			return next(c)
 		}
 	}, authn.Require(verifier, authn.RealmIT))
-
 	r.GET("", func(c echo.Context) error {
 		actor, _ := authn.PrincipalFrom(c.Request().Context())
 		roles, err := svc.Roles(c.Request().Context(), actor)
@@ -93,7 +82,6 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.JSON(http.StatusOK, map[string]any{"items": roles})
 	}, authz.Require(catalog.ITAccess, "staff_roles", "read"))
-
 	r.POST("", func(c echo.Context) error {
 		var in app.ITRoleDraft
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
@@ -105,7 +93,6 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.NoContent(http.StatusCreated)
 	}, authz.Require(catalog.ITAccess, "staff_roles", "create"))
-
 	r.PUT("/:id", func(c echo.Context) error {
 		var in app.ITRoleDraft
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
@@ -120,7 +107,6 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		}
 		return c.NoContent(http.StatusNoContent)
 	}, authz.Require(catalog.ITAccess, "staff_roles", "edit"))
-
 	r.DELETE("/:id", func(c echo.Context) error {
 		actor, _ := authn.PrincipalFrom(c.Request().Context())
 		if err := svc.DeleteRole(c.Request().Context(), actor, c.Param("id")); err != nil {
@@ -129,7 +115,6 @@ func RegisterITAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ITAccou
 		return c.NoContent(http.StatusNoContent)
 	}, authz.Require(catalog.ITAccess, "staff_roles", "delete"))
 }
-
 func itAccountError(err error) error {
 	var pgerr *pgconn.PgError
 	switch {

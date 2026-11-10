@@ -1,5 +1,4 @@
 package httpapi_test
-
 import (
 	"context"
 	"encoding/json"
@@ -12,7 +11,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -20,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/config"
@@ -36,7 +33,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestDeskSessions(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -190,7 +186,6 @@ func TestDeskSessions(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodDelete, path+"/"+orphan.Family.ID, tokenFor("it_support")).Code)
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET roles=ARRAY['it_admin'] WHERE realm='it' AND subject_id='operator'`)
 	require.NoError(t, err)
-	// Two operators revoking each other must serialize, never deadlock or use already revoked access.
 	credentials := make([]sessions.Credential, 2)
 	bearers := make([]string, 2)
 	for i, id := range []string{"operator-a", "operator-b"} {

@@ -1,5 +1,4 @@
 package app
-
 import (
 	"bytes"
 	"context"
@@ -8,18 +7,14 @@ import (
 	"sort"
 	"sync"
 	"time"
-
 	"platform.local/backend/pkg/objectstore"
 	"platform.local/backend/services/files/internal/domain"
 )
-
 type memRepo struct {
-	mu    sync.Mutex
-	files map[string]domain.File
+	mu	sync.Mutex
+	files	map[string]domain.File
 }
-
-func newMemRepo() *memRepo { return &memRepo{files: map[string]domain.File{}} }
-
+func newMemRepo() *memRepo	{ return &memRepo{files: map[string]domain.File{}} }
 func (m *memRepo) Insert(_ context.Context, f domain.File) (domain.File, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -29,7 +24,6 @@ func (m *memRepo) Insert(_ context.Context, f domain.File) (domain.File, error) 
 	m.files[f.URL] = f
 	return f, nil
 }
-
 func (m *memRepo) Get(_ context.Context, url string) (domain.File, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -39,7 +33,6 @@ func (m *memRepo) Get(_ context.Context, url string) (domain.File, error) {
 	}
 	return f, nil
 }
-
 func (m *memRepo) List(_ context.Context, urls []string) ([]domain.File, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -52,7 +45,6 @@ func (m *memRepo) List(_ context.Context, urls []string) ([]domain.File, error) 
 	sort.Slice(out, func(i, j int) bool { return out[i].URL < out[j].URL })
 	return out, nil
 }
-
 func (m *memRepo) Claim(_ context.Context, url, owner string, now time.Time) (domain.File, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -64,7 +56,6 @@ func (m *memRepo) Claim(_ context.Context, url, owner string, now time.Time) (do
 	m.files[url] = f
 	return f, nil
 }
-
 func (m *memRepo) Delete(_ context.Context, url string) (bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -72,7 +63,6 @@ func (m *memRepo) Delete(_ context.Context, url string) (bool, error) {
 	delete(m.files, url)
 	return ok, nil
 }
-
 func (m *memRepo) WithExpired(_ context.Context, now time.Time, limit int32, fn func([]domain.File) error) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -93,18 +83,15 @@ func (m *memRepo) WithExpired(_ context.Context, now time.Time, limit int32, fn 
 	}
 	return len(batch), nil
 }
-
 type memStore struct {
-	mu      sync.Mutex
-	objects map[string][]byte
-	types   map[string]string
-	fail    error
+	mu	sync.Mutex
+	objects	map[string][]byte
+	types	map[string]string
+	fail	error
 }
-
 func newMemStore() *memStore {
 	return &memStore{objects: map[string][]byte{}, types: map[string]string{}}
 }
-
 func (m *memStore) Put(_ context.Context, bucket, key string, body io.Reader, size int64, contentType string) error {
 	if m.fail != nil {
 		return m.fail
@@ -121,7 +108,6 @@ func (m *memStore) Put(_ context.Context, bucket, key string, body io.Reader, si
 	m.objects[bucket+"/"+key], m.types[bucket+"/"+key] = b, contentType
 	return nil
 }
-
 func (m *memStore) Get(_ context.Context, bucket, key string) (io.ReadCloser, objectstore.Info, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -131,7 +117,6 @@ func (m *memStore) Get(_ context.Context, bucket, key string) (io.ReadCloser, ob
 	}
 	return io.NopCloser(bytes.NewReader(b)), objectstore.Info{Size: int64(len(b)), ContentType: m.types[bucket+"/"+key]}, nil
 }
-
 func (m *memStore) GetRange(ctx context.Context, bucket, key string, n int64) ([]byte, error) {
 	r, _, err := m.Get(ctx, bucket, key)
 	if err != nil {
@@ -139,7 +124,6 @@ func (m *memStore) GetRange(ctx context.Context, bucket, key string, n int64) ([
 	}
 	return io.ReadAll(io.LimitReader(r, n))
 }
-
 func (m *memStore) Head(_ context.Context, bucket, key string) (objectstore.Info, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -149,14 +133,12 @@ func (m *memStore) Head(_ context.Context, bucket, key string) (objectstore.Info
 	}
 	return objectstore.Info{Size: int64(len(b)), ContentType: m.types[bucket+"/"+key]}, nil
 }
-
 func (m *memStore) Delete(_ context.Context, bucket, key string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.objects, bucket+"/"+key)
 	return nil
 }
-
 func (m *memStore) has(bucket, key string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()

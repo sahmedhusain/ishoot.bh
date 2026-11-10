@@ -1,18 +1,12 @@
-// Package postgres stores delivery entities in the delivery schema.
 package postgres
-
 import (
 	"context"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/delivery/internal/postgres/sqlcdb"
 )
-
 const Schema = "delivery"
-
 type DeliverySettings = sqlcdb.DeliveryDeliverySetting
 type DeliveryZone = sqlcdb.DeliveryDeliveryZone
 type DeliverySlot = sqlcdb.DeliveryDeliverySlot
@@ -20,21 +14,16 @@ type Vehicle = sqlcdb.DeliveryVehicle
 type RouteSheet = sqlcdb.DeliveryRouteSheet
 type Shipment = sqlcdb.DeliveryShipment
 type ShipmentEvent = sqlcdb.DeliveryShipmentEvent
-
 type Store struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
 }
-
-func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return fn(&Store{q: s.q.WithTx(tx)}, tx)
 	})
 }
-
-// UnreferencedProofPhotos returns private proof-photo URLs only used by the orders being erased.
 func (s *Store) UnreferencedProofPhotos(ctx context.Context, orderIDs []string) ([]string, error) {
 	rows, err := s.pool.Query(ctx, `
 SELECT DISTINCT target.proof_photo_url
@@ -61,8 +50,6 @@ ORDER BY target.proof_photo_url`, orderIDs)
 	}
 	return urls, rows.Err()
 }
-
-// Settings, Zones & Slots
 func (s *Store) GetDeliverySettings(ctx context.Context) (DeliverySettings, error) {
 	return s.q.GetDeliverySettings(ctx)
 }
@@ -84,8 +71,6 @@ func (s *Store) ListDeliverySlotsByZone(ctx context.Context, zoneID *string) ([]
 func (s *Store) CreateDeliverySlot(ctx context.Context, p sqlcdb.CreateDeliverySlotParams) (DeliverySlot, error) {
 	return s.q.CreateDeliverySlot(ctx, p)
 }
-
-// Vehicles & Route Sheets
 func (s *Store) ListVehicles(ctx context.Context) ([]Vehicle, error) {
 	return s.q.ListVehicles(ctx)
 }
@@ -107,8 +92,6 @@ func (s *Store) CreateRouteSheet(ctx context.Context, p sqlcdb.CreateRouteSheetP
 func (s *Store) UpdateRouteSheetStatus(ctx context.Context, p sqlcdb.UpdateRouteSheetStatusParams) (RouteSheet, error) {
 	return s.q.UpdateRouteSheetStatus(ctx, p)
 }
-
-// Shipments & Events
 func (s *Store) ListShipments(ctx context.Context) ([]Shipment, error) {
 	return s.q.ListShipments(ctx)
 }

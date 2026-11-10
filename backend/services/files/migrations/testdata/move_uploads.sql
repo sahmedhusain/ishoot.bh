@@ -1,19 +1,10 @@
--- Hands "UploadObject" over to the files service (docs/adr/0002, 0009). The table moves, with its data, to the
--- files schema under the names the service uses (backend/services/files/migrations/00001_upload_object.sql).
--- Times move from UTC "timestamp" to "timestamptz"; the owner stays a plain ID without a foreign key, since
--- services never reference each other's tables. If the files service already created its table, the rows are
--- copied into it instead.
 CREATE SCHEMA IF NOT EXISTS files;
-
 DO $$
 BEGIN
   IF to_regclass('public."UploadObject"') IS NULL THEN
     RETURN;
   END IF;
-
   IF to_regclass('files.upload_object') IS NOT NULL THEN
-    -- Never discard legacy ownership/claim metadata on a URL collision. The operator must reconcile it
-    -- before retrying; this DO block rolls back and leaves the legacy table intact.
     IF EXISTS (
       SELECT 1 FROM public."UploadObject" legacy
       JOIN files.upload_object target ON target.file_url = legacy."fileUrl"
@@ -27,7 +18,6 @@ BEGIN
     DROP TABLE public."UploadObject";
     RETURN;
   END IF;
-
   ALTER TABLE public."UploadObject" DROP CONSTRAINT IF EXISTS "UploadObject_ownerId_fkey";
   ALTER TABLE public."UploadObject" SET SCHEMA files;
   ALTER TABLE files."UploadObject" RENAME TO upload_object;

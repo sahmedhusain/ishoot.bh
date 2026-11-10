@@ -1,16 +1,12 @@
 package httpapi
-
 import (
 	"errors"
 	"net/http"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/identity/internal/app"
 )
-
 func multiRequire(v1, v2 *authn.Verifier, realms ...authn.Realm) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -31,7 +27,6 @@ func multiRequire(v1, v2 *authn.Verifier, realms ...authn.Realm) echo.Middleware
 		}
 	}
 }
-
 func RegisterStaffAccess(e *echo.Echo, userVerifier, serviceVerifier *authn.Verifier, svc *app.StaffAccess) {
 	e.GET("/v1/identity/staff/access", func(c echo.Context) error {
 		actor, _ := authn.PrincipalFrom(c.Request().Context())
@@ -46,7 +41,6 @@ func RegisterStaffAccess(e *echo.Echo, userVerifier, serviceVerifier *authn.Veri
 	}, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
 	}, authn.Require(userVerifier, authn.RealmStaff))
-
 	e.GET("/v1/identity/staff/roles", func(c echo.Context) error {
 		c.Response().Header().Set("Cache-Control", "no-store")
 		roles, err := svc.ListRoles(c.Request().Context())
@@ -56,9 +50,7 @@ func RegisterStaffAccess(e *echo.Echo, userVerifier, serviceVerifier *authn.Veri
 		return c.JSON(http.StatusOK, map[string]any{"items": roles})
 	}, multiRequire(userVerifier, serviceVerifier, authn.RealmStaff, authn.RealmService, authn.RealmIT))
 }
-
 func RegisterStaffAccessService(e *echo.Echo, verifier *authn.Verifier, svc *app.StaffAccess) {
-
 	e.GET("/v1/identity/staff/accounts/:id/access", func(c echo.Context) error {
 		p, _ := authn.PrincipalFrom(c.Request().Context())
 		if p.Subject != "admin" {
@@ -71,5 +63,4 @@ func RegisterStaffAccessService(e *echo.Echo, verifier *authn.Verifier, svc *app
 		}
 		return c.JSON(http.StatusOK, policy)
 	}, authn.Require(verifier, authn.RealmService))
-
 }

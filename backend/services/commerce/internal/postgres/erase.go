@@ -1,26 +1,17 @@
 package postgres
-
 import (
 	"context"
 	"errors"
 	"slices"
 	"strings"
-
 	"platform.local/backend/pkg/erasure"
 )
-
-// ErasedName replaces a person's name on records that must stay for accounting.
 const ErasedName = "Erased customer"
-
-// Erased reports what EraseCustomer found: whether the customer existed and which orders and CRM contacts were theirs.
 type Erased struct {
-	Found                bool
-	OrderIDs, ContactIDs []string
-	// EmailHashes are EmailHash of the e-mail addresses erased, so services that only know an address (sales
-	// inquiries, contacts) can find their copies without the event carrying the address itself.
-	EmailHashes []string
+	Found			bool
+	OrderIDs, ContactIDs	[]string
+	EmailHashes	[]string
 }
-
 func (e *Erased) merge(o Erased) {
 	e.Found = e.Found || o.Found
 	for _, id := range o.OrderIDs {
@@ -39,10 +30,6 @@ func (e *Erased) merge(o Erased) {
 		}
 	}
 }
-
-// EraseByEmail removes the personal data held for an e-mail address: every customer registered with it (as
-// EraseCustomer does) and the guest orders placed with it, which have no customer record. It must run inside Tx and
-// always succeeds, whether or not anything was found, so the answer does not reveal who has ordered.
 func (s *Store) EraseByEmail(ctx context.Context, email string) (Erased, error) {
 	if s.tx == nil {
 		return Erased{}, errors.New("commerce: EraseByEmail must run inside Tx")
@@ -103,18 +90,12 @@ func (s *Store) EraseByEmail(ctx context.Context, email string) (Erased, error) 
 	}
 	return total, nil
 }
-
 func derefs(s *string) []string {
 	if s == nil {
 		return nil
 	}
 	return []string{*s}
 }
-
-// EraseCustomer removes a customer's personal data and reports whether the customer existed. It must run inside
-// Tx. The customer row is kept (orders point at it) but holds no personal data afterwards; the unique e-mail is
-// freed. Orders keep their lines, totals and payments, which accounting requires, but lose name, e-mail, phone,
-// shipping address and the free-text notes and e-mails in their history. Repeating it changes nothing.
 func (s *Store) EraseCustomer(ctx context.Context, id string) (Erased, error) {
 	if s.tx == nil {
 		return Erased{}, errors.New("commerce: EraseCustomer must run inside Tx")
@@ -122,8 +103,6 @@ func (s *Store) EraseCustomer(ctx context.Context, id string) (Erased, error) {
 	if len(s.eraseKey) < erasure.MinKeyLength {
 		return Erased{}, errors.New("commerce: no erase key (ERASURE_HASH_KEY)")
 	}
-	// The order and contact IDs are collected first (they are not personal data) so other services can find their
-	// own copies of what belongs to this customer.
 	erased := Erased{OrderIDs: []string{}, ContactIDs: []string{}, EmailHashes: []string{}}
 	var current *string
 	if err := s.tx.QueryRow(ctx, `SELECT email FROM commerce.customer WHERE id = $1`, id).Scan(&current); err == nil && current != nil && *current != "" {
@@ -159,8 +138,8 @@ func (s *Store) EraseCustomer(ctx context.Context, id string) (Erased, error) {
 	}
 	erased.Found = true
 	for _, step := range []struct {
-		sql  string
-		args []any
+		sql	string
+		args	[]any
 	}{
 		{`DELETE FROM commerce.customer_address WHERE customer_id = $1`, []any{id}},
 		{`UPDATE commerce.sales_order SET name = $2, email = NULL, phone = NULL, shipping_address = NULL WHERE customer_id = $1`, []any{id, ErasedName}},

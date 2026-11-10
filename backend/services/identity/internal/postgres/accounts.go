@@ -1,13 +1,10 @@
 package postgres
-
 import (
 	"context"
 	"errors"
 	"slices"
 	"time"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -15,11 +12,9 @@ import (
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
 )
-
 func toAccount(row sqlcdb.IdentityAccount) accounts.Account {
 	return accounts.Account{Realm: authn.Realm(row.Realm), SubjectID: row.SubjectID, Email: row.Email, Username: row.Username, PasswordHash: row.PasswordHash, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, MFASecret: row.MfaSecretEncrypted, LastStep: row.MfaLastStep, PendingSecret: row.MfaPendingSecretEncrypted, PendingExpires: row.MfaPendingExpiresAt}
 }
-
 func (p *Repository) FindByEmail(ctx context.Context, realm authn.Realm, email string) (accounts.Account, error) {
 	row, err := p.q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(realm), Email: email})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -27,7 +22,6 @@ func (p *Repository) FindByEmail(ctx context.Context, realm authn.Realm, email s
 	}
 	return toAccount(row), err
 }
-
 func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Account, replacement *string, credential sessions.Credential, now time.Time, check func(accounts.Account) (accounts.MFAResult, error)) (accounts.Account, error) {
 	var result accounts.Account
 	err := db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
@@ -77,7 +71,7 @@ func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Accoun
 		}
 		if credential.Family.UserAgent != "" || credential.Family.ClientIP != "" {
 			if err := q.SetSessionDevice(ctx, sqlcdb.SetSessionDeviceParams{ID: credential.Family.ID,
-				UserAgent: optional(credential.Family.UserAgent), ClientIp: optional(credential.Family.ClientIP)}); err != nil {
+				UserAgent:	optional(credential.Family.UserAgent), ClientIp: optional(credential.Family.ClientIP)}); err != nil {
 				return err
 			}
 		}
@@ -91,7 +85,6 @@ func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Accoun
 	}
 	return result, nil
 }
-
 func (p *Repository) ActiveSession(ctx context.Context, realm authn.Realm, id string, now time.Time) (string, []string, error) {
 	row, err := p.q.ActiveAccountSession(ctx, sqlcdb.ActiveAccountSessionParams{ID: id, Realm: string(realm), ExpiresAt: now})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -99,7 +92,6 @@ func (p *Repository) ActiveSession(ctx context.Context, realm authn.Realm, id st
 	}
 	return row.SubjectID, row.Roles, err
 }
-
 func (p *Repository) FindBySubject(ctx context.Context, realm authn.Realm, subject string) (accounts.Account, error) {
 	row, err := p.q.FindAccountBySubject(ctx, sqlcdb.FindAccountBySubjectParams{Realm: string(realm), SubjectID: subject})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -107,7 +99,6 @@ func (p *Repository) FindBySubject(ctx context.Context, realm authn.Realm, subje
 	}
 	return toAccount(row), err
 }
-
 func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, principal authn.Principal, now time.Time, change func(accounts.Account, time.Time) (accounts.MFAChange, error)) error {
 	return db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := p.q.WithTx(tx)
@@ -196,33 +187,28 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 				return err
 			}
 			return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
-				"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID,
+				"subjectId":	row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID,
 			}})
-
 		default:
 			return accounts.ErrInvalid
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.mfa.changed", Payload: map[string]any{
-			"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID, "operation": update.Kind,
+			"subjectId":	row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID, "operation": update.Kind,
 		}})
 	})
 }
-
 func (p *Repository) ClearExpiredMFAEnrollments(ctx context.Context, now time.Time, batch int32) (int64, error) {
 	if batch <= 0 {
 		return 0, errors.New("cleanup batch must be positive")
 	}
 	return p.q.ClearExpiredMFAEnrollments(ctx, sqlcdb.ClearExpiredMFAEnrollmentsParams{Cutoff: &now, BatchSize: batch})
 }
-
 func optional(v string) *string {
 	if v == "" {
 		return nil
 	}
 	return &v
 }
-
-// ClearExpiredCredentials removes bounded batches of expired password reset links and email codes.
 func (p *Repository) ClearExpiredCredentials(ctx context.Context, now time.Time, batch int32) (int64, error) {
 	if batch <= 0 {
 		return 0, errors.New("cleanup batch must be positive")

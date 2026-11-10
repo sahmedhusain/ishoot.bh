@@ -1,5 +1,3 @@
--- Imported links retain their bcrypt verifier until used or expired; new links use password_reset instead.
--- +goose Up
 CREATE TABLE IF NOT EXISTS identity.legacy_reset_challenge (
  id text PRIMARY KEY,
  realm text NOT NULL DEFAULT 'staff' CHECK(realm='staff'),
@@ -13,5 +11,4 @@ CREATE TABLE IF NOT EXISTS identity.legacy_reset_challenge (
  FOREIGN KEY(realm,subject_id) REFERENCES identity.account(realm,subject_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS legacy_reset_subject_idx ON identity.legacy_reset_challenge(subject_id);
--- +goose Down
 DROP TABLE identity.legacy_reset_challenge;

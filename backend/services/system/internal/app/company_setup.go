@@ -1,16 +1,13 @@
 package app
-
 import (
 	"context"
 	"errors"
 )
-
 type CompanySetupStatus struct {
-	Complete bool     `json:"complete"`
-	Missing  []string `json:"missing"`
-	Finished bool     `json:"finished"`
+	Complete	bool		`json:"complete"`
+	Missing		[]string	`json:"missing"`
+	Finished	bool		`json:"finished"`
 }
-
 func (s *Service) SetupStatus(ctx context.Context) (CompanySetupStatus, error) {
 	out := CompanySetupStatus{Missing: []string{}}
 	company, err := s.Company(ctx)

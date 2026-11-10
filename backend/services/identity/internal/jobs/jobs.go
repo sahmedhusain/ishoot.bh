@@ -1,26 +1,19 @@
-// Package jobs schedules and runs identity maintenance using River.
 package jobs
-
 import (
 	"context"
 	"log/slog"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 )
-
 const Queue = "identity"
-
 type CleanupArgs struct{}
-
-func (CleanupArgs) Kind() string { return "identity.cleanup_expired_sessions" }
+func (CleanupArgs) Kind() string	{ return "identity.cleanup_expired_sessions" }
 func (CleanupArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: Queue, UniqueOpts: river.UniqueOpts{ByArgs: true}}
 }
-
 type Store interface {
 	DeleteExpired(context.Context, time.Time, int32) (int64, error)
 	ClearExpiredMFAEnrollments(context.Context, time.Time, int32) (int64, error)
@@ -28,11 +21,10 @@ type Store interface {
 }
 type CleanupWorker struct {
 	river.WorkerDefaults[CleanupArgs]
-	Store  Store
-	Batch  int32
-	Logger *slog.Logger
+	Store	Store
+	Batch	int32
+	Logger	*slog.Logger
 }
-
 func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) error {
 	var sessions, enrollments, credentials int64
 	for {
@@ -61,17 +53,15 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 	}
 	return nil
 }
-
 type Options struct {
-	Projection         *ProfileProjectionWorker
-	ProjectionInterval time.Duration
-	Schema             string
-	CleanupInterval    time.Duration
-	CleanupBatch       int32
-	Workers            int
-	Logger             *slog.Logger
+	Projection		*ProfileProjectionWorker
+	ProjectionInterval	time.Duration
+	Schema			string
+	CleanupInterval		time.Duration
+	CleanupBatch		int32
+	Workers			int
+	Logger			*slog.Logger
 }
-
 func NewClient(pool *pgxpool.Pool, store Store, opts Options) (*river.Client[pgx.Tx], error) {
 	workers := river.NewWorkers()
 	if err := river.AddWorkerSafely(workers, &CleanupWorker{Store: store, Batch: opts.CleanupBatch, Logger: opts.Logger}); err != nil {
@@ -89,7 +79,7 @@ func NewClient(pool *pgxpool.Pool, store Store, opts Options) (*river.Client[pgx
 		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(interval), func() (river.JobArgs, *river.InsertOpts) { return ProfileProjectionArgs{}, nil }, &river.PeriodicJobOpts{RunOnStart: true}))
 	}
 	return river.NewClient(riverpgxv5.New(pool), &river.Config{Schema: opts.Schema, Logger: opts.Logger,
-		Queues: map[string]river.QueueConfig{Queue: {MaxWorkers: opts.Workers}}, Workers: workers,
-		PeriodicJobs: periodic,
+		Queues:	map[string]river.QueueConfig{Queue: {MaxWorkers: opts.Workers}}, Workers: workers,
+		PeriodicJobs:	periodic,
 	})
 }

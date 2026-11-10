@@ -1,18 +1,12 @@
 package httpx
-
 import (
 	"errors"
 	"log/slog"
 	"net/http"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/problem"
 )
-
-// ErrorHandler writes every error as a problem detail. Server errors are logged with their cause; the client only
-// sees the generic problem and the request ID to quote to support.
 func ErrorHandler(logger *logx.Logger) echo.HTTPErrorHandler {
 	return func(err error, c echo.Context) {
 		if c.Response().Committed {
@@ -40,7 +34,6 @@ func ErrorHandler(logger *logx.Logger) echo.HTTPErrorHandler {
 		_ = encodeJSON(c.Response(), p)
 	}
 }
-
 func toProblem(err error) *problem.Problem {
 	var p *problem.Problem
 	if errors.As(err, &p) {

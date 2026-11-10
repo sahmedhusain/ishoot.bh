@@ -1,58 +1,41 @@
 package outbox
-
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-// Message is what the relay hands the broker.
 type Message struct {
-	ID      string
-	Subject string
-	Data    []byte
-	Headers map[string]string
+	ID	string
+	Subject	string
+	Data	[]byte
+	Headers	map[string]string
 }
-
-// Publisher sends a message to the broker and returns once the broker has stored it (natsx.Publisher).
 type Publisher interface {
 	Publish(ctx context.Context, msg Message) error
 }
-
-// RelayOptions configures a relay.
 type RelayOptions struct {
-	Schema    string
-	Publisher Publisher
-	Logger    *slog.Logger
-	// Interval is the wait between polls when the outbox is empty.
-	Interval time.Duration
-	// Batch is the most rows one poll claims.
-	Batch int
-	// Retention is how long published rows are kept (for the IT dashboard's lag and replay); 0 keeps them.
-	Retention time.Duration
-	// Metrics, when set, receives the relay's counters and the pending gauge.
-	Metrics prometheus.Registerer
+	Schema		string
+	Publisher	Publisher
+	Logger		*slog.Logger
+	Interval	time.Duration
+	Batch	int
+	Retention	time.Duration
+	Metrics	prometheus.Registerer
 }
-
-// Relay publishes a schema's pending outbox rows. Several relays may run against one schema: rows are claimed
-// with FOR UPDATE SKIP LOCKED, so each is published by one relay at a time.
 type Relay struct {
-	pool      *pgxpool.Pool
-	opts      RelayOptions
-	table     string
-	published prometheus.Counter
-	failed    prometheus.Counter
-	pending   prometheus.Gauge
-	now       func() time.Time
+	pool		*pgxpool.Pool
+	opts		RelayOptions
+	table		string
+	published	prometheus.Counter
+	failed		prometheus.Counter
+	pending		prometheus.Gauge
+	now		func() time.Time
 }
-
-// NewRelay returns a relay for the schema's outbox.
 func NewRelay(pool *pgxpool.Pool, opts RelayOptions) (*Relay, error) {
 	if opts.Publisher == nil || opts.Schema == "" {
 		return nil, errors.New("outbox: relay needs a schema and a publisher")
@@ -68,11 +51,11 @@ func NewRelay(pool *pgxpool.Pool, opts RelayOptions) (*Relay, error) {
 	}
 	labels := prometheus.Labels{"schema": opts.Schema}
 	r := &Relay{
-		pool: pool, opts: opts, table: pgx.Identifier{opts.Schema, "outbox"}.Sanitize(),
-		published: prometheus.NewCounter(prometheus.CounterOpts{Name: "outbox_published_total", Help: "Events published to the broker.", ConstLabels: labels}),
-		failed:    prometheus.NewCounter(prometheus.CounterOpts{Name: "outbox_publish_failures_total", Help: "Failed publish attempts.", ConstLabels: labels}),
-		pending:   prometheus.NewGauge(prometheus.GaugeOpts{Name: "outbox_pending", Help: "Events not yet published.", ConstLabels: labels}),
-		now:       func() time.Time { return time.Now().UTC() },
+		pool:	pool, opts: opts, table: pgx.Identifier{opts.Schema, "outbox"}.Sanitize(),
+		published:	prometheus.NewCounter(prometheus.CounterOpts{Name: "outbox_published_total", Help: "Events published to the broker.", ConstLabels: labels}),
+		failed:		prometheus.NewCounter(prometheus.CounterOpts{Name: "outbox_publish_failures_total", Help: "Failed publish attempts.", ConstLabels: labels}),
+		pending:	prometheus.NewGauge(prometheus.GaugeOpts{Name: "outbox_pending", Help: "Events not yet published.", ConstLabels: labels}),
+		now:		func() time.Time { return time.Now().UTC() },
 	}
 	if opts.Metrics != nil {
 		for _, c := range []prometheus.Collector{r.published, r.failed, r.pending} {
@@ -83,8 +66,6 @@ func NewRelay(pool *pgxpool.Pool, opts RelayOptions) (*Relay, error) {
 	}
 	return r, nil
 }
-
-// Run publishes until ctx ends. A failed poll is logged and retried; it never stops the relay.
 func (r *Relay) Run(ctx context.Context) error {
 	purgeEvery := time.NewTicker(time.Hour)
 	defer purgeEvery.Stop()
@@ -95,7 +76,7 @@ func (r *Relay) Run(ctx context.Context) error {
 		}
 		wait := r.opts.Interval
 		if n == r.opts.Batch {
-			wait = 0 // more are waiting
+			wait = 0
 		}
 		select {
 		case <-ctx.Done():
@@ -108,16 +89,12 @@ func (r *Relay) Run(ctx context.Context) error {
 		}
 	}
 }
-
 type outboxRow struct {
-	id, subject string
-	payload     []byte
-	headers     []byte
-	attempts    int
+	id, subject	string
+	payload		[]byte
+	headers		[]byte
+	attempts	int
 }
-
-// Once claims one batch of due rows, publishes them in order and records each outcome. It returns how many rows
-// it claimed.
 func (r *Relay) Once(ctx context.Context) (int, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -162,8 +139,6 @@ func (r *Relay) Once(ctx context.Context) (int, error) {
 	}
 	return len(batch), tx.Commit(ctx)
 }
-
-// Purge deletes published rows older than the retention and returns how many.
 func (r *Relay) Purge(ctx context.Context) (int64, error) {
 	if r.opts.Retention <= 0 {
 		return 0, nil
@@ -171,17 +146,14 @@ func (r *Relay) Purge(ctx context.Context) (int64, error) {
 	tag, err := r.pool.Exec(ctx, `DELETE FROM `+r.table+` WHERE published_at < $1`, r.now().Add(-r.opts.Retention))
 	return tag.RowsAffected(), err
 }
-
 func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s
 	}
 	return s[:n]
 }
-
-// Config is embedded in a service config with envPrefix:"OUTBOX_".
 type Config struct {
-	Interval  time.Duration `env:"INTERVAL" envDefault:"1s" validate:"gt=0"`
-	Batch     int           `env:"BATCH" envDefault:"100" validate:"gt=0,lte=1000"`
-	Retention time.Duration `env:"RETENTION" envDefault:"168h" validate:"gte=0"`
+	Interval	time.Duration	`env:"INTERVAL" envDefault:"1s" validate:"gt=0"`
+	Batch		int		`env:"BATCH" envDefault:"100" validate:"gt=0,lte=1000"`
+	Retention	time.Duration	`env:"RETENTION" envDefault:"168h" validate:"gte=0"`
 }

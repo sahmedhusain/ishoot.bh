@@ -1,21 +1,17 @@
 package migrations_test
-
 import (
 	"context"
 	"log/slog"
 	"os"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/testkit"
 	"platform.local/backend/services/files/migrations"
 )
-
-func TestPrismaHandoff(t *testing.T) {
+func TestLegacyDBHandoff(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)

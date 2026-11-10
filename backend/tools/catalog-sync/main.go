@@ -1,14 +1,10 @@
-// Command catalog-sync copies the shared catalogue (contracts/catalog/*.json) into pkg/catalog/data, where Go can
-// embed it. Run through `go generate ./pkg/catalog`; pkg/catalog's tests fail when the copy is stale.
 package main
-
 import (
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 )
-
 func main() {
 	in := flag.String("in", "", "catalogue directory (contracts/catalog)")
 	out := flag.String("out", "", "destination directory (pkg/catalog/data)")
@@ -18,7 +14,6 @@ func main() {
 		os.Exit(1)
 	}
 }
-
 func run(in, out string) error {
 	if in == "" || out == "" {
 		return fmt.Errorf("-in and -out are required")
@@ -44,7 +39,7 @@ func run(in, out string) error {
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(filepath.Join(out, filepath.Base(file)), body, 0o644); err != nil { //nolint:gosec // source files in the repository must stay readable
+		if err := os.WriteFile(filepath.Join(out, filepath.Base(file)), body, 0o644); err != nil {
 			return err
 		}
 	}

@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
@@ -9,50 +8,33 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/services/system/internal/postgres"
 )
-
-// ErrDomainsMustDiffer means the website and the admin were given the same domain.
 var ErrDomainsMustDiffer = errors.New("domains must differ")
-
-// MaxSiteHTML is the longest head or body code kept, in characters (as the website editor allowed).
 const MaxSiteHTML = 50_000
-
-// SiteCode is the site-wide tracking and code. Analytics are known tags the website builds from an id; the head and
-// body code run in a hidden sandboxed frame (docs/SECURITY.md).
 type SiteCode struct {
-	GoogleAnalyticsID string `json:"googleAnalyticsId"`
-	MetaPixelID       string `json:"metaPixelId"`
-	TiktokPixelID     string `json:"tiktokPixelId"`
-	HeadHTML          string `json:"headHtml"`
-	BodyHTML          string `json:"bodyHtml"`
+	GoogleAnalyticsID	string	`json:"googleAnalyticsId"`
+	MetaPixelID		string	`json:"metaPixelId"`
+	TiktokPixelID		string	`json:"tiktokPixelId"`
+	HeadHTML		string	`json:"headHtml"`
+	BodyHTML		string	`json:"bodyHtml"`
 }
-
-// Site is the website's technical settings. Empty domains are unset.
 type Site struct {
-	WebsiteDomain string     `json:"websiteDomain"`
-	AdminDomain   string     `json:"adminDomain"`
-	Code          SiteCode   `json:"code"`
-	UpdatedBy     *string    `json:"updatedBy,omitempty"`
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	WebsiteDomain	string		`json:"websiteDomain"`
+	AdminDomain	string		`json:"adminDomain"`
+	Code		SiteCode	`json:"code"`
+	UpdatedBy	*string		`json:"updatedBy,omitempty"`
+	UpdatedAt	*time.Time	`json:"updatedAt,omitempty"`
 }
-
 var (
-	domainLabel   = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
-	topLevelLabel = regexp.MustCompile(`^[a-z]{2,63}$`)
-	urlScheme     = regexp.MustCompile(`^[a-z][a-z0-9+.-]*://`)
-
-	googleAnalyticsID = regexp.MustCompile(`^G-[A-Z0-9]{4,20}$`)
-	metaPixelID       = regexp.MustCompile(`^\d{6,20}$`)
-	tiktokPixelID     = regexp.MustCompile(`^[A-Z0-9]{8,30}$`)
+	domainLabel	= regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
+	topLevelLabel	= regexp.MustCompile(`^[a-z]{2,63}$`)
+	urlScheme	= regexp.MustCompile(`^[a-z][a-z0-9+.-]*://`)
+	googleAnalyticsID	= regexp.MustCompile(`^G-[A-Z0-9]{4,20}$`)
+	metaPixelID		= regexp.MustCompile(`^\d{6,20}$`)
+	tiktokPixelID		= regexp.MustCompile(`^[A-Z0-9]{8,30}$`)
 )
-
-// NormalizeDomain turns "https://Www.Example.com/about" into "www.example.com". It returns "" for anything that is
-// not a public host name: no IP addresses, no localhost, at least one dot and a letter-only top-level label. It
-// matches normalizeDomain in packages/database/src/constants/domains.ts.
 func NormalizeDomain(input string) string {
 	value := strings.ToLower(strings.TrimSpace(input))
 	if value == "" {
@@ -83,8 +65,6 @@ func NormalizeDomain(input string) string {
 	}
 	return value
 }
-
-// ValidateSiteCode trims the ids, checks them against their patterns and caps the code's length.
 func ValidateSiteCode(in SiteCode) (SiteCode, error) {
 	id := func(name, value string, pattern *regexp.Regexp) (string, error) {
 		value = strings.TrimSpace(value)
@@ -112,8 +92,6 @@ func ValidateSiteCode(in SiteCode) (SiteCode, error) {
 	out.HeadHTML, out.BodyHTML = in.HeadHTML, in.BodyHTML
 	return out, nil
 }
-
-// Site returns the website's technical settings; empty ones before anything was saved.
 func (s *Service) Site(ctx context.Context) (Site, error) {
 	record, err := s.store.Site(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -131,7 +109,6 @@ func (s *Service) Site(ctx context.Context) (Site, error) {
 	if record.AdminDomain != nil {
 		out.AdminDomain = *record.AdminDomain
 	}
-	// Stored code was validated when saved; a legacy value that no longer passes is shown as stored.
 	if len(record.Code) > 0 {
 		if err := json.Unmarshal(record.Code, &out.Code); err != nil {
 			return Site{}, fmt.Errorf("site code: %w", err)
@@ -139,8 +116,6 @@ func (s *Service) Site(ctx context.Context) (Site, error) {
 	}
 	return out, nil
 }
-
-// SetSiteDomains saves the website's and the admin's domains; an empty one is cleared. by names who did it.
 func (s *Service) SetSiteDomains(ctx context.Context, website, admin, by string) (Site, error) {
 	normalized := [2]string{NormalizeDomain(website), NormalizeDomain(admin)}
 	for i, raw := range []string{website, admin} {
@@ -165,8 +140,6 @@ func (s *Service) SetSiteDomains(ctx context.Context, website, admin, by string)
 	}
 	return s.Site(ctx)
 }
-
-// SetSiteCode validates and saves the site-wide analytics ids and custom code. by names who did it.
 func (s *Service) SetSiteCode(ctx context.Context, in SiteCode, by string) (Site, error) {
 	code, err := ValidateSiteCode(in)
 	if err != nil {

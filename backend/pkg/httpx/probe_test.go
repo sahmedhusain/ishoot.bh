@@ -1,5 +1,4 @@
 package httpx
-
 import (
 	"context"
 	"net"
@@ -7,10 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
 	"github.com/stretchr/testify/assert"
 )
-
 func TestProbe(t *testing.T) {
 	status := http.StatusOK
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +16,6 @@ func TestProbe(t *testing.T) {
 	}))
 	defer srv.Close()
 	_, port, _ := net.SplitHostPort(srv.Listener.Addr().String())
-
 	assert.NoError(t, Probe(context.Background(), ":"+port, time.Second))
 	status = http.StatusServiceUnavailable
 	assert.Error(t, Probe(context.Background(), ":"+port, time.Second))

@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS "workflow".outbox (
     id           uuid        NOT NULL,
     subject      text        NOT NULL,
@@ -14,14 +13,11 @@ CREATE TABLE IF NOT EXISTS "workflow".outbox (
 );
 CREATE INDEX IF NOT EXISTS outbox_pending_idx ON "workflow".outbox (next_try_at) WHERE published_at IS NULL;
 CREATE INDEX IF NOT EXISTS outbox_published_idx ON "workflow".outbox (published_at) WHERE published_at IS NOT NULL;
-
 CREATE TABLE IF NOT EXISTS "workflow".inbox (
     consumer   text        NOT NULL,
     event_id   uuid        NOT NULL,
     handled_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT inbox_pkey PRIMARY KEY (consumer, event_id)
 );
-
--- +goose Down
 DROP TABLE IF EXISTS "workflow".inbox;
 DROP TABLE IF EXISTS "workflow".outbox;

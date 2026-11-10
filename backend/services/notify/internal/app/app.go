@@ -1,6 +1,4 @@
-// Package app holds the notify service's use cases.
 package app
-
 import (
 	"context"
 	"errors"
@@ -10,157 +8,113 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
-
 	"platform.local/backend/pkg/live"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/notify/internal/postgres"
 	"platform.local/backend/services/notify/internal/postgres/sqlcdb"
 	"platform.local/backend/services/notify/internal/providers"
 )
-
 var (
-	// ErrValidation means the message cannot be sent as given.
-	ErrValidation = errors.New("validation failed")
-	// ErrNotFound means there is no such message (for this caller).
-	ErrNotFound = errors.New("message not found")
-	// ErrNotFailed means only a failed message can be retried.
-	ErrNotFailed = errors.New("message has not failed")
+	ErrValidation	= errors.New("validation failed")
+	ErrNotFound	= errors.New("message not found")
+	ErrNotFailed	= errors.New("message has not failed")
 )
-
-// Channels.
 const (
-	Email    = "email"
-	WhatsApp = "whatsapp"
+	Email		= "email"
+	WhatsApp	= "whatsapp"
 )
-
-// Limits on what a message may carry.
 const (
-	maxSubject       = 998
-	maxText          = 1 << 20
-	maxHTML          = 2 << 20
-	maxWhatsAppText  = 4096
-	maxAttachments   = 10
-	maxFilename      = 200
-	maxKey           = 200
-	maxActor         = 64
-	testMessageText  = "This is a test message from the IT dashboard. If it reached you, delivery works."
-	testMessageTitle = "Test message"
+	maxSubject		= 998
+	maxText			= 1 << 20
+	maxHTML			= 2 << 20
+	maxWhatsAppText		= 4096
+	maxAttachments		= 10
+	maxFilename		= 200
+	maxKey			= 200
+	maxActor		= 64
+	testMessageText		= "This is a test message from the IT dashboard. If it reached you, delivery works."
+	testMessageTitle	= "Test message"
 )
-
-// DeliverArgs asks the worker to deliver one message (River job, ADR 0004).
 type DeliverArgs struct {
 	ID string `json:"id"`
 }
-
-// Kind names the job in River's tables.
-func (DeliverArgs) Kind() string { return "notify.deliver" }
-
-// Queue is the River queue delivery runs on.
+func (DeliverArgs) Kind() string	{ return "notify.deliver" }
 const Queue = "notify"
-
-// InsertOpts keeps one pending delivery per message; a finished one does not block a retry.
 func (DeliverArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: Queue, UniqueOpts: river.UniqueOpts{ByArgs: true, ByState: []rivertype.JobState{
 		rivertype.JobStateAvailable, rivertype.JobStatePending, rivertype.JobStateRunning,
 		rivertype.JobStateRetryable, rivertype.JobStateScheduled,
 	}}}
 }
-
-// Inserter enqueues jobs inside a transaction (river.Client).
 type Inserter interface {
 	InsertTx(ctx context.Context, tx pgx.Tx, args river.JobArgs, opts *river.InsertOpts) (*rivertype.JobInsertResult, error)
 }
-
-// Attachment is a file given with an e-mail.
 type Attachment struct {
-	Filename    string
-	ContentType string
-	Content     []byte
+	Filename	string
+	ContentType	string
+	Content		[]byte
 }
-
-// Input is a message to queue.
 type Input struct {
-	Channel        string
-	To             string
-	Subject        string
-	Text           string
-	HTML           string
-	Attachments    []Attachment
-	IdempotencyKey string
-	// ActorID is the person the caller acts for, if any.
-	ActorID string
+	Channel		string
+	To		string
+	Subject		string
+	Text		string
+	HTML		string
+	Attachments	[]Attachment
+	IdempotencyKey	string
+	ActorID	string
 }
-
-// AttachmentInfo describes an attachment without its content.
 type AttachmentInfo struct {
-	Filename    string `json:"filename"`
-	ContentType string `json:"contentType"`
-	Size        int64  `json:"size"`
+	Filename	string	`json:"filename"`
+	ContentType	string	`json:"contentType"`
+	Size		int64	`json:"size"`
 }
-
-// Message is a message's state.
 type Message struct {
-	ID          string           `json:"id"`
-	Caller      string           `json:"caller"`
-	Actor       *string          `json:"actor"`
-	Channel     string           `json:"channel"`
-	Recipient   string           `json:"recipient"`
-	Subject     *string          `json:"subject"`
-	Status      string           `json:"status"`
-	Attempts    int32            `json:"attempts"`
-	Provider    *string          `json:"provider"`
-	ProviderID  *string          `json:"providerId"`
-	LastError   *string          `json:"lastError"`
-	CreatedAt   time.Time        `json:"createdAt"`
-	SentAt      *time.Time       `json:"sentAt"`
-	Text        *string          `json:"text,omitempty"`
-	HTML        *string          `json:"html,omitempty"`
-	Attachments []AttachmentInfo `json:"attachments,omitempty"`
+	ID		string			`json:"id"`
+	Caller		string			`json:"caller"`
+	Actor		*string			`json:"actor"`
+	Channel		string			`json:"channel"`
+	Recipient	string			`json:"recipient"`
+	Subject		*string			`json:"subject"`
+	Status		string			`json:"status"`
+	Attempts	int32			`json:"attempts"`
+	Provider	*string			`json:"provider"`
+	ProviderID	*string			`json:"providerId"`
+	LastError	*string			`json:"lastError"`
+	CreatedAt	time.Time		`json:"createdAt"`
+	SentAt		*time.Time		`json:"sentAt"`
+	Text		*string			`json:"text,omitempty"`
+	HTML		*string			`json:"html,omitempty"`
+	Attachments	[]AttachmentInfo	`json:"attachments,omitempty"`
 }
-
-// Options configures the service.
 type Options struct {
-	// Senders by channel.
-	Senders map[string]providers.Sender
-	// MaxAttempts is how many times a transient failure is retried before the message fails.
-	MaxAttempts int
-	// MaxAttachmentBytes caps the attachments of one message together.
-	MaxAttachmentBytes int64
+	Senders	map[string]providers.Sender
+	MaxAttempts	int
+	MaxAttachmentBytes	int64
 }
-
-// Service implements the use cases.
 type Service struct {
-	store      *postgres.Store
-	jobs       Inserter
-	opts       Options
-	now        func() time.Time
-	live       live.Publisher
-	liveWindow time.Duration
+	store		*postgres.Store
+	jobs		Inserter
+	opts		Options
+	now		func() time.Time
+	live		live.Publisher
+	liveWindow	time.Duration
 }
-
-// New returns the service. jobs may be nil for a process that only delivers.
 func New(store *postgres.Store, jobs Inserter, opts Options) *Service {
 	return &Service{store: store, jobs: jobs, opts: opts, now: func() time.Time { return time.Now().UTC() },
-		live: live.Nop{}, liveWindow: 2 * time.Minute}
+		live:	live.Nop{}, liveWindow: 2 * time.Minute}
 }
-
-// SetJobs sets the job inserter (the River client is built after the service it works for).
-func (s *Service) SetJobs(jobs Inserter) { s.jobs = jobs }
-
+func (s *Service) SetJobs(jobs Inserter)	{ s.jobs = jobs }
 func (s *Service) UpdateStatusByProviderID(ctx context.Context, providerID, status, lastError string) error {
 	return s.store.UpdateStatusByProviderID(ctx, providerID, status, lastError)
 }
-
 func invalid(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrValidation, fmt.Sprintf(format, args...))
 }
-
-// normalize checks a message and returns it ready to store.
 func (s *Service) normalize(in Input) (Input, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	if in.IdempotencyKey == "" || len(in.IdempotencyKey) > maxKey {
@@ -232,16 +186,12 @@ func (s *Service) normalize(in Input) (Input, error) {
 	}
 	return in, nil
 }
-
 func optional(v string) *string {
 	if v == "" {
 		return nil
 	}
 	return &v
 }
-
-// Queue stores a message and its delivery job. The same caller and idempotency key return the first message
-// (duplicate true) without sending it again.
 func (s *Service) Queue(ctx context.Context, caller string, in Input) (Message, bool, error) {
 	in, err := s.normalize(in)
 	if err != nil {
@@ -251,8 +201,8 @@ func (s *Service) Queue(ctx context.Context, caller string, in Input) (Message, 
 	duplicate := false
 	err = s.store.Tx(ctx, func(q *sqlcdb.Queries, tx pgx.Tx) error {
 		n, err := q.InsertMessage(ctx, sqlcdb.InsertMessageParams{
-			ID: id, Caller: caller, IdempotencyKey: in.IdempotencyKey, Actor: optional(in.ActorID), Channel: in.Channel,
-			Recipient: in.To, Subject: optional(in.Subject), BodyText: optional(in.Text), BodyHtml: optional(in.HTML),
+			ID:	id, Caller: caller, IdempotencyKey: in.IdempotencyKey, Actor: optional(in.ActorID), Channel: in.Channel,
+			Recipient:	in.To, Subject: optional(in.Subject), BodyText: optional(in.Text), BodyHtml: optional(in.HTML),
 		})
 		if err != nil {
 			return err
@@ -267,7 +217,7 @@ func (s *Service) Queue(ctx context.Context, caller string, in Input) (Message, 
 		}
 		for i, a := range in.Attachments {
 			if err := q.InsertAttachment(ctx, sqlcdb.InsertAttachmentParams{
-				MessageID: id, Position: int32(i), Filename: a.Filename, ContentType: a.ContentType, Content: a.Content,
+				MessageID:	id, Position: int32(i), Filename: a.Filename, ContentType: a.ContentType, Content: a.Content,
 			}); err != nil {
 				return err
 			}
@@ -281,19 +231,16 @@ func (s *Service) Queue(ctx context.Context, caller string, in Input) (Message, 
 	msg, err := s.message(ctx, id, false)
 	return msg, duplicate, err
 }
-
-// Deliver sends a queued message once (the worker's job). A transient failure returns an error so the job is retried,
-// until the last attempt; a permanent one fails the message at once. Each final outcome is announced as an event.
 func (s *Service) Deliver(ctx context.Context, id string, attempt int) error {
 	m, err := s.store.GetMessage(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil // removed in the meantime: nothing to send
+		return nil
 	}
 	if err != nil {
 		return err
 	}
 	if m.Status != "queued" {
-		return nil // delivered or failed already (a duplicate job)
+		return nil
 	}
 	sender, ok := s.opts.Senders[m.Channel]
 	if !ok {
@@ -335,7 +282,6 @@ func (s *Service) Deliver(ctx context.Context, id string, attempt int) error {
 	}
 	return sendErr
 }
-
 func (s *Service) fail(ctx context.Context, m sqlcdb.NotifyMessage, provider string, cause error) error {
 	reason := truncate(cause.Error(), 500)
 	return s.store.Tx(ctx, func(q *sqlcdb.Queries, tx pgx.Tx) error {
@@ -345,8 +291,6 @@ func (s *Service) fail(ctx context.Context, m sqlcdb.NotifyMessage, provider str
 		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{Subject: EventFailed, Payload: outcome(m, provider, reason)})
 	})
 }
-
-// Retry queues a failed message again (IT). by names who asked.
 func (s *Service) Retry(ctx context.Context, id, by string) (Message, error) {
 	if _, err := uuid.Parse(id); err != nil {
 		return Message{}, ErrNotFound
@@ -370,15 +314,13 @@ func (s *Service) Retry(ctx context.Context, id, by string) (Message, error) {
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{Subject: EventRetried,
-			Payload: Retried{MessageID: id, Channel: m.Channel, ChangedBy: by}})
+			Payload:	Retried{MessageID: id, Channel: m.Channel, ChangedBy: by}})
 	})
 	if err != nil {
 		return Message{}, err
 	}
 	return s.message(ctx, id, true)
 }
-
-// SendTest queues a short test message from IT to the address or number given.
 func (s *Service) SendTest(ctx context.Context, channel, to, itAccount string) (Message, error) {
 	in := Input{Channel: channel, To: to, Text: testMessageText, IdempotencyKey: "test:" + uuid.NewString(), ActorID: itAccount}
 	if channel == Email {
@@ -387,8 +329,6 @@ func (s *Service) SendTest(ctx context.Context, channel, to, itAccount string) (
 	m, _, err := s.Queue(ctx, "it", in)
 	return m, err
 }
-
-// ForCaller returns a message the caller queued.
 func (s *Service) ForCaller(ctx context.Context, caller, id string) (Message, error) {
 	m, err := s.message(ctx, id, false)
 	if err != nil {
@@ -399,12 +339,9 @@ func (s *Service) ForCaller(ctx context.Context, caller, id string) (Message, er
 	}
 	return m, nil
 }
-
-// Detail returns a message with its bodies and attachment names (IT).
 func (s *Service) Detail(ctx context.Context, id string) (Message, error) {
 	return s.message(ctx, id, true)
 }
-
 func (s *Service) message(ctx context.Context, id string, detail bool) (Message, error) {
 	if _, err := uuid.Parse(id); err != nil {
 		return Message{}, ErrNotFound
@@ -429,24 +366,20 @@ func (s *Service) message(ctx context.Context, id string, detail bool) (Message,
 	}
 	return out, nil
 }
-
-// ListQuery narrows a listing.
 type ListQuery struct {
-	Status, Channel string
-	BeforeCreated   time.Time
-	BeforeID        string
-	Limit           int32
+	Status, Channel	string
+	BeforeCreated	time.Time
+	BeforeID	string
+	Limit		int32
 }
-
-// List returns one page of messages, newest first (IT).
 func (s *Service) List(ctx context.Context, q ListQuery) ([]Message, error) {
 	before := q.BeforeID
 	if before == "" {
 		before = uuid.Nil.String()
 	}
 	rows, err := s.store.ListMessages(ctx, sqlcdb.ListMessagesParams{
-		Status: optional(q.Status), Channel: optional(q.Channel), HasCursor: q.BeforeID != "",
-		BeforeCreated: q.BeforeCreated, BeforeID: before, PageSize: q.Limit,
+		Status:	optional(q.Status), Channel: optional(q.Channel), HasCursor: q.BeforeID != "",
+		BeforeCreated:	q.BeforeCreated, BeforeID: before, PageSize: q.Limit,
 	})
 	if err != nil {
 		return nil, err
@@ -457,15 +390,11 @@ func (s *Service) List(ctx context.Context, q ListQuery) ([]Message, error) {
 	}
 	return out, nil
 }
-
-// Count is how many messages of one status and channel there were.
 type Count struct {
-	Status   string `json:"status"`
-	Channel  string `json:"channel"`
-	Messages int64  `json:"messages"`
+	Status		string	`json:"status"`
+	Channel		string	`json:"channel"`
+	Messages	int64	`json:"messages"`
 }
-
-// Counts returns the last day's messages by status and channel.
 func (s *Service) Counts(ctx context.Context) ([]Count, error) {
 	rows, err := s.store.CountByStatus(ctx, s.now().Add(-24*time.Hour))
 	if err != nil {
@@ -477,13 +406,11 @@ func (s *Service) Counts(ctx context.Context) ([]Count, error) {
 	}
 	return out, nil
 }
-
 func view(m sqlcdb.NotifyMessage) Message {
 	return Message{ID: m.ID, Caller: m.Caller, Actor: m.Actor, Channel: m.Channel, Recipient: m.Recipient, Subject: m.Subject,
-		Status: m.Status, Attempts: m.Attempts, Provider: m.Provider, ProviderID: m.ProviderID, LastError: m.LastError,
-		CreatedAt: m.CreatedAt.UTC(), SentAt: utc(m.SentAt)}
+		Status:	m.Status, Attempts: m.Attempts, Provider: m.Provider, ProviderID: m.ProviderID, LastError: m.LastError,
+		CreatedAt:	m.CreatedAt.UTC(), SentAt: utc(m.SentAt)}
 }
-
 func utc(t *time.Time) *time.Time {
 	if t == nil {
 		return nil
@@ -491,7 +418,6 @@ func utc(t *time.Time) *time.Time {
 	u := t.UTC()
 	return &u
 }
-
 func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s

@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
@@ -7,31 +6,24 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
-
 var ErrFileLookupUnavailable = errors.New("company file verification unavailable")
-
 type CompanyFile struct {
-	URL       string
-	MIME      string
-	Size      int64
-	Public    bool
-	ExpiresAt *time.Time
+	URL		string
+	MIME		string
+	Size		int64
+	Public		bool
+	ExpiresAt	*time.Time
 }
-
 func (s *Service) SetFileLookup(lookup func(context.Context, string) (CompanyFile, error)) {
 	s.fileLookup = lookup
 }
-
 var companyAssetKey = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,100}$`)
-
 func (s *Service) file(ctx context.Context, url string) (CompanyFile, error) {
 	if s.fileLookup == nil {
 		return CompanyFile{}, ErrFileLookupUnavailable
@@ -108,8 +100,6 @@ func (s *Service) DeleteCompanyAsset(ctx context.Context, key, by string) error 
 		return outbox.Enqueue(ctx, tx, "system", outbox.Event{Subject: "system.company_asset.changed", Payload: map[string]any{"assetKey": key, "changedBy": by, "operation": "delete"}})
 	})
 }
-
-// Resolve immutable upload metadata before acquiring company locks.
 func (s *Service) companyFileProofs(ctx context.Context, patch map[string]json.RawMessage) (map[string]CompanyFile, error) {
 	urls := map[string]bool{}
 	for _, key := range []string{"logoUrl", "darkLogoUrl", "fullLogoUrl", "darkFullLogoUrl", "iconUrl", "darkIconUrl", "documentHeaderUrl", "documentFooterUrl", "stampUrl", "signatureUrl"} {

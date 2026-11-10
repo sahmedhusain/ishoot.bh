@@ -1,8 +1,4 @@
-// Package secrets encrypts values stored at rest (integration credentials, MFA secrets) with AES-256-GCM under a
-// key ring, so keys can be rotated without re-encrypting everything at once. It also reads the two formats the
-// TypeScript backend wrote, so existing data keeps working after the move to Go.
 package secrets
-
 import (
 	"crypto/aes"
 	"crypto/cipher"
@@ -13,38 +9,24 @@ import (
 	"fmt"
 	"strings"
 )
-
-// KeySize is the AES-256 key length in bytes.
 const KeySize = 32
-
 const (
-	versionPrefix = "v1."
-	nonceSize     = 12
+	versionPrefix	= "v1."
+	nonceSize	= 12
 )
-
-// ErrDecrypt hides why a value could not be opened (wrong key, tampering, malformed input).
 var ErrDecrypt = errors.New("secrets: cannot decrypt value")
-
-// Config is embedded in a service config with envPrefix:"SECRETS_".
 type Config struct {
-	// Keys lists "keyID:base64key" pairs; PrimaryKeyID names the one new values are sealed with.
-	Keys         []string `env:"KEYS" envSeparator:"," validate:"required,min=1"`
-	PrimaryKeyID string   `env:"PRIMARY_KEY_ID" validate:"required"`
-	// LegacyIntegrationKey is the old ENCRYPTION_KEY (32 raw characters) for "iv:tag:data" hex values.
-	LegacyIntegrationKey string `env:"LEGACY_INTEGRATION_KEY"`
-	// LegacyMFAKey is the old MFA_ENCRYPTION_KEY (base64) for "iv.tag.data" base64 values.
-	LegacyMFAKey string `env:"LEGACY_MFA_KEY"`
+	Keys		[]string	`env:"KEYS" envSeparator:"," validate:"required,min=1"`
+	PrimaryKeyID	string		`env:"PRIMARY_KEY_ID" validate:"required"`
+	LegacyIntegrationKey	string	`env:"LEGACY_INTEGRATION_KEY"`
+	LegacyMFAKey	string	`env:"LEGACY_MFA_KEY"`
 }
-
-// Keyring seals with the primary key and opens values sealed with any known key.
 type Keyring struct {
-	primary   string
-	aeads     map[string]cipher.AEAD
-	legacyHex cipher.AEAD
-	legacyDot cipher.AEAD
+	primary		string
+	aeads		map[string]cipher.AEAD
+	legacyHex	cipher.AEAD
+	legacyDot	cipher.AEAD
 }
-
-// NewKeyring builds a key ring from configuration.
 func NewKeyring(cfg Config) (*Keyring, error) {
 	ring := &Keyring{primary: cfg.PrimaryKeyID, aeads: map[string]cipher.AEAD{}}
 	for _, entry := range cfg.Keys {
@@ -88,7 +70,6 @@ func NewKeyring(cfg Config) (*Keyring, error) {
 	}
 	return ring, nil
 }
-
 func newAEAD(key []byte) (cipher.AEAD, error) {
 	if len(key) != KeySize {
 		return nil, fmt.Errorf("key must be %d bytes, got %d", KeySize, len(key))
@@ -99,9 +80,6 @@ func newAEAD(key []byte) (cipher.AEAD, error) {
 	}
 	return cipher.NewGCM(block)
 }
-
-// Seal encrypts plaintext with the primary key. context binds the value to its use (e.g. "integration:stripe"),
-// so a ciphertext copied into another field does not open.
 func (k *Keyring) Seal(plaintext []byte, context string) (string, error) {
 	nonce := make([]byte, nonceSize)
 	if _, err := rand.Read(nonce); err != nil {
@@ -110,8 +88,6 @@ func (k *Keyring) Seal(plaintext []byte, context string) (string, error) {
 	sealed := k.aeads[k.primary].Seal(nonce, nonce, plaintext, []byte(context))
 	return versionPrefix + k.primary + "." + base64.RawURLEncoding.EncodeToString(sealed), nil
 }
-
-// Open decrypts a value written by Seal or by the TypeScript backend.
 func (k *Keyring) Open(value, context string) ([]byte, error) {
 	switch {
 	case strings.HasPrefix(value, versionPrefix):
@@ -123,12 +99,9 @@ func (k *Keyring) Open(value, context string) ([]byte, error) {
 	}
 	return nil, ErrDecrypt
 }
-
-// NeedsRotation reports whether value should be re-sealed: it uses a legacy format or a non-primary key.
 func (k *Keyring) NeedsRotation(value string) bool {
 	return !strings.HasPrefix(value, versionPrefix+k.primary+".")
 }
-
 func (k *Keyring) openV1(rest, context string) ([]byte, error) {
 	id, encoded, ok := strings.Cut(rest, ".")
 	aead, known := k.aeads[id]
@@ -145,8 +118,6 @@ func (k *Keyring) openV1(rest, context string) ([]byte, error) {
 	}
 	return plain, nil
 }
-
-// openLegacy opens [iv, tag, data] parts as Node wrote them. Legacy MFA binds the user ID as associated data.
 func openLegacy(aead cipher.AEAD, parts []string, decode func(string) ([]byte, error), aad []byte) ([]byte, error) {
 	var raw [3][]byte
 	for i, part := range parts {

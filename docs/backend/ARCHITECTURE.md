@@ -17,7 +17,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 The system architecture is governed by the core principles detailed in [Architecture & Principles](../ARCHITECTURE.md#architectural-decisions--core-principles):
 - **One service per business domain.** Each service owns its tables in its own PostgreSQL schema and connects with its own database role. No service reads another's tables.
 - **APIs for questions, events for facts.** Synchronous reads use the owning service's HTTP API, described by OpenAPI 3.1. Changes other services must react to are events, written to an outbox in the same transaction and published to NATS JetStream. Background work runs as River jobs.
-- **The front ends keep their look.** The Next.js apps keep their pages, components and styles. Only their data access changes, from legacy Prisma to the generated typed API client.
+- **The front ends keep their look.** The Next.js apps keep their pages, components and styles. Only their data access changes, from legacy LegacyDB to the generated typed API client.
 - **Configuration, not code.** See [CONFIG](CONFIG.md) and the shared business catalogue.
 
 ## Migration status
@@ -30,7 +30,7 @@ The system architecture is governed by the core principles detailed in [Architec
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | **Implemented**; all IT dashboard operational views active |
 | 5     | `itsm` and IT support in the admin app                                                | **Implemented**; desk, queues, tickets, attachments, SLA River jobs active |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | **Implemented**; all 8 Go services, schemas, OpenAPI, clients, events, and handoffs created |
-| 7     | Retire Prisma, the cron route and the Node workers                                    | **Implemented**; River jobs active, legacy workers and CRON_SECRET retired |
+| 7     | Retire LegacyDB, the cron route and the Node workers                                    | **Implemented**; River jobs active, legacy workers and CRON_SECRET retired |
 
 What exists today (2026-11-02): identity runs the IT realm with mandatory MFA. Staff identity sign-in and own-account security are being integrated in the admin app; customer backend authentication is being implemented. These changes have not completed cutover verification. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
 from the IT dashboard, and publishes its changes as events (transactional outbox to NATS JetStream). `itsm` holds IT tickets with SLAs; employees raise them from the admin. Each service signs in
@@ -50,14 +50,14 @@ pages are not built yet, and no business domain has moved.
 - Removed the empty admin integrations settings directory (empty directories are not tracked by Git).
 - The IT e2e server now builds before listening (CI uses its prebuilt production output), with startup regression
   tests covering failed builds. The desk journey passes against `platform-verify` (23.5 s; 2 min including startup).
-  `go vet ./...`, `make lint`, `make gen-check` and `go test -race ./...` pass. The IT build still loads Prisma through
+  `go vet ./...`, `make lint`, `make gen-check` and `go test -race ./...` pass. The IT build still loads LegacyDB through
   integration helpers; removing those calls requires their service replacements, and remains open.
 - Frontend unit/static checks (327 tests), lint, every app/package type-check and action-schema checks pass.
   Removed 924 ignored sync copies and 16 `.DS_Store` files, preserving `.agents` and `graphify-out`.
 - The full disposable-stack milestone suite and subsequent migration waves remain pending.
   No development database, Compose project or environment values were changed for these checks.
 
-Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
+Until a domain moves, the Next.js apps keep using `packages/database` (LegacyDB) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ### Identity audit and offline recovery (2026-11-02)
@@ -97,7 +97,7 @@ The generated API reference now links to all six Go OpenAPI documents (the gatew
 Seven new catalogue sync copies were reviewed as identical and removed after they appeared during generation.
 
 Phase 3 is still in progress: staff/customer auth and access handoff are not cut over. IT integration helpers still
-load Prisma. Company settings, operations pages, audit/notify completion, business services and legacy retirement
+load LegacyDB. Company settings, operations pages, audit/notify completion, business services and legacy retirement
 remain open.
 
 ### Security follow-up (2026-11-02)
@@ -215,7 +215,7 @@ now call identity. `JWT_SECRET` is retired; existing MFA encryption material is 
 checks protect self-service mutations within their database transaction. Password changes preserve the existing
 UI contract by ending every session. Role changes cannot let a stale token use new profile privileges while a
 profile synchronization is incomplete. Profile synchronization waits for transaction commit and reports failures;
-the temporary Prisma profile bridge remains until the owning business domains migrate.
+the temporary LegacyDB profile bridge remains until the owning business domains migrate.
 
 Customer credential registration, email codes, and Google/Apple OAuth backend APIs are under implementation.
 Codes have bounded attempts and expiry, authenticated hashes, transactional session creation and audit events.
@@ -238,4 +238,4 @@ offboarding/access-request integration. All later phases remain as listed in the
    the use case in one database transaction, writing any events to its outbox.
 4. Errors come back as RFC 9457 problem details with a stable `code`, which the apps translate.
 
-Phase 2 authenticates app servers with short-lived service tokens ([ADR 0011](../adr/0011-service-authentication.md)). Apps still enforce user permissions. Files are streamed through same-origin app routes; S3 buckets stay private. Attachment business records remain in Prisma. Claims now cross a service boundary and are not rolled back with a failed Prisma transaction. Identity, per-service database roles and cross-service sagas remain later work.
+Phase 2 authenticates app servers with short-lived service tokens ([ADR 0011](../adr/0011-service-authentication.md)). Apps still enforce user permissions. Files are streamed through same-origin app routes; S3 buckets stay private. Attachment business records remain in LegacyDB. Claims now cross a service boundary and are not rolled back with a failed LegacyDB transaction. Identity, per-service database roles and cross-service sagas remain later work.

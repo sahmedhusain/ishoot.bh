@@ -1,5 +1,4 @@
 package main
-
 import (
 	"encoding/json"
 	"fmt"
@@ -9,34 +8,24 @@ import (
 	"sync"
 	"time"
 )
-
-// Message is one message the sandbox accepted.
 type Message struct {
-	ID         string    `json:"id"`
-	PhoneID    string    `json:"phoneId"`
-	To         string    `json:"to"`
-	Type       string    `json:"type"`
-	Body       string    `json:"body"`
-	ReceivedAt time.Time `json:"receivedAt"`
+	ID		string		`json:"id"`
+	PhoneID		string		`json:"phoneId"`
+	To		string		`json:"to"`
+	Type		string		`json:"type"`
+	Body		string		`json:"body"`
+	ReceivedAt	time.Time	`json:"receivedAt"`
 }
-
-// Sandbox stands in for the WhatsApp Cloud API's send endpoint in local development and tests. Nothing leaves the
-// machine. Recipients ending in 0500, 0429 or 0400 answer like a server error, a rate limit and a refused recipient;
-// POST /sandbox/fail makes the next sends fail with a chosen status.
 type Sandbox struct {
-	mu       sync.Mutex
-	messages []Message
-	seq      int
-	failNext int
-	failWith int
-	max      int
-	now      func() time.Time
+	mu		sync.Mutex
+	messages	[]Message
+	seq		int
+	failNext	int
+	failWith	int
+	max		int
+	now		func() time.Time
 }
-
-// New returns an empty sandbox that keeps the newest max messages.
-func New(max int) *Sandbox { return &Sandbox{max: max, now: time.Now} }
-
-// Handler serves the API, the inspection endpoints and a page listing the messages.
+func New(max int) *Sandbox	{ return &Sandbox{max: max, now: time.Now} }
 func (s *Sandbox) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /{version}/{phoneID}/messages", s.send)
@@ -47,25 +36,23 @@ func (s *Sandbox) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.page)
 	return mux
 }
-
 func graphError(w http.ResponseWriter, status, code int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]any{"message": message, "type": "OAuthException", "code": code}})
 }
-
 func (s *Sandbox) send(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") || len(r.Header.Get("Authorization")) < 8 {
 		graphError(w, http.StatusUnauthorized, 190, "Invalid OAuth access token.")
 		return
 	}
 	var in struct {
-		Product string `json:"messaging_product"`
-		To      string `json:"to"`
-		Type    string `json:"type"`
-		Text    struct {
+		Product	string	`json:"messaging_product"`
+		To	string	`json:"to"`
+		Type	string	`json:"type"`
+		Text	struct {
 			Body string `json:"body"`
-		} `json:"text"`
+		}	`json:"text"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&in); err != nil || in.Product != "whatsapp" || in.To == "" {
 		graphError(w, http.StatusBadRequest, 100, "Invalid parameter")
@@ -91,20 +78,18 @@ func (s *Sandbox) send(w http.ResponseWriter, r *http.Request) {
 	}
 	s.seq++
 	msg := Message{ID: fmt.Sprintf("wamid.sandbox-%d", s.seq), PhoneID: r.PathValue("phoneID"), To: in.To, Type: in.Type,
-		Body: in.Text.Body, ReceivedAt: s.now().UTC()}
+		Body:	in.Text.Body, ReceivedAt: s.now().UTC()}
 	s.messages = append(s.messages, msg)
 	if len(s.messages) > s.max {
 		s.messages = s.messages[len(s.messages)-s.max:]
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"messaging_product": "whatsapp",
-		"contacts":          []map[string]string{{"input": in.To, "wa_id": in.To}},
-		"messages":          []map[string]string{{"id": msg.ID}},
+		"messaging_product":	"whatsapp",
+		"contacts":		[]map[string]string{{"input": in.To, "wa_id": in.To}},
+		"messages":		[]map[string]string{{"id": msg.ID}},
 	})
 }
-
-// newest returns the messages newest first, to one recipient when to is set.
 func (s *Sandbox) newest(to string) []Message {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -116,23 +101,20 @@ func (s *Sandbox) newest(to string) []Message {
 	}
 	return out
 }
-
 func (s *Sandbox) list(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{"items": s.newest(r.URL.Query().Get("to"))})
 }
-
 func (s *Sandbox) clear(w http.ResponseWriter, _ *http.Request) {
 	s.mu.Lock()
 	s.messages, s.failNext = nil, 0
 	s.mu.Unlock()
 	w.WriteHeader(http.StatusNoContent)
 }
-
 func (s *Sandbox) arm(w http.ResponseWriter, r *http.Request) {
 	var in struct {
-		Count  int `json:"count"`
-		Status int `json:"status"`
+		Count	int	`json:"count"`
+		Status	int	`json:"status"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in); err != nil || in.Count < 0 || in.Count > 100 {
 		http.Error(w, "count must be 0 to 100", http.StatusBadRequest)
@@ -146,7 +128,6 @@ func (s *Sandbox) arm(w http.ResponseWriter, r *http.Request) {
 	s.mu.Unlock()
 	w.WriteHeader(http.StatusNoContent)
 }
-
 var pageTemplate = template.Must(template.New("page").Parse(`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="5"><title>WhatsApp sandbox</title>
 <style>body{font:14px system-ui,sans-serif;margin:2rem;color:#1b1b1f}table{border-collapse:collapse;width:100%}
@@ -157,7 +138,6 @@ td,th{border-bottom:1px solid #ddd;padding:.4rem;text-align:start;vertical-align
 <table><tr><th>Received</th><th>To</th><th>Message</th><th>ID</th></tr>
 {{range .}}<tr><td>{{.ReceivedAt.Format "2006-01-02 15:04:05"}}</td><td>{{.To}}</td><td class="body">{{.Body}}</td><td>{{.ID}}</td></tr>
 {{else}}<tr><td colspan="4">No messages yet.</td></tr>{{end}}</table></body></html>`))
-
 func (s *Sandbox) page(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_ = pageTemplate.Execute(w, s.newest(""))

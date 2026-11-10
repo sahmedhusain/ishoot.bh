@@ -1,34 +1,24 @@
 package authn
-
 import (
 	"encoding/base64"
-
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
-
-// ServiceSigner signs a backend service's own short-lived service tokens, so it can call another service the way the
-// apps do (ADR 0011). The key is the base64url private JWK that `./run.sh env secrets` writes to <CALLER>_SERVICE_KEY;
-// its public half is in the service keys file every service trusts.
 type ServiceSigner struct {
-	caller string
-	key    jwk.Key
-	ttl    time.Duration
-	now    func() time.Time
-
-	mu      sync.Mutex
-	token   string
-	renewAt time.Time
+	caller	string
+	key	jwk.Key
+	ttl	time.Duration
+	now	func() time.Time
+	mu	sync.Mutex
+	token	string
+	renewAt	time.Time
 }
-
-// NewServiceSigner parses the encoded key, whose key ID must start with "<caller>:".
 func NewServiceSigner(caller, encoded string, ttl time.Duration) (*ServiceSigner, error) {
 	if encoded == "" {
 		return nil, fmt.Errorf("authn: the %s service key is not set (run ./run.sh env secrets)", caller)
@@ -56,8 +46,6 @@ func NewServiceSigner(caller, encoded string, ttl time.Duration) (*ServiceSigner
 	}
 	return &ServiceSigner{caller: caller, key: key, ttl: ttl, now: time.Now}, nil
 }
-
-// Token returns a token proving this service is the caller, reused until 80% of its lifetime has passed.
 func (s *ServiceSigner) Token() (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,8 +71,6 @@ func (s *ServiceSigner) Token() (string, error) {
 	s.token, s.renewAt = string(signed), now.Add(s.ttl*8/10)
 	return s.token, nil
 }
-
-// Transport adds the service token to every request sent through base (http.DefaultTransport when nil).
 func (s *ServiceSigner) Transport(base http.RoundTripper) http.RoundTripper {
 	if base == nil {
 		base = http.DefaultTransport
@@ -99,7 +85,5 @@ func (s *ServiceSigner) Transport(base http.RoundTripper) http.RoundTripper {
 		return base.RoundTrip(req)
 	})
 }
-
 type roundTripper func(*http.Request) (*http.Response, error)
-
-func (f roundTripper) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+func (f roundTripper) RoundTrip(req *http.Request) (*http.Response, error)	{ return f(req) }

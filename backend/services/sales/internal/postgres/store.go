@@ -1,39 +1,28 @@
-// Package postgres stores sales entities in the sales schema.
 package postgres
-
 import (
 	"context"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/sales/internal/postgres/sqlcdb"
 )
-
 const Schema = "sales"
-
 type Contact = sqlcdb.SalesContact
 type Deal = sqlcdb.SalesDeal
 type Inquiry = sqlcdb.SalesInquiry
 type Quotation = sqlcdb.SalesQuotation
 type QuotationItem = sqlcdb.SalesQuotationItem
 type Campaign = sqlcdb.SalesCampaign
-
 type Store struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
 }
-
-func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return fn(&Store{q: s.q.WithTx(tx)}, tx)
 	})
 }
-
-// Contacts
 func (s *Store) GetContactByID(ctx context.Context, id string) (Contact, error) {
 	return s.q.GetContactByID(ctx, id)
 }
@@ -49,8 +38,6 @@ func (s *Store) UpdateContact(ctx context.Context, p sqlcdb.UpdateContactParams)
 func (s *Store) DeleteContact(ctx context.Context, id string) error {
 	return s.q.DeleteContact(ctx, id)
 }
-
-// Deals
 func (s *Store) GetDealByID(ctx context.Context, id string) (Deal, error) {
 	return s.q.GetDealByID(ctx, id)
 }
@@ -72,8 +59,6 @@ func (s *Store) UpdateDealStage(ctx context.Context, p sqlcdb.UpdateDealStagePar
 func (s *Store) DeleteDeal(ctx context.Context, id string) error {
 	return s.q.DeleteDeal(ctx, id)
 }
-
-// Inquiries
 func (s *Store) GetInquiryByID(ctx context.Context, id string) (Inquiry, error) {
 	return s.q.GetInquiryByID(ctx, id)
 }
@@ -92,8 +77,6 @@ func (s *Store) AssignInquiry(ctx context.Context, p sqlcdb.AssignInquiryParams)
 func (s *Store) DeleteInquiry(ctx context.Context, id string) error {
 	return s.q.DeleteInquiry(ctx, id)
 }
-
-// Quotations
 func (s *Store) GetQuotationByID(ctx context.Context, id string) (Quotation, error) {
 	return s.q.GetQuotationByID(ctx, id)
 }
@@ -124,8 +107,6 @@ func (s *Store) InsertQuotationItem(ctx context.Context, p sqlcdb.InsertQuotatio
 func (s *Store) DeleteQuotationItems(ctx context.Context, quotationID string) error {
 	return s.q.DeleteQuotationItems(ctx, quotationID)
 }
-
-// Campaigns
 func (s *Store) GetCampaignByID(ctx context.Context, id string) (Campaign, error) {
 	return s.q.GetCampaignByID(ctx, id)
 }

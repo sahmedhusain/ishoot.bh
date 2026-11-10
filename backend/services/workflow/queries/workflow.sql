@@ -1,104 +1,61 @@
--- name: GetApprovalRequestByID :one
 SELECT * FROM workflow.approval_request WHERE id = $1 LIMIT 1;
-
--- name: ListApprovalRequests :many
 SELECT * FROM workflow.approval_request ORDER BY created_at DESC;
-
--- name: CreateApprovalRequest :one
 INSERT INTO workflow.approval_request (
     id, kind, entity_id, requester_id, status, priority, reason, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, now(), now()
 ) RETURNING *;
-
--- name: UpdateApprovalRequestStatus :one
 UPDATE workflow.approval_request SET
     status = $2,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: DeleteApprovalRequest :exec
 DELETE FROM workflow.approval_request WHERE id = $1;
-
--- name: ListApprovalDecisions :many
 SELECT * FROM workflow.approval_decision WHERE request_id = $1 ORDER BY decided_at ASC;
-
--- name: CreateApprovalDecision :one
 INSERT INTO workflow.approval_decision (
     id, request_id, approver_id, decision, comments, decided_at
 ) VALUES (
     $1, $2, $3, $4, $5, now()
 ) RETURNING *;
-
--- name: GetSignatureRequestByID :one
 SELECT * FROM workflow.signature_request WHERE id = $1 LIMIT 1;
-
--- name: ListSignatureRequests :many
 SELECT * FROM workflow.signature_request ORDER BY created_at DESC;
-
--- name: CreateSignatureRequest :one
 INSERT INTO workflow.signature_request (
     id, title, document_type, document_id, requested_from, status, expires_at, created_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, now()
 ) RETURNING *;
-
--- name: RecordSignature :one
 UPDATE workflow.signature_request SET
     status = 'signed',
     signature_url = $2,
     signed_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: ListLetterTemplates :many
 SELECT * FROM workflow.letter_template ORDER BY sort_order ASC, name_en ASC;
-
--- name: GetLetterTemplate :one
 SELECT * FROM workflow.letter_template WHERE id = $1 LIMIT 1;
-
--- name: CreateLetterTemplate :one
 INSERT INTO workflow.letter_template (
     id, name_en, name_ar, template_body, sort_order
 ) VALUES (
     $1, $2, $3, $4, $5
 ) RETURNING *;
-
--- name: ListOfficialLetters :many
 SELECT * FROM workflow.official_letter ORDER BY created_at DESC;
-
--- name: GetOfficialLetter :one
 SELECT * FROM workflow.official_letter WHERE id = $1 LIMIT 1;
-
--- name: CreateOfficialLetter :one
 INSERT INTO workflow.official_letter (
     id, letter_number, template_id, recipient_name, recipient_title, subject, body, status, created_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, now()
 ) RETURNING *;
-
--- name: UpdateOfficialLetterStatus :one
 UPDATE workflow.official_letter SET
     status = $2,
     issued_at = CASE WHEN $2 = 'issued' THEN now() ELSE issued_at END
 WHERE id = $1
 RETURNING *;
-
--- name: ListMOMs :many
 SELECT * FROM workflow.minute_of_meeting ORDER BY meeting_date DESC, created_at DESC;
-
--- name: GetMOM :one
 SELECT * FROM workflow.minute_of_meeting WHERE id = $1 LIMIT 1;
-
--- name: CreateMOM :one
 INSERT INTO workflow.minute_of_meeting (
     id, mom_number, title, meeting_date, attendees, discussion, action_items, status, created_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, now()
 ) RETURNING *;
-
--- name: UpdateMOM :one
 UPDATE workflow.minute_of_meeting SET
     title = $2,
     meeting_date = $3,
@@ -108,21 +65,13 @@ UPDATE workflow.minute_of_meeting SET
     status = $7
 WHERE id = $1
 RETURNING *;
-
--- name: GetTaskByID :one
 SELECT * FROM workflow.task WHERE id = $1 LIMIT 1;
-
--- name: ListTasks :many
 SELECT * FROM workflow.task ORDER BY created_at DESC;
-
--- name: CreateTask :one
 INSERT INTO workflow.task (
     id, title, description, assigned_to, due_date, status, priority, related_entity_type, related_entity_id, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now()
 ) RETURNING *;
-
--- name: UpdateTask :one
 UPDATE workflow.task SET
     title = $2,
     description = $3,
@@ -133,29 +82,17 @@ UPDATE workflow.task SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: UpdateTaskStatus :one
 UPDATE workflow.task SET
     status = $2,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
-
--- name: DeleteTask :exec
 DELETE FROM workflow.task WHERE id = $1;
-
--- name: ListCalendarEvents :many
 SELECT * FROM workflow.calendar_event ORDER BY start_time ASC;
-
--- name: GetCalendarEvent :one
 SELECT * FROM workflow.calendar_event WHERE id = $1 LIMIT 1;
-
--- name: CreateCalendarEvent :one
 INSERT INTO workflow.calendar_event (
     id, title, description, start_time, end_time, is_all_day, location, organizer_id, event_type, created_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, now()
 ) RETURNING *;
-
--- name: DeleteCalendarEvent :exec
 DELETE FROM workflow.calendar_event WHERE id = $1;

@@ -1,5 +1,4 @@
 package filesclient
-
 import (
 	"context"
 	"encoding/json"
@@ -11,28 +10,23 @@ import (
 	"strings"
 	"time"
 )
-
 const responseLimit = 65536
-
 type Client struct {
-	base   string
-	client *http.Client
+	base	string
+	client	*http.Client
 }
-
 func New(base string, transport http.RoundTripper) *Client {
 	return &Client{
-		base: strings.TrimRight(base, "/"),
+		base:	strings.TrimRight(base, "/"),
 		client: &http.Client{
-			Transport: transport,
-			Timeout:   5 * time.Second,
+			Transport:	transport,
+			Timeout:	5 * time.Second,
 			CheckRedirect: func(*http.Request, []*http.Request) error {
 				return http.ErrUseLastResponse
 			},
 		},
 	}
 }
-
-// DeletePrivate removes a private file, and leaves public assets or files still listed as shared alone.
 func (c *Client) DeletePrivate(ctx context.Context, fileURL string) error {
 	query := url.Values{"fileUrl": {fileURL}}.Encode()
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, c.base+"/v1/files/records?"+query, nil)
@@ -52,8 +46,8 @@ func (c *Client) DeletePrivate(ctx context.Context, fileURL string) error {
 	}
 	var result struct {
 		Items []struct {
-			FileURL  string `json:"fileUrl"`
-			IsPublic bool   `json:"isPublic"`
+			FileURL		string	`json:"fileUrl"`
+			IsPublic	bool	`json:"isPublic"`
 		} `json:"items"`
 	}
 	body, err := io.ReadAll(io.LimitReader(response.Body, responseLimit+1))
@@ -72,7 +66,6 @@ func (c *Client) DeletePrivate(ctx context.Context, fileURL string) error {
 	if result.Items[0].IsPublic {
 		return nil
 	}
-
 	request, err = http.NewRequestWithContext(ctx, http.MethodDelete, c.base+"/v1/files/content?"+query, nil)
 	if err != nil {
 		return err

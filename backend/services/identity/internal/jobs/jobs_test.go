@@ -1,14 +1,11 @@
 package jobs_test
-
 import (
 	"context"
 	"log/slog"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/testkit"
@@ -17,7 +14,6 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestRiverCleanupPreservesActiveSessions(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))

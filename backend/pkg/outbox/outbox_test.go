@@ -1,28 +1,23 @@
 package outbox_test
-
 import (
 	"context"
 	"errors"
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/testkit"
 )
-
 type fakePublisher struct {
-	mu   sync.Mutex
-	sent []outbox.Message
-	fail bool
+	mu	sync.Mutex
+	sent	[]outbox.Message
+	fail	bool
 }
-
 func (f *fakePublisher) Publish(_ context.Context, msg outbox.Message) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -32,7 +27,6 @@ func (f *fakePublisher) Publish(_ context.Context, msg outbox.Message) error {
 	f.sent = append(f.sent, msg)
 	return nil
 }
-
 func setup(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	ctx := context.Background()
@@ -43,15 +37,12 @@ func setup(t *testing.T) *pgxpool.Pool {
 	require.NoError(t, err)
 	return pool
 }
-
 func TestOutbox(t *testing.T) {
 	ctx := context.Background()
 	pool := setup(t)
 	pub := &fakePublisher{}
 	relay, err := outbox.NewRelay(pool, outbox.RelayOptions{Schema: "demo", Publisher: pub, Batch: 10})
 	require.NoError(t, err)
-
-	// An event is written with its change, and nothing at all when the change rolls back.
 	require.NoError(t, db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO demo.thing VALUES (1)`); err != nil {
 			return err
@@ -67,8 +58,6 @@ func TestOutbox(t *testing.T) {
 	require.ErrorIs(t, db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return outbox.Enqueue(ctx, tx, "demo", outbox.Event{Subject: "Bad Subject"})
 	}), outbox.ErrInvalidSubject)
-
-	// The broker is down: the event stays pending and is retried later.
 	pub.fail = true
 	n, err := relay.Once(ctx)
 	require.NoError(t, err)
@@ -81,8 +70,6 @@ func TestOutbox(t *testing.T) {
 	n, err = relay.Once(ctx)
 	require.NoError(t, err)
 	assert.Zero(t, n, "not due again until the back-off has passed")
-
-	// The broker is back: once due, the event is published and marked.
 	pub.fail = false
 	_, err = pool.Exec(ctx, `UPDATE demo.outbox SET next_try_at = now() - interval '1 second'`)
 	require.NoError(t, err)
@@ -96,8 +83,6 @@ func TestOutbox(t *testing.T) {
 	n, err = relay.Once(ctx)
 	require.NoError(t, err)
 	assert.Zero(t, n, "a published event is not sent again")
-
-	// Consumers record what they handled; a redelivery is recognised.
 	id := pub.sent[0].ID
 	for i, want := range []bool{true, false} {
 		require.NoError(t, db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
@@ -106,8 +91,6 @@ func TestOutbox(t *testing.T) {
 			return err
 		}))
 	}
-
-	// Published rows are purged after the retention.
 	purger, err := outbox.NewRelay(pool, outbox.RelayOptions{Schema: "demo", Publisher: pub, Retention: time.Minute})
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `UPDATE demo.outbox SET published_at = now() - interval '2 minutes'`)
@@ -116,8 +99,6 @@ func TestOutbox(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), purged)
 }
-
-// Two relays on one schema never publish the same row twice.
 func TestConcurrentRelays(t *testing.T) {
 	ctx := context.Background()
 	pool := setup(t)

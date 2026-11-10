@@ -1,8 +1,4 @@
-// Package authzsuite checks, for any service that guards its routes with authn.Require and authz.ServiceCallers,
-// that the guard holds on every route the service registers. It needs no database: a request refused by the guard
-// never reaches a handler, so the service can be wired with a nil use-case layer.
 package authzsuite
-
 import (
 	"context"
 	"io"
@@ -12,29 +8,15 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"github.com/labstack/echo/v4"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 )
-
-// Register wires the service's routes onto e with verifier v and the given service caller lists.
 type Register func(e *echo.Echo, v *authn.Verifier, readers, writers []string)
-
-// Run registers the service and asserts, for every route under prefix (for example "/v1/finance/"):
-//   - without a token, a guarded route answers 401;
-//   - a token of a signed-in person (staff, IT or customer) answers 401: these services take service tokens only;
-//   - a service caller in neither list answers 403;
-//   - a reader-only service caller answers 403 on every method that changes data.
-//
-// Routes that answer something other than 401 without a token are treated as public and skipped, but at least
-// one guarded route must exist. Routes that are public by design are listed as "METHOD /path" in public and are
-// never called (their handlers need a real use-case layer). The service's openapi.yaml route is ignored.
 func Run(t *testing.T, prefix string, register Register, public ...string) {
 	t.Helper()
 	const reader, writer, intruder = "reader-svc", "writer-svc", "intruder-svc"
@@ -50,15 +32,11 @@ func Run(t *testing.T, prefix string, register Register, public ...string) {
 		}
 	}
 	trust := authn.Trust{Issuer: authn.ServiceIssuerPrefix, Keys: authn.StaticKeys{Set: set}, Realms: []authn.Realm{authn.RealmService}}
-	// A signed-in person's token: accepted by identity's realms, but business services take service tokens only.
 	people := authntest.NewSigner(t, "identity:1")
 	e := echo.New()
 	e.HTTPErrorHandler = httpx.ErrorHandler(logx.New(io.Discard, logx.Options{}))
 	register(e, authn.NewVerifier(time.Second, trust, people.Trust()), []string{reader}, []string{writer})
-
 	call := func(method, path, caller string) (code int) {
-		// A request the guard lets through reaches a handler wired to a nil use-case layer and panics; that marks
-		// the route as open (-1), which only public routes should be.
 		defer func() {
 			if recover() != nil {
 				code = -1
@@ -77,7 +55,6 @@ func Run(t *testing.T, prefix string, register Register, public ...string) {
 		e.ServeHTTP(rec, req)
 		return rec.Code
 	}
-
 	guarded := 0
 	for _, r := range e.Routes() {
 		if !strings.HasPrefix(r.Path, prefix) || strings.HasSuffix(r.Path, "openapi.yaml") || r.Method == "echo_route_not_found" {

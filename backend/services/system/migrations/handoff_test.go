@@ -1,21 +1,16 @@
 package migrations_test
-
 import (
 	"context"
 	"log/slog"
 	"os"
 	"testing"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/testkit"
 	"platform.local/backend/services/system/migrations"
 )
-
-// The Prisma migration hands "FeatureToggle" to the system service whether or not the service has run yet.
-func TestPrismaHandoff(t *testing.T) {
+func TestLegacyDBHandoff(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)
@@ -46,7 +41,6 @@ func TestPrismaHandoff(t *testing.T) {
 			require.NoError(t, run())
 			_, err = pool.Exec(ctx, string(sql))
 			require.NoError(t, err, "re-running the completed handoff is safe")
-
 			var legacy *string
 			require.NoError(t, pool.QueryRow(ctx, `SELECT to_regclass('public."FeatureToggle"')::text`).Scan(&legacy))
 			require.Nil(t, legacy, "the legacy table is gone")
@@ -64,8 +58,6 @@ func TestPrismaHandoff(t *testing.T) {
 		})
 	}
 }
-
-// The Prisma migration hands "IntegrationSetting" to the system service whether or not the service has run yet.
 func TestIntegrationsHandoff(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -101,17 +93,14 @@ func TestIntegrationsHandoff(t *testing.T) {
 			require.NoError(t, run())
 			_, err = pool.Exec(ctx, string(sql))
 			require.NoError(t, err, "re-running the completed handoff is safe")
-
 			var legacy *string
 			require.NoError(t, pool.QueryRow(ctx, `SELECT to_regclass('public."IntegrationSetting"')::text`).Scan(&legacy))
 			require.Nil(t, legacy, "the legacy table is gone")
-
 			var stripeActive bool
 			var stripeCreds string
 			require.NoError(t, pool.QueryRow(ctx, `SELECT is_active, credentials FROM system.integration_setting WHERE provider = 'stripe'`).Scan(&stripeActive, &stripeCreds))
 			require.True(t, stripeActive)
 			require.Equal(t, "encrypted-stripe", stripeCreds)
-
 			var metaActive bool
 			var metaCreds string
 			require.NoError(t, pool.QueryRow(ctx, `SELECT is_active, credentials FROM system.integration_setting WHERE provider = 'meta'`).Scan(&metaActive, &metaCreds))
@@ -125,8 +114,6 @@ func TestIntegrationsHandoff(t *testing.T) {
 		})
 	}
 }
-
-// The Prisma migration hands the domains and the site code to the system service whether or not the service has run.
 func TestSiteHandoff(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -160,7 +147,6 @@ func TestSiteHandoff(t *testing.T) {
 			require.NoError(t, run())
 			_, err = pool.Exec(ctx, string(sql))
 			require.NoError(t, err, "re-running the completed handoff is safe")
-
 			var columns int
 			require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns
     WHERE table_name = 'CompanySetting' AND column_name IN ('websiteDomain', 'adminDomain')`).Scan(&columns))

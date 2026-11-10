@@ -1,10 +1,5 @@
--- name: ListIntegrations :many
 SELECT * FROM system.integration_setting ORDER BY provider;
-
--- name: GetIntegration :one
 SELECT * FROM system.integration_setting WHERE provider = @provider;
-
--- name: UpsertIntegration :exec
 INSERT INTO system.integration_setting (
     provider, is_active, credentials, config, health_status, last_error, account_name, updated_by, updated_at
 ) VALUES (
@@ -18,8 +13,6 @@ INSERT INTO system.integration_setting (
     account_name = EXCLUDED.account_name,
     updated_by = EXCLUDED.updated_by,
     updated_at = EXCLUDED.updated_at;
-
--- name: UnlinkIntegration :exec
 INSERT INTO system.integration_setting (
     provider, is_active, credentials, config, health_status, last_error, account_name, last_synced_at, sync_lease_token, sync_lease_until, updated_by, updated_at
 ) VALUES (
@@ -36,8 +29,6 @@ INSERT INTO system.integration_setting (
     sync_lease_until = NULL,
     updated_by = EXCLUDED.updated_by,
     updated_at = EXCLUDED.updated_at;
-
--- name: UpdateIntegrationStatus :exec
 UPDATE system.integration_setting
 SET health_status = @health_status,
     last_error = @last_error,
@@ -50,8 +41,6 @@ SET health_status = @health_status,
     sync_lease_until = @sync_lease_until,
     updated_at = @updated_at
 WHERE provider = @provider;
-
--- name: ClaimSyncLease :execrows
 UPDATE system.integration_setting
 SET sync_lease_token = @sync_lease_token,
     sync_lease_until = @sync_lease_until

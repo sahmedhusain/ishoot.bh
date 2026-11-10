@@ -1,7 +1,4 @@
-// Package app holds the realtime service's use cases: people's statuses, their time windows, and the hints the
-// service sends about them (ADR 0012).
 package app
-
 import (
 	"context"
 	"errors"
@@ -11,121 +8,87 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/live"
 	"platform.local/backend/services/realtime/internal/postgres"
 	"platform.local/backend/services/realtime/internal/postgres/sqlcdb"
 	"platform.local/backend/services/realtime/internal/presence"
 )
-
 var (
-	// ErrValidation means the request cannot be applied as given.
-	ErrValidation = errors.New("validation failed")
-	// ErrNotFound means there is nothing to remove.
-	ErrNotFound = errors.New("not found")
+	ErrValidation	= errors.New("validation failed")
+	ErrNotFound	= errors.New("not found")
 )
-
 func invalid(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrValidation, fmt.Sprintf(format, args...))
 }
-
-// HintPresence tells browsers that someone's status may have changed; they fetch it again. Without userId, everyone's
-// may have (after a window sync).
 const HintPresence = "presence.changed"
-
-// PresenceTopic is the topic every stream of a realm follows for status changes.
-func PresenceTopic(realm string) string { return "presence." + realm }
-
-// Sources of a status.
+func PresenceTopic(realm string) string	{ return "presence." + realm }
 const (
-	SourceManual     = "manual"
-	SourceLeave      = "leave"
-	SourceCalendar   = "calendar"
-	SourceConnection = "connection"
+	SourceManual		= "manual"
+	SourceLeave		= "leave"
+	SourceCalendar		= "calendar"
+	SourceConnection	= "connection"
 )
-
-// Connection states others see.
 const (
-	ConnOnline  = "online"
-	ConnIdle    = "idle"
-	ConnOffline = "offline"
+	ConnOnline	= "online"
+	ConnIdle	= "idle"
+	ConnOffline	= "offline"
 )
-
 const (
-	maxWindowLength = 366 * 24 * time.Hour
-	maxWindowUsers  = 500
+	maxWindowLength	= 366 * 24 * time.Hour
+	maxWindowUsers	= 500
 )
-
 var sourcePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
-
-// Presence is one person's status as everyone else sees it.
 type Presence struct {
-	UserID     string     `json:"userId"`
-	Status     string     `json:"status"`
-	Source     string     `json:"source"`
-	Connection string     `json:"connection"`
-	Message    *string    `json:"message"`
-	Until      *time.Time `json:"until"`
-	LastSeenAt *time.Time `json:"lastSeenAt"`
+	UserID		string		`json:"userId"`
+	Status		string		`json:"status"`
+	Source		string		`json:"source"`
+	Connection	string		`json:"connection"`
+	Message		*string		`json:"message"`
+	Until		*time.Time	`json:"until"`
+	LastSeenAt	*time.Time	`json:"lastSeenAt"`
 }
-
-// Chosen is the status a person picked.
 type Chosen struct {
-	Status    string     `json:"status"`
-	Message   *string    `json:"message"`
-	ExpiresAt *time.Time `json:"expiresAt"`
+	Status		string		`json:"status"`
+	Message		*string		`json:"message"`
+	ExpiresAt	*time.Time	`json:"expiresAt"`
 }
-
-// Window is a stretch of time with a status (a meeting, leave).
 type Window struct {
-	Kind     string    `json:"kind"`
-	Status   string    `json:"status"`
-	Source   string    `json:"source"`
-	StartsAt time.Time `json:"startsAt"`
-	EndsAt   time.Time `json:"endsAt"`
+	Kind		string		`json:"kind"`
+	Status		string		`json:"status"`
+	Source		string		`json:"source"`
+	StartsAt	time.Time	`json:"startsAt"`
+	EndsAt		time.Time	`json:"endsAt"`
 }
-
-// Mine is what a person sees about their own status.
 type Mine struct {
-	Presence Presence `json:"presence"`
-	Chosen   *Chosen  `json:"chosen"`
-	Upcoming []Window `json:"upcoming"`
+	Presence	Presence	`json:"presence"`
+	Chosen		*Chosen		`json:"chosen"`
+	Upcoming	[]Window	`json:"upcoming"`
 }
-
-// WindowInput is one window to store: the same stretch for each of its people.
 type WindowInput struct {
-	SourceID string
-	Kind     string
-	StartsAt time.Time
-	EndsAt   time.Time
-	UserIDs  []string
+	SourceID	string
+	Kind		string
+	StartsAt	time.Time
+	EndsAt		time.Time
+	UserIDs		[]string
 }
-
-// Service implements the use cases.
 type Service struct {
-	store   *postgres.Store
-	tracker presence.Tracker
-	live    live.Publisher
-	now     func() time.Time
+	store	*postgres.Store
+	tracker	presence.Tracker
+	live	live.Publisher
+	now	func() time.Time
 }
-
-// New returns the service.
 func New(store *postgres.Store, tracker presence.Tracker, publisher live.Publisher) *Service {
 	return &Service{store: store, tracker: tracker, live: publisher, now: func() time.Time { return time.Now().UTC() }}
 }
-
 func checkUser(realm, id string) error {
 	if !live.ValidRealm(realm) || !live.ValidID(id) {
 		return invalid("realm must be staff or it, with a user ID")
 	}
 	return nil
 }
-
-// announce tells the realm's streams that people's statuses may have changed.
 func (s *Service) announce(ctx context.Context, realm string, ids ...string) {
 	if len(ids) == 0 {
 		if ev, err := live.New(HintPresence, map[string]string{}); err == nil {
@@ -139,14 +102,10 @@ func (s *Service) announce(ctx context.Context, realm string, ids ...string) {
 		}
 	}
 }
-
 func statusTone(key string) string {
 	st, _ := catalog.Presence.Status(key)
 	return st.Tone
 }
-
-// resolve works out what others see: appear offline, then leave, then a chosen status while connected, then a
-// meeting, then the connection itself.
 func resolve(id string, chosen *sqlcdb.RealtimeStatus, windows []sqlcdb.RealtimeStatusWindow, conn presence.Connection) Presence {
 	p := Presence{UserID: id, Connection: ConnOffline, LastSeenAt: conn.LastSeen}
 	if conn.Online {
@@ -173,7 +132,7 @@ func resolve(id string, chosen *sqlcdb.RealtimeStatus, windows []sqlcdb.Realtime
 	switch {
 	case chosen != nil && chosen.Status == offline:
 		p.Status, p.Source, p.Until = offline, SourceManual, chosen.ExpiresAt
-		p.Connection, p.LastSeenAt = ConnOffline, nil // appearing offline hides the connection too
+		p.Connection, p.LastSeenAt = ConnOffline, nil
 	case chosen != nil && statusTone(chosen.Status) == "leave":
 		p.Status, p.Source, p.Until = chosen.Status, SourceManual, chosen.ExpiresAt
 	case leave != nil:
@@ -193,8 +152,6 @@ func resolve(id string, chosen *sqlcdb.RealtimeStatus, windows []sqlcdb.Realtime
 	}
 	return p
 }
-
-// Presence returns the statuses of people in one realm, in the order asked.
 func (s *Service) Presence(ctx context.Context, realm string, ids []string) ([]Presence, error) {
 	if !live.ValidRealm(realm) {
 		return nil, invalid("realm must be staff or it")
@@ -238,8 +195,6 @@ func (s *Service) Presence(ctx context.Context, realm string, ids []string) ([]P
 	}
 	return out, nil
 }
-
-// Mine returns a person's own status: what others see, what they chose and what is coming in the next week.
 func (s *Service) Mine(ctx context.Context, realm, id string) (Mine, error) {
 	if err := checkUser(realm, id); err != nil {
 		return Mine{}, err
@@ -269,8 +224,6 @@ func (s *Service) Mine(ctx context.Context, realm, id string) (Mine, error) {
 	}
 	return out, nil
 }
-
-// SetStatus records the status a person chose, with an optional message and end.
 func (s *Service) SetStatus(ctx context.Context, realm, id string, in Chosen) (Mine, error) {
 	if err := checkUser(realm, id); err != nil {
 		return Mine{}, err
@@ -299,14 +252,12 @@ func (s *Service) SetStatus(ctx context.Context, realm, id string, in Chosen) (M
 		expires = &e
 	}
 	if err := s.store.UpsertStatus(ctx, sqlcdb.UpsertStatusParams{Realm: realm, UserID: id, Status: in.Status,
-		Message: message, ExpiresAt: expires, Now: now}); err != nil {
+		Message:	message, ExpiresAt: expires, Now: now}); err != nil {
 		return Mine{}, err
 	}
 	s.announce(ctx, realm, id)
 	return s.Mine(ctx, realm, id)
 }
-
-// ClearStatus goes back to the automatic status.
 func (s *Service) ClearStatus(ctx context.Context, realm, id string) (Mine, error) {
 	if err := checkUser(realm, id); err != nil {
 		return Mine{}, err
@@ -317,8 +268,6 @@ func (s *Service) ClearStatus(ctx context.Context, realm, id string) (Mine, erro
 	s.announce(ctx, realm, id)
 	return s.Mine(ctx, realm, id)
 }
-
-// SetActivity records whether the person's browser reports them idle; others hear about a change.
 func (s *Service) SetActivity(ctx context.Context, realm, id string, idle bool) error {
 	if err := checkUser(realm, id); err != nil {
 		return err
@@ -335,8 +284,6 @@ func (s *Service) SetActivity(ctx context.Context, realm, id string, idle bool) 
 	}
 	return nil
 }
-
-// Connected marks a person connected (first is their first stream on this replica).
 func (s *Service) Connected(ctx context.Context, realm, id string, first bool) error {
 	before, err := s.tracker.States(ctx, realm, []string{id})
 	if err != nil {
@@ -350,8 +297,6 @@ func (s *Service) Connected(ctx context.Context, realm, id string, first bool) e
 	}
 	return nil
 }
-
-// Disconnected removes this replica's mark when a person's last stream here closed.
 func (s *Service) Disconnected(ctx context.Context, realm, id string) error {
 	if err := s.tracker.Offline(ctx, realm, id); err != nil {
 		return err
@@ -365,7 +310,6 @@ func (s *Service) Disconnected(ctx context.Context, realm, id string) error {
 	}
 	return nil
 }
-
 func (s *Service) checkWindow(realm, source string, w WindowInput) error {
 	if !live.ValidRealm(realm) || !sourcePattern.MatchString(source) {
 		return invalid("realm must be staff or it, with a source of lower-case letters")
@@ -389,18 +333,15 @@ func (s *Service) checkWindow(realm, source string, w WindowInput) error {
 	}
 	return nil
 }
-
 func upsertWindow(ctx context.Context, q *sqlcdb.Queries, realm, source string, w WindowInput, now time.Time) error {
 	for _, id := range w.UserIDs {
 		if err := q.UpsertWindow(ctx, sqlcdb.UpsertWindowParams{ID: uuid.NewString(), Realm: realm, UserID: id, Source: source,
-			SourceID: w.SourceID, Kind: w.Kind, StartsAt: w.StartsAt.UTC(), EndsAt: w.EndsAt.UTC(), Now: now}); err != nil {
+			SourceID:	w.SourceID, Kind: w.Kind, StartsAt: w.StartsAt.UTC(), EndsAt: w.EndsAt.UTC(), Now: now}); err != nil {
 			return err
 		}
 	}
 	return nil
 }
-
-// RemoveWindow removes one record's window for everyone (a meeting deleted, a leave request cancelled).
 func (s *Service) RemoveWindow(ctx context.Context, realm, source, sourceID string) error {
 	if !live.ValidRealm(realm) || !sourcePattern.MatchString(source) || sourceID == "" || len(sourceID) > 100 {
 		return invalid("realm, source and sourceId are required")
@@ -415,9 +356,6 @@ func (s *Service) RemoveWindow(ctx context.Context, realm, source, sourceID stri
 	s.announce(ctx, realm, removed...)
 	return nil
 }
-
-// ReplaceWindow sets one record's window (a meeting, a leave request) for exactly the people given; people no longer
-// in it lose it.
 func (s *Service) ReplaceWindow(ctx context.Context, realm, source string, w WindowInput) error {
 	if err := s.checkWindow(realm, source, w); err != nil {
 		return err
@@ -440,9 +378,6 @@ func (s *Service) ReplaceWindow(ctx context.Context, realm, source string, w Win
 	s.announce(ctx, realm, affected...)
 	return nil
 }
-
-// SyncWindows replaces every window of a source that overlaps [from, until) with the ones given: the owning app's
-// full picture of that stretch (for example the next two weeks of meetings).
 func (s *Service) SyncWindows(ctx context.Context, realm, source string, from, until time.Time, windows []WindowInput, max int) (int, error) {
 	if !until.After(from) || until.Sub(from) > maxWindowLength {
 		return 0, invalid("the range ends after it starts and spans at most a year")
@@ -475,16 +410,12 @@ func (s *Service) SyncWindows(ctx context.Context, realm, source string, from, u
 	s.announce(ctx, realm)
 	return stored, nil
 }
-
 func nonNil(ids []string) []string {
 	if ids == nil {
 		return []string{}
 	}
 	return ids
 }
-
-// Tick announces the people whose status changed by itself since the last tick: a meeting or leave started or
-// ended, or a chosen status expired.
 func (s *Service) Tick(ctx context.Context, since, now time.Time) error {
 	rows, err := s.store.Transitions(ctx, sqlcdb.TransitionsParams{Since: since, Now: now})
 	if err != nil {
@@ -495,8 +426,6 @@ func (s *Service) Tick(ctx context.Context, since, now time.Time) error {
 	}
 	return nil
 }
-
-// Purge removes windows and statuses that ended before retention.
 func (s *Service) Purge(ctx context.Context, retention time.Duration) error {
 	before := s.now().Add(-retention)
 	if _, err := s.store.PurgeEnded(ctx, before); err != nil {
@@ -505,8 +434,6 @@ func (s *Service) Purge(ctx context.Context, retention time.Duration) error {
 	_, err := s.store.PurgeExpired(ctx, &before)
 	return err
 }
-
-// Publish sends an app's hint to people and topics (the apps' back ends, for domains still in Prisma).
 func (s *Service) Publish(ctx context.Context, topics []string, users []live.Target, ev live.Event) error {
 	if err := ev.Validate(); err != nil {
 		return invalid("%s", strings.TrimPrefix(err.Error(), live.ErrInvalid.Error()+": "))

@@ -1,7 +1,4 @@
-// Package domain holds the IT ticket rules: what a valid ticket is, which transitions each party may make, and how
-// SLA deadlines are set. Categories, priorities, statuses and transitions come from the catalogue (itsm.json).
 package domain
-
 import (
 	"errors"
 	"fmt"
@@ -9,44 +6,30 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/riverqueue/river"
-
 	"platform.local/backend/pkg/catalog"
 )
-
-// Errors the use cases return; the HTTP layer maps each one to a problem.
 var (
-	ErrNotFound   = errors.New("ticket not found")
-	ErrTransition = errors.New("transition not allowed from the current status")
-	ErrForbidden  = errors.New("not allowed for this caller")
+	ErrNotFound	= errors.New("ticket not found")
+	ErrTransition	= errors.New("transition not allowed from the current status")
+	ErrForbidden	= errors.New("not allowed for this caller")
 )
-
-// ValidationError names the invalid input field.
 type ValidationError struct{ Field, Code string }
-
-func (e *ValidationError) Error() string { return fmt.Sprintf("invalid %s: %s", e.Field, e.Code) }
-
-func invalid(field, code string) error { return &ValidationError{Field: field, Code: code} }
-
-// Limits are configured per installation.
+func (e *ValidationError) Error() string	{ return fmt.Sprintf("invalid %s: %s", e.Field, e.Code) }
+func invalid(field, code string) error	{ return &ValidationError{Field: field, Code: code} }
 type Limits struct {
-	MaxAttachments    int
-	MaxAttachmentSize int64
+	MaxAttachments		int
+	MaxAttachmentSize	int64
 }
-
-// Attachment is a file already claimed in the files service.
 type Attachment struct {
-	FileURL, FileName, MIMEType string
-	Size                        int64
-	CommentID                   *string
+	FileURL, FileName, MIMEType	string
+	Size				int64
+	CommentID			*string
 }
-
-// ValidateAttachment enforces prefix, file name, size bounds, and catalogue MIME type.
 func ValidateAttachment(a Attachment, limits Limits) error {
 	maxSize := limits.MaxAttachmentSize
 	if maxSize <= 0 {
-		maxSize = 10 << 20 // 10MB default
+		maxSize = 10 << 20
 	}
 	if !strings.HasPrefix(a.FileURL, catalog.Files.URLPrefix) || a.FileName == "" || len(a.FileName) > 200 {
 		return invalid("attachments", "invalid")
@@ -61,16 +44,12 @@ func ValidateAttachment(a Attachment, limits Limits) error {
 	}
 	return nil
 }
-
-// NewTicket is what an employee submits.
 type NewTicket struct {
-	RequesterID, RequesterName, RequesterEmail string
-	Category, Subcategory, Priority            string
-	Title, Description, AssetRef               string
-	Attachments                                []Attachment
+	RequesterID, RequesterName, RequesterEmail	string
+	Category, Subcategory, Priority			string
+	Title, Description, AssetRef			string
+	Attachments					[]Attachment
 }
-
-// Normalize trims text, applies the default priority and validates against the catalogue.
 func (n *NewTicket) Normalize(limits Limits) error {
 	n.Title, n.Description = strings.TrimSpace(n.Title), strings.TrimSpace(n.Description)
 	n.AssetRef = strings.TrimSpace(n.AssetRef)
@@ -106,15 +85,11 @@ func (n *NewTicket) Normalize(limits Limits) error {
 	}
 	return nil
 }
-
-// NewComment is a reply or internal note with optional attachments.
 type NewComment struct {
-	Body        string
-	Internal    bool
-	Attachments []Attachment
+	Body		string
+	Internal	bool
+	Attachments	[]Attachment
 }
-
-// Normalize validates comment body and attachments.
 func (c *NewComment) Normalize(limits Limits) error {
 	c.Body = strings.TrimSpace(c.Body)
 	if !textLength(c.Body, 1, 10000) {
@@ -130,27 +105,18 @@ func (c *NewComment) Normalize(limits Limits) error {
 	}
 	return nil
 }
-
 func textLength(s string, minLen, maxLen int) bool {
 	n := utf8.RuneCountInString(s)
 	return utf8.ValidString(s) && n >= minLen && n <= maxLen
 }
-
-// InitialStatus is the status every new ticket starts in.
-func InitialStatus() string { return catalog.Tickets.Statuses[0] }
-
-// Policy is the SLA for one priority.
+func InitialStatus() string	{ return catalog.Tickets.Statuses[0] }
 type Policy struct {
-	Priority                        string
-	ResponseMinutes, ResolveMinutes int32
+	Priority			string
+	ResponseMinutes, ResolveMinutes	int32
 }
-
-// Deadlines returns the response and resolution deadlines for a ticket created at.
 func (p Policy) Deadlines(at time.Time) (respondBy, resolveBy time.Time) {
 	return at.Add(time.Duration(p.ResponseMinutes) * time.Minute), at.Add(time.Duration(p.ResolveMinutes) * time.Minute)
 }
-
-// Validate checks an SLA change.
 func (p Policy) Validate() error {
 	switch {
 	case !slices.Contains(catalog.Tickets.Priorities, p.Priority):
@@ -162,26 +128,19 @@ func (p Policy) Validate() error {
 	}
 	return nil
 }
-
-// State is the part of a ticket transitions change.
 type State struct {
-	Status                   string
-	AssigneeID, AssigneeName *string
-	FirstResponseAt          *time.Time
-	ResolvedAt, ClosedAt     *time.Time
+	Status				string
+	AssigneeID, AssigneeName	*string
+	FirstResponseAt			*time.Time
+	ResolvedAt, ClosedAt		*time.Time
 }
-
-// Transition names from the catalogue that need special handling.
 const (
-	TransitionAssign  = "assign"
-	TransitionResolve = "resolve"
-	TransitionClose   = "close"
-	TransitionCancel  = "cancel"
-	TransitionReopen  = "reopen"
+	TransitionAssign	= "assign"
+	TransitionResolve	= "resolve"
+	TransitionClose		= "close"
+	TransitionCancel	= "cancel"
+	TransitionReopen	= "reopen"
 )
-
-// Apply returns the state after transition. Requesters may only use the catalogue's requester transitions; IT
-// may use every transition except none. assign needs an assignee.
 func Apply(s State, transition string, byRequester bool, assigneeID, assigneeName string, now time.Time) (State, error) {
 	if byRequester && !slices.Contains(catalog.Tickets.RequesterTransitions, transition) {
 		return State{}, ErrForbidden
@@ -210,29 +169,21 @@ func Apply(s State, transition string, byRequester bool, assigneeID, assigneeNam
 	}
 	return out, nil
 }
-
-// Queue is the River queue name for itsm jobs.
 const Queue = "itsm"
-
-// NotificationArgs delivers email and in-app notifications for ticket events.
 type NotificationArgs struct {
-	TicketID       string `json:"ticketId"`
-	EventID        string `json:"eventId"`
-	EventKind      string `json:"kind"` // "created", "transition", "comment", "breached", "reminder"
-	Detail         string `json:"detail,omitempty"`
-	ActorID        string `json:"actorId,omitempty"`
-	ActorRealm     string `json:"actorRealm,omitempty"`
-	RequesterID    string `json:"requesterId"`
-	RequesterEmail string `json:"requesterEmail"`
-	AssigneeID     string `json:"assigneeId,omitempty"`
-	TicketNumber   int64  `json:"ticketNumber"`
-	TicketTitle    string `json:"ticketTitle"`
+	TicketID	string	`json:"ticketId"`
+	EventID		string	`json:"eventId"`
+	EventKind	string	`json:"kind"`
+	Detail		string	`json:"detail,omitempty"`
+	ActorID		string	`json:"actorId,omitempty"`
+	ActorRealm	string	`json:"actorRealm,omitempty"`
+	RequesterID	string	`json:"requesterId"`
+	RequesterEmail	string	`json:"requesterEmail"`
+	AssigneeID	string	`json:"assigneeId,omitempty"`
+	TicketNumber	int64	`json:"ticketNumber"`
+	TicketTitle	string	`json:"ticketTitle"`
 }
-
-// Kind names the job in River.
-func (NotificationArgs) Kind() string { return "itsm.send_ticket_notification" }
-
-// InsertOpts configures River options.
+func (NotificationArgs) Kind() string	{ return "itsm.send_ticket_notification" }
 func (NotificationArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: Queue}
 }

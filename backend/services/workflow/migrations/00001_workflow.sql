@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS workflow.approval_request (
     id text PRIMARY KEY,
     kind text NOT NULL,
@@ -12,7 +11,6 @@ CREATE TABLE IF NOT EXISTS workflow.approval_request (
 );
 CREATE INDEX IF NOT EXISTS approval_kind_entity_idx ON workflow.approval_request (kind, entity_id);
 CREATE INDEX IF NOT EXISTS approval_status_idx ON workflow.approval_request (status);
-
 CREATE TABLE IF NOT EXISTS workflow.approval_decision (
     id text PRIMARY KEY,
     request_id text NOT NULL REFERENCES workflow.approval_request(id) ON DELETE CASCADE,
@@ -22,7 +20,6 @@ CREATE TABLE IF NOT EXISTS workflow.approval_decision (
     decided_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS decision_request_idx ON workflow.approval_decision (request_id);
-
 CREATE TABLE IF NOT EXISTS workflow.signature_request (
     id text PRIMARY KEY,
     title text NOT NULL,
@@ -36,7 +33,6 @@ CREATE TABLE IF NOT EXISTS workflow.signature_request (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS sig_req_doc_idx ON workflow.signature_request (document_type, document_id);
-
 CREATE TABLE IF NOT EXISTS workflow.letter_template (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -44,7 +40,6 @@ CREATE TABLE IF NOT EXISTS workflow.letter_template (
     template_body text NOT NULL,
     sort_order integer NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS workflow.official_letter (
     id text PRIMARY KEY,
     letter_number text NOT NULL UNIQUE,
@@ -57,7 +52,6 @@ CREATE TABLE IF NOT EXISTS workflow.official_letter (
     issued_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS workflow.minute_of_meeting (
     id text PRIMARY KEY,
     mom_number text NOT NULL UNIQUE,
@@ -69,7 +63,6 @@ CREATE TABLE IF NOT EXISTS workflow.minute_of_meeting (
     status text NOT NULL DEFAULT 'draft',
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS workflow.task (
     id text PRIMARY KEY,
     title text NOT NULL,
@@ -84,7 +77,6 @@ CREATE TABLE IF NOT EXISTS workflow.task (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS task_assignee_status_idx ON workflow.task (assigned_to, status);
-
 CREATE TABLE IF NOT EXISTS workflow.calendar_event (
     id text PRIMARY KEY,
     title text NOT NULL,
@@ -98,8 +90,6 @@ CREATE TABLE IF NOT EXISTS workflow.calendar_event (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS cal_time_idx ON workflow.calendar_event (start_time, end_time);
-
--- +goose Down
 DROP TABLE IF EXISTS workflow.calendar_event;
 DROP TABLE IF EXISTS workflow.task;
 DROP TABLE IF EXISTS workflow.minute_of_meeting;

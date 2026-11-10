@@ -1,7 +1,4 @@
-// Package httpapi exposes the realtime service over HTTP, as described in api/openapi.yaml: the live stream, statuses,
-// their windows, and publishing hints.
 package httpapi
-
 import (
 	"encoding/json"
 	"errors"
@@ -10,10 +7,8 @@ import (
 	"slices"
 	"strings"
 	"time"
-
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
@@ -24,38 +19,30 @@ import (
 	"platform.local/backend/services/realtime/internal/app"
 	"platform.local/backend/services/realtime/internal/hub"
 )
-
-// Error codes returned as Problem detail.
 const (
-	CodeValidation     = "validation_failed"
-	CodeNotFound       = "not_found"
-	CodeTooManyStreams = "too_many_streams"
+	CodeValidation		= "validation_failed"
+	CodeNotFound		= "not_found"
+	CodeTooManyStreams	= "too_many_streams"
 )
-
-// Options configures the handlers.
 type Options struct {
-	Verifier *authn.Verifier
-	// Callers are the service identities that may act for their people.
-	Callers        []string
-	Heartbeat      time.Duration
-	MaxStreamAge   time.Duration
-	Retry          time.Duration
-	Buffer         int
-	MaxTopics      int
-	MaxPresenceIDs int
-	MaxSyncWindows int
-	Logger         *slog.Logger
-	Registerer     prometheus.Registerer
+	Verifier	*authn.Verifier
+	Callers		[]string
+	Heartbeat	time.Duration
+	MaxStreamAge	time.Duration
+	Retry		time.Duration
+	Buffer		int
+	MaxTopics	int
+	MaxPresenceIDs	int
+	MaxSyncWindows	int
+	Logger		*slog.Logger
+	Registerer	prometheus.Registerer
 }
-
 type handler struct {
-	svc     *app.Service
-	hub     *hub.Hub
-	opts    Options
-	streams prometheus.Gauge
+	svc	*app.Service
+	hub	*hub.Hub
+	opts	Options
+	streams	prometheus.Gauge
 }
-
-// Register adds the routes.
 func Register(e *echo.Echo, svc *app.Service, h *hub.Hub, opts Options) error {
 	streams := prometheus.NewGauge(prometheus.GaugeOpts{Name: "realtime_open_streams", Help: "Open live streams on this replica."})
 	if opts.Registerer != nil {
@@ -65,7 +52,6 @@ func Register(e *echo.Echo, svc *app.Service, h *hub.Hub, opts Options) error {
 	}
 	hd := &handler{svc: svc, hub: h, opts: opts, streams: streams}
 	e.GET("/v1/realtime/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
-
 	services := e.Group("/v1/realtime", authn.Require(opts.Verifier, authn.RealmService), caller(opts.Callers))
 	services.GET("/stream", hd.serviceStream)
 	services.POST("/publish", hd.publish)
@@ -77,7 +63,6 @@ func Register(e *echo.Echo, svc *app.Service, h *hub.Hub, opts Options) error {
 	services.PUT("/windows", hd.replaceWindow)
 	services.DELETE("/windows", hd.removeWindow)
 	services.POST("/windows/sync", hd.syncWindows)
-
 	me := e.Group("/v1/realtime/me", authn.Require(opts.Verifier, authn.RealmIT))
 	me.GET("/stream", hd.itStream)
 	me.GET("/presence", hd.presence(itRealm))
@@ -87,7 +72,6 @@ func Register(e *echo.Echo, svc *app.Service, h *hub.Hub, opts Options) error {
 	me.POST("/activity", hd.activity(itUser))
 	return nil
 }
-
 func caller(allowed []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -99,7 +83,6 @@ func caller(allowed []string) echo.MiddlewareFunc {
 		}
 	}
 }
-
 func fail(err error) error {
 	switch {
 	case errors.Is(err, app.ErrValidation):
@@ -109,12 +92,8 @@ func fail(err error) error {
 	}
 	return err
 }
-
 type user struct{ realm, id string }
-
 type userFunc func(c echo.Context) (user, error)
-
-// serviceUser is the person an app acts for, named in the query.
 func serviceUser(c echo.Context) (user, error) {
 	u := user{realm: c.QueryParam("realm"), id: c.QueryParam("userId")}
 	if !live.ValidRealm(u.realm) || !live.ValidID(u.id) {
@@ -122,8 +101,6 @@ func serviceUser(c echo.Context) (user, error) {
 	}
 	return u, nil
 }
-
-// itUser is the signed-in IT account.
 func itUser(c echo.Context) (user, error) {
 	p, ok := authn.PrincipalFrom(c.Request().Context())
 	if !ok || !live.ValidID(p.Subject) {
@@ -131,9 +108,7 @@ func itUser(c echo.Context) (user, error) {
 	}
 	return user{realm: string(authn.RealmIT), id: p.Subject}, nil
 }
-
 type realmFunc func(c echo.Context) (string, error)
-
 func serviceRealm(c echo.Context) (string, error) {
 	realm := c.QueryParam("realm")
 	if !live.ValidRealm(realm) {
@@ -141,10 +116,7 @@ func serviceRealm(c echo.Context) (string, error) {
 	}
 	return realm, nil
 }
-
-// itRealm: IT accounts see the statuses of IT colleagues.
-func itRealm(echo.Context) (string, error) { return string(authn.RealmIT), nil }
-
+func itRealm(echo.Context) (string, error)	{ return string(authn.RealmIT), nil }
 func splitList(raw string) []string {
 	var out []string
 	for _, part := range strings.Split(raw, ",") {
@@ -154,7 +126,6 @@ func splitList(raw string) []string {
 	}
 	return out
 }
-
 func (h *handler) serviceStream(c echo.Context) error {
 	u, err := serviceUser(c)
 	if err != nil {
@@ -175,8 +146,6 @@ func (h *handler) serviceStream(c echo.Context) error {
 	}
 	return h.stream(c, u, session, topics)
 }
-
-// itTopics are the topics an IT account's roles let them follow.
 func itTopics(p authn.Principal) []string {
 	var topics []string
 	if authz.Allowed(catalog.ITAccess, p, "tickets", "read") {
@@ -187,7 +156,6 @@ func itTopics(p authn.Principal) []string {
 	}
 	return topics
 }
-
 func (h *handler) itStream(c echo.Context) error {
 	u, err := itUser(c)
 	if err != nil {
@@ -200,17 +168,15 @@ func (h *handler) itStream(c echo.Context) error {
 	}
 	return h.stream(c, u, session, itTopics(p))
 }
-
 type publishJSON struct {
-	Topics []string `json:"topics" validate:"max=50"`
-	Users  []struct {
-		Realm string `json:"realm" validate:"required"`
-		ID    string `json:"id" validate:"required,max=128"`
-	} `json:"users" validate:"max=500,dive"`
-	Type string          `json:"type" validate:"required,max=100"`
-	Data json.RawMessage `json:"data"`
+	Topics	[]string	`json:"topics" validate:"max=50"`
+	Users	[]struct {
+		Realm	string	`json:"realm" validate:"required"`
+		ID	string	`json:"id" validate:"required,max=128"`
+	}	`json:"users" validate:"max=500,dive"`
+	Type	string		`json:"type" validate:"required,max=100"`
+	Data	json.RawMessage	`json:"data"`
 }
-
 func (h *handler) publish(c echo.Context) error {
 	var in publishJSON
 	if err := httpx.BindJSON(c, &in, 64<<10); err != nil {
@@ -229,7 +195,6 @@ func (h *handler) publish(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusAccepted)
 }
-
 func (h *handler) presence(realmOf realmFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		realm, err := realmOf(c)
@@ -247,7 +212,6 @@ func (h *handler) presence(realmOf realmFunc) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, map[string]any{"items": items})
 	}
 }
-
 func (h *handler) status(who userFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		u, err := who(c)
@@ -261,13 +225,11 @@ func (h *handler) status(who userFunc) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, mine)
 	}
 }
-
 type statusJSON struct {
-	Status    string     `json:"status" validate:"required,max=64"`
-	Message   *string    `json:"message" validate:"omitempty,max=1000"`
-	ExpiresAt *time.Time `json:"expiresAt"`
+	Status		string		`json:"status" validate:"required,max=64"`
+	Message		*string		`json:"message" validate:"omitempty,max=1000"`
+	ExpiresAt	*time.Time	`json:"expiresAt"`
 }
-
 func (h *handler) setStatus(who userFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		u, err := who(c)
@@ -285,7 +247,6 @@ func (h *handler) setStatus(who userFunc) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, mine)
 	}
 }
-
 func (h *handler) clearStatus(who userFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		u, err := who(c)
@@ -299,11 +260,9 @@ func (h *handler) clearStatus(who userFunc) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, mine)
 	}
 }
-
 type activityJSON struct {
 	State string `json:"state" validate:"required,oneof=active idle"`
 }
-
 func (h *handler) activity(who userFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		u, err := who(c)
@@ -320,25 +279,21 @@ func (h *handler) activity(who userFunc) echo.HandlerFunc {
 		return c.NoContent(http.StatusNoContent)
 	}
 }
-
 type windowJSON struct {
-	SourceID string    `json:"sourceId" validate:"required,max=100"`
-	Kind     string    `json:"kind" validate:"required,max=32"`
-	StartsAt time.Time `json:"startsAt" validate:"required"`
-	EndsAt   time.Time `json:"endsAt" validate:"required"`
-	UserIDs  []string  `json:"userIds" validate:"max=500"`
+	SourceID	string		`json:"sourceId" validate:"required,max=100"`
+	Kind		string		`json:"kind" validate:"required,max=32"`
+	StartsAt	time.Time	`json:"startsAt" validate:"required"`
+	EndsAt		time.Time	`json:"endsAt" validate:"required"`
+	UserIDs		[]string	`json:"userIds" validate:"max=500"`
 }
-
 type replaceWindowJSON struct {
-	Realm  string `json:"realm" validate:"required"`
-	Source string `json:"source" validate:"required,max=32"`
+	Realm	string	`json:"realm" validate:"required"`
+	Source	string	`json:"source" validate:"required,max=32"`
 	windowJSON
 }
-
 func (w windowJSON) input() app.WindowInput {
 	return app.WindowInput{SourceID: w.SourceID, Kind: w.Kind, StartsAt: w.StartsAt, EndsAt: w.EndsAt, UserIDs: w.UserIDs}
 }
-
 func (h *handler) replaceWindow(c echo.Context) error {
 	var in replaceWindowJSON
 	if err := httpx.BindJSON(c, &in, 64<<10); err != nil {
@@ -349,22 +304,19 @@ func (h *handler) replaceWindow(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
-
 func (h *handler) removeWindow(c echo.Context) error {
 	if err := h.svc.RemoveWindow(c.Request().Context(), c.QueryParam("realm"), c.QueryParam("source"), c.QueryParam("sourceId")); err != nil {
 		return fail(err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
-
 type syncJSON struct {
-	Realm   string       `json:"realm" validate:"required"`
-	Source  string       `json:"source" validate:"required,max=32"`
-	From    time.Time    `json:"from" validate:"required"`
-	Until   time.Time    `json:"until" validate:"required"`
-	Windows []windowJSON `json:"windows" validate:"dive"`
+	Realm	string		`json:"realm" validate:"required"`
+	Source	string		`json:"source" validate:"required,max=32"`
+	From	time.Time	`json:"from" validate:"required"`
+	Until	time.Time	`json:"until" validate:"required"`
+	Windows	[]windowJSON	`json:"windows" validate:"dive"`
 }
-
 func (h *handler) syncWindows(c echo.Context) error {
 	var in syncJSON
 	if err := httpx.BindJSON(c, &in, 8<<20); err != nil {

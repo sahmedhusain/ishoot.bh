@@ -1,9 +1,4 @@
--- +goose Up
--- pkg/migrate creates the schema (the service's own login owns it but may not create schemas).
-
 CREATE SEQUENCE itsm.ticket_number_seq;
-
--- Response and resolution targets per priority. IT edits them; these rows are only the starting values.
 CREATE TABLE itsm.sla_policy (
     priority         text PRIMARY KEY,
     response_minutes integer NOT NULL CHECK (response_minutes > 0),
@@ -13,7 +8,6 @@ CREATE TABLE itsm.sla_policy (
 );
 INSERT INTO itsm.sla_policy (priority, response_minutes, resolve_minutes) VALUES
     ('critical', 30, 240), ('high', 120, 1440), ('normal', 480, 4320), ('low', 1440, 10080);
-
 CREATE TABLE itsm.ticket (
     id                uuid PRIMARY KEY,
     number            bigint NOT NULL UNIQUE DEFAULT nextval('itsm.ticket_number_seq'),
@@ -42,7 +36,6 @@ CREATE INDEX ticket_requester ON itsm.ticket (requester_id, created_at DESC, id 
 CREATE INDEX ticket_queue ON itsm.ticket (status, created_at DESC, id DESC);
 CREATE INDEX ticket_assignee ON itsm.ticket (assignee_id, created_at DESC) WHERE assignee_id IS NOT NULL;
 CREATE INDEX ticket_sla_open ON itsm.ticket (resolve_by) WHERE breached_at IS NULL AND resolved_at IS NULL AND closed_at IS NULL;
-
 CREATE TABLE itsm.ticket_event (
     id          uuid PRIMARY KEY,
     ticket_id   uuid NOT NULL REFERENCES itsm.ticket (id) ON DELETE CASCADE,
@@ -55,7 +48,6 @@ CREATE TABLE itsm.ticket_event (
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX ticket_event_ticket ON itsm.ticket_event (ticket_id, created_at);
-
 CREATE TABLE itsm.ticket_comment (
     id          uuid PRIMARY KEY,
     ticket_id   uuid NOT NULL REFERENCES itsm.ticket (id) ON DELETE CASCADE,
@@ -67,8 +59,6 @@ CREATE TABLE itsm.ticket_comment (
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX ticket_comment_ticket ON itsm.ticket_comment (ticket_id, created_at);
-
--- Files are owned by the files service; a ticket keeps only the address and display data.
 CREATE TABLE itsm.ticket_attachment (
     ticket_id  uuid NOT NULL REFERENCES itsm.ticket (id) ON DELETE CASCADE,
     file_url   text NOT NULL,
@@ -79,8 +69,6 @@ CREATE TABLE itsm.ticket_attachment (
     created_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (ticket_id, file_url)
 );
-
--- +goose Down
 DROP TABLE itsm.ticket_attachment;
 DROP TABLE itsm.ticket_comment;
 DROP TABLE itsm.ticket_event;

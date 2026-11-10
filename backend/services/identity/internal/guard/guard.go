@@ -1,6 +1,4 @@
-// Package guard enforces identity login rate limits and the optional IT network allow-list.
 package guard
-
 import (
 	"context"
 	"crypto/hmac"
@@ -11,26 +9,19 @@ import (
 	"net/netip"
 	"strings"
 	"time"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/ratelimit"
 )
-
 var ErrDenied = errors.New("login denied")
 var ErrUnavailable = errors.New("login rate limit unavailable")
-
-// Limited carries only the wait duration; it never includes an account identifier.
 type Limited struct{ RetryAfter time.Duration }
-
-func (e *Limited) Error() string { return "login rate limited" }
-
+func (e *Limited) Error() string	{ return "login rate limited" }
 type Guard struct {
-	limiter     ratelimit.Limiter
-	key         []byte
-	account, ip ratelimit.Rule
-	allow       []netip.Prefix
+	limiter		ratelimit.Limiter
+	key		[]byte
+	account, ip	ratelimit.Rule
+	allow		[]netip.Prefix
 }
-
 func New(limiter ratelimit.Limiter, key []byte, account, ip ratelimit.Rule, allow []netip.Prefix) (*Guard, error) {
 	if limiter == nil || len(key) != 32 {
 		return nil, errors.New("invalid login rate-limit configuration")
@@ -74,9 +65,6 @@ func (g *Guard) allowRequest(ctx context.Context, key string, rule ratelimit.Rul
 	}
 	return nil
 }
-
-// Check accepts an IP supplied by the authenticated app server only when that app has a trusted ingress header.
-// When the IT allow-list is configured an absent or invalid client IP is always denied.
 func (g *Guard) Check(ctx context.Context, realm authn.Realm, email, clientIP string) error {
 	if realm != authn.RealmStaff && realm != authn.RealmCustomer && realm != authn.RealmIT {
 		return ErrDenied
@@ -113,8 +101,6 @@ func (g *Guard) Check(ctx context.Context, realm authn.Realm, email, clientIP st
 	}
 	return g.allowRequest(ctx, g.digest("account", realm, email), g.account)
 }
-
-// CheckAction preserves command-specific limits across every website and identity replica.
 func (g *Guard) CheckAction(ctx context.Context, realm authn.Realm, action, email, ip string) error {
 	if err := g.Check(ctx, realm, email, ip); err != nil {
 		return err
@@ -154,13 +140,11 @@ func (g *Guard) CheckAction(ctx context.Context, realm authn.Realm, action, emai
 	}
 	return g.allowRequest(ctx, g.digest("command-account", realm, strings.ToLower(strings.TrimSpace(email))), ratelimit.Rule{Name: action + "-account", Requests: account, Window: window})
 }
-
 type actionGuard struct {
-	guard  *Guard
-	action string
+	guard	*Guard
+	action	string
 }
-
-func (g *Guard) ForAction(action string) *actionGuard { return &actionGuard{guard: g, action: action} }
+func (g *Guard) ForAction(action string) *actionGuard	{ return &actionGuard{guard: g, action: action} }
 func (g *actionGuard) Check(ctx context.Context, realm authn.Realm, email, ip string) error {
 	return g.guard.CheckAction(ctx, realm, g.action, email, ip)
 }

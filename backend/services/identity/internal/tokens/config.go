@@ -1,5 +1,4 @@
 package tokens
-
 import (
 	"crypto/ed25519"
 	"crypto/subtle"
@@ -8,24 +7,20 @@ import (
 	"errors"
 	"time"
 )
-
-// Config reads the private signing JWK and optional previous public JWKS from the service's secret environment.
 type Config struct {
-	Issuer       string        `env:"ISSUER"`
-	SigningJWK   string        `env:"SIGNING_JWK"`
-	PreviousJWKS string        `env:"PREVIOUS_JWKS"`
-	AccessTTL    time.Duration `env:"ACCESS_TTL" envDefault:"10m" validate:"gt=0"`
+	Issuer		string		`env:"ISSUER"`
+	SigningJWK	string		`env:"SIGNING_JWK"`
+	PreviousJWKS	string		`env:"PREVIOUS_JWKS"`
+	AccessTTL	time.Duration	`env:"ACCESS_TTL" envDefault:"10m" validate:"gt=0"`
 }
-
 type jsonKey struct {
-	Kty string `json:"kty"`
-	Crv string `json:"crv"`
-	Kid string `json:"kid"`
-	Alg string `json:"alg"`
-	X   string `json:"x"`
-	D   string `json:"d"`
+	Kty	string	`json:"kty"`
+	Crv	string	`json:"crv"`
+	Kid	string	`json:"kid"`
+	Alg	string	`json:"alg"`
+	X	string	`json:"x"`
+	D	string	`json:"d"`
 }
-
 func decodeJSON(encoded string, value any) error {
 	if len(encoded) == 0 || len(encoded) > 65536 {
 		return errors.New("invalid identity key configuration")
@@ -42,8 +37,6 @@ func decodeJSON(encoded string, value any) error {
 func validJWK(k jsonKey) bool {
 	return k.Kty == "OKP" && k.Crv == "Ed25519" && k.Kid != "" && (k.Alg == "" || k.Alg == "EdDSA")
 }
-
-// LoadIssuer validates that the private seed matches its declared public key and that previous keys are public only.
 func (c Config) LoadIssuer() (*Issuer, error) {
 	var active jsonKey
 	if err := decodeJSON(c.SigningJWK, &active); err != nil {

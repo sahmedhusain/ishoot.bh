@@ -1,15 +1,9 @@
--- Hands "FeatureToggle" over to the system service (docs/adr/0002, 0010). The table moves, with its data, to the
--- system schema under the names the service uses (backend/services/system/migrations/00001_modules.sql). Module
--- names and descriptions are dropped: the catalogue (contracts/catalog/modules.json) owns them. If the system
--- service already created its table, legacy choices are copied for modules it has no choice for yet.
 CREATE SCHEMA IF NOT EXISTS system;
-
 DO $$
 BEGIN
   IF to_regclass('public."FeatureToggle"') IS NULL THEN
     RETURN;
   END IF;
-
   IF to_regclass('system.module_setting') IS NOT NULL THEN
     INSERT INTO system.module_setting (module_key, enabled)
     SELECT "moduleKey", "isEnabled" FROM public."FeatureToggle"
@@ -17,7 +11,6 @@ BEGIN
     DROP TABLE public."FeatureToggle";
     RETURN;
   END IF;
-
   ALTER TABLE public."FeatureToggle" SET SCHEMA system;
   ALTER TABLE system."FeatureToggle" RENAME TO module_setting;
   ALTER TABLE system.module_setting DROP CONSTRAINT "FeatureToggle_pkey";

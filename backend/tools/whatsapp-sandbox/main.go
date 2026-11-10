@@ -1,10 +1,4 @@
-// Command whatsapp-sandbox stands in for the WhatsApp Cloud API in local development (docs/backend/OPERATIONS.md).
-// Point NOTIFY_WHATSAPP_URL at it; open it in a browser to read what was sent.
-//
-//	whatsapp-sandbox             serve on :8080 (SANDBOX_ADDR)
-//	whatsapp-sandbox healthcheck probe the running sandbox (Docker HEALTHCHECK)
 package main
-
 import (
 	"context"
 	"errors"
@@ -17,14 +11,12 @@ import (
 	"syscall"
 	"time"
 )
-
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "whatsapp-sandbox:", err)
 		os.Exit(1)
 	}
 }
-
 func run() error {
 	addr := os.Getenv("SANDBOX_ADDR")
 	if addr == "" {
@@ -48,8 +40,6 @@ func run() error {
 	}
 	return nil
 }
-
-// probe asks this container's own sandbox whether it is up.
 func probe(addr string) error {
 	_, port, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -57,11 +47,11 @@ func probe(addr string) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:"+port+"/healthz", nil) //nolint:gosec // loopback probe
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:"+port+"/healthz", nil)
 	if err != nil {
 		return err
 	}
-	resp, err := http.DefaultClient.Do(req) //nolint:gosec // the loopback address of this container, not user input
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

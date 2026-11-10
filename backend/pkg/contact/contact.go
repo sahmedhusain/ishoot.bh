@@ -1,20 +1,15 @@
-// Package contact normalizes the contact fields used by business services.
 package contact
-
 import (
 	"errors"
 	"net/mail"
 	"regexp"
 	"strings"
-
 	"github.com/nyaruka/phonenumbers"
 	"golang.org/x/text/language"
 	"golang.org/x/text/language/display"
 )
-
 var ErrInvalid = errors.New("invalid contact field")
 var phoneInput = regexp.MustCompile(`^[+\p{Nd}\s()./-]+$`)
-
 func Email(value string) (string, error) {
 	value = strings.ToLower(strings.TrimSpace(value))
 	if value == "" {

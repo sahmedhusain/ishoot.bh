@@ -1,17 +1,13 @@
 package password
-
 import (
 	"strings"
 	"testing"
-
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
-
 func config() Config {
 	return Config{Memory: 19456, Iterations: 2, Parallelism: 1, MaxMemory: 262144, MaxIterations: 10, MaxParallelism: 16, MaxBcryptCost: 16}
 }
-
 func TestRoundTripAndUniqueSalt(t *testing.T) {
 	h, err := New(config())
 	require.NoError(t, err)
@@ -27,7 +23,6 @@ func TestRoundTripAndUniqueSalt(t *testing.T) {
 	require.ErrorIs(t, err, ErrInvalid)
 	require.False(t, rehash)
 }
-
 func TestLegacyBcrypt(t *testing.T) {
 	h, err := New(config())
 	require.NoError(t, err)
@@ -43,7 +38,6 @@ func TestLegacyBcrypt(t *testing.T) {
 		require.False(t, rehash)
 	}
 }
-
 func TestRefusesMalformedAndUnboundedHashes(t *testing.T) {
 	h, err := New(config())
 	require.NoError(t, err)
@@ -59,7 +53,6 @@ func TestRefusesMalformedAndUnboundedHashes(t *testing.T) {
 		require.ErrorIs(t, err, ErrInvalid)
 	}
 }
-
 func TestUpgradeWeakerArgonWithoutDowngradingStronger(t *testing.T) {
 	base, err := New(config())
 	require.NoError(t, err)
@@ -78,7 +71,6 @@ func TestUpgradeWeakerArgonWithoutDowngradingStronger(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, rehash)
 }
-
 func TestRejectsUnsafeConfiguration(t *testing.T) {
 	for _, mutate := range []func(*Config){func(c *Config) { c.Memory = 1024 }, func(c *Config) { c.Iterations = 1 }, func(c *Config) { c.Parallelism = 0 }, func(c *Config) { c.MaxMemory = 1 }, func(c *Config) { c.MaxBcryptCost = 31 }} {
 		cfg := config()

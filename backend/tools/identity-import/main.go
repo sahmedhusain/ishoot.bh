@@ -1,7 +1,4 @@
-// Command identity-import copies legacy authentication and access records into identity during a quiesced cutover.
-// It defaults to validation-only; -apply writes to identity tables without deleting legacy records.
 package main
-
 import (
 	"context"
 	"flag"
@@ -10,37 +7,32 @@ import (
 	"os"
 	"strings"
 	"unicode/utf8"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/secrets"
 )
-
 type settings struct {
-	Database     db.Config       `envPrefix:"DATABASE_"`
-	Password     password.Config `envPrefix:"IDENTITY_LOGIN_PASSWORD_"`
-	MFAKeys      []string        `env:"IDENTITY_LOGIN_MFA_KEYS" envSeparator:","`
-	MFAPrimaryID string          `env:"IDENTITY_LOGIN_MFA_PRIMARY_ID"`
-	MFALegacyKey string          `env:"IDENTITY_LOGIN_MFA_LEGACY_KEY"`
+	Database	db.Config	`envPrefix:"DATABASE_"`
+	Password	password.Config	`envPrefix:"IDENTITY_LOGIN_PASSWORD_"`
+	MFAKeys		[]string	`env:"IDENTITY_LOGIN_MFA_KEYS" envSeparator:","`
+	MFAPrimaryID	string		`env:"IDENTITY_LOGIN_MFA_PRIMARY_ID"`
+	MFALegacyKey	string		`env:"IDENTITY_LOGIN_MFA_LEGACY_KEY"`
 }
 type options struct {
-	Apply         bool
-	Actor         string
-	Keyring       *secrets.Keyring
-	MaxBcryptCost int
+	Apply		bool
+	Actor		string
+	Keyring		*secrets.Keyring
+	MaxBcryptCost	int
 }
 type summary struct {
-	ProvidersInserted, ResetChallengesInserted, CustomerCodesInserted                                      int64
-	Staff, Customers, RecoveryCodes, Roles, Permissions, Scopes                                            int64
-	AccountsInserted, RecoveryInserted, RolesInserted, PermissionsInserted, ScopesInserted, AccessInserted int64
+	ProvidersInserted, ResetChallengesInserted, CustomerCodesInserted					int64
+	Staff, Customers, RecoveryCodes, Roles, Permissions, Scopes						int64
+	AccountsInserted, RecoveryInserted, RolesInserted, PermissionsInserted, ScopesInserted, AccessInserted	int64
 }
-
-// sourceAccounts never reads profile or business records into application memory.
 const sourceAccounts = `WITH source_accounts AS (
  SELECT 'staff'::text AS realm, u.id AS subject_id, lower(btrim(u.email)) AS email, u."passwordHash" AS password_hash,
  ARRAY[u.role]::text[] AS roles, u."isActive" AS active, u."mfaEnabled" AS mfa_enabled,
@@ -53,7 +45,6 @@ const sourceAccounts = `WITH source_accounts AS (
  NULL::timestamptz,c."createdAt" AT TIME ZONE 'UTC',c."updatedAt" AT TIME ZONE 'UTC'
  FROM public."Customer" c
 ) `
-
 func main() {
 	apply := flag.Bool("apply", false, "copy accounts and access after validation (default: validation only)")
 	actor := flag.String("actor", "", "operator ID recorded in audit; required with -apply")
@@ -92,7 +83,6 @@ func main() {
 		os.Exit(1)
 	}
 }
-
 func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error) {
 	var report summary
 	if opts.Apply && (opts.Actor == "" || len(opts.Actor) > 191 || strings.IndexFunc(opts.Actor, func(r rune) bool { return r < 33 || r > 126 }) >= 0) {
@@ -102,7 +92,6 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 		opts.MaxBcryptCost = 16
 	}
 	err := db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		// A consistent snapshot is essential. Operators must keep app writes paused through the final cutover.
 		if _, err := tx.Exec(ctx, `LOCK TABLE public."User", public."Customer", public."MfaRecoveryCode", public."Role", public."Permission", public."RoleDataScope", public."AuthChallenge", public."CustomerAuthCode" IN SHARE MODE;
 LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, identity.staff_permission, identity.staff_role_scope, identity.staff_access,identity.customer_provider,identity.legacy_reset_challenge,identity.customer_code IN SHARE ROW EXCLUSIVE MODE`); err != nil {
 			return fmt.Errorf("lock legacy tables: %w", err)
@@ -201,16 +190,15 @@ LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, id
 			return nil
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.snapshot.imported", Payload: map[string]any{
-			"changedBy":         "operator:" + opts.Actor,
-			"providersInserted": report.ProvidersInserted, "resetChallengesInserted": report.ResetChallengesInserted, "customerCodesInserted": report.CustomerCodesInserted,
-			"accountsInserted": report.AccountsInserted, "recoveryInserted": report.RecoveryInserted,
-			"rolesInserted": report.RolesInserted, "permissionsInserted": report.PermissionsInserted,
-			"scopesInserted": report.ScopesInserted, "accessInserted": report.AccessInserted,
+			"changedBy":		"operator:" + opts.Actor,
+			"providersInserted":	report.ProvidersInserted, "resetChallengesInserted": report.ResetChallengesInserted, "customerCodesInserted": report.CustomerCodesInserted,
+			"accountsInserted":	report.AccountsInserted, "recoveryInserted": report.RecoveryInserted,
+			"rolesInserted":	report.RolesInserted, "permissionsInserted": report.PermissionsInserted,
+			"scopesInserted":	report.ScopesInserted, "accessInserted": report.AccessInserted,
 		}})
 	})
 	return report, err
 }
-
 func validateEmails(ctx context.Context, tx pgx.Tx) error {
 	rows, err := tx.Query(ctx, `SELECT email,lower(btrim(email)) FROM public."User" UNION ALL SELECT email,lower(btrim(email)) FROM public."Customer"`)
 	if err != nil {

@@ -2,7 +2,7 @@
 
 Generated from the saved source. This covers all **101 query modules**, **731 exported operations**, and a schema containing **182 models**.
 
-The table identifies direct Prisma/SQL table references and imports of peer query modules. Shared services, permissions, transactions and provider calls also create indirect relationships; this is a source inventory, not runtime test evidence. Historical database identifiers are retained for compatibility. No application or test was executed to produce it.
+The table identifies direct LegacyDB/SQL table references and imports of peer query modules. Shared services, permissions, transactions and provider calls also create indirect relationships; this is a source inventory, not runtime test evidence. Historical database identifiers are retained for compatibility. No application or test was executed to produce it.
 
 | Query module | Exported operations | Direct models | Peer query modules |
 | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ The table identifies direct Prisma/SQL table references and imports of peer quer
 | [legal](../packages/database/src/queries/legal.ts) | `listLegalMatters`, `getLegalMatter`, `saveLegalMatter`, `addLegalNote`, `remindLegalDates`, `licenceRegister`, `contractRegister` | CompanyDocument, Contract, LegalMatter, LegalMatterEvent, User | `notifications`, `sequence` |
 | [list-pages](../packages/database/src/queries/list-pages.ts) | `listParameters`, `getDealsPage`, `getInvoicesPage`, `getPaymentsPage`, `getCalendarPage`, `getMomsPage`, `getCompanyDocumentsPage`, `iterateListExport`, `getAttachmentsPage`, `getExpensesPage` | Attachment, CalendarEvent, CompanyDocument, CrmContact, CrmDeal, Expense, Invoice, MinuteOfMeeting, Payment, User | `client-profiles`, `crm` |
 | [marketing](../packages/database/src/queries/marketing.ts) | `listCampaigns`, `saveCampaign`, `listSegments`, `saveSegment`, `listBroadcasts`, `saveBroadcast`, `queueBroadcast`, `unsubscribeToken`, `unsubscribeCustomer`, `sendBroadcastBatch` | Broadcast, BroadcastRecipient, Campaign, Customer, CustomerSegment, Inquiry, SalesOrder | `sequence` |
-| [moms](../packages/database/src/queries/moms.ts) | `mapPrismaMom`, `getMinutesOfMeetings`, `getMinuteOfMeetingById`, `getNextMomNumber`, `createMinuteOfMeeting`, `updateMinuteOfMeeting`, `deleteMinuteOfMeeting`, `approveAndSignMom` | MinuteOfMeeting | — |
+| [moms](../packages/database/src/queries/moms.ts) | `mapLegacyDBMom`, `getMinutesOfMeetings`, `getMinuteOfMeetingById`, `getNextMomNumber`, `createMinuteOfMeeting`, `updateMinuteOfMeeting`, `deleteMinuteOfMeeting`, `approveAndSignMom` | MinuteOfMeeting | — |
 | [notifications](../packages/database/src/queries/notifications.ts) | `getNotifications`, `markNotificationRead`, `markAllNotificationsRead`, `createNotification`, `notificationInbox`, `updateOwnNotification`, `notificationPreview` | Notification | — |
 | [notify](../packages/database/src/queries/notify.ts) | `notifyUsersWithPermission` | User | `notifications`, `permissions` |
 | [official-letters](../packages/database/src/queries/official-letters.ts) | `listLetterTemplates`, `saveLetterTemplate`, `letterValues`, `fillPlaceholders`, `draftFromTemplate`, `saveOfficialLetter`, `submitOfficialLetter`, `cancelOfficialLetter`, `listOfficialLetters`, `getOfficialLetter`, `verifyOfficialLetter` | ApprovalDecision, Employee, LetterTemplate, OfficialLetter, User | `company-settings`, `sequence`, `signature-policies` |

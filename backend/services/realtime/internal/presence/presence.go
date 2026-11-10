@@ -1,70 +1,47 @@
-// Package presence records who is connected and who is idle, shared by every realtime replica through Valkey. Each
-// replica marks the people it holds streams for and renews the marks; a replica that dies stops renewing, and its
-// marks expire on their own.
 package presence
-
 import (
 	"context"
 	"errors"
 	"strconv"
 	"sync"
 	"time"
-
 	"github.com/redis/go-redis/v9"
-
 	"platform.local/backend/services/realtime/internal/hub"
 )
-
-// Connection is what the live streams say about one person.
 type Connection struct {
-	Online   bool
-	Idle     bool
-	LastSeen *time.Time
+	Online		bool
+	Idle		bool
+	LastSeen	*time.Time
 }
-
-// Tracker stores connection state.
 type Tracker interface {
-	// Online marks the person connected to this replica.
 	Online(ctx context.Context, realm, id string) error
-	// Offline removes this replica's mark when its last stream for the person closed.
 	Offline(ctx context.Context, realm, id string) error
-	// Refresh renews this replica's marks for the people it holds.
 	Refresh(ctx context.Context, users []hub.User) error
-	// SetIdle records that the person's browser reports them idle (or active again).
 	SetIdle(ctx context.Context, realm, id string, idle bool) error
-	// States reads the connection state of people in one realm.
 	States(ctx context.Context, realm string, ids []string) (map[string]Connection, error)
 }
-
-// Redis keeps the marks in Valkey: a hash per person (replica → mark expiry), an idle flag and the last time seen.
 type Redis struct {
-	Client  redis.UniversalClient
-	Replica string
-	TTL     time.Duration
-	IdleTTL time.Duration
-	// SeenTTL is how long "last seen" is remembered.
-	SeenTTL time.Duration
-	Now     func() time.Time
+	Client	redis.UniversalClient
+	Replica	string
+	TTL	time.Duration
+	IdleTTL	time.Duration
+	SeenTTL	time.Duration
+	Now	func() time.Time
 }
-
-func connKey(realm, id string) string { return "rt:conn:" + realm + ":" + id }
-func idleKey(realm, id string) string { return "rt:idle:" + realm + ":" + id }
-func seenKey(realm, id string) string { return "rt:seen:" + realm + ":" + id }
-
+func connKey(realm, id string) string	{ return "rt:conn:" + realm + ":" + id }
+func idleKey(realm, id string) string	{ return "rt:idle:" + realm + ":" + id }
+func seenKey(realm, id string) string	{ return "rt:seen:" + realm + ":" + id }
 func (r *Redis) now() time.Time {
 	if r.Now != nil {
 		return r.Now()
 	}
 	return time.Now()
 }
-
 func (r *Redis) mark(pipe redis.Pipeliner, ctx context.Context, realm, id string) {
 	key := connKey(realm, id)
 	pipe.HSet(ctx, key, r.Replica, r.now().Add(r.TTL).UnixMilli())
 	pipe.PExpire(ctx, key, r.TTL)
 }
-
-// Online marks the person connected to this replica.
 func (r *Redis) Online(ctx context.Context, realm, id string) error {
 	_, err := r.Client.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 		r.mark(pipe, ctx, realm, id)
@@ -72,8 +49,6 @@ func (r *Redis) Online(ctx context.Context, realm, id string) error {
 	})
 	return err
 }
-
-// Offline removes this replica's mark and remembers when the person was last seen.
 func (r *Redis) Offline(ctx context.Context, realm, id string) error {
 	_, err := r.Client.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 		pipe.HDel(ctx, connKey(realm, id), r.Replica)
@@ -82,8 +57,6 @@ func (r *Redis) Offline(ctx context.Context, realm, id string) error {
 	})
 	return err
 }
-
-// Refresh renews this replica's marks.
 func (r *Redis) Refresh(ctx context.Context, users []hub.User) error {
 	if len(users) == 0 {
 		return nil
@@ -96,20 +69,16 @@ func (r *Redis) Refresh(ctx context.Context, users []hub.User) error {
 	})
 	return err
 }
-
-// SetIdle records or clears the idle flag.
 func (r *Redis) SetIdle(ctx context.Context, realm, id string, idle bool) error {
 	if idle {
 		return r.Client.Set(ctx, idleKey(realm, id), 1, r.IdleTTL).Err()
 	}
 	return r.Client.Del(ctx, idleKey(realm, id)).Err()
 }
-
-// States reads the marks of people in one realm.
 func (r *Redis) States(ctx context.Context, realm string, ids []string) (map[string]Connection, error) {
 	type reads struct {
-		conn       *redis.MapStringStringCmd
-		idle, seen *redis.StringCmd
+		conn		*redis.MapStringStringCmd
+		idle, seen	*redis.StringCmd
 	}
 	cmds := make(map[string]reads, len(ids))
 	_, err := r.Client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
@@ -140,32 +109,23 @@ func (r *Redis) States(ctx context.Context, realm string, ids []string) (map[str
 	}
 	return out, nil
 }
-
-// Memory keeps the marks in memory, for tests and a single replica without Valkey.
 type Memory struct {
-	mu     sync.Mutex
-	online map[string]int
-	idle   map[string]bool
-	seen   map[string]time.Time
-	Now    func() time.Time
+	mu	sync.Mutex
+	online	map[string]int
+	idle	map[string]bool
+	seen	map[string]time.Time
+	Now	func() time.Time
 }
-
-// NewMemory returns an empty in-memory tracker.
 func NewMemory() *Memory {
 	return &Memory{online: map[string]int{}, idle: map[string]bool{}, seen: map[string]time.Time{}}
 }
-
-func key(realm, id string) string { return realm + "|" + id }
-
-// Online counts a stream.
+func key(realm, id string) string	{ return realm + "|" + id }
 func (m *Memory) Online(_ context.Context, realm, id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.online[key(realm, id)]++
 	return nil
 }
-
-// Offline forgets the person's streams.
 func (m *Memory) Offline(_ context.Context, realm, id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -177,19 +137,13 @@ func (m *Memory) Offline(_ context.Context, realm, id string) error {
 	m.seen[key(realm, id)] = now.UTC()
 	return nil
 }
-
-// Refresh does nothing: memory marks never expire.
-func (m *Memory) Refresh(context.Context, []hub.User) error { return nil }
-
-// SetIdle records the idle flag.
+func (m *Memory) Refresh(context.Context, []hub.User) error	{ return nil }
 func (m *Memory) SetIdle(_ context.Context, realm, id string, idle bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.idle[key(realm, id)] = idle
 	return nil
 }
-
-// States reads the marks.
 func (m *Memory) States(_ context.Context, realm string, ids []string) (map[string]Connection, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

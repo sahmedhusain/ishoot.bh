@@ -1,19 +1,14 @@
 package httpapi
-
 import (
 	"errors"
 	"net/http"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/app"
 )
-
-// RegisterSelfService exposes a staff member's or customer's own sessions and password, with their access token.
 func RegisterSelfService(e *echo.Echo, verifier *authn.Verifier, svc *app.SelfService, bodyLimit int64) {
 	g := e.Group("/v1/identity/me", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -59,10 +54,10 @@ func RegisterSelfService(e *echo.Echo, verifier *authn.Verifier, svc *app.SelfSe
 	})
 	g.PUT("/password", func(c echo.Context) error {
 		var in struct {
-			CurrentPassword string `json:"currentPassword" validate:"required,max=1024"`
-			NewPassword     string `json:"newPassword" validate:"required,max=1024"`
-			Code            string `json:"code" validate:"max=64"`
-			ClientIP        string `json:"clientIp" validate:"max=45"`
+			CurrentPassword	string	`json:"currentPassword" validate:"required,max=1024"`
+			NewPassword	string	`json:"newPassword" validate:"required,max=1024"`
+			Code		string	`json:"code" validate:"max=64"`
+			ClientIP	string	`json:"clientIp" validate:"max=45"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err
@@ -80,7 +75,6 @@ func RegisterSelfService(e *echo.Echo, verifier *authn.Verifier, svc *app.SelfSe
 		return c.NoContent(http.StatusNoContent)
 	})
 }
-
 func selfError(err error) error {
 	switch {
 	case errors.Is(err, accounts.ErrForbidden):

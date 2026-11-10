@@ -1,14 +1,9 @@
--- Hands "IntegrationSetting" over to the system service (docs/adr/0002, 0010). The table moves, with its data, to the
--- system schema under the names the service uses (backend/services/system/migrations/00002_integrations.sql).
--- If the system service already created its table, legacy settings are copied for providers it has no setting for yet.
 CREATE SCHEMA IF NOT EXISTS system;
-
 DO $$
 BEGIN
   IF to_regclass('public."IntegrationSetting"') IS NULL THEN
     RETURN;
   END IF;
-
   IF to_regclass('system.integration_setting') IS NOT NULL THEN
     INSERT INTO system.integration_setting (
       provider, is_active, credentials, config, sync_lease_token, sync_lease_until,
@@ -24,7 +19,6 @@ BEGIN
     DROP TABLE public."IntegrationSetting";
     RETURN;
   END IF;
-
   ALTER TABLE public."IntegrationSetting" SET SCHEMA system;
   ALTER TABLE system."IntegrationSetting" RENAME TO integration_setting;
   ALTER TABLE system.integration_setting RENAME COLUMN "isActive" TO is_active;

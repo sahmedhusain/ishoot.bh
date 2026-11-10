@@ -1,42 +1,34 @@
 package accounts
-
 import (
 	"context"
 	"crypto/rand"
 	"encoding/base32"
 	"errors"
 	"time"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/totp"
 	"platform.local/backend/services/identity/internal/guard"
 )
-
-// MFAConfig controls enrollment lifetime and the recovery codes returned once on confirmation.
 type MFAConfig struct {
-	EnrollmentTTL, Period time.Duration
-	RecoveryCount, Digits int
+	EnrollmentTTL, Period	time.Duration
+	RecoveryCount, Digits	int
 }
 type MFAChange struct {
-	// Kind is begin, cancel, confirm, disable, or password (a person changing their own password).
-	Kind string
-	// PasswordHash is the new hash for Kind password.
-	PasswordHash        *string
-	Secret              *string
-	ExpiresAt           *time.Time
-	Step                *int64
-	RecoveryHashes      []string
-	CurrentRecoveryHash string
+	Kind	string
+	PasswordHash		*string
+	Secret			*string
+	ExpiresAt		*time.Time
+	Step			*int64
+	RecoveryHashes		[]string
+	CurrentRecoveryHash	string
 }
 type Enrollment struct {
-	Secret        string
-	Digits        int
-	PeriodSeconds int64
-	ExpiresAt     time.Time
+	Secret		string
+	Digits		int
+	PeriodSeconds	int64
+	ExpiresAt	time.Time
 }
-
-// CheckFactor verifies a factor for a locked account; the caller must atomically consume recovery codes and persist the step.
 func (s *Service) CheckFactor(account Account, code string, now time.Time) (MFAResult, error) {
 	if account.Realm == authn.RealmIT && !account.MFAEnabled {
 		return MFAResult{}, ErrInvalid
@@ -64,7 +56,6 @@ func (s *Service) CheckFactor(account Account, code string, now time.Time) (MFAR
 	}
 	return MFAResult{Step: &step}, nil
 }
-
 func (s *Service) mfaSnapshot(ctx context.Context, p authn.Principal, plain, ip string, now time.Time) (Account, error) {
 	if len(plain) == 0 || len(plain) > 1024 {
 		return Account{}, ErrInvalid
@@ -100,8 +91,6 @@ func (s *Service) mfaSnapshot(ctx context.Context, p authn.Principal, plain, ip 
 	}
 	return account, nil
 }
-
-// BeginMFA returns a temporary base32 secret only after password and live-session checks.
 func (s *Service) BeginMFA(ctx context.Context, p authn.Principal, plain, ip string, now time.Time) (Enrollment, error) {
 	account, err := s.mfaSnapshot(ctx, p, plain, ip, now)
 	if err != nil {
@@ -189,9 +178,6 @@ func (s *Service) DisableMFA(ctx context.Context, p authn.Principal, plain, code
 		return MFAChange{Kind: "disable", CurrentRecoveryHash: factor.RecoveryHash}, nil
 	})
 }
-
-// ChangePassword sets a person's own password after checking the current one, their second factor when it is on,
-// and their live session. Every session ends, including the current one.
 func (s *Service) ChangePassword(ctx context.Context, p authn.Principal, current, next, code, ip string, minLength int, now time.Time) error {
 	if p.Realm == authn.RealmIT || len([]rune(next)) < minLength || len(next) > 1024 || len(code) > 64 {
 		return ErrInvalid

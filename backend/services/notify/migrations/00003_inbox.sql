@@ -1,7 +1,3 @@
--- In-app notifications (ADR 0012): each person's inbox in the staff and IT realms, their settings and what they muted.
--- A notification whose category or record the person muted is stored silently: no sound, pop-up or badge.
-
--- +goose Up
 CREATE TABLE IF NOT EXISTS notify.notification (
     id             uuid        NOT NULL,
     realm          text        NOT NULL,
@@ -32,11 +28,9 @@ CREATE INDEX IF NOT EXISTS notification_inbox_idx ON notify.notification (realm,
 CREATE INDEX IF NOT EXISTS notification_unread_idx ON notify.notification (realm, recipient, category)
     WHERE read_at IS NULL AND archived_at IS NULL AND NOT silent;
 CREATE INDEX IF NOT EXISTS notification_created_idx ON notify.notification (created_at);
-
 CREATE TABLE IF NOT EXISTS notify.preference (
     realm           text        NOT NULL,
     user_id         text        NOT NULL,
-    -- Everything is quiet until then; 'infinity' means until the person turns it back on.
     muted_until     timestamptz,
     sound_enabled   boolean     NOT NULL DEFAULT true,
     sound           text        NOT NULL DEFAULT 'chime',
@@ -47,8 +41,6 @@ CREATE TABLE IF NOT EXISTS notify.preference (
     CONSTRAINT preference_pkey PRIMARY KEY (realm, user_id),
     CONSTRAINT preference_volume_check CHECK (volume BETWEEN 0 AND 100)
 );
-
--- Per-category settings; a missing row means the category's defaults (not muted, plays a sound).
 CREATE TABLE IF NOT EXISTS notify.category_setting (
     realm    text    NOT NULL,
     user_id  text    NOT NULL,
@@ -57,8 +49,6 @@ CREATE TABLE IF NOT EXISTS notify.category_setting (
     sound    boolean NOT NULL DEFAULT true,
     CONSTRAINT category_setting_pkey PRIMARY KEY (realm, user_id, category)
 );
-
--- A record (a task, an invoice…) the person no longer wants to hear about, until a time or until unmuted.
 CREATE TABLE IF NOT EXISTS notify.mute (
     realm       text        NOT NULL,
     user_id     text        NOT NULL,
@@ -68,8 +58,6 @@ CREATE TABLE IF NOT EXISTS notify.mute (
     created_at  timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT mute_pkey PRIMARY KEY (realm, user_id, entity_type, entity_id)
 );
-
--- +goose Down
 DROP TABLE IF EXISTS notify.mute;
 DROP TABLE IF EXISTS notify.category_setting;
 DROP TABLE IF EXISTS notify.preference;

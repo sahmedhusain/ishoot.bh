@@ -1,18 +1,14 @@
 package httpapi
-
 import (
 	"net/http"
 	"strconv"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/identity/internal/app"
 )
-
 func RegisterDeskSessions(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskSessions) {
 	g := e.Group("/v1/identity/desk/sessions", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }

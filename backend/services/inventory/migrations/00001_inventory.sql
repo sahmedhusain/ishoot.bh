@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS inventory.warehouse (
     id text PRIMARY KEY,
     code text NOT NULL UNIQUE,
@@ -12,7 +11,6 @@ CREATE TABLE IF NOT EXISTS inventory.warehouse (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS inventory.stock_location (
     id text PRIMARY KEY,
     warehouse_id text NOT NULL REFERENCES inventory.warehouse(id) ON DELETE CASCADE,
@@ -22,7 +20,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_location (
     created_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT stock_location_wh_code_uniq UNIQUE (warehouse_id, code)
 );
-
 CREATE TABLE IF NOT EXISTS inventory.product_category (
     id text PRIMARY KEY,
     slug text NOT NULL UNIQUE,
@@ -34,7 +31,6 @@ CREATE TABLE IF NOT EXISTS inventory.product_category (
     sort_order integer NOT NULL DEFAULT 0,
     is_active boolean NOT NULL DEFAULT true
 );
-
 CREATE TABLE IF NOT EXISTS inventory.product (
     id text PRIMARY KEY,
     sku text NOT NULL UNIQUE,
@@ -55,7 +51,6 @@ CREATE TABLE IF NOT EXISTS inventory.product (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS product_category_idx ON inventory.product (category_id, is_active);
-
 CREATE TABLE IF NOT EXISTS inventory.product_variant (
     id text PRIMARY KEY,
     product_id text NOT NULL REFERENCES inventory.product(id) ON DELETE CASCADE,
@@ -69,7 +64,6 @@ CREATE TABLE IF NOT EXISTS inventory.product_variant (
     attributes jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 CREATE INDEX IF NOT EXISTS variant_product_idx ON inventory.product_variant (product_id);
-
 CREATE TABLE IF NOT EXISTS inventory.stock_level (
     id text PRIMARY KEY,
     product_id text NOT NULL REFERENCES inventory.product(id) ON DELETE CASCADE,
@@ -82,7 +76,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_level (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS stock_level_item_loc_idx ON inventory.stock_level (product_id, COALESCE(variant_id, ''), location_id);
-
 CREATE TABLE IF NOT EXISTS inventory.stock_batch (
     id text PRIMARY KEY,
     batch_number text NOT NULL,
@@ -96,7 +89,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_batch (
     received_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS stock_batch_prod_exp_idx ON inventory.stock_batch (product_id, expiry_date);
-
 CREATE TABLE IF NOT EXISTS inventory.stock_movement (
     id text PRIMARY KEY,
     movement_type text NOT NULL,
@@ -115,7 +107,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_movement (
 );
 CREATE INDEX IF NOT EXISTS stock_movement_prod_idx ON inventory.stock_movement (product_id, created_at);
 CREATE INDEX IF NOT EXISTS stock_movement_loc_idx ON inventory.stock_movement (location_id, created_at);
-
 CREATE TABLE IF NOT EXISTS inventory.stock_count (
     id text PRIMARY KEY,
     count_number text NOT NULL UNIQUE,
@@ -128,7 +119,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_count (
     approved_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS inventory.stock_count_line (
     id text PRIMARY KEY,
     count_id text NOT NULL REFERENCES inventory.stock_count(id) ON DELETE CASCADE,
@@ -140,8 +130,6 @@ CREATE TABLE IF NOT EXISTS inventory.stock_count_line (
     notes text
 );
 CREATE INDEX IF NOT EXISTS stock_count_line_count_idx ON inventory.stock_count_line (count_id);
-
--- +goose Down
 DROP TABLE IF EXISTS inventory.stock_count_line;
 DROP TABLE IF EXISTS inventory.stock_count;
 DROP TABLE IF EXISTS inventory.stock_movement;

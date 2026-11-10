@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS delivery.delivery_settings (
     id text PRIMARY KEY DEFAULT 'default',
     mode text NOT NULL DEFAULT 'own', -- own | agency | both
@@ -9,7 +8,6 @@ CREATE TABLE IF NOT EXISTS delivery.delivery_settings (
     require_slot boolean NOT NULL DEFAULT false,
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS delivery.delivery_zone (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -23,7 +21,6 @@ CREATE TABLE IF NOT EXISTS delivery.delivery_zone (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS delivery.delivery_slot (
     id text PRIMARY KEY,
     zone_id text REFERENCES delivery.delivery_zone(id) ON DELETE CASCADE,
@@ -35,7 +32,6 @@ CREATE TABLE IF NOT EXISTS delivery.delivery_slot (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS delivery_slot_weekday_idx ON delivery.delivery_slot (weekday);
-
 CREATE TABLE IF NOT EXISTS delivery.vehicle (
     id text PRIMARY KEY,
     plate text NOT NULL UNIQUE,
@@ -46,7 +42,6 @@ CREATE TABLE IF NOT EXISTS delivery.vehicle (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS delivery.route_sheet (
     id text PRIMARY KEY,
     number text NOT NULL UNIQUE,
@@ -57,7 +52,6 @@ CREATE TABLE IF NOT EXISTS delivery.route_sheet (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS delivery.shipment (
     id text PRIMARY KEY,
     number text NOT NULL UNIQUE,
@@ -94,7 +88,6 @@ CREATE TABLE IF NOT EXISTS delivery.shipment (
 CREATE INDEX IF NOT EXISTS shipment_order_idx ON delivery.shipment (order_id);
 CREATE INDEX IF NOT EXISTS shipment_status_promised_idx ON delivery.shipment (status, promised_by);
 CREATE INDEX IF NOT EXISTS shipment_driver_status_idx ON delivery.shipment (driver_id, status);
-
 CREATE TABLE IF NOT EXISTS delivery.shipment_event (
     id text PRIMARY KEY,
     shipment_id text NOT NULL REFERENCES delivery.shipment(id) ON DELETE CASCADE,
@@ -105,7 +98,6 @@ CREATE TABLE IF NOT EXISTS delivery.shipment_event (
     at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS shipment_event_shipment_idx ON delivery.shipment_event (shipment_id, at);
-
 CREATE TABLE IF NOT EXISTS delivery.cod_settlement (
     id text PRIMARY KEY,
     sheet_id text REFERENCES delivery.route_sheet(id) ON DELETE SET NULL,
@@ -116,7 +108,6 @@ CREATE TABLE IF NOT EXISTS delivery.cod_settlement (
     settled_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE IF NOT EXISTS delivery.courier_agency (
     id text PRIMARY KEY,
     name text NOT NULL,
@@ -127,8 +118,6 @@ CREATE TABLE IF NOT EXISTS delivery.courier_agency (
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
 );
-
--- +goose Down
 DROP TABLE IF EXISTS delivery.courier_agency;
 DROP TABLE IF EXISTS delivery.cod_settlement;
 DROP TABLE IF EXISTS delivery.shipment_event;

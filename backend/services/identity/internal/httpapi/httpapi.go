@@ -1,6 +1,4 @@
-// Package httpapi maps the identity session contract to use cases.
 package httpapi
-
 import (
 	"errors"
 	"math"
@@ -8,9 +6,7 @@ import (
 	"slices"
 	"strconv"
 	"time"
-
 	"github.com/labstack/echo/v4"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
@@ -19,16 +15,13 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 	"platform.local/backend/services/identity/internal/tokens"
 )
-
 type Handler struct {
-	sessions *sessions.Service
-	issuer   *tokens.Issuer
-	limit    int64
-	login    *accounts.Service
-	callers  map[authn.Realm][]string
+	sessions	*sessions.Service
+	issuer		*tokens.Issuer
+	limit		int64
+	login		*accounts.Service
+	callers		map[authn.Realm][]string
 }
-
-// Register exposes public JWKS and service-authenticated session endpoints. Never allow user tokens on service routes.
 func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, issuer *tokens.Issuer, login *accounts.Service, limit int64, callers map[authn.Realm][]string) {
 	h := &Handler{sessions: svc, issuer: issuer, login: login, limit: limit, callers: callers}
 	e.GET("/.well-known/jwks.json", h.jwks)
@@ -49,22 +42,19 @@ func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, iss
 	g.POST("/refresh", h.refresh)
 	g.POST("/logout", h.logout)
 }
-
 func (h *Handler) jwks(c echo.Context) error {
 	return c.Blob(http.StatusOK, echo.MIMEApplicationJSON, h.issuer.JWKS())
 }
-
 type refreshRequest struct {
 	Token string `json:"refreshToken" validate:"required,len=43"`
 }
 type refreshResponse struct {
-	SessionID    string      `json:"sessionId"`
-	SubjectID    string      `json:"subjectId"`
-	Realm        authn.Realm `json:"realm"`
-	ExpiresAt    time.Time   `json:"expiresAt"`
-	RefreshToken string      `json:"refreshToken"`
+	SessionID	string		`json:"sessionId"`
+	SubjectID	string		`json:"subjectId"`
+	Realm		authn.Realm	`json:"realm"`
+	ExpiresAt	time.Time	`json:"expiresAt"`
+	RefreshToken	string		`json:"refreshToken"`
 }
-
 func (h *Handler) realm(c echo.Context) (authn.Realm, error) {
 	r, err := authn.ParseRealm(c.Param("realm"))
 	if err != nil || r == authn.RealmService {
@@ -131,21 +121,18 @@ func (h *Handler) logout(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
-
 type loginRequest struct {
-	Email    string `json:"email" validate:"required,max=254"`
-	Password string `json:"password" validate:"required,max=1024"`
-	OTP      string `json:"otp" validate:"max=64"`
-	ClientIP string `json:"clientIp" validate:"max=45"`
-	// UserAgent is shown to the person in their list of sessions.
-	UserAgent string `json:"userAgent" validate:"max=512"`
+	Email		string	`json:"email" validate:"required,max=254"`
+	Password	string	`json:"password" validate:"required,max=1024"`
+	OTP		string	`json:"otp" validate:"max=64"`
+	ClientIP	string	`json:"clientIp" validate:"max=45"`
+	UserAgent	string	`json:"userAgent" validate:"max=512"`
 }
 type loginResponse struct {
 	refreshResponse
-	AccessToken string   `json:"accessToken"`
-	Roles       []string `json:"roles"`
+	AccessToken	string		`json:"accessToken"`
+	Roles		[]string	`json:"roles"`
 }
-
 func (h *Handler) loginPassword(c echo.Context) error {
 	r, err := h.realm(c)
 	if err != nil {
@@ -184,7 +171,6 @@ func (h *Handler) loginPassword(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, loginResponse{refreshResponse: refreshResponse{SessionID: result.Credential.Family.ID, SubjectID: result.Account.SubjectID, Realm: r, ExpiresAt: result.Credential.Family.ExpiresAt, RefreshToken: result.Credential.Token}, AccessToken: access, Roles: roles})
 }
-
 func (h *Handler) validateSession(c echo.Context) error {
 	principal, ok := authn.PrincipalFrom(c.Request().Context())
 	if !ok {
@@ -198,16 +184,14 @@ func (h *Handler) validateSession(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
-
 type mfaPasswordRequest struct {
 	Password string `json:"password" validate:"required,max=1024"`
 }
 type mfaConfirmationRequest struct {
-	Password    string `json:"password" validate:"required,max=1024"`
-	Code        string `json:"code" validate:"required,max=64"`
-	CurrentCode string `json:"currentCode" validate:"max=64"`
+	Password	string	`json:"password" validate:"required,max=1024"`
+	Code		string	`json:"code" validate:"required,max=64"`
+	CurrentCode	string	`json:"currentCode" validate:"max=64"`
 }
-
 func mfaError(c echo.Context, err error) error {
 	var limited *guard.Limited
 	switch {
@@ -236,10 +220,10 @@ func (h *Handler) beginMFA(c echo.Context) error {
 		return mfaError(c, err)
 	}
 	return c.JSON(http.StatusOK, struct {
-		Secret        string    `json:"secret"`
-		Digits        int       `json:"digits"`
-		PeriodSeconds int64     `json:"periodSeconds"`
-		ExpiresAt     time.Time `json:"expiresAt"`
+		Secret		string		`json:"secret"`
+		Digits		int		`json:"digits"`
+		PeriodSeconds	int64		`json:"periodSeconds"`
+		ExpiresAt	time.Time	`json:"expiresAt"`
 	}{value.Secret, value.Digits, value.PeriodSeconds, value.ExpiresAt})
 }
 func (h *Handler) cancelMFA(c echo.Context) error {

@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"crypto/rand"
@@ -11,74 +10,54 @@ import (
 	"slices"
 	"strings"
 	"time"
-
 	"golang.org/x/crypto/bcrypt"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/bootstrap"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 var (
-	// ErrEmailTaken means another account of the realm already uses the address.
-	ErrEmailTaken     = errors.New("email already used by another account")
-	ErrLastStaffAdmin = errors.New("the last active staff administrator must be retained")
-	// ErrResetInvalid means a reset token is unknown, used or expired.
-	ErrResetInvalid = errors.New("password reset token is invalid or expired")
+	ErrEmailTaken		= errors.New("email already used by another account")
+	ErrLastStaffAdmin	= errors.New("the last active staff administrator must be retained")
+	ErrResetInvalid	= errors.New("password reset token is invalid or expired")
 )
-
-// ManagedAccounts keeps the staff and customer accounts the apps own the profiles of: the app pushes each account's
-// address, roles and active state, while identity owns its credentials (password, MFA, password resets).
 type ManagedAccounts struct {
-	pool        *pgxpool.Pool
-	hasher      bootstrap.Hasher
-	minPassword int
-	resetTTL    time.Duration
-	permits     chan struct{}
-	limit       func(context.Context, authn.Realm, string, string, string) error
-	now         func() time.Time
+	pool		*pgxpool.Pool
+	hasher		bootstrap.Hasher
+	minPassword	int
+	resetTTL	time.Duration
+	permits		chan struct{}
+	limit		func(context.Context, authn.Realm, string, string, string) error
+	now		func() time.Time
 }
-
-// NewManagedAccounts returns the use cases; maxConcurrent bounds password hashing.
 func NewManagedAccounts(pool *pgxpool.Pool, hasher bootstrap.Hasher, minPassword int, resetTTL time.Duration, maxConcurrent int, limit func(context.Context, authn.Realm, string, string, string) error) *ManagedAccounts {
 	return &ManagedAccounts{pool: pool, hasher: hasher, minPassword: minPassword, resetTTL: resetTTL,
-		limit: limit, permits: make(chan struct{}, maxConcurrent), now: func() time.Time { return time.Now().UTC() }}
+		limit:	limit, permits: make(chan struct{}, maxConcurrent), now: func() time.Time { return time.Now().UTC() }}
 }
-
-// AccountInput is what the app owns about an account.
 type AccountInput struct {
-	Email    string
-	Username string
-	Roles    []string
-	Active   bool
+	Email		string
+	Username	string
+	Roles		[]string
+	Active		bool
 }
-
-func managedRealm(r authn.Realm) bool { return r == authn.RealmStaff || r == authn.RealmCustomer }
-
+func managedRealm(r authn.Realm) bool	{ return r == authn.RealmStaff || r == authn.RealmCustomer }
 func normalizeEmail(email string) (string, bool) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	addr, err := mail.ParseAddress(email)
 	return email, err == nil && addr.Address == email && len(email) <= 254
 }
-
 func validID(id string) bool {
 	return id != "" && len(id) <= 200 && !strings.ContainsAny(id, " \t\r\n")
 }
-
 func uniqueViolation(err error) bool {
 	var pg *pgconn.PgError
 	return errors.As(err, &pg) && pg.Code == "23505"
 }
-
-// Sync creates or updates an account as the app describes it. Turning an account off or changing its roles signs
-// it out everywhere. It returns whether the account was new. by names who made the change.
 func (s *ManagedAccounts) Sync(ctx context.Context, realm authn.Realm, id string, in AccountInput, by string) (bool, error) {
 	email, ok := normalizeEmail(in.Email)
 	if !managedRealm(realm) || !validID(id) || !ok || len(in.Roles) > 20 {
@@ -122,7 +101,7 @@ func (s *ManagedAccounts) Sync(ctx context.Context, realm authn.Realm, id string
 			return nil
 		}
 		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: string(realm), SubjectID: id,
-			Email: email, Username: u, Roles: roles, Active: in.Active, Now: now}); err != nil {
+			Email:	email, Username: u, Roles: roles, Active: in.Active, Now: now}); err != nil {
 			if uniqueViolation(err) {
 				return ErrEmailTaken
 			}
@@ -148,12 +127,11 @@ func (s *ManagedAccounts) Sync(ctx context.Context, realm authn.Realm, id string
 			subject = "identity.user.created"
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: subject, Payload: map[string]any{
-			"subjectId": id, "realm": realm, "changedBy": by,
+			"subjectId":	id, "realm": realm, "changedBy": by,
 		}})
 	})
 	return created, err
 }
-
 func (s *ManagedAccounts) hash(ctx context.Context, realm authn.Realm, password string) (string, error) {
 	minimum := s.minPassword
 	if realm == authn.RealmCustomer {
@@ -170,9 +148,6 @@ func (s *ManagedAccounts) hash(ctx context.Context, realm authn.Realm, password 
 	}
 	return s.hasher.Hash(password)
 }
-
-// setPassword stores a new hash, ends every session except keep (a person changing their own password stays signed
-// in) and cancels open reset links.
 func setPassword(ctx context.Context, q *sqlcdb.Queries, realm authn.Realm, id, hash, keep string, now time.Time) error {
 	if err := q.UpdateAccountHash(ctx, sqlcdb.UpdateAccountHashParams{Realm: string(realm), SubjectID: id, PasswordHash: &hash, UpdatedAt: now}); err != nil {
 		return err
@@ -191,8 +166,6 @@ func setPassword(ctx context.Context, q *sqlcdb.Queries, realm authn.Realm, id, 
 	}
 	return deleteResetLinks(ctx, q, realm, id)
 }
-
-// SetPassword sets an account's password (an administrator, an import, or the person after confirming their old one).
 func (s *ManagedAccounts) SetPassword(ctx context.Context, realm authn.Realm, id, password, keepSession, by string) error {
 	if !managedRealm(realm) || !validID(id) || len(keepSession) > 64 {
 		return ErrValidation
@@ -212,13 +185,10 @@ func (s *ManagedAccounts) SetPassword(ctx context.Context, realm authn.Realm, id
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
-			"subjectId": id, "realm": realm, "changedBy": by,
+			"subjectId":	id, "realm": realm, "changedBy": by,
 		}})
 	})
 }
-
-// ResetMFA turns two-step sign-in off for an account (an administrator helping someone who lost their device) and
-// signs it out everywhere.
 func (s *ManagedAccounts) ResetMFA(ctx context.Context, realm authn.Realm, id, by string) error {
 	if !managedRealm(realm) || !validID(id) {
 		return ErrValidation
@@ -248,25 +218,19 @@ func resetManagedMFA(ctx context.Context, tx pgx.Tx, realm authn.Realm, id, by s
 		return err
 	}
 	return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.mfa.changed", Payload: map[string]any{
-		"subjectId": id, "realm": realm, "changedBy": by, "operation": "disable",
+		"subjectId":	id, "realm": realm, "changedBy": by, "operation": "disable",
 	}})
 }
-
-// ResetRequest is a reset link's token, returned once to the app that e-mails it.
 type ResetRequest struct {
-	Email     string    `json:"email"`
-	SubjectID string    `json:"subjectId"`
-	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expiresAt"`
+	Email		string		`json:"email"`
+	SubjectID	string		`json:"subjectId"`
+	Token		string		`json:"token"`
+	ExpiresAt	time.Time	`json:"expiresAt"`
 }
-
 func tokenHash(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
-
-// RequestReset issues a reset token for an active account with the address, replacing any earlier open one.
-// ErrNotFound for an unknown or inactive address: the app answers the person the same way either way.
 func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, email, ip string) (ResetRequest, error) {
 	if s.limit == nil {
 		return ResetRequest{}, ErrPolicyUnavailable
@@ -305,15 +269,13 @@ func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, e
 			return err
 		}
 		if err := q.InsertPasswordReset(ctx, sqlcdb.InsertPasswordResetParams{TokenHash: tokenHash(out.Token), Realm: string(realm),
-			SubjectID: id, ExpiresAt: out.ExpiresAt, CreatedAt: now}); err != nil {
+			SubjectID:	id, ExpiresAt: out.ExpiresAt, CreatedAt: now}); err != nil {
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.password_reset.created", Payload: map[string]any{"subjectId": id, "realm": realm, "changedBy": "service:identity"}})
 	})
 	return out, err
 }
-
-// ConfirmReset uses a reset token once to set a new password, signing the account out everywhere.
 func (s *ManagedAccounts) ConfirmReset(ctx context.Context, realm authn.Realm, token, password string, legacyEmail ...string) (string, error) {
 	if !managedRealm(realm) || (len(token) != 43 && len(token) != 64) {
 		return "", ErrResetInvalid
@@ -380,13 +342,11 @@ func (s *ManagedAccounts) ConfirmReset(ctx context.Context, realm authn.Realm, t
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
-			"subjectId": id, "realm": realm, "changedBy": string(realm) + ":" + id,
+			"subjectId":	id, "realm": realm, "changedBy": string(realm) + ":" + id,
 		}})
 	})
 	return id, err
 }
-
-// RegisterCustomer creates the customer credential and its audit record in one transaction.
 func (s *ManagedAccounts) RegisterCustomer(ctx context.Context, email, password, by, ip string) (string, error) {
 	email, ok := normalizeEmail(email)
 	if !ok {
@@ -414,15 +374,12 @@ func (s *ManagedAccounts) RegisterCustomer(ctx context.Context, email, password,
 	})
 	return id, err
 }
-
-// All outstanding proofs are invalidated together after a password, address or activation change.
 func deleteResetLinks(ctx context.Context, q *sqlcdb.Queries, realm authn.Realm, id string) error {
 	if err := q.CancelLegacyResetChallenges(ctx, sqlcdb.CancelLegacyResetChallengesParams{Realm: string(realm), SubjectID: id}); err != nil {
 		return err
 	}
 	return q.DeleteOpenPasswordResets(ctx, sqlcdb.DeleteOpenPasswordResetsParams{Realm: string(realm), SubjectID: id})
 }
-
 func (s *ManagedAccounts) confirmImportedReset(ctx context.Context, email, token, hash string) (string, error) {
 	email, ok := normalizeEmail(email)
 	if !ok {
@@ -492,7 +449,6 @@ func (s *ManagedAccounts) confirmImportedReset(ctx context.Context, email, token
 	}
 	return id, nil
 }
-
 func (s *ManagedAccounts) PasswordMinimum(realm authn.Realm) int {
 	if realm == authn.RealmCustomer {
 		return 8

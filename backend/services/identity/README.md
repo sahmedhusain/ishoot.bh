@@ -18,7 +18,7 @@ docker compose run --rm identity bootstrap-it -email it-admin@example.com
 
 The command asks for the password without echo (or reads the first line of piped input), needs at least `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` characters, and prints the `otpauth://` link, its secret and the recovery codes once. Nothing secret is logged. It refuses to run when any IT account exists; further IT accounts are created from the IT dashboard. The first account must have the `it_admin` role so account administration cannot start locked out. `IDENTITY_LOGIN_MFA_ISSUER` names the entry in authenticator apps. See [configuration](../../../docs/backend/CONFIG.md) for environment settings and [identity migration](../../../docs/backend/IDENTITY-MIGRATION.md) for account import and cutover limitations.
 
-From `backend/`, run `go test -race ./services/identity/...` for real Postgres session, account, worker and OpenAPI contract tests. Run `go generate ./services/identity` after editing SQL queries. Existing Prisma user tables and app sessions remain in place.
+From `backend/`, run `go test -race ./services/identity/...` for real Postgres session, account, worker and OpenAPI contract tests. Run `go generate ./services/identity` after editing SQL queries. Existing LegacyDB user tables and app sessions remain in place.
 
 ## IT account recovery
 

@@ -1,5 +1,4 @@
 package guard
-
 import (
 	"context"
 	"errors"
@@ -7,19 +6,15 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/ratelimit"
 )
-
 type limiter struct {
-	keys []string
-	fail bool
-	deny bool
+	keys	[]string
+	fail	bool
+	deny	bool
 }
-
 func (l *limiter) Allow(_ context.Context, key string, _ ratelimit.Rule) (ratelimit.Decision, error) {
 	l.keys = append(l.keys, key)
 	if l.fail {

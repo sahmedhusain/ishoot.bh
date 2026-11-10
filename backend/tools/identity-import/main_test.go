@@ -1,5 +1,4 @@
 package main
-
 import (
 	"context"
 	"encoding/base64"
@@ -9,18 +8,15 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/pkg/testkit"
 	"platform.local/backend/services/identity/migrations"
 )
-
 func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -147,7 +143,6 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	}
 	_, err = pool.Exec(ctx, `DELETE FROM public."User" WHERE id='pending'`)
 	require.NoError(t, err)
-	// New target credentials must never be overwritten by stale legacy data; no other source row may leak through.
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET password_hash='newer' WHERE realm='staff'`)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO public."User" VALUES ('new-user','new@example.test',$1,'viewer',true,false,NULL,NULL,NULL,now(),now(),NULL)`, string(legacy))
@@ -180,9 +175,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.NoError(t, err)
 	_, err = run(ctx, pool, options{Apply: true, Actor: "test-operator", Keyring: ring})
 	require.ErrorContains(t, err, "unsupported legacy password")
-
 }
-
 func TestApplyRequiresOperator(t *testing.T) {
 	for _, actor := range []string{"", "with spaces", "line\nbreak", "معرف", strings.Repeat("a", 192)} {
 		_, err := run(context.Background(), nil, options{Apply: true, Actor: actor})

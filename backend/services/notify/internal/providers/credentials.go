@@ -1,5 +1,4 @@
 package providers
-
 import (
 	"context"
 	"encoding/json"
@@ -9,19 +8,11 @@ import (
 	"net/url"
 	"time"
 )
-
-// Credentials of an integration, as IT saved them in the system service.
 type Credentials map[string]string
-
-// CredentialSource returns a provider's credentials.
 type CredentialSource interface {
 	Credentials(ctx context.Context, provider string) (Credentials, error)
 }
-
-// Static is a fixed source (local development, the WhatsApp sandbox).
 type Static map[string]Credentials
-
-// Credentials returns the fixed credentials.
 func (s Static) Credentials(_ context.Context, provider string) (Credentials, error) {
 	c, ok := s[provider]
 	if !ok {
@@ -29,16 +20,10 @@ func (s Static) Credentials(_ context.Context, provider string) (Credentials, er
 	}
 	return c, nil
 }
-
-// SystemCredentials reads integration settings from the system service with this service's own token
-// (authn.ServiceSigner.Transport). An integration that is missing or switched off is a permanent failure: IT fixes it
-// in the IT dashboard and retries the message.
 type SystemCredentials struct {
-	BaseURL string
-	Client  *http.Client
+	BaseURL	string
+	Client	*http.Client
 }
-
-// Credentials returns the provider's decrypted credentials when the integration is on.
 func (s SystemCredentials) Credentials(ctx context.Context, provider string) (Credentials, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -59,8 +44,8 @@ func (s SystemCredentials) Credentials(ctx context.Context, provider string) (Cr
 		return nil, fmt.Errorf("system service answered %d", resp.StatusCode)
 	}
 	var out struct {
-		IsActive    bool              `json:"isActive"`
-		Credentials map[string]string `json:"credentials"`
+		IsActive	bool			`json:"isActive"`
+		Credentials	map[string]string	`json:"credentials"`
 	}
 	if err := json.Unmarshal(body, &out); err != nil {
 		return nil, err

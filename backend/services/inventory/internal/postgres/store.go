@@ -1,18 +1,12 @@
-// Package postgres stores inventory entities in the inventory schema.
 package postgres
-
 import (
 	"context"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/inventory/internal/postgres/sqlcdb"
 )
-
 const Schema = "inventory"
-
 type Warehouse = sqlcdb.InventoryWarehouse
 type Location = sqlcdb.InventoryStockLocation
 type Category = sqlcdb.InventoryProductCategory
@@ -22,21 +16,16 @@ type StockLevel = sqlcdb.InventoryStockLevel
 type StockMovement = sqlcdb.InventoryStockMovement
 type StockCount = sqlcdb.InventoryStockCount
 type StockCountLine = sqlcdb.InventoryStockCountLine
-
 type Store struct {
-	pool *pgxpool.Pool
-	q    *sqlcdb.Queries
+	pool	*pgxpool.Pool
+	q	*sqlcdb.Queries
 }
-
-func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
-
+func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		return fn(&Store{q: s.q.WithTx(tx)}, tx)
 	})
 }
-
-// Warehouses & Locations
 func (s *Store) ListWarehouses(ctx context.Context) ([]Warehouse, error) {
 	return s.q.ListWarehouses(ctx)
 }
@@ -61,8 +50,6 @@ func (s *Store) GetLocationByID(ctx context.Context, id string) (Location, error
 func (s *Store) CreateLocation(ctx context.Context, p sqlcdb.CreateLocationParams) (Location, error) {
 	return s.q.CreateLocation(ctx, p)
 }
-
-// Categories
 func (s *Store) ListCategories(ctx context.Context) ([]Category, error) {
 	return s.q.ListCategories(ctx)
 }
@@ -72,8 +59,6 @@ func (s *Store) GetCategoryByID(ctx context.Context, id string) (Category, error
 func (s *Store) CreateCategory(ctx context.Context, p sqlcdb.CreateCategoryParams) (Category, error) {
 	return s.q.CreateCategory(ctx, p)
 }
-
-// Products & Variants
 func (s *Store) ListProducts(ctx context.Context) ([]Product, error) {
 	return s.q.ListProducts(ctx)
 }
@@ -95,8 +80,6 @@ func (s *Store) ListVariantsByProduct(ctx context.Context, productID string) ([]
 func (s *Store) CreateProductVariant(ctx context.Context, p sqlcdb.CreateProductVariantParams) (Variant, error) {
 	return s.q.CreateProductVariant(ctx, p)
 }
-
-// Stock Levels & Movements
 func (s *Store) ListStockLevelsByProduct(ctx context.Context, productID string) ([]StockLevel, error) {
 	return s.q.ListStockLevelsByProduct(ctx, productID)
 }
@@ -112,8 +95,6 @@ func (s *Store) CreateStockMovement(ctx context.Context, p sqlcdb.CreateStockMov
 func (s *Store) ListStockMovementsByProduct(ctx context.Context, p sqlcdb.ListStockMovementsByProductParams) ([]StockMovement, error) {
 	return s.q.ListStockMovementsByProduct(ctx, p)
 }
-
-// Stock Counts
 func (s *Store) ListStockCounts(ctx context.Context) ([]StockCount, error) {
 	return s.q.ListStockCounts(ctx)
 }

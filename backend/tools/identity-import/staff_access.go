@@ -1,14 +1,10 @@
 package main
-
 import (
 	"context"
 	"fmt"
-
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/catalog"
 )
-
 func validateStaffAccess(ctx context.Context, tx pgx.Tx, report *summary) error {
 	if err := tx.QueryRow(ctx, `SELECT (SELECT count(*) FROM public."Role"), (SELECT count(*) FROM public."Permission"), (SELECT count(*) FROM public."RoleDataScope")`).Scan(&report.Roles, &report.Permissions, &report.Scopes); err != nil {
 		return err
@@ -20,8 +16,8 @@ func validateStaffAccess(ctx context.Context, tx pgx.Tx, report *summary) error 
 		}
 	}
 	checks := []struct {
-		name, query string
-		args        []any
+		name, query	string
+		args		[]any
 	}{
 		{"invalid staff role", `SELECT count(*) FROM public."Role" WHERE id='' OR length(id)>200`, nil},
 		{"orphan staff assignment", `SELECT count(*) FROM public."User" u WHERE NOT EXISTS (SELECT 1 FROM public."Role" r WHERE r.id=u.role)`, nil},
@@ -45,11 +41,10 @@ func validateStaffAccess(ctx context.Context, tx pgx.Tx, report *summary) error 
 	}
 	return nil
 }
-
 func copyStaffAccess(ctx context.Context, tx pgx.Tx, report *summary) error {
 	copies := []struct {
-		name, query string
-		count       *int64
+		name, query	string
+		count		*int64
 	}{
 		{"roles", `INSERT INTO identity.staff_role(id,name_en,name_ar,is_system,created_at) SELECT id,"nameEn","nameAr","isSystem","createdAt" AT TIME ZONE 'UTC' FROM public."Role" ON CONFLICT(id) DO NOTHING`, &report.RolesInserted},
 		{"permissions", `INSERT INTO identity.staff_permission(id,role_id,resource,action,allowed,created_at) SELECT id,role,resource,action,allowed,"createdAt" AT TIME ZONE 'UTC' FROM public."Permission" ON CONFLICT(id) DO NOTHING`, &report.PermissionsInserted},

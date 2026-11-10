@@ -1,5 +1,4 @@
 package httpapi_test
-
 import (
 	"bytes"
 	"context"
@@ -10,13 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/config"
@@ -33,27 +30,23 @@ import (
 	"platform.local/backend/services/notify/internal/providers"
 	"platform.local/backend/services/notify/migrations"
 )
-
 type refuse struct{}
-
 func (refuse) Send(context.Context, providers.Message) (providers.Result, error) {
 	return providers.Result{Provider: "fake"}, providers.Permanent("refused")
 }
-
 func TestAPI(t *testing.T) {
 	ctx := context.Background()
 	logger := logx.New(io.Discard, logx.Options{})
 	pool, err := db.Open(ctx, db.Config{URL: testkit.Postgres(t), MaxConns: 4, MaxConnLifetime: time.Minute,
-		MaxConnIdleTime: time.Minute, HealthCheckPeriod: time.Minute, StatementTimeout: 10 * time.Second}, logger.Logger)
+		MaxConnIdleTime:	time.Minute, HealthCheckPeriod: time.Minute, StatementTimeout: 10 * time.Second}, logger.Logger)
 	require.NoError(t, err)
 	t.Cleanup(pool.Close)
 	require.NoError(t, migrate.Run(ctx, pool, migrate.Options{Schema: postgres.Schema, Migrations: migrations.FS, WithRiver: true, Logger: logger.Logger}))
 	svc := app.New(postgres.New(pool), nil, app.Options{Senders: map[string]providers.Sender{app.Email: refuse{}, app.WhatsApp: refuse{}},
-		MaxAttempts: 3, MaxAttachmentBytes: 1 << 20})
+		MaxAttempts:	3, MaxAttachmentBytes: 1 << 20})
 	inserter, err := jobs.NewClient(pool, nil, jobs.Options{Schema: postgres.Schema, Workers: 1, MaxAttempts: 3, Logger: logger.Logger})
 	require.NoError(t, err)
 	svc.SetJobs(inserter)
-
 	var cfg config.Common
 	require.NoError(t, config.LoadFrom(&cfg, map[string]string{"SERVICE_NAME": "notify", "APP_ENV": "test"}))
 	e, err := httpx.New(cfg, logger, nil)
@@ -64,7 +57,7 @@ func TestAPI(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, admin.Public.AddKey(webKey))
 	httpapi.Register(e, svc, httpapi.Options{Verifier: authn.NewVerifier(time.Second, services, identity.Trust()),
-		SendCallers: []string{"admin"}, BodyLimit: 1 << 20, DefaultPageSize: 2, MaxPageSize: 5})
+		SendCallers:	[]string{"admin"}, BodyLimit: 1 << 20, DefaultPageSize: 2, MaxPageSize: 5})
 	doc, err := openapi3.NewLoader().LoadFromData(api.OpenAPI)
 	require.NoError(t, err)
 	require.NoError(t, doc.Validate(ctx))
@@ -85,8 +78,8 @@ func TestAPI(t *testing.T) {
 		require.NoError(t, err)
 		input := &openapi3filter.ResponseValidationInput{
 			RequestValidationInput: &openapi3filter.RequestValidationInput{Request: req, PathParams: params, Route: route,
-				Options: &openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc}},
-			Status: rec.Code, Header: rec.Header(), Options: &openapi3filter.Options{IncludeResponseStatus: true},
+				Options:	&openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc}},
+			Status:	rec.Code, Header: rec.Header(), Options: &openapi3filter.Options{IncludeResponseStatus: true},
 		}
 		input.SetBodyBytes(rec.Body.Bytes())
 		require.NoError(t, openapi3filter.ValidateResponse(ctx, input), "response breaks the contract: %s", rec.Body)
@@ -102,10 +95,9 @@ func TestAPI(t *testing.T) {
 		msg = app.Message{}
 		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &msg))
 	}
-
 	email := map[string]any{"channel": "email", "to": "client@example.com", "subject": "Invoice", "html": "<p>Hi</p>",
-		"idempotencyKey": "invoice-42", "actorId": "staff-7",
-		"attachments": []map[string]string{{"filename": "inv.pdf", "contentType": "application/pdf", "content": base64.StdEncoding.EncodeToString([]byte("pdf"))}}}
+		"idempotencyKey":	"invoice-42", "actorId": "staff-7",
+		"attachments":	[]map[string]string{{"filename": "inv.pdf", "contentType": "application/pdf", "content": base64.StdEncoding.EncodeToString([]byte("pdf"))}}}
 	assert.Equal(t, http.StatusForbidden, call(web.Sign(t, authntest.Token{Subject: "web"}), http.MethodPost, "/v1/notify/messages", email).Code)
 	rec := call(adminToken, http.MethodPost, "/v1/notify/messages", email)
 	require.Equal(t, http.StatusAccepted, rec.Code, rec.Body.String())
@@ -125,8 +117,6 @@ func TestAPI(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 	decode(rec)
 	assert.Nil(t, msg.HTML, "callers get the status, not the body back")
-
-	// IT: the desk needs notifications:*; auditors have none (messages hold personal data).
 	assert.Equal(t, http.StatusForbidden, call(it("it_auditor"), http.MethodGet, "/v1/notify/desk/messages", nil).Code)
 	assert.Equal(t, http.StatusUnauthorized, call(adminToken, http.MethodGet, "/v1/notify/desk/messages", nil).Code)
 	rec = call(it("it_support"), http.MethodGet, "/v1/notify/desk/messages/"+id, nil)
@@ -141,8 +131,6 @@ func TestAPI(t *testing.T) {
 	decode(rec)
 	assert.Equal(t, "it", msg.Caller)
 	assert.Equal(t, "it-1", *msg.Actor)
-
-	// Retry: only a failed message.
 	assert.Equal(t, http.StatusConflict, call(it("it_admin"), http.MethodPost, "/v1/notify/desk/messages/"+id+"/retry", nil).Code)
 	require.NoError(t, svc.Deliver(ctx, id, 1))
 	rec = call(it("it_admin"), http.MethodPost, "/v1/notify/desk/messages/"+id+"/retry", nil)
@@ -150,11 +138,9 @@ func TestAPI(t *testing.T) {
 	decode(rec)
 	assert.Equal(t, "queued", msg.Status)
 	assert.Equal(t, http.StatusNotFound, call(it("it_admin"), http.MethodPost, "/v1/notify/desk/messages/nope/retry", nil).Code)
-
-	// Listing pages and filters; the summary counts.
 	var page struct {
-		Items      []app.Message
-		NextCursor string
+		Items		[]app.Message
+		NextCursor	string
 	}
 	rec = call(it("it_admin"), http.MethodGet, "/v1/notify/desk/messages", nil)
 	require.Equal(t, http.StatusOK, rec.Code)

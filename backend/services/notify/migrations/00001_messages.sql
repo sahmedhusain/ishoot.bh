@@ -1,8 +1,3 @@
--- Messages the platform sends. A caller (a service identity) queues one with its own idempotency key; the worker
--- delivers it and records the outcome. Attachments are kept with the message until delivery is final.
--- pkg/migrate creates the schema (the service's own login owns it but may not create schemas).
-
--- +goose Up
 CREATE TABLE IF NOT EXISTS notify.message (
     id              uuid        NOT NULL,
     caller          text        NOT NULL,
@@ -28,7 +23,6 @@ CREATE TABLE IF NOT EXISTS notify.message (
 );
 CREATE INDEX IF NOT EXISTS message_created_idx ON notify.message (created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS message_status_idx ON notify.message (status, created_at DESC);
-
 CREATE TABLE IF NOT EXISTS notify.attachment (
     message_id   uuid    NOT NULL REFERENCES notify.message (id) ON DELETE CASCADE,
     position     integer NOT NULL,
@@ -37,7 +31,5 @@ CREATE TABLE IF NOT EXISTS notify.attachment (
     content      bytea   NOT NULL,
     CONSTRAINT attachment_pkey PRIMARY KEY (message_id, position)
 );
-
--- +goose Down
 DROP TABLE IF EXISTS notify.attachment;
 DROP TABLE IF EXISTS notify.message;

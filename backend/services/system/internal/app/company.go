@@ -1,5 +1,4 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
@@ -13,21 +12,17 @@ import (
 	"strings"
 	"time"
 	_ "time/tzdata"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/contact"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/system/internal/postgres"
 )
-
 var ErrCompanyMissing = errors.New("company is not configured")
 var ErrCurrencyLocked = errors.New("company currency already has monetary use")
 var ErrSequenceBackwards = errors.New("document sequences only move forward")
-
-func ptr[T any](value T) *T { return &value }
+func ptr[T any](value T) *T	{ return &value }
 func newCompany(now time.Time) CompanyRecord {
 	theme, _ := json.Marshal(defaultTheme())
 	defaultCurrency := os.Getenv("DEFAULT_CURRENCY")
@@ -51,21 +46,21 @@ func newCompany(now time.Time) CompanyRecord {
 		timeZone = "UTC"
 	}
 	return CompanyRecord{
-		ID:                          uuid.NewString(),
-		DefaultCurrency:             defaultCurrency,
-		CurrencyDecimals:            int64(defaultDecimals),
-		VatPercentage:               json.Number(vatPercent),
-		DefaultDiscountLimitPercent: "5.00",
-		PaymentTermsDays:            30,
-		InvoicePrefix:               "INV",
-		InvoiceNextNumber:           1,
-		ReceiptPrefix:               "RCT",
-		ReceiptNextNumber:           1,
-		TimeZone:                    ptr(timeZone),
-		Theme:                       theme,
-		ContentLanguages:            []string{"ar", "en"},
-		PrimaryLanguage:             "ar",
-		UpdatedAt:                   now,
+		ID:				uuid.NewString(),
+		DefaultCurrency:		defaultCurrency,
+		CurrencyDecimals:		int64(defaultDecimals),
+		VatPercentage:			json.Number(vatPercent),
+		DefaultDiscountLimitPercent:	"5.00",
+		PaymentTermsDays:		30,
+		InvoicePrefix:			"INV",
+		InvoiceNextNumber:		1,
+		ReceiptPrefix:			"RCT",
+		ReceiptNextNumber:		1,
+		TimeZone:			ptr(timeZone),
+		Theme:				theme,
+		ContentLanguages:		[]string{"ar", "en"},
+		PrimaryLanguage:		"ar",
+		UpdatedAt:			now,
 	}
 }
 func companyRecord(ctx context.Context, store *postgres.Store, lock bool) (CompanyRecord, error) {
@@ -301,7 +296,6 @@ func mergeCompany(current CompanyRecord, patch map[string]json.RawMessage) (Comp
 	}
 	return out, nil
 }
-
 func (s *Service) SaveCompany(ctx context.Context, patch map[string]json.RawMessage, by string) (CompanyRecord, error) {
 	for key := range patch {
 		if !companyPatchFields[key] {

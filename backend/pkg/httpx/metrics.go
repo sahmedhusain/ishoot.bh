@@ -1,37 +1,31 @@
 package httpx
-
 import (
 	"strconv"
 	"time"
-
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 )
-
-// Metrics holds a service's Prometheus registry and the standard HTTP instruments.
 type Metrics struct {
-	Registry *prometheus.Registry
-	requests *prometheus.CounterVec
-	duration *prometheus.HistogramVec
-	inFlight prometheus.Gauge
+	Registry	*prometheus.Registry
+	requests	*prometheus.CounterVec
+	duration	*prometheus.HistogramVec
+	inFlight	prometheus.Gauge
 }
-
-// NewMetrics registers the Go runtime, process and HTTP metrics for one service.
 func NewMetrics(service string) *Metrics {
 	registry := prometheus.NewRegistry()
 	labels := prometheus.Labels{"service": service}
 	m := &Metrics{
-		Registry: registry,
+		Registry:	registry,
 		requests: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "http_requests_total", Help: "HTTP requests handled.", ConstLabels: labels,
+			Name:	"http_requests_total", Help: "HTTP requests handled.", ConstLabels: labels,
 		}, []string{"method", "route", "status"}),
 		duration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name: "http_request_duration_seconds", Help: "HTTP request latency.", ConstLabels: labels,
-			Buckets: prometheus.DefBuckets,
+			Name:	"http_request_duration_seconds", Help: "HTTP request latency.", ConstLabels: labels,
+			Buckets:	prometheus.DefBuckets,
 		}, []string{"method", "route"}),
 		inFlight: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "http_requests_in_flight", Help: "HTTP requests being handled.", ConstLabels: labels,
+			Name:	"http_requests_in_flight", Help: "HTTP requests being handled.", ConstLabels: labels,
 		}),
 	}
 	registry.MustRegister(
@@ -41,8 +35,6 @@ func NewMetrics(service string) *Metrics {
 	)
 	return m
 }
-
-// Middleware records every request by route template, method and status.
 func (m *Metrics) Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

@@ -1,5 +1,4 @@
 package tokens
-
 import (
 	"context"
 	"crypto/ed25519"
@@ -7,13 +6,10 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
-
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 )
-
 func TestIssuerRealmAndPublicKeys(t *testing.T) {
 	_, private, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
@@ -49,7 +45,6 @@ func TestIssuerRealmAndPublicKeys(t *testing.T) {
 	data[0] = 'x'
 	require.NotEqual(t, data, issuer.JWKS())
 }
-
 func TestRejectsInvalidSigningConfiguration(t *testing.T) {
 	_, private, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
@@ -66,7 +61,6 @@ func TestRejectsInvalidSigningConfiguration(t *testing.T) {
 	_, err = New("issuer", "kid", corrupt, time.Minute)
 	require.Error(t, err)
 }
-
 func TestKeyRotationKeepsPreviousTokensVerifiable(t *testing.T) {
 	publicOld, privateOld, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)

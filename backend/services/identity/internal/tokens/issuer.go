@@ -1,40 +1,29 @@
-// Package tokens issues short-lived identity access tokens using an Ed25519 key.
 package tokens
-
 import (
 	"crypto/ed25519"
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"time"
-
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"
-
 	"platform.local/backend/pkg/authn"
 )
-
-// Issuer holds one active private key and publishes only its public key.
 type Issuer struct {
-	verifier *authn.Verifier
-	issuer   string
-	ttl      time.Duration
-	key      jwk.Key
-	public   []byte
+	verifier	*authn.Verifier
+	issuer		string
+	ttl		time.Duration
+	key		jwk.Key
+	public		[]byte
 }
-
-// PublicKey retains a previous verification key while issued tokens are still valid.
 type PublicKey struct {
-	ID  string
-	Key ed25519.PublicKey
+	ID	string
+	Key	ed25519.PublicKey
 }
-
 func New(issuer, kid string, private ed25519.PrivateKey, ttl time.Duration) (*Issuer, error) {
 	return NewWithPrevious(issuer, kid, private, ttl, nil)
 }
-
-// NewWithPrevious publishes old public keys alongside the active signing key during rotation.
 func NewWithPrevious(issuer, kid string, private ed25519.PrivateKey, ttl time.Duration, previous []PublicKey) (*Issuer, error) {
 	if issuer == "" || kid == "" || len(private) != ed25519.PrivateKeySize || ttl <= 0 {
 		return nil, errors.New("invalid identity signing configuration")
@@ -87,11 +76,7 @@ func NewWithPrevious(issuer, kid string, private ed25519.PrivateKey, ttl time.Du
 	}
 	return &Issuer{issuer: issuer, ttl: ttl, key: key, public: data, verifier: authn.NewVerifier(0, authn.Trust{Issuer: issuer, Keys: authn.StaticKeys{Set: set}, Realms: authn.UserRealms})}, nil
 }
-
-// JWKS returns a copy so callers cannot modify the published keys.
-func (i *Issuer) JWKS() []byte { return append([]byte(nil), i.public...) }
-
-// Sign issues a realm-specific access token for an already authenticated session.
+func (i *Issuer) JWKS() []byte	{ return append([]byte(nil), i.public...) }
 func (i *Issuer) Sign(subject, session string, realm authn.Realm, roles []string, now, sessionExpiry time.Time) (string, error) {
 	if subject == "" || session == "" || (realm != authn.RealmStaff && realm != authn.RealmCustomer && realm != authn.RealmIT) || !sessionExpiry.After(now) {
 		return "", errors.New("invalid identity principal")
@@ -110,6 +95,4 @@ func (i *Issuer) Sign(subject, session string, realm authn.Realm, roles []string
 	}
 	return string(signed), nil
 }
-
-// Verifier accepts only user tokens signed by the active or configured previous keys.
-func (i *Issuer) Verifier() *authn.Verifier { return i.verifier }
+func (i *Issuer) Verifier() *authn.Verifier	{ return i.verifier }

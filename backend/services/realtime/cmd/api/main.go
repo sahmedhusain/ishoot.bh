@@ -1,10 +1,4 @@
-// Command api runs the realtime service. Subcommands:
-//
-//	serve        the live streams, statuses and their windows (default)
-//	migrate      create or upgrade the realtime schema, then exit
-//	healthcheck  probe this container's readiness (Docker HEALTHCHECK)
 package main
-
 import (
 	"context"
 	"errors"
@@ -13,9 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	"github.com/google/uuid"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
@@ -36,7 +28,6 @@ import (
 	"platform.local/backend/services/realtime/migrations"
 	"platform.local/backend/services/realtime/settings"
 )
-
 func main() {
 	command := "serve"
 	if len(os.Args) > 1 {
@@ -47,11 +38,9 @@ func main() {
 		os.Exit(1)
 	}
 }
-
 func run(command string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
 	var cfg settings.Config
 	if err := config.Load(&cfg); err != nil {
 		return err
@@ -60,24 +49,22 @@ func run(command string) error {
 		return httpx.Probe(ctx, cfg.Admin.Addr, cfg.Admin.ReadinessTimeout)
 	}
 	logger := logx.New(os.Stdout, logx.Options{
-		Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv,
+		Level:	cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv,
 	})
 	shutdownTracing, err := telemetry.Setup(ctx, cfg.Common)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = shutdownTracing(context.WithoutCancel(ctx)) }()
-
 	dbCfg := cfg.Database
 	if command == "migrate" {
-		dbCfg = dbCfg.Session() // past the pooler: it needs a whole session
+		dbCfg = dbCfg.Session()
 	}
 	pool, err := db.Open(ctx, dbCfg, logger.Logger)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
-
 	switch command {
 	case "migrate":
 		return migrate.Run(ctx, pool, migrate.Options{Schema: postgres.Schema, Migrations: migrations.FS, Logger: logger.Logger})
@@ -86,7 +73,6 @@ func run(command string) error {
 	}
 	return fmt.Errorf("unknown command %q (serve, migrate, healthcheck)", command)
 }
-
 func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, store *postgres.Store, dbCheck health.Check) error {
 	if !cfg.Auth.Configured() {
 		return errors.New("set AUTH_SERVICE_KEYS_FILE (and AUTH_ISSUER/AUTH_JWKS_URL for IT accounts)")
@@ -108,34 +94,29 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, store 
 		return err
 	}
 	defer func() { _ = valkey.Close() }()
-
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", dbCheck)
 	checker.Register("nats", broker.Check())
 	checker.Register("redis", redisx.Check(valkey))
 	metrics := httpx.NewMetrics(cfg.ServiceName)
-
 	hostname, _ := os.Hostname()
 	tracker := &presence.Redis{Client: valkey, Replica: hostname + "-" + uuid.NewString()[:8], TTL: cfg.Realtime.PresenceTTL,
-		IdleTTL: cfg.Realtime.IdleTTL, SeenTTL: 30 * 24 * time.Hour}
+		IdleTTL:	cfg.Realtime.IdleTTL, SeenTTL: 30 * 24 * time.Hour}
 	svc := app.New(store, tracker, live.NATS{Conn: broker.Conn})
 	streams := hub.New(cfg.Realtime.MaxStreamsPerUser)
-
-	// Middleware uses each incoming request's context, not the process shutdown context.
-	e, err := httpx.New(cfg.Common, logger, metrics) //nolint:contextcheck // Request contexts are supplied by Echo at request time.
+	e, err := httpx.New(cfg.Common, logger, metrics)
 	if err != nil {
 		return err
 	}
 	e.Use(telemetry.EchoMiddleware())
-	if err := httpapi.Register(e, svc, streams, httpapi.Options{ //nolint:contextcheck // Authentication must use the incoming request's context.
-		Verifier: verifier, Callers: cfg.Realtime.Callers, Heartbeat: cfg.Realtime.Heartbeat, MaxStreamAge: cfg.Realtime.MaxStreamAge,
-		Retry: cfg.Realtime.Retry, Buffer: cfg.Realtime.Buffer, MaxTopics: cfg.Realtime.MaxTopics,
-		MaxPresenceIDs: cfg.Realtime.MaxPresenceIDs, MaxSyncWindows: cfg.Realtime.MaxSyncWindows,
-		Logger: logger.Logger, Registerer: metrics.Registry,
+	if err := httpapi.Register(e, svc, streams, httpapi.Options{
+		Verifier:	verifier, Callers: cfg.Realtime.Callers, Heartbeat: cfg.Realtime.Heartbeat, MaxStreamAge: cfg.Realtime.MaxStreamAge,
+		Retry:	cfg.Realtime.Retry, Buffer: cfg.Realtime.Buffer, MaxTopics: cfg.Realtime.MaxTopics,
+		MaxPresenceIDs:	cfg.Realtime.MaxPresenceIDs, MaxSyncWindows: cfg.Realtime.MaxSyncWindows,
+		Logger:	logger.Logger, Registerer: metrics.Registry,
 	}); err != nil {
 		return err
 	}
-
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go func() {
@@ -150,14 +131,10 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, store 
 		}
 	}()
 	go keepUp(ctx, cfg.Realtime, svc, tracker, streams, logger)
-
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("realtime service starting")
 	return httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 }
-
-// keepUp renews this replica's presence marks, announces statuses that start or end by themselves and purges old
-// windows.
 func keepUp(ctx context.Context, cfg settings.Realtime, svc *app.Service, tracker presence.Tracker, streams *hub.Hub, logger *logx.Logger) {
 	refresh := time.NewTicker(cfg.PresenceTTL / 3)
 	defer refresh.Stop()

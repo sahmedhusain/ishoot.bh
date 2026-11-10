@@ -1,6 +1,4 @@
-// Package filesclient reads authoritative upload metadata for company artwork and fonts.
 package filesclient
-
 import (
 	"context"
 	"encoding/json"
@@ -10,15 +8,12 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
 	"platform.local/backend/services/system/internal/app"
 )
-
 type Client struct {
-	base   string
-	client *http.Client
+	base	string
+	client	*http.Client
 }
-
 func New(base string, transport http.RoundTripper) *Client {
 	return &Client{base: strings.TrimRight(base, "/"), client: &http.Client{Transport: transport, Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
 }
@@ -37,11 +32,11 @@ func (c *Client) Lookup(ctx context.Context, fileURL string) (app.CompanyFile, e
 	}
 	var result struct {
 		Items []struct {
-			FileURL   string     `json:"fileUrl"`
-			MIME      string     `json:"mimeType"`
-			Size      int64      `json:"fileSize"`
-			Public    bool       `json:"isPublic"`
-			ExpiresAt *time.Time `json:"expiresAt"`
+			FileURL		string		`json:"fileUrl"`
+			MIME		string		`json:"mimeType"`
+			Size		int64		`json:"fileSize"`
+			Public		bool		`json:"isPublic"`
+			ExpiresAt	*time.Time	`json:"expiresAt"`
 		} `json:"items"`
 	}
 	raw, err := io.ReadAll(io.LimitReader(response.Body, 65537))

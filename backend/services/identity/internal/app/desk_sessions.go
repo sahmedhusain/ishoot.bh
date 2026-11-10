@@ -1,15 +1,12 @@
 package app
-
 import (
 	"context"
 	"errors"
 	"slices"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
@@ -17,26 +14,21 @@ import (
 	"platform.local/backend/services/identity/internal/bootstrap"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 type DeskSession struct {
-	ID        string     `json:"id"`
-	Realm     string     `json:"realm"`
-	SubjectID string     `json:"subjectId"`
-	Email     *string    `json:"email"`
-	CreatedAt time.Time  `json:"createdAt"`
-	ExpiresAt time.Time  `json:"expiresAt"`
-	RevokedAt *time.Time `json:"revokedAt"`
+	ID		string		`json:"id"`
+	Realm		string		`json:"realm"`
+	SubjectID	string		`json:"subjectId"`
+	Email		*string		`json:"email"`
+	CreatedAt	time.Time	`json:"createdAt"`
+	ExpiresAt	time.Time	`json:"expiresAt"`
+	RevokedAt	*time.Time	`json:"revokedAt"`
 }
-
 type DeskSessionPage struct {
-	Items      []DeskSession `json:"items"`
-	NextCursor string        `json:"nextCursor"`
+	Items		[]DeskSession	`json:"items"`
+	NextCursor	string		`json:"nextCursor"`
 }
-
 type DeskSessions struct{ pool *pgxpool.Pool }
-
-func NewDeskSessions(pool *pgxpool.Pool) *DeskSessions { return &DeskSessions{pool: pool} }
-
+func NewDeskSessions(pool *pgxpool.Pool) *DeskSessions	{ return &DeskSessions{pool: pool} }
 func (s *DeskSessions) List(ctx context.Context, actor authn.Principal, realm, subject, cursor string, limit int32) (DeskSessionPage, error) {
 	page := DeskSessionPage{Items: []DeskSession{}}
 	if (realm != "" && !slices.Contains(authn.UserRealms, authn.Realm(realm))) || len(subject) > 200 || limit < 1 || limit > 200 {
@@ -70,14 +62,12 @@ func (s *DeskSessions) List(ctx context.Context, actor authn.Principal, realm, s
 	})
 	return page, err
 }
-
 func (s *DeskSessions) Revoke(ctx context.Context, actor authn.Principal, id string) error {
 	parsed, err := uuid.Parse(id)
 	if err != nil {
 		return ErrValidation
 	}
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		// Serialize desk revocations with account changes to order actor and target session locks.
 		if _, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", bootstrap.AccountLock); err != nil {
 			return err
 		}
@@ -100,7 +90,7 @@ func (s *DeskSessions) Revoke(ctx context.Context, actor authn.Principal, id str
 			return err
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session.revoked", Payload: map[string]any{
-			"sessionId": target.ID, "subjectId": target.SubjectID, "realm": target.Realm, "reason": "it_revocation", "changedBy": "it:" + actor.Subject,
+			"sessionId":	target.ID, "subjectId": target.SubjectID, "realm": target.Realm, "reason": "it_revocation", "changedBy": "it:" + actor.Subject,
 		}})
 	})
 }

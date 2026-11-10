@@ -1,43 +1,32 @@
 package app
-
 import (
 	"context"
 	"time"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
-// SelfService lets a signed-in staff member or customer see and end their own sessions and change their password.
-// Every call checks the live session first.
 type SelfService struct {
-	pool        *pgxpool.Pool
-	login       *accounts.Service
-	minPassword int
+	pool		*pgxpool.Pool
+	login		*accounts.Service
+	minPassword	int
 }
-
-// NewSelfService returns the use cases.
 func NewSelfService(pool *pgxpool.Pool, login *accounts.Service, minPassword int) *SelfService {
 	return &SelfService{pool: pool, login: login, minPassword: minPassword}
 }
-
-// OwnSession is one of a person's active sessions.
 type OwnSession struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	ExpiresAt time.Time `json:"expiresAt"`
-	UserAgent *string   `json:"userAgent"`
-	ClientIP  *string   `json:"clientIp"`
-	Current   bool      `json:"current"`
+	ID		string		`json:"id"`
+	CreatedAt	time.Time	`json:"createdAt"`
+	ExpiresAt	time.Time	`json:"expiresAt"`
+	UserAgent	*string		`json:"userAgent"`
+	ClientIP	*string		`json:"clientIp"`
+	Current		bool		`json:"current"`
 }
-
 func (s *SelfService) withSession(ctx context.Context, p authn.Principal, use func(pgx.Tx, time.Time) error) error {
 	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer {
 		return accounts.ErrForbidden
@@ -51,19 +40,14 @@ func (s *SelfService) withSession(ctx context.Context, p authn.Principal, use fu
 		return use(tx, time.Now().UTC())
 	})
 }
-
-// AccountSecurity is what a person sees about their own sign-in: whether two-step sign-in is on and how many
-// recovery codes are left.
 type AccountSecurity struct {
-	Email             string `json:"email"`
-	MFAEnabled        bool   `json:"mfaEnabled"`
-	RecoveryCodesLeft int64  `json:"recoveryCodesLeft"`
-	HasPassword       bool   `json:"hasPassword"`
-	Google            bool   `json:"google"`
-	Apple             bool   `json:"apple"`
+	Email			string	`json:"email"`
+	MFAEnabled		bool	`json:"mfaEnabled"`
+	RecoveryCodesLeft	int64	`json:"recoveryCodesLeft"`
+	HasPassword		bool	`json:"hasPassword"`
+	Google			bool	`json:"google"`
+	Apple			bool	`json:"apple"`
 }
-
-// Security returns the person's own sign-in settings.
 func (s *SelfService) Security(ctx context.Context, p authn.Principal) (AccountSecurity, error) {
 	var result AccountSecurity
 	err := s.withSession(ctx, p, func(tx pgx.Tx, _ time.Time) error {
@@ -74,8 +58,6 @@ func (s *SelfService) Security(ctx context.Context, p authn.Principal) (AccountS
 	})
 	return result, err
 }
-
-// Sessions lists the person's active sessions, newest first, marking the one making the request.
 func (s *SelfService) Sessions(ctx context.Context, p authn.Principal) ([]OwnSession, error) {
 	out := []OwnSession{}
 	err := s.withSession(ctx, p, func(tx pgx.Tx, now time.Time) error {
@@ -88,8 +70,6 @@ func (s *SelfService) Sessions(ctx context.Context, p authn.Principal) ([]OwnSes
 	})
 	return out, err
 }
-
-// Revoke ends one of the person's sessions (their own current one signs them out).
 func (s *SelfService) Revoke(ctx context.Context, p authn.Principal, id string) error {
 	if _, err := uuid.Parse(id); err != nil {
 		return ErrNotFound
@@ -104,12 +84,10 @@ func (s *SelfService) Revoke(ctx context.Context, p authn.Principal, id string) 
 			return ErrNotFound
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session.revoked", Payload: map[string]any{
-			"subjectId": p.Subject, "realm": p.Realm, "changedBy": string(p.Realm) + ":" + p.Subject, "sessionId": id, "reason": "owner",
+			"subjectId":	p.Subject, "realm": p.Realm, "changedBy": string(p.Realm) + ":" + p.Subject, "sessionId": id, "reason": "owner",
 		}})
 	})
 }
-
-// RevokeOthers ends every session of the person except the one making the request.
 func (s *SelfService) RevokeOthers(ctx context.Context, p authn.Principal) error {
 	return s.withSession(ctx, p, func(tx pgx.Tx, now time.Time) error {
 		q := sqlcdb.New(tx)
@@ -119,7 +97,7 @@ func (s *SelfService) RevokeOthers(ctx context.Context, p authn.Principal) error
 		}
 		for _, id := range ids {
 			if err := outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session.revoked", Payload: map[string]any{
-				"subjectId": p.Subject, "realm": p.Realm, "changedBy": string(p.Realm) + ":" + p.Subject, "sessionId": id, "reason": "owner",
+				"subjectId":	p.Subject, "realm": p.Realm, "changedBy": string(p.Realm) + ":" + p.Subject, "sessionId": id, "reason": "owner",
 			}}); err != nil {
 				return err
 			}
@@ -127,8 +105,6 @@ func (s *SelfService) RevokeOthers(ctx context.Context, p authn.Principal) error
 		return nil
 	})
 }
-
-// ChangePassword changes the person's own password after checking the current one and their second factor.
 func (s *SelfService) ChangePassword(ctx context.Context, p authn.Principal, current, next, code, ip string) error {
 	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer {
 		return accounts.ErrForbidden
@@ -139,8 +115,6 @@ func (s *SelfService) ChangePassword(ctx context.Context, p authn.Principal, cur
 	}
 	return s.login.ChangePassword(ctx, p, current, next, code, ip, minimum, time.Now().UTC())
 }
-
-// DeleteCustomer removes authentication data while the commerce owner retains/anonymizes business records.
 func (s *SelfService) DeleteCustomer(ctx context.Context, p authn.Principal) error {
 	if p.Realm != authn.RealmCustomer {
 		return accounts.ErrForbidden

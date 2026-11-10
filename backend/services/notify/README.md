@@ -44,7 +44,7 @@ volume, pop-ups, desktop alerts), `category_setting` (per category: muted, sound
   duplicate. A notification in a muted category or about a muted record is stored `silent`: no sound, pop-up or badge.
   Security notifications are never silent and their category cannot be muted. Without `category`, it comes from the
   message key or entity type. A future `deliverAt` is shown then; the worker's `notify.inbox_due` job announces it.
-- The admin hands over the rows Prisma domains write (`Notification`) every second, with their IDs and state; an old
+- The admin hands over the rows LegacyDB domains write (`Notification`) every second, with their IDs and state; an old
   one arrives quietly (`NOTIFY_INBOX_LIVE_WINDOW`).
 - Reading and changing an inbox: `GET /v1/notify/inbox` (filters `all`, `unread`, `read`, `archived`, `muted`; cursor
   paging), `/inbox/summary`, `/inbox/{id}`, `POST /inbox/actions` (read, unread, archive, unarchive, delete, by IDs or

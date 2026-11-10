@@ -1,13 +1,9 @@
 package erasure_test
-
 import (
 	"testing"
-
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/erasure"
 )
-
 func TestEmailHash(t *testing.T) {
 	key := []byte("0123456789abcdef0123456789abcdef")
 	h := erasure.EmailHash(key, "ann@example.test")

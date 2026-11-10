@@ -1,5 +1,4 @@
 package httpapi_test
-
 import (
 	"bytes"
 	"context"
@@ -15,7 +14,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -23,7 +21,6 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authn/authntest"
 	"platform.local/backend/pkg/config"
@@ -43,9 +40,7 @@ import (
 	"platform.local/backend/services/identity/internal/tokens"
 	"platform.local/backend/services/identity/migrations"
 )
-
 type testGuard struct{}
-
 func (testGuard) Check(_ context.Context, _ authn.Realm, email, _ string) error {
 	switch email {
 	case "limited@example.test":
@@ -55,7 +50,6 @@ func (testGuard) Check(_ context.Context, _ authn.Realm, email, _ string) error 
 	}
 	return nil
 }
-
 func TestSessionHTTP(t *testing.T) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
@@ -131,9 +125,9 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 200, loggedIn.Code)
 	require.Equal(t, "no-store", loggedIn.Header().Get("Cache-Control"))
 	var loginResult struct {
-		AccessToken  string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
-		SubjectID    string `json:"subjectId"`
+		AccessToken	string	`json:"accessToken"`
+		RefreshToken	string	`json:"refreshToken"`
+		SubjectID	string	`json:"subjectId"`
 	}
 	require.NoError(t, json.Unmarshal(loggedIn.Body.Bytes(), &loginResult))
 	require.Equal(t, "login-user", loginResult.SubjectID)
@@ -165,8 +159,8 @@ func TestSessionHTTP(t *testing.T) {
 	refreshLoginResponse := call(http.MethodPost, "/v1/identity/staff/sessions/refresh", serviceToken, refreshLogin)
 	require.Equal(t, 200, refreshLoginResponse.Code)
 	var refreshed struct {
-		AccessToken  string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
+		AccessToken	string	`json:"accessToken"`
+		RefreshToken	string	`json:"refreshToken"`
 	}
 	require.NoError(t, json.Unmarshal(refreshLoginResponse.Body.Bytes(), &refreshed))
 	require.NotEmpty(t, refreshed.AccessToken)
@@ -180,8 +174,8 @@ func TestSessionHTTP(t *testing.T) {
 	second := call(http.MethodPost, loginPath, serviceToken, loginBody)
 	require.Equal(t, 200, second.Code)
 	var secondLogin struct {
-		AccessToken  string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
+		AccessToken	string	`json:"accessToken"`
+		RefreshToken	string	`json:"refreshToken"`
 	}
 	require.NoError(t, json.Unmarshal(second.Body.Bytes(), &secondLogin))
 	oldRefresh, _ := json.Marshal(map[string]string{"refreshToken": secondLogin.RefreshToken})
@@ -210,8 +204,8 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 200, ok.Code)
 	require.Equal(t, "no-store", ok.Header().Get("Cache-Control"))
 	var response struct {
-		RefreshToken string `json:"refreshToken"`
-		SessionID    string `json:"sessionId"`
+		RefreshToken	string	`json:"refreshToken"`
+		SessionID	string	`json:"sessionId"`
 	}
 	require.NoError(t, json.Unmarshal(ok.Body.Bytes(), &response))
 	require.Equal(t, cred.Family.ID, response.SessionID)
@@ -229,8 +223,6 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodPost, "/v1/identity/it/sessions/logout", itToken, logout).Code)
 	_, err = svc.Active(ctx, authn.RealmIT, fresh.Family.ID, time.Now())
 	require.ErrorIs(t, err, sessions.ErrInvalid)
-
-	// Enrollment, factor rotation and disable each recheck the session and password; confirmation revokes sessions.
 	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles) VALUES ('staff','mfa-user','mfa@example.test',$1,ARRAY['admin'])`, string(legacy))
 	require.NoError(t, err)
 	mfaLoginBody, _ := json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password"})
@@ -248,9 +240,9 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 200, begin.Code)
 	require.Equal(t, "no-store", begin.Header().Get("Cache-Control"))
 	var setup struct {
-		Secret        string `json:"secret"`
-		Digits        int    `json:"digits"`
-		PeriodSeconds int64  `json:"periodSeconds"`
+		Secret		string	`json:"secret"`
+		Digits		int	`json:"digits"`
+		PeriodSeconds	int64	`json:"periodSeconds"`
 	}
 	require.NoError(t, json.Unmarshal(begin.Body.Bytes(), &setup))
 	require.Equal(t, 6, setup.Digits)
@@ -324,7 +316,6 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodPost, "/v1/identity/mfa/disable", mfaSession.AccessToken, disableBody).Code)
 	require.Equal(t, 401, call(http.MethodGet, statusPath, mfaSession.AccessToken, nil).Code)
 	require.Equal(t, 200, call(http.MethodPost, loginPath, serviceToken, mfaLoginBody).Code)
-
 	itSecret := []byte("12345678901234567890")
 	itEncrypted, err := ring.Seal(itSecret, "it-mfa-user")
 	require.NoError(t, err)

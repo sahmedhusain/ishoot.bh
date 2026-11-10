@@ -1,16 +1,12 @@
 package main
-
 import (
 	"context"
 	"encoding/base64"
 	"errors"
 	"net/netip"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-
 	"time"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/ratelimit"
@@ -26,16 +22,14 @@ import (
 	"platform.local/backend/services/identity/internal/systemclient"
 	"platform.local/backend/services/identity/settings"
 )
-
 type loginServices struct {
-	login   *accounts.Service
-	it      *app.ITAccounts
-	managed *app.ManagedAccounts
-	codes   *app.CustomerCodes
-	oauth   *app.CustomerOAuth
-	redis   *redis.Client
+	login	*accounts.Service
+	it	*app.ITAccounts
+	managed	*app.ManagedAccounts
+	codes	*app.CustomerCodes
+	oauth	*app.CustomerOAuth
+	redis	*redis.Client
 }
-
 func newLogin(ctx context.Context, configuration settings.Config, pool *pgxpool.Pool, sessionService *sessions.Service) (*loginServices, error) {
 	cfg := configuration.Login
 	key, err := base64.RawURLEncoding.Strict().DecodeString(cfg.RateKey)
@@ -78,7 +72,7 @@ func newLogin(ctx context.Context, configuration settings.Config, pool *pgxpool.
 		return nil, err
 	}
 	manager := app.NewITAccounts(pool, hasher, ring, bootstrap.Input{MinPasswordLength: cfg.ITPasswordMinLength,
-		RecoveryCount: cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period}, cfg.MaxConcurrentKDF)
+		RecoveryCount:	cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period}, cfg.MaxConcurrentKDF)
 	managed := app.NewManagedAccounts(pool, hasher, cfg.PasswordMinLength, cfg.PasswordResetTTL, cfg.MaxConcurrentKDF, policy.CheckAction)
 	codes := app.NewCustomerCodes(pool, policy.ForAction("code"), sessionService, svc, key, policy.ForAction("code-verify"))
 	var source func(context.Context, string) (systemclient.SignInConfiguration, error)

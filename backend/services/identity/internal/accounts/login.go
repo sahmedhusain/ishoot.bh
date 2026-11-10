@@ -1,6 +1,4 @@
-// Package accounts authenticates identity accounts without exposing authentication data to API consumers.
 package accounts
-
 import (
 	"context"
 	"errors"
@@ -8,38 +6,32 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
-
 	"github.com/google/uuid"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/services/identity/internal/guard"
 	"platform.local/backend/services/identity/internal/sessions"
 )
-
 var (
-	ErrInvalid     = errors.New("invalid credentials")
-	ErrMFARequired = errors.New("authentication code required")
+	ErrInvalid	= errors.New("invalid credentials")
+	ErrMFARequired	= errors.New("authentication code required")
 )
-
 type Account struct {
-	Realm              authn.Realm
-	SubjectID, Email   string
-	Username           *string
-	PasswordHash       *string
-	Roles              []string
-	Active, MFAEnabled bool
-	MFASecret          *string
-	LastStep           *int64
-	PendingSecret      *string
-	PendingExpires     *time.Time
+	Realm			authn.Realm
+	SubjectID, Email	string
+	Username		*string
+	PasswordHash		*string
+	Roles			[]string
+	Active, MFAEnabled	bool
+	MFASecret		*string
+	LastStep		*int64
+	PendingSecret		*string
+	PendingExpires		*time.Time
 }
 type MFAResult struct {
-	Step         *int64
-	RecoveryHash string
+	Step		*int64
+	RecoveryHash	string
 }
-
-// Repository completes credential rechecks, MFA updates and session creation in one transaction.
 type Repository interface {
 	ActiveSession(context.Context, authn.Realm, string, time.Time) (string, []string, error)
 	FindBySubject(context.Context, authn.Realm, string) (Account, error)
@@ -59,23 +51,20 @@ type SecretReader interface {
 type Guard interface {
 	Check(context.Context, authn.Realm, string, string) error
 }
-
 type OTP interface {
 	Match([]byte, string, *int64, time.Time) (int64, bool)
 }
-
 type Service struct {
-	repo      Repository
-	passwords Passwords
-	secrets   SecretReader
-	otp       OTP
-	sessions  *sessions.Service
-	permits   chan struct{}
-	dummyHash string
-	guard     Guard
-	mfa       MFAConfig
+	repo		Repository
+	passwords	Passwords
+	secrets		SecretReader
+	otp		OTP
+	sessions	*sessions.Service
+	permits		chan struct{}
+	dummyHash	string
+	guard		Guard
+	mfa		MFAConfig
 }
-
 func New(repo Repository, passwords Passwords, secrets SecretReader, otp OTP, sessions *sessions.Service, maxConcurrent int, guard Guard, mfa MFAConfig) (*Service, error) {
 	if repo == nil || passwords == nil || secrets == nil || otp == nil || sessions == nil || (maxConcurrent < 1 || maxConcurrent > 64) || guard == nil || mfa.EnrollmentTTL <= 0 || mfa.RecoveryCount < 1 || mfa.RecoveryCount > 64 || (mfa.Digits != 6 && mfa.Digits != 8) || mfa.Period < time.Second || mfa.Period%time.Second != 0 {
 		return nil, errors.New("invalid identity account configuration")
@@ -86,17 +75,14 @@ func New(repo Repository, passwords Passwords, secrets SecretReader, otp OTP, se
 	}
 	return &Service{repo: repo, passwords: passwords, secrets: secrets, otp: otp, sessions: sessions, permits: make(chan struct{}, maxConcurrent), dummyHash: dummy, guard: guard, mfa: mfa}, nil
 }
-
 type Input struct {
-	Realm                                     authn.Realm
-	Email, Password, OTP, ClientIP, UserAgent string
+	Realm						authn.Realm
+	Email, Password, OTP, ClientIP, UserAgent	string
 }
 type Result struct {
-	Account    Account
-	Credential sessions.Credential
+	Account		Account
+	Credential	sessions.Credential
 }
-
-// Login enforces rate limits and bounds simultaneous password KDF work before opening the account transaction.
 func (s *Service) Login(ctx context.Context, input Input, now time.Time) (Result, error) {
 	if input.Realm != authn.RealmStaff && input.Realm != authn.RealmCustomer && input.Realm != authn.RealmIT {
 		return Result{}, ErrInvalid
@@ -155,8 +141,6 @@ func (s *Service) Login(ctx context.Context, input Input, now time.Time) (Result
 	}
 	return Result{Account: locked, Credential: credential}, nil
 }
-
-// Refresh atomically checks account status and rotates the credential; the current account roles accompany it.
 func (s *Service) Refresh(ctx context.Context, realm authn.Realm, token string, now time.Time) (Result, error) {
 	oldHash, next, err := s.sessions.PrepareRotation(realm, token)
 	if err != nil {
@@ -169,8 +153,6 @@ func (s *Service) Refresh(ctx context.Context, realm authn.Realm, token string, 
 	next.Family = family
 	return Result{Account: account, Credential: next}, nil
 }
-
-// ValidateSession checks current account and session state after verifying the access-token signature.
 func (s *Service) ValidateSession(ctx context.Context, principal authn.Principal, now time.Time) error {
 	if principal.Realm != authn.RealmStaff && principal.Realm != authn.RealmCustomer && principal.Realm != authn.RealmIT {
 		return ErrInvalid

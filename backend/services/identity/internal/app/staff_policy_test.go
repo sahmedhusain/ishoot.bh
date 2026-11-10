@@ -1,28 +1,24 @@
 package app
-
 import (
 	"encoding/json"
 	"os"
 	"testing"
-
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/catalog"
 )
-
 func TestStaffPolicyParity(t *testing.T) {
 	raw, err := os.ReadFile("../../../../contracts/fixtures/staff-access.v1.json")
 	require.NoError(t, err)
 	var cases []struct {
-		Name         string
-		Role         string
-		Stored       map[string]bool
-		Overrides    map[string]bool
-		Modules      map[string]bool
-		StoredScopes map[string]string
-		Permissions  map[string]bool
-		Scopes       map[string]string
-		Absent       []string
+		Name		string
+		Role		string
+		Stored		map[string]bool
+		Overrides	map[string]bool
+		Modules		map[string]bool
+		StoredScopes	map[string]string
+		Permissions	map[string]bool
+		Scopes		map[string]string
+		Absent		[]string
 	}
 	require.NoError(t, json.Unmarshal(raw, &cases))
 	require.NotEmpty(t, cases)
@@ -50,7 +46,6 @@ func TestStaffPolicyParity(t *testing.T) {
 		})
 	}
 }
-
 func TestStaffPolicyProvisionedTemplates(t *testing.T) {
 	modules := map[string]bool{}
 	for _, module := range catalog.Modules {

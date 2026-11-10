@@ -1,27 +1,23 @@
 package authz_test
-
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 )
-
 func TestServiceCallers(t *testing.T) {
 	readers, writers := []string{"web", "it"}, []string{"admin"}
 	cases := []struct {
-		name    string
-		realm   authn.Realm
-		subject string
-		method  string
-		want    int
+		name	string
+		realm	authn.Realm
+		subject	string
+		method	string
+		want	int
 	}{
 		{"reader reads", authn.RealmService, "web", http.MethodGet, http.StatusOK},
 		{"reader cannot write", authn.RealmService, "web", http.MethodPost, http.StatusForbidden},
@@ -45,7 +41,6 @@ func TestServiceCallers(t *testing.T) {
 		})
 	}
 }
-
 func TestServiceCallersRequiresPrincipal(t *testing.T) {
 	e := echo.New()
 	e.HTTPErrorHandler = httpx.ErrorHandler(logx.New(nil, logx.Options{}))

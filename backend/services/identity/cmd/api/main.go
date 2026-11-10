@@ -1,7 +1,4 @@
-// Command api runs the identity service. Subcommands: serve (default), worker, migrate, healthcheck, and
-// bootstrap-it and recover-it (offline IT account provisioning; see the README).
 package main
-
 import (
 	"context"
 	"errors"
@@ -10,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
@@ -32,7 +28,6 @@ import (
 	"platform.local/backend/services/identity/migrations"
 	"platform.local/backend/services/identity/settings"
 )
-
 func main() {
 	command := "serve"
 	if len(os.Args) > 1 {
@@ -59,7 +54,7 @@ func run(command string) error {
 	logger := logx.New(os.Stdout, logx.Options{Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv})
 	dbCfg := cfg.Database
 	if command == "migrate" || command == "worker" || command == "bootstrap-it" || command == "recover-it" {
-		dbCfg = dbCfg.Session() // past the pooler: they need a whole session
+		dbCfg = dbCfg.Session()
 	}
 	pool, err := db.Open(ctx, dbCfg, logger.Logger)
 	if err != nil {
@@ -115,7 +110,7 @@ func run(command string) error {
 			}
 			checker.Register("nats", broker.Check())
 			relay, err := outbox.NewRelay(pool, outbox.RelayOptions{Schema: "identity", Publisher: broker, Logger: logger.Logger,
-				Interval: cfg.Outbox.Interval, Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: metrics.Registry})
+				Interval:	cfg.Outbox.Interval, Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: metrics.Registry})
 			if err != nil {
 				broker.Close()
 				return err
@@ -148,7 +143,7 @@ func run(command string) error {
 		return err
 	}
 	svc, err := sessions.NewWithLifetimes(postgres.New(pool), sessions.Lifetimes{
-		Customer: cfg.Session.TTL, Staff: cfg.Session.StaffTTL, IT: cfg.Session.ITTTL,
+		Customer:	cfg.Session.TTL, Staff: cfg.Session.StaffTTL, IT: cfg.Session.ITTTL,
 	})
 	if err != nil {
 		return err

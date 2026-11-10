@@ -1,13 +1,10 @@
 package totp
-
 import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 )
-
-// RecoveryHash matches the existing app's lowercase 16-byte hexadecimal recovery codes and SHA-256 hashes.
 func RecoveryHash(code string) (string, bool) {
 	if len(code) != 32 {
 		return "", false
@@ -20,8 +17,6 @@ func RecoveryHash(code string) (string, bool) {
 	sum := sha256.Sum256([]byte(code))
 	return hex.EncodeToString(sum[:]), true
 }
-
-// NewRecoveryCodes returns one-time plaintext codes and their storage hashes. Callers must never log plaintext codes.
 func NewRecoveryCodes(count int) ([]string, []string, error) {
 	if count < 1 || count > 64 {
 		return nil, nil, errors.New("invalid recovery-code count")

@@ -1,40 +1,32 @@
 package app
-
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"slices"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
-
 var ErrPolicyUnavailable = errors.New("staff access policy unavailable")
-
 type StaffAccessPolicy struct {
-	SubjectID   string            `json:"subjectId"`
-	Role        string            `json:"role"`
-	Permissions map[string]bool   `json:"permissions"`
-	DataScopes  map[string]string `json:"dataScopes"`
+	SubjectID	string			`json:"subjectId"`
+	Role		string			`json:"role"`
+	Permissions	map[string]bool		`json:"permissions"`
+	DataScopes	map[string]string	`json:"dataScopes"`
 }
-
 type StaffAccess struct {
-	pool    *pgxpool.Pool
-	modules func(context.Context) (map[string]bool, error)
+	pool	*pgxpool.Pool
+	modules	func(context.Context) (map[string]bool, error)
 }
-
 func NewStaffAccess(pool *pgxpool.Pool, modules func(context.Context) (map[string]bool, error)) *StaffAccess {
 	return &StaffAccess{pool: pool, modules: modules}
 }
-
 func (s *StaffAccess) Read(ctx context.Context, actor authn.Principal) (StaffAccessPolicy, error) {
 	var policy StaffAccessPolicy
 	if actor.Realm != authn.RealmStaff || len(actor.Roles) != 1 {
@@ -42,7 +34,6 @@ func (s *StaffAccess) Read(ctx context.Context, actor authn.Principal) (StaffAcc
 	}
 	role := actor.Roles[0]
 	var modules map[string]bool
-	// Fetch outside the transaction so a slow dependency cannot hold account/session locks.
 	if role != catalog.SuperAdminRole {
 		if s.modules == nil {
 			return policy, ErrPolicyUnavailable
@@ -64,7 +55,6 @@ func (s *StaffAccess) Read(ctx context.Context, actor authn.Principal) (StaffAcc
 	})
 	return policy, err
 }
-
 func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role string, modules map[string]bool) (StaffAccessPolicy, error) {
 	raw, err := q.StaffPermissionOverrides(ctx, subject)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -105,11 +95,9 @@ func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role s
 		storedScopes[area] = scope
 	}
 	policy := StaffAccessPolicy{SubjectID: subject, Role: role,
-		Permissions: StaffPermissions(role, stored, overrides, modules), DataScopes: StaffScopes(role, storedScopes)}
+		Permissions:	StaffPermissions(role, stored, overrides, modules), DataScopes: StaffScopes(role, storedScopes)}
 	return policy, nil
 }
-
-// ReadSubject serves the authenticated legacy business backend while domain queries are being replaced.
 func (s *StaffAccess) ReadSubject(ctx context.Context, id string) (StaffAccessPolicy, error) {
 	var out StaffAccessPolicy
 	if !validID(id) {
@@ -149,16 +137,14 @@ func (s *StaffAccess) ReadSubject(ctx context.Context, id string) (StaffAccessPo
 	})
 	return out, err
 }
-
 type StaffRoleItem struct {
-	ID              string  `json:"id"`
-	NameEn          string  `json:"nameEn"`
-	NameAr          string  `json:"nameAr"`
-	IsSystem        bool    `json:"isSystem"`
-	ReportingToRole *string `json:"reportingToRole"`
-	Revision        int64   `json:"revision"`
+	ID		string	`json:"id"`
+	NameEn		string	`json:"nameEn"`
+	NameAr		string	`json:"nameAr"`
+	IsSystem	bool	`json:"isSystem"`
+	ReportingToRole	*string	`json:"reportingToRole"`
+	Revision	int64	`json:"revision"`
 }
-
 func (s *StaffAccess) ListRoles(ctx context.Context) ([]StaffRoleItem, error) {
 	rows, err := s.pool.Query(ctx, `SELECT id, name_en, name_ar, is_system, reporting_to_role, revision FROM identity.staff_role ORDER BY id`)
 	if err != nil {

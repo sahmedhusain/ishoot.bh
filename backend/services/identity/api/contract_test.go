@@ -1,15 +1,11 @@
 package api
-
 import (
 	"context"
 	"testing"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/require"
-
 	"platform.local/backend/pkg/catalog"
 )
-
 func TestContract(t *testing.T) {
 	loader := openapi3.NewLoader()
 	spec, err := loader.LoadFromData(OpenAPI)

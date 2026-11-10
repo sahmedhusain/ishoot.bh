@@ -1,34 +1,20 @@
 package app
-
 import (
 	"bytes"
 	"context"
 	"errors"
-
 	"platform.local/backend/services/files/internal/domain"
 	"platform.local/backend/services/files/internal/remote"
 )
-
 var (
-	// ErrImportsOff means this installation does not fetch links.
-	ErrImportsOff = errors.New("imports from links are switched off")
-	// ErrSourceBlocked means the link is not a public http(s) address.
-	ErrSourceBlocked = errors.New("the link is not a public web address")
-	// ErrSourceUnreachable means the link did not answer with a file.
-	ErrSourceUnreachable = errors.New("the link did not answer with a file")
+	ErrImportsOff	= errors.New("imports from links are switched off")
+	ErrSourceBlocked	= errors.New("the link is not a public web address")
+	ErrSourceUnreachable	= errors.New("the link did not answer with a file")
 )
-
-// Importer downloads a file from a link (remote.Fetcher).
 type Importer interface {
 	Fetch(ctx context.Context, link string) (remote.Fetched, error)
 }
-
-// SetImporter turns on imports from links.
-func (s *Service) SetImporter(i Importer) { s.importer = i }
-
-// Import downloads the file at link into an upload for owner in folder, exactly as if they had sent it themselves: it
-// must be a type the folder accepts (judged by its bytes), and it expires unless claimed. The profile picture editor
-// uses it so a picture given as a link can be cropped in the browser.
+func (s *Service) SetImporter(i Importer)	{ s.importer = i }
 func (s *Service) Import(ctx context.Context, owner, folder, link string) (domain.File, error) {
 	if s.importer == nil {
 		return domain.File{}, ErrImportsOff
