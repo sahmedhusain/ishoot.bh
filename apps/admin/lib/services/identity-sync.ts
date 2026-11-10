@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { transactionContext } from "../transaction-context";
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { Database, DatabaseClient } from "@platform/database/decimal";
 import { setAccountPassword, syncAccount } from "@platform/api-client";
 
 const projectingStaff = new AsyncLocalStorage<boolean>();
@@ -22,7 +22,7 @@ const touchesSyncedField = (data: unknown) =>
   SYNCED_FIELDS.some((field) => field in data);
 
 export async function pushStaffAccounts(
-  client: PrismaClient,
+  client: DatabaseClient,
   users: Map<string, boolean>,
 ) {
   if (!users.size || !identityConfigured()) return;
@@ -66,8 +66,8 @@ export async function setStaffPassword(
 }
 
 export function staffAccountSyncMiddleware(
-  client: PrismaClient,
-): Prisma.Middleware {
+  client: DatabaseClient,
+): Database.Middleware {
   return async (params, next) => {
     if (params.model !== "User" || projectingStaff.getStore())
       return next(params);
@@ -111,7 +111,7 @@ export function staffAccountSyncMiddleware(
 }
 
 export async function withAccountSync<T>(
-  client: PrismaClient,
+  client: DatabaseClient,
   run: () => Promise<T>,
 ): Promise<T> {
   if (pendingAccountSync.getStore()) return run();

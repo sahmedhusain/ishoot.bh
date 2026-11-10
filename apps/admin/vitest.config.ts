@@ -14,7 +14,7 @@ export default defineConfig({
       { find: "@platform/email", replacement: path.resolve(__dirname, "./lib/email") },
       { find: "@platform/ui", replacement: path.resolve(__dirname, "./components/ui") },
       { find: "@material/material-color-utilities", replacement: path.resolve(__dirname, "./node_modules/@material/material-color-utilities/index.js") },
-      { find: "@prisma/client", replacement: path.resolve(__dirname, "./lib/decimal.ts") },
+      { find: "@platform/database/decimal", replacement: path.resolve(__dirname, "./lib/decimal.ts") },
       { find: "@", replacement: path.resolve(__dirname, "./") },
     ],
   },

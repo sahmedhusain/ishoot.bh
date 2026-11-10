@@ -6,7 +6,7 @@ import {
 } from "@platform/locales";
 
 import crypto from "crypto";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 import { claimUploadOrLink } from "../services/uploads";
 import { advanceDealForEvent } from "./crm";
@@ -64,7 +64,7 @@ export interface ClientSignableDocument {
 export async function loadSignableDocument(
   type: ClientSignableType,
   id: string,
-  client: Prisma.TransactionClient = db,
+  client: Database.TransactionClient = db,
 ): Promise<ClientSignableDocument | null> {
   const contactSelect = {
     firstName: true,
@@ -224,7 +224,7 @@ const endOfDayUtc = (isoDate: string) =>
 async function signedRecord(
   type: ClientSignableType,
   id: string,
-  client: Prisma.TransactionClient = db,
+  client: Database.TransactionClient = db,
 ) {
   return client.clientSignature.findFirst({
     where: { documentType: type, documentId: id, status: "signed" },
@@ -315,7 +315,7 @@ export async function revokeSigningLink(signatureId: string, actorId: string) {
 }
 
 async function acceptQuotationForSignature(
-  tx: Prisma.TransactionClient,
+  tx: Database.TransactionClient,
   doc: ClientSignableDocument,
   evidence: string,
 ) {

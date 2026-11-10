@@ -3,7 +3,7 @@ import {
   isApiError,
   type NewNotification,
 } from "@platform/api-client";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 
 type PendingRow = {
@@ -15,7 +15,7 @@ type PendingRow = {
   entityType: string | null;
   entityId: string | null;
   messageKey: string | null;
-  messageParams: Prisma.JsonValue | null;
+  messageParams: Database.JsonValue | null;
   actionUrl: string | null;
   eventKey: string | null;
   isRead: boolean;

@@ -4,7 +4,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import {
@@ -124,7 +124,7 @@ export async function openEmployeeHandover(
         reason: clean(input.reason),
         checklist: freshChecklist(
           input.kind,
-        ) as unknown as Prisma.InputJsonValue,
+        ) as unknown as Database.InputJsonValue,
         createdById: actorId,
       },
     });
@@ -384,7 +384,7 @@ export async function updateHandoverChecklist(
   });
   await db.employeeHandover.update({
     where: { id: handoverId },
-    data: { checklist: list as unknown as Prisma.InputJsonValue },
+    data: { checklist: list as unknown as Database.InputJsonValue },
   });
 }
 

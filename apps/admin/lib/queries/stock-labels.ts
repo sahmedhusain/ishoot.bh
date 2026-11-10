@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { createHash } from "node:crypto";
 import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
@@ -203,8 +203,8 @@ export async function reprintSerialLabels(
         idempotencyKey: input.idempotencyKey,
         requestHash,
         originalJobId: original.id,
-        template: original.template as Prisma.InputJsonValue,
-        labels: original.labels as Prisma.InputJsonValue,
+        template: original.template as Database.InputJsonValue,
+        labels: original.labels as Database.InputJsonValue,
         createdById: actorId,
       },
     });

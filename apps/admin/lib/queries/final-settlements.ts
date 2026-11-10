@@ -6,7 +6,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import {
@@ -100,13 +100,13 @@ export async function updateSettlementRules(
   await db.hrPolicy.upsert({
     where: { id: "default" },
     update: {
-      gratuityRules: gratuity as unknown as Prisma.InputJsonValue,
+      gratuityRules: gratuity as unknown as Database.InputJsonValue,
       leaveEncashmentBase: input.leaveEncashmentBase,
       updatedById: actorId,
     },
     create: {
       id: "default",
-      gratuityRules: gratuity as unknown as Prisma.InputJsonValue,
+      gratuityRules: gratuity as unknown as Database.InputJsonValue,
       leaveEncashmentBase: input.leaveEncashmentBase,
       updatedById: actorId,
     },
@@ -737,7 +737,7 @@ async function writeAutoLines(
         labelAr: l.labelAr,
         amount: l.amount,
         source: "auto",
-        details: (l.details ?? null) as Prisma.InputJsonValue,
+        details: (l.details ?? null) as Database.InputJsonValue,
         displayOrder: i,
       })),
     });
@@ -749,7 +749,7 @@ async function writeAutoLines(
     data: {
       ...totalsOf(all),
       employerContributions: result.employerContributions,
-      calculation: result.calculation as unknown as Prisma.InputJsonValue,
+      calculation: result.calculation as unknown as Database.InputJsonValue,
       calculatedAt: new Date(),
     },
   });
@@ -910,7 +910,7 @@ export async function setFinalSettlementManualLines(
       await db.finalSettlementLine.createMany({
         data: drafts.map((d) => ({
           ...d,
-          details: (d.details ?? null) as Prisma.InputJsonValue,
+          details: (d.details ?? null) as Database.InputJsonValue,
         })),
       });
     const all = await db.finalSettlementLine.findMany({

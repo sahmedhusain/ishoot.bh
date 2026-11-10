@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import http from "node:http";
 import path from "node:path";
-type PrismaClient = any;
+type DatabaseClient = any;
 import { ports } from "../../../playwright.config";
 
 export const WEBHOOK_SECRET = "whsec_e2e_stand_in_secret";
@@ -149,7 +149,7 @@ export async function startStripeStandIn(webUrl: string): Promise<StandIn> {
 
 import { setIntegration } from "./integrations";
 
-export async function useStripeStandIn(db: PrismaClient) {
+export async function useStripeStandIn(db: DatabaseClient) {
   await setIntegration("stripe", true, {
     secretKey: SECRET_KEY,
     webhookSecret: WEBHOOK_SECRET,

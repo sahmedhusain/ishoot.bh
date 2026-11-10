@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 
 export interface CommissionRuleInput {
@@ -12,7 +12,7 @@ export interface CommissionRuleInput {
 export async function createCommissionRule(input: CommissionRuleInput, actorId: string) {
   return runAtomicMutation(async () => {
     if (!input.code.trim() || !input.name.trim()) throw new Error("Invalid commission rule");
-    const rateVal = new Prisma.Decimal(input.rate.toString());
+    const rateVal = new Database.Decimal(input.rate.toString());
     if (rateVal.lessThan(0) || rateVal.greaterThan(1)) throw new Error("Invalid commission rule");
 
     const rule = await db.commissionRule.create({
@@ -64,7 +64,7 @@ export async function recordCommissionSnapshot(input: RecordCommissionInput, act
 
     if (!rule) throw new Error("Commission rule not found");
 
-    const basis = new Prisma.Decimal(input.basisAmount.toString());
+    const basis = new Database.Decimal(input.basisAmount.toString());
     const commission = basis.mul(rule.rate);
 
     const snapshot = await db.commissionSnapshot.create({

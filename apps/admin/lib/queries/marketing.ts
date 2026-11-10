@@ -1,6 +1,6 @@
 import { isValidEmail } from "../constants/validation";
 import crypto from "node:crypto";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import {
@@ -180,7 +180,7 @@ export async function saveCampaign(input: CampaignInput, userId: string) {
   });
 }
 
-function readRules(value: Prisma.JsonValue): SegmentRules {
+function readRules(value: Database.JsonValue): SegmentRules {
   const v = (
     value && typeof value === "object" && !Array.isArray(value) ? value : {}
   ) as Record<string, unknown>;
@@ -280,7 +280,7 @@ export async function saveSegment(input: SegmentInput) {
     notOrderedForDays: whole(input.notOrderedForDays),
     city: input.city.trim().slice(0, 80) || undefined,
   };
-  const stored = JSON.parse(JSON.stringify(rules)) as Prisma.InputJsonObject;
+  const stored = JSON.parse(JSON.stringify(rules)) as Database.InputJsonObject;
   return input.id
     ? db.customerSegment.update({
         where: { id: input.id },

@@ -1,7 +1,7 @@
 import { validMoneyAmount } from "../finance/money";
 import { companyCurrency as getAccountingCurrency, assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { getNextSequenceNumber } from "./sequence";
@@ -282,8 +282,8 @@ export async function saveAssetCategory(
   const data = {
     nameEn,
     nameAr,
-    specFields: specFields as unknown as Prisma.InputJsonValue,
-    checklist: checklist as unknown as Prisma.InputJsonValue,
+    specFields: specFields as unknown as Database.InputJsonValue,
+    checklist: checklist as unknown as Database.InputJsonValue,
     isActive: !!input.is_active,
   };
   if (id) return db.assetCategory.update({ where: { id }, data });
@@ -319,8 +319,8 @@ const assetInclude = {
     select: { id: true, reference: true, kind: true, status: true },
     take: 1,
   },
-} satisfies Prisma.AssetInclude;
-type AssetRow = Prisma.AssetGetPayload<{ include: typeof assetInclude }>;
+} satisfies Database.AssetInclude;
+type AssetRow = Database.AssetGetPayload<{ include: typeof assetInclude }>;
 
 function mapAsset(a: AssetRow): AssetRecord {
   return {
@@ -380,7 +380,7 @@ export const ASSET_SORTS = [
 
 export async function listAssets(filters: AssetFilters = {}) {
   const accountingCurrency = await getAccountingCurrency();
-  const and: Prisma.AssetWhereInput[] = [];
+  const and: Database.AssetWhereInput[] = [];
   const q = filters.q?.trim().slice(0, 100);
   if (q)
     and.push({
@@ -401,7 +401,7 @@ export async function listAssets(filters: AssetFilters = {}) {
     and.push({ condition: filters.condition });
   if (filters.holder && filters.holder !== "all")
     and.push({ holderEmployeeId: filters.holder });
-  const orderBy: Prisma.AssetOrderByWithRelationInput[] =
+  const orderBy: Database.AssetOrderByWithRelationInput[] =
     filters.sort === "newest"
       ? [{ createdAt: "desc" }]
       : filters.sort === "name"
@@ -669,7 +669,7 @@ function normalizeAsset(input: AssetInput, specFields: SpecField[]) {
     condition: input.condition,
     location: clean(input.location, 120),
     notes: clean(input.notes, 1000),
-    specs: specs as Prisma.InputJsonValue,
+    specs: specs as Database.InputJsonValue,
   };
 }
 
@@ -830,8 +830,8 @@ export async function startAssetHandover(
         kind: input.kind,
         handoverDate,
         condition: input.condition,
-        checklist: checklist as unknown as Prisma.InputJsonValue,
-        specsSnapshot: asset.specs as Prisma.InputJsonValue,
+        checklist: checklist as unknown as Database.InputJsonValue,
+        specsSnapshot: asset.specs as Database.InputJsonValue,
         accessories: clean(input.accessories, 500),
         damageNotes,
         damageCharge: charge,

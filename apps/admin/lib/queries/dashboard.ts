@@ -1,5 +1,5 @@
 import { phoneSearchVariants } from "../constants/phone";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { OPEN_TASK_STATUSES } from "../constants/tasks";
@@ -61,7 +61,7 @@ export async function saveDashboardLayout(
   }));
   const value = (
     customFolders.length > 0 ? { items, customFolders } : items
-  ) as Prisma.InputJsonValue;
+  ) as Database.InputJsonValue;
   await db.dashboardLayout.upsert({
     where: { userId },
     create: { userId, widgets: value },
@@ -79,7 +79,7 @@ export async function resetDashboardLayout(userId: string) {
     await db.dashboardLayout.update({
       where: { userId },
       data: {
-        widgets: { customFolders } as unknown as Prisma.InputJsonValue,
+        widgets: { customFolders } as unknown as Database.InputJsonValue,
       },
     });
   } else {
@@ -138,7 +138,7 @@ export async function upsertCustomFolderForUser(
 
   const payload = (
     items ? { items, customFolders: nextFolders } : { customFolders: nextFolders }
-  ) as unknown as Prisma.InputJsonValue;
+  ) as unknown as Database.InputJsonValue;
 
   await db.dashboardLayout.upsert({
     where: { userId },
@@ -170,7 +170,7 @@ export async function deleteCustomFolderForUser(
         ? { items, customFolders: nextFolders }
         : items
       : { customFolders: nextFolders }
-  ) as unknown as Prisma.InputJsonValue;
+  ) as unknown as Database.InputJsonValue;
 
   await db.dashboardLayout.update({
     where: { userId },
@@ -239,7 +239,7 @@ export async function myTaskSummary(
   limit = 6,
 ) {
   const today = now.toISOString().slice(0, 10);
-  const where: Prisma.TaskWhereInput = {
+  const where: Database.TaskWhereInput = {
     assigneeId: userId,
     status: { in: OPEN_TASK_STATUSES },
   };

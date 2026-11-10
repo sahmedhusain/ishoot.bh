@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { requireBranchAccess } from "./branches";
 
@@ -81,7 +81,7 @@ export async function saveDrawer(input: DrawerInput, actorId: string) {
           code: input.code.trim(),
           name: input.name.trim(),
           currency: input.currency ?? "USD",
-          openingFloat: input.openingFloat != null ? new Prisma.Decimal(input.openingFloat.toString()) : existing.openingFloat,
+          openingFloat: input.openingFloat != null ? new Database.Decimal(input.openingFloat.toString()) : existing.openingFloat,
           isActive: input.isActive ?? true,
           revision: { increment: 1 },
         },
@@ -94,7 +94,7 @@ export async function saveDrawer(input: DrawerInput, actorId: string) {
         code: input.code.trim(),
         name: input.name.trim(),
         currency: input.currency ?? "USD",
-        openingFloat: input.openingFloat != null ? new Prisma.Decimal(input.openingFloat.toString()) : new Prisma.Decimal(0),
+        openingFloat: input.openingFloat != null ? new Database.Decimal(input.openingFloat.toString()) : new Database.Decimal(0),
         isActive: input.isActive ?? true,
       },
     });
@@ -187,7 +187,7 @@ export async function openCashierSession(input: OpenSessionInput, actorId: strin
       if (activeShift) shiftId = activeShift.id;
     }
 
-    const floatVal = new Prisma.Decimal(input.openingFloat.toString());
+    const floatVal = new Database.Decimal(input.openingFloat.toString());
 
     return db.cashierSession.create({
       data: {
@@ -225,13 +225,13 @@ export async function closeCashierSession(input: CloseSessionInput, actorId: str
 
     const cashCollections = collections
       .filter((c) => c.methodCode === "cash")
-      .reduce((sum, c) => sum.add(c.amount), new Prisma.Decimal(0));
+      .reduce((sum, c) => sum.add(c.amount), new Database.Decimal(0));
 
     const totalSales = collections
-      .reduce((sum, c) => sum.add(c.amount), new Prisma.Decimal(0));
+      .reduce((sum, c) => sum.add(c.amount), new Database.Decimal(0));
 
-    const closingFloatVal = new Prisma.Decimal(input.closingFloat.toString());
-    const actualCashVal = new Prisma.Decimal(input.actualCash.toString());
+    const closingFloatVal = new Database.Decimal(input.closingFloat.toString());
+    const actualCashVal = new Database.Decimal(input.actualCash.toString());
     const expectedCashVal = session.openingFloat.add(cashCollections);
     const cashDifferenceVal = actualCashVal.sub(expectedCashVal);
 
@@ -283,7 +283,7 @@ export async function recordPaymentCollection(input: PaymentCollectionInput, act
         sessionId: input.sessionId || null,
         orderId: input.orderId || null,
         invoiceId: input.invoiceId || null,
-        amount: new Prisma.Decimal(input.amount.toString()),
+        amount: new Database.Decimal(input.amount.toString()),
         currency: input.currency,
         methodCode: input.methodCode,
         referenceNumber: input.referenceNumber?.trim() || null,
@@ -341,12 +341,12 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
     const levels = ["drawer", "session", "shift", "day", "period"];
     if (!levels.includes(input.level)) throw new Error("Retail closing level invalid");
 
-    let totalSales = new Prisma.Decimal(0);
-    let totalReturns = new Prisma.Decimal(0);
-    let totalCash = new Prisma.Decimal(0);
-    let totalCard = new Prisma.Decimal(0);
-    let totalOther = new Prisma.Decimal(0);
-    let cashVariance = new Prisma.Decimal(0);
+    let totalSales = new Database.Decimal(0);
+    let totalReturns = new Database.Decimal(0);
+    let totalCash = new Database.Decimal(0);
+    let totalCard = new Database.Decimal(0);
+    let totalOther = new Database.Decimal(0);
+    let cashVariance = new Database.Decimal(0);
     let snapshotData: Record<string, unknown> = {};
 
     if (input.level === "drawer") {
@@ -357,10 +357,10 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
         take: 10,
         orderBy: { closedAt: "desc" },
       });
-      totalSales = sessions.reduce((s, x) => s.add(x.totalSales), new Prisma.Decimal(0));
-      totalReturns = sessions.reduce((s, x) => s.add(x.totalReturns), new Prisma.Decimal(0));
-      totalCash = sessions.reduce((s, x) => s.add(x.actualCash), new Prisma.Decimal(0));
-      cashVariance = sessions.reduce((s, x) => s.add(x.cashDifference), new Prisma.Decimal(0));
+      totalSales = sessions.reduce((s, x) => s.add(x.totalSales), new Database.Decimal(0));
+      totalReturns = sessions.reduce((s, x) => s.add(x.totalReturns), new Database.Decimal(0));
+      totalCash = sessions.reduce((s, x) => s.add(x.actualCash), new Database.Decimal(0));
+      cashVariance = sessions.reduce((s, x) => s.add(x.cashDifference), new Database.Decimal(0));
       snapshotData = { drawerCode: drawer.code, sessionCount: sessions.length };
     } else if (input.level === "session") {
       const session = await db.cashierSession.findUnique({ where: { id: input.targetId } });
@@ -383,10 +383,10 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
       if (openSessions > 0) throw new Error("Cannot close shift with open cashier sessions");
 
       const sessions = await db.cashierSession.findMany({ where: { shiftId: shift.id } });
-      totalSales = sessions.reduce((s, x) => s.add(x.totalSales), new Prisma.Decimal(0));
-      totalReturns = sessions.reduce((s, x) => s.add(x.totalReturns), new Prisma.Decimal(0));
-      totalCash = sessions.reduce((s, x) => s.add(x.actualCash), new Prisma.Decimal(0));
-      cashVariance = sessions.reduce((s, x) => s.add(x.cashDifference), new Prisma.Decimal(0));
+      totalSales = sessions.reduce((s, x) => s.add(x.totalSales), new Database.Decimal(0));
+      totalReturns = sessions.reduce((s, x) => s.add(x.totalReturns), new Database.Decimal(0));
+      totalCash = sessions.reduce((s, x) => s.add(x.actualCash), new Database.Decimal(0));
+      cashVariance = sessions.reduce((s, x) => s.add(x.cashDifference), new Database.Decimal(0));
       snapshotData = { shiftNumber: shift.shiftNumber, sessionCount: sessions.length };
     } else if (input.level === "day") {
       const openShifts = await db.retailShift.count({ where: { branchId: input.branchId, status: "open" } });
@@ -402,10 +402,10 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
           },
         },
       });
-      totalSales = collections.reduce((s, x) => s.add(x.amount), new Prisma.Decimal(0));
-      totalCash = collections.filter((c) => c.methodCode === "cash").reduce((s, x) => s.add(x.amount), new Prisma.Decimal(0));
-      totalCard = collections.filter((c) => c.methodCode === "card").reduce((s, x) => s.add(x.amount), new Prisma.Decimal(0));
-      totalOther = collections.filter((c) => !["cash", "card"].includes(c.methodCode)).reduce((s, x) => s.add(x.amount), new Prisma.Decimal(0));
+      totalSales = collections.reduce((s, x) => s.add(x.amount), new Database.Decimal(0));
+      totalCash = collections.filter((c) => c.methodCode === "cash").reduce((s, x) => s.add(x.amount), new Database.Decimal(0));
+      totalCard = collections.filter((c) => c.methodCode === "card").reduce((s, x) => s.add(x.amount), new Database.Decimal(0));
+      totalOther = collections.filter((c) => !["cash", "card"].includes(c.methodCode)).reduce((s, x) => s.add(x.amount), new Database.Decimal(0));
       snapshotData = { date: input.businessDate, collectionsCount: collections.length };
     } else if (input.level === "period") {
       snapshotData = { periodId: input.targetId };
@@ -424,7 +424,7 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
         totalCard,
         totalOther,
         cashVariance,
-        snapshot: snapshotData as unknown as Prisma.InputJsonValue,
+        snapshot: snapshotData as unknown as Database.InputJsonValue,
         signature: input.signature || null,
         status: "closed",
       },

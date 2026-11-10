@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
 import { validateSignatureImage } from "../services/signature-image";
@@ -157,7 +157,7 @@ export async function acknowledgeStockHandover(
         actorId,
         signerName: manifest.signerName,
         statement: manifest.acknowledgment,
-        manifest: manifest as Prisma.InputJsonValue,
+        manifest: manifest as Database.InputJsonValue,
         manifestHash: hash,
         signature: input.signature,
       },

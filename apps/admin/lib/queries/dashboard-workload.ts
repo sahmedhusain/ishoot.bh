@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 import { STALE_APPROVAL_DAYS } from "../constants/approvals";
 import {
@@ -59,7 +59,7 @@ export async function getApprovalWorkload(
   readableTargetTypes: string[],
   now = new Date(),
 ): Promise<ApprovalWorkload> {
-  const awaiting: Prisma.ApprovalRequestWhereInput = {
+  const awaiting: Database.ApprovalRequestWhereInput = {
     status: "pending",
     approverIds: { has: userId },
   };
@@ -102,7 +102,7 @@ export async function getApprovalWorkload(
 
   let org: ApprovalWorkload["org"] = null;
   if (readableTargetTypes.length) {
-    const scope: Prisma.ApprovalRequestWhereInput = {
+    const scope: Database.ApprovalRequestWhereInput = {
       targetType: { in: readableTargetTypes },
     };
     const [pendingGroups, stale, decidedGroups, decided] = await Promise.all([
@@ -200,7 +200,7 @@ export interface WorkloadRequestRow {
   createdAt: string;
 }
 
-const openWhere: Prisma.InquiryWhereInput = {
+const openWhere: Database.InquiryWhereInput = {
   workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
 };
 const rowSelect = {
@@ -216,9 +216,9 @@ const rowSelect = {
   workflowStatus: true,
   slaDueDate: true,
   createdAt: true,
-} satisfies Prisma.InquirySelect;
+} satisfies Database.InquirySelect;
 function toRow(
-  r: Prisma.InquiryGetPayload<{ select: typeof rowSelect }>,
+  r: Database.InquiryGetPayload<{ select: typeof rowSelect }>,
   now: Date,
 ): WorkloadRequestRow {
   return {
@@ -237,7 +237,7 @@ function toRow(
   };
 }
 
-async function resolutionStats(where: Prisma.InquiryWhereInput, since: Date) {
+async function resolutionStats(where: Database.InquiryWhereInput, since: Date) {
   const resolved = await db.inquiry.findMany({
     where: {
       AND: [where, { workflowStatus: "resolved", resolvedAt: { gte: since } }],
@@ -283,14 +283,14 @@ export async function getRequestWorkload(
   options: { includeComplaints: boolean },
   now = new Date(),
 ): Promise<RequestWorkload> {
-  const visible: Prisma.InquiryWhereInput = options.includeComplaints
+  const visible: Database.InquiryWhereInput = options.includeComplaints
     ? {}
     : { intent: { not: "complaint" } };
-  const open: Prisma.InquiryWhereInput = { AND: [visible, openWhere] };
-  const overdueWhere: Prisma.InquiryWhereInput = {
+  const open: Database.InquiryWhereInput = { AND: [visible, openWhere] };
+  const overdueWhere: Database.InquiryWhereInput = {
     AND: [open, { slaDueDate: { lt: now } }],
   };
-  const mineWhere: Prisma.InquiryWhereInput = {
+  const mineWhere: Database.InquiryWhereInput = {
     AND: [open, { assignedToId: viewerId }],
   };
   const [
@@ -400,8 +400,8 @@ export interface ComplaintWorkload {
 export async function getComplaintWorkload(
   now = new Date(),
 ): Promise<ComplaintWorkload> {
-  const complaint: Prisma.InquiryWhereInput = { intent: "complaint" };
-  const open: Prisma.InquiryWhereInput = { AND: [complaint, openWhere] };
+  const complaint: Database.InquiryWhereInput = { intent: "complaint" };
+  const open: Database.InquiryWhereInput = { AND: [complaint, openWhere] };
   const weekAgo = new Date(now.getTime() - 7 * DAY);
   const [
     openCount,

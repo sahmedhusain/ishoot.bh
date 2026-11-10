@@ -7,7 +7,7 @@ import {
 } from "@platform/locales";
 
 import { db } from "../atomic";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import {
   DEFAULT_HR_POLICY,
   type HrPolicyRules,
@@ -329,7 +329,7 @@ export async function saveLeaveType(input: LeaveTypeInput) {
     nameAr: input.nameAr.trim() || input.nameEn.trim(),
     payPercent: input.payPercent,
     isPaid: tiers ? tiers.some((t) => t.percent > 0) : input.payPercent > 0,
-    payTiers: (tiers ?? undefined) as Prisma.InputJsonValue | undefined,
+    payTiers: (tiers ?? undefined) as Database.InputJsonValue | undefined,
     accrual: input.accrual,
     daysAllowedPerYear: input.daysAllowedPerYear,
     eligibleAfterMonths: input.eligibleAfterMonths,
@@ -351,7 +351,7 @@ export async function saveLeaveType(input: LeaveTypeInput) {
       where: { id: input.id },
       data: {
         ...data,
-        payTiers: tiers ? (tiers as Prisma.InputJsonValue) : Prisma.DbNull,
+        payTiers: tiers ? (tiers as Database.InputJsonValue) : Database.DbNull,
       },
     });
   }

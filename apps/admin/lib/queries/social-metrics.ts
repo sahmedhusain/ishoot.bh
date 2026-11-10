@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { listIntegrations } from "@platform/api-client";
 import { db } from "../atomic";
 
@@ -14,7 +14,7 @@ export interface LatestSocialMetric {
 
 export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
   const integrations = await listIntegrations();
-  const activeConditions: Prisma.Sql[] = [];
+  const activeConditions: Database.Sql[] = [];
 
   for (const item of integrations) {
     if (!item.isActive) continue;
@@ -28,7 +28,7 @@ export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
       const metrics = availableMetrics[platform];
       if (accountId && Array.isArray(metrics) && metrics.length > 0) {
         activeConditions.push(
-          Prisma.sql`(m."sourceProvider" = ${item.provider} AND m."platform" = ${platform} AND m."sourceAccountId" = ${accountId} AND m."metricType" IN (${Prisma.join(metrics)}))`,
+          Database.sql`(m."sourceProvider" = ${item.provider} AND m."platform" = ${platform} AND m."sourceAccountId" = ${accountId} AND m."metricType" IN (${Database.join(metrics)}))`,
         );
       }
     }
@@ -40,7 +40,7 @@ export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
     SELECT DISTINCT ON ("platform", "metricType")
       "id", "platform", "metricType", "value", "recordedAt", "isStale", "errorStatus"
     FROM "SocialMetric" m
-    WHERE ${Prisma.join(activeConditions, " OR ")}
+    WHERE ${Database.join(activeConditions, " OR ")}
     ORDER BY "platform", "metricType", "recordedAt" DESC
   `;
 }

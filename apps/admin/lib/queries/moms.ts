@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import {
   MinuteOfMeetingItem,
   MomAttendee,
@@ -8,7 +8,7 @@ import {
   MomActionItem,
 } from "../types";
 
-export function mapPrismaMom(m: any): MinuteOfMeetingItem {
+export function mapDatabaseMom(m: any): MinuteOfMeetingItem {
   return {
     id: m.id,
     mom_number: m.momNumber,
@@ -98,7 +98,7 @@ export async function getMinutesOfMeetings(filters?: {
       orderBy: { meetingDate: "desc" },
     });
 
-    return moms.map(mapPrismaMom);
+    return moms.map(mapDatabaseMom);
   } catch (error) {
     console.error("Error fetching Minutes of Meetings:", error);
     throw error;
@@ -141,7 +141,7 @@ export async function getMinuteOfMeetingById(
       },
     });
 
-    return mom ? mapPrismaMom(mom) : null;
+    return mom ? mapDatabaseMom(mom) : null;
   } catch (error) {
     console.error(`Error fetching MOM with id ${id}:`, error);
     throw error;
@@ -195,7 +195,7 @@ function mapApiMomToItem(m: any): MinuteOfMeetingItem {
 }
 
 export async function getNextMomNumber(
-  client: Prisma.TransactionClient = db,
+  client: Database.TransactionClient = db,
 ): Promise<string> {
   const prefix = `MOM-${new Date().getFullYear()}-`;
   const [row] = (await client.$queryRaw<Array<{ next: number }>>`
@@ -258,7 +258,7 @@ export async function createMinuteOfMeeting(data: {
       },
     });
   });
-  return mapPrismaMom(created);
+  return mapDatabaseMom(created);
 }
 
 export async function updateMinuteOfMeeting(
@@ -334,7 +334,7 @@ export async function updateMinuteOfMeeting(
         },
       });
     });
-    return mapPrismaMom(updated);
+    return mapDatabaseMom(updated);
   } catch (error) {
     console.error(`Error updating MOM ${id}:`, error);
     throw error;

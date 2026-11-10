@@ -2,7 +2,7 @@ import { roundMoney, validMoneyAmount, toMinorUnits } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { isLocale } from "@platform/locales/registry";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { phoneSearchVariants, isValidPhone, formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
@@ -42,7 +42,7 @@ import {
   type ShipmentSlotChoice,
 } from "./delivery";
 
-type Tx = Prisma.TransactionClient;
+type Tx = Database.TransactionClient;
 const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const numOrNull = (value: { toString(): string } | null | undefined) =>
@@ -670,8 +670,8 @@ export async function placeOrder(input: PlaceOrderInput) {
         paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
         fulfilment: input.fulfilment,
         shippingAddress: destination
-          ? (destination as unknown as Prisma.InputJsonValue)
-          : Prisma.JsonNull,
+          ? (destination as unknown as Database.InputJsonValue)
+          : Database.JsonNull,
         subtotal: quote.subtotal,
         discountAmount: quote.discount,
         couponCode: quote.couponCode,
@@ -815,7 +815,7 @@ export async function listOrders(
   const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 100);
   const page = Math.max(query.page ?? 1, 1);
   const search = query.search?.trim().slice(0, 80);
-  const where: Prisma.SalesOrderWhereInput = {
+  const where: Database.SalesOrderWhereInput = {
     ...(query.status ? { status: query.status } : {}),
     ...(query.channel ? { channel: query.channel } : {}),
     ...(search
@@ -911,7 +911,7 @@ async function releaseReservations(
       productId: string;
       variantKey: string;
       locationId: string | null;
-      quantity: Prisma.Decimal;
+      quantity: Database.Decimal;
     }[];
   },
 ) {

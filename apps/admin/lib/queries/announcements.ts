@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { resolveSigningSignature } from "./signature-policies";
 import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
@@ -372,7 +372,7 @@ export async function archiveAnnouncement(
 export type AnnouncementView = "inbox" | "unread" | "hidden" | "manage";
 
 const mapAnnouncement = (
-  a: Prisma.AnnouncementGetPayload<{ include: { receipts: true } }>,
+  a: Database.AnnouncementGetPayload<{ include: { receipts: true } }>,
   userId: string,
 ) => {
   const mine = a.receipts.find((r) => r.userId === userId);

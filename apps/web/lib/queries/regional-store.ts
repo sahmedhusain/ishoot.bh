@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 
 export async function listStoreRegions() {
@@ -20,7 +20,7 @@ export async function resolveRegionalPrice(
   regionCode: string,
 ) {
   const region = await getStoreRegion(regionCode);
-  const base = new Prisma.Decimal(basePrice.toString());
+  const base = new Database.Decimal(basePrice.toString());
   if (!region || !region.isEnabled) return base;
   return base.mul(region.priceMultiplier);
 }

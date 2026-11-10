@@ -35,7 +35,7 @@ import {
 
 export { calculateInvoiceTotals };
 
-function mapPrismaInvoiceToInvoice(inv: any): Invoice {
+function mapDatabaseInvoiceToInvoice(inv: any): Invoice {
   const subtotal = Number(inv.subtotal);
   const discountAmount = Number(inv.discountAmount);
   const afterDiscount = Math.max(0, subtotal - discountAmount);
@@ -141,7 +141,7 @@ export async function getAllInvoices(options?: {
       },
       orderBy: { createdAt: "desc" },
     });
-    return invoices.map(mapPrismaInvoiceToInvoice);
+    return invoices.map(mapDatabaseInvoiceToInvoice);
   } catch (e) {
     console.error("Error fetching invoices from DB:", e);
     throw e;
@@ -173,7 +173,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
         },
       },
     });
-    return inv ? mapPrismaInvoiceToInvoice(inv) : null;
+    return inv ? mapDatabaseInvoiceToInvoice(inv) : null;
   } catch (e) {
     console.error(`Error fetching invoice ${id}:`, e);
     throw e;
@@ -220,7 +220,7 @@ export async function getInvoiceByIdOrNumber(
         },
       },
     });
-    return inv ? mapPrismaInvoiceToInvoice(inv) : null;
+    return inv ? mapDatabaseInvoiceToInvoice(inv) : null;
   } catch (e) {
     console.error(`Error fetching invoice ${idOrNumber}:`, e);
     throw e;
@@ -457,7 +457,7 @@ export async function createInvoice(data: {
     return invoice;
   });
 
-  return mapPrismaInvoiceToInvoice(created);
+  return mapDatabaseInvoiceToInvoice(created);
 }
 
 export async function updateInvoice(
@@ -611,7 +611,7 @@ export async function updateInvoice(
         },
       });
 
-      return mapPrismaInvoiceToInvoice(updated);
+      return mapDatabaseInvoiceToInvoice(updated);
     });
   } catch (e) {
     console.error(`Error updating invoice ${id}:`, e);

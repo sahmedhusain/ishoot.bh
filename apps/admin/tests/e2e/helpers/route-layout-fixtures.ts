@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Prisma, db as client } from "../../../lib/data-hub";
+import type { Database, db as client } from "../../../lib/data-hub";
 import { admin } from "./helpers";
 
 export async function prepareLayoutFixtures(db: typeof client) {
@@ -17,7 +17,7 @@ export async function prepareLayoutFixtures(db: typeof client) {
     },
   >(
     model: Model,
-    data: Prisma.Args<Model, "create"> extends { data: infer Data }
+    data: Database.Args<Model, "create"> extends { data: infer Data }
       ? Data
       : never,
     route?: string,

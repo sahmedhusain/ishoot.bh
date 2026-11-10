@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import type { PermissionResource } from "../constants/permissions";
@@ -76,10 +76,10 @@ type Row = {
   expires_on: Date | null;
 };
 
-const employeeName = Prisma.sql`concat_ws(' ', e."firstNameEn", e."lastNameEn")`;
-const employeeNameAr = Prisma.sql`concat_ws(' ', e."firstNameAr", e."lastNameAr")`;
+const employeeName = Database.sql`concat_ws(' ', e."firstNameEn", e."lastNameEn")`;
+const employeeNameAr = Database.sql`concat_ws(' ', e."firstNameAr", e."lastNameAr")`;
 
-const documents = Prisma.sql`
+const documents = Database.sql`
   SELECT 'attachment' AS source, a.id, a."fileName" AS file_name, a."fileUrl" AS file_url, a."mimeType" AS mime_type, a."fileSize" AS file_size,
     a."entityType" AS kind, a."entityId" AS owner_id,
     COALESCE(NULLIF(c."companyName", ''), NULLIF(concat_ws(' ', c."firstName", c."lastName"), ''), i."invoiceNumber", q."quotationNumber", d.title, p."receiptNumber",
@@ -250,7 +250,7 @@ function conditions(f: ArchiveFilters, kinds: ArchiveKind[]) {
     f.kind === "all" ? groupKinds : groupKinds.filter((k) => k === f.kind);
   const soon = new Date(Date.now() + ARCHIVE_EXPIRING_DAYS * 86_400_000);
   const today = new Date(new Date().toISOString().slice(0, 10));
-  return Prisma.sql`
+  return Database.sql`
     WHERE doc.kind = ANY(${visible.length ? visible : ["__none__"]}::text[])
       AND (${f.q} = '' OR doc.file_name ILIKE ${pattern} OR doc.file_url ILIKE ${pattern} OR doc.owner_en ILIKE ${pattern} OR doc.owner_ar ILIKE ${pattern} OR doc.uploaded_by ILIKE ${pattern})
       AND (${f.from} = '' OR doc.created_at >= ${f.from || "1970-01-01"}::date)
@@ -262,12 +262,12 @@ function conditions(f: ArchiveFilters, kinds: ArchiveKind[]) {
         OR (${f.expiry} = 'none' AND doc.expires_on IS NULL))`;
 }
 
-const ORDER: Record<string, Prisma.Sql> = {
-  newest: Prisma.sql`doc.created_at DESC, doc.id DESC`,
-  oldest: Prisma.sql`doc.created_at ASC, doc.id ASC`,
-  name: Prisma.sql`lower(doc.file_name) ASC, doc.id ASC`,
-  expiry: Prisma.sql`doc.expires_on ASC NULLS LAST, doc.created_at DESC, doc.id DESC`,
-  largest: Prisma.sql`doc.file_size DESC NULLS LAST, doc.created_at DESC, doc.id DESC`,
+const ORDER: Record<string, Database.Sql> = {
+  newest: Database.sql`doc.created_at DESC, doc.id DESC`,
+  oldest: Database.sql`doc.created_at ASC, doc.id ASC`,
+  name: Database.sql`lower(doc.file_name) ASC, doc.id ASC`,
+  expiry: Database.sql`doc.expires_on ASC NULLS LAST, doc.created_at DESC, doc.id DESC`,
+  largest: Database.sql`doc.file_size DESC NULLS LAST, doc.created_at DESC, doc.id DESC`,
 };
 
 export async function getDocumentArchivePage(
@@ -279,12 +279,12 @@ export async function getDocumentArchivePage(
   const where = conditions(f, kinds);
   const [countRows, groupRows, expiryRows] = await Promise.all([
     db.$queryRaw<Array<{ count: bigint }>>(
-      Prisma.sql`SELECT count(*) AS count FROM (${documents}) doc ${where}`,
+      Database.sql`SELECT count(*) AS count FROM (${documents}) doc ${where}`,
     ),
     db.$queryRaw<Array<{ kind: string; count: bigint }>>(
-      Prisma.sql`SELECT doc.kind, count(*) AS count FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[]) GROUP BY doc.kind`,
+      Database.sql`SELECT doc.kind, count(*) AS count FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[]) GROUP BY doc.kind`,
     ),
-    db.$queryRaw<Array<{ expired: bigint; expiring: bigint }>>(Prisma.sql`
+    db.$queryRaw<Array<{ expired: bigint; expiring: bigint }>>(Database.sql`
       SELECT count(*) FILTER (WHERE doc.expires_on < current_date) AS expired,
              count(*) FILTER (WHERE doc.expires_on >= current_date AND doc.expires_on <= current_date + ${ARCHIVE_EXPIRING_DAYS}::int) AS expiring
       FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[])`),
@@ -292,7 +292,7 @@ export async function getDocumentArchivePage(
   const total = Number(countRows[0]?.count ?? 0);
   const page = Math.min(f.page, Math.max(1, Math.ceil(total / pageSize)));
   const rows = await db.$queryRaw<Row[]>(
-    Prisma.sql`SELECT * FROM (${documents}) doc ${where} ORDER BY ${ORDER[f.sort] ?? ORDER.newest} LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
+    Database.sql`SELECT * FROM (${documents}) doc ${where} ORDER BY ${ORDER[f.sort] ?? ORDER.newest} LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
   );
   const byKind = Object.fromEntries(
     groupRows.map((r) => [r.kind, Number(r.count)]),
@@ -326,7 +326,7 @@ export async function getDocumentArchiveExportBatch(
 ) {
   const f = archiveParameters(input);
   const rows = await db.$queryRaw<Row[]>(
-    Prisma.sql`SELECT * FROM (${documents}) doc ${conditions(f, kinds)} AND (doc.source || ':' || doc.id) > ${after || ""} ORDER BY (doc.source || ':' || doc.id) ASC LIMIT ${Math.min(500, batchSize)}`,
+    Database.sql`SELECT * FROM (${documents}) doc ${conditions(f, kinds)} AND (doc.source || ':' || doc.id) > ${after || ""} ORDER BY (doc.source || ':' || doc.id) ASC LIMIT ${Math.min(500, batchSize)}`,
   );
   return rows.map(mapRow);
 }

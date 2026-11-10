@@ -2,7 +2,7 @@ import { isLocale } from "@platform/locales/registry";
 import { countryIso } from "../constants/phone";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164, phoneSearchVariants } from "../constants/phone";
@@ -361,9 +361,9 @@ export function clientListParameters(input: ClientListParameters = {}) {
 export type ClientListFilters = ReturnType<typeof clientListParameters>;
 
 function standingSql(baseCurrency: string) {
-  const convert = (expr: Prisma.Sql) =>
-    Prisma.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} ELSE 0 END`;
-  return Prisma.sql`
+  const convert = (expr: Database.Sql) =>
+    Database.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} ELSE 0 END`;
+  return Database.sql`
     inv AS (
       SELECT COALESCE(i."clientId", d."contactId") AS cid, i.id, i.currency, i."totalAmount" AS total, i."dueDate", i."issueDate"
       FROM "Invoice" i LEFT JOIN "CrmDeal" d ON d.id = i."dealId"
@@ -376,9 +376,9 @@ function standingSql(baseCurrency: string) {
     ),
     standing AS (
       SELECT inv.cid,
-        SUM(${convert(Prisma.sql`inv.total`)}) AS billed,
-        SUM(${convert(Prisma.sql`LEAST(inv.total, COALESCE(paid.amount, 0))`)}) AS collected,
-        SUM(${convert(Prisma.sql`GREATEST(0, inv.total - COALESCE(paid.amount, 0))`)}) AS outstanding,
+        SUM(${convert(Database.sql`inv.total`)}) AS billed,
+        SUM(${convert(Database.sql`LEAST(inv.total, COALESCE(paid.amount, 0))`)}) AS collected,
+        SUM(${convert(Database.sql`GREATEST(0, inv.total - COALESCE(paid.amount, 0))`)}) AS outstanding,
         BOOL_OR(inv.total > COALESCE(paid.amount, 0) AND inv."dueDate" < CURRENT_DATE) AS overdue,
         COUNT(*)::int AS invoice_count,
         GREATEST(MAX(inv."issueDate"), MAX(paid.last)) AS last_billing
@@ -423,22 +423,22 @@ function standingSql(baseCurrency: string) {
     )`;
 }
 
-function filterSql(f: ClientListFilters, extra: Prisma.Sql[] = []) {
-  const and: Prisma.Sql[] = [...extra];
+function filterSql(f: ClientListFilters, extra: Database.Sql[] = []) {
+  const and: Database.Sql[] = [...extra];
   if (f.q) {
     const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
     const variants = phoneSearchVariants(f.q);
     const phoneSql =
       variants.length > 0
-        ? Prisma.sql`OR ${Prisma.join(
+        ? Database.sql`OR ${Database.join(
             variants.map((v) => {
               const vPat = `%${v}%`;
-              return Prisma.sql`c.phone ILIKE ${vPat} OR c."phoneE164" ILIKE ${vPat} OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id AND p.phone ILIKE ${vPat})`;
+              return Database.sql`c.phone ILIKE ${vPat} OR c."phoneE164" ILIKE ${vPat} OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id AND p.phone ILIKE ${vPat})`;
             }),
             " OR ",
           )}`
-        : Prisma.empty;
-    and.push(Prisma.sql`(
+        : Database.empty;
+    and.push(Database.sql`(
       c."firstName" ILIKE ${pattern} OR c."lastName" ILIKE ${pattern} OR CONCAT_WS(' ', c."firstName", c."lastName") ILIKE ${pattern}
       OR c."companyName" ILIKE ${pattern} OR c."companyNameAr" ILIKE ${pattern} OR c.email ILIKE ${pattern} OR c.phone ILIKE ${pattern}
       OR c."crNumber" ILIKE ${pattern} OR c."vatNumber" ILIKE ${pattern} OR c."registrationNumber" ILIKE ${pattern} OR c."addressCity" ILIKE ${pattern}
@@ -447,40 +447,40 @@ function filterSql(f: ClientListFilters, extra: Prisma.Sql[] = []) {
       ${phoneSql}
     )`);
   }
-  if (f.kind !== "all") and.push(Prisma.sql`c."clientKind" = ${f.kind}`);
-  if (f.type !== "all") and.push(Prisma.sql`c."contactType" = ${f.type}`);
-  if (f.origin !== "all") and.push(Prisma.sql`c."companyOrigin" = ${f.origin}`);
+  if (f.kind !== "all") and.push(Database.sql`c."clientKind" = ${f.kind}`);
+  if (f.type !== "all") and.push(Database.sql`c."contactType" = ${f.type}`);
+  if (f.origin !== "all") and.push(Database.sql`c."companyOrigin" = ${f.origin}`);
   if (f.country !== "all")
     and.push(
-      Prisma.sql`(c."addressCountry" = ${f.country} OR c."registrationCountry" = ${f.country} OR c.nationality = ${f.country})`,
+      Database.sql`(c."addressCountry" = ${f.country} OR c."registrationCountry" = ${f.country} OR c.nationality = ${f.country})`,
     );
-  if (f.tier !== "all") and.push(Prisma.sql`x.tier = ${f.tier}`);
-  if (f.balance === "outstanding") and.push(Prisma.sql`x.outstanding > 0`);
-  if (f.balance === "overdue") and.push(Prisma.sql`x.overdue`);
+  if (f.tier !== "all") and.push(Database.sql`x.tier = ${f.tier}`);
+  if (f.balance === "outstanding") and.push(Database.sql`x.outstanding > 0`);
+  if (f.balance === "overdue") and.push(Database.sql`x.overdue`);
   if (f.balance === "settled")
-    and.push(Prisma.sql`NOT x.never_billed AND x.outstanding <= 0`);
-  if (f.balance === "never_billed") and.push(Prisma.sql`x.never_billed`);
+    and.push(Database.sql`NOT x.never_billed AND x.outstanding <= 0`);
+  if (f.balance === "never_billed") and.push(Database.sql`x.never_billed`);
   const dormantSince = new Date(Date.now() - CLIENT_DORMANT_DAYS * 86400000);
   if (f.activity === "active")
-    and.push(Prisma.sql`x.last_activity >= ${dormantSince}`);
+    and.push(Database.sql`x.last_activity >= ${dormantSince}`);
   if (f.activity === "dormant")
-    and.push(Prisma.sql`x.last_activity < ${dormantSince}`);
+    and.push(Database.sql`x.last_activity < ${dormantSince}`);
   return and.length
-    ? Prisma.sql`WHERE ${Prisma.join(and, " AND ")}`
-    : Prisma.empty;
+    ? Database.sql`WHERE ${Database.join(and, " AND ")}`
+    : Database.empty;
 }
 
-const SORT_SQL: Record<ClientSort, Prisma.Sql> = {
-  newest: Prisma.sql`c."createdAt" DESC, c.id DESC`,
-  oldest: Prisma.sql`c."createdAt" ASC, c.id ASC`,
-  name_asc: Prisma.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) ASC, c.id`,
-  name_desc: Prisma.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) DESC, c.id`,
-  rank: Prisma.sql`x.rank ASC NULLS LAST, c."createdAt" DESC, c.id`,
-  revenue_desc: Prisma.sql`x.billed DESC, c.id`,
-  revenue_asc: Prisma.sql`x.billed ASC, c.id`,
-  outstanding_desc: Prisma.sql`x.outstanding DESC, c.id`,
-  activity_desc: Prisma.sql`x.last_activity DESC NULLS LAST, c.id`,
-  activity_asc: Prisma.sql`x.last_activity ASC NULLS LAST, c.id`,
+const SORT_SQL: Record<ClientSort, Database.Sql> = {
+  newest: Database.sql`c."createdAt" DESC, c.id DESC`,
+  oldest: Database.sql`c."createdAt" ASC, c.id ASC`,
+  name_asc: Database.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) ASC, c.id`,
+  name_desc: Database.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) DESC, c.id`,
+  rank: Database.sql`x.rank ASC NULLS LAST, c."createdAt" DESC, c.id`,
+  revenue_desc: Database.sql`x.billed DESC, c.id`,
+  revenue_asc: Database.sql`x.billed ASC, c.id`,
+  outstanding_desc: Database.sql`x.outstanding DESC, c.id`,
+  activity_desc: Database.sql`x.last_activity DESC NULLS LAST, c.id`,
+  activity_asc: Database.sql`x.last_activity ASC NULLS LAST, c.id`,
 };
 
 type StandingRow = {
@@ -539,14 +539,14 @@ export async function getClientsPage(
   const f = clientListParameters(input);
   const currency = await baseCurrency();
   return runAtomicMutation(async () => {
-    const withSql = Prisma.sql`WITH ${standingSql(currency)}`;
-    const from = Prisma.sql`FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${filterSql(f)}`;
+    const withSql = Database.sql`WITH ${standingSql(currency)}`;
+    const from = Database.sql`FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${filterSql(f)}`;
     if (batch) {
       const where = filterSql(
         f,
-        batch.after ? [Prisma.sql`c.id > ${batch.after}`] : [],
+        batch.after ? [Database.sql`c.id > ${batch.after}`] : [],
       );
-      const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`${withSql}
+      const rows = await db.$queryRaw<StandingRow[]>(Database.sql`${withSql}
         SELECT x.* FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${where}
         ORDER BY c.id ASC LIMIT ${Math.min(500, batch.batchSize)}`);
       return {
@@ -560,15 +560,15 @@ export async function getClientsPage(
       };
     }
     const countRows = await db.$queryRaw<Array<{ count: bigint }>>(
-      Prisma.sql`${withSql} SELECT COUNT(*) AS count ${from}`,
+      Database.sql`${withSql} SELECT COUNT(*) AS count ${from}`,
     );
     const total = Number(countRows?.[0]?.count ?? 0);
     const page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
-    const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`${withSql}
+    const rows = await db.$queryRaw<StandingRow[]>(Database.sql`${withSql}
       SELECT x.* ${from} ORDER BY ${SORT_SQL[f.sort]} LIMIT 50 OFFSET ${(page - 1) * 50}`);
     const [summary] = (await db.$queryRaw<
       Array<Record<string, bigint | unknown>>
-    >(Prisma.sql`${withSql}
+    >(Database.sql`${withSql}
       SELECT COUNT(*) AS total,
         COUNT(*) FILTER (WHERE c."clientKind" = 'company') AS companies,
         COUNT(*) FILTER (WHERE c."clientKind" = 'government') AS government,
@@ -671,12 +671,12 @@ export async function getClientsPage(
 export async function getClientStanding(id: string) {
   const currency = await baseCurrency();
   const rows = await db.$queryRaw<StandingRow[]>(
-    Prisma.sql`WITH ${standingSql(currency)} SELECT x.* FROM client_rows x WHERE x.id = ${id}`,
+    Database.sql`WITH ${standingSql(currency)} SELECT x.* FROM client_rows x WHERE x.id = ${id}`,
   );
   const r = rows[0];
   if (!r) return null;
   const rankedRows = await db.$queryRaw<Array<{ ranked: bigint }>>(
-    Prisma.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`,
+    Database.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`,
   );
   return {
     rank: r.rank === null ? null : Number(r.rank),

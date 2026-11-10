@@ -1,10 +1,10 @@
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db } from "../atomic";
 
 export async function slaDueFor(
   priority: string | null | undefined,
   from = new Date(),
-  client: Prisma.TransactionClient | typeof db = db,
+  client: Database.TransactionClient | typeof db = db,
 ) {
   const settings = await client.serviceSettings.upsert({
     where: { id: "default" },

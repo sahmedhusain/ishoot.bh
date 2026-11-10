@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import { mapContact, mapDeal, getCRMDeals } from "./crm";
 import type { Invoice, Payment } from "../types";
@@ -123,7 +123,7 @@ export async function getDealsPage(
       createdAt: true,
       updatedAt: true,
       contact: { select: contactListSelect },
-    } satisfies Prisma.CrmDealSelect,
+    } satisfies Database.CrmDealSelect,
     f.page,
     batch,
   );
@@ -202,7 +202,7 @@ export async function getInvoicesPage(
         totalAmount: true,
         client: { select: contactListSelect },
         deal: { select: { contact: { select: contactListSelect } } },
-      } satisfies Prisma.InvoiceSelect,
+      } satisfies Database.InvoiceSelect,
       f.page,
       batch,
     );
@@ -327,7 +327,7 @@ export async function getPaymentsPage(
             },
           },
         },
-      } satisfies Prisma.PaymentSelect,
+      } satisfies Database.PaymentSelect,
       f.page,
       batch,
     );
@@ -474,7 +474,7 @@ export async function getCalendarPage(
 
 export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
   return runAtomicMutation(async () => {
-    const { mapPrismaMom } = await import("./moms");
+    const { mapDatabaseMom } = await import("./moms");
     const f = listParameters(input);
     const where = {
       ...(f.dealId ? { dealId: f.dealId } : {}),
@@ -532,7 +532,7 @@ export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
     const count = batch ? 0 : await db.minuteOfMeeting.count();
     return {
       ...result,
-      items: result.rows.map(mapPrismaMom),
+      items: result.rows.map(mapDatabaseMom),
       rows: undefined,
       filters: f,
       count,
@@ -633,24 +633,24 @@ export async function getAttachmentsPage(
   batch?: ExportBatch,
 ) {
   const f = listParameters(input);
-  const { Prisma } = await import("@prisma/client");
+  const { Database } = await import("@platform/database/decimal");
   const { getAllAttachments } = await import("./attachments");
   const { runAtomicMutation } = await import("../atomic");
   const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
-  const condition = Prisma.sql`WHERE (${f.q}='' OR a."fileName" ILIKE ${pattern} OR a."entityId" ILIKE ${pattern} OR u."fullName" ILIKE ${pattern} OR c."companyName" ILIKE ${pattern} OR concat(c."firstName",' ',c."lastName") ILIKE ${pattern} OR i."invoiceNumber" ILIKE ${pattern} OR d.title ILIKE ${pattern} OR p."receiptNumber" ILIKE ${pattern}) AND (${f.status}='all' OR a."entityType"=${f.status})`;
-  const joins = Prisma.sql`FROM "Attachment" a LEFT JOIN "User" u ON u.id=a."uploadedById" LEFT JOIN "CrmContact" c ON c.id=a."entityId" AND a."entityType" IN ('contact','customer_vault') LEFT JOIN "Invoice" i ON i.id=a."entityId" AND a."entityType"='invoice' LEFT JOIN "CrmDeal" d ON d.id=a."entityId" AND a."entityType"='deal' LEFT JOIN "Payment" p ON p.id=a."entityId" AND a."entityType"='payment'`;
+  const condition = Database.sql`WHERE (${f.q}='' OR a."fileName" ILIKE ${pattern} OR a."entityId" ILIKE ${pattern} OR u."fullName" ILIKE ${pattern} OR c."companyName" ILIKE ${pattern} OR concat(c."firstName",' ',c."lastName") ILIKE ${pattern} OR i."invoiceNumber" ILIKE ${pattern} OR d.title ILIKE ${pattern} OR p."receiptNumber" ILIKE ${pattern}) AND (${f.status}='all' OR a."entityType"=${f.status})`;
+  const joins = Database.sql`FROM "Attachment" a LEFT JOIN "User" u ON u.id=a."uploadedById" LEFT JOIN "CrmContact" c ON c.id=a."entityId" AND a."entityType" IN ('contact','customer_vault') LEFT JOIN "Invoice" i ON i.id=a."entityId" AND a."entityType"='invoice' LEFT JOIN "CrmDeal" d ON d.id=a."entityId" AND a."entityType"='deal' LEFT JOIN "Payment" p ON p.id=a."entityId" AND a."entityType"='payment'`;
   return runAtomicMutation(async () => {
     const countRows = batch
       ? [{ count: BigInt(0) }]
       : (await db.$queryRaw<Array<{ count: bigint }>>(
-          Prisma.sql`SELECT count(*) ${joins} ${condition}`,
+          Database.sql`SELECT count(*) ${joins} ${condition}`,
         )) || [];
     const total = Number(countRows[0]?.count ?? 0),
       page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
     const ids = (await db.$queryRaw<Array<{ id: string }>>(
       batch
-        ? Prisma.sql`SELECT a.id ${joins} ${condition} AND a.id > ${batch.after || ""} ORDER BY a.id ASC LIMIT ${Math.min(500, batch.batchSize)}`
-        : Prisma.sql`SELECT a.id ${joins} ${condition} ORDER BY a."createdAt" DESC,a.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`,
+        ? Database.sql`SELECT a.id ${joins} ${condition} AND a.id > ${batch.after || ""} ORDER BY a.id ASC LIMIT ${Math.min(500, batch.batchSize)}`
+        : Database.sql`SELECT a.id ${joins} ${condition} ORDER BY a."createdAt" DESC,a.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`,
     )) || [];
     const fetched = await getAllAttachments({ ids: ids.map((r) => r.id) });
     const positions = new Map(ids.map((row, index) => [row.id, index]));
@@ -732,7 +732,7 @@ export async function getExpensesPage(
             isActive: true,
           },
         },
-      } satisfies Prisma.ExpenseSelect,
+      } satisfies Database.ExpenseSelect,
       f.page,
       batch,
     );

@@ -1,8 +1,8 @@
-import type { PrismaClient } from "@prisma/client";
+import type { DatabaseClient } from "@platform/database/decimal";
 import { setModule } from "./modules";
 
 export async function freshStockedProduct(
-  db: PrismaClient,
+  db: DatabaseClient,
   input: {
     sku: string;
     nameEn: string;
@@ -83,7 +83,7 @@ export async function freshStockedProduct(
   return product;
 }
 
-export const stockOf = async (db: PrismaClient, productId: string) => {
+export const stockOf = async (db: DatabaseClient, productId: string) => {
   const sum = (
     await db.stockLevel.aggregate({
       where: { productId },
@@ -96,7 +96,7 @@ export const stockOf = async (db: PrismaClient, productId: string) => {
   };
 };
 
-export async function enableStore(db: PrismaClient) {
+export async function enableStore(db: DatabaseClient) {
   for (const [moduleKey, nameEn, nameAr] of [
     ["products", "Products", "المنتجات"],
     ["store", "Online store", "المتجر الإلكتروني"],
@@ -121,7 +121,7 @@ export async function enableStore(db: PrismaClient) {
   await db.abuseWindow.deleteMany({ where: { key: { startsWith: "store-" } } });
 }
 
-export async function enableDelivery(db: PrismaClient) {
+export async function enableDelivery(db: DatabaseClient) {
   await setModule("delivery", true);
   const settings = {
     mode: "own",
@@ -156,6 +156,6 @@ export async function enableDelivery(db: PrismaClient) {
   return zone;
 }
 
-export async function disableDelivery(db: PrismaClient) {
+export async function disableDelivery(db: DatabaseClient) {
   await setModule("delivery", false);
 }

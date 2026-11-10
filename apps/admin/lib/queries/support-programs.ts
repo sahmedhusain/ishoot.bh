@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import {
   QUALIFICATIONS,
@@ -211,10 +211,10 @@ export async function scheduleSupportRule(
         wageBasis: input.wage_basis,
         schedule: schedule.sort(
           (a, b) => a.year - b.year,
-        ) as unknown as Prisma.InputJsonValue,
+        ) as unknown as Database.InputJsonValue,
         wageCap: money(input.wage_cap),
         monthlyCap: money(input.monthly_cap),
-        qualificationCaps: caps as unknown as Prisma.InputJsonValue,
+        qualificationCaps: caps as unknown as Database.InputJsonValue,
         notes: input.notes?.trim().slice(0, 500) || null,
         createdById: actorId,
       },
@@ -280,8 +280,8 @@ const enrolmentInclude = {
     },
   },
   events: { orderBy: { createdAt: "desc" as const }, take: 30 },
-} satisfies Prisma.EmployeeSupportInclude;
-type EnrolmentRow = Prisma.EmployeeSupportGetPayload<{
+} satisfies Database.EmployeeSupportInclude;
+type EnrolmentRow = Database.EmployeeSupportGetPayload<{
   include: typeof enrolmentInclude;
 }>;
 

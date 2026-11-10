@@ -42,7 +42,7 @@ export class Decimal {
   }
 }
 
-export namespace Prisma {
+export namespace Database {
   export type Decimal = number | string | any;
   export type SortOrder = "asc" | "desc";
   export type TransactionClient = any;
@@ -83,7 +83,7 @@ export const sql = (strings: TemplateStringsArray | string[], ...values: any[]) 
   sql: Array.isArray(strings) ? strings.join("?") : "",
 });
 
-export const Prisma: any = {
+export const Database: any = {
   Decimal,
   SortOrder: {
     asc: "asc",
@@ -95,4 +95,4 @@ export const Prisma: any = {
   raw: (str: string) => str,
 };
 
-export type PrismaClient = any;
+export type DatabaseClient = any;

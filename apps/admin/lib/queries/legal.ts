@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import {
   formatMessage,
   getTranslations,
@@ -28,7 +28,7 @@ async function names(ids: (string | null)[]) {
 export async function listLegalMatters(
   filters: { status?: string; q?: string } = {},
 ) {
-  const where: Prisma.LegalMatterWhereInput = {};
+  const where: Database.LegalMatterWhereInput = {};
   if (filters.status === "open") where.status = { not: "closed" };
   else if (
     filters.status &&

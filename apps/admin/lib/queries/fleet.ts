@@ -4,7 +4,7 @@ import { getNextSequenceNumber } from "./sequence";
 import { moveShipment } from "./shipments";
 import { recordOrderPayment, type OrderAddress } from "./store";
 import { validateSignatureImage } from "../services/signature-image";
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import {
   VEHICLE_KINDS,
   UNRESOLVED_COURIER_BOOKINGS,
@@ -184,7 +184,7 @@ export async function createRouteSheet(
   await requireDriver(input.driverId);
   const ids = Array.from(new Set(input.shipmentIds)).slice(0, 200);
   return db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id IN (${Database.join(ids)}) ORDER BY id FOR UPDATE`;
     const shipments = await tx.shipment.findMany({
       where: { id: { in: ids } },
       select: {

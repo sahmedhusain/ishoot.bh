@@ -1,7 +1,7 @@
 import { companyCurrency } from "../finance/company-currency";
 import { isCountryCode } from "../constants/clients";
 import { serverMessages } from "@platform/locales";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import {
   INSURED_CATEGORIES,
@@ -173,7 +173,7 @@ function normalizeComponent(input: GosiComponentInput) {
     employerPercent: percent(input.employer_percent),
     serviceTiers: tiers.sort(
       (a, b) => a.fromYears - b.fromYears,
-    ) as unknown as Prisma.InputJsonValue,
+    ) as unknown as Database.InputJsonValue,
     wageBasis: input.wage_basis,
     minWage,
     maxWage,
@@ -377,7 +377,7 @@ export async function saveEmployeeGosiRecord(
         registrationNumber:
           input.registration_number?.trim().slice(0, 40) || null,
         registeredWage: wage,
-        overrides: overrides as unknown as Prisma.InputJsonValue,
+        overrides: overrides as unknown as Database.InputJsonValue,
         effectiveFrom,
         effectiveTo: next ? dayBefore(next.effectiveFrom) : null,
         notes: input.notes?.trim().slice(0, 500) || null,

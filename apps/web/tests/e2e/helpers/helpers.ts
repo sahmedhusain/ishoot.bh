@@ -144,16 +144,16 @@ export async function visibleContent(page: Page) {
 export function testDatabase() {
   const { createRequire } =
     require("node:module") as typeof import("node:module");
-  const { PrismaClient } = createRequire(
+  const { DatabaseClient } = createRequire(
     path.join(root, "apps/web/package.json"),
-  )("@prisma/client");
+  )("@platform/database/decimal");
   const url = new URL(
     process.env.DIRECT_URL ||
       process.env.DATABASE_URL ||
       "postgresql://postgres@localhost:5432/postgres",
   );
   url.pathname = `/${process.env.E2E_SEEDED_DATABASE || "platform_e2e_test"}`;
-  return new PrismaClient({ datasources: { db: { url: url.toString() } } });
+  return new DatabaseClient({ datasources: { db: { url: url.toString() } } });
 }
 
 export async function acceptConfirmations(page: Page) {

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Database } from "@platform/database/decimal";
 import {
   formatMessage,
   getTranslations,
@@ -23,7 +23,7 @@ export interface TaskScope {
   all: boolean;
 }
 
-function scopeWhere(scope: TaskScope): Prisma.TaskWhereInput {
+function scopeWhere(scope: TaskScope): Database.TaskWhereInput {
   if (scope.all) return {};
   return {
     OR: [
@@ -66,7 +66,7 @@ export interface TaskFilters {
 }
 
 export async function listTasks(scope: TaskScope, filters: TaskFilters = {}) {
-  const and: Prisma.TaskWhereInput[] = [scopeWhere(scope)];
+  const and: Database.TaskWhereInput[] = [scopeWhere(scope)];
   if (
     filters.status &&
     (TASK_STATUSES as readonly string[]).includes(filters.status)

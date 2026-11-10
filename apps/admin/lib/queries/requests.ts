@@ -1,6 +1,6 @@
 import { slaDueFor } from "../services/service-sla";
 import { serverMessages } from "@platform/locales";
-import type { Prisma } from "@prisma/client";
+import type { Database } from "@platform/database/decimal";
 import { db, runAtomicMutation } from "../atomic";
 import {
   REQUEST_CLOSED_STATUSES,
@@ -307,9 +307,9 @@ const consolidatedRequestInclude = {
     include: { author: { select: { id: true, fullName: true, email: true } } },
     orderBy: { createdAt: "asc" },
   },
-} satisfies Prisma.InquiryInclude;
+} satisfies Database.InquiryInclude;
 
-type RawConsolidatedRequest = Prisma.InquiryGetPayload<{
+type RawConsolidatedRequest = Database.InquiryGetPayload<{
   include: typeof consolidatedRequestInclude;
 }>;
 
@@ -385,7 +385,7 @@ export interface RequestListRow {
   createdAt: string;
 }
 
-const kindWhere = (kind: RequestKind): Prisma.InquiryWhereInput =>
+const kindWhere = (kind: RequestKind): Database.InquiryWhereInput =>
   kind === "service"
     ? { requestType: "SR" }
     : kind === "feedback"
@@ -409,12 +409,12 @@ function requestWhere(
   filters: RequestListFilters,
   viewerId: string,
   visible?: string[] | null,
-): Prisma.InquiryWhereInput {
+): Database.InquiryWhereInput {
   const now = new Date();
-  const open: Prisma.InquiryWhereInput = {
+  const open: Database.InquiryWhereInput = {
     workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
   };
-  const and: Prisma.InquiryWhereInput[] = [];
+  const and: Database.InquiryWhereInput[] = [];
   if (visible) and.push({ assignedToId: { in: visible } });
   if (filters.kind && filters.kind !== "all") and.push(kindWhere(filters.kind));
   const status = filters.status || "open";
@@ -482,7 +482,7 @@ function requestWhere(
 
 const REQUEST_ORDER: Record<
   Exclude<RequestSort, "priority">,
-  Prisma.InquiryOrderByWithRelationInput[]
+  Database.InquiryOrderByWithRelationInput[]
 > = {
   urgency: [
     { slaDueDate: { sort: "asc", nulls: "last" } },
@@ -516,11 +516,11 @@ const listSelect = {
   slaDueDate: true,
   createdAt: true,
   assignedTo: { select: { fullName: true } },
-} satisfies Prisma.InquirySelect;
-type ListRecord = Prisma.InquiryGetPayload<{ select: typeof listSelect }>;
+} satisfies Database.InquirySelect;
+type ListRecord = Database.InquiryGetPayload<{ select: typeof listSelect }>;
 
 async function requestPage(
-  where: Prisma.InquiryWhereInput,
+  where: Database.InquiryWhereInput,
   sort: RequestSort,
   skip: number,
   take: number,
@@ -534,7 +534,7 @@ async function requestPage(
       take,
     });
   const buckets = ["urgent", "high", "normal"];
-  const rest: Prisma.InquiryWhereInput = { priority: { notIn: buckets } };
+  const rest: Database.InquiryWhereInput = { priority: { notIn: buckets } };
   const groups = [...buckets.map((priority) => ({ priority })), rest];
   const counted = await db.inquiry.groupBy({ by: ["priority"], where, _count: { _all: true } });
   const sizes = buckets.map((priority) => counted.find((row) => row.priority === priority)?._count._all ?? 0);
@@ -543,7 +543,7 @@ async function requestPage(
   for (let index = 0; index < groups.length; index++) {
     if (rows.length >= take) break;
     const group = groups[index];
-    const bucket: Prisma.InquiryWhereInput = { AND: [where, group] };
+    const bucket: Database.InquiryWhereInput = { AND: [where, group] };
     const count = sizes[index];
     if (skip >= count) {
       skip -= count;
@@ -611,10 +611,10 @@ export async function getRequestList(
   visible?: string[] | null,
 ) {
   const now = new Date();
-  const scope: Prisma.InquiryWhereInput = visible
+  const scope: Database.InquiryWhereInput = visible
     ? { assignedToId: { in: visible } }
     : {};
-  const open: Prisma.InquiryWhereInput = {
+  const open: Database.InquiryWhereInput = {
     ...scope,
     workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
   };
