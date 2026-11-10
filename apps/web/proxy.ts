@@ -28,6 +28,8 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
+  const cookieHeader = request.cookies.getAll().map(c => `${c.name}=${c.value}`).join("; ");
+  if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
   const response = localized(request, requestHeaders);
   response.headers.set("Content-Security-Policy", csp);
   for (const cookie of cookies)
@@ -42,7 +44,7 @@ function contentSecurityPolicy(nonce: string) {
   ].filter(Boolean);
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval' 'unsafe-inline'" : ""}`,
     "script-src-attr 'none'",
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "style-src-attr 'unsafe-inline'",
@@ -55,7 +57,9 @@ function contentSecurityPolicy(nonce: string) {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https:",
-    ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
+    ...(process.env.NODE_ENV === "production"
+      ? ["upgrade-insecure-requests"]
+      : []),
   ].join("; ");
 }
 

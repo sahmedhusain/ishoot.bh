@@ -118,8 +118,7 @@ async function financeFetch<T>(
     let errBody: unknown;
     try {
       errBody = await res.json();
-    } catch {
-    }
+    } catch {}
     throw await apiError(res, errBody);
   }
 
@@ -134,16 +133,36 @@ export const listInvoices = (token?: string) =>
   financeFetch<Invoice[]>("/v1/finance/invoices", {}, token);
 
 export const getInvoice = (id: string, token?: string) =>
-  financeFetch<InvoiceWithItems>(`/v1/finance/invoices/${encodeURIComponent(id)}`, {}, token);
+  financeFetch<InvoiceWithItems>(
+    `/v1/finance/invoices/${encodeURIComponent(id)}`,
+    {},
+    token,
+  );
 
 export const createInvoice = (input: any, token?: string) =>
-  financeFetch<InvoiceWithItems>("/v1/finance/invoices", { method: "POST", body: JSON.stringify(input) }, token);
+  financeFetch<InvoiceWithItems>(
+    "/v1/finance/invoices",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
 
-export const updateInvoiceStatus = (id: string, status: string, token?: string) =>
-  financeFetch<Invoice>(`/v1/finance/invoices/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify({ status }) }, token);
+export const updateInvoiceStatus = (
+  id: string,
+  status: string,
+  token?: string,
+) =>
+  financeFetch<Invoice>(
+    `/v1/finance/invoices/${encodeURIComponent(id)}/status`,
+    { method: "PUT", body: JSON.stringify({ status }) },
+    token,
+  );
 
 export const deleteInvoice = (id: string, token?: string) =>
-  financeFetch<void>(`/v1/finance/invoices/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+  financeFetch<void>(
+    `/v1/finance/invoices/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+    token,
+  );
 
 export const listPayments = (invoiceId?: string, token?: string) => {
   const q = invoiceId ? `?invoiceId=${encodeURIComponent(invoiceId)}` : "";
@@ -151,19 +170,41 @@ export const listPayments = (invoiceId?: string, token?: string) => {
 };
 
 export const recordPayment = (input: any, token?: string) =>
-  financeFetch<Payment>("/v1/finance/payments", { method: "POST", body: JSON.stringify(input) }, token);
+  financeFetch<Payment>(
+    "/v1/finance/payments",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
 
 export const listExpenses = (token?: string) =>
   financeFetch<Expense[]>("/v1/finance/expenses", {}, token);
 
 export const createExpense = (input: any, token?: string) =>
-  financeFetch<Expense>("/v1/finance/expenses", { method: "POST", body: JSON.stringify(input) }, token);
+  financeFetch<Expense>(
+    "/v1/finance/expenses",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
 
-export const approveExpense = (id: string, approvedBy: string, token?: string) =>
-  financeFetch<Expense>(`/v1/finance/expenses/${encodeURIComponent(id)}/approve`, { method: "PUT", body: JSON.stringify({ approvedBy }) }, token);
+export const approveExpense = (
+  id: string,
+  approvedBy: string,
+  token?: string,
+) =>
+  financeFetch<Expense>(
+    `/v1/finance/expenses/${encodeURIComponent(id)}/approve`,
+    { method: "PUT", body: JSON.stringify({ approvedBy }) },
+    token,
+  );
 
 export const listExpenseCategories = (token?: string) =>
   financeFetch<ExpenseCategory[]>("/v1/finance/expense-categories", {}, token);
 
 export const listSettlements = (token?: string) =>
   financeFetch<BankSettlement[]>("/v1/finance/settlements", {}, token);
+export const getPayment = (id: string, token?: string) =>
+  financeFetch<Payment>(
+    `/v1/finance/payments/${encodeURIComponent(id)}`,
+    {},
+    token,
+  );

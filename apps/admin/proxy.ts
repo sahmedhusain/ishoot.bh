@@ -13,10 +13,12 @@ import {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const nonce = Buffer.from(randomUUID()).toString("base64");
-  const webOrigin = origin(process.env.NEXT_PUBLIC_WEB_URL || process.env.WEB_URL);
+  const webOrigin = origin(
+    process.env.NEXT_PUBLIC_WEB_URL || process.env.WEB_URL,
+  );
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === "development" ? " 'unsafe-eval' 'unsafe-inline'" : ""}`,
     "script-src-attr 'none'",
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "style-src-attr 'unsafe-inline'",
@@ -29,12 +31,16 @@ export async function proxy(request: NextRequest) {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https:",
-    ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
+    ...(process.env.NODE_ENV === "production"
+      ? ["upgrade-insecure-requests"]
+      : []),
   ].join("; ");
   const next = () => {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-nonce", nonce);
     requestHeaders.set("Content-Security-Policy", csp);
+    const cookieHeader = request.cookies.getAll().map(c => `${c.name}=${c.value}`).join("; ");
+    if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
     return withSecurityPolicy(
       NextResponse.next({ request: { headers: requestHeaders } }),
       csp,

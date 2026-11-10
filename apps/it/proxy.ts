@@ -24,8 +24,11 @@ export async function proxy(request: NextRequest) {
   const cookies = sessionCookies(credential, email);
 
   for (const c of cookies) request.cookies.set(c.name, c.value);
+  const requestHeaders = new Headers(request.headers);
+  const cookieHeader = request.cookies.getAll().map(c => `${c.name}=${c.value}`).join("; ");
+  if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
   return withCookies(
-    NextResponse.next({ request: { headers: request.headers } }),
+    NextResponse.next({ request: { headers: requestHeaders } }),
     cookies,
   );
 }

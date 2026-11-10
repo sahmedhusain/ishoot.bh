@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,75 +21,25 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@platform/api-client": [
-        "./lib/api/index.ts"
-      ],
-      "@platform/api-client/*": [
-        "./lib/api/*"
-      ],
-      "@platform/config/currency": [
-        "./lib/config/currency.ts"
-      ],
-      "@platform/api-client": [
-        "./lib/api/index.ts"
-      ],
-      "@platform/api-client/*": [
-        "./lib/api/*"
-      ],
-      "@platform/config/currency/*": [
-        "./lib/config/currency/*"
-      ],
-      "@platform/config/phone": [
-        "./lib/config/phone.ts"
-      ],
-      "@platform/config": [
-        "./lib/config/index.ts"
-      ],
-      "@platform/config/*": [
-        "./lib/config/*"
-      ],
-      "@platform/contracts": [
-        "./lib/contracts/src/index.ts"
-      ],
-      "@platform/contracts/catalog/*": [
-        "./lib/contracts/catalog/*"
-      ],
-      "@platform/contracts/*": [
-        "./lib/contracts/src/*"
-      ],
-      "@platform/database": [
-        "./lib/index.ts"
-      ],
-      "@platform/database/*": [
-        "./lib/*"
-      ],
-      "@platform/email": [
-        "./lib/email/index.ts"
-      ],
-      "@platform/email/*": [
-        "./lib/email/*"
-      ],
-      "@platform/locales": [
-        "./locales/index.ts"
-      ],
-      "@platform/locales/*": [
-        "./locales/*"
-      ],
-      "@platform/ui": [
-        "./components/ui/index.ts"
-      ],
-      "@platform/ui/*": [
-        "./components/ui/*"
-      ],
-      "@prisma/client": [
-        "./lib/decimal.ts"
-      ],
-      "@prisma/client/*": [
-        "./lib/decimal.ts"
-      ]
+      "@/*": ["./*"],
+      "@platform/api-client": ["./lib/api/index.ts"],
+      "@platform/api-client/*": ["./lib/api/*"],
+      "@platform/config/currency": ["./lib/config/currency.ts"],
+      "@platform/config/currency/*": ["./lib/config/currency/*"],
+      "@platform/config/phone": ["./lib/config/phone.ts"],
+      "@platform/config": ["./lib/config/index.ts"],
+      "@platform/config/*": ["./lib/config/*"],
+      "@platform/contracts": ["./lib/contracts/src/index.ts"],
+      "@platform/contracts/catalog/*": ["./lib/contracts/catalog/*"],
+      "@platform/contracts/*": ["./lib/contracts/src/*"],
+      "@platform/database": ["./lib/index.ts"],
+      "@platform/database/*": ["./lib/*"],
+      "@platform/email": ["./lib/email/index.ts"],
+      "@platform/email/*": ["./lib/email/*"],
+      "@platform/locales": ["./locales/index.ts"],
+      "@platform/locales/*": ["./locales/*"],
+      "@platform/ui": ["./components/ui/index.ts"],
+      "@platform/ui/*": ["./components/ui/*"]
     }
   },
   "include": [
@@ -105,8 +51,5 @@
     ".next-audit/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "tests"
-  ]
+  "exclude": ["node_modules", "tests"]
 }
