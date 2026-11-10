@@ -126,7 +126,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: deploy/helm/platform
+        working-directory: backend/deploy/helm/platform
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4

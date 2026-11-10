@@ -132,14 +132,21 @@ async function main() {
   console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""})`}`);
   await confirm(target);
 
-  resetServiceData();
-  run(path.join(root, "run.sh"), ["db", "migrate"]);
-
   if (mode === "empty") {
+    run("node", ["scripts/env-tool.cjs", "set", "COMPANY_PROFILE", "", "SEED_PRESET", ""]);
+    resetServiceData();
+    run(path.join(root, "run.sh"), ["db", "migrate"]);
     run(path.join(root, "run.sh"), ["db", "bootstrap"]);
     console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
     return;
   }
+
+  const envProfile = profile || "ishoot";
+  const envPreset = demo || "";
+  run("node", ["scripts/env-tool.cjs", "set", "COMPANY_PROFILE", envProfile, "SEED_PRESET", envPreset]);
+
+  resetServiceData();
+  run(path.join(root, "run.sh"), ["db", "migrate"]);
 
   const seedTarget = (profile === "demo" || profile === "northwind") ? "northwind" : "ishoot";
   run(path.join(root, "run.sh"), ["db", "seed", seedTarget]);

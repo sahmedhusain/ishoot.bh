@@ -202,8 +202,8 @@ x-identity: &identity
     IDENTITY_LOGIN_RATE_WINDOW: ${IDENTITY_LOGIN_RATE_WINDOW:-}
     IDENTITY_LOGIN_MAX_CONCURRENT_KDF: ${IDENTITY_LOGIN_MAX_CONCURRENT_KDF:-}
     IDENTITY_LOGIN_PASSWORD_MIN_LENGTH: ${IDENTITY_LOGIN_PASSWORD_MIN_LENGTH:-12}
-    IDENTITY_PROJECTION_ADMIN_URL: ${IDENTITY_PROJECTION_ADMIN_URL:-http://host.docker.internal:3001}
-    IDENTITY_PROJECTION_WEB_URL: ${IDENTITY_PROJECTION_WEB_URL:-http://host.docker.internal:3000}
+    IDENTITY_PROJECTION_ADMIN_URL: ${IDENTITY_PROJECTION_ADMIN_URL:-http://admin:3001}
+    IDENTITY_PROJECTION_WEB_URL: ${IDENTITY_PROJECTION_WEB_URL:-http://web:3000}
     IDENTITY_PROJECTION_INTERVAL: ${IDENTITY_PROJECTION_INTERVAL:-5s}
     IDENTITY_LOGIN_CUSTOMER_WEB_URL: ${WEB_URL:-http://localhost:3000}
     IDENTITY_LOGIN_PASSWORD_RESET_TTL: ${IDENTITY_LOGIN_PASSWORD_RESET_TTL:-15m}
@@ -1000,6 +1000,103 @@ services:
       - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
     depends_on:
       - postgres
+
+  web:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: platform/web:dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      IT_URL: ${IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
+      IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      WEB_SERVICE_KEY: ${WEB_SERVICE_KEY:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
+      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
+      SEED_PRESET: ${SEED_PRESET:-}
+      SERVICE_CALLER: web
+    ports:
+      - "127.0.0.1:3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  admin:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    image: platform/admin:dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3001
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      IT_URL: ${IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
+      IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      ADMIN_SERVICE_KEY: ${ADMIN_SERVICE_KEY:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
+      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
+      SEED_PRESET: ${SEED_PRESET:-}
+      SERVICE_CALLER: admin
+    ports:
+      - "127.0.0.1:3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  it:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/it/Dockerfile
+    image: platform/it:dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3002
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      IT_URL: ${IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
+      IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
+      IT_IDENTITY_JWKS_URL: ${IT_IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      IT_SERVICE_KEY: ${IT_SERVICE_KEY:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
+      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
+      SEED_PRESET: ${SEED_PRESET:-}
+      SERVICE_CALLER: it
+    ports:
+      - "127.0.0.1:3002:3002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      gateway: { condition: service_healthy }
 
 volumes:
   pgdata17:

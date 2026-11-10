@@ -300,6 +300,17 @@ switch (command) {
     // CI and containers pass the keys as environment variables instead of a .env file.
     writeServiceKeys(fs.existsSync(envFile) ? { ...envValues(), ...pickServiceEnv() } : pickServiceEnv());
     break;
+  case "set": {
+    let text = read(envFile) ?? fail(`${shown(envFile)} does not exist; run: ./run.sh env init`);
+    const key = args[1];
+    if (!key) fail("Usage: node scripts/env-tool.cjs set <KEY> [VALUE]");
+    for (let i = 1; i < args.length; i += 2) {
+      if (args[i]) text = setValue(text, args[i], args[i + 1] ?? "");
+    }
+    fs.writeFileSync(envFile, text);
+    console.log(`Updated environment configuration in ${shown(envFile)}.`);
+    break;
+  }
   default:
-    fail("Usage: node scripts/env-tool.cjs <init|sync|secrets|check|keys|service-keys> [--file <path>] [--production]");
+    fail("Usage: node scripts/env-tool.cjs <init|sync|secrets|check|keys|service-keys|set> [--file <path>] [--production]");
 }

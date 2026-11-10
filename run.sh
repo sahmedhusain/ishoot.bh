@@ -76,7 +76,7 @@ pause_prompt() {
 }
 
 show_system_banner() {
-  local node_ver="N/A" go_ver="N/A" docker_stat="OFF" db_stat="OFF"
+  local node_ver="N/A" go_ver="N/A" docker_stat="OFF" db_stat="OFF" profile_stat="N/A"
   have node && node_ver="$(node -v 2>/dev/null || echo "N/A")"
   have go && go_ver="$(go version 2>/dev/null | awk '{print $3}' || echo "N/A")"
   have docker && docker info >/dev/null 2>&1 && docker_stat="ONLINE"
@@ -84,12 +84,14 @@ show_system_banner() {
   if [ -n "${DATABASE_URL:-}" ] && pg_tool psql "$(plain_db_url)" -c "SELECT 1;" >/dev/null 2>&1; then
     db_stat="ONLINE"
   fi
+  profile_stat="${COMPANY_PROFILE:-empty}"
+  [ -z "$profile_stat" ] && profile_stat="empty (wizard)"
 
   echo "${CYAN}${BOLD}┌────────────────────────────────────────────────────────────────────────────┐${RESET}"
   echo "${CYAN}${BOLD}│                        🏢 PLATFORM CONTROL CLI                             │${RESET}"
-  echo "${CYAN}${BOLD}│              Enterprise Microservices Management Engine v2.5              │${RESET}"
+  echo "${CYAN}${BOLD}│            Enterprise Microservices & Docker Engine v3.0                  │${RESET}"
   echo "${CYAN}${BOLD}├────────────────────────────────────────────────────────────────────────────┤${RESET}"
-  printf "${CYAN}${BOLD}│${RESET} ${BOLD}System:${RESET} Node: %-8s Go: %-10s Docker: %-8s DB: %-8s ${CYAN}${BOLD}│${RESET}\n" "$node_ver" "$go_ver" "$docker_stat" "$db_stat"
+  printf "${CYAN}${BOLD}│${RESET} ${BOLD}System:${RESET} Node: %-7s Go: %-8s Docker: %-6s DB: %-6s Profile: %-8s ${CYAN}${BOLD}│${RESET}\n" "$node_ver" "$go_ver" "$docker_stat" "$db_stat" "$profile_stat"
   echo "${CYAN}${BOLD}└────────────────────────────────────────────────────────────────────────────┘${RESET}"
 }
 
@@ -100,16 +102,17 @@ interactive_menu() {
     echo ""
     echo "${BOLD}Select an operation by number or hotkey:${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} 🚀 ${BOLD}Quick Start & Environment Init${RESET}   ${CYAN}[6]${RESET} 🧪 ${BOLD}Tests & Quality Suite${RESET}"
-    echo "  ${GREEN}[2]${RESET} 💻 ${BOLD}Frontend Dev Servers (Next.js)${RESET}   ${CYAN}[7]${RESET} 🛠️  ${BOLD}Doctor & Diagnostics${RESET}"
+    echo "  ${GREEN}[1]${RESET} 🚀 ${BOLD}Quick Start & Setup${RESET}              ${CYAN}[6]${RESET} 🧪 ${BOLD}Tests & Quality Suite${RESET}"
+    echo "  ${GREEN}[2]${RESET} 💻 ${BOLD}Frontend Apps & Docker${RESET}           ${CYAN}[7]${RESET} 🛠️  ${BOLD}Doctor & Diagnostics${RESET}"
     echo "  ${GREEN}[3]${RESET} ⚙️  ${BOLD}Backend Microservices (Go)${RESET}      ${CYAN}[8]${RESET} 🚀 ${BOLD}Build & Production Release${RESET}"
-    echo "  ${GREEN}[4]${RESET} 🐳 ${BOLD}Docker Infrastructure & Stack${RESET}    ${CYAN}[9]${RESET} 🔑 ${BOLD}Secrets & Key Management${RESET}"
-    echo "  ${GREEN}[5]${RESET} 🗄️  ${BOLD}Database Engine & Migrations${RESET}    ${MAGENTA}[W]${RESET} ⚙️  ${BOLD}Workers & Scheduled Cron${RESET}"
-    echo "  ${BLUE}[G]${RESET} 📚 ${BOLD}Guides & System Docs${RESET}         ${MAGENTA}[H]${RESET} 📖 ${BOLD}Standard CLI Help${RESET}"
+    echo "  ${GREEN}[4]${RESET} 🐳 ${BOLD}Docker Infrastructure Stack${RESET}    ${CYAN}[9]${RESET} 🔑 ${BOLD}Secrets & Key Management${RESET}"
+    echo "  ${GREEN}[5]${RESET} 🗄️  ${BOLD}Database Engine & Migrations${RESET}    ${MAGENTA}[R]${RESET} 🔄 ${BOLD}Rebuild & Reset Stack${RESET}"
+    echo "  ${MAGENTA}[W]${RESET} ⚙️  ${BOLD}Workers & Scheduled Cron${RESET}        ${BLUE}[G]${RESET} 📚 ${BOLD}Guides & System Docs${RESET}"
+    echo "  ${MAGENTA}[H]${RESET} 📖 ${BOLD}Standard CLI Help${RESET}"
     echo ""
     echo "  ${RED}[0]${RESET} 🚪 ${BOLD}Exit Platform CLI${RESET}"
     echo ""
-    printf "%sEnter selection [0-9, W, G, H]: %s" "$BOLD" "$RESET"
+    printf "%sEnter selection [0-9, R, W, G, H]: %s" "$BOLD" "$RESET"
     read -r choice || choice=""
 
     case "$choice" in
@@ -122,6 +125,7 @@ interactive_menu() {
       7) menu_doctor ;;
       8) menu_deploy ;;
       9) menu_env ;;
+      r | R | rebuild) menu_rebuild ;;
       w | W) menu_workers ;;
       g | G | guides) menu_guides ;;
       h | H | help)
@@ -178,9 +182,9 @@ menu_quickstart() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== 🚀 Quick Start & Environment Initialization ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo) - Complete Stack & Seed Data"
-    echo "  ${GREEN}[2]${RESET} Light Setup (--light)            - Minimal Dev Setup"
-    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)            - Clean DB for Fresh Admin Wizard"
+    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo)   - Northwind Studio Demo Data & Stack"
+    echo "  ${GREEN}[2]${RESET} iShoot Production Setup (--ishoot) - iShoot Cinema Production Profile"
+    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)              - Clean DB for Fresh Setup Wizard"
     echo "  ${GREEN}[4]${RESET} Install Dependencies & Build All Go Binaries"
     echo "  ${GREEN}[5]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
     echo "  ${GREEN}[6]${RESET} Show Service Endpoint URLs & Network Ports"
@@ -190,7 +194,7 @@ menu_quickstart() {
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_setup --demo; pause_prompt ;;
-      2) cmd_setup --light; pause_prompt ;;
+      2) cmd_setup --ishoot; pause_prompt ;;
       3) cmd_setup --empty; pause_prompt ;;
       4) cmd_install; pause_prompt ;;
       5) cmd_upgrade; pause_prompt ;;
@@ -204,23 +208,35 @@ menu_quickstart() {
 menu_dev() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 💻 Development Servers (Next.js Applications) ===${RESET}"
+    echo "${GREEN}${BOLD}=== 💻 Frontend Applications & Development Servers ===${RESET}"
     echo ""
+    echo "  ${BOLD}--- Terminal Mode (Local Next.js Dev / Turbopack) ---${RESET}"
     echo "  ${GREEN}[1]${RESET} Start All Dev Frontends (Web: 3000, Admin: 3001, IT: 3002)"
     echo "  ${GREEN}[2]${RESET} Start Web App Only (http://localhost:3000)"
     echo "  ${GREEN}[3]${RESET} Start Admin App Only (http://localhost:3001)"
     echo "  ${GREEN}[4]${RESET} Start IT Support App Only (http://localhost:3002)"
-    echo "  ${GREEN}[5]${RESET} Free Up Dev Ports (3000, 3001, 3002, 8080)"
+    echo ""
+    echo "  ${BOLD}--- Docker Mode (Containerized Frontend Apps) ---${RESET}"
+    echo "  ${CYAN}[5]${RESET} Start Containerized Frontends (web, admin, it)"
+    echo "  ${CYAN}[6]${RESET} Rebuild & Start Containerized Frontends"
+    echo "  ${CYAN}[7]${RESET} View Container Logs for Frontends"
+    echo "  ${CYAN}[8]${RESET} Stop Containerized Frontends"
+    echo ""
+    echo "  ${MAGENTA}[9]${RESET} Free Up Dev Ports (3000, 3001, 3002, 8080)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-5]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-9]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_dev all; pause_prompt ;;
       2) cmd_dev web; pause_prompt ;;
       3) cmd_dev admin; pause_prompt ;;
       4) cmd_dev it; pause_prompt ;;
-      5) node scripts/kill-ports.cjs; pause_prompt ;;
+      5) cmd_apps up all; pause_prompt ;;
+      6) cmd_apps build all && cmd_apps up all; pause_prompt ;;
+      7) cmd_apps logs web; pause_prompt ;;
+      8) cmd_apps down; pause_prompt ;;
+      9) node scripts/kill-ports.cjs; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -359,6 +375,36 @@ menu_db() {
       9)
         printf "Dump file path: "; read -r dump_f
         cmd_db restore "$dump_f"
+        pause_prompt
+        ;;
+      0) return ;;
+      *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
+    esac
+  done
+}
+
+menu_rebuild() {
+  while true; do
+    clear 2>/dev/null || true
+    echo "${GREEN}${BOLD}=== 🔄 Rebuild & Reset Platform Stack ===${RESET}"
+    echo ""
+    echo "  ${GREEN}[1]${RESET} Rebuild Everything (All Microservices, Frontends & Reset DB)"
+    echo "  ${GREEN}[2]${RESET} Rebuild Frontend Apps Docker Images (Web, Admin, IT)"
+    echo "  ${GREEN}[3]${RESET} Rebuild Backend Microservices Docker Images (16 Go Services)"
+    echo "  ${GREEN}[4]${RESET} Rebuild & Reset Database Engine (Wipe volumes, re-migrate, re-seed)"
+    echo "  ${GREEN}[5]${RESET} Rebuild Specific Service or App Container"
+    echo "  ${RED}[0]${RESET} Back to Main Menu"
+    echo ""
+    printf "%sEnter choice [0-5]: %s" "$BOLD" "$RESET"
+    read -r subchoice || subchoice=""
+    case "$subchoice" in
+      1) cmd_rebuild all; pause_prompt ;;
+      2) cmd_rebuild apps; pause_prompt ;;
+      3) cmd_rebuild services; pause_prompt ;;
+      4) cmd_rebuild db; pause_prompt ;;
+      5)
+        printf "Enter container service name (web|admin|it|gateway|identity|...): "; read -r r_svc
+        cmd_rebuild single "$r_svc"
         pause_prompt
         ;;
       0) return ;;
@@ -511,10 +557,26 @@ usage() {
 ${BOLD}Platform Management CLI: ./run.sh <command> [options]${RESET}
 
 ${BOLD}Getting Started & Quick Control${RESET}
-  setup [--demo|--light|--empty]   Install, prepare .env, spin up local services & build DB
+  setup [--demo|--ishoot|--empty] Install, prepare .env, spin up local services & build DB
   doctor                           Check runtime binaries (Node, Go, Docker), .env, services & ports
   install                          Install npm dependencies & compile Go microservices
   upgrade                          Pull latest repository changes, migrate schemas & rebuild
+
+${BOLD}Frontend Docker & Dev Apps${RESET}
+  apps up|start [web|admin|it|all] Start containerized Next.js frontend applications
+  apps down|stop                   Stop containerized frontend applications
+  apps restart [web|admin|it|all]  Restart frontend app containers
+  apps build [web|admin|it|all]    Build Docker images for frontend applications
+  apps logs [web|admin|it]         Tail container logs for frontend applications
+  apps status                      Inspect container status of frontend applications
+  dev [all|admin|web|it]           Launch Next.js development servers (3000, 3001, 3002)
+
+${BOLD}Rebuild & Stack Maintenance${RESET}
+  rebuild all                      Rebuild all Docker containers, microservices, frontends & DB
+  rebuild apps                     Rebuild frontend Next.js Docker images (web, admin, it)
+  rebuild services                 Rebuild backend Go microservice Docker images
+  rebuild db [preset]              Wipe database container, re-apply migrations & seed data
+  rebuild single <name>            Rebuild specific container service image
 
 ${BOLD}Backend Go Microservices${RESET}
   backend build [svc|all]          Compile Go microservices into backend/bin/
@@ -547,13 +609,6 @@ ${BOLD}Database Engine & Migrations${RESET}
   db psql                          Launch interactive psql terminal
   db backup [file]                 Dump database to backups/
   db restore <file>                Restore custom database dump
-
-${BOLD}Development & Hot Reload${RESET}
-  dev [all|admin|web|it]           Launch Next.js development servers (3000, 3001, 3002)
-  build [--clean]                  Compile production binaries and Next.js frontend bundles
-  start [all|admin|web|it]         Serve production builds locally
-  kill-ports                       Terminate stray processes on ports 3000-3002, 8080
-  clean                            Wipe build caches (.next, dist, tmp)
 
 ${BOLD}Quality Assurance & Testing${RESET}
   check                            Run full static suite (Lint, TypeScript, Unit Tests)
@@ -604,14 +659,23 @@ cmd_setup() {
   fi
   if [ -n "${SUPER_ADMIN_PASSWORD:-}" ]; then
     case "$mode" in
-      --light) YES=1 cmd_db reset --light ;;
-      --empty) YES=1 cmd_db reset --empty ;;
-      *) YES=1 cmd_db reset ;;
+      --light | --ishoot)
+        node scripts/env-tool.cjs set COMPANY_PROFILE "ishoot" SEED_PRESET ""
+        YES=1 cmd_db reset --profile ishoot
+        ;;
+      --empty)
+        node scripts/env-tool.cjs set COMPANY_PROFILE "" SEED_PRESET ""
+        YES=1 cmd_db reset --empty
+        ;;
+      *)
+        node scripts/env-tool.cjs set COMPANY_PROFILE "demo" SEED_PRESET "all"
+        YES=1 cmd_db reset --demo all
+        ;;
     esac
   fi
   step "Installing Playwright browser"
   npx playwright install chromium || warn "Playwright browser not installed; run: npx playwright install chromium"
-  ok "Ready. Start dev with: ./run.sh dev"
+  ok "Ready. Start dev with: ./run.sh dev or container apps with: ./run.sh apps up"
   cmd_urls
 }
 
@@ -675,10 +739,119 @@ cmd_upgrade() {
 cmd_env() {
   local sub="${1:-keys}"; shift || true
   case "$sub" in
-    init | sync | secrets | keys | service-keys) node scripts/env-tool.cjs "$sub" "$@" ;;
+    init | sync | secrets | keys | service-keys | set) node scripts/env-tool.cjs "$sub" "$@" ;;
     check) node scripts/env-tool.cjs check "$@" ;;
     edit) [ -f .env ] || die ".env is missing. Run: ./run.sh env init"; "${EDITOR:-vi}" .env ;;
-    *) die "Unknown: env $sub (init, sync, secrets, check, keys, service-keys, edit)" ;;
+    *) die "Unknown: env $sub (init, sync, secrets, check, keys, service-keys, set, edit)" ;;
+  esac
+}
+
+cmd_apps() {
+  local sub="${1:-status}"; shift || true
+  [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
+  have docker || die "Docker is needed for containerized frontend apps."
+  docker info >/dev/null 2>&1 || die "Docker is not running."
+  case "$sub" in
+    up | start)
+      local app="${1:-all}"
+      step "Starting Containerized Frontend Apps ($app)"
+      if [ "$app" = "all" ]; then
+        run compose up -d web admin it
+      else
+        run compose up -d "$app"
+      fi
+      ok "Frontend container(s) running."
+      ;;
+    down | stop)
+      step "Stopping Containerized Frontend Apps"
+      run compose stop web admin it
+      ;;
+    restart)
+      local app="${1:-all}"
+      step "Restarting Containerized Frontend Apps ($app)"
+      if [ "$app" = "all" ]; then
+        run compose restart web admin it
+      else
+        run compose restart "$app"
+      fi
+      ;;
+    build)
+      local app="${1:-all}"
+      step "Building Frontend App Docker Images ($app)"
+      if [ "$app" = "all" ]; then
+        run compose build web admin it
+      else
+        run compose build "$app"
+      fi
+      ok "Frontend App Docker image build complete."
+      ;;
+    logs)
+      local app="${1:-web}"
+      run compose logs -f "$app"
+      ;;
+    status)
+      step "Frontend Containers Status:"
+      compose ps web admin it
+      ;;
+    *)
+      die "Unknown command: apps $sub (up, down, restart, build, logs, status)"
+      ;;
+  esac
+}
+
+cmd_rebuild() {
+  local sub="${1:-all}"; shift || true
+  [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
+  have docker || die "Docker is needed to rebuild stack services."
+  docker info >/dev/null 2>&1 || die "Docker is not running."
+  case "$sub" in
+    all)
+      step "Rebuilding FULL PLATFORM STACK (All Microservices + Frontend Apps + Database)"
+      confirm "Rebuild all Docker containers and reset database to current profile?" || die "Cancelled."
+      node scripts/env-tool.cjs service-keys >/dev/null
+      step "Rebuilding Docker images"
+      run compose build --no-cache
+      step "Restarting containers"
+      run compose down --volumes --remove-orphans
+      run compose up -d --wait
+      step "Re-applying schema migrations"
+      cmd_db migrate
+      load_env
+      step "Seeding database profile (${COMPANY_PROFILE:-ishoot})"
+      YES=1 cmd_db reset
+      ok "Full Platform Stack Rebuild Complete!"
+      ;;
+    apps | frontend)
+      step "Rebuilding Frontend Next.js Docker Images (web, admin, it)"
+      run compose build --no-cache web admin it
+      ok "Frontend App Docker Images Rebuilt Successfully."
+      ;;
+    services | backend)
+      step "Rebuilding Go Microservice Docker Images"
+      local svc
+      for svc in "${SERVICES_LIST[@]}"; do
+        step "Building image for: $svc"
+        run compose build --no-cache "$svc"
+      done
+      ok "Backend Microservices Rebuilt Successfully."
+      ;;
+    db | database)
+      step "Rebuilding Database Engine & Re-seeding Data"
+      confirm "Wipe database container data and re-apply all migrations and seeds?" || die "Cancelled."
+      YES=1 cmd_db reset "$@"
+      ok "Database Rebuilt and Re-seeded Successfully."
+      ;;
+    single)
+      local target="${1:-}"
+      [ -n "$target" ] || die "Usage: ./run.sh rebuild single <service_name|web|admin|it>"
+      step "Rebuilding Docker container image for $target"
+      run compose build --no-cache "$target"
+      run compose up -d --no-deps "$target"
+      ok "Service $target rebuilt and restarted."
+      ;;
+    *)
+      die "Unknown rebuild target: $sub (options: all, apps, services, db, single <name>)"
+      ;;
   esac
 }
 
@@ -794,11 +967,13 @@ SQL
       fi
       step "Seeding database ($seed_file)"
       run_sql_script "$seed_file"
+      node scripts/env-tool.cjs set COMPANY_PROFILE "${target_profile}"
       ok "Seeded database from $seed_file."
       ;;
     bootstrap)
       step "Bootstrapping minimal clean database"
       run_sql_script "seeds/sql/seed_bootstrap.sql"
+      node scripts/env-tool.cjs set COMPANY_PROFILE "" SEED_PRESET ""
       ok "Database bootstrapped."
       ;;
     integrity | check) cmd_db status ;;
@@ -848,8 +1023,14 @@ SQL
 }
 
 cmd_dev() {
+  local app="${1:-all}"
+  local mode="${2:-terminal}"
+  if [ "$app" = "--docker" ] || [ "$mode" = "--docker" ] || [ "$app" = "docker" ]; then
+    cmd_apps up all
+    return
+  fi
   node scripts/sanitize-turbopack-cache.cjs 2>/dev/null || true
-  case "${1:-all}" in
+  case "$app" in
     all)
       trap 'kill 0' INT TERM EXIT
       npm --prefix apps/web run dev &
@@ -860,7 +1041,7 @@ cmd_dev() {
     admin) npm --prefix apps/admin run dev ;;
     web | website) npm --prefix apps/web run dev ;;
     it) npm --prefix apps/it run dev ;;
-    *) die "dev [all|admin|web|it]" ;;
+    *) die "dev [all|admin|web|it] [--docker|--terminal]" ;;
   esac
 }
 
@@ -1053,6 +1234,8 @@ else
     install) cmd_install ;;
     upgrade | update) cmd_upgrade ;;
     env) cmd_env "$@" ;;
+    apps) cmd_apps "$@" ;;
+    rebuild) cmd_rebuild "$@" ;;
     backend)
       sub="${1:-health}"
       shift || true

@@ -82,7 +82,6 @@ jobs:
           cache: npm
           cache-dependency-path: |
             apps/admin/package-lock.json
-            company/package-lock.json
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
@@ -90,7 +89,6 @@ jobs:
       - name: Install seeding dependencies and initialize the disposable stack
         run: |
           npm --prefix apps/admin ci
-          npm --prefix company ci
           node scripts/env-tool.cjs init
       - name: Empty schema bootstraps cleanly and idempotently
         env:
@@ -114,7 +112,7 @@ jobs:
           SUPER_ADMIN_PASSWORD: disposable-seed-password
           SEED_VOLUME: "off"
         run: |
-          for dir in company/profiles/*/; do
+          for dir in seeds/assets/*/; do
             [ -f "${dir}company.json" ] || continue
             profile="${dir%/}"
             profile="${profile##*/}"
