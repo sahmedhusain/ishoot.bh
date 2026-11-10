@@ -19,7 +19,7 @@ const args = process.argv.slice(2);
 const flag = (name) => args.includes(`--${name}`);
 const option = (name) => (args.includes(`--${name}`) ? args[args.indexOf(`--${name}`) + 1] : undefined);
 
-const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_DIRECT_URL || process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("Set DATABASE_URL in .env");
 const url = new URL(databaseUrl);
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]", "::1"];

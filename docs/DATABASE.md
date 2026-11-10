@@ -36,7 +36,7 @@ Admin: http://localhost:3001, sign in with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_
 
 ## 3. Reset to a fresh database
 
-`db reset` refuses to run unless `DATABASE_URL` points at this machine (`localhost`, `127.0.0.1` or `::1`). It also refuses when `NODE_ENV=production`, and it asks you to type `reset` before deleting anything. Add `--yes` to skip the prompt.
+`db reset` refuses to run unless `DATABASE_URL` points at this machine (`localhost`, `127.0.0.1` or `::1`). It also refuses when `NODE_ENV=production`, and it asks you to type `reset` before deleting anything. Add `--yes` to skip the prompt. Seed, preset and bootstrap SQL runs with `ON_ERROR_STOP=1`, so the command stops at the first SQL error and the transaction rolls back instead of continuing with an empty database.
 
 | Command                          | Result                                                                                                                        | Time   |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -102,7 +102,7 @@ Never edit a migration that has already been applied anywhere; add a new one.
 | `./run.sh db status`     | Show applied and pending migrations                                                                 |
 | `./run.sh db studio`     | Browse and edit data at http://localhost:5555                                                       |
 | `./run.sh db new <name>` | Generate a new migration skeleton                                                                   |
-| `./run.sh db psql`       | A `psql` session on `DIRECT_URL` (uses the Compose Postgres container when `psql` is not installed) |
+| `./run.sh db psql`       | A `psql` session on `DATABASE_DIRECT_URL` (uses the Compose Postgres container when `psql` is not installed) |
 
 ## 6. Production
 

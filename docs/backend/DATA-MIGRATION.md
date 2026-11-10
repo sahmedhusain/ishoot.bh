@@ -5,7 +5,7 @@ The Prisma migration `20261101120000_move_uploads_to_files_service` transfers `U
 ## Existing installations
 
 1. Stop application writes and take a database backup plus a copy of the old file storage. Keep the matching old application revision and environment securely.
-2. Run `./run.sh env sync` and `./run.sh env secrets`. Existing values are preserved, so explicitly set `DATABASE_URL`, `DIRECT_URL` and `API_URL` for the target installation.
+2. Run `./run.sh env sync` and `./run.sh env secrets`. Existing values are preserved, so explicitly set `DATABASE_URL`, `DATABASE_DIRECT_URL` and `API_URL` for the target installation.
 3. For an old local Supabase installation, `./run.sh services import-supabase` copies its public schema to the configured Compose database, applies migrations and copies file bytes. This replaces target data and asks for confirmation. Run it on a disposable copy first. Source storage is retained.
 4. For other installations, restore the database copy, apply Prisma migrations, then run the files service's `migrate` command before starting the apps.
 5. Copy bytes using `backend/tools/storage-copy`, with the target database/S3 environment. Use `-from-dir /absolute/old/uploads` or `-from-s3 <endpoint>` and source credentials. Run with `-dry-run` first. Existing destination objects are checked and skipped; missing source bytes or size mismatches must be resolved before cutover.

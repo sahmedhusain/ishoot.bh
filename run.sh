@@ -69,6 +69,13 @@ pg_tool() {
     die "$tool is not installed and Docker is not available (brew install libpq, or install Docker)."
   fi
 }
+
+# Runs a SQL script and fails on the first SQL error. The scripts own their transaction boundaries.
+run_sql_script() {
+  local file="$1"
+  [ -f "$file" ] || die "SQL file $file not found."
+  pg_tool psql "$(plain_db_url)" -v ON_ERROR_STOP=1 -f - < "$file"
+}
 compose() { docker compose --env-file .env "$@"; }
 
 # List of all 15 backend microservices
@@ -685,7 +692,7 @@ SQL
         seed_file="seeds/seed.sql"
       fi
       step "Seeding database using pure SQL ($seed_file)"
-      pg_tool psql "$(plain_db_url)" < "$seed_file"
+      run_sql_script "$seed_file"
       ok "Seeded database from $seed_file."
       ;;
     preset)
@@ -694,12 +701,12 @@ SQL
       local preset_file="seeds/sql/presets/preset_${preset_name}.sql"
       [ -f "$preset_file" ] || die "Preset file $preset_file not found."
       step "Applying activity preset SQL ($preset_file)"
-      pg_tool psql "$(plain_db_url)" < "$preset_file"
+      run_sql_script "$preset_file"
       ok "Applied preset $preset_name."
       ;;
     bootstrap)
       step "Bootstrapping minimal clean database (pure SQL)"
-      pg_tool psql "$(plain_db_url)" < "seeds/sql/seed_bootstrap.sql"
+      run_sql_script "seeds/sql/seed_bootstrap.sql"
       ok "Database bootstrapped."
       ;;
     integrity | check) cmd_db status ;;

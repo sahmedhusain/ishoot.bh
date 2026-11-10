@@ -36,7 +36,7 @@ Step by step instead:
 ./run.sh services up
 ```
 
-`env init` generates local database credentials, S3 credentials and app signing keys. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` (12 or more characters), and choose `COMPANY_PROFILE` (`demo` by default). `DATABASE_URL` and `DIRECT_URL` must point to the Compose Postgres; `API_URL` points to the gateway (default `http://127.0.0.1:8080`). For an existing installation, follow [the migration runbook](backend/DATA-MIGRATION.md).
+`env init` generates local database credentials, S3 credentials and app signing keys. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` (12 or more characters), and choose `COMPANY_PROFILE` (`demo` by default). `DATABASE_URL` and `DATABASE_DIRECT_URL` must point to the Compose Postgres; `API_URL` points to the gateway (default `http://127.0.0.1:8080`). For an existing installation, follow [the migration runbook](backend/DATA-MIGRATION.md).
 
 ## A. Demo company
 

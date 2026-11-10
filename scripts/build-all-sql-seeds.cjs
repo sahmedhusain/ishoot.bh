@@ -1,21 +1,37 @@
-const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { query: querySql } = require("./lib/db-query.cjs");
 
 const root = path.resolve(__dirname, "..");
 
 function queryJson(sql) {
-  try {
-    const raw = execSync(
-      `docker exec platform-postgres-1 psql -U platform -d platform_db -t -A -c "${sql.replace(/"/g, '\\"')}"`,
-      { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 }
-    ).trim();
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("Query failed:", sql, err.message);
-    return null;
+  const raw = querySql(sql);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function orderByReference(rows, key, parentKey, realmKey) {
+  const keyOf = (row) => `${realmKey ? `${row[realmKey]}\u0000` : ""}${row[key]}`;
+  const byKey = new Map(rows.map((row) => [keyOf(row), row]));
+  const ordered = [];
+  const state = new Map();
+
+  function visit(row) {
+    const id = keyOf(row);
+    if (state.get(id) === "done") return;
+    if (state.get(id) === "visiting") throw new Error(`Cyclic ${parentKey} reference at ${id.replace("\u0000", ":")}`);
+    state.set(id, "visiting");
+    const parent = row[parentKey];
+    if (parent) {
+      const parentRow = byKey.get(`${realmKey ? `${row[realmKey]}\u0000` : ""}${parent}`);
+      if (!parentRow) throw new Error(`Missing ${parentKey} ${parent} for ${id.replace("\u0000", ":")}`);
+      visit(parentRow);
+    }
+    state.set(id, "done");
+    ordered.push(row);
   }
+
+  for (const row of rows) visit(row);
+  return ordered;
 }
 
 function sqlQuote(val) {
@@ -42,7 +58,9 @@ function sqlJson(val) {
 
 console.log("Loading base database snapshots from platform_db...");
 
-const ishootCompany = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.company) t")[0];
+const ishootCompanyResult = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.company) t");
+if (!Array.isArray(ishootCompanyResult) || !ishootCompanyResult[0]) throw new Error("Could not load the base company snapshot.");
+const ishootCompany = ishootCompanyResult[0];
 const companyAssets = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.company_asset) t") || [];
 const moduleSettings = queryJson("SELECT json_agg(t) FROM (SELECT * FROM system.module_setting) t") || [];
 const uploadObjects = queryJson("SELECT json_agg(t) FROM (SELECT * FROM files.upload_object) t") || [];
@@ -64,7 +82,7 @@ const articles = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.article) 
 const faqs = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.faq) t") || [];
 const stats = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.statistic) t") || [];
 const reviews = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.review) t") || [];
-const contentSnapshot = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.content_snapshot WHERE id = 'main') t")[0];
+const contentSnapshot = queryJson("SELECT json_agg(t) FROM (SELECT * FROM cms.content_snapshot WHERE id = 'main') t")?.[0];
 
 const northwindCompanyJson = JSON.parse(fs.readFileSync(path.join(root, "seeds/assets/demo/company.json"), "utf8"));
 const northwindThemeJson = JSON.parse(fs.readFileSync(path.join(root, "seeds/assets/demo/theme.json"), "utf8"));
@@ -109,7 +127,7 @@ function generateCustomersData() {
   const customers = [];
   const addresses = [];
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 200; i++) {
     const id = `cust-${String(i + 1).padStart(3, "0")}`;
     const fn = firstNames[i % firstNames.length];
     const ln = lastNames[i % lastNames.length];
@@ -215,16 +233,16 @@ function generateContactsData() {
   ];
 
   const contacts = [];
-  for (let i = 0; i < companies.length; i++) {
-    const c = companies[i];
-    const p = contactPeople[i];
+  for (let i = 0; i < 140; i++) {
+    const c = companies[i % companies.length];
+    const p = contactPeople[i % contactPeople.length];
     contacts.push({
       id: `cont-${String(i + 1).padStart(3, "0")}`,
       first_name: p.fn,
       last_name: p.ln,
-      email: p.email,
-      phone: p.phone,
-      company: c.name,
+      email: i >= companies.length ? `alt${i}.${p.email}` : p.email,
+      phone: `+9733900${String(1101 + i).slice(-4)}`,
+      company: i >= companies.length ? `${c.name} - Branch ${i}` : c.name,
       contact_type: c.type,
       status: "active",
       notes: `Primary media production & creative liaison for ${c.name}.`,
@@ -319,85 +337,90 @@ function generateInvoicesAndScenarios(contacts, baseEmployees) {
   let payIndex = 1;
   let itemIndex = 1;
 
-  for (const sc of scenarios) {
-    const contact = contacts[sc.contactIdx % contacts.length];
-    const subtotal = sc.sub;
-    const vatRate = 10.0;
-    const vatAmount = Math.round(subtotal * 0.1 * 1000) / 1000;
-    const total = subtotal + vatAmount;
-    const amountPaid = Math.round(total * sc.paidRatio * 1000) / 1000;
-    const balanceDue = Math.round((total - amountPaid) * 1000) / 1000;
+  for (let dup = 0; dup < 6; dup++) {
+    for (const sc of scenarios) {
+      const contact = contacts[(sc.contactIdx + dup * 11) % contacts.length];
+      const subtotal = sc.sub + (dup * 1500);
+      const vatRate = 10.0;
+      const vatAmount = Math.round(subtotal * 0.1 * 1000) / 1000;
+      const total = subtotal + vatAmount;
+      const amountPaid = Math.round(total * sc.paidRatio * 1000) / 1000;
+      const balanceDue = Math.round((total - amountPaid) * 1000) / 1000;
 
-    let issueDateSql = `(CURRENT_DATE - INTERVAL '${sc.daysAgo} days')::date`;
-    let dueDateSql;
+      let issueDateSql = `(CURRENT_DATE - INTERVAL '${sc.daysAgo + dup * 5} days')::date`;
+      let dueDateSql;
 
-    if (sc.dueDaysAgo !== undefined) {
-      dueDateSql = `(CURRENT_DATE - INTERVAL '${sc.dueDaysAgo} days')::date`;
-    } else if (sc.futureDueDays !== undefined) {
-      dueDateSql = `(CURRENT_DATE + INTERVAL '${sc.futureDueDays} days')::date`;
-    } else {
-      dueDateSql = `(CURRENT_DATE - INTERVAL '${Math.max(0, sc.daysAgo - 30)} days')::date`;
-    }
+      if (sc.dueDaysAgo !== undefined) {
+        dueDateSql = `(CURRENT_DATE - INTERVAL '${sc.dueDaysAgo + dup * 5} days')::date`;
+      } else if (sc.futureDueDays !== undefined) {
+        dueDateSql = `(CURRENT_DATE + INTERVAL '${sc.futureDueDays - dup * 5} days')::date`;
+      } else {
+        dueDateSql = `(CURRENT_DATE - INTERVAL '${Math.max(0, sc.daysAgo + dup * 5 - 30)} days')::date`;
+      }
 
-    invoices.push({
-      id: sc.id,
-      invoice_number: sc.num,
-      contact_id: contact.id,
-      status: sc.status,
-      issue_date_sql: issueDateSql,
-      due_date_sql: dueDateSql,
-      subtotal,
-      vat_rate: vatRate,
-      vat_amount: vatAmount,
-      total,
-      amount_paid: amountPaid,
-      balance_due: balanceDue,
-      currency: "BHD",
-      notes: sc.desc,
-      terms: "Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.",
-    });
+      const invId = `inv-${String(invoices.length + 1).padStart(3, "0")}`;
+      const invNum = `${sc.num}${dup > 0 ? `-B${dup}` : ''}`;
 
-    // Invoice items (2 lines per invoice for realism)
-    const line1Sub = Math.round(subtotal * 0.65 * 1000) / 1000;
-    const line2Sub = Math.round((subtotal - line1Sub) * 1000) / 1000;
-
-    items.push({
-      id: `ii-${String(itemIndex++).padStart(3, "0")}`,
-      invoice_id: sc.id,
-      description: `${sc.desc} — Principal Filming & Crew`,
-      quantity: 1,
-      unit_price: line1Sub,
-      amount: line1Sub,
-      sort_order: 1,
-    });
-
-    items.push({
-      id: `ii-${String(itemIndex++).padStart(3, "0")}`,
-      invoice_id: sc.id,
-      description: `${sc.desc} — 8K RAW Editing, Color Grading & Sound Master`,
-      quantity: 1,
-      unit_price: line2Sub,
-      amount: line2Sub,
-      sort_order: 2,
-    });
-
-    // Payment if paid or partially paid
-    if (amountPaid > 0) {
-      const payDays = sc.daysAgo - (sc.payDaysAfter || 10);
-      const payDateSql = `(CURRENT_DATE - INTERVAL '${Math.max(0, payDays)} days')::date`;
-      payments.push({
-        id: `pay-${String(payIndex++).padStart(3, "0")}`,
-        payment_number: `RCT-${sc.num.replace("INV-", "")}`,
-        invoice_id: sc.id,
+      invoices.push({
+        id: invId,
+        invoice_number: invNum,
         contact_id: contact.id,
-        amount: amountPaid,
+        status: sc.status,
+        issue_date_sql: issueDateSql,
+        due_date_sql: dueDateSql,
+        subtotal,
+        vat_rate: vatRate,
+        vat_amount: vatAmount,
+        total,
+        amount_paid: amountPaid,
+        balance_due: balanceDue,
         currency: "BHD",
-        payment_method: sc.method || "bank_transfer",
-        payment_date_sql: payDateSql,
-        reference: `REF-${sc.num}-TXN${payIndex}`,
-        status: "completed",
-        notes: `Settlement for ${sc.desc}`,
+        notes: `${sc.desc}${dup > 0 ? ` (Phase ${dup + 1})` : ''}`,
+        terms: "Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.",
       });
+
+      // Invoice items (2 lines per invoice for realism)
+      const line1Sub = Math.round(subtotal * 0.65 * 1000) / 1000;
+      const line2Sub = Math.round((subtotal - line1Sub) * 1000) / 1000;
+
+      items.push({
+        id: `ii-${String(itemIndex++).padStart(3, "0")}`,
+        invoice_id: invId,
+        description: `${sc.desc} — Principal Filming & Crew`,
+        quantity: 1,
+        unit_price: line1Sub,
+        amount: line1Sub,
+        sort_order: 1,
+      });
+
+      items.push({
+        id: `ii-${String(itemIndex++).padStart(3, "0")}`,
+        invoice_id: invId,
+        description: `${sc.desc} — 8K RAW Editing, Color Grading & Sound Master`,
+        quantity: 1,
+        unit_price: line2Sub,
+        amount: line2Sub,
+        sort_order: 2,
+      });
+
+      // Payment if paid or partially paid
+      if (amountPaid > 0) {
+        const payDays = sc.daysAgo + dup * 5 - (sc.payDaysAfter || 10);
+        const payDateSql = `(CURRENT_DATE - INTERVAL '${Math.max(0, payDays)} days')::date`;
+        payments.push({
+          id: `pay-${String(payIndex++).padStart(3, "0")}`,
+          payment_number: `RCT-${invNum.replace("INV-", "")}`,
+          invoice_id: invId,
+          contact_id: contact.id,
+          amount: amountPaid,
+          currency: "BHD",
+          payment_method: sc.method || "bank_transfer",
+          payment_date_sql: payDateSql,
+          reference: `REF-${invNum}-TXN${payIndex}`,
+          status: "completed",
+          notes: `Settlement for ${sc.desc}`,
+        });
+      }
     }
   }
 
@@ -407,12 +430,12 @@ function generateInvoicesAndScenarios(contacts, baseEmployees) {
 // 4. 40 Deals across all pipeline stages
 function generateDealsData(contacts, employees) {
   const stages = [
-    { stage: "lead", prob: 20, count: 7, status: "open" },
-    { stage: "qualified", prob: 40, count: 6, status: "open" },
-    { stage: "proposal", prob: 60, count: 7, status: "open" },
-    { stage: "negotiation", prob: 80, count: 7, status: "open" },
-    { stage: "closed_won", prob: 100, count: 10, status: "won" },
-    { stage: "closed_lost", prob: 0, count: 3, status: "lost" },
+    { stage: "lead", prob: 20, count: 30, status: "open" },
+    { stage: "qualified", prob: 40, count: 25, status: "open" },
+    { stage: "proposal", prob: 60, count: 30, status: "open" },
+    { stage: "negotiation", prob: 80, count: 30, status: "open" },
+    { stage: "closed_won", prob: 100, count: 50, status: "won" },
+    { stage: "closed_lost", prob: 0, count: 15, status: "lost" },
   ];
 
   const dealTitles = [
@@ -462,8 +485,8 @@ function generateDealsData(contacts, employees) {
   let dIdx = 0;
 
   for (const st of stages) {
-    for (let i = 0; i < st.count && dIdx < dealTitles.length; i++) {
-      const title = dealTitles[dIdx];
+    for (let i = 0; i < st.count; i++) {
+      const title = dealTitles[dIdx % dealTitles.length] + (dIdx >= dealTitles.length ? ` (Phase ${Math.floor(dIdx/dealTitles.length)+1})` : '');
       const contact = contacts[dIdx % contacts.length];
       const emp = employees[dIdx % employees.length];
       const value = 2500 + (dIdx * 950) % 35000;
@@ -495,7 +518,7 @@ function generateQuotationsData(contacts, deals) {
   const items = [];
   let qItemIdx = 1;
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 150; i++) {
     const qId = `qte-${String(i + 1).padStart(3, "0")}`;
     const qNum = `QTE-2026-${String(i + 1).padStart(3, "0")}`;
     const contact = contacts[i % contacts.length];
@@ -593,19 +616,21 @@ function generateExpensesData() {
   ];
 
   const expenses = [];
-  for (let i = 0; i < expenseTemplates.length; i++) {
-    const t = expenseTemplates[i];
-    expenses.push({
-      id: `exp-${String(i + 1).padStart(3, "0")}`,
-      title: t.title,
-      amount: t.amount,
-      currency: "BHD",
-      category_id: t.cat,
-      expense_date_sql: `(CURRENT_DATE - INTERVAL '${t.daysAgo} days')::date`,
-      vendor: t.vendor,
-      status: "approved",
-      notes: `Verified receipt and logged into ledger under ${t.cat}.`,
-    });
+  for (let dup = 0; dup < 5; dup++) {
+    for (let i = 0; i < expenseTemplates.length; i++) {
+      const t = expenseTemplates[i];
+      expenses.push({
+        id: `exp-${String(expenses.length + 1).padStart(3, "0")}`,
+        title: `${t.title}${dup > 0 ? ` (Q${5 - dup})` : ''}`,
+        amount: t.amount + (dup * 50),
+        currency: "BHD",
+        category_id: t.cat,
+        expense_date_sql: `(CURRENT_DATE - INTERVAL '${t.daysAgo + dup * 20} days')::date`,
+        vendor: t.vendor,
+        status: "approved",
+        notes: `Verified receipt and logged into ledger under ${t.cat}.`,
+      });
+    }
   }
   return expenses;
 }
@@ -786,6 +811,11 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   const { tasks, calendarEvents } = generateWorkflowData(baseEmployees);
   const itsmTickets = generateItsmData(baseEmployees);
 
+  const orderedStaffRoles = orderByReference(staffRoles, "id", "reporting_to_role");
+  const orderedItRoles = orderByReference(itRoles, "id", "reporting_to_role");
+  const orderedAccounts = orderByReference(accounts, "subject_id", "reporting_to", "realm");
+  const orderedEmployees = orderByReference(baseEmployees, "id", "reporting_to");
+
   lines.push(`-- ============================================================================`);
   lines.push(`-- PURE SQL SEED: ${isIshoot ? "iShoot Cinema Production S.P.C." : "Northwind Studio W.L.L."}`);
   lines.push(`-- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,`);
@@ -911,10 +941,10 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`-- 4. IDENTITY SERVICE (Roles, Scopes, Accounts & Permissions)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
-  for (const role of staffRoles) {
+  for (const role of orderedStaffRoles) {
     lines.push(`INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES (${sqlQuote(role.id)}, ${sqlQuote(role.name_en)}, ${sqlQuote(role.name_ar)}, true, ${sqlQuote(role.reporting_to_role)}, now(), 1) ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;`);
   }
-  for (const role of itRoles) {
+  for (const role of orderedItRoles) {
     lines.push(`INSERT INTO identity.it_role (id, name_en, name_ar, is_system, reporting_to_role, created_at, revision) VALUES (${sqlQuote(role.id)}, ${sqlQuote(role.name_en)}, ${sqlQuote(role.name_ar)}, true, ${sqlQuote(role.reporting_to_role)}, now(), 1) ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, reporting_to_role = EXCLUDED.reporting_to_role;`);
   }
   for (const scope of staffScopes) {
@@ -926,10 +956,21 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   for (const perm of itPermissions) {
     lines.push(`INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(perm.id)}, ${sqlQuote(perm.role_id)}, ${sqlQuote(perm.resource)}, ${sqlQuote(perm.action)}, ${perm.allowed ? "true" : "false"}, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`);
   }
-  for (const acc of accounts) {
+  for (const acc of orderedAccounts) {
     lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(acc.realm)}, ${sqlQuote(acc.subject_id)}, ${sqlQuote(acc.email)}, ${sqlQuote(acc.username)}, ${sqlQuote(acc.password_hash)}, ${sqlQuote(acc.roles)}, true, false, ${sqlQuote(acc.reporting_to)}, now(), now())`);
-    lines.push(`ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();`);
+    lines.push(`VALUES (${sqlQuote(acc.realm)}, ${sqlQuote(acc.subject_id)}, ${sqlQuote(acc.email)}, ${sqlQuote(acc.username)}, ${sqlQuote(acc.password_hash)}, ${sqlQuote(acc.roles)}, true, false, NULL, now(), now())`);
+    lines.push(`ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();`);
+  }
+  const reportingLines = accounts
+    .filter((acc) => acc.reporting_to)
+    .map((acc) => `  (${sqlQuote(acc.realm)}::text, ${sqlQuote(acc.subject_id)}::text, ${sqlQuote(acc.reporting_to)}::text)`)
+    .join(",\n");
+  if (reportingLines) {
+    lines.push(`UPDATE identity.account AS account SET reporting_to = reporting.reporting_to`);
+    lines.push(`FROM (VALUES`);
+    lines.push(reportingLines);
+    lines.push(`) AS reporting(realm, subject_id, reporting_to)`);
+    lines.push(`WHERE account.realm = reporting.realm AND account.subject_id = reporting.subject_id;`);
   }
   for (const acc of staffAccess) {
     lines.push(`INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', ${sqlQuote(acc.subject_id)}, '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
@@ -945,7 +986,7 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d0000000-0000-0000-0000-000000000005', 'LOG', 'Logistics & Fleet', 'الخدمات اللوجستية والأسطول') ON CONFLICT (id) DO NOTHING;`);
   lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d0000000-0000-0000-0000-000000000006', 'POST', 'Post-Production & Grading', 'ما بعد الإنتاج والمونتاج') ON CONFLICT (id) DO NOTHING;`);
 
-  for (const emp of baseEmployees) {
+  for (const emp of orderedEmployees) {
     lines.push(`INSERT INTO hr.employee (id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, reporting_to, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at)`);
     lines.push(`VALUES (${sqlQuote(emp.id)}, ${sqlQuote(emp.employee_number)}, ${sqlQuote(emp.first_name_en)}, ${sqlQuote(emp.last_name_en)}, ${sqlQuote(emp.first_name_ar)}, ${sqlQuote(emp.last_name_ar)}, ${sqlQuote(emp.email)}, ${sqlQuote(emp.phone)}, ${sqlQuote(emp.job_title_en)}, ${sqlQuote(emp.job_title_ar)}, ${sqlQuote(emp.department_id)}, ${sqlQuote(emp.reporting_to)}, (CURRENT_DATE - INTERVAL '365 days')::date, 'active', ${emp.basic_salary}, ${emp.housing_allowance}, ${emp.transport_allowance}, 0.000, now(), now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
@@ -1253,7 +1294,7 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`COMMIT;`);
   lines.push(`-- End of SQL Seed`);
 
-  return lines.join("\n");
+  return `${lines.join("\n")}\n`;
 }
 
 console.log("Writing seeds/sql/seed_ishoot.sql (with full expanded datasets)...");

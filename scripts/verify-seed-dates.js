@@ -1,40 +1,13 @@
 #!/usr/bin/env node
-const { execSync } = require("child_process");
-const assert = require("assert");
+const assert = require("node:assert");
+const { query: querySql } = require("./lib/db-query.cjs");
+
+const query = "SELECT MIN(issue_date), MAX(issue_date) FROM finance.invoice;";
 
 function getInvoiceDateBounds() {
-  // Try docker exec psql first since platform-postgres-1 is the canonical container
-  try {
-    const raw = execSync(
-      `docker exec platform-postgres-1 psql -U platform -d platform_db -t -A -c "SELECT MIN(issue_date), MAX(issue_date) FROM finance.invoice;"`,
-      { encoding: "utf8", stdio: ["pipe", "pipe", "ignore"] }
-    ).trim();
-    if (raw && raw.includes("|")) {
-      const [minStr, maxStr] = raw.split("|");
-      if (minStr && maxStr) {
-        return { min: new Date(minStr), max: new Date(maxStr), minStr, maxStr };
-      }
-    }
-  } catch {
-    // fallback if docker container name differs or local psql is used
-  }
-
-  // Fallback to local psql using DATABASE_URL if available
-  const dbUrl = process.env.DATABASE_URL || "postgres://platform:platform@localhost:5432/platform_db?sslmode=disable";
-  try {
-    const raw = execSync(
-      `psql "${dbUrl}" -t -A -c "SELECT MIN(issue_date), MAX(issue_date) FROM finance.invoice;"`,
-      { encoding: "utf8", stdio: ["pipe", "pipe", "ignore"] }
-    ).trim();
-    if (raw && raw.includes("|")) {
-      const [minStr, maxStr] = raw.split("|");
-      return { min: new Date(minStr), max: new Date(maxStr), minStr, maxStr };
-    }
-  } catch (err) {
-    throw new Error(`Failed to query finance.invoice: ${err.message}`);
-  }
-
-  throw new Error("No invoices found in database to verify dates.");
+  const [minStr, maxStr] = querySql(query).split("|");
+  if (!minStr || !maxStr) throw new Error("No invoices found in database to verify dates.");
+  return { min: new Date(minStr), max: new Date(maxStr), minStr, maxStr };
 }
 
 try {
