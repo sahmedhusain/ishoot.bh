@@ -83,6 +83,27 @@ func (m *memRepo) WithExpired(_ context.Context, now time.Time, limit int32, fn 
 	}
 	return len(batch), nil
 }
+
+func (m *memRepo) WithOrphanedPrivate(_ context.Context, olderThan time.Time, limit int32, fn func([]domain.File) error) (int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	var batch []domain.File
+	for _, f := range m.files {
+		if !f.Public && f.ClaimedAt == nil && f.CreatedAt.Before(olderThan) && int32(len(batch)) < limit {
+			batch = append(batch, f)
+		}
+	}
+	if len(batch) == 0 {
+		return 0, nil
+	}
+	if err := fn(batch); err != nil {
+		return 0, err
+	}
+	for _, f := range batch {
+		delete(m.files, f.URL)
+	}
+	return len(batch), nil
+}
 type memStore struct {
 	mu	sync.Mutex
 	objects	map[string][]byte

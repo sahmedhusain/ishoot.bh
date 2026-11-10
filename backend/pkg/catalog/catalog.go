@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 )
+//go:embed data/*.json
 var files embed.FS
 type Access struct {
 	Resources		[]string			`json:"resources"`

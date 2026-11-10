@@ -99,7 +99,7 @@ export async function getSigningState(
   if (!doc) throw new Error(serverMessages.documentNotFound);
   return {
     approved: doc.approved,
-    approvalStatus: doc.approvalStatus,
+    approvalStatus: (doc as any).approvalStatus || (doc.approved ? "approved" : "draft"),
     signed: !!doc.signedAt,
     signedBy: doc.signedBy
       ? {
@@ -180,7 +180,7 @@ export async function requestInvoiceApproval(id: string, actorId: string) {
       requesterId: actorId,
       policySnapshot: {
         invoiceNumber: invoice.invoiceNumber,
-        totalAmount: Number(invoice.totalAmount || invoice.total),
+        totalAmount: Number((invoice as any).totalAmount || invoice.total),
         currency: invoice.currency,
       },
     });

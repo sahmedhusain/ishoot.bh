@@ -209,7 +209,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
 | `DELIVERY_READERS` | `admin,it,web,commerce` | `min=1,dive,required` |
 | `DELIVERY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
-| `DELIVERY_SERVICE_KEY` |  | Base64url private service JWK; required when NATS erasure handling is enabled |
+| `DELIVERY_SERVICE_KEY` |  |  |
 | `DELIVERY_FILES_URL` | `http://files:8080` | `http_url` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
@@ -483,7 +483,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_SIGNING_JWK` |  |  |
 | `IDENTITY_PREVIOUS_JWKS` |  |  |
 | `IDENTITY_ACCESS_TTL` | `10m` | `gt=0` |
-| `IDENTITY_SESSION_TTL` | `168h` | `gt=0` (customer refresh session lifetime) |
+| `IDENTITY_SESSION_TTL` | `168h` | `gt=0` |
 | `IDENTITY_STAFF_TTL` | `12h` | `gt=0` |
 | `IDENTITY_IT_TTL` | `4h` | `gt=0` |
 | `IDENTITY_CLEANUP_INTERVAL` | `5m` | `gt=0` |
