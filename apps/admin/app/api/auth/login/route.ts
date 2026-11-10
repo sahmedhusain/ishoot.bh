@@ -53,22 +53,9 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
         throw error;
       }
-      let user: any = await getSessionUser(credential.subjectId);
+      const user: any = await getSessionUser(credential.subjectId);
       if (!user) {
-        const primaryRole = (credential.roles && credential.roles[0]) || "super_admin";
-        user = {
-          id: credential.subjectId,
-          full_name: credential.subjectId === "super-admin"
-            ? "Super Admin"
-            : identifier.split("@")[0],
-          email: identifier.includes("@") ? identifier.toLowerCase() : `${identifier.toLowerCase()}@example.com`,
-          username: credential.subjectId === "super-admin" ? "BA0001" : identifier,
-          role: primaryRole as any,
-          is_active: true,
-          department: "executive",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
       }
 
       after(() =>

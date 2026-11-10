@@ -68,7 +68,7 @@ export * from "./observability";
 export * from "./services/email-outbox";
 export * from "./services/revalidation-outbox";
 export * from "./services/installation";
-export * from "./services/sample-files";
+
 export * from "./queries/sequence";
 export * from "./queries/approvals";
 export * from "./queries/leave";

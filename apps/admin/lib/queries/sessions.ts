@@ -36,38 +36,5 @@ function mapUser(u: any): Profile {
 export async function getSessionUser(id: string): Promise<Profile | null> {
   const user = await db.user.findUnique({ where: { id }, select: sessionUserSelect }).catch(() => null);
   if (user?.isActive) return mapUser(user);
-
-  if (id === "super-admin" || id === "omar-haddad") {
-    return {
-      id,
-      full_name: id === "omar-haddad" ? "Omar Haddad" : "Super Admin",
-      email: "admin@example.com",
-      role: "super_admin" as UserRole,
-      is_active: true,
-      department: "executive",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-  }
-
-  try {
-    const demoStaff = require("../../../../seeds/demo-staff.json");
-    const member = (demoStaff as any[]).find((m) => m.key === id || m.email === id);
-    if (member) {
-      return {
-        id: member.key,
-        full_name: member.nameEn,
-        email: member.email || `${member.key}@example.com`,
-        role: member.role as UserRole,
-        is_active: true,
-        phone: member.phone || undefined,
-        department: member.department || undefined,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-    }
-  } catch {
-  }
-
   return null;
 }

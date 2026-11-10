@@ -29,21 +29,7 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
       if (isApiError(error) && error.status === 401) return null;
       throw error;
     }
-    let user = await getSessionUser(staff.userId);
-    if (!user && staff.roles.length > 0) {
-      user = {
-        id: staff.userId,
-        full_name: staff.userId === "super-admin"
-          ? "Super Admin"
-          : "Staff User",
-        email: "admin@example.com",
-        role: staff.roles[0] as any,
-        is_active: true,
-        department: "executive",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-    }
+    const user = await getSessionUser(staff.userId);
     return user && staff.roles.length === 1 && staff.roles[0] === user.role
       ? user
       : null;

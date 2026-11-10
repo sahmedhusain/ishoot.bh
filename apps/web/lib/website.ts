@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getContentSnapshot } from "@platform/api-client";
-import { exampleSnapshot, getWebsiteSnapshot, type WebsiteSnapshot } from "@platform/database";
+import { getWebsiteSnapshot, type WebsiteSnapshot } from "@platform/database";
 import {
   isBusinessActivity,
   type BusinessActivity,
@@ -41,16 +41,15 @@ const getPublishedWebsite = unstable_cache(
   async (): Promise<WebsiteSnapshot> => {
     try {
       const snap = await getContentSnapshot("main");
-      if (snap?.published && typeof snap.published === "object" && Object.keys(snap.published).length > 0) {
+      if (
+        snap?.published &&
+        typeof snap.published === "object" &&
+        Object.keys(snap.published).length > 0
+      ) {
         return snap.published as unknown as WebsiteSnapshot;
       }
-    } catch {
-    }
-    try {
-      return await getWebsiteSnapshot(false);
-    } catch {
-      return exampleSnapshot("media");
-    }
+    } catch {}
+    return await getWebsiteSnapshot(false);
   },
   ["published-website"],
   { revalidate: 60, tags: ["website"] },
@@ -58,6 +57,5 @@ const getPublishedWebsite = unstable_cache(
 
 export const getWebsite = cache(async () => {
   const preview = await previewCookie();
-  if (preview?.example) return exampleSnapshot(preview.example);
   return preview ? getWebsiteSnapshot(true) : getPublishedWebsite();
 });

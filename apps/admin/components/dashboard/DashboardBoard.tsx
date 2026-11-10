@@ -86,71 +86,7 @@ function kindToCategory(kind: DashboardWidgetKind): CategoryFilter {
 }
 
 function withPreviewFallbackData(data: DashboardData): DashboardData {
-  return {
-    ...data,
-    finance: data.finance ?? {
-      revenue: 14250,
-      outstanding: 3420,
-      overdue: 450,
-      expenses: 4180,
-      netProfit: 10070,
-      profitMargin: 70.6,
-      discountsGiven: 320,
-      vatCollected: 1425,
-      currency: data.currency || "USD",
-    },
-    cashflow: data.cashflow ?? [
-      { monthKey: "2026-05", revenue: 11200, expenses: 3800 },
-      { monthKey: "2026-06", revenue: 12800, expenses: 4100 },
-      { monthKey: "2026-07", revenue: 13500, expenses: 3900 },
-      { monthKey: "2026-08", revenue: 14900, expenses: 4200 },
-    ],
-    deals: data.deals ?? {
-      activeCount: 8,
-      activePipelineValue: 18500,
-      stageStats: {
-        lead: { count: 3, value: 6500 },
-        proposal_sent: { count: 5, value: 12000 },
-      },
-      recent: [],
-    },
-    leads: data.leads ?? 12,
-    orders: data.orders ?? {
-      open: 6,
-      today_count: 4,
-      today_total: 840,
-    },
-    shipments: (data.shipments as any) ?? {
-      late: 0,
-      pending: 4,
-      out_for_delivery: 2,
-    },
-    tasks: data.tasks ?? {
-      open: 7,
-      overdue: 0,
-      tasks: [],
-    },
-    hrPulse: data.hrPulse ?? {
-      active: 24,
-      on_leave: 2,
-      pending_leave: 1,
-    },
-    procurementPulse: data.procurementPulse ?? {
-      open_orders: 3,
-      open_requisitions: 2,
-    },
-    archiveFolders: data.archiveFolders ?? {
-      groups: [
-        { group: "company", count: 8 },
-        { group: "legal", count: 14 },
-        { group: "finance", count: 19 },
-        { group: "hr", count: 12 },
-      ],
-      expiring: 1,
-      expired: 0,
-      recent: [],
-    },
-  };
+  return data;
 }
 
 const KPI_PREVIEW_SAMPLES: Record<
