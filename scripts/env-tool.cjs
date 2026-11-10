@@ -50,7 +50,10 @@ const SECRETS = {
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
-  PGADMIN_DEFAULT_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
+  PGADMIN_DEFAULT_PASSWORD: () => "Admin12345678!",
+  SUPER_ADMIN_PASSWORD: () => "Admin12345678!",
+  IT_ADMIN_EMAIL: () => "admin@example.com",
+  IT_ADMIN_PASSWORD: () => "Admin12345678!",
 };
 // Variables older versions of .env.example listed that no code reads any more.
 const RETIRED = {

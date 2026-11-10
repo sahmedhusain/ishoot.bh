@@ -69,8 +69,12 @@ const itRoles = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.it_ro
 const staffScopes = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_role_scope) t") || [];
 const staffPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_permission) t") || [];
 const itPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.it_permission) t") || [];
-const accounts = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.account) t") || [];
-const staffAccess = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_access) t") || [];
+const DEFAULT_PASSWORD_HASH = "$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU";
+const accounts = (queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.account) t") || [])
+  .filter((acc) => acc.email && acc.email !== "dgdfg@mail.com" && (acc.password_hash || acc.email.includes("@")))
+  .map((acc) => ({ ...acc, password_hash: DEFAULT_PASSWORD_HASH }));
+const staffAccess = (queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_access) t") || [])
+  .filter((acc) => acc.subject_id !== "c91cb10d-a43c-4983-baed-b95ad8de76b2");
 const departments = queryJson("SELECT json_agg(t) FROM (SELECT * FROM hr.department) t") || [];
 const baseEmployees = queryJson("SELECT json_agg(t) FROM (SELECT * FROM hr.employee) t") || [];
 const expenseCategories = queryJson("SELECT json_agg(t) FROM (SELECT * FROM finance.expense_category) t") || [];

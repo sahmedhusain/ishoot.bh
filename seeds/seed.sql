@@ -2,7 +2,7 @@
 -- PURE SQL SEED: iShoot Cinema Production S.P.C.
 -- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
 -- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
--- Generated: 2026-11-10T00:29:22.815Z
+-- Generated: 2026-11-10T18:57:13.979Z
 -- ============================================================================
 BEGIN;
 
@@ -1617,61 +1617,58 @@ INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, crea
 INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES ('itperm_it_auditor_staff_roles_read', 'it_auditor', 'staff_roles', 'read', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES ('itperm_it_auditor_tickets_read', 'it_auditor', 'tickets', 'read', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$xwMGv9Jm36oj/McrASNKuQ$nNvlNRWyXpVmA1gEnFCptjFGEhiIU0CBs5RPim+IZMg', '{"super_admin"}', true, false, NULL, now(), now())
+VALUES ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'c91cb10d-a43c-4983-baed-b95ad8de76b2', 'dgdfg@mail.com', NULL, NULL, '{"operations_manager"}', true, false, NULL, now(), now())
+VALUES ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_admin"}', true, false, NULL, now(), now())
+VALUES ('staff', 'yusuf-rahman', 'director@example.com', 'YR0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'yusuf-rahman', 'director@example.com', 'YR0003', '$argon2id$v=19$m=19456,t=2,p=1$AEADNvnMM/shq/R6f7nlGQ$i9uupG4/DzvTidEgt7g0wnpELR8M3QlGQeUg13xaGj0', '{"admin"}', true, false, NULL, now(), now())
+VALUES ('staff', 'karim-fawzi', 'production@example.com', 'KF0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"operations_manager"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'karim-fawzi', 'production@example.com', 'KF0005', '$argon2id$v=19$m=19456,t=2,p=1$4uiNDvgDdHMkhUZHTVjgng$8t77aonOfHW1pGw4PQaup0Ct+MIzqXRhmDIXiiVu1Tw', '{"operations_manager"}', true, false, NULL, now(), now())
+VALUES ('staff', 'sami-khoury', 'sales@example.com', 'SK0009', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"sales"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'sami-khoury', 'sales@example.com', 'SK0009', '$argon2id$v=19$m=19456,t=2,p=1$mSbMeSezKloR2+1pqltwMA$3jQM9u6DzMnfPMgylalPh11Yk5wllf1bxwe/MoUQCmQ', '{"sales"}', true, false, NULL, now(), now())
+VALUES ('staff', 'hana-yousef', 'marketing@example.com', 'HY0010', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"marketing"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'hana-yousef', 'marketing@example.com', 'HY0010', '$argon2id$v=19$m=19456,t=2,p=1$agm6jJxmmZXY+r/xoK9EUQ$hGUkusIA7NVuvBgjDT1eJGO9ZyqHP/XO/Y9xFFa+8Bg', '{"marketing"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_manager"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_lead"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_lead"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_engineer"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_engineer"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_worker"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_worker"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_support"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_support"}', true, false, NULL, now(), now())
+VALUES ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{"it_auditor"}', true, false, NULL, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$gfqeZ9CupfsdShN9TJq8VQ$t8dV/7Jhhr3hULEu8D5ATaITqN+ILLu34Kh55T5fPbM', '{"super_admin"}', true, false, NULL, now(), now())
+VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('staff', 'layla-nasser', 'finance@example.com', 'LN0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"finance_manager"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'tariq-saleh', 'producer@example.com', 'TS0006', '$argon2id$v=19$m=19456,t=2,p=1$T08lwxwNbNW1RHcmwMj37A$PX3L8D5Yblz42OMVZbMBr+IMBQJAoBCWqCn7XC5YZ6c', '{"project_lead"}', true, false, NULL, now(), now())
+VALUES ('staff', 'tariq-saleh', 'producer@example.com', 'TS0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"project_lead"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'noor-hamdan', 'editor@example.com', 'NH0007', '$argon2id$v=19$m=19456,t=2,p=1$y4UqK8JHeCseWAVft3x1BQ$CYZ1S/5KATQJBCn5PytMDegtXaAyREgMAg2XpiS4ogQ', '{"editor"}', true, false, NULL, now(), now())
+VALUES ('staff', 'noor-hamdan', 'editor@example.com', 'NH0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"editor"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'faisal-mansour', 'accountant@example.com', 'FM0008', '$argon2id$v=19$m=19456,t=2,p=1$O+stBWvZlrKljxz1CD7PmQ$pLJX+x+OwgbV1aP7zJzWjwBwCFgp5b2+tensIgjhNe0', '{"accountant"}', true, false, NULL, now(), now())
+VALUES ('staff', 'faisal-mansour', 'accountant@example.com', 'FM0008', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"accountant"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'guest', 'guest@example.com', 'GO0011', '$argon2id$v=19$m=19456,t=2,p=1$PzVq/hrVrqoB/nVDhs8hpA$1rtDEGazyISd32w3oJU34XDSt6eV0gaZpYoNTzIfKUg', '{"viewer"}', true, false, NULL, now(), now())
+VALUES ('staff', 'guest', 'guest@example.com', 'GO0011', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"viewer"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 UPDATE identity.account AS account SET reporting_to = reporting.reporting_to
 FROM (VALUES
@@ -1704,7 +1701,6 @@ INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, upda
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'sami-khoury', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'hana-yousef', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'guest', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
-INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'c91cb10d-a43c-4983-baed-b95ad8de76b2', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
 -- 5. HR SERVICE (Departments, Employees, Payroll Runs, Leaves, Attendance)
