@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS workflow.approval_request (
     id text PRIMARY KEY,
     kind text NOT NULL,
@@ -90,6 +91,8 @@ CREATE TABLE IF NOT EXISTS workflow.calendar_event (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS cal_time_idx ON workflow.calendar_event (start_time, end_time);
+
+-- +goose Down
 DROP TABLE IF EXISTS workflow.calendar_event;
 DROP TABLE IF EXISTS workflow.task;
 DROP TABLE IF EXISTS workflow.minute_of_meeting;

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE identity.session_family (
  id uuid PRIMARY KEY,
  subject_id text NOT NULL,
@@ -15,5 +16,7 @@ CREATE TABLE identity.refresh_token (
  created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX refresh_token_family ON identity.refresh_token (family_id);
+
+-- +goose Down
 DROP TABLE identity.refresh_token;
 DROP TABLE identity.session_family;

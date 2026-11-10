@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS notify.notification (
     id             uuid        NOT NULL,
     realm          text        NOT NULL,
@@ -58,6 +59,8 @@ CREATE TABLE IF NOT EXISTS notify.mute (
     created_at  timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT mute_pkey PRIMARY KEY (realm, user_id, entity_type, entity_id)
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS notify.mute;
 DROP TABLE IF EXISTS notify.category_setting;
 DROP TABLE IF EXISTS notify.preference;

@@ -23,12 +23,14 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.NoError(t, err)
 	defer pool.Close()
 	require.NoError(t, migrate.Run(ctx, pool, migrate.Options{Schema: "identity", Migrations: migrations.FS, Logger: slog.Default()}))
-	_, err = pool.Exec(ctx, `CREATE TABLE public."User" (id text primary key,email text unique not null,"passwordHash" text not null,role text not null,"isActive" boolean not null,"mfaEnabled" boolean not null,"mfaSecretEncrypted" text,"mfaLastStep" bigint,"lastLoginAt" timestamp,"createdAt" timestamp not null,"updatedAt" timestamp not null,permissions jsonb);
- CREATE TABLE public."Customer" (id text primary key,email text unique not null,"passwordHash" text,"createdAt" timestamp not null,"updatedAt" timestamp not null);
+	_, err = pool.Exec(ctx, `CREATE TABLE public."User" (id text primary key,email text unique not null,"fullName" text,"passwordHash" text not null,role text not null,"isActive" boolean not null,"mfaEnabled" boolean not null,"mfaSecretEncrypted" text,"mfaLastStep" bigint,"lastLoginAt" timestamp,"createdAt" timestamp not null,"updatedAt" timestamp not null,permissions jsonb);
+ CREATE TABLE public."Customer" (id text primary key,email text unique not null,"passwordHash" text,"googleSub" text,"appleSub" text,"createdAt" timestamp not null,"updatedAt" timestamp not null);
  CREATE TABLE public."MfaRecoveryCode" ("userId" text not null,"codeHash" text not null,"usedAt" timestamp);
  CREATE TABLE public."Role" (id text PRIMARY KEY,"nameEn" text NOT NULL,"nameAr" text NOT NULL,"isSystem" boolean NOT NULL,"createdAt" timestamp NOT NULL);
  CREATE TABLE public."Permission" (id text PRIMARY KEY,role text NOT NULL,resource text NOT NULL,action text NOT NULL,allowed boolean NOT NULL,"createdAt" timestamp NOT NULL, UNIQUE(role,resource,action));
  CREATE TABLE public."RoleDataScope" (role text NOT NULL,area text NOT NULL,scope text NOT NULL,PRIMARY KEY(role,area));
+ CREATE TABLE public."AuthChallenge" (id text primary key, "userId" text, "codeHash" text, type text, attempts int, "expiresAt" timestamp, "createdAt" timestamp, email text);
+ CREATE TABLE public."CustomerAuthCode" (id text primary key, email text, "codeHash" text, attempts int, "expiresAt" timestamp, "createdAt" timestamp, "usedAt" timestamp);
  INSERT INTO public."Role" VALUES ('admin','Admin','مدير',true,'2026-10-01 12:00:00'),('viewer','Viewer','مشاهد',false,'2026-10-01 12:00:00');
  INSERT INTO public."Permission" VALUES ('grant-1','admin','invoices','write',true,'2026-10-01 12:00:00'),('deny-1','admin','invoices','approve',false,'2026-10-01 12:00:00');
  INSERT INTO public."RoleDataScope" VALUES ('admin','deals','department');`)
@@ -36,9 +38,9 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	legacy, err := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.MinCost)
 	require.NoError(t, err)
 	const legacyMFA = "MTIzNDU2Nzg5MDEy.WAqUAxCQ3k3ssm1UH8s12w==.KMdZE+lMPbU7vI5DnqCbdg=="
-	_, err = pool.Exec(ctx, `INSERT INTO public."User" VALUES ('user-123','Alice@Example.test',$1,'admin',true,true,$2,123,'2026-10-30 12:00:00','2026-10-01 12:00:00','2026-10-02 12:00:00','{"invoices:read":false,"invoices:edit":true}'::jsonb)`, string(legacy), legacyMFA)
+	_, err = pool.Exec(ctx, `INSERT INTO public."User" (id, email, "fullName", "passwordHash", role, "isActive", "mfaEnabled", "mfaSecretEncrypted", "mfaLastStep", "lastLoginAt", "createdAt", "updatedAt", permissions) VALUES ('user-123','Alice@Example.test','Alice Smith',$1,'admin',true,true,$2,123,'2026-10-30 12:00:00','2026-10-01 12:00:00','2026-10-02 12:00:00','{"invoices:read":false,"invoices:edit":true}'::jsonb)`, string(legacy), legacyMFA)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO public."Customer" VALUES ('customer-1','alice@example.test',NULL,'2026-09-01 12:00:00','2026-09-02 12:00:00'); INSERT INTO public."MfaRecoveryCode" VALUES ('user-123','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','2026-10-05 12:00:00')`)
+	_, err = pool.Exec(ctx, `INSERT INTO public."Customer" (id, email, "passwordHash", "createdAt", "updatedAt") VALUES ('customer-1','alice@example.test',NULL,'2026-09-01 12:00:00','2026-09-02 12:00:00'); INSERT INTO public."MfaRecoveryCode" VALUES ('user-123','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','2026-10-05 12:00:00')`)
 	require.NoError(t, err)
 	b64 := func(s string) string { return base64.StdEncoding.EncodeToString([]byte(strings.Repeat(s, 32))) }
 	ring, err := secrets.NewKeyring(secrets.Config{Keys: []string{"primary:" + b64("a")}, PrimaryKeyID: "primary", LegacyMFAKey: b64("b")})
@@ -98,7 +100,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.Zero(t, again.RolesInserted+again.PermissionsInserted+again.ScopesInserted+again.AccessInserted)
 	var payload map[string]any
 	require.NoError(t, pool.QueryRow(ctx, `SELECT payload FROM identity.outbox WHERE subject='identity.snapshot.imported'`).Scan(&payload))
-	require.Equal(t, map[string]any{"changedBy": "operator:test-operator", "accountsInserted": float64(2), "recoveryInserted": float64(1), "rolesInserted": float64(2), "permissionsInserted": float64(2), "scopesInserted": float64(1), "accessInserted": float64(1)}, payload)
+	require.Equal(t, map[string]any{"changedBy": "operator:test-operator", "accountsInserted": float64(2), "recoveryInserted": float64(1), "rolesInserted": float64(2), "permissionsInserted": float64(2), "scopesInserted": float64(1), "accessInserted": float64(1), "providersInserted": float64(0), "resetChallengesInserted": float64(0), "customerCodesInserted": float64(0)}, payload)
 	rawSchema, err := os.ReadFile("../../contracts/events/identity.snapshot.imported.v1.json")
 	require.NoError(t, err)
 	var schemaDoc any
@@ -110,7 +112,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.NoError(t, eventSchema.Validate(payload))
 	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.outbox`).Scan(&count))
 	require.Equal(t, 1, count)
-	_, err = pool.Exec(ctx, `INSERT INTO public."User" SELECT 'pending','pending@example.test',"passwordHash",role,true,false,NULL,NULL,NULL,"createdAt","updatedAt",NULL FROM public."User" WHERE id='user-123'`)
+	_, err = pool.Exec(ctx, `INSERT INTO public."User" (id, email, "fullName", "passwordHash", role, "isActive", "mfaEnabled", "mfaSecretEncrypted", "mfaLastStep", "lastLoginAt", "createdAt", "updatedAt", permissions) SELECT 'pending','pending@example.test',"fullName","passwordHash",role,true,false,NULL,NULL,NULL,"createdAt","updatedAt",NULL FROM public."User" WHERE id='user-123'`)
 	require.NoError(t, err)
 	for _, tc := range []struct{ name, change, restore, want string }{
 		{"orphan recovery", `INSERT INTO public."MfaRecoveryCode"("userId","codeHash") VALUES ('missing',repeat('b',64))`, `DELETE FROM public."MfaRecoveryCode" WHERE "userId"='missing'`, "invalid or stale legacy recovery code"},
@@ -145,7 +147,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET password_hash='newer' WHERE realm='staff'`)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO public."User" VALUES ('new-user','new@example.test',$1,'viewer',true,false,NULL,NULL,NULL,now(),now(),NULL)`, string(legacy))
+	_, err = pool.Exec(ctx, `INSERT INTO public."User" (id, email, "fullName", "passwordHash", role, "isActive", "mfaEnabled", "mfaSecretEncrypted", "mfaLastStep", "lastLoginAt", "createdAt", "updatedAt", permissions) VALUES ('new-user','new@example.test','New User',$1,'viewer',true,false,NULL,NULL,NULL,now(),now(),NULL)`, string(legacy))
 	require.NoError(t, err)
 	_, err = run(ctx, pool, options{Apply: true, Actor: "test-operator", Keyring: ring})
 	require.ErrorContains(t, err, "target account conflict")
@@ -155,7 +157,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	require.Equal(t, "newer", email)
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET password_hash=$1 WHERE realm='staff'`, string(legacy))
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO public."User" VALUES ('dup','ALICE@example.test',$1,'viewer',true,false,NULL,NULL,NULL,now(),now(),NULL)`, string(legacy))
+	_, err = pool.Exec(ctx, `INSERT INTO public."User" (id, email, "fullName", "passwordHash", role, "isActive", "mfaEnabled", "mfaSecretEncrypted", "mfaLastStep", "lastLoginAt", "createdAt", "updatedAt", permissions) VALUES ('dup','ALICE@example.test','Dup User',$1,'viewer',true,false,NULL,NULL,NULL,now(),now(),NULL)`, string(legacy))
 	require.NoError(t, err)
 	_, err = run(ctx, pool, options{Apply: true, Actor: "test-operator", Keyring: ring})
 	require.ErrorContains(t, err, "normalized email collision")

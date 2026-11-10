@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS realtime.status (
     realm      text        NOT NULL,
     user_id    text        NOT NULL,
@@ -28,5 +29,7 @@ CREATE INDEX IF NOT EXISTS status_window_user_idx ON realtime.status_window (rea
 CREATE INDEX IF NOT EXISTS status_window_source_idx ON realtime.status_window (realm, source, source_id);
 CREATE INDEX IF NOT EXISTS status_window_starts_idx ON realtime.status_window (starts_at);
 CREATE INDEX IF NOT EXISTS status_window_ends_idx ON realtime.status_window (ends_at);
+
+-- +goose Down
 DROP TABLE IF EXISTS realtime.status_window;
 DROP TABLE IF EXISTS realtime.status;

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS system.integration_setting (
     provider         text        NOT NULL,
     is_active        boolean     NOT NULL DEFAULT false,
@@ -15,4 +16,6 @@ CREATE TABLE IF NOT EXISTS system.integration_setting (
     CONSTRAINT integration_setting_pkey PRIMARY KEY (provider),
     CONSTRAINT integration_setting_provider_check CHECK (length(provider) BETWEEN 1 AND 64)
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS system.integration_setting;

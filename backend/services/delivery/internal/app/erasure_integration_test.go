@@ -75,8 +75,8 @@ func TestCustomerErasedScrubsShipments(t *testing.T) {
 }
 func TestCustomerErasureRetriesWhenPrivateFileDeletionFails(t *testing.T) {
 	ctx, pool := open(t)
-	_, err := pool.Exec(ctx, `INSERT INTO delivery.shipment (id, number, order_id, promised_by, recipient_name, tracking_token, proof_photo_url)
-		VALUES ('s1', 'S1', 'o1', now(), 'Ann Lee', 't1', '/api/files/general/proof-1.pdf')`)
+	_, err := pool.Exec(ctx, `INSERT INTO delivery.shipment (id, number, order_id, promised_by, recipient_name, recipient_phone, address, tracking_token, proof_photo_url)
+		VALUES ('s1', 'S1', 'o1', now(), 'Ann Lee', '+97339000000', '{}'::jsonb, 't1', '/api/files/general/proof-1.pdf')`)
 	require.NoError(t, err)
 	svc := app.New(postgres.New(pool))
 	svc.SetPrivateFileDeleter(&fakePrivateFileDeleter{err: errors.New("files unavailable")})

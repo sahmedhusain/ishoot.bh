@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS system.api_key (
     id text PRIMARY KEY,
     name text NOT NULL,
@@ -34,6 +35,8 @@ CREATE TABLE IF NOT EXISTS system.debug_toggle (
     enabled_at timestamptz NOT NULL DEFAULT now(),
     expires_at timestamptz NOT NULL
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS system.debug_toggle;
 DROP TABLE IF EXISTS system.backup_record;
 DROP TABLE IF EXISTS system.api_key;

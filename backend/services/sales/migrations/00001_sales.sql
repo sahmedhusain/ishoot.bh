@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS sales.contact (
     id text PRIMARY KEY,
     first_name text NOT NULL,
@@ -88,6 +89,8 @@ CREATE TABLE IF NOT EXISTS sales.campaign (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS sales.campaign;
 DROP TABLE IF EXISTS sales.quotation_item;
 DROP TABLE IF EXISTS sales.quotation;

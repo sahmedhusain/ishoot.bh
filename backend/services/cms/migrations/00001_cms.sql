@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS cms.page (
     id text PRIMARY KEY,
     slug text NOT NULL UNIQUE,
@@ -86,6 +87,8 @@ CREATE TABLE IF NOT EXISTS cms.content_snapshot (
     published_at timestamptz,
     updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS cms.content_snapshot;
 DROP TABLE IF EXISTS cms.statistic;
 DROP TABLE IF EXISTS cms.faq;

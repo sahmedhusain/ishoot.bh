@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS hr.department (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -78,6 +79,8 @@ CREATE TABLE IF NOT EXISTS hr.payroll_item (
     status text NOT NULL DEFAULT 'pending'
 );
 CREATE INDEX IF NOT EXISTS payroll_item_run_idx ON hr.payroll_item (payroll_run_id);
+
+-- +goose Down
 DROP TABLE IF EXISTS hr.payroll_item;
 DROP TABLE IF EXISTS hr.payroll_run;
 DROP TABLE IF EXISTS hr.attendance_entry;

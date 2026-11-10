@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE SCHEMA IF NOT EXISTS files;
 DO $$
 BEGIN
@@ -18,7 +19,9 @@ BEGIN
     DROP TABLE public."UploadObject";
     RETURN;
   END IF;
-  ALTER TABLE public."UploadObject" DROP CONSTRAINT IF EXISTS "UploadObject_ownerId_fkey";
+
+-- +goose Down
+ALTER TABLE public."UploadObject" DROP CONSTRAINT IF EXISTS "UploadObject_ownerId_fkey";
   ALTER TABLE public."UploadObject" SET SCHEMA files;
   ALTER TABLE files."UploadObject" RENAME TO upload_object;
   ALTER TABLE files.upload_object RENAME COLUMN "fileUrl" TO file_url;

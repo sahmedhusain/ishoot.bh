@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS delivery.delivery_settings (
     id text PRIMARY KEY DEFAULT 'default',
     mode text NOT NULL DEFAULT 'own', -- own | agency | both
@@ -118,6 +119,8 @@ CREATE TABLE IF NOT EXISTS delivery.courier_agency (
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS delivery.courier_agency;
 DROP TABLE IF EXISTS delivery.cod_settlement;
 DROP TABLE IF EXISTS delivery.shipment_event;

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS files.upload_object (
     id          text        NOT NULL,
     file_url    text        NOT NULL,
@@ -15,4 +16,6 @@ CREATE TABLE IF NOT EXISTS files.upload_object (
 CREATE INDEX IF NOT EXISTS upload_object_owner_id_expires_at_idx ON files.upload_object (owner_id, expires_at);
 CREATE INDEX IF NOT EXISTS upload_object_unclaimed_expires_at_idx ON files.upload_object (expires_at)
     WHERE claimed_at IS NULL;
+
+-- +goose Down
 DROP TABLE IF EXISTS files.upload_object;

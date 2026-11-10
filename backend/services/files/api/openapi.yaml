@@ -170,6 +170,14 @@ paths:
               schema:
                 type: string
           content:
+            "application/octet-stream":
+              schema:
+                type: string
+                format: binary
+            "application/pdf":
+              schema:
+                type: string
+                format: binary
             "*/*":
               schema:
                 type: string
@@ -322,7 +330,7 @@ components:
           description: Refuse files in public folders
     File:
       type: object
-      required: [id, fileUrl, fileName, fileSize, mimeType, isPublic, expiresAt, createdAt]
+      required: [id, fileUrl, fileName, fileSize, mimeType, isPublic, createdAt]
       properties:
         id:
           type: string

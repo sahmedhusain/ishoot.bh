@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE identity.staff_role (
     id text PRIMARY KEY,
     name_en text NOT NULL,
@@ -28,6 +29,8 @@ CREATE TABLE identity.staff_access (
     PRIMARY KEY (realm, subject_id),
     FOREIGN KEY (realm, subject_id) REFERENCES identity.account(realm, subject_id) ON DELETE CASCADE
 );
+
+-- +goose Down
 DROP TABLE identity.staff_access;
 DROP TABLE identity.staff_role_scope;
 DROP TABLE identity.staff_permission;

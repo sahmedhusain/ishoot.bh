@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS system.company (
  id text PRIMARY KEY,
  singleton boolean NOT NULL DEFAULT true UNIQUE CHECK(singleton),
@@ -32,6 +33,8 @@ CREATE TABLE IF NOT EXISTS system.number_reservation (
  PRIMARY KEY(caller,idempotency_key),
  UNIQUE(kind,document_number)
 );
+
+-- +goose Down
 DROP TABLE system.number_reservation;
 DROP TABLE system.document_sequence;
 DROP TABLE system.company_asset;

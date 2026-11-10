@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS notify.message (
     id              uuid        NOT NULL,
     caller          text        NOT NULL,
@@ -31,5 +32,7 @@ CREATE TABLE IF NOT EXISTS notify.attachment (
     content      bytea   NOT NULL,
     CONSTRAINT attachment_pkey PRIMARY KEY (message_id, position)
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS notify.attachment;
 DROP TABLE IF EXISTS notify.message;

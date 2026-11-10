@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -88,11 +89,15 @@ func (e *env) call(method, path string, query url.Values, body []byte, contentTy
 	e.handler.ServeHTTP(rec, req)
 	route, params, err := e.router.FindRoute(httptest.NewRequest(method, "http://localhost"+target, nil))
 	require.NoError(e.t, err, "%s %s is not in the OpenAPI document", method, path)
+	opts := &openapi3filter.Options{IncludeResponseStatus: true}
+	if !strings.Contains(rec.Header().Get("Content-Type"), "json") {
+		opts.ExcludeResponseBody = true
+	}
 	input := &openapi3filter.ResponseValidationInput{
 		RequestValidationInput: &openapi3filter.RequestValidationInput{Request: req, PathParams: params, Route: route,
 			Options:	&openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc}},
 		Status:	rec.Code, Header: rec.Header(),
-		Options:	&openapi3filter.Options{IncludeResponseStatus: true},
+		Options:	opts,
 	}
 	input.SetBodyBytes(rec.Body.Bytes())
 	require.NoError(e.t, openapi3filter.ValidateResponse(context.Background(), input), "response breaks the contract: %s", rec.Body)

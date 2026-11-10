@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE SEQUENCE itsm.ticket_number_seq;
 CREATE TABLE itsm.sla_policy (
     priority         text PRIMARY KEY,
@@ -69,6 +70,8 @@ CREATE TABLE itsm.ticket_attachment (
     created_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (ticket_id, file_url)
 );
+
+-- +goose Down
 DROP TABLE itsm.ticket_attachment;
 DROP TABLE itsm.ticket_comment;
 DROP TABLE itsm.ticket_event;

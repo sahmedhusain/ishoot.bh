@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE SCHEMA IF NOT EXISTS system;
 DO $$
 BEGIN
@@ -16,7 +17,9 @@ BEGIN
       "updatedAt", "updatedById"
     FROM public."IntegrationSetting"
     ON CONFLICT (provider) DO NOTHING;
-    DROP TABLE public."IntegrationSetting";
+
+-- +goose Down
+DROP TABLE public."IntegrationSetting";
     RETURN;
   END IF;
   ALTER TABLE public."IntegrationSetting" SET SCHEMA system;

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS system.site_setting (
     id             boolean     NOT NULL DEFAULT true,
     website_domain text,
@@ -9,4 +10,6 @@ CREATE TABLE IF NOT EXISTS system.site_setting (
     CONSTRAINT site_setting_single_row CHECK (id),
     CONSTRAINT site_setting_domains_differ CHECK (website_domain IS NULL OR website_domain IS DISTINCT FROM admin_domain)
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS system.site_setting;

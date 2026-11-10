@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS "cms".outbox (
     id           uuid        NOT NULL,
     subject      text        NOT NULL,
@@ -19,5 +20,7 @@ CREATE TABLE IF NOT EXISTS "cms".inbox (
     handled_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT inbox_pkey PRIMARY KEY (consumer, event_id)
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS "cms".inbox;
 DROP TABLE IF EXISTS "cms".outbox;

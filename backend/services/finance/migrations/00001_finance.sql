@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS finance.invoice (
     id text PRIMARY KEY,
     invoice_number text NOT NULL UNIQUE,
@@ -82,6 +83,8 @@ CREATE TABLE IF NOT EXISTS finance.bank_settlement (
     notes text,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS finance.bank_settlement;
 DROP TABLE IF EXISTS finance.expense;
 DROP TABLE IF EXISTS finance.expense_category;

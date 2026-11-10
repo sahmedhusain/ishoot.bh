@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE SCHEMA IF NOT EXISTS system;
 DO $$
 BEGIN
@@ -13,7 +14,9 @@ BEGIN
   END IF;
   ALTER TABLE public."FeatureToggle" SET SCHEMA system;
   ALTER TABLE system."FeatureToggle" RENAME TO module_setting;
-  ALTER TABLE system.module_setting DROP CONSTRAINT "FeatureToggle_pkey";
+
+-- +goose Down
+ALTER TABLE system.module_setting DROP CONSTRAINT "FeatureToggle_pkey";
   DROP INDEX system."FeatureToggle_moduleKey_key";
   ALTER TABLE system.module_setting DROP COLUMN id, DROP COLUMN "nameEn", DROP COLUMN "nameAr", DROP COLUMN description;
   ALTER TABLE system.module_setting RENAME COLUMN "moduleKey" TO module_key;

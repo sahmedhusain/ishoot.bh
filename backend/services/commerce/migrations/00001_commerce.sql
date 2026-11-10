@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS commerce.customer (
     id text PRIMARY KEY,
     email text UNIQUE,
@@ -138,6 +139,8 @@ CREATE TABLE IF NOT EXISTS commerce.retail_closing (
     total_card numeric(14, 3) NOT NULL DEFAULT 0.000,
     notes text
 );
+
+-- +goose Down
 DROP TABLE IF EXISTS commerce.retail_closing;
 DROP TABLE IF EXISTS commerce.retail_shift;
 DROP TABLE IF EXISTS commerce.retail_register;

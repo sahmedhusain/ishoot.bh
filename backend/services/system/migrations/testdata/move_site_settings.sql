@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE SCHEMA IF NOT EXISTS system;
 CREATE TABLE IF NOT EXISTS system.site_setting (
     id             boolean     NOT NULL DEFAULT true,
@@ -27,7 +28,9 @@ BEGIN
            admin_domain   = COALESCE(s.admin_domain, legacy_admin)
      WHERE s.id
        AND COALESCE(s.website_domain, legacy_website) IS DISTINCT FROM COALESCE(s.admin_domain, legacy_admin);
-    ALTER TABLE public."CompanySetting" DROP COLUMN "websiteDomain", DROP COLUMN "adminDomain";
+
+-- +goose Down
+ALTER TABLE public."CompanySetting" DROP COLUMN "websiteDomain", DROP COLUMN "adminDomain";
   END IF;
   IF to_regclass('public."WebsiteContent"') IS NOT NULL THEN
     SELECT COALESCE(published -> 'code', draft -> 'code') INTO legacy_code

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS inventory.warehouse (
     id text PRIMARY KEY,
     code text NOT NULL UNIQUE,
@@ -130,6 +131,8 @@ CREATE TABLE IF NOT EXISTS inventory.stock_count_line (
     notes text
 );
 CREATE INDEX IF NOT EXISTS stock_count_line_count_idx ON inventory.stock_count_line (count_id);
+
+-- +goose Down
 DROP TABLE IF EXISTS inventory.stock_count_line;
 DROP TABLE IF EXISTS inventory.stock_count;
 DROP TABLE IF EXISTS inventory.stock_movement;

@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS identity.oauth_state (
  state_hash text PRIMARY KEY CHECK (state_hash ~ '^[a-f0-9]{64}$'),
  provider text NOT NULL CHECK (provider IN ('google','apple')),
@@ -22,5 +23,7 @@ CREATE TABLE IF NOT EXISTS identity.customer_provider (
  UNIQUE(provider,subject_id),
  FOREIGN KEY(realm,subject_id) REFERENCES identity.account(realm,subject_id) ON DELETE CASCADE
 );
+
+-- +goose Down
 DROP TABLE identity.customer_provider;
 DROP TABLE identity.oauth_state;
