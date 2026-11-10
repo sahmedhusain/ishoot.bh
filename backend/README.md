@@ -1,71 +1,96 @@
-# Backend
+# ⚙️ Go Microservices Backend
 
-Go services that replace the TypeScript backend of the Next.js apps, one business domain at a time
-(see [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md#architectural-decisions--core-principles)). Start with [docs/backend](../docs/backend/README.md).
+The backend of the platform consists of 15 fully decoupled, highly scalable Go microservices. This document provides a highly advanced technical overview of the backend's design patterns, constraints, and development workflow.
 
-## Quick start
+---
 
-```bash
-./run.sh env sync                  # adds missing variables without changing existing values
-./run.sh env secrets               # generates missing secrets and the public service-key file
-docker compose up -d --build       # Postgres 17, Valkey, SeaweedFS, files API/worker and gateway
-curl -s localhost:9080/readyz      # gateway readiness (admin port)
-```
+## 🏛️ Backend Architecture Overview
 
-Day-to-day work happens in this folder:
+The legacy Node.js/TypeScript backend has been completely replaced by high-performance Go binaries serving via the **Echo v4** web framework.
 
-```bash
-make help        # every task
-make test-short  # unit tests, no Docker
-make test        # all tests with the race detector; integration tests start Postgres in Docker
-make check       # what CI runs: generated code current, lint, vulnerabilities, tests
-```
+### Core Engineering Principles
+1. **Schema-per-Service Database Isolation:** Each of the 15 microservices operates within its own dedicated PostgreSQL 17 schema (e.g., `identity.*`, `commerce.*`). Services cannot perform cross-schema joins.
+2. **Event-Driven via NATS JetStream:** Cross-service communication relies on NATS. When a service mutates state, it writes to a local PostgreSQL `outbox` table in the same transaction. A background relay continuously pushes these outbox messages to the NATS JetStream `EVENTS` stream.
+3. **River Background Workers:** Asynchronous background jobs, retry logic, and complex background logic use **River** queueing, leveraging Postgres `FOR UPDATE SKIP LOCKED` inside the service's own database schema.
+4. **API Gateway & JWKS Auth:** All frontend requests pass through the `gateway` service, which enforces API rate-limits via Valkey (Redis) and validates JWTs locally via cached EdDSA keys from the `identity` service.
+5. **OpenTelemetry (OTel):** Every log and HTTP request is deeply traced with `X-Request-ID` and OTel trace propagation across the entire NATS and HTTP boundaries.
 
-Requirements: Go (the toolchain in `go.mod` is downloaded automatically) and Docker. Linters and scanners are pinned in
-the `Makefile` and run with `go run`, so nothing else needs installing.
+---
 
-## Layout
+## 📂 Project Layout
 
-```
+```text
 backend/
-  pkg/                 shared kit, imported by every service (nothing is copied between services)
-    config             environment → typed, validated settings
-    logx               structured JSON logs, runtime log level, secret redaction, request-scoped fields
-    problem            RFC 9457 error responses
-    httpx              Echo server, middleware chain, metrics, admin listener, graceful shutdown
-    health             readiness checks
-    authn              access-token verification (EdDSA JWT, JWKS) and realms
-    ratelimit          shared rate limits (Redis/Valkey, GCRA)
-    telemetry          OpenTelemetry tracing
-    db                 PostgreSQL pool, statement timeout, transactions
-    outbox             transactional outbox, its relay and the consumers' inbox
-    natsx              NATS JetStream: the EVENTS stream, publishing and durable consumers
-    redisx             Redis/Valkey client
-    secrets            AES-256-GCM key ring (reads the old TypeScript formats too)
-    catalog            shared constants from contracts/catalog (go generate)
-    testkit            disposable Postgres for integration tests
-  services/<name>/
-    cmd/api            the service's entry point
-    settings           its configuration struct (exported for the config reference)
-    internal/...       everything else: domain rules, use cases, HTTP and database adapters
-    api/               OpenAPI contract (gateway routes live in deploy/helm/platform/files/gateway)
-    README.md          purpose, endpoints, configuration, runbook
-  tools/               generators (catalogue copy, configuration reference), db-roles (each service's own login),
-                       one-off import and storage-copy tools
-  Dockerfile           one image recipe for every service (--build-arg SERVICE=<name>)
-  Makefile
+  pkg/                 Shared Go libraries (imported, never duplicated)
+    authn/             Access-token verification, EdDSA JWT, JWKS, & Realms
+    db/                PostgreSQL pool setup, transactions, strict timeouts
+    outbox/            Transactional outbox & relay implementation
+    natsx/             NATS JetStream durable consumers
+    redisx/            Redis/Valkey rate limiting adapters
+    httpx/             Echo server, graceful shutdown, metrics
+    telemetry/         OTel span generation
+  services/
+    identity/          Identity domain (Staff, IT, Customer Realms)
+    finance/           Finance domain (Invoices, Expenses)
+    commerce/          Commerce domain (Sales Orders, Retail POS)
+    [...12 more services]
+  tools/               Generators and DB schema management
+  Dockerfile           Unified multistage build (--build-arg SERVICE=<name>)
+  Makefile             Build, test, and lint directives
 ```
 
-## Conventions
+---
 
-- **No hard-coded values.** Ports, URLs, timeouts, limits and schedules come from the environment through the service's
-  `settings.Config`; defaults sit in its `envDefault` tags and are listed in
-  [docs/backend/CONFIG.md](../docs/backend/CONFIG.md) (generated). Business values that change at runtime live in the
-  database of the service that owns them. Shared constants (permissions, modules, statuses, ticket categories) live in
-  [`contracts/catalog`](../contracts/catalog).
-- **Errors** are `problem.Problem` values. Anything else becomes a bare 500; the cause is logged, never returned.
-- **Every request** carries `X-Request-ID` and a trace. Both appear in every log line.
-- **Two listeners per service.** Public HTTP on `:8080`. Internal admin on `:9090` (`/livez`, `/readyz`, `/metrics`,
-  `/runtime/log-level`, optional pprof), which is never exposed through the gateway or an ingress.
-- **Tests sit next to the code.** Table-driven unit tests, `httptest` handler tests, and integration tests against
-  real Postgres via `pkg/testkit`, skipped with `-short`.
+## 💾 The 15 Microservices & Schemas
+
+The following services map directly to SQL schemas found in `services/*/migrations/*.sql`:
+
+| Service | Primary SQL Tables |
+| :--- | :--- |
+| **Audit** | `audit.event` |
+| **CMS** | `cms.page`, `cms.article`, `cms.content_snapshot` |
+| **Commerce** | `commerce.sales_order`, `commerce.customer`, `commerce.retail_shift` |
+| **Delivery** | `delivery.shipment`, `delivery.route_sheet`, `delivery.delivery_zone` |
+| **Files** | `files.upload_object` |
+| **Finance** | `finance.invoice`, `finance.expense`, `finance.bank_settlement` |
+| **HR** | `hr.employee`, `hr.payroll_run`, `hr.leave_request` |
+| **Identity** | `identity.account`, `identity.mfa_recovery_code` |
+| **Inventory** | `inventory.product`, `inventory.stock_level`, `inventory.warehouse` |
+| **ITSM** | `itsm.ticket`, `itsm.sla_policy`, `itsm.ticket_event` |
+| **Notify** | `notify.message`, `notify.attachment` |
+| **Realtime** | `realtime.status`, `realtime.status_window` |
+| **Sales** | `sales.deal`, `sales.contact`, `sales.quotation` |
+| **System** | `system.company`, `system.document_sequence` |
+| **Workflow** | `workflow.approval_request`, `workflow.task`, `workflow.official_letter` |
+
+> For complete visual ERDs, refer to [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+
+---
+
+## 🛠️ Development & Make Commands
+
+Requirements: **Go 1.24+**, **Docker**, and `make`.
+
+Run all tasks from within the `backend/` directory:
+
+```bash
+make help        # List all available commands
+make check       # The primary CI command (linting, vulnerability checks, tests)
+make test-short  # Fast unit tests (skips Docker/Postgres tests)
+make test        # Full test suite including Postgres integration tests via testcontainers
+```
+
+### Starting the Backend Locally
+
+Normally orchestrated by `./run.sh dev` from the project root. To run backend services individually:
+
+```bash
+cd ../
+./run.sh env sync                  # Sync environment variables
+docker compose up -d --build       # Spin up Postgres, Valkey, NATS, and Gateway
+```
+
+### Development Rules
+- **No Hardcoding:** All configurations (ports, SLAs, limits) must be mapped via `settings.Config` reading from `.env`.
+- **Error Handling:** Always use the RFC 9457 standard via `problem.Problem`. Untyped internal errors are heavily masked and never expose stack traces to the frontend.
+- **Port Strategy:** Services bind to two ports. `:8080` for public HTTP gateway access, and `:9090` for internal prometheus metrics and readiness probes (`/readyz`, `/livez`). Internal ports are never exposed externally.

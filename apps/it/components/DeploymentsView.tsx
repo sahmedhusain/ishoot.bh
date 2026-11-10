@@ -33,18 +33,18 @@ const SERVICES_RUNTIME: ServiceRuntimeInfo[] = [
 ];
 
 const ENV_VARIABLES_AUDIT = [
-  { key: "DATABASE_URL", isSecret: true, configured: true, redacted: "postgres://ishoot_app:***@localhost:5432/platform_db" },
+  { key: "DATABASE_URL", isSecret: true, configured: true, redacted: "postgres://platform_app:***@localhost:5432/platform_db" },
   { key: "DATABASE_POOL_MAX", isSecret: false, configured: true, redacted: "40" },
   { key: "REDIS_URL", isSecret: true, configured: true, redacted: "redis://default:***@localhost:6379" },
   { key: "JWT_ISSUER", isSecret: false, configured: true, redacted: "platform.identity" },
   { key: "JWT_PRIVATE_KEY", isSecret: true, configured: true, redacted: "ED25519:***[32 bytes]" },
-  { key: "S3_BUCKET_NAME", isSecret: false, configured: true, redacted: "ishoot-media-vault" },
+  { key: "S3_BUCKET_NAME", isSecret: false, configured: true, redacted: "platform-media-vault" },
   { key: "S3_ACCESS_KEY_ID", isSecret: true, configured: true, redacted: "AKIA***42" },
   { key: "RESEND_API_KEY", isSecret: true, configured: true, redacted: "re_***99" },
   { key: "PAYTABS_SERVER_KEY", isSecret: true, configured: true, redacted: "SK_***7A" },
   { key: "META_APP_SECRET", isSecret: true, configured: true, redacted: "sec_***1F" },
   { key: "TELEMETRY_LOG_LEVEL", isSecret: false, configured: true, redacted: "INFO" },
-  { key: "CORS_ALLOWED_ORIGINS", isSecret: false, configured: true, redacted: "https://ishoot.bh, https://admin.ishoot.bh" },
+  { key: "CORS_ALLOWED_ORIGINS", isSecret: false, configured: true, redacted: "https://example.com, https://admin.example.com" },
 ];
 
 export function DeploymentsView() {

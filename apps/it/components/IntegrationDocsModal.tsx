@@ -156,7 +156,7 @@ export function IntegrationDocsModal({
 }
 
 function getProviderTechnicalSpecs(provider: IntegrationProvider) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://ishoot.bh";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://example.com";
 
   switch (provider.id) {
     case "resend":
@@ -172,7 +172,7 @@ function getProviderTechnicalSpecs(provider: IntegrationProvider) {
             data: {
               email_id: "em_1042abc",
               to: ["client@example.com"],
-              from: "notifications@ishoot.bh",
+              from: "notifications@example.com",
               subject: "Booking Quotation Confirmed",
             },
           },

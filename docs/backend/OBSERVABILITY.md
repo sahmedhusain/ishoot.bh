@@ -1,48 +1,100 @@
-# Observability and debugging
+# Observability, Metrics & Telemetry Guide
 
-| Signal  | Produced by                               | Stored in                                   | Read in                         |
-| ------- | ----------------------------------------- | ------------------------------------------- | ------------------------------- |
-| Logs    | `pkg/logx`: JSON on stdout                | Loki (Grafana Alloy ships container logs)   | Grafana, IT dashboard (Phase 4) |
-| Metrics | `pkg/httpx`: `/metrics` on the admin port | Prometheus (ServiceMonitor in Kubernetes)   | Grafana, IT dashboard           |
-| Traces  | `pkg/telemetry`: OpenTelemetry, OTLP/HTTP | Tempo (through the OpenTelemetry Collector) | Grafana                         |
+This document covers backend logging, Prometheus metrics, OpenTelemetry distributed tracing, and diagnostic profiling.
 
-## What every log line carries
+---
 
-`time`, `level`, `msg`, `service`, `version`, `env`, `request_id`, `trace_id`, plus `user_id` and `realm` once a
-token is verified. Each HTTP request is logged once, with:
+## 1. Observability Architecture Overview
 
-- the method, the route template (not the raw path, so logs stay groupable) and the path;
-- the status, size, duration and client IP.
+The backend implements the three pillars of observability (Logs, Metrics, Traces) across all 16 microservices.
 
-Responses of 4xx are logged at `warn`, and 5xx at `error` with the cause.
+```mermaid
+flowchart LR
+    subgraph Microservices["Go Microservices"]
+        LogEngine["pkg/logx (JSON Stdout)"]
+        MetricsEngine["pkg/httpx (/metrics)"]
+        TraceEngine["pkg/telemetry (OTLP/HTTP)"]
+    end
 
-Every response carries `X-Request-ID` (the apps will forward and show it once they call the API). Searching Loki for it finds every log
-line of that request in every service. The `trace_id` on those lines opens the trace in Tempo.
+    subgraph ObservabilityStack["Observability Stack"]
+        Alloy["Grafana Alloy Container Collector"]
+        Loki["Loki (Log Aggregation)"]
+        Prometheus["Prometheus (Metrics Store)"]
+        Tempo["Tempo (Distributed Tracing)"]
+        Grafana["Grafana Dashboard (:3300)"]
+    end
 
-## Metrics
-
-- `http_requests_total{service,method,route,status}`
-- `http_request_duration_seconds{service,method,route}` (histogram)
-- `http_requests_in_flight{service}`
-- Go runtime and process metrics.
-
-## Debugging
-
-- **Log level at runtime:** `PUT /runtime/log-level` on the admin port (`debug`, `info`, `warn`, `error`). The IT
-  dashboard will offer this per service.
-- **SQL logging:** `DATABASE_LOG_QUERIES=true` logs every statement with its duration at `debug` level. Bound
-  arguments are never logged.
-- **Profiling:** `ADMIN_ENABLE_PPROF=true` serves `/debug/pprof/` on the admin port, which is not reachable from
-  outside the cluster. Use it in development or briefly in production.
-- **Readiness:** `/readyz` names each failing dependency and how long its check took.
-
-## Locally
-
-```bash
-docker compose --profile observability up -d   # Collector, Prometheus, Loki, Tempo, Alloy, Grafana
-# set OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 in .env, then: docker compose up -d gateway
-open http://localhost:3300                      # Grafana (admin / GRAFANA_ADMIN_PASSWORD)
+    LogEngine --> Alloy
+    Alloy --> Loki
+    MetricsEngine --> Prometheus
+    TraceEngine --> Tempo
+    Loki --> Grafana
+    Prometheus --> Grafana
+    Tempo --> Grafana
 ```
 
-The data sources are provisioned: Prometheus, Loki (with links from `trace_id` to Tempo) and Tempo (with links back
-to the logs).
+---
+
+## 2. Telemetry Signal Matrix
+
+| Signal | Package | Storage Engine | Collection Mechanism | Grafana Query / View |
+|---|---|---|---|---|
+| **Logs** | `pkg/logx` | **Grafana Loki** | Container `stdout` captured by Grafana Alloy. | LogQL queries filtered by `service`, `level`, `trace_id`. |
+| **Metrics** | `pkg/httpx` | **Prometheus** | Scraped from `:9090/metrics` via ServiceMonitor. | PromQL dashboards for HTTP rates, latencies, Go runtime. |
+| **Traces** | `pkg/telemetry` | **Grafana Tempo** | Exported via OpenTelemetry OTLP/HTTP. | Trace timeline views correlated by W3C `traceparent`. |
+
+---
+
+## 3. Log Anatomy & Correlation
+
+All log output is structured JSON containing standard correlation fields:
+
+```json
+{
+  "time": "2026-11-02T14:32:01.124Z",
+  "level": "info",
+  "msg": "HTTP request completed",
+  "service": "finance",
+  "version": "1.4.0",
+  "env": "production",
+  "request_id": "req-98f2a17b-4c12",
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "user_id": "usr-8812",
+  "realm": "staff",
+  "method": "POST",
+  "route": "/v1/finance/invoices",
+  "path": "/v1/finance/invoices",
+  "status": 201,
+  "duration_ms": 14.2,
+  "client_ip": "10.244.0.15"
+}
+```
+
+* **Correlation**: Searching Loki for a `request_id` aggregates all log lines produced by that request across microservices. The `trace_id` links directly to the Tempo trace timeline.
+
+---
+
+## 4. Primary Prometheus Metrics
+
+| Metric Name | Type | Description & Labels |
+|---|---|---|
+| `http_requests_total` | Counter | Total HTTP requests served (`service`, `method`, `route`, `status`). |
+| `http_request_duration_seconds` | Histogram | Request latency distribution (`service`, `method`, `route`). |
+| `http_requests_in_flight` | Gauge | Currently active HTTP requests (`service`). |
+| `outbox_pending_events` | Gauge | Pending events waiting in outbox relay queue (`service`). |
+| `outbox_publish_failures_total` | Counter | Failed event publication attempts to NATS (`service`). |
+
+---
+
+## 5. Local Telemetry Stack Execution
+
+To launch the local Grafana/Prometheus/Loki/Tempo stack:
+
+```bash
+# Launch telemetry containers
+docker compose --profile observability up -d
+
+# Open Grafana dashboard in browser
+open http://localhost:3300
+```
+* **Default Credentials**: Username `admin`, Password `GRAFANA_ADMIN_PASSWORD` (configured in `.env`).

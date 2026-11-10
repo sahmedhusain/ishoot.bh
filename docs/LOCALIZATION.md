@@ -1,59 +1,83 @@
-# Localization and copy
+# Localization & Internationalization (i18n)
 
-Admin, Web, and IT each own a complete Arabic and English interface dictionary. Business content keeps its English/Arabic storage.
+The platform features full Arabic (`/ar`) and English (`/en`) localization across all three Next.js applications (`apps/admin`, `apps/web`, `apps/it`), PDF document renderers, and email templates.
 
-## Where text lives
+---
 
-| Text                                                  | Location |
-| ----------------------------------------------------- | -------- |
-| Admin interface, including the setup wizard           | `apps/admin/locales/en.json` and `ar.json`; app copy is under `admin` |
-| Website copy and activity wording                     | `apps/web/locales/en.json` and `ar.json`; website copy remains under `common`; activity overlays are in `website-activities.json` |
-| IT dashboard and setup copy                           | `apps/it/locales/en.json` and `ar.json` |
-| Generic labels and shared component defaults          | Each app's own `shared.common` and `shared.ui` namespaces in its English and Arabic files |
-| Server error messages                                 | `admin.serverErrors` in Admin; Web and IT keep only their app-used messages in their own `server-errors.json` |
-| Activity-specific wording                             | Admin's `admin-activities.json` and Web's `website-activities.json` |
-| Company name, address, contacts, logos, legal numbers | Company settings in the database, never the locale files |
+## 1. Localization Architecture
 
-## Content languages
+Each application maintains its own isolated dictionary files to prevent cross-app bundle dependencies.
 
-A company writes its content in Arabic, English or both (`contentLanguages`, chosen in the setup wizard). This is separate from the interface language of the admin, which every user can switch. With one content language, forms show one field per English/Arabic pair, the server copies the text to both columns (`mirrorBilingual` in `packages/database/src/constants/languages.ts`), and paired content forms follow that setting. Published website interface languages are selected independently. Text that may be empty on one side is read with `pickText`, which falls back to the other language.
+```mermaid
+flowchart TB
+    subgraph Dictionaries["Locale Dictionaries"]
+        AdminLocales["apps/admin/locales/{en,ar}.json"]
+        WebLocales["apps/web/locales/{en,ar}.json"]
+        ITLocales["apps/it/locales/{en,ar}.json"]
+    end
 
-## Rules
+    subgraph Formatting["Formatting & Helpers"]
+        FormatMsg["formatMessage(template, values)"]
+        BilingualText["pickText(en, ar, locale)"]
+        PhoneFormat["E.164 Phone Normalizer"]
+    end
 
-- Never write display text inline in components; add a key to both languages.
-- Dynamic sentences use `formatMessage(template, values)` with named placeholders (`{companyName}`, `{number}`, `{date}`). Both languages must use the same placeholders. Zero, false and null are formatted, and `$` and braces in values are kept literally.
-- Digits are Western in both languages, including PDFs.
-- Stored notifications keep a translation key and parameters, so they follow the reader's current language.
-- Generated CSVs, calendar names, emails and metadata use the configured company identity.
-- No locale string may name a company, an address or a registration number; the brand check (`./run.sh test brand`) enforces this for every company profile.
+    subgraph Consumers["Render Targets"]
+        AdminApp["Admin Dashboard UI"]
+        WebApp["Web Storefront UI"]
+        PDFDocs["@react-pdf Documents"]
+    end
 
-## Checks
+    AdminLocales --> FormatMsg
+    WebLocales --> FormatMsg
+    ITLocales --> FormatMsg
+    FormatMsg --> AdminApp
+    FormatMsg --> WebApp
+    BilingualText --> PDFDocs
+    PhoneFormat --> AdminApp
+```
 
-`./run.sh test copy` checks:
+---
 
-- key and placeholder parity between the languages;
-- hardcoded display text in JSX, attributes, component defaults and messages;
-- that Admin server messages are translated;
-- formatter behaviour.
+## 2. Directory Structure & Key Namespaces
 
-It runs as part of `./run.sh test` and in CI.
+| Application | Locale File Paths | Primary Namespaces |
+|---|---|---|
+| **Admin App** | `apps/admin/locales/{en,ar}.json` | `admin`, `shared.common`, `shared.ui`, `admin.serverErrors` |
+| **Web App** | `apps/web/locales/{en,ar}.json` | `common`, `website-activities`, `shared.common`, `shared.ui` |
+| **IT Dashboard** | `apps/it/locales/{en,ar}.json` | `it`, `shared.common`, `shared.ui`, `serverErrors` |
 
+---
 
-## Interface languages
+## 3. Interface Languages vs. Content Languages
 
-Each app has its own locale registry in `apps/{admin,web,it}/locales/registry.ts`, supporting English and Arabic (`"en"` and `"ar"`). Main interface copy lives in one JSON file per language; narrowly scoped activity overlays and runtime error catalogs remain app-local and separate. The `shared` namespaces keep generic and UI wording alongside app-specific copy without importing another app's locale files.
+* **Interface Language**: The language of the UI controls, buttons, sidebars, and labels (`en` or `ar`), selectable per user.
+* **Content Language**: The language of business content (product names, invoices, client names), configured in **Settings → Company** (`contentLanguages`):
+  - **Dual Language**: Forms display separate English and Arabic fields.
+  - **Single Language**: Forms display one input field; the system mirrors text to both columns automatically (`mirrorBilingual`).
 
-The admin preference selector uses the registry and persists a validated locale preference. The website editor chooses its published interface languages, primary language and per-language navigation/banner/contact wording. Website interface languages are separate from bilingual business content: existing English/Arabic content fields retain their data and fallback behavior.
+---
 
-Country names in phone selectors use `Intl.DisplayNames`; calling codes and validation use the shared international phone metadata. Stored phone values and document output use compact E.164 (`+97333115351`); search accepts `97333115351`. The example is a format illustration, not a default country. National inputs never include the calling code.
+## 4. Internationalization Rules & Guidelines
 
+1. **No Inline Display Strings**: All user-visible text must be defined in locale JSON files under matching key paths for both English and Arabic.
+2. **Named Placeholders**: Dynamic sentences use `formatMessage(template, values)` with explicit placeholders (e.g. `{companyName}`, `{number}`, `{date}`). Placeholders must match across both dictionaries.
+3. **Western Digits**: Digits remain Western (`0-9`) across all languages, including Arabic PDFs and invoices.
+4. **E.164 Phone Format**: Phone numbers are stored and transmitted in standard E.164 format (e.g. `+97336002200`). National inputs strip calling codes automatically.
+5. **Brand Neutrality**: Locale files must never hardcode company names, addresses, or commercial registration numbers.
 
-## App-local common labels
+---
 
-Each app's `shared.common` English and Arabic dictionaries contain the generic labels: actions, confirmation/loading states, navigation between records, basic field labels and document actions. Contextual copy such as “Save invoice changes”, “Back to clients” or a domain-specific empty state stays with its module. Each app owns its own copy so its locale data does not depend on another application.
+## 5. Automated Localization Audits
 
-Each app's `shared.ui` dictionary includes the labels used by shared controls. The app-local UI loader resolves regional tags such as `ar-BH` and `en-US` and covers the languages in that app's registry.
+Run the copy validation suite at any time:
 
-Shared selects, dialogs, confirmations, phone controls, file uploads and chart legends use `useUiCopy`. Upload prompts and remove-file labels follow the selected interface language in each app. The existing Admin, Web, and IT language providers supply that language; no new locale provider was introduced.
+```bash
+./run.sh test copy
+```
 
-For a new generic label, add matching keys to the `shared.common` objects in all three apps' English and Arabic files. New shared controls can use `useUiCopy`; callers can use the app-local `getCommonTranslations(locale)`. Keep complete sentences and workflow-specific actions in their own module when their meaning differs.
+### Audits Performed
+* **Key Parity**: Ensures every key in `en.json` exists in `ar.json` and vice versa.
+* **Placeholder Parity**: Asserts placeholders in template strings match identically.
+* **JSX Hardcoding Audit**: Scans TSX files for un-extracted string literals.
+* **Brand Violation Check**: Asserts no hardcoded brand strings appear in locale files.

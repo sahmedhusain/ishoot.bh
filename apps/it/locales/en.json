@@ -283,7 +283,7 @@
     "resolutionHeader": ">>> RESOLUTION:",
     "resolutionValue404": "Use transaction /n to return to root navigation or check authorization role.",
     "f3Key": "F3",
-    "serverLabel": "Server: ishoot-prd-01",
+    "serverLabel": "Server: platform-prd-01",
     "statusBar404": "OBJECT_NOT_FOUND · Check transaction catalog",
     "code403Title": "AUTHORIZATION FAILURE: ACCESS DENIED (CODE: 403)",
     "code403Desc": "Your IT role privileges do not authorize access to this transaction code or resource.",

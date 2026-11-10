@@ -1,64 +1,82 @@
-# realtime service
+# Realtime Service (`realtime`)
 
-Pushes live updates to the apps' browsers and works out people's statuses (see [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)).
-Owns the `realtime` schema: `status` (the status each person chose) and `status_window` (meetings and approved leave
-the apps send). Who is connected and who is idle lives in Valkey. The HTTP contract is [api/openapi.yaml](api/openapi.yaml).
+Real-time Server-Sent Events (SSE) streaming, user presence tracking, status window management, and live notification hints.
+Owns the `realtime` schema: `status` and `status_window`. Connection and idle state reside in Valkey.
+The HTTP contract is [api/openapi.yaml](api/openapi.yaml); typed client functions live in `@platform/api-client`.
 
-## Live streams
+---
 
-Browsers open a Server-Sent Events stream through their own app (`/api/realtime/stream` in the admin and the IT
-dashboard), which signs the person in and opens `GET /v1/realtime/stream` (service token, with the person's ID and the
-topics their permissions allow) or `GET /v1/realtime/me/stream` (an IT account's own token; topics from their roles).
-Every event is one JSON object `{type, data}` on a `data:` line: `realtime.ready` first, then hints, a comment line
-every `REALTIME_HEARTBEAT`, and `realtime.reconnect` after `REALTIME_MAX_STREAM_AGE` (the browser reconnects at once,
-which checks the person again). A stream that falls `REALTIME_BUFFER` hints behind, or whose identity session is revoked
-(`identity.session.revoked`), gets `realtime.closed`.
+## 1. Responsibilities & Architecture
 
-Services publish hints on NATS core subjects with `pkg/live`: `live.user.<realm>.<id>` for one person and
-`live.topic.<topic>` for a topic. Every replica subscribes to `live.>` and writes to the streams it holds, so replicas
-share nothing and need no sticky sessions. Hints carry IDs and counts only; browsers fetch the content through their
-app. The apps publish for domains still in LegacyDB with `POST /v1/realtime/publish` (never to `presence.*`).
+- **Server-Sent Events (SSE)**: Pushes real-time JSON hints (`data:` frame) to client browsers over persistent HTTP streams.
+- **NATS Core Pub/Sub**: Replicas subscribe to `live.>` NATS subjects to broadcast hints across browser streams without sticky sessions.
+- **Presence Resolution**: Evaluates user presence hierarchy: Explicit Offline → Approved Leave → Custom Status → Calendar Meeting → Auto-Away (5 min idle) → Available.
+- **Status Windows**: Receives calendar meeting and leave schedule windows to dynamically update presence.
 
-| Hint                         | From     | Meaning                                                      |
-| ---------------------------- | -------- | ------------------------------------------------------------ |
-| `notification.created`       | notify   | A new notification (`id`, `category`, `priority`, `silent`)   |
-| `notification.changed`       | notify   | Read state changed on another device (`unread`)              |
-| `notification.preferences`   | notify   | Notification settings or mutes changed                       |
-| `presence.changed`           | realtime | Someone's status may have changed (`userId`; none: everyone) |
-| `entity.changed`             | apps     | Records of a resource changed (`resource`, `id`)              |
+```mermaid
+flowchart TB
+    subgraph Clients["Browsers / Frontend Apps"]
+        AdminBrowser["Admin Browser (SSE Stream)"]
+        ITBrowser["IT Desk Browser (SSE Stream)"]
+    end
 
-Topics: `presence.<realm>` (every stream), `staff.all`, `staff.res.<resource>` (staff who may read the resource),
-`it.tickets` and `it.platform` (IT roles with `tickets:read`, `system_health:read`).
+    subgraph Service["Realtime Service (:8080)"]
+        SSEHub["SSE Stream Hub"]
+        PresenceEngine["Presence Resolution Engine"]
+    end
 
-## Statuses
+    subgraph Infrastructure["Infrastructure"]
+        Valkey["Valkey / Redis (Connections & Idle state)"]
+        NATS["NATS Core (live.> hints)"]
+        PG["PostgreSQL (realtime.status & status_window)"]
+    end
 
-A person's status is, in order: appear offline; leave they chose or approved leave (`leave` windows; `sick` gives Out
-sick); a status they chose, while connected; a calendar meeting (`meeting` windows); then the connection itself:
-available, away when the browser reports them idle (after five minutes without input), or offline. Statuses and their
-names come from [contracts/catalog/presence.json](../../../contracts/catalog/presence.json). Do not disturb also keeps
-notifications quiet in the apps.
+    AdminBrowser -- GET /v1/realtime/stream --> SSEHub
+    ITBrowser -- GET /v1/realtime/me/stream --> SSEHub
+    NATS -- Pub/Sub Hints --> SSEHub
+    PresenceEngine --> Valkey
+    PresenceEngine --> PG
+    SSEHub --> AdminBrowser
+    SSEHub --> ITBrowser
+```
 
-The admin sends a meeting's or a leave request's window when it is saved (`PUT /v1/realtime/windows`, removed with
-`DELETE`) and the full picture of the coming weeks every two minutes (`POST /v1/realtime/windows/sync`), which repairs
-anything missed. Every `REALTIME_TICK` the service announces statuses that started or ended by themselves.
+---
 
-## Requests
+## 2. Realtime Event Hints
 
-| Path                                                             | Caller                     | Authorization       |
-| ---------------------------------------------------------------- | -------------------------- | ------------------- |
-| `GET /v1/realtime/stream`, `POST /publish`, `GET /presence`      | Apps' back ends            | `REALTIME_CALLERS`  |
-| `GET/PUT/DELETE /v1/realtime/status`, `POST /activity`           | Apps' back ends, for a person | `REALTIME_CALLERS` |
-| `PUT/DELETE /v1/realtime/windows`, `POST /windows/sync`          | Apps' back ends            | `REALTIME_CALLERS`  |
-| `GET /v1/realtime/me/stream`, `/me/presence`, `/me/status`, `POST /me/activity` | IT accounts | IT-realm token |
+| Hint Type | Source Service | Meaning & Payload |
+|---|---|---|
+| `realtime.ready` | `realtime` | Connection handshake established. |
+| `notification.created` | `notify` | New notification queued (`id`, `category`, `priority`, `silent`). |
+| `notification.changed` | `notify` | Notification unread count or read status updated. |
+| `notification.preferences` | `notify` | User notification preferences or category mutes updated. |
+| `presence.changed` | `realtime` | User presence state changed (`userId`). |
+| `entity.changed` | Domain Services | Domain record changed (`resource`, `id`). |
 
-## Running
+---
 
-`serve`, `migrate` and `healthcheck`. Compose runs `realtime-migrate`, then `realtime` (admin listener at
-`127.0.0.1:9087`). It needs Postgres, NATS (hints) and Valkey (connections). Streams are long requests: the service and
-the gateway lift the write timeout for `Accept: text/event-stream`, and an ingress in front must not buffer
-`text/event-stream` responses (the service sends `X-Accel-Buffering: no`). Metric: `realtime_open_streams`.
+## 3. Endpoints
 
-## Verification
+| Endpoint Path | Caller | Authorization | Description |
+|---|---|---|---|
+| `GET /v1/realtime/stream` | Admin & Web | Service Token | Opens persistent SSE event stream for staff/customer. |
+| `GET /v1/realtime/me/stream` | IT Dashboard | IT Realm Token | Opens persistent SSE event stream for IT operators. |
+| `POST /v1/realtime/publish` | Domain Services | Service Token | Publishes an event hint to target user or topic stream. |
+| `GET /v1/realtime/presence` | Admin & IT | `REALTIME_CALLERS` | Retrieves presence state for target users. |
+| `PUT /v1/realtime/status` | Admin App | Service Token | Updates a user's custom status choice. |
+| `PUT /v1/realtime/windows` | Admin App | Service Token | Registers a meeting or leave status window. |
+| `POST /v1/realtime/windows/sync` | Admin App | Service Token | Periodically synchronizes coming schedule windows. |
 
-From `backend/`, run `go test -race ./services/realtime/... ./pkg/live/...` (real Postgres; the stream test runs a real
-HTTP server whose write timeout is shorter than the wait for a hint).
+---
+
+## 4. Running & Verification
+
+The service binary supports `serve`, `migrate`, and `healthcheck`.
+
+- Public API on `:8080` (behind gateway route `/v1/realtime/`)
+- Admin listener on `:9090` (`/livez`, `/readyz`, `/metrics`)
+
+```bash
+# Run unit & stream integration tests
+go test -race ./services/realtime/... ./pkg/live/...
+```

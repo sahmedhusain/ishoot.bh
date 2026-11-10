@@ -1,97 +1,134 @@
-# Testing guide
+# Platform Testing Strategy & Guide
 
-Three layers, all of which run in GitHub Actions (`.github/workflows/ci.yml`) on every pull request and every push to `main`.
+This guide details the multi-layered testing framework, covering unit tests, static code analysis, database integrity checks, and Playwright End-to-End (E2E) suites.
 
-| Layer           | Command               | Needs                 | What it covers                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------- | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit            | `./run.sh test unit`  | nothing               | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer)                                            |
-| Static checks   | `./run.sh test checks`| nothing               | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation                                                                                                                                                                                                                                                             |
-| Database checks | `./run.sh test db`    | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records.                                                                                                                                                                                                                        |
-| End-to-end      | `./run.sh test e2e`   | Postgres, Chromium    | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
+---
 
-`./run.sh test` runs the unit tests and static checks together, and needs no database. `./run.sh check` runs everything the CI static job runs (lint, types, tests, copy, brand, action schemas); `./run.sh test db` prepares both databases and runs the database checks; `./run.sh test e2e [args]` prepares the e2e databases and runs Playwright; `./run.sh test ci` runs all three.
+## 1. Testing Framework Overview
 
-## Database checks
+The test suite runs automatically in GitHub Actions on every pull request and push to `main`.
 
+```mermaid
+flowchart TB
+    subgraph Layers["Test Layers"]
+        Unit["Layer 1: Unit Tests\n(Vitest / Go Test)"]
+        Static["Layer 2: Static Checks\n(ESLint, Brand, Copy, Action Schemas)"]
+        DB["Layer 3: Database Checks\n(Real Postgres transactions)"]
+        E2E["Layer 4: Playwright E2E\n(Chromium journeys)"]
+    end
+
+    subgraph Output["Artifacts & Results"]
+        Report["Test Coverage & Reports"]
+        Results["HTML Reports, Traces & Screenshots"]
+    end
+
+    Unit --> Report
+    Static --> Report
+    DB --> Report
+    E2E --> Results
+```
+
+### Test Layer Matrix
+
+| Layer | Execution Command | Required Infrastructure | Primary Coverage Scope |
+|---|---|---|---|
+| **Unit Tests** | `./run.sh test unit` | None | Theme engine, profile presets, CMS block validation, pricing, coupons, delivery slots, GOSI calculators. |
+| **Static Checks** | `./run.sh test checks` | None | Brand neutrality, copy parity, permission definitions, upload storage rules, server action schema integrity. |
+| **Database Checks** | `./run.sh test db` | 2 `_test` Databases | 35+ business rule suites executing against isolated PostgreSQL transactions (finance, payroll, GOSI, approvals). |
+| **End-to-End** | `./run.sh test e2e` | Postgres + Chromium | Complete browser journeys: setup wizard, admin dashboard, order fulfillment, customer checkout, IT desk. |
+
+---
+
+## 2. Database Integrity Checks
+
+Database checks run against isolated disposable PostgreSQL databases (`platform_bare_test` and `platform_seeded_test`). Each suite executes its test cases within explicit database transactions and rolls back changes upon completion.
+
+### Setting Up Disposable Test Databases
 ```bash
+# Prepare bare test database
 node apps/admin/tests/e2e/helpers/prepare-db.cjs bare platform_bare_test
-```
 
-```bash
+# Prepare seeded test database
 SEED_VOLUME=on node apps/admin/tests/e2e/helpers/prepare-db.cjs seeded platform_seeded_test
+
+# Execute database check suite
+./run.sh test db
 ```
 
-```bash
-CHECKS_BARE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_bare_test CHECKS_SEEDED_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_seeded_test ./run.sh test checks:db
+---
+
+## 3. End-to-End (Playwright) Suite Architecture
+
+`./run.sh test e2e` launches four isolated server instances, each bound to a dedicated test database and Next.js build directory.
+
+```mermaid
+flowchart LR
+    subgraph Playwright["Playwright Test Runner"]
+        Runner["Chromium Test Engine"]
+    end
+
+    subgraph IsolatedServers["Isolated Test Servers"]
+        AdminSeeded["Port 3012: Admin App (Seeded DB)"]
+        WebSeeded["Port 3013: Web App (Seeded DB)"]
+        AdminBlank["Port 3014: Setup Wizard (Blank DB)"]
+        ITDashboard["Port 3015: IT Dashboard (Gateway)"]
+        StripeMock["Port 3199: Mock Stripe Gateway"]
+    end
+
+    Runner --> AdminSeeded
+    Runner --> WebSeeded
+    Runner --> AdminBlank
+    Runner --> ITDashboard
+    Runner --> StripeMock
 ```
 
-Some checks count rows or expect a company that is not set up yet, so they need the **bare** database. The others need demo data. A suite only runs when its database name ends in `_test`.
+### E2E Server Port & Database Allocation
 
-## End-to-end (Playwright)
+| Port | Target Application | Test Database Name | E2E Playwright Projects |
+|---|---|---|---|
+| **3012** | Admin App | `platform_e2e_test` | `admin-login`, `admin`, `admin-mobile` |
+| **3013** | Web App | `platform_e2e_test` | `web`, `web-mobile` |
+| **3014** | Admin Setup | `platform_e2e_blank_test` | `setup-wizard` |
+| **3015** | IT Dashboard | `platform_e2e_test` | `it` |
+| **3199** | Stripe Stand-in | *(In-Memory Mock)* | Payment gateway test suites |
+
+### Common Playwright Execution Commands
 
 ```bash
+# Install required Playwright Chromium browser
 npx playwright install chromium
-```
 
-```bash
+# Run all E2E projects
 ./run.sh test e2e
-```
 
-`test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts four servers through `apps/admin/tests/e2e/helpers/serve.cjs`, each on its own database and build folder:
-
-| Port | Server                                                | Projects                                                                              |
-| ---- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| 3012 | Admin on the seeded database                          | `admin-login`, `admin`, `admin-mobile`                                                |
-| 3013 | Website on the seeded database                        | `web`, `web-mobile`                                                                   |
-| 3014 | Admin on the blank database                           | `setup-wizard`                                                                        |
-| 3015 | IT dashboard through identity and the gateway         | `it`                                                                                  |
-| 3199 | A local Stripe stand-in, started by the payment specs | (the servers get `PAYMENT_GATEWAY_BASE_URL_STRIPE` and `CRON_SECRET=e2e-cron-secret`) |
-
-Disposable accounts for these runs (administrator, viewer, driver) are in `apps/admin/tests/e2e/fixtures/users.json` or generated at test start; they exist only in the test databases.
-
-Useful variations:
-
-```bash
+# Run E2E for a specific application project
 npx playwright test --project=web
-```
 
-```bash
+# Launch Playwright UI mode for visual debugging
 npx playwright test --ui
 ```
 
-`npx playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `./run.sh test e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. The IT server builds into `.next-e2e` before listening, so the desk journey never waits for page compilation; a failed build stops startup. `E2E_SERVER_MODE=start` serves prebuilt production builds of all apps, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Build with `WEB_URL`/`NEXT_PUBLIC_WEB_URL` at `http://localhost:3013`, `ADMIN_URL`/`NEXT_PUBLIC_ADMIN_URL` at `http://localhost:3012`, and `ADMIN_PREVIEW_ORIGINS=http://localhost:3014`: the website's frame policy is generated at build time, and the setup server needs preview access. Before the IT suite, run `node apps/admin/tests/e2e/helpers/it-account.cjs` against the disposable stack; `COMPOSE_ARGS` selects its project/env file and `E2E_IT_ACCOUNT_FILE` selects the credential file. Reports, traces, videos and screenshots go to `apps/admin/test-results/`.
+---
 
-`specs/admin/links.spec.ts` and `specs/web/links.spec.ts` crawl every page (`tests/e2e/crawl.ts`): error statuses,
-broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may
-open each attachment. They take several minutes; run them with `--project=admin` or `--project=web` and a spec path.
+## 4. Volume & Performance Load Testing
 
-Tests read their expectations from the repository instead of hardcoding them: the demo company and theme come from `seeds/assets/demo`, and labels come from the admin's Arabic locale file.
-
-## Writing tests
-
-- Business rules on data go in a `scripts/check-*.cjs` script (plain `node:assert`, rolled back in a transaction) listed in `tests/checks/database.test.ts`, or in `static.test.ts` if no database is needed.
-- Pure functions go in `tests/unit/*.test.ts` (Vitest).
-- User journeys go in `tests/e2e/specs/<project>/*.spec.ts`. Use the helpers in `tests/e2e/helpers.ts` (`watchErrors`, `brokenImages`, `visibleContent`, `themeVariable`, `testDatabase`).
-- The admin tests share one sign-in (`tests/e2e/auth/admin.setup.ts`), because the login rate limit is enforced.
-
-## Volume
+Volume testing verifies query execution speed and UI rendering under heavy dataset conditions (2,000 employees, 50,000 requests/deals/expenses).
 
 ```bash
+# Rebuild volume test database and execute performance checks
 ./run.sh test volume
 ```
 
-Rebuilds `platform_volume_test` from the demo seed, adds 2,000 employees (1,500 with accounts) in a nested
-department tree and 50,000 requests, deals and expenses, then times the people and record lists (users, employees,
-directory, org chart, data scopes, deals, expenses, request inbox) against a 1.5-second budget each. The database
-keeps the volume, so `node tests/e2e/serve.cjs admin 3023 platform_volume_test` opens it in the browser.
+* Asserts that list views, organizational charts, and request inboxes respond within a strict **1.5-second time budget**.
+* Artifacts and trace logs are saved to `apps/admin/test-results/`.
 
-## Manual diagnostics
+---
 
-These need running servers and are not part of CI:
+## 5. Diagnostic & Utility Scripts
 
-| Script                                               | Purpose                                                                                                                   |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `node apps/web/scripts/check-website-http.cjs`       | Website HTTP behaviour against a preview server on a `_test` database |
-| `node scripts/check-admin-followup-http.cjs`         | Admin HTTP follow-up checks against a running server                                                                      |
-| `node scripts/profile-local-http.cjs`                | Local response-time baseline (not a production benchmark)                                                                 |
-| `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database                                                                      |
+| Utility Script | Description |
+|---|---|
+| `node apps/web/scripts/check-website-http.cjs` | Tests HTTP status codes, headers, and preview features on Web. |
+| `node scripts/check-admin-followup-http.cjs` | Validates Admin follow-up actions and server action responses. |
+| `node scripts/profile-local-http.cjs` | Measures local HTTP response latencies and server action overhead. |
+| `node scripts/verify-seed-dates.js` | Asserts transaction date ranges meet financial reporting requirements. |

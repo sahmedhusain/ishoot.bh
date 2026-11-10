@@ -1,118 +1,155 @@
-# Business platform
+# Enterprise Business Platform
 
-A complete business system, IT operational dashboard, and bilingual public website, in Arabic and English, that any company can install and brand as its own. Nothing about a specific company lives in the code: each installation sets its name, activity, colours, fonts, logos and configuration in a first-run setup wizard, or from pure SQL seeds and presets in [`seeds/`](seeds/).
+A highly advanced, fully integrated enterprise business system, IT operational dashboard, and bilingual public website (Arabic and English) designed for seamless white-label deployment.
 
-**The admin system (`apps/admin`)** covers CRM and deals, quotations, invoices and payments, expenses and claims, HR and payroll, assets, approvals, documents and letters, calendar and announcements; products, stock and purchasing; an online store with customer accounts, online payments (seven gateways) and delivery (zones, time slots, own fleet with a driver's phone view, courier agencies); tasks and projects, customer service, marketing campaigns and broadcasts, public relations and legal matters; and a report catalogue with CSV, Excel and PDF exports. Optional areas are modules a company switches on.
+The platform is strictly decoupled into **three Next.js frontend applications** and **16 domain-scoped Go microservices**, communicating via an API Gateway and asynchronous NATS JetStream event buses.
 
-**The IT dashboard (`apps/it`)** is the central operational portal for IT teams: ticket queues and SLAs, system health checks, database maintenance, background jobs, staff access administration, audit trail inspection, and module/domain configuration.
+---
 
-**The website (`apps/web`)** is built from the admin: pages made of blocks, menus, articles, a catalogue (works, products, listings or case studies, by activity), a cart and checkout, customer accounts, delivery tracking and a press page.
+## 🚀 System Architecture
 
-**The backend (`backend/`)** is a suite of 16 modular Go microservices communicating via an API gateway, transactional outbox events over NATS JetStream, and River background workers with PostgreSQL schema-per-service isolation.
+```mermaid
+flowchart LR
+    %% Frontends
+    subgraph Frontends["Frontend Apps (Next.js 16)"]
+        direction TB
+        Web["Web (Port 3000)"]:::app
+        Admin["Admin (Port 3001)"]:::app
+        IT["IT Desk (Port 3002)"]:::app
+    end
 
-## Repository
+    %% Gateway
+    Gateway["API Gateway (Port 8080)"]:::gateway
 
+    %% Microservices
+    subgraph Microservices["16 Go Microservices"]
+        direction TB
+        M_Gateway["Gateway"]
+        M_Identity["Identity"]
+        M_System["System"]
+        M_Files["Files"]
+        M_Notify["Notify"]
+        M_Realtime["Realtime"]
+        M_Audit["Audit"]
+        M_ITSM["ITSM"]
+        M_CMS["CMS"]
+        M_Sales["Sales & CRM"]
+        M_Finance["Finance"]
+        M_Workflow["Workflow"]
+        M_HR["HR & Payroll"]
+        M_Inventory["Inventory"]
+        M_Commerce["Commerce"]
+        M_Delivery["Delivery"]
+    end
+
+    %% Infra
+    subgraph Data["Infrastructure"]
+        direction TB
+        PG["PostgreSQL 17 (Schema-per-Service)"]
+        NATS["NATS JetStream"]
+        S3["SeaweedFS S3 Object Storage"]
+    end
+
+    Frontends -- HTTP/REST --> Gateway
+    Gateway -- Proxies --> Microservices
+    Microservices -- SQL --> PG
+    Microservices -- Events --> NATS
+    Microservices -- Blobs --> S3
+
+    classDef app fill:#F9F9F9,stroke:#0070F3,stroke-width:2px;
+    classDef gateway fill:#FFF8E1,stroke:#E91E63,stroke-width:2px;
 ```
+
+---
+
+## 🏗️ The 16 Microservices
+
+Each backend domain strictly operates in its own isolated PostgreSQL schema under its dedicated database role (`svc_<service>`). Data flows asynchronously via the **Transactional Outbox Pattern** and **OpenAPI REST APIs**.
+
+| Microservice | Core Domain & Purpose | Database Schema |
+| :--- | :--- | :--- |
+| **Gateway** | Routing, token check, rate limits, and session probes. | *(Proxy)* |
+| **Identity** | Tri-realm authentication (Staff, IT, Customer), JWT JWKS, and MFA management. | `identity` |
+| **System** | Global company settings, dynamic theming assets, and document sequences. | `system` |
+| **Files** | S3-compatible asset storage, metadata tracking, and access policies. | `files` |
+| **Notify** | Multi-channel message dispatch (Email, WhatsApp) and user inboxes. | `notify` |
+| **Realtime** | Server-Sent Events (SSE) tracking user online presence and focus windows. | `realtime` |
+| **Audit** | Immutable, append-only security ledger for all platform events. | `audit` |
+| **ITSM** | IT helpdesk ticketing, SLA policy tracking, and resolution comments. | `itsm` |
+| **CMS** | Dynamic block pages, localized articles, FAQs, and published state management. | `cms` |
+| **Sales** | B2B CRM tracking deals, pipelines, contacts, and outreach campaigns. | `sales` |
+| **Finance** | Invoices, quotations, payments, expense claims, and banking settlements. | `finance` |
+| **Workflow** | Approval chains, e-signatures, official corporate letters, and tasks. | `workflow` |
+| **HR** | Employee profiles, hierarchical departments, leave requests, attendance, and payroll. | `hr` |
+| **Inventory** | Warehouses, batches, real-time stock levels, variants, and stock counts. | `inventory` |
+| **Commerce** | E-commerce storefront logic, customers, orders, coupons, and retail POS shifts. | `commerce` |
+| **Delivery** | Logistics, driver vehicle routes, delivery timeslots, and courier dispatch. | `delivery` |
+
+> 📚 **Deep Dive:** View the [Detailed Architecture Guide](docs/ARCHITECTURE.md) and [Backend Documentation Index](docs/backend/README.md).
+
+---
+
+## 💻 Repository Structure
+
+```text
 apps/
   admin/        Next.js admin system (port 3001)
   it/           Next.js IT operational dashboard (port 3002)
   web/          Next.js public website, store and customer accounts (port 3000)
 backend/
-  services/     16 Go microservices (identity, system, files, notify, realtime, itsm, audit,
-                gateway, cms, sales, finance, workflow, hr, inventory, commerce, delivery)
+  services/     16 Go microservices (identity, system, files, notify, realtime, itsm, audit...)
   pkg/          Shared Go libraries (httpx, outbox, authn, db, catalog, telemetry, logx)
 contracts/      Canonical event schemas, catalog definitions, and test fixtures
-seeds/
-  sql/          Pure SQL seed files (seed_ishoot.sql, seed_northwind.sql, seed_bootstrap.sql, presets/)
-  assets/       Brand artwork, logos, icons, fonts and raw design assets
-scripts/        Workspace check suites, workers, bootstrap, reset and the .env tool
+seeds/          Pure SQL seed files for initial deployment
 docs/           Guides and architecture documentation
-run.sh          One entry point for setup, services, databases, development, tests and deployment
+run.sh          Master CLI orchestrator
 ```
 
-## Audit & Verification Guardrails
+---
 
-To verify the platform end-to-end (seed parity, directory isolation, service health, OpenAPI linting, per-app contract freshness, Newman contract smoke tests, and monorepo TypeScript checks):
+## 🛠️ Quick Start
 
-```bash
-npm run audit:all
-```
+Prerequisites: **Node 22+**, **Go 1.24+**, and **Docker**.
 
-- [Seed & Preset Parity Guide](docs/seed-parity.md)
-- [Codebase Isolation & Contracts Guide](docs/shared-code-migration.md)
-- [Platform Architecture Specification](docs/ARCHITECTURE.md)
-
-## Quick start
-
-Prerequisites: Node 22 or newer, Go 1.24+, and Docker.
-
+### 1. Setup the Environment
 ```bash
 ./run.sh setup
 ```
+*(Generates `.env`, creates secrets, builds Docker images, and sets up PostgreSQL 17, Valkey, and SeaweedFS).*
 
-This installs dependencies, creates `.env` from [`.env.example`](.env.example) with generated secrets, starts the local Compose stack (Postgres 17, Valkey, SeaweedFS, files and gateway) and builds the demo database. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in `.env` when it asks, then:
+### 2. Seed the Database
+```bash
+./run.sh db seed        # Load the default iShoot Cinema dataset
+# OR
+./run.sh db seed demo   # Load Northwind Studio demo dataset
+# OR
+./run.sh db bootstrap   # Minimal clean setup to trigger the Setup Wizard
+```
 
+### 3. Run the Development Servers
 ```bash
 ./run.sh dev
 ```
 
-- Admin: http://localhost:3001
-- IT Dashboard: http://localhost:3002
-- Website: http://localhost:3000
+Your environment is live at:
+- **Web Store:** `http://localhost:3000`
+- **Admin System:** `http://localhost:3001`
+- **IT Dashboard:** `http://localhost:3002`
 
-| Start with               | Command                              | Result                                                                                     |
-| ------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| iShoot Cinema (Default)  | `./run.sh db seed` (or `db reset`)   | The full iShoot Cinema production fixtures, brand artwork & scenarios                     |
-| Northwind Studio         | `./run.sh db seed demo`              | Northwind Studio fixtures, brand artwork & presets                                         |
-| Activity Presets         | `./run.sh db preset <name>`          | Activity preset SQL override (commerce, services, products, food, agency, all)             |
-| A blank company          | `./run.sh db bootstrap`              | Minimal clean setup; the admin opens the first-run setup wizard                             |
+---
 
-[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) walks through each option, including how to create a company profile. `./run.sh doctor` checks your tools, `.env`, database and ports.
+## 🧪 Testing & Code Quality
 
-## `run.sh`
+Run static checks, unit tests, and Playwright E2E suites:
 
-`./run.sh help` lists everything. The main commands:
+```bash
+# Run unit tests and static checks
+./run.sh test
 
-| Area            | Commands                                                                                                                                                                                                                                                     |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Getting started | `setup [--light\|--empty]` · `doctor` · `install` · `upgrade` (pull, install, new `.env` variables, migrate)                                                                                                                                                 |
-| Environment     | `env init` · `env sync` (adds new variables, keeps yours) · `env secrets` · `env check [--production]` · `env keys`                                                                                                                                          |
-| Local services  | `services up\|down\|restart\|status` (Compose) · `services observability` (metrics and logs)                                                                                                                                                                 |
-| Database        | `db reset [--light\|--empty\|--profile <name>]` · `db migrate` · `db status` · `db new <name>` · `db generate` · `db seed` · `db bootstrap` · `db integrity` · `db studio` · `db psql` · `db backup` · `db restore <file>` · `db test-list` · `db test-drop` |
-| Development     | `dev [admin\|it\|web]` · `build [--clean]` · `start [admin\|it\|web]` · `lint` · `types` · `format` · `clean` · `kill-ports`                                                                                                                                 |
-| Tests           | `check` (everything CI's static job runs) · `test [unit\|checks]` · `test db` · `test e2e [playwright args]` · `test e2e:ui` · `test volume` · `test ci`                                                                                                     |
-| Background work | `worker email\|revalidation\|maintenance\|all` · `worker check` · `cron` (runs the scheduled job once)                                                                                                                                                       |
-| Deployment      | `deploy check` · `deploy prepare` (check, migrate, build) · `deploy migrate` · `deploy vercel <admin\|web\|all> [--prod]` · `deploy self`                                                                                                                    |
-| Other           | `docs` (API reference) · `company list\|demo-assets` · `audit` · `urls`                                                                                                                                                                                      |
+# Run full CI test pipeline (Unit, Database, and E2E)
+./run.sh test ci
+```
 
-Each frontend application (`apps/admin`, `apps/it`, `apps/web`) is a strictly decoupled, independent npm application containing its own libraries, contracts, components, localized copy, scripts, and tests. They can be executed independently (e.g. `npm run dev`, `npm run type-check`, `npm test`, `npm run test:e2e`), or orchestrated centrally via the root `package.json` (`npm run test:admin`, `npm run check:admin`, etc.) and `./run.sh`.
+---
 
-## Guides
-
-| Guide                                                            | Contents                                                                                             |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)               | Run the demo, load a company profile, or start blank with the setup wizard                           |
-| [docs/backend/README.md](docs/backend/README.md)                 | Go microservices architecture, schema ownership, and event-driven design                             |
-| [docs/DATABASE.md](docs/DATABASE.md)                             | Pure SQL database seeds, migration, and presets                                                      |
-| [docs/FEATURES.md](docs/FEATURES.md)                             | What each area of the admin, IT dashboard, and website does, and its rules                          |
-| [docs/DATABASE.md](docs/DATABASE.md)                             | Start, seed, reset, migrate, back up and restore the database                                        |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md)                         | Environment variables, integrations, workers, domains, deployment and upgrades                       |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                     | How the frontends, Go microservices, and theming fit together                                        |
-| [docs/SECURITY.md](docs/SECURITY.md)                             | Authentication, MFA, authorization, customer accounts, online payments, data protection, retention   |
-| [docs/LOCALIZATION.md](docs/LOCALIZATION.md)                     | Arabic and English copy rules                                                                        |
-| [docs/TESTING.md](docs/TESTING.md)                               | Test layers, running and writing tests                                                               |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md)                   | Microservice OpenAPI contracts and application HTTP routes                                           |
-
-## Continuous integration
-
-`.github/workflows/ci.yml` runs on every pull request and every push to `main`, in three jobs:
-
-- **static**: lint, types, action schemas, brand guard, unit tests and static checks
-- **database**: seeded and bare Postgres, integrity rules, every business-rule check, profile bootstrap
-- **e2e**: production builds of applications with Playwright (setup wizard, admin on desktop and phone, website, IT desk)
-
-Failed runs upload reports, traces and screenshots as artifacts. `./run.sh test ci` runs the same three locally.
-
-## License
-
-[MIT](LICENSE).
+**License:** [MIT](LICENSE)

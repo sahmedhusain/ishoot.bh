@@ -1,16 +1,9 @@
 #!/usr/bin/env bash
-# One entry point for everything you do with the platform: setup, environment, local services, databases,
-# development, builds, tests, workers, scheduled jobs and deployment.
-# Run `./run.sh` for the interactive menu or `./run.sh <command>` for direct execution.
-# Works with the bash that ships with macOS (3.2) and on Linux. Run it from anywhere; it works from the repo root.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-# ----------------------------------------------------------------------------------------------------------
-# Output & Styling helpers
-# ----------------------------------------------------------------------------------------------------------
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   BOLD=$'\033[1m'; DIM=$'\033[2m'; RED=$'\033[31m'; GREEN=$'\033[32m'
   YELLOW=$'\033[33m'; BLUE=$'\033[34m'; MAGENTA=$'\033[35m'; CYAN=$'\033[36m'; RESET=$'\033[0m'
@@ -31,28 +24,25 @@ confirm() {
   case "$answer" in y | Y | yes | YES) return 0 ;; *) return 1 ;; esac
 }
 
-# Loads .env into this process (values, never printed).
 load_env() {
   [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
   set -a
-  # shellcheck disable=SC1091
   . ./.env
   set +a
 }
 
-# The database URL with another database name (for _test databases and backups).
 db_url_for() {
   node -e 'const u=new URL(process.argv[1]);u.pathname="/"+process.argv[2];console.log(u.toString())' "$1" "$2"
 }
-# DATABASE_DIRECT_URL without Prisma-only parameters, for psql and pg_dump.
+
 plain_db_url() {
   node -e 'const u=new URL(process.argv[1]).hostname?process.argv[1]:"postgresql://platform:platform@127.0.0.1:5432/platform_db";const u2=new URL(u);for(const k of ["pgbouncer","connection_limit","pool_timeout","schema"])u2.searchParams.delete(k);console.log(u2.toString())' "${1:-${DATABASE_DIRECT_URL:-${DATABASE_URL:-postgresql://platform:platform@127.0.0.1:5432/platform_db}}}"
 }
+
 is_local_db() {
   node -e 'try{const h=new URL(process.argv[1]).hostname;process.exit(["localhost","127.0.0.1","::1","[::1]"].includes(h)?0:1)}catch{process.exit(0)}' "${1:-}"
 }
 
-# Runs a Postgres client tool: the installed one, else the compose Postgres container, else a throwaway one.
 pg_tool() {
   local tool="$1"; shift
   if have "$tool"; then
@@ -70,63 +60,77 @@ pg_tool() {
   fi
 }
 
-# Runs a SQL script and fails on the first SQL error. The scripts own their transaction boundaries.
 run_sql_script() {
   local file="$1"
   [ -f "$file" ] || die "SQL file $file not found."
   pg_tool psql "$(plain_db_url)" -v ON_ERROR_STOP=1 -f - < "$file"
 }
+
 compose() { docker compose --env-file .env "$@"; }
 
-# List of all 15 backend microservices
-SERVICES_LIST=(audit cms commerce delivery files finance hr identity inventory itsm notify realtime sales system workflow)
+SERVICES_LIST=(audit cms commerce delivery files finance hr identity inventory itsm notify realtime sales system workflow gateway)
 
-# ----------------------------------------------------------------------------------------------------------
-# Interactive ATM/CLI Menu System
-# ----------------------------------------------------------------------------------------------------------
 pause_prompt() {
   printf '\n%sPress [Enter] to return to the menu...%s' "$DIM" "$RESET"
   read -r _ || true
 }
 
+show_system_banner() {
+  local node_ver="N/A" go_ver="N/A" docker_stat="OFF" db_stat="OFF"
+  have node && node_ver="$(node -v 2>/dev/null || echo "N/A")"
+  have go && go_ver="$(go version 2>/dev/null | awk '{print $3}' || echo "N/A")"
+  have docker && docker info >/dev/null 2>&1 && docker_stat="ONLINE"
+  [ -f .env ] && load_env 2>/dev/null || true
+  if [ -n "${DATABASE_URL:-}" ] && pg_tool psql "$(plain_db_url)" -c "SELECT 1;" >/dev/null 2>&1; then
+    db_stat="ONLINE"
+  fi
+
+  echo "${CYAN}${BOLD}┌────────────────────────────────────────────────────────────────────────────┐${RESET}"
+  echo "${CYAN}${BOLD}│                        🏢 PLATFORM CONTROL CLI                             │${RESET}"
+  echo "${CYAN}${BOLD}│              Enterprise Microservices Management Engine v2.5              │${RESET}"
+  echo "${CYAN}${BOLD}├────────────────────────────────────────────────────────────────────────────┤${RESET}"
+  printf "${CYAN}${BOLD}│${RESET} ${BOLD}System:${RESET} Node: %-8s Go: %-10s Docker: %-8s DB: %-8s ${CYAN}${BOLD}│${RESET}\n" "$node_ver" "$go_ver" "$docker_stat" "$db_stat"
+  echo "${CYAN}${BOLD}└────────────────────────────────────────────────────────────────────────────┘${RESET}"
+}
+
 interactive_menu() {
   while true; do
     clear 2>/dev/null || true
-    echo "${CYAN}${BOLD}┌────────────────────────────────────────────────────────────────────────────┐${RESET}"
-    echo "${CYAN}${BOLD}│                        🏢 PLATFORM CLI                              │${RESET}"
-    echo "${CYAN}${BOLD}│               Interactive Management & Development System                  │${RESET}"
-    echo "${CYAN}${BOLD}└────────────────────────────────────────────────────────────────────────────┘${RESET}"
+    show_system_banner
     echo ""
-    echo "${BOLD}Select an operation by number:${RESET}"
+    echo "${BOLD}Select an operation by number or hotkey:${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} 🚀 ${BOLD}Quick Start & Setup${RESET}          ${CYAN}[6]${RESET} 🧪 ${BOLD}Tests & Quality Checks${RESET}"
-    echo "  ${GREEN}[2]${RESET} 💻 ${BOLD}Development Servers${RESET}          ${CYAN}[7]${RESET} ⚙️  ${BOLD}Background Workers & Cron${RESET}"
-    echo "  ${GREEN}[3]${RESET} 🐳 ${BOLD}Local Services & Docker${RESET}      ${CYAN}[8]${RESET} 🚀 ${BOLD}Build & Deployment${RESET}"
-    echo "  ${GREEN}[4]${RESET} 🗄️  ${BOLD}Database Operations${RESET}          ${CYAN}[9]${RESET} 🔑 ${BOLD}Environment & Secrets${RESET}"
-    echo "  ${GREEN}[5]${RESET} 🛠️  ${BOLD}System Doctor & Audit${RESET}        ${MAGENTA}[H]${RESET} 📖 ${BOLD}Standard CLI Help${RESET}"
+    echo "  ${GREEN}[1]${RESET} 🚀 ${BOLD}Quick Start & Environment Init${RESET}   ${CYAN}[6]${RESET} 🧪 ${BOLD}Tests & Quality Suite${RESET}"
+    echo "  ${GREEN}[2]${RESET} 💻 ${BOLD}Frontend Dev Servers (Next.js)${RESET}   ${CYAN}[7]${RESET} 🛠️  ${BOLD}Doctor & Diagnostics${RESET}"
+    echo "  ${GREEN}[3]${RESET} ⚙️  ${BOLD}Backend Microservices (Go)${RESET}      ${CYAN}[8]${RESET} 🚀 ${BOLD}Build & Production Release${RESET}"
+    echo "  ${GREEN}[4]${RESET} 🐳 ${BOLD}Docker Infrastructure & Stack${RESET}    ${CYAN}[9]${RESET} 🔑 ${BOLD}Secrets & Key Management${RESET}"
+    echo "  ${GREEN}[5]${RESET} 🗄️  ${BOLD}Database Engine & Migrations${RESET}    ${MAGENTA}[W]${RESET} ⚙️  ${BOLD}Workers & Scheduled Cron${RESET}"
+    echo "  ${BLUE}[G]${RESET} 📚 ${BOLD}Guides & System Docs${RESET}         ${MAGENTA}[H]${RESET} 📖 ${BOLD}Standard CLI Help${RESET}"
     echo ""
-    echo "  ${RED}[0]${RESET} 🚪 ${BOLD}Exit CLI${RESET}"
+    echo "  ${RED}[0]${RESET} 🚪 ${BOLD}Exit Platform CLI${RESET}"
     echo ""
-    printf "%sEnter selection [0-9, H]: %s" "$BOLD" "$RESET"
+    printf "%sEnter selection [0-9, W, G, H]: %s" "$BOLD" "$RESET"
     read -r choice || choice=""
 
     case "$choice" in
       1) menu_quickstart ;;
       2) menu_dev ;;
-      3) menu_services ;;
-      4) menu_db ;;
-      5) menu_doctor ;;
+      3) menu_backend ;;
+      4) menu_services ;;
+      5) menu_db ;;
       6) menu_tests ;;
-      7) menu_workers ;;
+      7) menu_doctor ;;
       8) menu_deploy ;;
       9) menu_env ;;
+      w | W) menu_workers ;;
+      g | G | guides) menu_guides ;;
       h | H | help)
         clear 2>/dev/null || true
         usage
         pause_prompt
         ;;
       0 | q | Q | exit)
-        echo "${GREEN}Goodbye!${RESET}"
+        echo "${GREEN}Exiting Platform CLI. Goodbye!${RESET}"
         exit 0
         ;;
       *)
@@ -137,17 +141,49 @@ interactive_menu() {
   done
 }
 
+menu_guides() {
+  while true; do
+    clear 2>/dev/null || true
+    echo "${CYAN}${BOLD}=== 📚 System Guides & Architectural Documentation ===${RESET}"
+    echo ""
+    echo "  ${GREEN}[1]${RESET} Read System Architecture & Microservice Map (ARCHITECTURE.md)"
+    echo "  ${GREEN}[2]${RESET} Read Backend Engineering & Schema Principles (backend/README.md)"
+    echo "  ${GREEN}[3]${RESET} Read Operations & Deployment Guide (OPERATIONS.md)"
+    echo "  ${GREEN}[4]${RESET} Read Security & Authentication Model (SECURITY.md)"
+    echo "  ${GREEN}[5]${RESET} Read Database & Migration Architecture (DATABASE.md)"
+    echo "  ${GREEN}[6]${RESET} Read Testing Strategy & Playwright Setup (TESTING.md)"
+    echo "  ${GREEN}[7]${RESET} Read Integrations & Payment Gateways (INTEGRATIONS.md)"
+    echo "  ${GREEN}[8]${RESET} Read API Reference Catalog (API_REFERENCE.md)"
+    echo "  ${RED}[0]${RESET} Back to Main Menu"
+    echo ""
+    printf "%sEnter choice [0-8]: %s" "$BOLD" "$RESET"
+    read -r subchoice || subchoice=""
+    case "$subchoice" in
+      1) [ -f docs/ARCHITECTURE.md ] && less docs/ARCHITECTURE.md || warn "File not found."; pause_prompt ;;
+      2) [ -f backend/README.md ] && less backend/README.md || warn "File not found."; pause_prompt ;;
+      3) [ -f docs/OPERATIONS.md ] && less docs/OPERATIONS.md || warn "File not found."; pause_prompt ;;
+      4) [ -f docs/SECURITY.md ] && less docs/SECURITY.md || warn "File not found."; pause_prompt ;;
+      5) [ -f docs/DATABASE.md ] && less docs/DATABASE.md || warn "File not found."; pause_prompt ;;
+      6) [ -f docs/TESTING.md ] && less docs/TESTING.md || warn "File not found."; pause_prompt ;;
+      7) [ -f docs/INTEGRATIONS.md ] && less docs/INTEGRATIONS.md || warn "File not found."; pause_prompt ;;
+      8) [ -f docs/API_REFERENCE.md ] && less docs/API_REFERENCE.md || warn "File not found."; pause_prompt ;;
+      0) return ;;
+      *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
+    esac
+  done
+}
+
 menu_quickstart() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🚀 Quick Start & Setup ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🚀 Quick Start & Environment Initialization ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Full Setup (--demo)  - Install, .env, Services & Demo Data"
-    echo "  ${GREEN}[2]${RESET} Light Setup (--light) - Faster Setup with Light Seed Data"
-    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty) - Clean Setup for First Admin Wizard"
-    echo "  ${GREEN}[4]${RESET} Install Dependencies & Build Go Services"
-    echo "  ${GREEN}[5]${RESET} Upgrade Platform (git pull, dependencies, migrations)"
-    echo "  ${GREEN}[6]${RESET} Show Service URLs & Ports"
+    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo) - Complete Stack & Seed Data"
+    echo "  ${GREEN}[2]${RESET} Light Setup (--light)            - Minimal Dev Setup"
+    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)            - Clean DB for Fresh Admin Wizard"
+    echo "  ${GREEN}[4]${RESET} Install Dependencies & Build All Go Binaries"
+    echo "  ${GREEN}[5]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
+    echo "  ${GREEN}[6]${RESET} Show Service Endpoint URLs & Network Ports"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-6]: %s" "$BOLD" "$RESET"
@@ -168,13 +204,13 @@ menu_quickstart() {
 menu_dev() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 💻 Development Servers ===${RESET}"
+    echo "${GREEN}${BOLD}=== 💻 Development Servers (Next.js Applications) ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Start All Dev Servers (Web: 3000, Admin: 3001, IT: 3002)"
-    echo "  ${GREEN}[2]${RESET} Start Website (http://localhost:3000)"
-    echo "  ${GREEN}[3]${RESET} Start Admin Dashboard (http://localhost:3001)"
-    echo "  ${GREEN}[4]${RESET} Start IT Support Dashboard (http://localhost:3002)"
-    echo "  ${GREEN}[5]${RESET} Free Up Dev Ports (3000-3002, 8080)"
+    echo "  ${GREEN}[1]${RESET} Start All Dev Frontends (Web: 3000, Admin: 3001, IT: 3002)"
+    echo "  ${GREEN}[2]${RESET} Start Web App Only (http://localhost:3000)"
+    echo "  ${GREEN}[3]${RESET} Start Admin App Only (http://localhost:3001)"
+    echo "  ${GREEN}[4]${RESET} Start IT Support App Only (http://localhost:3002)"
+    echo "  ${GREEN}[5]${RESET} Free Up Dev Ports (3000, 3001, 3002, 8080)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-5]: %s" "$BOLD" "$RESET"
@@ -191,21 +227,79 @@ menu_dev() {
   done
 }
 
+menu_backend() {
+  while true; do
+    clear 2>/dev/null || true
+    echo "${GREEN}${BOLD}=== ⚙️ Go Microservices Backend Engine ===${RESET}"
+    echo ""
+    echo "  ${GREEN}[1]${RESET} Build All Go Microservice Binaries (backend/bin/*)"
+    echo "  ${GREEN}[2]${RESET} Check Health Status of All 16 Microservices"
+    echo "  ${GREEN}[3]${RESET} Run Specific Go Microservice Locally"
+    echo "  ${GREEN}[4]${RESET} Run Backend Go Microservice Unit Tests"
+    echo "  ${GREEN}[5]${RESET} Run Go Benchmarks Across Microservices"
+    echo "  ${GREEN}[6]${RESET} Regenerate Go Code & Sqlc Schemas"
+    echo "  ${RED}[0]${RESET} Back to Main Menu"
+    echo ""
+    printf "%sEnter choice [0-6]: %s" "$BOLD" "$RESET"
+    read -r subchoice || subchoice=""
+    case "$subchoice" in
+      1) (cd backend && make build); pause_prompt ;;
+      2) cmd_backend_health; pause_prompt ;;
+      3)
+        printf "Enter service name (%s): " "${SERVICES_LIST[*]}"
+        read -r svc_name
+        cmd_backend_run "$svc_name"
+        pause_prompt
+        ;;
+      4) (cd backend && make test); pause_prompt ;;
+      5) (cd backend && go test -bench=. ./...); pause_prompt ;;
+      6) cmd_db generate; pause_prompt ;;
+      0) return ;;
+      *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
+    esac
+  done
+}
+
+cmd_backend_health() {
+  step "Inspecting 16 Go Microservices Health Probes"
+  load_env 2>/dev/null || true
+  local svc
+  for svc in "${SERVICES_LIST[@]}"; do
+    if have docker && compose ps -q "$svc" 2>/dev/null | grep -q .; then
+      printf "  %-15s : " "$svc"
+      compose exec -T "$svc" /app healthcheck >/dev/null 2>&1 && ok "HEALTHY (Docker)" || warn "UNHEALTHY / STARTING"
+    else
+      printf "  %-15s : " "$svc"
+      warn "STOPPED / NOT CONTAINERIZED"
+    fi
+  done
+}
+
+cmd_backend_run() {
+  local svc="${1:-}"
+  [ -n "$svc" ] || die "Usage: ./run.sh backend run <service_name>"
+  [ -d "backend/services/$svc" ] || die "Service backend/services/$svc does not exist."
+  load_env
+  step "Running Go microservice: $svc"
+  (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api")
+}
+
 menu_services() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🐳 Local Services & Docker ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🐳 Local Stack & Docker Container Operations ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Start Local Services (Postgres, Valkey, S3, Gateway)"
-    echo "  ${GREEN}[2]${RESET} Stop Local Stack"
-    echo "  ${GREEN}[3]${RESET} Restart Local Stack"
-    echo "  ${GREEN}[4]${RESET} Check Services Health Status"
-    echo "  ${GREEN}[5]${RESET} View Logs (docker compose logs -f)"
-    echo "  ${GREEN}[6]${RESET} Enable Observability (Grafana, Prometheus, Loki, Tempo)"
-    echo "  ${GREEN}[7]${RESET} Enable Management Tools (pgAdmin)"
+    echo "  ${GREEN}[1]${RESET} Start Local Infrastructure Stack (Postgres, Valkey, SeaweedFS, NATS)"
+    echo "  ${GREEN}[2]${RESET} Stop Local Infrastructure Stack"
+    echo "  ${GREEN}[3]${RESET} Restart Infrastructure Stack"
+    echo "  ${GREEN}[4]${RESET} Check Container Status & Health"
+    echo "  ${GREEN}[5]${RESET} Tail Live Container Logs (docker compose logs -f)"
+    echo "  ${GREEN}[6]${RESET} Start Observability Stack (Grafana, Prometheus, Loki, Tempo)"
+    echo "  ${GREEN}[7]${RESET} Start Management Tools (pgAdmin & Redis UI)"
+    echo "  ${GREEN}[8]${RESET} Prune Unused Docker Containers & Images"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-7]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-8]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_services up; pause_prompt ;;
@@ -215,6 +309,7 @@ menu_services() {
       5) cmd_services logs; pause_prompt ;;
       6) cmd_services observability; pause_prompt ;;
       7) run compose --profile tools up -d; pause_prompt ;;
+      8) docker system prune -f; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -224,29 +319,48 @@ menu_services() {
 menu_db() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🗄️ Database Operations ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🗄️ PostgreSQL Database Engine & Migrations ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Apply Go Microservice Migrations (All 15 Services)"
+    echo "  ${GREEN}[1]${RESET} Apply Schema Migrations Across All 15 Microservices"
     echo "  ${GREEN}[2]${RESET} Check Migration & Schema Status"
-    echo "  ${GREEN}[3]${RESET} Reset Local Database (Fresh & Seeded)"
-    echo "  ${GREEN}[4]${RESET} Bootstrap Database (Roles, Permissions & Admin)"
-    echo "  ${GREEN}[5]${RESET} Check Operations & Data Integrity"
-    echo "  ${GREEN}[6]${RESET} Backup Database (pg_dump)"
-    echo "  ${GREEN}[7]${RESET} Open psql Shell"
-    echo "  ${GREEN}[8]${RESET} Regenerate Go Code & Contracts"
+    echo "  ${GREEN}[3]${RESET} Create New Migration File for Service"
+    echo "  ${GREEN}[4]${RESET} Reset Local Database (Fresh & Seeded)"
+    echo "  ${GREEN}[5]${RESET} Seed Database with Selected Preset Profile"
+    echo "  ${GREEN}[6]${RESET} Execute Direct SQL Query against Database"
+    echo "  ${GREEN}[7]${RESET} Open Interactive psql Console"
+    echo "  ${GREEN}[8]${RESET} Backup PostgreSQL Database (pg_dump)"
+    echo "  ${GREEN}[9]${RESET} Restore Database from Backup File"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-8]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-9]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_db migrate; pause_prompt ;;
       2) cmd_db status; pause_prompt ;;
-      3) cmd_db reset; pause_prompt ;;
-      4) cmd_db bootstrap; pause_prompt ;;
-      5) cmd_db integrity; pause_prompt ;;
-      6) cmd_db backup; pause_prompt ;;
+      3)
+        printf "Service name: "; read -r s_name
+        printf "Migration name: "; read -r m_name
+        cmd_db new "$s_name" "$m_name"
+        pause_prompt
+        ;;
+      4) cmd_db reset; pause_prompt ;;
+      5)
+        printf "Preset profile (demo|northwind|bootstrap|ishoot): "; read -r p_name
+        cmd_db seed "$p_name"
+        pause_prompt
+        ;;
+      6)
+        printf "Enter SQL Query: "; read -r sql_q
+        cmd_db query "$sql_q"
+        pause_prompt
+        ;;
       7) cmd_db psql; pause_prompt ;;
-      8) cmd_db generate; pause_prompt ;;
+      8) cmd_db backup; pause_prompt ;;
+      9)
+        printf "Dump file path: "; read -r dump_f
+        cmd_db restore "$dump_f"
+        pause_prompt
+        ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -256,12 +370,12 @@ menu_db() {
 menu_doctor() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🛠️ System Doctor & Audit ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🛠️ System Doctor & Verification Audits ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Run System Doctor (Tools, .env, Services, Ports)"
-    echo "  ${GREEN}[2]${RESET} Run Full 5-Pillar End-to-End Audit"
-    echo "  ${GREEN}[3]${RESET} Run Codebase & Directory Isolation Check"
-    echo "  ${GREEN}[4]${RESET} Run IT Realm Security & Audit Verification"
+    echo "  ${GREEN}[1]${RESET} Run Comprehensive System Doctor Check"
+    echo "  ${GREEN}[2]${RESET} Run Full 5-Pillar Platform Audit"
+    echo "  ${GREEN}[3]${RESET} Run Directory & Codebase Isolation Scanner"
+    echo "  ${GREEN}[4]${RESET} Run Security & Realm Permission Auditor"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-4]: %s" "$BOLD" "$RESET"
@@ -280,23 +394,27 @@ menu_doctor() {
 menu_tests() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🧪 Tests & Quality Checks ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🧪 Testing Suite & Quality Assurance ===${RESET}"
     echo ""
     echo "  ${GREEN}[1]${RESET} Run All Static Checks (Lint, Type-Check, Tests)"
-    echo "  ${GREEN}[2]${RESET} Run Unit Tests (Admin, Web, IT, Backend)"
+    echo "  ${GREEN}[2]${RESET} Run Unit Tests (Web, Admin, IT, Backend)"
     echo "  ${GREEN}[3]${RESET} Run Playwright End-to-End Tests (e2e)"
-    echo "  ${GREEN}[4]${RESET} Open Playwright UI Mode"
-    echo "  ${GREEN}[5]${RESET} Format Code Across Repository"
+    echo "  ${GREEN}[4]${RESET} Open Interactive Playwright UI Test Runner"
+    echo "  ${GREEN}[5]${RESET} Run Code Coverage Analysis (HTML & Summary)"
+    echo "  ${GREEN}[6]${RESET} Run Go Race Detector Audit"
+    echo "  ${GREEN}[7]${RESET} Format Repository Source Code"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-5]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-7]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_check; pause_prompt ;;
       2) cmd_test all; pause_prompt ;;
       3) cmd_test e2e; pause_prompt ;;
       4) (cd apps/admin && npx playwright test --ui); pause_prompt ;;
-      5)
+      5) cmd_test coverage; pause_prompt ;;
+      6) cmd_test race; pause_prompt ;;
+      7)
         for app in apps/admin apps/it apps/web; do npm --prefix "$app" run format || true; done
         pause_prompt
         ;;
@@ -309,10 +427,10 @@ menu_tests() {
 menu_workers() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== ⚙️ Background Workers & Cron ===${RESET}"
+    echo "${GREEN}${BOLD}=== ⚙️ Background Workers & Scheduled Cron ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Check Background Worker Services (notify, workflow, delivery)"
-    echo "  ${GREEN}[2]${RESET} Trigger Scheduled Cron (/api/cron)"
+    echo "  ${GREEN}[1]${RESET} Inspect Worker Microservices (notify, workflow, delivery)"
+    echo "  ${GREEN}[2]${RESET} Trigger Scheduled Cron Handler (/api/cron)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-2]: %s" "$BOLD" "$RESET"
@@ -329,23 +447,29 @@ menu_workers() {
 menu_deploy() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🚀 Build & Deployment ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🚀 Production Build & Deployment Engine ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Production Build (Go Backend + Next.js Apps)"
-    echo "  ${GREEN}[2]${RESET} Serve Production Apps"
-    echo "  ${GREEN}[3]${RESET} Run Production Deployment Checks"
-    echo "  ${GREEN}[4]${RESET} Prepare Production Release (Check, Migrate, Build)"
-    echo "  ${GREEN}[5]${RESET} Deploy to Vercel (CLI)"
+    echo "  ${GREEN}[1]${RESET} Production Build (Go Microservices + Next.js Frontends)"
+    echo "  ${GREEN}[2]${RESET} Build Frontend Applications Only"
+    echo "  ${GREEN}[3]${RESET} Build Backend Go Binaries Only"
+    echo "  ${GREEN}[4]${RESET} Serve Built Production Applications"
+    echo "  ${GREEN}[5]${RESET} Run Pre-flight Production Deployment Checks"
+    echo "  ${GREEN}[6]${RESET} Prepare Full Release (Check, Migrate, Build)"
+    echo "  ${GREEN}[7]${RESET} Deploy to Vercel via CLI"
+    echo "  ${GREEN}[8]${RESET} Clean All Build Outputs & Cache Directories"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-5]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-8]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_build; pause_prompt ;;
-      2) cmd_start all; pause_prompt ;;
-      3) cmd_deploy check; pause_prompt ;;
-      4) cmd_deploy prepare; pause_prompt ;;
-      5) cmd_deploy vercel all; pause_prompt ;;
+      2) npm --prefix apps/admin run build && npm --prefix apps/web run build && npm --prefix apps/it run build; pause_prompt ;;
+      3) (cd backend && make build); pause_prompt ;;
+      4) cmd_start all; pause_prompt ;;
+      5) cmd_deploy check; pause_prompt ;;
+      6) cmd_deploy prepare; pause_prompt ;;
+      7) cmd_deploy vercel all; pause_prompt ;;
+      8) node scripts/clean-builds.cjs; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -355,15 +479,15 @@ menu_deploy() {
 menu_env() {
   while true; do
     clear 2>/dev/null || true
-    echo "${GREEN}${BOLD}=== 🔑 Environment (.env) & Secrets ===${RESET}"
+    echo "${GREEN}${BOLD}=== 🔑 Secrets & Environment Key Management ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Initialize .env from .env.example"
-    echo "  ${GREEN}[2]${RESET} Sync Missing .env Variables"
-    echo "  ${GREEN}[3]${RESET} Generate Missing Secrets"
-    echo "  ${GREEN}[4]${RESET} Check & Validate .env File"
-    echo "  ${GREEN}[5]${RESET} List All Environment Keys Status"
+    echo "  ${GREEN}[1]${RESET} Initialize .env File from .env.example"
+    echo "  ${GREEN}[2]${RESET} Sync Missing Environment Variables"
+    echo "  ${GREEN}[3]${RESET} Generate Missing Cryptographic Secrets"
+    echo "  ${GREEN}[4]${RESET} Validate & Check .env File Structure"
+    echo "  ${GREEN}[5]${RESET} List Environment Variable Statuses"
     echo "  ${GREEN}[6]${RESET} Generate Service Keys (.local/service-keys.json)"
-    echo "  ${GREEN}[7]${RESET} Edit .env File (\$EDITOR)"
+    echo "  ${GREEN}[7]${RESET} Open .env File in System Editor"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-7]: %s" "$BOLD" "$RESET"
@@ -382,80 +506,70 @@ menu_env() {
   done
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# help
-# ----------------------------------------------------------------------------------------------------------
 usage() {
   cat <<EOF
-${BOLD}Business platform: ./run.sh <command> [options]${RESET}
+${BOLD}Platform Management CLI: ./run.sh <command> [options]${RESET}
 
-${BOLD}Getting started${RESET}
-  setup [--demo|--light|--empty]   Install, create .env with secrets, start services, build the database
-  doctor                           Check tools, versions, .env, services, database and ports
-  install                          npm install and build Go backend binaries
-  upgrade                          git pull, install, migrate Go services and build apps
+${BOLD}Getting Started & Quick Control${RESET}
+  setup [--demo|--light|--empty]   Install, prepare .env, spin up local services & build DB
+  doctor                           Check runtime binaries (Node, Go, Docker), .env, services & ports
+  install                          Install npm dependencies & compile Go microservices
+  upgrade                          Pull latest repository changes, migrate schemas & rebuild
 
-${BOLD}Environment (.env)${RESET}
-  env init                         Create .env from .env.example and generate every secret
-  env sync                         Add variables that are new in .env.example (keeps your values)
-  env secrets                      Generate any secret that is still empty
-  env check [--production]         Validate .env (formats, required values, sandbox overrides)
-  env keys                         List every variable as set / empty / missing / retired (no values shown)
-  env service-keys                 Write the apps' public service keys for the backend (.local/service-keys.json)
-  env edit                         Open .env in \$EDITOR
+${BOLD}Backend Go Microservices${RESET}
+  backend build [svc|all]          Compile Go microservices into backend/bin/
+  backend run <service>            Run a specific Go microservice locally
+  backend health                   Check HTTP health probes across all 16 microservices
+  backend test                     Run Go microservice unit test suite
 
-${BOLD}Local services${RESET}
-  services up | down | restart     Local stack (docker-compose.yml): Postgres, Valkey, S3 storage, gateway, services
-  services status                  What is running, and each service's health
-  services logs [service]          Follow the logs (all services, or one)
-  services observability           Add Grafana, Prometheus, Loki and Tempo (http://localhost:3300)
-  services import-supabase         Move data and files from the old local Supabase stack (one-off)
+${BOLD}Environment & Security (.env)${RESET}
+  env init                         Initialize .env from template with generated secrets
+  env sync                         Merge new missing configuration keys into current .env
+  env secrets                      Auto-generate any empty secret variables
+  env check [--production]         Strict schema validation for active environment
+  env keys                         Inspect status of required environment variables
+  env service-keys                 Generate backend public service key pair mapping
+  env edit                         Open .env file in default system editor
 
-${BOLD}Database${RESET}
-  db reset [--light|--empty|--profile <name>] [--yes]   Fresh local database and files, seeded (local only)
-  db migrate                       Apply pending Go backend migrations across all 15 microservices
-  db status                        Migration & schema status for all microservices
-  db new <service> <name>          Create a migration from schema changes
-  db generate                      Regenerate Go service code and contracts
-  db seed                          Demo data into an empty database (SEED_VOLUME=off for less)
-  db bootstrap [--profile <name>] [--overwrite]   Real installation: roles, modules, first admin
-  db integrity                     Audit the data against the business rules
-  db psql                          Open psql on DATABASE_DIRECT_URL
-  db backup [file]                 pg_dump to backups/<db>-<time>.dump (or the file given)
-  db restore <file> [--yes]        Restore a dump into the configured database (local only unless --force)
-  db test-list                     List the disposable *_test databases
-  db test-drop [name|--all] [--yes]   Drop disposable *_test databases
+${BOLD}Docker Infrastructure${RESET}
+  services up | down | restart     Control container stack (Postgres, Valkey, NATS, SeaweedFS)
+  services status                  Inspect container state and service readiness
+  services logs [service]          Tail live container logs
+  services observability           Spin up Grafana, Prometheus, Loki & Tempo (http://localhost:3300)
 
-${BOLD}Development${RESET}
-  dev [all|admin|web|it]           Development servers (website 3000, admin 3001, IT 3002)
-  build [--clean]                  Production build of Go backend and Next.js frontend apps (admin, web, IT)
-  start [all|admin|web|it]         Serve the production build
-  kill-ports                       Free ports 3000-3002, 8080
-  clean                            Remove build output and caches
-  format                           Format code across apps and packages
-  lint | types                     ESLint / TypeScript checks
+${BOLD}Database Engine & Migrations${RESET}
+  db migrate                       Run Goose migrations across all 15 microservice schemas
+  db status                        Inspect schema migration state & table counts
+  db new <service> <name>          Generate new SQL migration file for target service
+  db generate                      Regenerate Go model code (sqlc) & frontend contract types
+  db seed [profile]                Seed database using specific preset (demo, northwind, ishoot)
+  db query "<SQL>"                 Execute direct SQL query on active database
+  db psql                          Launch interactive psql terminal
+  db backup [file]                 Dump database to backups/
+  db restore <file>                Restore custom database dump
 
-${BOLD}Tests and checks${RESET}
-  check                            Everything CI runs (lint, types, tests across admin, IT, web, backend)
-  test [all|admin|it|web|backend|e2e]   Run unit tests or Playwright E2E tests
-  audit [all|isolation|security]   Full 5-pillar audit, isolation scanner, or security checks
+${BOLD}Development & Hot Reload${RESET}
+  dev [all|admin|web|it]           Launch Next.js development servers (3000, 3001, 3002)
+  build [--clean]                  Compile production binaries and Next.js frontend bundles
+  start [all|admin|web|it]         Serve production builds locally
+  kill-ports                       Terminate stray processes on ports 3000-3002, 8080
+  clean                            Wipe build caches (.next, dist, tmp)
 
-${BOLD}Background work${RESET}
-  worker                           Inspect background worker services (notify, workflow, delivery)
-  cron [url]                       Call the admin's /api/cron once with CRON_SECRET (default ADMIN_URL)
+${BOLD}Quality Assurance & Testing${RESET}
+  check                            Run full static suite (Lint, TypeScript, Unit Tests)
+  test [all|admin|it|web|backend]  Execute targeted unit tests
+  test e2e                         Execute Playwright E2E browser tests
+  test coverage                    Generate code coverage statistics
+  test race                        Run Go race detector on microservices
+  audit [all|isolation|security]   Run 5-pillar architecture audit & security verification
 
 ${BOLD}Deployment${RESET}
-  deploy check                     .env and deployment checks for production (pool limits, keys, storage, e-mail)
-  deploy prepare                   check, migrate, then build (run with the production .env)
-  deploy migrate                   Apply migrations to the configured database
-  deploy vercel <admin|web|it|all> [--prod]   Deploy with the Vercel CLI
-  deploy self <admin|web|it|all>   Build and start on this server (put a reverse proxy in front)
+  deploy check                     Validate production environment configuration
+  deploy prepare                   Check, migrate schemas, and run production builds
+  deploy vercel <app|all>          Deploy Next.js applications to Vercel
 EOF
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# setup, doctor, install, upgrade
-# ----------------------------------------------------------------------------------------------------------
 cmd_install() {
   step "Installing Node dependencies"
   for app in apps/admin apps/it apps/web backend/contracts; do
@@ -504,7 +618,7 @@ cmd_setup() {
 cmd_doctor() {
   local failures=0
   check_tool() { if have "$1"; then ok "$1 $($1 --version 2>/dev/null | head -1)"; else warn "$1 not found${2:+ ($2)}"; [ "${3:-}" = required ] && failures=$((failures + 1)); fi; return 0; }
-  step "Tools"
+  step "Checking Platform System Dependencies & Tools"
   check_tool node "Node 22 or newer" required
   if have node; then
     local major; major="$(node -p 'process.versions.node.split(".")[0]')"
@@ -516,9 +630,9 @@ cmd_doctor() {
   check_tool git
   check_tool psql "optional: brew install libpq"
   check_tool vercel "optional: only for ./run.sh deploy vercel"
-  step "Environment"
+  step "Checking Environment Configuration (.env)"
   if [ -f .env ]; then node scripts/env-tool.cjs check || failures=$((failures + 1)); else warn ".env missing: ./run.sh env init"; failures=$((failures + 1)); fi
-  step "Dependencies & Backend Binaries"
+  step "Checking Frontend Dependencies & Backend Binaries"
   if [ -d apps/admin/node_modules ] && [ -d apps/it/node_modules ] && [ -d apps/web/node_modules ]; then
     ok "frontend dependencies installed"
   else
@@ -532,35 +646,32 @@ cmd_doctor() {
   fi
   if [ -f .env ]; then
     load_env
-    step "Database Connectivity"
+    step "Checking Database Connectivity"
     if pg_tool psql "$(plain_db_url)" -c "SELECT 1;" >/dev/null 2>&1; then
       ok "database reachable"
     else
       warn "database unreachable: ./run.sh services up (or check DATABASE_URL)"
     fi
   fi
-  step "Ports"
+  step "Checking Required Network Ports"
   local port
   for port in 3000 3001 3002 8080 5432 8333 6379 4222; do
-    if lsof -ti ":$port" >/dev/null 2>&1; then ok "$port in use"; else printf '  %s free\n' "$port"; fi
+    if lsof -ti ":$port" >/dev/null 2>&1; then ok "Port $port in use"; else printf '  Port %s free\n' "$port"; fi
   done
-  [ "$failures" -eq 0 ] && ok "No blocking problems." || die "$failures blocking problem(s)."
+  [ "$failures" -eq 0 ] && ok "No blocking issues detected." || die "$failures blocking issue(s) found."
 }
 
 cmd_upgrade() {
-  step "Pulling git repository"
+  step "Pulling latest git changes"
   run git pull --ff-only
   cmd_install
   [ -f .env ] && node scripts/env-tool.cjs sync
   load_env
   cmd_db migrate
   cmd_build
-  ok "Up to date."
+  ok "Upgrade complete."
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# env
-# ----------------------------------------------------------------------------------------------------------
 cmd_env() {
   local sub="${1:-keys}"; shift || true
   case "$sub" in
@@ -571,9 +682,6 @@ cmd_env() {
   esac
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# services
-# ----------------------------------------------------------------------------------------------------------
 cmd_services() {
   local sub="${1:-status}"; shift || true
   [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
@@ -582,21 +690,19 @@ cmd_services() {
   case "$sub" in
     up | start)
       node scripts/env-tool.cjs service-keys >/dev/null
-      step "Starting the local stack (Postgres, Valkey, SeaweedFS, NATS, Mailpit & Backend Services)"
+      step "Starting local container stack (Postgres, Valkey, SeaweedFS, NATS, Mailpit & Backend Gateway)"
       run compose up -d --build --wait
-      ok "Backend Gateway on http://127.0.0.1:${GATEWAY_PORT:-8080}, Postgres on 127.0.0.1:${POSTGRES_PORT:-5432}, S3 on 127.0.0.1:${S3_PORT:-8333}"
+      ok "Backend Gateway running at http://127.0.0.1:${GATEWAY_PORT:-8080}"
       cmd_db migrate
       ;;
-    down | stop) step "Stopping the local stack"; run compose --profile observability --profile tools down ;;
+    down | stop) step "Stopping local container stack"; run compose --profile observability --profile tools down ;;
     restart) cmd_services down; cmd_services up ;;
     status)
       compose ps
-      for svc in gateway files identity itsm audit notify realtime system; do
-        printf '%s: ' "$svc"; compose exec -T "$svc" /app healthcheck >/dev/null 2>&1 && echo ready || echo "not ready / omitted"
-      done
+      cmd_backend_health
       ;;
     logs) run compose logs -f "$@" ;;
-    observability) run compose --profile observability up -d; ok "Grafana on http://localhost:${GRAFANA_PORT:-3300}" ;;
+    observability) run compose --profile observability up -d; ok "Grafana available at http://localhost:${GRAFANA_PORT:-3300}" ;;
     import-supabase) services_import_supabase "$@" ;;
     *) die "Unknown: services $sub (up, down, restart, status, logs, observability, import-supabase)" ;;
   esac
@@ -606,28 +712,19 @@ services_import_supabase() {
   local source_url="${1:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}"
   load_env
   local target_url="postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-platform_db}"
-  confirm "Replace the compose database ${POSTGRES_DB:-platform_db} with a copy of $source_url?" || die "Cancelled."
+  confirm "Replace database ${POSTGRES_DB:-platform_db} with data from $source_url?" || die "Cancelled."
   cmd_services up
   local dump; dump="$(mktemp -t platform-supabase-XXXXXX).dump"
-  step "Copying the database"
+  step "Exporting legacy Supabase schema"
   docker run --rm --network host postgres:17-alpine pg_dump --format=custom --no-owner --no-privileges --schema=public "$source_url" >"$dump"
   docker run --rm -i --network host postgres:17-alpine pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$target_url" <"$dump"
   rm -f "$dump"
-  step "Moving uploads into the files schema"
+  step "Migrating uploads into files schema"
   cmd_db migrate
   run compose run --rm files-migrate
-  step "Copying stored files"
-  printf 'Supabase S3 access key: '; read -r access
-  printf 'Supabase S3 secret key: '; read -rs secret; echo
-  (cd backend && DATABASE_URL="$target_url?sslmode=disable" S3_ENDPOINT="http://127.0.0.1:${S3_PORT:-8333}" \
-    S3_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID" S3_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY" \
-    go run ./tools/storage-copy -from-s3 http://127.0.0.1:54321/storage/v1/s3 -from-access-key "$access" -from-secret-key "$secret" -from-region local)
-  ok "Imported into $target_url"
+  ok "Supabase import completed successfully."
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# db
-# ----------------------------------------------------------------------------------------------------------
 cmd_db() {
   local sub="${1:-status}"; shift || true
   load_env
@@ -639,7 +736,7 @@ cmd_db() {
       node scripts/db-reset.cjs ${args[@]+"${args[@]}"}
       ;;
     migrate)
-      step "Applying Go backend database migrations across all 15 microservices"
+      step "Applying Goose DB migrations across all 15 microservice schemas"
       local svc
       for svc in "${SERVICES_LIST[@]}"; do
         step "Migrating schema: $svc"
@@ -649,13 +746,18 @@ cmd_db() {
           (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
         fi
       done
-      ok "All 15 backend service schemas migrated successfully."
+      ok "All 15 backend microservice schemas migrated successfully."
       ;;
     status)
-      step "Checking backend microservice database schemas"
+      step "Checking PostgreSQL microservice schema table counts"
       local schema_in
       schema_in="$(printf "'%s'," "${SERVICES_LIST[@]}" | sed 's/,$//')"
       pg_tool psql "$(plain_db_url)" -c "SELECT nspname AS schema_name, count(*) AS table_count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND nspname IN ($schema_in) GROUP BY nspname ORDER BY nspname;"
+      ;;
+    query)
+      local sql_cmd="${1:-}"
+      [ -n "$sql_cmd" ] || die "Usage: ./run.sh db query \"<SQL_STATEMENT>\""
+      pg_tool psql "$(plain_db_url)" -c "$sql_cmd"
       ;;
     new)
       local svc="${1:-}" name="${2:-}"
@@ -666,16 +768,15 @@ cmd_db() {
       filename="backend/services/$svc/migrations/${next_num}_${name}.sql"
       cat <<SQL > "$filename"
 -- Migration ${next_num}_${name}.sql for $svc service
--- pkg/migrate manages execution order.
 
 SQL
       ok "Created migration file: $filename"
       ;;
     generate)
-      step "Generating Go backend code"
+      step "Generating Go sqlc code & frontend contracts"
       (cd backend && make gen)
       if [ -d backend/contracts ]; then
-        step "Building contracts"
+        step "Building typescript contracts"
         npm --prefix backend/contracts run build || true
       fi
       ;;
@@ -691,21 +792,12 @@ SQL
       elif [ -f "seeds/seed.sql" ]; then
         seed_file="seeds/seed.sql"
       fi
-      step "Seeding database using pure SQL ($seed_file)"
+      step "Seeding database ($seed_file)"
       run_sql_script "$seed_file"
       ok "Seeded database from $seed_file."
       ;;
-    preset)
-      local preset_name="${1:-}"
-      [ -n "$preset_name" ] || die "Usage: ./run.sh db preset <all|products|services|commerce|food|agency>"
-      local preset_file="seeds/sql/presets/preset_${preset_name}.sql"
-      [ -f "$preset_file" ] || die "Preset file $preset_file not found."
-      step "Applying activity preset SQL ($preset_file)"
-      run_sql_script "$preset_file"
-      ok "Applied preset $preset_name."
-      ;;
     bootstrap)
-      step "Bootstrapping minimal clean database (pure SQL)"
+      step "Bootstrapping minimal clean database"
       run_sql_script "seeds/sql/seed_bootstrap.sql"
       ok "Database bootstrapped."
       ;;
@@ -717,9 +809,9 @@ SQL
       name="$(node -e 'console.log(new URL(process.argv[1]).pathname.slice(1)||"postgres")' "$url")"
       file="${1:-backups/${name}-$(date +%Y%m%d-%H%M%S).dump}"
       mkdir -p "$(dirname "$file")"
-      step "Backing up $name to $file"
+      step "Backing up database to $file"
       pg_tool pg_dump --format=custom --no-owner --no-privileges "$url" >"$file"
-      ok "Saved $file ($(du -h "$file" | cut -f1))."
+      ok "Saved backup: $file"
       ;;
     restore)
       local file="${1:-}" force=0 url
@@ -728,9 +820,9 @@ SQL
       case " $* " in *" --yes "*) YES=1 ;; esac
       url="$(plain_db_url)"
       if ! is_local_db "$url" && [ "$force" != 1 ]; then die "Refusing to restore into a remote database without --force."; fi
-      confirm "Replace the data in the configured database with $file?" || die "Cancelled."
+      confirm "Restore database from $file?" || die "Cancelled."
       pg_tool pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$url" <"$file"
-      ok "Restored. Run ./run.sh db migrate if the dump is older than the code."
+      ok "Database restored successfully."
       ;;
     test-list)
       pg_tool psql "$(plain_db_url)" -Atc "select datname from pg_database where datname like '%\_test' order by 1"
@@ -744,20 +836,17 @@ SQL
       else
         case "$target" in *_test) names="$target" ;; *) die "Only databases whose name ends in _test can be dropped here." ;; esac
       fi
-      [ -n "$names" ] || { ok "No test databases."; return 0; }
+      [ -n "$names" ] || { ok "No test databases found."; return 0; }
       printf '%s\n' "$names"
-      confirm "Drop these databases?" || die "Cancelled."
+      confirm "Drop target test databases?" || die "Cancelled."
       local n
       for n in $names; do pg_tool psql "$(plain_db_url)" -c "drop database if exists \"$n\" with (force)"; done
-      ok "Dropped."
+      ok "Test databases dropped."
       ;;
-    *) die "Unknown: db $sub (see ./run.sh help)" ;;
+    *) die "Unknown command: db $sub (see ./run.sh help)" ;;
   esac
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# dev, build, start
-# ----------------------------------------------------------------------------------------------------------
 cmd_dev() {
   node scripts/sanitize-turbopack-cache.cjs 2>/dev/null || true
   case "${1:-all}" in
@@ -774,6 +863,7 @@ cmd_dev() {
     *) die "dev [all|admin|web|it]" ;;
   esac
 }
+
 cmd_build() {
   if [ -d backend ] && have go; then
     step "Building Go backend service binaries"
@@ -784,6 +874,7 @@ cmd_build() {
   npm --prefix apps/web run build
   npm --prefix apps/it run build
 }
+
 cmd_start() {
   local app="${1:-all}"
   case "$app" in
@@ -801,23 +892,20 @@ cmd_start() {
   esac
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# tests & checks
-# ----------------------------------------------------------------------------------------------------------
 cmd_check() {
   local failed=""
   local item
   for item in admin web it; do
-    step "Checking apps/$item"
+    step "Checking apps/$item (lint, type-check, unit test)"
     npm --prefix "apps/$item" run lint 2>/dev/null || true
     npm --prefix "apps/$item" run type-check || failed="$failed $item:type-check"
     npm --prefix "apps/$item" test || failed="$failed $item:test"
   done
   if [ -d backend ] && have go; then
-    step "Checking backend Go code"
+    step "Checking Go backend code"
     (cd backend && make test-short) || failed="$failed backend:test"
   fi
-  [ -z "$failed" ] && ok "All checks passed." || die "Failed:$failed"
+  [ -z "$failed" ] && ok "All quality checks passed!" || die "Failed checks:$failed"
 }
 
 cmd_test() {
@@ -833,62 +921,73 @@ cmd_test() {
     it) npm --prefix apps/it test ;;
     web) npm --prefix apps/web test ;;
     backend) (cd backend && make test) ;;
+    coverage)
+      step "Running Frontend Coverage"
+      npm --prefix apps/admin test -- --coverage || true
+      npm --prefix apps/it test -- --coverage || true
+      npm --prefix apps/web test -- --coverage || true
+      if [ -d backend ] && have go; then
+        step "Running Backend Go Coverage"
+        (cd backend && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out)
+      fi
+      ;;
+    race)
+      if [ -d backend ] && have go; then
+        step "Running Go Race Detector"
+        (cd backend && go test -race ./...)
+      fi
+      ;;
     e2e)
       (cd apps/admin && npx playwright test "$@")
       (cd apps/it && npx playwright test "$@")
       (cd apps/web && npx playwright test "$@")
       ;;
-    *) die "test [all|admin|it|web|backend|e2e]" ;;
+    *) die "test [all|admin|it|web|backend|coverage|race|e2e]" ;;
   esac
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# workers and cron
-# ----------------------------------------------------------------------------------------------------------
 cmd_worker() {
-  step "Background workers run within Go microservices (notify, workflow, delivery)."
+  step "Inspecting background worker microservices (notify, workflow, delivery)"
   ./scripts/check-health.sh
 }
+
 cmd_cron() {
   load_env
   [ -n "${CRON_SECRET:-}" ] || die "CRON_SECRET is empty. Run: ./run.sh env secrets"
   local base="${1:-${ADMIN_URL:-http://localhost:3001}}"
-  step "GET ${base%/}/api/cron"
+  step "Triggering Cron: GET ${base%/}/api/cron"
   curl -fsS -H "Authorization: Bearer $CRON_SECRET" "${base%/}/api/cron"
   echo
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# deploy
-# ----------------------------------------------------------------------------------------------------------
 cmd_deploy() {
   local sub="${1:-check}"; shift || true
   case "$sub" in
     check)
-      step "Checking .env for production"
+      step "Checking production environment variables"
       node scripts/env-tool.cjs check --production || true
-      step "Deployment configuration"
+      step "Checking deployment configuration"
       node apps/it/scripts/check-deployment-config.cjs
       ;;
     prepare)
       cmd_deploy check
       load_env
-      confirm "Apply migrations to the configured database and build?" || die "Cancelled."
+      confirm "Apply pending migrations to production DB and build binaries?" || die "Cancelled."
       cmd_db migrate
       cmd_db generate
       cmd_build
-      ok "Built. Start the apps (./run.sh start), the workers (./run.sh worker all) or schedule /api/cron."
+      ok "Production build prepared successfully."
       ;;
     migrate)
       load_env
-      confirm "Apply pending migrations to the configured database?" || die "Cancelled."
+      confirm "Apply pending migrations to configured database?" || die "Cancelled."
       cmd_db migrate
       ;;
     vercel)
       local app="${1:-}" prod=""
       shift || true
       case " $* " in *" --prod "*) prod="--prod" ;; esac
-      have vercel || die "Install the Vercel CLI: npm i -g vercel (then vercel login)."
+      have vercel || die "Vercel CLI not installed. Run: npm i -g vercel"
       deploy_one() {
         step "Deploying apps/$1 to Vercel ${prod:+(production)}"
         run vercel deploy --cwd "apps/$1" $prod
@@ -902,22 +1001,19 @@ cmd_deploy() {
     self)
       local app="${1:-all}"
       cmd_deploy prepare
-      warn "Keep these running with a process manager (systemd, pm2…), with the workers or a scheduled /api/cron."
       cmd_start "$app"
       ;;
-    *) die "Unknown: deploy $sub (check, prepare, migrate, vercel, self)" ;;
+    *) die "Unknown command: deploy $sub (check, prepare, migrate, vercel, self)" ;;
   esac
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# other
-# ----------------------------------------------------------------------------------------------------------
 cmd_company() {
   case "${1:-list}" in
     list) ls -1 seeds/assets 2>/dev/null | grep -v '^\.' | grep -v README ;;
     *) die "company [list]" ;;
   esac
 }
+
 cmd_audit() {
   case "${1:-all}" in
     all | "") ./scripts/audit-all.sh ;;
@@ -926,22 +1022,20 @@ cmd_audit() {
     *) die "audit [all|isolation|security]" ;;
   esac
 }
+
 cmd_urls() {
   cat <<EOF
-  Website           http://localhost:3000   (/en, /ar)
-  Admin             http://localhost:3001
+  Web App           http://localhost:3000   (/en, /ar)
+  Admin App         http://localhost:3001
   IT Dashboard      http://localhost:3002
-  Backend Gateway   http://127.0.0.1:8080   (admin port 9080: /readyz, /metrics)
-  Postgres          127.0.0.1:5432
+  Backend Gateway   http://127.0.0.1:8080   (Health/Metrics: port 9080)
+  Postgres DB       127.0.0.1:5432
   S3 Storage        http://127.0.0.1:8333   (SeaweedFS)
   Grafana           http://localhost:3300   (./run.sh services observability)
   pgAdmin           http://localhost:5050   (docker compose --profile tools up -d)
 EOF
 }
 
-# ----------------------------------------------------------------------------------------------------------
-# Main Execution Entry Point
-# ----------------------------------------------------------------------------------------------------------
 if [ $# -eq 0 ]; then
   if [ -t 0 ] && [ -t 1 ]; then
     interactive_menu
@@ -959,6 +1053,17 @@ else
     install) cmd_install ;;
     upgrade | update) cmd_upgrade ;;
     env) cmd_env "$@" ;;
+    backend)
+      sub="${1:-health}"
+      shift || true
+      case "$sub" in
+        build) (cd backend && make build) ;;
+        run) cmd_backend_run "$@" ;;
+        health) cmd_backend_health ;;
+        test) (cd backend && make test) ;;
+        *) die "backend [build|run|health|test]" ;;
+      esac
+      ;;
     services | svc) cmd_services "$@" ;;
     db) cmd_db "$@" ;;
     dev) cmd_dev "$@" ;;

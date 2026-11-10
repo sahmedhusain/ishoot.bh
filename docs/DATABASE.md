@@ -1,143 +1,134 @@
-# Database guide: start, seed, reset and manage
+# Database Guide: Schema Architecture, Migrations & Seeding
 
-The apps use PostgreSQL with Go microservice migrations across 15 schemas. Pure SQL seed fixtures and company assets live in [`seeds/`](../seeds/).
+The platform relies on PostgreSQL 17 with 15+ isolated microservice schemas. Seed fixtures, activity presets, and brand assets reside under [`seeds/`](../seeds/).
 
-Run every command from the repository root. Each step below has a `./run.sh` shortcut (`./run.sh help` lists them).
+---
 
-## 1. Start a local database
+## 1. Schema Architecture & Service Ownership
 
-The local Compose stack supplies PostgreSQL 17 on port **5432**, plus Valkey, NATS JetStream, SeaweedFS S3, and the Go backend services. Initialize `.env` before starting it:
+Each backend Go microservice operates under a dedicated PostgreSQL database role (`svc_<service>`) owning a single, isolated schema. Microservices do not perform cross-schema JOINs or queries.
 
-```bash
-./run.sh env init
-./run.sh services up
-./run.sh services status
+```mermaid
+flowchart TB
+    subgraph Cluster["PostgreSQL 17 Cluster"]
+        subgraph Schemas["Isolated Microservice Schemas"]
+            Identity["identity schema\n(svc_identity)"]
+            System["system schema\n(svc_system)"]
+            Files["files schema\n(svc_files)"]
+            Notify["notify schema\n(svc_notify)"]
+            ITSM["itsm schema\n(svc_itsm)"]
+            CMS["cms schema\n(svc_cms)"]
+            Sales["sales schema\n(svc_sales)"]
+            Finance["finance schema\n(svc_finance)"]
+            Workflow["workflow schema\n(svc_workflow)"]
+            HR["hr schema\n(svc_hr)"]
+            Inventory["inventory schema\n(svc_inventory)"]
+            Commerce["commerce schema\n(svc_commerce)"]
+            Delivery["delivery schema\n(svc_delivery)"]
+            Audit["audit schema\n(svc_audit)"]
+            Realtime["realtime schema\n(svc_realtime)"]
+        end
+    end
+
+    PgBouncer["PgBouncer Connection Pooler (:6432)"] --> Schemas
 ```
 
-The env tool generates matching database credentials and service signing keys. Set your first administrator credentials and company profile in `.env`. Go microservices own their dedicated schemas (`identity`, `system`, `files`, `notify`, `realtime`, `audit`, `itsm`, `cms`, `sales`, `finance`, `workflow`, `hr`, `inventory`, `commerce`, `delivery`) via goose migrations. Data handoff migrations transfer historical data. See [the migration runbook](backend/DATA-MIGRATION.md) for existing installations.
+---
 
-## 2. First run
+## 2. Microservice Schemas & Model Breakdown
 
-```bash
-./run.sh install
+| Schema | Primary Tables | Owning Service | Description |
+|---|---|---|---|
+| `identity` | `account`, `mfa_recovery_code`, `session_family`, `outbox` | `identity` | Staff, Customer, IT accounts, sessions, and MFA keys. |
+| `system` | `company`, `module_setting`, `integration_setting`, `site_setting` | `system` | Global company branding, module toggles, and integration credentials. |
+| `files` | `upload_object`, `outbox` | `files` | Public/private file upload metadata and storage pointers. |
+| `notify` | `message`, `attachment`, `notification`, `preference`, `outbox` | `notify` | Outbound messaging queues and user notification inboxes. |
+| `realtime` | `status`, `status_window` | `realtime` | User presence statuses, connection state, and calendar windows. |
+| `audit` | `event` | `audit` | Append-only security audit trail for all published system events. |
+| `itsm` | `ticket`, `ticket_event`, `ticket_comment`, `sla_policy` | `itsm` | Support tickets, SLA tracking, comments, and attachments. |
+| `cms` | `page`, `article`, `review`, `faq`, `statistic`, `snapshot`, `outbox` | `cms` | Block-based website pages, articles, reviews, and snapshots. |
+| `sales` | `contact`, `deal`, `inquiry`, `quotation`, `campaign`, `outbox` | `sales` | CRM contacts, deal pipelines, quotations, and marketing campaigns. |
+| `finance` | `invoice`, `invoice_line`, `payment`, `expense`, `settlement`, `outbox` | `finance` | Invoices, payments, expense claims, and bank settlements. |
+| `workflow` | `approval_request`, `signature`, `official_letter`, `task`, `outbox` | `workflow` | Multi-step approvals, client digital signatures, and tasks. |
+| `hr` | `department`, `employee`, `leave_request`, `attendance`, `payroll_run` | `hr` | Departments, employee records, leave, attendance, and payroll. |
+| `inventory` | `warehouse`, `location`, `product`, `variant`, `stock_level`, `movement` | `inventory` | Multi-warehouse inventory, stock ledger, variants, and counts. |
+| `commerce` | `customer`, `customer_address`, `store_setting`, `order`, `register` | `commerce` | Customers, sales orders, store configuration, and POS shifts. |
+| `delivery` | `zone`, `slot`, `vehicle`, `route_sheet`, `shipment`, `cod_settlement` | `delivery` | Delivery zones, fleet vehicles, route sheets, and shipments. |
+
+---
+
+## 3. Database Roles & Connection Pooling
+
+### Database Roles (`tools/db-roles`)
+Microservice database roles (`svc_<service>`) are generated and managed by `tools/db-roles`. Each role is granted `ALL PRIVILEGES` exclusively on its own schema.
+
+### Connection Pooling (PgBouncer)
+Application queries connect through **PgBouncer** in transaction pooling mode on port `6432` (`DATABASE_URL`). Goose schema migrations connect directly to PostgreSQL on port `5432` (`DATABASE_DIRECT_URL`).
+
+---
+
+## 4. Seeding & Preset System
+
+Pure SQL seeds and company brand assets reside in `seeds/`:
+
+```
+seeds/
+├── sql/
+│   ├── seed_ishoot.sql     # Full SQL seed for iShoot Cinema
+│   ├── seed_northwind.sql  # Full SQL seed for Northwind Studio
+│   ├── seed_bootstrap.sql  # Bootstrap seed for blank wizard setup
+│   └── presets/            # Activity presets (commerce, services, food, etc.)
+└── assets/
+    ├── ishoot/             # iShoot brand artwork, logos, fonts
+    └── demo/               # Northwind Studio brand artwork
 ```
 
-```bash
-./run.sh db reset
-```
+### Seeding Commands
 
-`db:reset` applies every migration to an empty database, creates the storage buckets, seeds the demo company from `COMPANY_PROFILE` and checks the integrity rules. Then start the apps:
+| Task | Command | Description |
+|---|---|---|
+| **Seed Default Demo** | `./run.sh db seed` | Loads iShoot Cinema demo data (`seeds/sql/seed_ishoot.sql`). |
+| **Seed Neutral Demo** | `./run.sh db seed demo` | Loads Northwind Studio demo data (`seeds/sql/seed_northwind.sql`). |
+| **Apply Activity Preset** | `./run.sh db preset commerce` | Overrides activity settings with `preset_commerce.sql`. |
+| **Clean Bootstrap** | `./run.sh db bootstrap` | Creates default roles, permissions, and initial admin without demo data. |
+| **Verify Seed Dates** | `node scripts/verify-seed-dates.js` | Asserts transaction dates span the past 6 months to 1 month ahead. |
 
-```bash
-./run.sh dev
-```
+---
 
-Admin: http://localhost:3001, sign in with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`. IT: http://localhost:3002. Website: http://localhost:3000.
+## 5. Schema Migration Workflow
 
-## 3. Reset to a fresh database
+1. **Add Migration File**: Create SQL migration under `backend/services/<service>/migrations/`:
+   ```sql
+   -- +goose Up
+   CREATE TABLE sales.deal_notes (...);
 
-`db reset` refuses to run unless `DATABASE_URL` points at this machine (`localhost`, `127.0.0.1` or `::1`). It also refuses when `NODE_ENV=production`, and it asks you to type `reset` before deleting anything. Add `--yes` to skip the prompt. Seed, preset and bootstrap SQL runs with `ON_ERROR_STOP=1`, so the command stops at the first SQL error and the transaction rolls back instead of continuing with an empty database.
-
-| Command                          | Result                                                                                                                        | Time   |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `./run.sh db reset`              | Full iShoot Cinema demo fixtures: invoices across aging buckets, deals, employees, payroll, assets, tickets, website content   | ~5 s   |
-| `./run.sh db reset --profile demo` | Northwind Studio demo fixtures with pure SQL seed                                                                           | ~5 s   |
-| `./run.sh db reset --empty`      | Roles, permissions and super admin only. The admin opens the **first-run setup wizard**.                                      | ~2 s   |
-| `./run.sh db preset <name>`      | Apply activity preset SQL override (commerce, services, products, food, agency, all)                                         | ~1 s   |
-
-Each reset:
-
-1. drops every table and re-applies all microservice migrations (`./run.sh db migrate`);
-2. resets file storage objects and company assets;
-3. seeds pure SQL (`./run.sh db seed`) or bootstraps (`./run.sh db bootstrap`);
-4. verifies realistic date arithmetic (`node scripts/verify-seed-dates.js`).
-
-Every demo account uses `SUPER_ADMIN_PASSWORD` (`Admin12345678!`). The demo staff emails are listed in `seeds/demo-staff.json` (for example `finance@example.com`).
-
-## 4. Seeding
-
-| Command                                                                | Use it for                                                                                                                                                                                         |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `./run.sh db seed`                                                     | Seed iShoot Cinema demo data using pure SQL (`seeds/sql/seed_ishoot.sql`).                                                                                                                         |
-| `./run.sh db seed demo`                                                | Seed Northwind Studio demo data using pure SQL (`seeds/sql/seed_northwind.sql`).                                                                                                                   |
-| `./run.sh db preset <preset>`                                          | Apply activity preset SQL override (`seeds/sql/presets/preset_<name>.sql`).                                                                                                                       |
-| `./run.sh db bootstrap`                                                | A clean installation: roles, permissions, default modules and first admin. Starts blank for first-run setup wizard (`seeds/sql/seed_bootstrap.sql`).                                               |
-
-Where the seed data lives:
-
-| File / Folder                    | Contents                                                                                                                          |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `seeds/sql/seed_ishoot.sql`      | Pure SQL seed for iShoot Cinema Production S.P.C. (all 15 schemas, diverse aging buckets, deals, inventory, HR)                  |
-| `seeds/sql/seed_northwind.sql`   | Pure SQL seed for Northwind Studio W.L.L. (neutral demo company)                                                                  |
-| `seeds/sql/seed_bootstrap.sql`   | Clean minimal installation SQL seed for setup wizard                                                                              |
-| `seeds/sql/presets/`             | Activity preset SQL files (`preset_all.sql`, `preset_commerce.sql`, `preset_services.sql`, etc.)                                  |
-| `seeds/assets/ishoot/`           | Preserved iShoot brand assets, logos, fonts, artwork, and raw design source files (`.ai`, `.pdf`, `.zip`)                         |
-| `seeds/assets/demo/`             | Neutral Northwind Studio brand assets, logos and icons                                                                            |
-| `seeds/demo-staff.json`          | Fictional staff, their roles and emails                                                                                           |
-| `seeds/demo-clients.json`        | Fictional client companies                                                                                                        |
-
-All demo people and companies are fictional and use `example.com` or `.example` addresses. Keep it that way: `./run.sh test brand` and the unit tests fail if a profile's name, domain, colours or fonts appear in the apps.
-
-## 5. Changing the schema
-
-1. For Go microservices: add or edit goose SQL migrations under `backend/services/<name>/migrations/` and run `sqlc generate`.
-2. For legacy handoff schema: edit `packages/database/LegacyDB/schema.LegacyDB` and create a migration:
-   ```bash
-   ./run.sh db new describe_the_change
+   -- +goose Down
+   DROP TABLE sales.deal_notes;
    ```
-3. Apply migrations:
+2. **Generate Code**: Update sqlc queries and models:
+   ```bash
+   sqlc generate
+   ```
+3. **Apply Migrations**:
    ```bash
    ./run.sh db migrate
    ```
-4. If server action inputs changed, regenerate their contracts:
-   ```bash
-   node scripts/generate-action-schemas.cjs
-   ```
 
-Never edit a migration that has already been applied anywhere; add a new one.
+---
 
-| Command                  | What it does                                                                                        |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| `./run.sh db migrate`    | Apply pending migrations (safe for every environment)                                               |
-| `./run.sh db status`     | Show applied and pending migrations                                                                 |
-| `./run.sh db studio`     | Browse and edit data at http://localhost:5555                                                       |
-| `./run.sh db new <name>` | Generate a new migration skeleton                                                                   |
-| `./run.sh db psql`       | A `psql` session on `DATABASE_DIRECT_URL` (uses the Compose Postgres container when `psql` is not installed) |
+## 6. Database Reset & Backup Procedures
 
-## 6. Production
-
-- Run `./run.sh db migrate`, then `./run.sh db bootstrap` once with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`. Leave `COMPANY_PROFILE` empty and finish the setup wizard in the admin, or set it to a reviewed profile.
-- `db seed` and `db reset` refuse to run in production.
-- Create the storage buckets `public-assets` (public: logos, icons, fonts, website media) and `private-assets` (private: everything else), with a 10 MiB limit. Allowed types: PDF, PNG, JPEG, WebP, plus WOFF2 for `public-assets`.
-- Back up the database and both buckets together; uploaded file URLs are stored in the database.
-
-### Backups and restores
-
+### Resetting Local Database
 ```bash
-./run.sh db backup
+./run.sh db reset
 ```
+`db reset` drops all microservice schemas, re-runs Goose migrations, resets SeaweedFS S3 storage buckets, seeds demo data, and verifies seed date ranges.
 
-writes a `pg_dump` custom-format file to `backups/<database>-<time>.dump` (ignored by git), or to the path given. `./run.sh db restore <file>` restores one into the configured database after a confirmation; it refuses a remote database unless `--force` is added. Both use the installed `pg_dump`/`pg_restore`, the local Compose Postgres container, or a throwaway `postgres:17-alpine` container, in that order.
+### Backup & Restore Commands
+```bash
+# Dump custom-format PostgreSQL backup
+./run.sh db backup
 
-## 7. Test databases
-
-Automated tests never use your development database. They create their own databases whose names end in `_test`, on the same server:
-
-| Command                                                              | Database                                                                         |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `./run.sh test e2e`                                                  | Runs Playwright against isolated `_test` databases                               |
-| `node apps/admin/tests/e2e/helpers/prepare-db.cjs <seeded\|blank\|bare> <name_test>` | Any disposable database                                          |
-| `./run.sh db test-list` / `./run.sh db test-drop <name_test\|--all>` | List or drop disposable databases (only names ending in `_test`)                 |
-
-See [TESTING.md](TESTING.md).
-
-## Troubleshooting
-
-| Symptom                                         | Fix                                                                                                         |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `P1001: Can't reach database server`            | Start the stack (`./run.sh services up`) and check the port in `DATABASE_URL`                               |
-| Pages fail after pulling new work               | Apply the new migrations: `./run.sh db migrate` (`./run.sh doctor` shows how many are pending)              |
-| `Demo seed requires an empty business database` | Use `./run.sh db reset` instead of `./run.sh db seed`                                                       |
-| `Too many database connections`                 | Stop extra dev or test servers, or add `?connection_limit=5` to `DATABASE_URL`                              |
-| Logos or images missing after a reset           | Files and database must be reset together. Use `db reset`, which does both, rather than resetting only one. |
-| The admin opens `/setup`                        | The company has not finished setup. Complete the wizard, or reset with a profile.                           |
+# Restore custom-format PostgreSQL backup
+./run.sh db restore backups/platform_db-2026-11-02.dump
+```

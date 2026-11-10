@@ -2,7 +2,7 @@
 set -e
 
 echo "=================================================="
-echo "🚀 ishoot.bh – Full End-to-End Audit & Verification"
+echo "🚀 Business Platform – Full End-to-End Audit & Verification"
 echo "=================================================="
 
 echo ""

@@ -1,62 +1,102 @@
-# IT dashboard (`apps/it`)
+# IT Operational Dashboard (`apps/it`)
 
-The IT department's operational dashboard (see [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)). Pages communicate with the Go backend microservices through the API gateway. IT staff sign in with **IT accounts**, an isolated authentication realm in the `identity` service with mandatory TOTP MFA.
+The dedicated operational management dashboard for IT administrators and operations engineers. Built with Next.js 16 (App Router), React 19, Tailwind CSS, and strict role-based access control.
 
-## Pages & Capabilities
+---
 
-| Page | Permission (`contracts/catalog/it-access.json`) | Backend Service |
-|---|---|---|
-| `/` | `tickets:read` | `itsm` `GET /v1/itsm/desk/stats` |
-| `/tickets` | `tickets:read` (`edit`, `assign` to act) | `itsm` `/v1/itsm/desk/tickets` |
-| `/sla` | `ticket_settings:read` (`edit` to change) | `itsm` `/v1/itsm/desk/sla` |
-| `/login` | Public authentication | `identity` `/v1/identity/it/...` |
-| `/company` | `company:read` (`edit` to save) | `system` `/v1/system/desk/company/...` |
-| `/setup` | `setup:execute` | `system` `/v1/system/desk/company/setup` |
-| `/modules` | `modules:read` (`edit` to change) | `system` `/v1/system/desk/modules` |
-| `/integrations` | `integrations:read` | `system` `/v1/system/desk/integrations` |
-| `/site` | `domains:read`, `site_code:read` | `system` `/v1/system/desk/site/...` |
-| `/notifications` | `notifications:read` (`execute` to act) | `notify` `/v1/notify/desk/...` |
-| `/audit` | `audit:read` | `audit` `/v1/audit/desk/...` |
-| `/it-accounts` | `it_accounts:read` (`create`, `edit` to act) | `identity` `/v1/identity/desk/it-accounts` |
-| `/staff-accounts` | `staff_access:read` (`edit` to act) | `identity` `/v1/identity/desk/staff/...` |
-| `/staff-roles` | `staff_access:read` (`edit` to act) | `identity` `/v1/identity/desk/staff/roles` |
-| `/sessions` | `sessions:read` (`delete` to revoke) | `identity` `/v1/identity/desk/sessions` |
-| `/system-health` | `system_health:read` | `system` `/v1/system/desk/operations/health` |
-| `/database` | `database:read` | `system` `/v1/system/desk/operations/database` |
-| `/logs` | `logs:read` | `system` `/v1/system/desk/operations/logs` |
-| `/jobs` | `jobs:read` | `system` `/v1/system/desk/operations/jobs` |
-| `/api-keys` | `api_keys:read` | `system` `/v1/system/desk/operations/api-keys` |
+## 1. Overview & Architecture
 
-## Sign-in and Sessions
+`apps/it` allows IT teams to manage system infrastructure, company configurations, active sessions, staff access rights, integration keys, support tickets, and system logs. IT staff sign in using **IT accounts**, an isolated authentication realm in the `identity` service with mandatory TOTP Multi-Factor Authentication (MFA).
 
-1. The sign-in action sends the e-mail and password to identity with this app's service token (`IT_SERVICE_KEY`). Identity returns `mfa_required`, prompting for TOTP code or recovery code.
-2. The access token, refresh token, and account e-mail are kept in httpOnly, `SameSite=Strict` cookies (`Secure` in production).
-3. The proxy middleware renews the access token shortly before expiry (`IT_REFRESH_LEEWAY_SECONDS`).
-4. Gateway verifies tokens live against the `identity` service JWKS.
+```mermaid
+flowchart TB
+    subgraph Client["IT Engineer / Administrator"]
+        Browser["Web Browser (IT Dashboard)"]
+    end
 
-## Running
+    subgraph ITDashboard["Next.js 16 IT Dashboard (apps/it)"]
+        Middleware["Session & Token Renewal Proxy"]
+        Views["Desk Views & Administration Pages"]
+        Contracts["Typed API Contracts (contracts/api.ts)"]
+    end
+
+    subgraph Backend["Go Services via Gateway"]
+        Gateway["API Gateway (:8080)"]
+        Identity["Identity Service (IT Realm & JWKS)"]
+        ITSM["ITSM Service (Tickets & SLAs)"]
+        System["System Service (Config & Keys)"]
+        Audit["Audit Service (Event Logs)"]
+        Notify["Notify Service (Email & Push Queue)"]
+    end
+
+    Browser --> Middleware
+    Middleware --> Views
+    Views --> Contracts
+    Contracts --> Gateway
+    Gateway --> Identity
+    Gateway --> ITSM
+    Gateway --> System
+    Gateway --> Audit
+    Gateway --> Notify
+```
+
+---
+
+## 2. Dashboard Pages & Access Control
+
+| Route Path | Permission Key (`contracts/catalog/it-access.json`) | Backend Service Endpoint | Feature Summary |
+|---|---|---|---|
+| `/` | `tickets:read` | `itsm` `GET /v1/itsm/desk/stats` | Operational overview and active ticket metrics. |
+| `/tickets` | `tickets:read` (`edit`, `assign`) | `itsm` `/v1/itsm/desk/tickets` | Support ticket queue, comments, and lifecycle assignments. |
+| `/sla` | `ticket_settings:read` (`edit`) | `itsm` `/v1/itsm/desk/sla` | Service Level Agreement response/resolution policies. |
+| `/company` | `company:read` (`edit`) | `system` `/v1/system/desk/company` | Main company profiles, registration, and addresses. |
+| `/setup` | `setup:execute` | `system` `/v1/system/desk/company/setup` | First-run system wizard and bootstrap execution. |
+| `/modules` | `modules:read` (`edit`) | `system` `/v1/system/desk/modules` | Global module activation and feature toggle management. |
+| `/integrations` | `integrations:read` (`edit`) | `system` `/v1/system/desk/integrations` | Encrypted integration credentials for gateways and APIs. |
+| `/site` | `domains:read`, `site_code:read` | `system` `/v1/system/desk/site` | Public domain setup and site-wide analytics scripts. |
+| `/notifications` | `notifications:read` (`execute`) | `notify` `/v1/notify/desk` | Queue management for email, SMS, and WhatsApp dispatch. |
+| `/audit` | `audit:read` | `audit` `/v1/audit/desk` | Searchable append-only audit trail for system events. |
+| `/it-accounts` | `it_accounts:read` (`create`, `edit`) | `identity` `/v1/identity/desk/it-accounts` | IT realm account creation, role assignments, and MFA resets. |
+| `/staff-accounts` | `staff_access:read` (`edit`) | `identity` `/v1/identity/desk/staff` | Staff account directory and access permissions. |
+| `/staff-roles` | `staff_access:read` (`edit`) | `identity` `/v1/identity/desk/staff/roles` | System role templates, permission matrices, and data scopes. |
+| `/sessions` | `sessions:read` (`delete`) | `identity` `/v1/identity/desk/sessions` | Live session inspection and session family revocation. |
+| `/system-health` | `system_health:read` | `system` `/v1/system/desk/operations/health` | Container readiness, database connections, and memory metrics. |
+| `/database` | `database:read` | `system` `/v1/system/desk/operations/database` | Schema migration status and table size metrics. |
+| `/logs` | `logs:read` | `system` `/v1/system/desk/operations/logs` | Real-time system log stream and error filtering. |
+| `/jobs` | `jobs:read` | `system` `/v1/system/desk/operations/jobs` | River background worker job queues and failure retries. |
+| `/api-keys` | `api_keys:read` | `system` `/v1/system/desk/operations/api-keys` | Microservice API keys and internal service tokens. |
+
+---
+
+## 3. Authentication & Session Security
+
+1. **Sign-In Flow**: IT sign-in posts credentials to `/v1/identity/it/login` using the application's service key (`IT_SERVICE_KEY`). Identity validates credentials and prompts for a TOTP code or single-use recovery code.
+2. **Cookie Security**: Access and refresh tokens are stored in `httpOnly`, `SameSite=Strict` cookies (`Secure` in production environments).
+3. **Automatic Renewal**: Middleware automatically refreshes access tokens before expiration (`IT_REFRESH_LEEWAY_SECONDS`).
+4. **JWKS Verification**: The API Gateway verifies tokens against identity's live Ed25519 JWKS endpoint.
+
+---
+
+## 4. Development & Testing Commands
 
 ```bash
-## Development, Checks & Testing
-
-```bash
-# Standalone run (port 3002)
+# Start standalone IT dashboard server on port 3002
 npm run dev
 
-# Or via run.sh
+# Or start via root run script
 ./run.sh dev it
 
-# Type check
+# Perform TypeScript type checking
 npm run type-check
 
-# Vitest unit tests
+# Run Vitest unit tests
 npm test
 
-# Playwright journey covering IT login, ticket workflows, modules, staff access management, and session revocation
+# Run Playwright E2E journey covering IT login, ticket management, and session revocation
 npm run test:e2e
 
-# Domain-specific check suites
+# Run domain-specific verification suites
 npm run check:support      # Support claims and HR support checks
-npm run check:security     # Security action boundaries audit
-npm run check:deployment   # Deployment environment configuration validation
+npm run check:security     # Security boundaries and access checks
+npm run check:deployment   # Deployment environment configuration checks
 ```
