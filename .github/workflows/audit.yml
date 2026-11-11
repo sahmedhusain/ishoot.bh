@@ -52,7 +52,17 @@ jobs:
           npm --prefix apps/web install
 
       - name: Pillar 1 – Seed & Preset Parity Verification
+        env:
+          SUPER_ADMIN_EMAIL: seed@example.test
+          SUPER_ADMIN_PASSWORD: disposable-seed-password
         run: |
+          # verify-seed-dates.js reads finance.invoice, so the database it inspects
+          # has to exist first. This pillar previously ran before any infra was up
+          # and failed with "Set DATABASE_DIRECT_URL or DATABASE_URL in .env".
+          # env-tool init writes .env from .env.example and derives DATABASE_URL /
+          # DATABASE_DIRECT_URL for the local stack (also needed by docker compose).
+          node scripts/env-tool.cjs init
+          ./run.sh db reset --demo all --yes
           node scripts/verify-seed-dates.js
 
       - name: Pillar 2 – Codebase & Directory Isolation Scan
