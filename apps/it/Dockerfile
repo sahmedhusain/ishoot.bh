@@ -1,7 +1,5 @@
 # syntax=docker/dockerfile:1.7
 # Dockerfile for Platform IT Support App (apps/it)
-# Usage: docker build -f apps/it/Dockerfile -t platform/it:dev .
-
 ARG NODE_IMAGE=node:22-alpine
 
 FROM ${NODE_IMAGE} AS base
@@ -28,7 +26,7 @@ ENV NODE_ENV=production
 
 RUN npm --prefix apps/it run build
 
-FROM base AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -36,8 +34,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3002
 ENV HOSTNAME="0.0.0.0"
 
-COPY --from=builder /app ./
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# outputFileTracingRoot is the repo root, so standalone nests the app one level down.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/it/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/it/.next/static ./apps/it/.next/static
+
+USER nextjs
 
 EXPOSE 3002
 
-CMD ["npm", "--prefix", "apps/it", "run", "start"]
+CMD ["node", "apps/it/server.js"]

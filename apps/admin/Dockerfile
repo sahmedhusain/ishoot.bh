@@ -26,7 +26,7 @@ ENV NODE_ENV=production
 
 RUN npm --prefix apps/admin run build
 
-FROM base AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -34,10 +34,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/admin ./apps/admin
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# outputFileTracingRoot is the repo root, so standalone nests the app one level down.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
+
+USER nextjs
 
 EXPOSE 3001
 
-CMD ["npm", "--prefix", "apps/admin", "run", "start"]
+CMD ["node", "apps/admin/server.js"]

@@ -16,6 +16,8 @@ const securityHeaders = [
 const privatePages = "cart|checkout|account|pay|track|unsubscribe";
 
 const nextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: path.resolve(__dirname, '../../'),
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,

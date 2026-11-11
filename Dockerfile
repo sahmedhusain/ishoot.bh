@@ -29,15 +29,24 @@ ENV NODE_ENV=production
 
 RUN npm --prefix apps/${APP} run build
 
-FROM base AS runner
+FROM ${NODE_IMAGE} AS runner
 ARG APP=web
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
+# The standalone server reads PORT; each compose service overrides it.
+ENV PORT=3000
 
-COPY --from=builder /app ./
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# outputFileTracingRoot is the repo root, so standalone nests the app one level down.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/${APP}/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/${APP}/.next/static ./apps/${APP}/.next/static
+
+USER nextjs
 
 EXPOSE 3000 3001 3002
 
-CMD ["sh", "-c", "npm --prefix apps/${APP} run start"]
+CMD ["sh", "-c", "exec node apps/${APP}/server.js"]

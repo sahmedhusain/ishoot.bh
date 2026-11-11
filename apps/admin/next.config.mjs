@@ -17,6 +17,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: path.resolve(__dirname, '../../'),
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,

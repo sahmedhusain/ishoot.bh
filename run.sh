@@ -600,11 +600,12 @@ ${BOLD}Docker Infrastructure${RESET}
   services observability           Spin up Grafana, Prometheus, Loki & Tempo (http://localhost:3300)
 
 ${BOLD}Database Engine & Migrations${RESET}
-  db migrate                       Run Goose migrations across all 15 microservice schemas
+  db migrate                       Run Goose migrations across all 15 stateful service schemas
   db status                        Inspect schema migration state & table counts
   db new <service> <name>          Generate new SQL migration file for target service
   db generate                      Regenerate Go model code (sqlc) & frontend contract types
   db seed [profile]                Seed database using specific preset (demo, northwind, ishoot)
+  db preset <name>                 Apply an activity preset on top of a seed (all, commerce, services, media)
   db query "<SQL>"                 Execute direct SQL query on active database
   db psql                          Launch interactive psql terminal
   db backup [file]                 Dump database to backups/
@@ -909,7 +910,7 @@ cmd_db() {
       node scripts/db-reset.cjs ${args[@]+"${args[@]}"}
       ;;
     migrate)
-      step "Applying Goose DB migrations across all 15 microservice schemas"
+      step "Applying Goose DB migrations across all 15 stateful service schemas"
       local svc
       for svc in "${SERVICES_LIST[@]}"; do
         step "Migrating schema: $svc"
@@ -919,7 +920,7 @@ cmd_db() {
           (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
         fi
       done
-      ok "All 15 backend microservice schemas migrated successfully."
+      ok "All 15 stateful service schemas migrated successfully."
       ;;
     status)
       step "Checking PostgreSQL microservice schema table counts"
@@ -969,6 +970,15 @@ SQL
       run_sql_script "$seed_file"
       node scripts/env-tool.cjs set COMPANY_PROFILE "${target_profile}"
       ok "Seeded database from $seed_file."
+      ;;
+    preset)
+      local preset="${1:-}"
+      [ -n "$preset" ] || die "Usage: ./run.sh db preset <name> (see seeds/sql/presets/)"
+      local preset_file="seeds/sql/presets/preset_${preset}.sql"
+      [ -f "$preset_file" ] || die "Unknown preset \"$preset\"; available: $(ls -1 seeds/sql/presets/preset_*.sql 2>/dev/null | sed -E 's#.*preset_(.*)\.sql#\1#' | paste -sd, - | sed 's/,/, /g')"
+      step "Applying activity preset ($preset_file)"
+      run_sql_script "$preset_file"
+      ok "Applied activity preset: $preset."
       ;;
     bootstrap)
       step "Bootstrapping minimal clean database"

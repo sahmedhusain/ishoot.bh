@@ -1,0 +1,20 @@
+# Build artifacts must never come from the host: `COPY . .` runs after `npm ci`
+# and would otherwise overwrite fresh installs and ship stale bundles.
+**/node_modules
+**/.next
+**/.next-*
+**/.turbo
+**/dist
+**/coverage
+backend/bin
+
+.git
+.github
+.idea
+.local
+backups
+seeds/assets
+graphify-out
+tmp
+*.dump
+*.log

@@ -18,6 +18,7 @@ import (
 	"platform.local/backend/services/gateway/internal/routes"
 	"platform.local/backend/services/gateway/settings"
 )
+const migrateCommand = "migrate"
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "gateway:", err)
@@ -27,6 +28,9 @@ func main() {
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if len(os.Args) > 1 && os.Args[1] == migrateCommand {
+		return runMigrate()
+	}
 	var cfg settings.Config
 	if err := config.Load(&cfg); err != nil {
 		return err
@@ -78,4 +82,13 @@ func run() error {
 	publicServer, adminServer := httpx.Servers(cfg.Common, public, httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("gateway starting", "routes", len(table.Routes))
 	return httpx.Run(ctx, cfg.Common, logger, publicServer, adminServer)
+}
+
+// The gateway has no tables of its own - it proxies to the services that do.
+// `./run.sh db migrate` and Helm hooks invoke every service binary with
+// `migrate`, so accept the command and succeed without touching gateway-only
+// config (REDIS_URL, GATEWAY_ROUTES_FILE), which is not needed to migrate.
+func runMigrate() error {
+	fmt.Println("gateway: no migrations (stateless proxy; tables live in the proxied services)")
+	return nil
 }

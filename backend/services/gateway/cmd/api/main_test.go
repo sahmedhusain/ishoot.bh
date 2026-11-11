@@ -43,3 +43,15 @@ func TestServiceName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "gateway", cfg.ServiceName)
 }
+
+// `./run.sh db migrate` runs every service binary with the migrate command, so
+// the gateway must accept it without any gateway-only config (REDIS_URL,
+// GATEWAY_ROUTES_FILE) and without a DB connection - it owns no schema.
+func TestMigrateCommandNeedsNoGatewayConfig(t *testing.T) {
+	t.Setenv("DATABASE_URL", "")
+	t.Setenv("DATABASE_DIRECT_URL", "")
+	origArgs := os.Args
+	t.Cleanup(func() { os.Args = origArgs })
+	os.Args = []string{"gateway", migrateCommand}
+	require.NoError(t, run())
+}
