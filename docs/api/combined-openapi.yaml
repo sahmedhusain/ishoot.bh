@@ -22,44 +22,44 @@ tags:
     description: desk
   - name: CMS
     description: CMS micro-service endpoints
-  - name: reviews
-    description: reviews
-  - name: snapshots
-    description: snapshots
-  - name: pages
-    description: pages
   - name: articles
     description: articles
   - name: faqs
     description: faqs
+  - name: pages
+    description: pages
+  - name: reviews
+    description: reviews
+  - name: snapshots
+    description: snapshots
   - name: statistics
     description: statistics
   - name: Commerce
     description: Commerce micro-service endpoints
-  - name: customers
-    description: customers
   - name: coupons
     description: coupons
+  - name: customers
+    description: customers
   - name: orders
     description: orders
   - name: Delivery
     description: Delivery micro-service endpoints
-  - name: shipments
-    description: shipments
-  - name: settings
-    description: settings
-  - name: zones
-    description: zones
-  - name: vehicles
-    description: vehicles
   - name: routes
     description: routes
+  - name: settings
+    description: settings
+  - name: shipments
+    description: shipments
+  - name: vehicles
+    description: vehicles
+  - name: zones
+    description: zones
   - name: Files
     description: Files micro-service endpoints
-  - name: uploads
-    description: uploads
   - name: files
     description: files
+  - name: uploads
+    description: uploads
   - name: Finance
     description: Finance micro-service endpoints
   - name: expenses
@@ -70,30 +70,32 @@ tags:
     description: payments
   - name: settlements
     description: settlements
+  - name: Gateway
+    description: Gateway micro-service endpoints
   - name: HR
     description: HR micro-service endpoints
-  - name: payroll
-    description: payroll
   - name: departments
     description: departments
   - name: employees
     description: employees
   - name: leave
     description: leave
+  - name: payroll
+    description: payroll
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
     description: Inventory micro-service endpoints
-  - name: warehouses
-    description: warehouses
   - name: categories
     description: categories
+  - name: counts
+    description: counts
   - name: products
     description: products
   - name: stock
     description: stock
-  - name: counts
-    description: counts
+  - name: warehouses
+    description: warehouses
   - name: ITSM
     description: ITSM micro-service endpoints
   - name: requests
@@ -110,26 +112,26 @@ tags:
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
-  - name: inquiries
-    description: inquiries
-  - name: quotations
-    description: quotations
   - name: contacts
     description: contacts
   - name: deals
     description: deals
+  - name: inquiries
+    description: inquiries
+  - name: quotations
+    description: quotations
   - name: System
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
+  - name: approvals
+    description: approvals
+  - name: calendar
+    description: calendar
   - name: signatures
     description: signatures
   - name: tasks
     description: tasks
-  - name: calendar
-    description: calendar
-  - name: approvals
-    description: approvals
 paths:
   /.well-known/jwks.json:
     get:
@@ -1100,6 +1102,59 @@ paths:
         - Commerce
         - Web
         - Admin
+  /v1/commerce/customers/{id}/erase:
+    post:
+      description: |
+        Anonymizes the customer record, deletes saved addresses, and removes name, e-mail, phone, address and free-text notes from the customer's orders. Orders, line items, totals and payments are kept for accounting. Safe to repeat.
+      operationId: eraseCustomer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Personal data erased
+        "404":
+          description: Unknown customer
+      security:
+        - serviceToken: []
+      summary: Erase a customer's personal data (right to erasure)
+      tags:
+        - customers
+        - Commerce
+        - Web
+        - Admin
+  /v1/commerce/customers/erase-by-email:
+    post:
+      description: |
+        Erases every customer registered with the address and the guest orders placed with it, as eraseCustomer does, and tells delivery and sales to remove their copies. Always answers 204, known address or not.
+      operationId: eraseCustomerByEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  format: email
+                  maxLength: 254
+                  type: string
+              required:
+                - email
+              type: object
+        required: true
+      responses:
+        "204":
+          description: Erasure done (or nothing was held)
+      security:
+        - serviceToken: []
+      summary: Erase everything held for an e-mail address (right to erasure)
+      tags:
+        - customers
+        - Commerce
+        - Web
+        - Admin
   /v1/commerce/orders:
     get:
       description: get operation for /v1/commerce/orders
@@ -1531,6 +1586,14 @@ paths:
         "200":
           content:
             '*/*':
+              schema:
+                format: binary
+                type: string
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+            application/pdf:
               schema:
                 format: binary
                 type: string
@@ -3306,6 +3369,9 @@ paths:
                   minLength: 12
                   type: string
                   writeOnly: true
+                reportingTo:
+                  nullable: true
+                  type: string
                 role:
                   $ref: '#/components/schemas/ITRole'
               required:
@@ -3357,6 +3423,9 @@ paths:
               properties:
                 active:
                   type: boolean
+                reportingTo:
+                  nullable: true
+                  type: string
                 role:
                   $ref: '#/components/schemas/ITRole'
               required:
@@ -9887,7 +9956,6 @@ components:
         - fileSize
         - mimeType
         - isPublic
-        - expiresAt
         - createdAt
       type: object
     ITAccount:
@@ -9909,6 +9977,13 @@ components:
           type: string
         mfaEnabled:
           type: boolean
+        reportingTo:
+          nullable: true
+          type: string
+        reportingToEmail:
+          format: email
+          nullable: true
+          type: string
         roles:
           items:
             $ref: '#/components/schemas/ITRole'

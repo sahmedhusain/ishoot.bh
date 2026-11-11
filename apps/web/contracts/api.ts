@@ -472,6 +472,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/commerce/customers/{id}/erase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Erase a customer's personal data (right to erasure)
+         * @description Anonymizes the customer record, deletes saved addresses, and removes name, e-mail, phone, address and free-text notes from the customer's orders. Orders, line items, totals and payments are kept for accounting. Safe to repeat.
+         */
+        post: operations["eraseCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/commerce/customers/erase-by-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Erase everything held for an e-mail address (right to erasure)
+         * @description Erases every customer registered with the address and the guest orders placed with it, as eraseCustomer does, and tells delivery and sales to remove their copies. Always answers 204, known address or not.
+         */
+        post: operations["eraseCustomerByEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/commerce/orders": {
         parameters: {
             query?: never;
@@ -4589,7 +4629,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
-            expiresAt: string;
+            expiresAt?: string;
             fileName: string;
             /** Format: int64 */
             fileSize: number;
@@ -4609,6 +4649,9 @@ export interface components {
             /** Format: date-time */
             lastLoginAt: string | null;
             mfaEnabled: boolean;
+            reportingTo?: string | null;
+            /** Format: email */
+            reportingToEmail?: string | null;
             roles: components["schemas"]["ITRole"][];
         };
         ITProvisioning: {
@@ -6741,6 +6784,58 @@ export interface operations {
             };
         };
     };
+    eraseCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Personal data erased */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown customer */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    eraseCustomerByEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Erasure done (or nothing was held) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listOrders: {
         parameters: {
             query?: never;
@@ -7151,6 +7246,8 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                    "application/octet-stream": string;
+                    "application/pdf": string;
                 };
             };
             default: components["responses"]["Problem"];
@@ -8496,6 +8593,7 @@ export interface operations {
                     /** Format: email */
                     email: string;
                     password: string;
+                    reportingTo?: string | null;
                     role: components["schemas"]["ITRole"];
                 };
             };
@@ -8526,6 +8624,7 @@ export interface operations {
             content: {
                 "application/json": {
                     active: boolean;
+                    reportingTo?: string | null;
                     role: components["schemas"]["ITRole"];
                 };
             };

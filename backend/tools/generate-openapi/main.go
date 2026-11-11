@@ -193,7 +193,15 @@ func main() {
 				combined.Components.SecuritySchemes[k] = v
 			}
 		}
-		for pathStr, pathItem := range doc.Paths {
+		// Iterate paths in sorted order: combined.Tags is appended to as each path is
+		// visited, so ranging the map directly makes the output order random.
+		pathStrings := make([]string, 0, len(doc.Paths))
+		for pathStr := range doc.Paths {
+			pathStrings = append(pathStrings, pathStr)
+		}
+		sort.Strings(pathStrings)
+		for _, pathStr := range pathStrings {
+			pathItem := doc.Paths[pathStr]
 			var pathLevelParams []interface{}
 			if rawParams, ok := pathItem["parameters"].([]interface{}); ok {
 				pathLevelParams = rawParams
