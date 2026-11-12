@@ -40,9 +40,12 @@ function mapUser(u: any): Profile {
   };
 }
 
+import { serviceToken } from "../api/service-token";
+
 export async function getAllUsers(): Promise<Profile[]> {
   try {
-    const res = await listStaffAccountsForIT("service-token");
+    const token = await serviceToken();
+    const res = await listStaffAccountsForIT(token);
     return (res.items || []).map(mapUser);
   } catch (e) {
     console.error("Error fetching users:", e);
@@ -52,7 +55,8 @@ export async function getAllUsers(): Promise<Profile[]> {
 
 export async function getUserById(id: string): Promise<Profile | null> {
   try {
-    const user = await getStaffAccountForIT("service-token", id);
+    const token = await serviceToken();
+    const user = await getStaffAccountForIT(token, id);
     return user ? mapUser(user) : null;
   } catch (e) {
     console.error(`Error fetching user ${id}:`, e);
@@ -71,7 +75,8 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
-  const created = await createITAccountForIT("service-token", {
+  const token = await serviceToken();
+  const created = await createITAccountForIT(token, {
     email: data.email,
     password: data.password,
     role: data.role as any,
@@ -84,11 +89,12 @@ export async function updateUser(
   data: Partial<Profile> & { password?: string },
 ): Promise<Profile | null> {
   try {
+    const token = await serviceToken();
     const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } }).catch(() => null);
     if (existing && existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) {
       throw new Error("Keep at least one active super administrator");
     }
-    const updated = await updateITAccountForIT("service-token", id, {
+    const updated = await updateITAccountForIT(token, id, {
       role: data.role as any,
       active: data.is_active ?? true,
     });
@@ -122,7 +128,8 @@ export async function deleteUser(id: string): Promise<boolean> {
 
 export async function getUserByEmail(email: string): Promise<Profile | null> {
   try {
-    const res = await listITAccountsForIT("service-token");
+    const token = await serviceToken();
+    const res = await listITAccountsForIT(token);
     const user = (res.items || []).find(u => u.email === email.trim().toLowerCase());
     return user ? mapUser(user) : null;
   } catch (e) {
@@ -160,7 +167,8 @@ export interface UserListFilters {
 }
 
 export async function getUsersPage(filters: UserListFilters) {
-  const res = await listStaffAccountsForIT("service-token");
+  const token = await serviceToken();
+  const res = await listStaffAccountsForIT(token);
   let list = res.items || [];
   if (filters.q) {
     const q = filters.q.toLowerCase();

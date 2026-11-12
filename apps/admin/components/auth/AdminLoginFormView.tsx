@@ -63,7 +63,7 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
         return;
       }
 
-      router.replace(callbackUrl);
+      window.location.href = callbackUrl;
     } catch {
       setErrorMessage(t.loginView.errorGeneric);
       setLoading(false);

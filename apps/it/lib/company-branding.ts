@@ -33,8 +33,8 @@ export async function getCompanyBranding(accessToken?: string): Promise<CompanyB
 
     if (token) {
       [company, status] = await Promise.all([
-        asUser(() => getCompanyConfigurationForIT(token!)).catch(() => null),
-        asUser(() => getCompanySetupStatusForIT(token!)).catch(() => null),
+        getCompanyConfigurationForIT(token!).catch(() => null),
+        getCompanySetupStatusForIT(token!).catch(() => null),
       ]);
     } else {
       [company, status] = await Promise.all([

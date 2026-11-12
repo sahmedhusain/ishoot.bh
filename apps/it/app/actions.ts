@@ -92,10 +92,8 @@ export async function signInAction(
       clientIp: clientIp || undefined,
     });
     await setCookies(sessionCookies(credential, identifier));
-    const status = await asUser(() =>
-      getCompanySetupStatusForIT(credential.accessToken),
-    ).catch(() => null);
-    if (!status?.finished) {
+    const status = await getCompanySetupStatusForIT(credential.accessToken).catch(() => null);
+    if (status && status.finished === false) {
       targetUrl = "/setup";
     }
   } catch (error) {

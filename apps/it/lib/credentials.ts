@@ -11,17 +11,24 @@ export type CookieSpec = {
   options: {
     httpOnly: true;
     secure: boolean;
-    sameSite: "strict";
+    sameSite: "lax";
     path: "/";
     expires?: Date;
   };
 };
 
+const isSecure = () => {
+  if (process.env.SECURE_COOKIES === "true") return true;
+  if (process.env.SECURE_COOKIES === "false") return false;
+  const itUrl = process.env.IT_URL || process.env.NEXT_PUBLIC_IT_URL || "";
+  return itUrl.startsWith("https://");
+};
+
 const options = (expires: Date) =>
   ({
     httpOnly: true,
-    secure: config.secureCookies(),
-    sameSite: "strict",
+    secure: isSecure(),
+    sameSite: "lax",
     path: "/",
     expires,
   }) as const;

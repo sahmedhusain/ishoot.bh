@@ -18,10 +18,17 @@ export type CookieSpec = {
   };
 };
 
+const isSecure = () => {
+  if (process.env.SECURE_COOKIES === "true") return true;
+  if (process.env.SECURE_COOKIES === "false") return false;
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_ADMIN_URL || "";
+  return adminUrl.startsWith("https://");
+};
+
 const options = (expires: Date) =>
   ({
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure(),
     sameSite: "lax",
     path: "/",
     expires,
@@ -89,8 +96,8 @@ export type StaffToken = {
 };
 
 let keys: ReturnType<typeof createRemoteJWKSet> | undefined;
-const setting = (name: string) => {
-  const value = process.env[name];
+const setting = (name: string, fallback?: string) => {
+  const value = process.env[name] || fallback;
   if (!value) throw new Error(`${name} is not set (see .env.example)`);
   return value;
 };
@@ -99,10 +106,12 @@ export async function verifyAccessToken(
   token: string | undefined,
 ): Promise<StaffToken | null> {
   if (!token) return null;
-  keys ??= createRemoteJWKSet(new URL(setting("IDENTITY_JWKS_URL")));
+  keys ??= createRemoteJWKSet(
+    new URL(setting("IDENTITY_JWKS_URL", "http://identity:8080/.well-known/jwks.json")),
+  );
   try {
     const { payload } = await jwtVerify(token, keys, {
-      issuer: setting("IDENTITY_ISSUER"),
+      issuer: setting("IDENTITY_ISSUER", "http://identity:8080"),
       audience: "platform:staff",
     });
     if (
@@ -119,7 +128,8 @@ export async function verifyAccessToken(
       roles: payload.roles,
       token,
     };
-  } catch {
+  } catch (err) {
+    console.error("ADMIN verifyAccessToken error:", err);
     return null;
   }
 }

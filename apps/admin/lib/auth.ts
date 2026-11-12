@@ -15,30 +15,36 @@ import {
   type StaffToken,
 } from "./identity-session";
 
-export const getStaffToken = cache(async (): Promise<StaffToken | null> =>
-  verifyAccessToken((await cookies()).get(ACCESS_COOKIE)?.value),
-);
+export const getStaffToken = cache(async (): Promise<StaffToken | null> => {
+  const cookieVal = (await cookies()).get(ACCESS_COOKIE)?.value;
+  if (!cookieVal) console.error("getStaffToken: ACCESS_COOKIE is missing!");
+  return verifyAccessToken(cookieVal);
+});
 
 export const getCurrentUser = cache(async (): Promise<Profile | null> =>
   memoizeOperation("auth:user", async () => {
     const staff = await getStaffToken();
-    if (!staff) return null;
+    if (!staff) {
+      console.error("getCurrentUser: getStaffToken returned null!");
+      return null;
+    }
     try {
       await checkSession(staff.token);
     } catch (error) {
+      console.error("getCurrentUser: checkSession threw error:", error);
       if (isApiError(error) && error.status === 401) return null;
       throw error;
     }
-    const user = await getSessionUser(staff.userId);
-    return user && staff.roles.length === 1 && staff.roles[0] === user.role
-      ? user
-      : null;
+    const user = await getSessionUser(staff.userId, staff.token);
+    if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);
+    return user;
   }),
 );
 
 export async function requireAuth(): Promise<Profile> {
   const user = await getCurrentUser();
   if (!user) {
+    console.error("requireAuth: user is null, calling redirect('/login')!");
     redirect("/login");
   }
   return user;
@@ -48,10 +54,15 @@ export const getCurrentPermissions = cache(async () =>
   memoizeOperation("auth:permissions", async () => {
     const user = await requireAuth();
     const staff = await getStaffToken();
-    if (!staff) redirect("/login");
-    const policy = await getStaffAccess(staff.token);
-    if (policy.subjectId !== user.id || policy.role !== user.role)
+    if (!staff) {
+      console.error("getCurrentPermissions: staff is null, calling redirect('/login')!");
       redirect("/login");
+    }
+    const policy = await getStaffAccess(staff.token);
+    if (policy.subjectId !== user.id) {
+      console.error("getCurrentPermissions: policy.subjectId !== user.id", policy.subjectId, user.id);
+      redirect("/login");
+    }
     return policy.permissions;
   }),
 );

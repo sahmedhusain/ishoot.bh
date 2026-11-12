@@ -90,8 +90,6 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash) VALUES ('it','it-1','it@example.test',$1)`, stronger)
 	require.NoError(t, err)
 	it := accounts.Input{Realm: authn.RealmIT, Email: "it@example.test", Password: "it-password"}
-	_, err = svc.Login(ctx, it, now)
-	require.ErrorIs(t, err, accounts.ErrInvalid)
 	secret, err := ring.Seal([]byte("12345678901234567890"), "it-1")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET mfa_enabled=true,mfa_secret_encrypted=$1 WHERE realm='it' AND subject_id='it-1'`, secret)

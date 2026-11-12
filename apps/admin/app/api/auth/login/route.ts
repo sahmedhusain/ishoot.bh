@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
         throw error;
       }
-      const user: any = await getSessionUser(credential.subjectId);
+      const user: any = await getSessionUser(credential.subjectId, credential.accessToken);
       if (!user) {
         return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
       }

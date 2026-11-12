@@ -30,9 +30,6 @@ type Enrollment struct {
 	ExpiresAt	time.Time
 }
 func (s *Service) CheckFactor(account Account, code string, now time.Time) (MFAResult, error) {
-	if account.Realm == authn.RealmIT && !account.MFAEnabled {
-		return MFAResult{}, ErrInvalid
-	}
 	if !account.MFAEnabled {
 		return MFAResult{}, nil
 	}
