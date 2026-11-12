@@ -2,7 +2,7 @@
 -- PURE SQL SEED: iShoot Cinema Production S.P.C.
 -- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
 -- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
--- Generated: 2026-11-10T19:12:47.775Z
+-- Generated: 2026-11-12T12:12:20.490Z
 -- ============================================================================
 BEGIN;
 
@@ -1653,9 +1653,6 @@ INSERT INTO identity.account (realm, subject_id, email, username, password_hash,
 VALUES ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('staff', 'layla-nasser', 'finance@example.com', 'LN0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"finance_manager"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
@@ -1666,6 +1663,9 @@ VALUES ('staff', 'noor-hamdan', 'editor@example.com', 'NH0007', '$argon2id$v=19$
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('staff', 'faisal-mansour', 'accountant@example.com', 'FM0008', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"accountant"}', true, false, NULL, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
+VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = NULL, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('staff', 'guest', 'guest@example.com', 'GO0011', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"viewer"}', true, false, NULL, now(), now())
@@ -1682,11 +1682,11 @@ FROM (VALUES
   ('it'::text, 'it-work-001'::text, 'it-lead-001'::text),
   ('it'::text, 'it-supp-001'::text, 'it-lead-001'::text),
   ('it'::text, 'it-audit-001'::text, 'it-manager-001'::text),
-  ('staff'::text, 'omar-haddad'::text, 'super-admin'::text),
   ('staff'::text, 'layla-nasser'::text, 'yusuf-rahman'::text),
   ('staff'::text, 'tariq-saleh'::text, 'karim-fawzi'::text),
   ('staff'::text, 'noor-hamdan'::text, 'tariq-saleh'::text),
   ('staff'::text, 'faisal-mansour'::text, 'layla-nasser'::text),
+  ('staff'::text, 'omar-haddad'::text, 'super-admin'::text),
   ('staff'::text, 'guest'::text, 'yusuf-rahman'::text)
 ) AS reporting(realm, subject_id, reporting_to)
 WHERE account.realm = reporting.realm AND account.subject_id = reporting.subject_id;

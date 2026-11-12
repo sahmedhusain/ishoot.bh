@@ -1406,14 +1406,14 @@ ${staffPermissions.map((p) => `INSERT INTO identity.staff_permission (id, role_i
 -- First Accounts (Email: admin@example.com, Password: Admin12345678!)
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES
-  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_admin"}', true, false, NULL, now(), now()),
-  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
-  ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
-  ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
-  ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
-  ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
-  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, 'it-manager-001', now(), now()),
-  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
+  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '${DEFAULT_PASSWORD_HASH}', '{"it_admin"}', true, false, NULL, now(), now()),
+  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '${DEFAULT_PASSWORD_HASH}', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
+  ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '${DEFAULT_PASSWORD_HASH}', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
+  ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '${DEFAULT_PASSWORD_HASH}', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '${DEFAULT_PASSWORD_HASH}', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '${DEFAULT_PASSWORD_HASH}', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
+  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '${DEFAULT_PASSWORD_HASH}', '{"it_auditor"}', true, false, 'it-manager-001', now(), now()),
+  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '${DEFAULT_PASSWORD_HASH}', '{"super_admin"}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
 
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'super-admin', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;

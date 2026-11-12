@@ -84,3 +84,5 @@ apps/it/next-env.d.ts
 apps/admin/next-env.d.ts
 apps/it/next-env.d.ts
 apps/admin/next-env.d.ts
+.github/copilot-instructions.md
+.github/instructions/mermaid.instructions.md
