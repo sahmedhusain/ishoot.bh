@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 import { createTicket } from "@platform/api-client";
 import { ports } from "../../playwright.config";
 import t from "@platform/locales/ar.json";
-import { watchErrors } from "../../helpers";
+import { watchErrors } from "./helpers/helpers";
 import { totp } from "../../totp";
 
 const accountFile = path.resolve(

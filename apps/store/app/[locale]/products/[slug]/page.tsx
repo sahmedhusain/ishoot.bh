@@ -176,9 +176,9 @@ export default async function ProductDetailPage({
               ) : null}
               {item.attributes.length ? (
                 <dl className="space-y-3 text-sm">
-                  {item.attributes.map((fact) => (
+                  {item.attributes.map((fact, index) => (
                     <div
-                      key={fact.labelEn + fact.valueEn}
+                      key={`${fact.labelEn || ""}-${fact.valueEn || ""}-${index}`}
                       className="flex justify-between gap-4 border-b border-m3-outline-variant pb-2 last:border-0"
                     >
                       <dt className="text-ink-muted">{pickText(fact.labelEn, fact.labelAr, locale)}</dt>

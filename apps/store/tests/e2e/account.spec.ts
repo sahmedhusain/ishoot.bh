@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
-import { testDatabase, watchErrors } from "../../helpers";
-import { setModule } from "../../modules";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { setModule } from "./helpers/modules";
 
 const copy = en.account;
 const db = testDatabase();

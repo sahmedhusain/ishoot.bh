@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
-import { alertMessage, testDatabase, watchErrors } from "../../helpers";
+import { alertMessage, testDatabase, watchErrors } from "./helpers/helpers";
 import {
   disableDelivery,
   enableDelivery,
   enableStore,
   freshStockedProduct,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 
 const copy = en.store;
 const db = testDatabase();

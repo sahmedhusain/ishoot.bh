@@ -1,8 +1,8 @@
 import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
 import { formatMessage } from "@platform/locales";
-import enLocale from "../../locales/en.json";
-import arLocale from "../../locales/ar.json";
+import enLocale from "./helpers/locales/en.json";
+import arLocale from "./helpers/locales/ar.json";
 const en = enLocale.admin;
 const ar = arLocale.admin;
 

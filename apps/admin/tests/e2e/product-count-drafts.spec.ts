@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import enLocale from "../../locales/en.json";
-import arLocale from "../../locales/ar.json";
+import enLocale from "./helpers/locales/en.json";
+import arLocale from "./helpers/locales/ar.json";
 import { testDatabase } from "./helpers/helpers";
 import { getModule, resetModule, setModule } from "./helpers/modules";
 const en = enLocale.admin;

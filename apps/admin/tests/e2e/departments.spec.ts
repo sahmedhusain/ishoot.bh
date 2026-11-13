@@ -3,7 +3,7 @@ import { acceptConfirmations } from "./helpers/helpers";
 import crypto from "node:crypto";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { en } from "../../locales";
+import { en } from "./helpers/locales";
 import users from "../fixtures/users.json";
 import { cronSecret, ports } from "../../playwright.config";
 import { testDatabase, watchErrors } from "./helpers/helpers";

@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
-import { testDatabase, watchErrors } from "../../helpers";
+import { testDatabase, watchErrors } from "./helpers/helpers";
 import {
   enableStore,
   freshStockedProduct,
   stockOf,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 
 const copy = en.store;
 const db = testDatabase();

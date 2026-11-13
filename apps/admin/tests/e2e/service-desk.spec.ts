@@ -1,7 +1,7 @@
 import { selectOption } from "./helpers/select-option";
 import crypto from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { en } from "../../locales";
+import { en } from "./helpers/locales";
 import { ports } from "../../playwright.config";
 import { testDatabase, watchErrors } from "./helpers/helpers";
 import { t } from "./helpers/locale";

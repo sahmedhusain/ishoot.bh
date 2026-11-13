@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { admin, testDatabase, watchErrors } from "../../helpers";
+import { admin, testDatabase, watchErrors } from "./helpers/helpers";
 import {
   defaultWebsiteCommerce,
   type PublicBranch,
@@ -10,15 +10,15 @@ import {
   enableStore,
   freshStockedProduct,
   stockOf,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 import {
   INDUSTRY_PAGES,
   industryPageBlocks,
 } from "@platform/database/cms/industry-pages";
 import { newBlockData } from "@platform/database/cms/blocks";
 import { defaultWebsiteDesign } from "@platform/database/constants/website-design";
-import { getModule, setModule } from "../../modules";
-import { setIntegration } from "../../integrations";
+import { getModule, setModule } from "./helpers/modules";
+import { setIntegration } from "./helpers/integrations";
 
 const db = testDatabase();
 const branch: PublicBranch = {

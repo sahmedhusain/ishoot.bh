@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, type Page } from "@playwright/test";
-import users from "./fixtures/users.json";
+import users from "../../../../../apps/admin/tests/fixtures/users.json";
 
-const root = path.resolve(__dirname, "../..");
+const root = path.resolve(__dirname, "../../../../..");
 
 export const admin = users.admin;
 

@@ -1,7 +1,7 @@
 import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
-import enLocale from "../../locales/en.json";
-import arLocale from "../../locales/ar.json";
+import enLocale from "./helpers/locales/en.json";
+import arLocale from "./helpers/locales/ar.json";
 import { testDatabase } from "./helpers/helpers";
 import {
   setIntegration,

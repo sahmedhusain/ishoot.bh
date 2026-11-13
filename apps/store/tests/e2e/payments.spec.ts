@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
 import { cronSecret, ports } from "../../playwright.config";
-import { testDatabase, watchErrors } from "../../helpers";
+import { testDatabase, watchErrors } from "./helpers/helpers";
 import {
   enableStore,
   freshStockedProduct,
   stockOf,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 import {
   startStripeStandIn,
   useStripeStandIn,
   type StandIn,
-} from "../../stripe-stand-in";
+} from "./helpers/stripe-stand-in";
 
 const copy = en.store;
 const db = testDatabase();

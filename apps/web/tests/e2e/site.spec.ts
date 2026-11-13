@@ -7,7 +7,7 @@ import {
   otherCompanyNames,
   themeVariable,
   watchErrors,
-} from "../../helpers";
+} from "./helpers/helpers";
 
 const PAGES = ["", "/works", "/about", "/contact"];
 

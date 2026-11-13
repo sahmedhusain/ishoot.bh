@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
-import { checkDownload, crawl } from "../../crawl";
+import { checkDownload, crawl } from "./helpers/crawl";
 
 for (const locale of ["en", "ar"] as const) {
   test(`every /${locale} link, image and download works`, async ({ page }) => {
