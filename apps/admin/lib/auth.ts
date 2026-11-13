@@ -25,15 +25,13 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
   memoizeOperation("auth:user", async () => {
     const staff = await getStaffToken();
     if (!staff) {
-      console.error("getCurrentUser: getStaffToken returned null!");
       return null;
     }
     try {
       await checkSession(staff.token);
     } catch (error) {
-      console.error("getCurrentUser: checkSession threw error:", error);
-      if (isApiError(error) && error.status === 401) return null;
-      throw error;
+      console.error("getCurrentUser: checkSession error:", error);
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) return null;
     }
     const user = await getSessionUser(staff.userId, staff.token);
     if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);

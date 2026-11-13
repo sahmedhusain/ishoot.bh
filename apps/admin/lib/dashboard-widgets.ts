@@ -327,6 +327,16 @@ export async function loadDashboardData(
       })()
     : null;
 
+  const safe = async <T>(promise: Promise<T> | T | null, fallback: T | null = null): Promise<T | null> => {
+    if (!promise) return fallback;
+    try {
+      return await promise;
+    } catch (err) {
+      console.error("Dashboard widget query failed:", err);
+      return fallback;
+    }
+  };
+
   const [
     financeData,
     cashflowData,
@@ -350,27 +360,27 @@ export async function loadDashboardData(
     customFoldersData,
     userProfileData,
   ] = await Promise.all([
-    finance,
-    cashflow,
-    deals,
-    stages,
-    leads,
-    orders,
-    recentOrders,
-    lowStock,
-    shipments,
-    tasks,
-    campaigns,
-    legal,
-    events,
-    activity,
-    company,
-    workload,
-    hrPulse,
-    procurementPulse,
-    archiveFolders,
-    customFolders,
-    userProfile,
+    safe(finance),
+    safe(cashflow),
+    safe(deals),
+    safe(stages),
+    safe(leads, 0),
+    safe(orders),
+    safe(recentOrders, []),
+    safe(lowStock, { rows: [], total: 0 }),
+    safe(shipments),
+    safe(tasks),
+    safe(campaigns, []),
+    safe(legal),
+    safe(events, []),
+    safe(activity, []),
+    safe(company),
+    safe(workload),
+    safe(hrPulse),
+    safe(procurementPulse),
+    safe(archiveFolders),
+    safe(customFolders, []),
+    safe(userProfile),
   ]);
 
   return {
