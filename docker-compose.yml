@@ -992,7 +992,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:9.1
-    profiles: [tools]
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-Admin12345678!}
