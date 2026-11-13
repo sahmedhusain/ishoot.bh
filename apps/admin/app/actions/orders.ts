@@ -28,11 +28,13 @@ import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import { notifyLowStock } from "../../lib/low-stock";
 import { announceChange } from "../../lib/live";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 const refresh = (id?: string) => {
   revalidatePath(ROUTES.orders.list);
   if (id) revalidatePath(ROUTES.orders.detail(id));
   void announceChange("orders", id);
+  void revalidatePublicStore(["store", "orders", "inventory"]);
 };
 
 export async function moveOrderAction(

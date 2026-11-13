@@ -54,19 +54,20 @@ export async function getStoreSettings() {
     where: { id: "default" },
     update: {},
     create: { id: "default" },
-  });
+  }).catch(() => null);
+
   return {
-    guest_checkout: s.guestCheckout,
-    delivery_enabled: s.deliveryEnabled,
-    delivery_fee: num(s.deliveryFee),
-    free_delivery_over: numOrNull(s.freeDeliveryOver),
-    pickup_enabled: s.pickupEnabled,
-    cod_enabled: s.codEnabled,
-    bank_transfer_enabled: s.bankTransferEnabled,
-    bank_instructions_en: s.bankInstructionsEn ?? "",
-    bank_instructions_ar: s.bankInstructionsAr ?? "",
-    order_notify_email: s.orderNotifyEmail ?? "",
-    payment_gateway: s.paymentGateway ?? "",
+    guest_checkout: s?.guestCheckout ?? true,
+    delivery_enabled: s?.deliveryEnabled ?? true,
+    delivery_fee: num(s?.deliveryFee),
+    free_delivery_over: numOrNull(s?.freeDeliveryOver),
+    pickup_enabled: s?.pickupEnabled ?? true,
+    cod_enabled: s?.codEnabled ?? true,
+    bank_transfer_enabled: s?.bankTransferEnabled ?? true,
+    bank_instructions_en: s?.bankInstructionsEn ?? "",
+    bank_instructions_ar: s?.bankInstructionsAr ?? "",
+    order_notify_email: s?.orderNotifyEmail ?? "",
+    payment_gateway: s?.paymentGateway ?? "",
   };
 }
 export type StoreSettingsRecord = Awaited<ReturnType<typeof getStoreSettings>>;

@@ -1,7 +1,6 @@
 "use client";
 import { Select, PhoneInput } from "@platform/ui";
 import { InquiryAttachments } from "./InquiryAttachments";
-import { field as publicField } from "../account/ui";
 import { formatMessage, getUiTranslations } from "@platform/locales";
 import { isValidPhone } from "@platform/config/phone";
 import * as React from "react";
@@ -9,6 +8,9 @@ import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import type { PublicService } from "@platform/database/website-config";
 import { getCurrencyLabel } from "@platform/config/currency";
+
+const publicField =
+  "w-full px-4 py-3 rounded-brand bg-m3-surface-container-low border border-m3-outline-variant text-m3-on-surface text-sm placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary transition-colors duration-150 font-sans";
 
 const intents = [
   "inquiry",

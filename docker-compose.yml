@@ -152,7 +152,7 @@ x-system: &system
     SYSTEM_SERVICE_KEY: ${SYSTEM_SERVICE_KEY:?Set SYSTEM_SERVICE_KEY in .env}
     SYSTEM_FILES_URL: ${SYSTEM_FILES_URL:-http://files:8080}
     SYSTEM_COMPANY_BODY_LIMIT: ${SYSTEM_COMPANY_BODY_LIMIT:-1048576}
-    SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,it,notify}
+    SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,store,it,notify}
     SYSTEM_MODULE_READ_CALLERS: ${SYSTEM_MODULE_READ_CALLERS:-identity}
     SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin}
     SYSTEM_INTEGRATION_WRITERS: ${SYSTEM_INTEGRATION_WRITERS:-admin}
@@ -181,7 +181,7 @@ x-identity: &identity
     IDENTITY_SIGNING_JWK: ${IDENTITY_SIGNING_JWK:-}
     IDENTITY_PREVIOUS_JWKS: ${IDENTITY_PREVIOUS_JWKS:-}
     IDENTITY_CALLERS_STAFF: ${IDENTITY_CALLERS_STAFF:-admin,it}
-    IDENTITY_CALLERS_CUSTOMER: ${IDENTITY_CALLERS_CUSTOMER:-web}
+    IDENTITY_CALLERS_CUSTOMER: ${IDENTITY_CALLERS_CUSTOMER:-web,store}
     IDENTITY_CALLERS_IT: ${IDENTITY_CALLERS_IT:-it}
     IDENTITY_SERVICE_KEY: ${IDENTITY_SERVICE_KEY:?Set IDENTITY_SERVICE_KEY in .env}
     IDENTITY_SYSTEM_URL: ${IDENTITY_SYSTEM_URL:-http://system:8080}
@@ -1013,9 +1013,11 @@ services:
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
       IT_URL: ${IT_URL:-http://localhost:3002}
+      STORE_URL: ${STORE_URL:-http://localhost:3003}
       NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
       NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
       NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_STORE_URL: ${NEXT_PUBLIC_STORE_URL:-http://localhost:3003}
       API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
       IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
       IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
@@ -1046,9 +1048,11 @@ services:
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
       IT_URL: ${IT_URL:-http://localhost:3002}
+      STORE_URL: ${STORE_URL:-http://localhost:3003}
       NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
       NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
       NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_STORE_URL: ${NEXT_PUBLIC_STORE_URL:-http://localhost:3003}
       API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
       IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
       IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
@@ -1079,9 +1083,11 @@ services:
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
       IT_URL: ${IT_URL:-http://localhost:3002}
+      STORE_URL: ${STORE_URL:-http://localhost:3003}
       NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
       NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
       NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_STORE_URL: ${NEXT_PUBLIC_STORE_URL:-http://localhost:3003}
       API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
       IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
       IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
@@ -1096,6 +1102,42 @@ services:
       SERVICE_CALLER: it
     ports:
       - "127.0.0.1:3002:3002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  store:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/store/Dockerfile
+    image: platform/store:dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3003
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      IT_URL: ${IT_URL:-http://localhost:3002}
+      STORE_URL: ${STORE_URL:-http://localhost:3003}
+      NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:3000}
+      NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-http://localhost:3001}
+      NEXT_PUBLIC_IT_URL: ${NEXT_PUBLIC_IT_URL:-http://localhost:3002}
+      NEXT_PUBLIC_STORE_URL: ${NEXT_PUBLIC_STORE_URL:-http://localhost:3003}
+      API_URL: ${API_URL_CONTAINER:-http://gateway:8080}
+      IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
+      IDENTITY_JWKS_URL: ${IDENTITY_JWKS_URL_CONTAINER:-http://identity:8080/.well-known/jwks.json}
+      REVALIDATION_SECRET: ${REVALIDATION_SECRET:-}
+      STORE_SERVICE_KEY: ${STORE_SERVICE_KEY:-${WEB_SERVICE_KEY:-}}
+      WEB_SERVICE_KEY: ${WEB_SERVICE_KEY:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
+      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
+      SEED_PRESET: ${SEED_PRESET:-}
+      SERVICE_CALLER: store
+    ports:
+      - "127.0.0.1:3003:3003"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

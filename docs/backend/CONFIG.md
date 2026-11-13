@@ -151,8 +151,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
-| `COMMERCE_READERS` | `admin,it,web,delivery,finance` | `min=1,dive,required` |
-| `COMMERCE_WRITERS` | `admin,web` | `min=1,dive,required` |
+| `COMMERCE_READERS` | `admin,it,web,store,delivery,finance` | `min=1,dive,required` |
+| `COMMERCE_WRITERS` | `admin,web,store` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -524,7 +524,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_SERVICE_KEY` |  |  |
 | `IDENTITY_SYSTEM_URL` | `http://system:8080` | `url` |
 | `IDENTITY_CALLERS_STAFF` | `admin,it` | `min=1,dive,required` |
-| `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
+| `IDENTITY_CALLERS_CUSTOMER` | `web,store` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it,admin` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
@@ -579,8 +579,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
-| `INVENTORY_READERS` | `admin,it,commerce,delivery` | `min=1,dive,required` |
-| `INVENTORY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
+| `INVENTORY_READERS` | `admin,it,store,commerce,delivery` | `min=1,dive,required` |
+| `INVENTORY_WRITERS` | `admin,store,commerce` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -910,11 +910,11 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SYSTEM_SERVICE_KEY` |  |  |
 | `SYSTEM_FILES_URL` | `http://files:8080` | `http_url` |
 | `SYSTEM_COMPANY_BODY_LIMIT` | `1048576` | `gt=0` |
-| `SYSTEM_COMPANY_READERS` | `admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms` | `min=1,dive,required` |
+| `SYSTEM_COMPANY_READERS` | `admin,web,store,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms` | `min=1,dive,required` |
 | `SYSTEM_COMPANY_WRITERS` | `admin` | `min=1,dive,required` |
-| `SYSTEM_CURRENCY_CALLERS` | `admin,web,sales,finance,workflow,hr,inventory,commerce,delivery` | `min=1,dive,required` |
+| `SYSTEM_CURRENCY_CALLERS` | `admin,web,store,sales,finance,workflow,hr,inventory,commerce,delivery` | `min=1,dive,required` |
 | `SYSTEM_SEQUENCE_CALLERS` | `admin,finance` | `min=1,dive,required` |
-| `SYSTEM_READ_CALLERS` | `admin,web,it,notify` | `min=1,dive,required` |
+| `SYSTEM_READ_CALLERS` | `admin,web,store,it,notify` | `min=1,dive,required` |
 | `SYSTEM_MODULE_READ_CALLERS` | `identity` | `dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |

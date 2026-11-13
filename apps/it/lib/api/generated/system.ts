@@ -515,12 +515,16 @@ export interface components {
             websiteDomain: string;
 
             adminDomain: string;
+
+            storeDomain?: string;
         };
         SiteDomains: components["schemas"]["Changed"] & {
 
             websiteDomain: string;
 
             adminDomain: string;
+
+            storeDomain?: string;
         };
         SiteCode: {
 
@@ -535,6 +539,7 @@ export interface components {
         Site: components["schemas"]["Changed"] & {
             websiteDomain: string;
             adminDomain: string;
+            storeDomain?: string;
             code: components["schemas"]["SiteCode"];
         };
         Problem: {

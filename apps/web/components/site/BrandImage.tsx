@@ -14,24 +14,28 @@ export function BrandImage({
 }) {
   const light = icon ? company.icon_url : company.logo_url;
   const dark = icon ? company.dark_icon_url : company.dark_logo_url;
+  const hasDistinctDark = Boolean(dark && dark !== light);
+
   return (
-    <span className={className}>
+    <span className={className} suppressHydrationWarning>
       <ContentImage
         src={light || dark}
         alt={icon ? "" : company.company_name_en}
         fallbackText={icon ? undefined : company.company_name_en}
         width={icon ? 40 : 240}
         height={icon ? 40 : 60}
-        className="site-logo-light h-full w-auto max-w-full object-contain"
+        className={hasDistinctDark ? "site-logo-light h-full w-auto max-w-full object-contain" : "h-full w-auto max-w-full object-contain"}
       />
-      <ContentImage
-        src={dark || light}
-        alt={icon ? "" : company.company_name_en}
-        fallbackText={icon ? undefined : company.company_name_en}
-        width={icon ? 40 : 240}
-        height={icon ? 40 : 60}
-        className="site-logo-dark h-full w-auto max-w-full object-contain"
-      />
+      {hasDistinctDark && (
+        <ContentImage
+          src={dark}
+          alt={icon ? "" : company.company_name_en}
+          fallbackText={icon ? undefined : company.company_name_en}
+          width={icon ? 40 : 240}
+          height={icon ? 40 : 60}
+          className="site-logo-dark h-full w-auto max-w-full object-contain"
+        />
+      )}
     </span>
   );
 }

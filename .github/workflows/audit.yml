@@ -36,6 +36,7 @@ jobs:
             apps/admin/package-lock.json
             apps/it/package-lock.json
             apps/web/package-lock.json
+            apps/store/package-lock.json
 
       - name: Setup Go
         uses: actions/setup-go@v7
@@ -52,6 +53,7 @@ jobs:
           npm --prefix apps/admin install
           npm --prefix apps/it install
           npm --prefix apps/web install
+          npm --prefix apps/store install
 
       - name: Pillar 1 – Seed & Preset Parity Verification
         env:
@@ -79,9 +81,9 @@ jobs:
       - name: Pillar 3 – API Contract Freshness Verification
         run: |
           npm run gen:contracts
-          git diff --exit-code apps/web/contracts apps/admin/contracts apps/it/contracts
+          git diff --exit-code apps/web/contracts apps/admin/contracts apps/it/contracts apps/store/contracts
 
-      - name: Pillar 4 – Monorepo Type Check (Web, Admin, IT)
+      - name: Pillar 4 – Monorepo Type Check (Web, Admin, IT, Store)
         run: |
           npm run type-check
 

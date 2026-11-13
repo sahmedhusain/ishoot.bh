@@ -935,19 +935,23 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`ON CONFLICT (singleton) DO UPDATE SET data = EXCLUDED.data, updated_at = now();`);
   lines.push(``);
 
-  for (const asset of companyAssets) {
-    let url = asset.file_url;
-    if (!isIshoot) {
-      if (asset.asset_key === "logo_light") url = "/api/files/brand/logo-light_dbf1f2e280f5.png";
-      if (asset.asset_key === "logo_dark") url = "/api/files/brand/logo-dark_50ae2cfc6efa.png";
-      if (asset.asset_key === "icon_light" || asset.asset_key === "favicon") url = "/api/files/brand/icon-light_68b1a95d35cf.png";
-      if (asset.asset_key === "icon_dark") url = "/api/files/brand/icon-dark_f661f555ebbe.png";
-      if (asset.asset_key === "stamp") url = "/api/files/brand/stamp_8df038fc524f.png";
-      if (asset.asset_key === "signature") url = "/api/files/brand/signature_28e82e5cdb91.png";
-    }
+  const brandAssetsConfig = [
+    { key: "logo_light", title: "Light Logo", url: "/api/files/brand/logo-light_dbf1f2e280f5.png" },
+    { key: "logo_dark", title: "Dark Logo", url: "/api/files/brand/logo-dark_50ae2cfc6efa.png" },
+    { key: "icon_light", title: "Light Icon", url: "/api/files/brand/icon-light_68b1a95d35cf.png" },
+    { key: "icon_dark", title: "Dark Icon", url: "/api/files/brand/icon-dark_f661f555ebbe.png" },
+    { key: "full_logo_light", title: "Full Logo Light", url: "/api/files/brand/full-logo-light_112233445566.png" },
+    { key: "full_logo_dark", title: "Full Logo Dark", url: "/api/files/brand/full-logo-dark_112233445577.png" },
+    { key: "letterhead_header", title: "Letterhead Header", url: "/api/files/brand/letterhead-header_112233445588.png" },
+    { key: "letterhead_footer", title: "Letterhead Footer", url: "/api/files/brand/letterhead-footer_112233445599.png" },
+    { key: "stamp", title: "Official Stamp", url: "/api/files/brand/stamp_8df038fc524f.png" },
+    { key: "signature", title: "Authorized Signature", url: "/api/files/brand/signature_28e82e5cdb91.png" },
+  ];
+
+  for (const asset of brandAssetsConfig) {
     lines.push(`INSERT INTO system.company_asset (id, asset_key, title, file_url, mime_type, file_size, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(asset.id)}, ${sqlQuote(asset.asset_key)}, ${sqlQuote(asset.title)}, ${sqlQuote(url)}, ${sqlQuote(asset.mime_type)}, ${asset.file_size || 50000}, now(), now())`);
-    lines.push(`ON CONFLICT (id) DO UPDATE SET file_url = EXCLUDED.file_url, updated_at = now();`);
+    lines.push(`VALUES ('asset-${asset.key}', ${sqlQuote(asset.key)}, ${sqlQuote(asset.title)}, ${sqlQuote(asset.url)}, 'image/png', 50000, now(), now())`);
+    lines.push(`ON CONFLICT (asset_key) DO UPDATE SET file_url = EXCLUDED.file_url, updated_at = now();`);
   }
   lines.push(``);
 
@@ -964,7 +968,20 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`-- 3. FILES SERVICE (Brand Artwork, Logos, Fonts)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
-  for (const obj of uploadObjects) {
+  const allUploads = [...uploadObjects];
+  for (const b of brandAssetsConfig) {
+    if (!allUploads.some((u) => u.file_url === b.url)) {
+      allUploads.push({
+        id: `upload-${b.key}`,
+        file_url: b.url,
+        file_name: `${b.key}.png`,
+        file_size: 50000,
+        mime_type: "image/png",
+        is_public: true,
+      });
+    }
+  }
+  for (const obj of allUploads) {
     lines.push(`INSERT INTO files.upload_object (id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at)`);
     lines.push(`VALUES (${sqlQuote(obj.id)}, ${sqlQuote(obj.file_url)}, 'system', ${sqlQuote(obj.file_name)}, ${obj.file_size}, ${sqlQuote(obj.mime_type)}, ${obj.is_public ? "true" : "false"}, now(), now() + interval '100 years', now())`);
     lines.push(`ON CONFLICT (file_url) DO NOTHING;`);

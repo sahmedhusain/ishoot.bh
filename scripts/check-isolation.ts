@@ -9,7 +9,7 @@ console.log("🔍 Running directory and codebase isolation checks...");
 
 // 1️⃣ Contracts folders check: each app has its generated copy and they must match
 function checkContracts() {
-  const contractDirs = ["apps/web/contracts", "apps/admin/contracts", "apps/it/contracts"];
+  const contractDirs = ["apps/web/contracts", "apps/admin/contracts", "apps/it/contracts", "apps/store/contracts"];
   for (const d of contractDirs) {
     if (!fs.existsSync(path.join(root, d))) {
       console.error(`⚠️ Contract directory missing: ${d}`);
@@ -27,7 +27,9 @@ function checkContracts() {
 
   diffDirs("apps/web/contracts", "apps/admin/contracts");
   diffDirs("apps/web/contracts", "apps/it/contracts");
+  diffDirs("apps/web/contracts", "apps/store/contracts");
   diffDirs("apps/admin/contracts", "apps/it/contracts");
+  diffDirs("apps/admin/contracts", "apps/store/contracts");
   console.log("  ✅ Contracts directories verified and identical across apps.");
 }
 
@@ -104,7 +106,7 @@ function checkBackendImports() {
 
 // 5️⃣ Cross-app source imports check: Front-ends must not import components, lib, or actions from other apps
 function checkCrossAppImports() {
-  const apps = ["web", "admin", "it"];
+  const apps = ["web", "admin", "it", "store"];
   for (const app of apps) {
     const otherApps = apps.filter((a) => a !== app);
     for (const other of otherApps) {
@@ -120,7 +122,7 @@ function checkCrossAppImports() {
       }
     }
   }
-  console.log("  ✅ No cross-app source imports detected between Web, Admin, and IT.");
+  console.log("  ✅ No cross-app source imports detected between Web, Admin, IT, and Store.");
 }
 
 // 6️⃣ Asset hash check for public directories

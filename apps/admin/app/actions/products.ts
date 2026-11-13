@@ -18,11 +18,13 @@ import {
 import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 function revalidateProducts(id?: string) {
   revalidatePath(ROUTES.products.list);
   revalidatePath(ROUTES.products.categories);
   if (id) revalidatePath(ROUTES.products.detail(id));
+  void revalidatePublicStore(["store", "products"]);
 }
 
 export async function saveProductAction(input: ProductInput) {

@@ -81,6 +81,12 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.PUT("/site/domains", h.setDomainsForIT, authz.Require(catalog.ITAccess, "domains", "edit"))
 	desk.GET("/site/code", h.siteCode, authz.Require(catalog.ITAccess, "site_code", "read"))
 	desk.PUT("/site/code", h.setSiteCodeForIT, authz.Require(catalog.ITAccess, "site_code", "edit"))
+	desk.GET("/store-presets", h.getStorePresetsForIT, authz.Require(catalog.ITAccess, "setup", "read"))
+	desk.PUT("/store-presets", h.setStorePresetsForIT, authz.Require(catalog.ITAccess, "setup", "edit"))
+
+	itStorePresets := e.Group("/v1/it/store-presets", authn.Require(opts.Verifier, authn.RealmIT))
+	itStorePresets.GET("", h.getStorePresetsForIT, authz.Require(catalog.ITAccess, "setup", "read"))
+	itStorePresets.PUT("", h.setStorePresetsForIT, authz.Require(catalog.ITAccess, "setup", "edit"))
 }
 func caller(allowed []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -305,11 +311,12 @@ func (h *handler) site(c echo.Context) error {
 type siteDomainsJSON struct {
 	WebsiteDomain	string		`json:"websiteDomain"`
 	AdminDomain	string		`json:"adminDomain"`
+	StoreDomain	string		`json:"storeDomain,omitempty"`
 	UpdatedBy	*string		`json:"updatedBy,omitempty"`
 	UpdatedAt	*time.Time	`json:"updatedAt,omitempty"`
 }
 func domainsOf(site app.Site) siteDomainsJSON {
-	return siteDomainsJSON{WebsiteDomain: site.WebsiteDomain, AdminDomain: site.AdminDomain, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt}
+	return siteDomainsJSON{WebsiteDomain: site.WebsiteDomain, AdminDomain: site.AdminDomain, StoreDomain: site.StoreDomain, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt}
 }
 type siteCodeJSON struct {
 	app.SiteCode
@@ -333,6 +340,7 @@ func (h *handler) siteCode(c echo.Context) error {
 type domainsChange struct {
 	WebsiteDomain	string	`json:"websiteDomain" validate:"max=300"`
 	AdminDomain	string	`json:"adminDomain" validate:"max=300"`
+	StoreDomain	string	`json:"storeDomain" validate:"max=300"`
 }
 type serviceDomainsChange struct {
 	domainsChange
@@ -380,4 +388,29 @@ func (h *handler) setSiteCodeForIT(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, siteCodeJSON{SiteCode: site.Code, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt})
+}
+
+func (h *handler) getStorePresetsForIT(c echo.Context) error {
+	company, err := h.svc.Company(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	site, err := h.svc.Site(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"businessActivity": company.BusinessActivity,
+		"websiteDomain":    site.WebsiteDomain,
+		"storeDomain":      site.StoreDomain,
+		"theme":            company.Theme,
+	})
+}
+
+func (h *handler) setStorePresetsForIT(c echo.Context) error {
+	var in map[string]any
+	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, in)
 }

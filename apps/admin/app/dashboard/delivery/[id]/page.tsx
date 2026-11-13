@@ -19,7 +19,8 @@ export default async function ShipmentPage({ params }: { params: Promise<{ id: s
   if (!shipment || (scope.driverId && shipment.driver_id !== scope.driverId)) notFound();
   const [drivers, vehicles, agencies] = canAssign ? await Promise.all([listDrivers(), listVehicles(), listCourierAgencies()]) : [[], [], []];
   const company = await getCachedCompanySettings();
-  const web = (company.website_domain ? `https://${company.website_domain}` : (process.env.WEB_URL || "")).replace(/\/$/, "");
-  const trackingLink = web ? `${web}/${(shipment as any).order?.locale || "en"}/track/${(shipment as any).tracking_token || shipment.trackingToken}` : "";
+  const storeDomain = (company as { store_domain?: string | null }).store_domain;
+  const storeBase = (storeDomain ? `https://${storeDomain}` : (process.env.STORE_URL || (company.website_domain ? `https://${company.website_domain}` : (process.env.WEB_URL || "")))).replace(/\/$/, "");
+  const trackingLink = storeBase ? `${storeBase}/${(shipment as any).order?.locale || "en"}/track/${(shipment as any).tracking_token || shipment.trackingToken}` : "";
   return <ShipmentView shipment={shipment} trackingLink={trackingLink} canEdit={canEdit} canAssign={canAssign} drivers={drivers} vehicles={vehicles.filter((v: any) => v.is_active || v.isActive || v.id === (shipment as any).vehicle_id || v.id === shipment.vehicleId)} agencies={agencies.filter((a: any) => a.is_active || a.isActive)} currency={company.default_currency} />;
 }

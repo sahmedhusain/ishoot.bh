@@ -1,5 +1,4 @@
 import { inquiryUploadToken } from "@platform/database/services/inquiry-upload-token";
-import { signInSecret } from "../../../lib/customer";
 import { isWebsitePreview } from "../../../lib/website";
 import {
   serverMessages,
@@ -27,6 +26,7 @@ import {
   readSubmission,
   textField,
   submissionKey,
+  signInSecret,
 } from "../../../lib/submissions";
 
 const escape = (value: string) =>

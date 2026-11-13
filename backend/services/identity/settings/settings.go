@@ -60,7 +60,7 @@ type Login struct {
 }
 type Callers struct {
 	Staff		[]string	`env:"STAFF" envDefault:"admin,it" envSeparator:"," validate:"min=1,dive,required"`
-	Customer	[]string	`env:"CUSTOMER" envDefault:"web" envSeparator:"," validate:"min=1,dive,required"`
+	Customer	[]string	`env:"CUSTOMER" envDefault:"web,store" envSeparator:"," validate:"min=1,dive,required"`
 	IT		[]string	`env:"IT" envDefault:"it,admin" envSeparator:"," validate:"min=1,dive,required"`
 }
 type ProfileProjection struct {

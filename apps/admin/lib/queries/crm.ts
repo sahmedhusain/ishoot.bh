@@ -1,3 +1,4 @@
+import { db } from "@platform/database";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
@@ -194,10 +195,30 @@ export async function getCustomerDossier(
 ) {
   const accountingCurrency = await getAccountingCurrency();
   try {
-    const contactRaw = await getContact(id);
-    if (!contactRaw) return null;
+    let contactRaw = await getContact(id).catch(() => null);
+    let contact: any = null;
+    if (contactRaw) {
+      contact = mapContact(contactRaw);
+    } else {
+      const dbContact = await db.crmContact.findUnique({
+        where: { id },
+        include: { contactPersons: true },
+      }).catch(() => null);
+      if (!dbContact) return null;
+      contact = {
+        id: dbContact.id,
+        fullName: dbContact.fullName,
+        email: dbContact.email ?? "",
+        phone: dbContact.phone ?? "",
+        company: dbContact.company ?? "",
+        notes: dbContact.notes ?? "",
+        status: dbContact.status ?? "active",
+        category: dbContact.contactType ?? "client",
+        createdAt: dbContact.createdAt.toISOString(),
+        updatedAt: dbContact.updatedAt.toISOString(),
+      };
+    }
 
-    const contact = mapContact(contactRaw);
     const search =
       typeof options.q === "string" ? options.q.trim().slice(0, 200) : "";
 
@@ -217,14 +238,14 @@ export async function getCustomerDossier(
             const matchCustomer = (i as any).customerId === id;
             const matchSearch = search ? (i.requesterName?.toLowerCase().includes(search.toLowerCase()) || i.message?.toLowerCase().includes(search.toLowerCase()) || i.subject?.toLowerCase().includes(search.toLowerCase())) : true;
             return matchLead && matchCustomer && matchSearch;
-          })),
+          })).catch(() => []),
 
       access?.deals === false
         ? Promise.resolve([])
         : listDeals(id).then(list => (list || []).filter(d => {
             const matchSearch = search ? d.title?.toLowerCase().includes(search.toLowerCase()) : true;
             return matchSearch;
-          })),
+          })).catch(() => []),
 
       access?.invoices === false
         ? Promise.resolve([])
@@ -233,31 +254,31 @@ export async function getCustomerDossier(
             for (const inv of list || []) {
               let matchCustomer = inv.contactId === id;
               if (!matchCustomer && inv.dealId) {
-                const deal = await getDeal(inv.dealId);
+                const deal = await getDeal(inv.dealId).catch(() => null);
                 matchCustomer = deal?.contactId === id;
               }
               const matchSearch = search ? inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase()) : true;
               if (matchCustomer && matchSearch) filtered.push(inv);
             }
             return filtered;
-          }),
+          }).catch(() => []),
 
       access?.payments === false
         ? Promise.resolve([])
         : listPayments().then(async (list) => {
             const filtered: any[] = [];
             for (const p of list || []) {
-              const inv = p.invoiceId ? await getInvoice(p.invoiceId) : null;
+              const inv = p.invoiceId ? await getInvoice(p.invoiceId).catch(() => null) : null;
               let matchCustomer = inv ? inv.contactId === id : false;
               if (!matchCustomer && inv?.dealId) {
-                const deal = await getDeal(inv.dealId);
+                const deal = await getDeal(inv.dealId).catch(() => null);
                 matchCustomer = deal?.contactId === id;
               }
               const matchSearch = search ? ((p as any).receiptNumber || (p as any).number || "").toLowerCase().includes(search.toLowerCase()) : true;
               if (matchCustomer && matchSearch) filtered.push(p);
             }
             return filtered;
-          }),
+          }).catch(() => []),
 
       Promise.resolve([]),
 
@@ -265,7 +286,7 @@ export async function getCustomerDossier(
 
       access?.audit === false
         ? Promise.resolve([])
-        : listAuditEvents("service-token", { subject: id }).then(res => res.items),
+        : listAuditEvents("service-token", { subject: id }).then(res => res.items).catch(() => []),
     ]);
 
     const pagination = {

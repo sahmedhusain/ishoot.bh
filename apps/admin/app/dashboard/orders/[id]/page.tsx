@@ -15,8 +15,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const [order, attempts, requests, online, canEdit, canApprove, canInvoice, company] = await Promise.all([getOrder(id), orderPaymentAttempts(id), requestsForOrder(id), onlinePaymentAvailable(), hasPermission("orders", "edit"), hasPermission("orders", "approve"), hasPermission("invoices", "create"), getCachedCompanySettings()]);
   if (!order) notFound();
-  const web = (company.website_domain ? `https://${company.website_domain}` : (process.env.WEB_URL || "")).replace(/\/$/, "");
+  const storeDomain = (company as { store_domain?: string | null }).store_domain;
+  const storeBase = (storeDomain ? `https://${storeDomain}` : (process.env.STORE_URL || (company.website_domain ? `https://${company.website_domain}` : (process.env.WEB_URL || "")))).replace(/\/$/, "");
   const owed = order.total - order.amount_paid > 0.0005 && !["cancelled", "returned"].includes(order.status);
-  const paymentLink = online && owed && web ? `${web}/${order.locale === "en" ? "en" : "ar"}/pay/${paymentLinkToken(order.id)}` : "";
+  const paymentLink = online && owed && storeBase ? `${storeBase}/${order.locale === "en" ? "en" : "ar"}/pay/${paymentLinkToken(order.id)}` : "";
   return <OrderView order={order} attempts={attempts} requests={requests} paymentLink={paymentLink} rights={{ edit: canEdit, refund: canApprove, invoice: canInvoice }} />;
 }

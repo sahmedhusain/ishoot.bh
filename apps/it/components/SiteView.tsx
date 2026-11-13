@@ -30,7 +30,7 @@ import {
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
-type Kind = "website" | "admin";
+type Kind = "website" | "admin" | "store";
 type Changed = { updatedAt?: string; updatedBy?: string };
 
 function ChangedBy({ value }: { value: Changed | null }) {
@@ -87,10 +87,12 @@ function DomainsCard({
   const [values, setValues] = React.useState<Record<Kind, string>>({
     website: initial.websiteDomain,
     admin: initial.adminDomain,
+    store: initial.storeDomain ?? "",
   });
   const saved: Record<Kind, string> = {
     website: initial.websiteDomain,
     admin: initial.adminDomain,
+    store: initial.storeDomain ?? "",
   };
   const [saving, setSaving] = React.useState(false);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -98,17 +100,24 @@ function DomainsCard({
     Partial<Record<Kind, DomainCheckResult | "checking" | null>>
   >({});
   const dirty =
-    values.website !== saved.website || values.admin !== saved.admin;
+    values.website !== saved.website ||
+    values.admin !== saved.admin ||
+    values.store !== saved.store;
 
   const save = async () => {
     setSaving(true);
     try {
-      const outcome = await saveSiteDomainsAction(values.website, values.admin);
+      const outcome = await saveSiteDomainsAction(
+        values.website,
+        values.admin,
+        values.store,
+      );
       report(outcome, d.saved);
       if (outcome.ok) {
         setValues({
           website: outcome.value.websiteDomain,
           admin: outcome.value.adminDomain,
+          store: outcome.value.storeDomain ?? "",
         });
         setChecks({});
         setConfirmOpen(false);
@@ -136,10 +145,28 @@ function DomainsCard({
     const id = `domain-${kind}`;
     const invalid =
       values[kind].trim() !== "" && !normalizeDomain(values[kind]);
+    const label =
+      kind === "website"
+        ? d.websiteLabel
+        : kind === "store"
+          ? d.storeLabel
+          : d.adminLabel;
+    const placeholder =
+      kind === "website"
+        ? d.websitePlaceholder
+        : kind === "store"
+          ? d.storePlaceholder
+          : d.adminPlaceholder;
+    const hint =
+      kind === "website"
+        ? d.websiteHint
+        : kind === "store"
+          ? d.storeHint
+          : d.adminHint;
     return (
       <div className="space-y-1">
         <label htmlFor={id} className="text-xs font-bold font-mono text-ink uppercase">
-          {kind === "website" ? d.websiteLabel : d.adminLabel}
+          {label}
         </label>
         <div className="flex items-center">
           <span className="it-status-pane text-ink-muted" dir="ltr">
@@ -150,9 +177,7 @@ function DomainsCard({
             dir="ltr"
             value={values[kind]}
             disabled={!canEdit}
-            placeholder={
-              kind === "website" ? d.websitePlaceholder : d.adminPlaceholder
-            }
+            placeholder={placeholder}
             onChange={(e) =>
               setValues((current) => ({ ...current, [kind]: e.target.value }))
             }
@@ -163,11 +188,7 @@ function DomainsCard({
         <p
           className={`text-[11px] ${invalid ? "text-rose-600 font-bold" : "text-ink-muted font-mono"}`}
         >
-          {invalid
-            ? d.invalid
-            : kind === "website"
-              ? d.websiteHint
-              : d.adminHint}
+          {invalid ? d.invalid : hint}
         </p>
       </div>
     );
@@ -271,8 +292,9 @@ function DomainsCard({
           <ChangedBy value={initial} />
         </div>
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid sm:grid-cols-3 gap-3">
         {field("website")}
+        {field("store")}
         {field("admin")}
       </div>
       {canEdit && (
@@ -288,6 +310,7 @@ function DomainsCard({
       )}
       <div className="space-y-3 pt-2">
         {records("website")}
+        {records("store")}
         {records("admin")}
       </div>
 
@@ -297,6 +320,8 @@ function DomainsCard({
         newWebsite={values.website}
         currentAdmin={saved.admin}
         newAdmin={values.admin}
+        currentStore={saved.store}
+        newStore={values.store}
         busy={saving}
         onConfirm={save}
         onCancel={() => setConfirmOpen(false)}

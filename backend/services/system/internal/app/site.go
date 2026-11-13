@@ -23,6 +23,7 @@ type SiteCode struct {
 type Site struct {
 	WebsiteDomain	string		`json:"websiteDomain"`
 	AdminDomain	string		`json:"adminDomain"`
+	StoreDomain	string		`json:"storeDomain,omitempty"`
 	Code		SiteCode	`json:"code"`
 	UpdatedBy	*string		`json:"updatedBy,omitempty"`
 	UpdatedAt	*time.Time	`json:"updatedAt,omitempty"`

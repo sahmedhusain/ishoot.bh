@@ -56,6 +56,8 @@ playwright-report/
 test-results/
 apps/*/.next-e2e*/
 tests/.results/
+apps/*/.results/
+**/.results/
 
 # Database dumps from ./run.sh db backup
 backups/

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeAbuseLimit } from "@platform/database";
 import { inquiryFromUploadToken } from "@platform/database/services/inquiry-upload-token";
-import { sameOrigin, signInSecret, jsonError } from "../../../../lib/customer";
+import { sameOrigin, signInSecret, jsonError } from "../../../../lib/submissions";
 import { getSite } from "../../../../lib/site";
 import { isWebsitePreview } from "../../../../lib/website";
 import {

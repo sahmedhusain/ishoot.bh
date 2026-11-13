@@ -53,7 +53,7 @@ export async function healthFingerprint(origin: string): Promise<string | null> 
 }
 
 export async function checkDomain(
-  kind: "website" | "admin",
+  kind: "website" | "admin" | "store",
   domain: string,
   expected: () => Promise<string | null>,
 ): Promise<DomainCheckResult> {
@@ -75,8 +75,9 @@ export async function checkDomain(
       installation?: unknown;
     } | null;
     const fingerprint = await expected();
+    const expectedApp = kind === "admin" ? "admin" : kind === "store" ? "store" : "web";
     const connected =
-      body?.app === (kind === "admin" ? "admin" : "web") &&
+      body?.app === expectedApp &&
       !!fingerprint &&
       body.installation === fingerprint;
     return {

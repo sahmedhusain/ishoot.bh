@@ -45,26 +45,31 @@ jobs:
             apps/admin/package-lock.json
             apps/it/package-lock.json
             apps/web/package-lock.json
+            apps/store/package-lock.json
       - name: Install dependencies per app
         run: |
           npm --prefix apps/admin install
           npm --prefix apps/it install
           npm --prefix apps/web install
+          npm --prefix apps/store install
       - name: Lint
         run: |
           npm --prefix apps/admin run lint
           npm --prefix apps/it run lint
           npm --prefix apps/web run lint
+          npm --prefix apps/store run lint
       - name: Type-check
         run: |
           npm --prefix apps/admin run type-check
           npm --prefix apps/it run type-check
           npm --prefix apps/web run type-check
+          npm --prefix apps/store run type-check
       - name: Unit tests
         run: |
           npm --prefix apps/admin test
           npm --prefix apps/it test
           npm --prefix apps/web test
+          npm --prefix apps/store test
         env:
           CI: true
       - uses: actions/upload-artifact@v7

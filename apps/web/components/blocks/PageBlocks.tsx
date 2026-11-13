@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { categoryAncestors } from "@platform/database/constants/website-commerce";
-import { Promotions } from "../store/Promotions";
 import { PublicDocuments } from "./PublicDocuments";
 import { BranchLocations } from "../contact/BranchLocations";
 import { resolveWebsiteConfig } from "@platform/database/website-config";
@@ -104,7 +103,7 @@ export async function PageBlocks({ blocks, context }: { blocks: Block[]; context
         const requested = data.style === "inherit" ? resolveWebsiteConfig(website.config).heroStyle : data.style;
         const style = requested === "cinematic" && !website.banners.length ? "centered" : requested;
         const hero = style === "cinematic" ? <ShowcaseHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} /> : style === "split" ? <SplitHero banners={banners} title={title} subtitle={subtitle} /> : <CenteredHero banners={banners} title={title} subtitle={subtitle} />;
-        return <>{hero}{ctx.home && <Promotions locale={locale} placement="home" />}</>;
+        return hero;
       }
       case "about":
         return <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />;

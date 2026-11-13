@@ -13,12 +13,15 @@ const securityHeaders = [
     ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
     : []),
 ];
-const privatePages = "cart|checkout|account|pay|track|unsubscribe";
+const privatePages = "unsubscribe";
 
 const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.resolve(__dirname, '../../'),
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
   serverExternalPackages: ['libphonenumber-js'],

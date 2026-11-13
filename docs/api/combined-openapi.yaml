@@ -11545,6 +11545,8 @@ components:
               type: string
             code:
               $ref: '#/components/schemas/SiteCode'
+            storeDomain:
+              type: string
             websiteDomain:
               type: string
           required:
@@ -11583,6 +11585,9 @@ components:
             adminDomain:
               description: Normalised host name, or empty
               type: string
+            storeDomain:
+              description: Normalised host name, or empty
+              type: string
             websiteDomain:
               description: Normalised host name, or empty
               type: string
@@ -11593,6 +11598,10 @@ components:
     SiteDomainsInput:
       properties:
         adminDomain:
+          description: A public host name, or empty to clear
+          maxLength: 300
+          type: string
+        storeDomain:
           description: A public host name, or empty to clear
           maxLength: 300
           type: string

@@ -1,5 +1,4 @@
 import { CollectionCard } from "../../../../components/portfolio/CollectionCard";
-import { catalogueProductPrices } from "@platform/database/queries/store";
 import { PublicDocuments } from "../../../../components/blocks/PublicDocuments";
 import { ContentImage } from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
@@ -8,14 +7,10 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../../../lib/site";
-import { collectionHref, formatPrice, collectionGridClass } from "../../../../lib/site-copy";
+import { collectionHref, collectionGridClass } from "../../../../lib/site-copy";
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
-import { storeProductForItem } from "@platform/database";
-import { AddToCart } from "../../../../components/store/AddToCart";
-import { currentCustomer, storeEnabled, orderingEnabled } from "../../../../lib/customer";
-import { WishlistButton } from "../../../../components/account/WishlistButton";
 
 export async function generateMetadata({
   params,
@@ -67,13 +62,6 @@ export default async function CollectionItemPage({
   const isRTL = locale === "ar";
 
   const item = website.portfolio.find((project) => project.slug === slug);
-  const storeOn = !!item && (await storeEnabled());
-  const customer = storeOn && config.commerce.capabilities.accounts && config.commerce.capabilities.wishlist ? { signedIn: true, profile: await currentCustomer() } : null;
-  const canOrder = storeOn && !preview && (await orderingEnabled());
-  const storeProduct = storeOn && !preview ? await storeProductForItem(item!.id) : null;
-  const store = customer
-    ? { signedIn: !!customer.profile, saved: false }
-    : null;
 
   if (!item) {
     notFound();
@@ -83,8 +71,6 @@ export default async function CollectionItemPage({
   const title = pickText(item.title_en, item.title_ar, locale);
   const description = pickText(item.description_en, item.description_ar, locale);
   const subtitle = pickText(item.subtitle_en, item.subtitle_ar, locale);
-  const priceNote = pickText(item.price_note_en, item.price_note_ar, locale);
-  const price = storeProduct && !canOrder ? formatPrice(storeProduct.price, info.currency, locale) : !storeProduct && item.price !== undefined ? formatPrice(item.price, info.currency, locale) : "";
   const videoUrl = item.full_video_url || item.preview_video_url;
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
   const meta = [item.client_name, item.year, item.location].filter(Boolean);
@@ -101,10 +87,9 @@ export default async function CollectionItemPage({
   };
   const gallery = (item.gallery_urls ?? []).filter((url) => url && url !== item.thumbnail_url);
   const enquire = `/${locale}/contact?intent=quote_request&item=${encodeURIComponent(item.slug)}`;
-  const hasDetails = !!price || item.attributes.length > 0 || credits.length > 0 || !!item.external_url;
+  const hasDetails = item.attributes.length > 0 || credits.length > 0 || !!item.external_url;
 
   const relatedItems = config.commerce.relatedItems === false ? [] : website.portfolio.filter(entry => entry.id !== item.id && (!item.category_id || entry.category_id === item.category_id)).slice(0, 3);
-  const relatedPrices = storeOn && !preview ? await catalogueProductPrices(relatedItems.map(entry => entry.id)) : new Map<string, number>();
   const overview = (
     <Reveal className="space-y-4">
         {meta.length ? (
@@ -120,8 +105,6 @@ export default async function CollectionItemPage({
         ) : null}
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">{title}</h1>
         {subtitle ? <p className="max-w-3xl text-lg text-ink-muted">{subtitle}</p> : null}
-        {storeProduct && canOrder ? <AddToCart product={storeProduct} currency={info.currency} /> : null}
-        {store ? <WishlistButton itemId={item.id} initiallySaved={store.saved} signedIn={store.signedIn} next={`/${locale}/${collection}/${slug}`} /> : null}
       </Reveal>
   );
   const media = (
@@ -165,12 +148,6 @@ export default async function CollectionItemPage({
         <aside className="space-y-4">
           {hasDetails ? (
             <div className="space-y-4 rounded-2xl border border-white/10 bg-brand-surface p-6">
-              {price ? (
-                <p className="text-2xl font-bold text-white">
-                  {price}
-                  {priceNote ? <span className="ms-2 text-sm font-normal text-ink-muted">{priceNote}</span> : null}
-                </p>
-              ) : null}
               {item.attributes.length ? (
                 <dl className="space-y-3 text-sm">
                   {item.attributes.map((fact) => (
@@ -208,7 +185,7 @@ export default async function CollectionItemPage({
           ) : null}
         </aside>
       </div>
-      {relatedItems.length > 0 && <section className="space-y-6 border-t border-m3-outline-variant pt-10"><h2 className="text-2xl font-display font-bold">{t.portfolio.related}</h2><div className={collectionGridClass(layout)}>{relatedItems.map(entry => <CollectionCard key={entry.id} item={relatedPrices.has(entry.id) ? { ...entry, price: relatedPrices.get(entry.id) as number | undefined } : entry} layout={layout} />)}</div></section>}
+      {relatedItems.length > 0 && <section className="space-y-6 border-t border-m3-outline-variant pt-10"><h2 className="text-2xl font-display font-bold">{t.portfolio.related}</h2><div className={collectionGridClass(layout)}>{relatedItems.map(entry => <CollectionCard key={entry.id} item={entry} layout={layout} />)}</div></section>}
     </article>
   );
 }

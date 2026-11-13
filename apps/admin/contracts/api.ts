@@ -5268,6 +5268,7 @@ export interface components {
         Site: components["schemas"]["Changed"] & {
             adminDomain: string;
             code: components["schemas"]["SiteCode"];
+            storeDomain?: string;
             websiteDomain: string;
         };
         SiteCode: {
@@ -5284,11 +5285,15 @@ export interface components {
             /** @description Normalised host name, or empty */
             adminDomain: string;
             /** @description Normalised host name, or empty */
+            storeDomain?: string;
+            /** @description Normalised host name, or empty */
             websiteDomain: string;
         };
         SiteDomainsInput: {
             /** @description A public host name, or empty to clear */
             adminDomain: string;
+            /** @description A public host name, or empty to clear */
+            storeDomain?: string;
             /** @description A public host name, or empty to clear */
             websiteDomain: string;
         };

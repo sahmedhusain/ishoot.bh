@@ -15,6 +15,6 @@ type Config struct {
 	Outbox		outbox.Config		`envPrefix:"OUTBOX_"`
 }
 type InventorySettings struct {
-	Readers	[]string	`env:"READERS" envDefault:"admin,it,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
-	Writers	[]string	`env:"WRITERS" envDefault:"admin,commerce" envSeparator:"," validate:"min=1,dive,required"`
+	Readers	[]string	`env:"READERS" envDefault:"admin,it,store,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
+	Writers	[]string	`env:"WRITERS" envDefault:"admin,store,commerce" envSeparator:"," validate:"min=1,dive,required"`
 }

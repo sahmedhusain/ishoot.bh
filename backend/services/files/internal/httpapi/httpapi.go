@@ -168,7 +168,6 @@ func (h *Handler) read(c echo.Context) error {
 	}
 	defer body.Close()
 	header := c.Response().Header()
-	header.Set(echo.HeaderContentLength, strconv.FormatInt(f.Size, 10))
 	header.Set("X-File-Public", strconv.FormatBool(f.Public))
 	header.Set("X-File-Name", url.PathEscape(f.FileName))
 	header.Set("Cache-Control", "no-store")

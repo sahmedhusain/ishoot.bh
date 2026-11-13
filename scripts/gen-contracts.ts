@@ -22,7 +22,7 @@ async function main() {
 
   const contractContent = fs.readFileSync(tempOutput, "utf8");
 
-  const apps = ["web", "admin", "it"];
+  const apps = ["web", "admin", "it", "store"];
   for (const app of apps) {
     const outDir = path.join(root, `apps/${app}/contracts`);
     fs.mkdirSync(outDir, { recursive: true });

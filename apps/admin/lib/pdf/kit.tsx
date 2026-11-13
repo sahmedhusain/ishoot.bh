@@ -40,26 +40,34 @@ export interface PdfBrand {
 }
 
 export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBrand> {
-  C.primary = company.theme.primary;
-  C.accent = company.theme.accent;
-  C.soft = mix(company.theme.primary, "#FFFFFF", 0.95);
-  pageStyle.fontFamily = (await registerPdfFont(company.theme)) ? PDF_FONT : "Helvetica";
-  const [logo, icon, fullLogo, stamp, signature, assets] = await Promise.all([
-    resolveConfiguredPdfAsset(company.logo_url),
-    resolveConfiguredPdfAsset(company.icon_url),
-    resolveConfiguredPdfAsset(company.full_logo_url),
-    resolveConfiguredPdfAsset(company.stamp_url),
-    resolveConfiguredPdfAsset(company.signature_url),
-    db.companyAsset.findMany({ where: { assetKey: { in: ["letterhead_header", "letterhead_footer", "full_logo_light"] } }, select: { assetKey: true, fileUrl: true } }),
-  ]);
-  const asset = async (key: string) => {
-    const url = assets.find((a) => a.assetKey === key)?.fileUrl;
-    return url ? resolveConfiguredPdfAsset(url) : undefined;
-  };
-  const resolvedFullLogo = fullLogo || (await asset("full_logo_light"));
-  const letterheadHeader = (company.document_header_url ? await resolveConfiguredPdfAsset(company.document_header_url) : undefined) || (await asset("letterhead_header"));
-  const letterheadFooter = (company.document_footer_url ? await resolveConfiguredPdfAsset(company.document_footer_url) : undefined) || (await asset("letterhead_footer"));
-  return { company, logo, icon, fullLogo: resolvedFullLogo, stamp, signature, letterheadHeader, letterheadFooter };
+  try {
+    C.primary = company?.theme?.primary ?? DEFAULT_THEME.primary;
+    C.accent = company?.theme?.accent ?? DEFAULT_THEME.accent;
+    C.soft = mix(C.primary, "#FFFFFF", 0.95);
+    pageStyle.fontFamily = (await registerPdfFont(company?.theme).catch(() => false)) ? PDF_FONT : "Helvetica";
+    const [logo, icon, fullLogo, stamp, signature, assets] = await Promise.all([
+      resolveConfiguredPdfAsset(company?.logo_url).catch(() => undefined),
+      resolveConfiguredPdfAsset(company?.icon_url).catch(() => undefined),
+      resolveConfiguredPdfAsset(company?.full_logo_url).catch(() => undefined),
+      resolveConfiguredPdfAsset(company?.stamp_url).catch(() => undefined),
+      resolveConfiguredPdfAsset(company?.signature_url).catch(() => undefined),
+      db.companyAsset.findMany({
+        where: { assetKey: { in: ["letterhead_header", "letterhead_footer", "full_logo_light"] } },
+        select: { assetKey: true, fileUrl: true },
+      }).catch(() => []),
+    ]);
+    const asset = async (key: string) => {
+      const url = assets.find((a) => a.assetKey === key)?.fileUrl;
+      return url ? resolveConfiguredPdfAsset(url).catch(() => undefined) : undefined;
+    };
+    const resolvedFullLogo = fullLogo || (await asset("full_logo_light"));
+    const letterheadHeader = (company?.document_header_url ? await resolveConfiguredPdfAsset(company.document_header_url).catch(() => undefined) : undefined) || (await asset("letterhead_header"));
+    const letterheadFooter = (company?.document_footer_url ? await resolveConfiguredPdfAsset(company.document_footer_url).catch(() => undefined) : undefined) || (await asset("letterhead_footer"));
+    return { company, logo, icon, fullLogo: resolvedFullLogo, stamp, signature, letterheadHeader, letterheadFooter };
+  } catch (err) {
+    console.warn("resolvePdfBrand fallback:", err);
+    return { company };
+  }
 }
 
 function numberLocale(isAr: boolean) {
@@ -83,9 +91,13 @@ export function fmtMoney(value: number, code: string, isAr: boolean) {
 
 export function fmtDate(value: string | Date | null | undefined, isAr: boolean, month: "long" | "short" = "long", timeZone = "UTC") {
   if (!value) return "";
-  const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T00:00:00Z` : value) : value;
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(numberLocale(isAr), { day: "numeric", month, year: "numeric", timeZone }).format(date);
+  try {
+    const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T00:00:00Z` : value) : value;
+    if (!date || Number.isNaN(date.getTime())) return String(value).split("T")[0] || "";
+    return new Intl.DateTimeFormat(isAr ? "ar-u-nu-latn" : "en-GB", { day: "numeric", month, year: "numeric", timeZone }).format(date);
+  } catch {
+    return String(value).split("T")[0] || "";
+  }
 }
 
 export function fmtMonth(year: number, month: number, isAr: boolean) {

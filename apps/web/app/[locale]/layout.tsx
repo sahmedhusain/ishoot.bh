@@ -1,7 +1,6 @@
 import { isWebsitePreview, websiteExample } from "../../lib/website";
 import Script from "next/script";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
-import { storeEnabled, orderingEnabled } from "../../lib/customer";
 import * as React from "react";
 import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
 import { isRtlLocale } from "@platform/locales/registry";
@@ -22,7 +21,6 @@ import { siteBaseTone, siteThemeBootstrap } from "@platform/database/constants/w
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
 import { getSiteCode, getSocialLinks } from "@platform/database";
-import { UtmCapture } from "../../components/store/UtmCapture";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
@@ -62,7 +60,6 @@ export default async function LocaleLayout({
     }),
   ]);
   const isRTL = isRtlLocale(locale);
-  const [store, ordering] = await Promise.all([storeEnabled().catch(() => false), orderingEnabled().catch(() => false)]);
   const adminOrigin = originOf(process.env.ADMIN_URL);
   const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
@@ -122,9 +119,8 @@ export default async function LocaleLayout({
         <CompanyCurrencyProvider currency={company.default_currency}><PhoneCountryProvider country={company.country}><SiteProvider site={info}>
           <FloatingScrollbar />
           <BackToTop />
-          <UtmCapture />
           <SmoothScroll>
-            <Navbar cartEnabled={ordering} company={company} pages={config.pages} links={menus?.header} accountHref={store && config.commerce.capabilities.accounts ? `/${locale}/account` : undefined} />
+            <Navbar company={company} pages={config.pages} links={menus?.header} />
             <SiteRegion as="main" region="page" id="main-content" className="w-full">
               {children}
             </SiteRegion>

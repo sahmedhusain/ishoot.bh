@@ -211,27 +211,29 @@ menu_dev() {
     echo "${GREEN}${BOLD}=== 💻 Frontend Applications & Development Servers ===${RESET}"
     echo ""
     echo "  ${BOLD}--- Terminal Mode (Local Next.js Dev / Turbopack) ---${RESET}"
-    echo "  ${GREEN}[1]${RESET} Start All Dev Frontends (Web: 3000, Admin: 3001, IT: 3002)"
+    echo "  ${GREEN}[1]${RESET} Start All Dev Frontends (Web: 3000, Admin: 3001, IT: 3002, Store: 3003)"
     echo "  ${GREEN}[2]${RESET} Start Web App Only (http://localhost:3000)"
     echo "  ${GREEN}[3]${RESET} Start Admin App Only (http://localhost:3001)"
     echo "  ${GREEN}[4]${RESET} Start IT Support App Only (http://localhost:3002)"
+    echo "  ${GREEN}[S]${RESET} Start Store App Only (http://localhost:3003)"
     echo ""
     echo "  ${BOLD}--- Docker Mode (Containerized Frontend Apps) ---${RESET}"
-    echo "  ${CYAN}[5]${RESET} Start Containerized Frontends (web, admin, it)"
+    echo "  ${CYAN}[5]${RESET} Start Containerized Frontends (web, admin, it, store)"
     echo "  ${CYAN}[6]${RESET} Rebuild & Start Containerized Frontends"
     echo "  ${CYAN}[7]${RESET} View Container Logs for Frontends"
     echo "  ${CYAN}[8]${RESET} Stop Containerized Frontends"
     echo ""
-    echo "  ${MAGENTA}[9]${RESET} Free Up Dev Ports (3000, 3001, 3002, 8080)"
+    echo "  ${MAGENTA}[9]${RESET} Free Up Dev Ports (3000, 3001, 3002, 3003, 8080)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-9]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-9, S]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_dev all; pause_prompt ;;
       2) cmd_dev web; pause_prompt ;;
       3) cmd_dev admin; pause_prompt ;;
       4) cmd_dev it; pause_prompt ;;
+      s | S) cmd_dev store; pause_prompt ;;
       5) cmd_apps up all; pause_prompt ;;
       6) cmd_apps build all && cmd_apps up all; pause_prompt ;;
       7) cmd_apps logs web; pause_prompt ;;
@@ -509,7 +511,7 @@ menu_deploy() {
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_build; pause_prompt ;;
-      2) npm --prefix apps/admin run build && npm --prefix apps/web run build && npm --prefix apps/it run build; pause_prompt ;;
+      2) npm --prefix apps/admin run build && npm --prefix apps/web run build && npm --prefix apps/it run build && npm --prefix apps/store run build; pause_prompt ;;
       3) (cd backend && make build); pause_prompt ;;
       4) cmd_start all; pause_prompt ;;
       5) cmd_deploy check; pause_prompt ;;
@@ -563,17 +565,17 @@ ${BOLD}Getting Started & Quick Control${RESET}
   upgrade                          Pull latest repository changes, migrate schemas & rebuild
 
 ${BOLD}Frontend Docker & Dev Apps${RESET}
-  apps up|start [web|admin|it|all] Start containerized Next.js frontend applications
-  apps down|stop                   Stop containerized frontend applications
-  apps restart [web|admin|it|all]  Restart frontend app containers
-  apps build [web|admin|it|all]    Build Docker images for frontend applications
-  apps logs [web|admin|it]         Tail container logs for frontend applications
-  apps status                      Inspect container status of frontend applications
-  dev [all|admin|web|it]           Launch Next.js development servers (3000, 3001, 3002)
+  apps up|start [web|admin|it|store|all] Start containerized Next.js frontend applications
+  apps down|stop                         Stop containerized frontend applications
+  apps restart [web|admin|it|store|all]  Restart frontend app containers
+  apps build [web|admin|it|store|all]    Build Docker images for frontend applications
+  apps logs [web|admin|it|store]         Tail container logs for frontend applications
+  apps status                            Inspect container status of frontend applications
+  dev [all|admin|web|it|store]           Launch Next.js development servers (3000, 3001, 3002, 3003)
 
 ${BOLD}Rebuild & Stack Maintenance${RESET}
   rebuild all                      Rebuild all Docker containers, microservices, frontends & DB
-  rebuild apps                     Rebuild frontend Next.js Docker images (web, admin, it)
+  rebuild apps                     Rebuild frontend Next.js Docker images (web, admin, it, store)
   rebuild services                 Rebuild backend Go microservice Docker images
   rebuild db [preset]              Wipe database container, re-apply migrations & seed data
   rebuild single <name>            Rebuild specific container service image
@@ -628,7 +630,7 @@ EOF
 
 cmd_install() {
   step "Installing Node dependencies"
-  for app in apps/admin apps/it apps/web backend/contracts; do
+  for app in apps/admin apps/it apps/web apps/store backend/contracts; do
     if [ -f "$app/package.json" ]; then
       npm --prefix "$app" install
     fi
@@ -698,7 +700,7 @@ cmd_doctor() {
   step "Checking Environment Configuration (.env)"
   if [ -f .env ]; then node scripts/env-tool.cjs check || failures=$((failures + 1)); else warn ".env missing: ./run.sh env init"; failures=$((failures + 1)); fi
   step "Checking Frontend Dependencies & Backend Binaries"
-  if [ -d apps/admin/node_modules ] && [ -d apps/it/node_modules ] && [ -d apps/web/node_modules ]; then
+  if [ -d apps/admin/node_modules ] && [ -d apps/it/node_modules ] && [ -d apps/web/node_modules ] && [ -d apps/store/node_modules ]; then
     ok "frontend dependencies installed"
   else
     warn "frontend dependencies incomplete: ./run.sh install"
@@ -720,7 +722,7 @@ cmd_doctor() {
   fi
   step "Checking Required Network Ports"
   local port
-  for port in 3000 3001 3002 8080 5432 8333 6379 4222; do
+  for port in 3000 3001 3002 3003 8080 5432 8333 6379 4222; do
     if lsof -ti ":$port" >/dev/null 2>&1; then ok "Port $port in use"; else printf '  Port %s free\n' "$port"; fi
   done
   [ "$failures" -eq 0 ] && ok "No blocking issues detected." || die "$failures blocking issue(s) found."
@@ -757,7 +759,7 @@ cmd_apps() {
       local app="${1:-all}"
       step "Starting Containerized Frontend Apps ($app)"
       if [ "$app" = "all" ]; then
-        run compose up -d web admin it
+        run compose up -d web admin it store
       else
         run compose up -d "$app"
       fi
@@ -765,13 +767,13 @@ cmd_apps() {
       ;;
     down | stop)
       step "Stopping Containerized Frontend Apps"
-      run compose stop web admin it
+      run compose stop web admin it store
       ;;
     restart)
       local app="${1:-all}"
       step "Restarting Containerized Frontend Apps ($app)"
       if [ "$app" = "all" ]; then
-        run compose restart web admin it
+        run compose restart web admin it store
       else
         run compose restart "$app"
       fi
@@ -780,7 +782,10 @@ cmd_apps() {
       local app="${1:-all}"
       step "Building Frontend App Docker Images ($app)"
       if [ "$app" = "all" ]; then
-        run compose build web admin it
+        local a
+        for a in web admin it store; do
+          run compose build "$a"
+        done
       else
         run compose build "$app"
       fi
@@ -792,7 +797,7 @@ cmd_apps() {
       ;;
     status)
       step "Frontend Containers Status:"
-      compose ps web admin it
+      compose ps web admin it store
       ;;
     *)
       die "Unknown command: apps $sub (up, down, restart, build, logs, status)"
@@ -811,7 +816,10 @@ cmd_rebuild() {
       confirm "Rebuild all Docker containers and reset database to current profile?" || die "Cancelled."
       node scripts/env-tool.cjs service-keys >/dev/null
       step "Rebuilding Docker images"
-      run compose build --no-cache
+      local svc
+      for svc in db-roles whatsapp-sandbox "${SERVICES_LIST[@]}" web admin it store; do
+        run compose build "$svc"
+      done
       step "Restarting containers"
       run compose down --volumes --remove-orphans
       run compose up -d --wait
@@ -823,8 +831,11 @@ cmd_rebuild() {
       ok "Full Platform Stack Rebuild Complete!"
       ;;
     apps | frontend)
-      step "Rebuilding Frontend Next.js Docker Images (web, admin, it)"
-      run compose build --no-cache web admin it
+      step "Rebuilding Frontend Next.js Docker Images (web, admin, it, store)"
+      local a
+      for a in web admin it store; do
+        run compose build "$a"
+      done
       ok "Frontend App Docker Images Rebuilt Successfully."
       ;;
     services | backend)
@@ -865,7 +876,11 @@ cmd_services() {
     up | start)
       node scripts/env-tool.cjs service-keys >/dev/null
       step "Starting local container stack (Postgres, Valkey, SeaweedFS, NATS, Mailpit & Backend Gateway)"
-      run compose up -d --build --wait
+      local svc
+      for svc in db-roles whatsapp-sandbox "${SERVICES_LIST[@]}" web admin it store; do
+        compose build "$svc"
+      done
+      run compose up -d --wait
       ok "Backend Gateway running at http://127.0.0.1:${GATEWAY_PORT:-8080}"
       cmd_db migrate
       ;;
@@ -1046,12 +1061,14 @@ cmd_dev() {
       npm --prefix apps/web run dev &
       npm --prefix apps/admin run dev &
       npm --prefix apps/it run dev &
+      npm --prefix apps/store run dev &
       wait
       ;;
     admin) npm --prefix apps/admin run dev ;;
     web | website) npm --prefix apps/web run dev ;;
     it) npm --prefix apps/it run dev ;;
-    *) die "dev [all|admin|web|it] [--docker|--terminal]" ;;
+    store) npm --prefix apps/store run dev ;;
+    *) die "dev [all|admin|web|it|store] [--docker|--terminal]" ;;
   esac
 }
 
@@ -1060,10 +1077,11 @@ cmd_build() {
     step "Building Go backend service binaries"
     (cd backend && make build)
   fi
-  step "Building Next.js apps (admin, web, IT)"
+  step "Building Next.js apps (admin, web, IT, store)"
   npm --prefix apps/admin run build
   npm --prefix apps/web run build
   npm --prefix apps/it run build
+  npm --prefix apps/store run build
 }
 
 cmd_start() {
@@ -1072,21 +1090,23 @@ cmd_start() {
     admin) npm --prefix apps/admin start ;;
     web | website) npm --prefix apps/web start ;;
     it) npm --prefix apps/it start ;;
+    store) npm --prefix apps/store start ;;
     all)
       trap 'kill 0' INT TERM EXIT
       npm --prefix apps/web start &
       npm --prefix apps/admin start &
       npm --prefix apps/it start &
+      npm --prefix apps/store start &
       wait
       ;;
-    *) die "start [all|admin|web|it]" ;;
+    *) die "start [all|admin|web|it|store]" ;;
   esac
 }
 
 cmd_check() {
   local failed=""
   local item
-  for item in admin web it; do
+  for item in admin web it store; do
     step "Checking apps/$item (lint, type-check, unit test)"
     npm --prefix "apps/$item" run lint 2>/dev/null || true
     npm --prefix "apps/$item" run type-check || failed="$failed $item:type-check"
@@ -1106,11 +1126,13 @@ cmd_test() {
       npm --prefix apps/admin test
       npm --prefix apps/it test
       npm --prefix apps/web test
+      npm --prefix apps/store test
       if [ -d backend ] && have go; then (cd backend && make test-short); fi
       ;;
     admin) npm --prefix apps/admin test ;;
     it) npm --prefix apps/it test ;;
     web) npm --prefix apps/web test ;;
+    store) npm --prefix apps/store test ;;
     backend) (cd backend && make test) ;;
     coverage)
       step "Running Frontend Coverage"
@@ -1184,9 +1206,9 @@ cmd_deploy() {
         run vercel deploy --cwd "apps/$1" $prod
       }
       case "$app" in
-        admin | web | it) deploy_one "$app" ;;
-        all) deploy_one web; deploy_one admin; deploy_one it ;;
-        *) die "deploy vercel <admin|web|it|all> [--prod]" ;;
+        admin | web | it | store) deploy_one "$app" ;;
+        all) deploy_one web; deploy_one admin; deploy_one it; deploy_one store ;;
+        *) die "deploy vercel <admin|web|it|store|all> [--prod]" ;;
       esac
       ;;
     self)
@@ -1219,6 +1241,7 @@ cmd_urls() {
   Web App           http://localhost:3000   (/en, /ar)
   Admin App         http://localhost:3001
   IT Dashboard      http://localhost:3002
+  Store App         http://localhost:3003   (/en, /ar)
   Backend Gateway   http://127.0.0.1:8080   (Health/Metrics: port 9080)
   Postgres DB       127.0.0.1:5432
   S3 Storage        http://127.0.0.1:8333   (SeaweedFS)

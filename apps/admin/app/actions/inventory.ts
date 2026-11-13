@@ -26,11 +26,13 @@ import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import { notifyLowStock } from "../../lib/low-stock";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 function revalidateStock(productId?: string) {
   revalidatePath(ROUTES.inventory.stock);
   revalidatePath(ROUTES.inventory.movements());
   if (productId) revalidatePath(ROUTES.products.detail(productId));
+  void revalidatePublicStore(["store", "inventory", "products"]);
 }
 
 export async function changeStockAction(input: StockChangeInput) {

@@ -24,11 +24,11 @@ type System struct {
 	ServiceKey		string		`env:"SERVICE_KEY"`
 	FilesURL		string		`env:"FILES_URL" envDefault:"http://files:8080" validate:"http_url"`
 	CompanyBodyLimit	int64		`env:"COMPANY_BODY_LIMIT" envDefault:"1048576" validate:"gt=0"`
-	CompanyReaders		[]string	`env:"COMPANY_READERS" envDefault:"admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms" envSeparator:"," validate:"min=1,dive,required"`
+	CompanyReaders		[]string	`env:"COMPANY_READERS" envDefault:"admin,web,store,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms" envSeparator:"," validate:"min=1,dive,required"`
 	CompanyWriters	[]string	`env:"COMPANY_WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
-	CurrencyCallers	[]string	`env:"CURRENCY_CALLERS" envDefault:"admin,web,sales,finance,workflow,hr,inventory,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
+	CurrencyCallers	[]string	`env:"CURRENCY_CALLERS" envDefault:"admin,web,store,sales,finance,workflow,hr,inventory,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
 	SequenceCallers	[]string	`env:"SEQUENCE_CALLERS" envDefault:"admin,finance" envSeparator:"," validate:"min=1,dive,required"`
-	ReadCallers	[]string	`env:"READ_CALLERS" envDefault:"admin,web,it,notify" envSeparator:"," validate:"min=1,dive,required"`
+	ReadCallers	[]string	`env:"READ_CALLERS" envDefault:"admin,web,store,it,notify" envSeparator:"," validate:"min=1,dive,required"`
 	ModuleReadCallers	[]string	`env:"MODULE_READ_CALLERS" envDefault:"identity" envSeparator:"," validate:"dive,required"`
 	ModuleWriters	[]string	`env:"MODULE_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
 	IntegrationWriters	[]string	`env:"INTEGRATION_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`

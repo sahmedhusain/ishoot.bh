@@ -27,6 +27,7 @@ echo "▶ [Pillar 3/5] Generating & Verifying Per-App API Contracts..."
 npm run gen:contracts
 diff -qr apps/web/contracts apps/admin/contracts
 diff -qr apps/web/contracts apps/it/contracts
+diff -qr apps/web/contracts apps/store/contracts
 echo "✅ Contracts verified identical across apps."
 
 echo ""
@@ -35,7 +36,7 @@ node scripts/generate-postman-artifacts.cjs
 npx newman run docs/api/combined-openapi.postman_collection.json -e docs/api/gateway.env.json --bail
 
 echo ""
-echo "▶ [Pillar 4/5] Running Monorepo TypeScript Checks (Web, Admin, IT)..."
+echo "▶ [Pillar 4/5] Running Monorepo TypeScript Checks (Web, Admin, IT, Store)..."
 npm run type-check
 
 echo ""

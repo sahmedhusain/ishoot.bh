@@ -19,6 +19,7 @@ import {
 } from "@platform/database/queries/serialized-sales";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 export async function generateSerialLabelsAction(input: SerialLabelInput) {
   validateActionArguments("generateSerialLabelsAction", { input });
@@ -53,6 +54,7 @@ export async function moveSerialsBetweenBinsAction(input: SerialBinMove) {
   const actor = await requirePermission("inventory", "edit");
   const result = await moveSerialsBetweenBins(input, actor.id);
   revalidatePath("/dashboard/inventory");
+  void revalidatePublicStore(["store", "inventory"]);
   return result;
 }
 

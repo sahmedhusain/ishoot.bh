@@ -30,12 +30,14 @@ const SERVICES_RUNTIME: ServiceRuntimeInfo[] = [
   { name: "apps/admin-portal", kind: "frontend", port: 3000, status: "ONLINE", memoryMb: 112, cpuPct: 3.2, uptimeHours: 168, latencyMs: 8 },
   { name: "apps/it-desk", kind: "frontend", port: 3001, status: "ONLINE", memoryMb: 94, cpuPct: 2.8, uptimeHours: 168, latencyMs: 7 },
   { name: "apps/web-public", kind: "frontend", port: 3002, status: "ONLINE", memoryMb: 104, cpuPct: 3.5, uptimeHours: 168, latencyMs: 9 },
+  { name: "apps/store-front", kind: "frontend", port: 3003, status: "ONLINE", memoryMb: 98, cpuPct: 2.9, uptimeHours: 168, latencyMs: 7 },
 ];
 
 const ENV_VARIABLES_AUDIT = [
   { key: "DATABASE_URL", isSecret: true, configured: true, redacted: "postgres://platform_app:***@localhost:5432/platform_db" },
   { key: "DATABASE_POOL_MAX", isSecret: false, configured: true, redacted: "40" },
   { key: "REDIS_URL", isSecret: true, configured: true, redacted: "redis://default:***@localhost:6379" },
+  { key: "STORE_URL", isSecret: false, configured: true, redacted: "http://localhost:3003" },
   { key: "JWT_ISSUER", isSecret: false, configured: true, redacted: "platform.identity" },
   { key: "JWT_PRIVATE_KEY", isSecret: true, configured: true, redacted: "ED25519:***[32 bytes]" },
   { key: "S3_BUCKET_NAME", isSecret: false, configured: true, redacted: "platform-media-vault" },

@@ -1,7 +1,9 @@
 "use client";
 import * as React from "react";
-import { primaryButton } from "../account/ui";
 import { useTranslation } from "../../hooks/useTranslation";
+
+const primaryButton =
+  "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-sm shadow-m3-1 hover:shadow-m3-2 transition-all duration-150 disabled:opacity-50 cursor-pointer";
 
 export function InquiryAttachments({
   token,

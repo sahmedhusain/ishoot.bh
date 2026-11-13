@@ -11,6 +11,8 @@ export interface DomainSaveConfirmModalProps {
   newWebsite: string;
   currentAdmin: string;
   newAdmin: string;
+  currentStore?: string;
+  newStore?: string;
   busy: boolean;
   onConfirm: () => Promise<void> | void;
   onCancel: () => void;
@@ -22,6 +24,8 @@ export function DomainSaveConfirmModal({
   newWebsite,
   currentAdmin,
   newAdmin,
+  currentStore = "",
+  newStore = "",
   busy,
   onConfirm,
   onCancel,
@@ -42,8 +46,9 @@ export function DomainSaveConfirmModal({
 
   const websiteChanged = (currentWebsite || "").trim() !== (newWebsite || "").trim();
   const adminChanged = (currentAdmin || "").trim() !== (newAdmin || "").trim();
+  const storeChanged = (currentStore || "").trim() !== (newStore || "").trim();
 
-  const isMajorChange = adminChanged || websiteChanged;
+  const isMajorChange = adminChanged || websiteChanged || storeChanged;
   const targetRequiredWord = "CONFIRM";
   const isTypedCorrect = !isMajorChange || typedVerification.trim().toUpperCase() === targetRequiredWord;
   const canSubmit = isTypedCorrect && acknowledgedDns && !busy;

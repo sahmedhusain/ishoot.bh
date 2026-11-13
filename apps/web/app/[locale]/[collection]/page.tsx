@@ -1,6 +1,3 @@
-import { Promotions } from "../../../components/store/Promotions";
-import { catalogueProductPrices } from "@platform/database/queries/store";
-import { storeEnabled } from "../../../lib/customer";
 import { Reveal } from "../../../components/shared/Reveal";
 import { isWebsitePreview } from "../../../lib/website";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -37,8 +34,7 @@ export default async function CollectionPage({
     notFound();
   }
 
-  const prices = await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
-  const items = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) as number | undefined } : item);
+  const items = website.portfolio;
   const categories = website.categories ?? Array.from(
     new Map(
       items
@@ -61,7 +57,6 @@ export default async function CollectionPage({
         </Reveal>
 
       </div>
-      <Promotions locale={locale} placement="catalogue" category={typeof query.category === "string" ? query.category : ""} />
       <div className="shell pb-16">
         <PortfolioGrid items={items} categories={categories} layout={info.collection.layout} />
       </div>

@@ -833,6 +833,12 @@ components:
             maxLength: 300,
             description: "A public host name, or empty to clear",
           }
+        storeDomain:
+          {
+            type: string,
+            maxLength: 300,
+            description: "A public host name, or empty to clear",
+          }
     SiteDomains:
       allOf:
         - { $ref: "#/components/schemas/Changed" }
@@ -842,6 +848,8 @@ components:
             websiteDomain:
               { type: string, description: "Normalised host name, or empty" }
             adminDomain:
+              { type: string, description: "Normalised host name, or empty" }
+            storeDomain:
               { type: string, description: "Normalised host name, or empty" }
     SiteCode:
       type: object
@@ -865,6 +873,7 @@ components:
           properties:
             websiteDomain: { type: string }
             adminDomain: { type: string }
+            storeDomain: { type: string }
             code: { $ref: "#/components/schemas/SiteCode" }
     Problem:
       type: object

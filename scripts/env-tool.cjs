@@ -49,6 +49,7 @@ const SECRETS = {
   S3_SECRET_ACCESS_KEY: () => crypto.randomBytes(30).toString("base64url"),
   ADMIN_SERVICE_KEY: () => serviceKey("admin"),
   WEB_SERVICE_KEY: () => serviceKey("web"),
+  STORE_SERVICE_KEY: () => serviceKey("store"),
   IT_SERVICE_KEY: () => serviceKey("it"),
   // Backend callers: notify reads integration credentials; identity reads module availability.
   NOTIFY_SERVICE_KEY: () => serviceKey("notify"),
@@ -86,6 +87,7 @@ const RETIRED = {
 const SERVICE_CALLERS = [
   "admin",
   "web",
+  "store",
   "it",
   "notify",
   "identity",

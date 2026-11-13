@@ -110,6 +110,46 @@ routes:
     realms: [service]
     rateLimit: services
     bodyLimit: 5M
+  # Storefront e-commerce endpoints (apps/store).
+  - name: store
+    prefix: /v1/store/
+    upstream: commerce
+    realms: [service]
+    rateLimit: services
+    bodyLimit: 5M
+  # Customer account & address book endpoints (apps/store).
+  - name: account
+    prefix: /v1/account/
+    upstream: commerce
+    realms: [service]
+    rateLimit: services
+    bodyLimit: 5M
+  # IT Store Preset & Customization Studio (apps/it).
+  - name: it-store-presets
+    prefix: /v1/it/store-presets/
+    upstream: system
+    realms: [service, it]
+    rateLimit: default
+    bodyLimit: 1M
+  # Admin inventory, products & order endpoints (apps/admin).
+  - name: admin-inventory
+    prefix: /v1/admin/inventory/
+    upstream: inventory
+    realms: [service]
+    rateLimit: services
+    bodyLimit: 5M
+  - name: admin-products
+    prefix: /v1/admin/products/
+    upstream: inventory
+    realms: [service]
+    rateLimit: services
+    bodyLimit: 5M
+  - name: admin-orders
+    prefix: /v1/admin/orders/
+    upstream: commerce
+    realms: [service]
+    rateLimit: services
+    bodyLimit: 5M
   # Delivery: Zones, delivery slots, shipments, vehicles, route sheets, proof of delivery.
   - name: delivery
     prefix: /v1/delivery/

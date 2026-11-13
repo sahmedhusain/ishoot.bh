@@ -1,7 +1,33 @@
 import { serverMessages } from "@platform/locales";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { consumeAbuseLimit, trustedClientIp } from "@platform/database";
+
+export function signInSecret() {
+  const secret =
+    process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET;
+  if (!secret) throw new Error(serverMessages.customerSignInUnavailable);
+  return secret;
+}
+
+export function sameOrigin(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  return !!origin && origin === req.nextUrl.origin;
+}
+
+export function errorKey(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  const key = Object.entries(serverMessages).find(
+    ([, text]) => text === message,
+  )?.[0];
+  return key ?? "generic";
+}
+
+export const jsonError = (error: unknown, status = 400) =>
+  NextResponse.json(
+    { error: errorKey(error) },
+    { status: errorKey(error) === "rateLimit" ? 429 : status },
+  );
 export async function readSubmission(
   req: NextRequest,
 ): Promise<Record<string, unknown>> {

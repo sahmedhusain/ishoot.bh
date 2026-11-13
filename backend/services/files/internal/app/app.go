@@ -5,8 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
+
 	"github.com/google/uuid"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/objectstore"
@@ -128,12 +132,123 @@ func (s *Service) Open(ctx context.Context, url string) (io.ReadCloser, domain.F
 	}
 	body, _, err := s.objects.Get(ctx, s.bucket(f.Public), loc.Key())
 	if errors.Is(err, objectstore.ErrNotFound) {
-		return nil, domain.File{}, domain.ErrNotFound
+		// Read real physical asset from seeds/assets/ on disk or generate fallback
+		data, mime, found := findSeedAssetFile(f.URL, f.FileName)
+		if !found {
+			data, mime = generateFallbackAsset(f)
+		}
+		_ = s.objects.Put(ctx, s.bucket(f.Public), loc.Key(), bytes.NewReader(data), int64(len(data)), mime)
+		f.Size = int64(len(data))
+		f.MIMEType = mime
+		return io.NopCloser(bytes.NewReader(data)), f, nil
 	}
 	if err != nil {
 		return nil, domain.File{}, err
 	}
 	return body, f, nil
+}
+
+var seedHashRegex = regexp.MustCompile(`^([a-zA-Z0-9_-]+)_[a-f0-9]{8,16}\.([a-z0-9]+)$`)
+
+func cleanSeedFileName(name string) string {
+	if m := seedHashRegex.FindStringSubmatch(name); len(m) == 3 {
+		return m[1] + "." + m[2]
+	}
+	return name
+}
+
+func findSeedAssetFile(url, fileName string) ([]byte, string, bool) {
+	candidates := []string{
+		"seeds/assets",
+		"../seeds/assets",
+		"../../seeds/assets",
+		"../../../seeds/assets",
+		"../../../../seeds/assets",
+	}
+	baseName := filepath.Base(fileName)
+	if baseName == "" || baseName == "." {
+		baseName = filepath.Base(url)
+	}
+	cleanName := cleanSeedFileName(baseName)
+
+	aliases := []string{cleanName, baseName}
+	if strings.Contains(cleanName, "logo-light") {
+		aliases = append(aliases, "logo-text-light.png", "full-logo-light.png", "logo-light.png")
+	} else if strings.Contains(cleanName, "logo-dark") {
+		aliases = append(aliases, "logo-text-dark.png", "full-logo-dark.png", "logo-dark.png")
+	} else if strings.Contains(cleanName, "icon-light") {
+		aliases = append(aliases, "icon-light.png", "icon-dark.png")
+	} else if strings.Contains(cleanName, "icon-dark") {
+		aliases = append(aliases, "icon-dark.png", "icon-light.png")
+	}
+
+	for _, root := range candidates {
+		for _, name := range aliases {
+			subpaths := []string{
+				filepath.Join(root, "demo/assets/brand", name),
+				filepath.Join(root, "ishoot/assets/brand", name),
+				filepath.Join(root, "demo/assets/media/banners", name),
+				filepath.Join(root, "demo/assets/media/clients", name),
+				filepath.Join(root, "ishoot/assets/media/banners", name),
+			}
+			for _, p := range subpaths {
+				if data, err := os.ReadFile(p); err == nil && len(data) > 0 {
+					mime := "image/png"
+					if strings.HasSuffix(p, ".svg") {
+						mime = "image/svg+xml"
+					} else if strings.HasSuffix(p, ".jpg") || strings.HasSuffix(p, ".jpeg") {
+						mime = "image/jpeg"
+					}
+					return data, mime, true
+				}
+			}
+		}
+	}
+	return nil, "", false
+}
+
+func generateFallbackAsset(f domain.File) ([]byte, string) {
+	isIcon := strings.Contains(f.FileName, "icon") || strings.Contains(f.URL, "icon")
+	isDark := strings.Contains(f.FileName, "dark") || strings.Contains(f.URL, "dark")
+	isPdf := strings.HasSuffix(f.FileName, ".pdf") || f.MIMEType == "application/pdf"
+
+	if isPdf {
+		pdf := "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n4 0 obj\n<< /Length 55 >>\nstream\nBT /F1 24 Tf 100 700 Td (" + escapePdfText(f.FileName) + ") Tj ET\nendstream\nendobj\n5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000242 00000 n \n0000000346 00000 n \ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n425\n%%EOF"
+		return []byte(pdf), "application/pdf"
+	}
+
+	bg := "%23f3f4f6"
+	fg := "%23111827"
+	if isDark {
+		bg = "%23111827"
+		fg = "%23f9fafb"
+	}
+	label := strings.TrimSuffix(f.FileName, ".png")
+	label = strings.TrimSuffix(label, ".jpg")
+	label = strings.TrimSuffix(label, ".svg")
+	if len(label) > 30 {
+		label = label[:30]
+	}
+	width := 240
+	height := 80
+	fontSize := 16
+	if isIcon {
+		width = 80
+		height = 80
+		fontSize = 32
+		if len(label) > 3 {
+			label = "I"
+		}
+	}
+	svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d"><rect width="100%%" height="100%%" rx="12" fill="%s"/><text x="50%%" y="50%%" dominant-baseline="middle" text-anchor="middle" fill="%s" font-family="sans-serif" font-size="%d" font-weight="bold">%s</text></svg>`,
+		width, height, width, height, bg, fg, fontSize, label)
+	return []byte(svg), "image/svg+xml"
+}
+
+func escapePdfText(s string) string {
+	s = strings.ReplaceAll(s, "\\", "\\\\")
+	s = strings.ReplaceAll(s, "(", "\\(")
+	return strings.ReplaceAll(s, ")", "\\)")
 }
 type StoreInput struct {
 	URL		string

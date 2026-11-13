@@ -1,20 +1,15 @@
 import { serverTemplates, formatMessage } from "@platform/locales";
-export async function revalidatePublicSite(
-  tags: string[] = [],
-  paths: string[] = ["/"],
-): Promise<boolean> {
-  const webUrl = process.env.WEB_URL;
-  const secret = process.env.REVALIDATION_SECRET;
 
-  if (!webUrl || !secret) {
-    console.warn(
-      "Public cache invalidation is unconfigured; cached content refreshes after its 60-second TTL.",
-    );
-    return false;
-  }
+async function revalidateOrigin(
+  origin: string | undefined,
+  tags: string[],
+  paths: string[],
+): Promise<boolean> {
+  const secret = process.env.REVALIDATION_SECRET;
+  if (!origin || !secret) return false;
 
   try {
-    const response = await fetch(`${webUrl}/api/revalidate`, {
+    const response = await fetch(`${origin}/api/revalidate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,7 +26,36 @@ export async function revalidatePublicSite(
       );
     return true;
   } catch (err) {
-    console.warn("Failed to revalidate public site cache:", err);
+    console.warn("Failed to revalidate public cache:", err);
     return false;
   }
+}
+
+export async function revalidatePublicStore(
+  tags: string[] = ["store", "inventory"],
+  paths: string[] = ["/"],
+): Promise<boolean> {
+  return revalidateOrigin(process.env.STORE_URL, tags, paths);
+}
+
+export async function revalidatePublicSite(
+  tags: string[] = [],
+  paths: string[] = ["/"],
+): Promise<boolean> {
+  const webUrl = process.env.WEB_URL;
+  const storeUrl = process.env.STORE_URL;
+  const secret = process.env.REVALIDATION_SECRET;
+
+  if ((!webUrl && !storeUrl) || !secret) {
+    console.warn(
+      "Public cache invalidation is unconfigured; cached content refreshes after its 60-second TTL.",
+    );
+    return false;
+  }
+
+  const [webOk, storeOk] = await Promise.all([
+    revalidateOrigin(webUrl, tags, paths),
+    revalidateOrigin(storeUrl, tags, paths),
+  ]);
+  return webOk || storeOk;
 }

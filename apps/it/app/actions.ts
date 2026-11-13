@@ -392,12 +392,14 @@ async function attemptSite<T>(call: () => Promise<T>): Promise<SiteOutcome<T>> {
 export async function saveSiteDomainsAction(
   websiteDomain: string,
   adminDomain: string,
+  storeDomain = "",
 ) {
   const user = await requireAllowed("domains", "edit");
   const outcome = await attemptSite(() =>
     setSiteDomainsForIT(user.token, {
       websiteDomain: String(websiteDomain).slice(0, 300),
       adminDomain: String(adminDomain).slice(0, 300),
+      storeDomain: String(storeDomain).slice(0, 300),
     }),
   );
   if (outcome.ok) {
@@ -409,12 +411,17 @@ export async function saveSiteDomainsAction(
 }
 
 export async function checkSiteDomainAction(
-  kind: "website" | "admin",
+  kind: "website" | "admin" | "store",
   domain: string,
 ): Promise<DomainCheckResult | null> {
   await requireAllowed("domains", "execute");
-  if (kind !== "website" && kind !== "admin") return null;
-  const origin = kind === "admin" ? config.adminUrl() : config.webUrl();
+  if (kind !== "website" && kind !== "admin" && kind !== "store") return null;
+  const origin =
+    kind === "admin"
+      ? config.adminUrl()
+      : kind === "store"
+        ? config.storeUrl()
+        : config.webUrl();
   return checkDomain(kind, String(domain), () =>
     origin ? healthFingerprint(origin) : Promise.resolve(null),
   ).catch(() => null);

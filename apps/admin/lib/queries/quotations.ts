@@ -692,6 +692,13 @@ export function isQuotationExpired(
   return endOfDay < now;
 }
 
+function toIso(val: any): string {
+  if (!val) return new Date().toISOString();
+  if (val instanceof Date) return val.toISOString();
+  if (typeof val === "string") return new Date(val).toISOString();
+  return new Date(val).toISOString();
+}
+
 export async function getQuotationById(id: string): Promise<Quotation | null> {
   try {
     const { getQuotation, listQuotations } = await import("@platform/api-client");
@@ -741,10 +748,10 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
     rawRate: q.rawRate ? Number(q.rawRate) : null,
     fxMarginPercent: Number(q.fxMarginPercent),
     effectiveRate: q.effectiveRate ? Number(q.effectiveRate) : null,
-    issueDate: q.issueDate.toISOString(),
-    validUntilDate: q.validUntilDate.toISOString(),
-    createdAt: q.createdAt.toISOString(),
-    updatedAt: q.updatedAt.toISOString(),
+    issueDate: toIso(q.issueDate),
+    validUntilDate: toIso(q.validUntilDate),
+    createdAt: toIso(q.createdAt),
+    updatedAt: toIso(q.updatedAt),
     lineItems: q.lineItems.map((li) => ({
       ...li,
       quantity: Number(li.quantity),

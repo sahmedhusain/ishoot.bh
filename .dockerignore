@@ -13,7 +13,8 @@ backend/bin
 .idea
 .local
 backups
-seeds/assets
+seeds/*
+!seeds/assets
 graphify-out
 tmp
 *.dump

@@ -15,6 +15,17 @@ import { mapDocumentTaxLines } from "../finance/vat";
 import { db } from "../atomic";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
+function toIso(val: any): string {
+  if (!val) return new Date().toISOString();
+  if (val instanceof Date) return val.toISOString();
+  if (typeof val === "string") return new Date(val).toISOString();
+  return new Date(val).toISOString();
+}
+
+function toDateStr(val: any): string {
+  return toIso(val).split("T")[0];
+}
+
 function mapPayment(p: any): Payment {
   const invPayments = p.invoice?.payments || [];
   const totalPaidOnInvoice =
@@ -32,7 +43,7 @@ function mapPayment(p: any): Payment {
     id: p.id,
     invoice_id: p.invoiceId,
     receipt_number: p.receiptNumber,
-    payment_date: p.paymentDate.toISOString().split("T")[0],
+    payment_date: toDateStr(p.paymentDate),
     amount: Number(p.amount),
     currency: String(p.currency ?? ""),
     payment_method: (p.paymentMethod as PaymentMethod) || "bank_transfer",
@@ -42,15 +53,15 @@ function mapPayment(p: any): Payment {
     notification_channel: (p.notificationChannel as any) || undefined,
     notification_sent: p.notificationSent,
     created_by: p.createdById || undefined,
-    created_at: p.createdAt.toISOString(),
+    created_at: toIso(p.createdAt),
     invoice: p.invoice
       ? {
           id: p.invoice.id,
           invoice_number: p.invoice.invoiceNumber,
           contact_id: p.invoice.clientId || p.invoice.deal?.contactId || "",
           deal_id: p.invoice.dealId || undefined,
-          issue_date: p.invoice.issueDate.toISOString().split("T")[0],
-          due_date: p.invoice.dueDate.toISOString().split("T")[0],
+          issue_date: toDateStr(p.invoice.issueDate),
+          due_date: toDateStr(p.invoice.dueDate),
           subtotal: Number(p.invoice.subtotal),
           discount_type: (p.invoice.discountType as any) || "none",
           discount_value: Number(p.invoice.discountValue || 0),
@@ -68,8 +79,8 @@ function mapPayment(p: any): Payment {
           currency: p.invoice.currency as SupportedCurrency,
           language: p.invoice.language as "en" | "ar",
           status: p.invoice.status as any,
-          created_at: p.invoice.createdAt.toISOString(),
-          updated_at: p.invoice.updatedAt.toISOString(),
+          created_at: toIso(p.invoice.createdAt),
+          updated_at: toIso(p.invoice.updatedAt),
           contact: contactObj
             ? {
                 id: contactObj.id,
@@ -80,12 +91,8 @@ function mapPayment(p: any): Payment {
                 email: contactObj.email || "",
                 phone: contactObj.phone || undefined,
                 company: contactObj.companyName || undefined,
-                created_at: contactObj.createdAt
-                  ? contactObj.createdAt.toISOString()
-                  : new Date().toISOString(),
-                updated_at: contactObj.updatedAt
-                  ? contactObj.updatedAt.toISOString()
-                  : new Date().toISOString(),
+                created_at: toIso(contactObj.createdAt),
+                updated_at: toIso(contactObj.updatedAt),
               }
             : undefined,
         }

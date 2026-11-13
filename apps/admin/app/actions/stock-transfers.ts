@@ -15,6 +15,7 @@ import {
 } from "@platform/database/queries/stock-handover";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 export async function requestSerialTransferAction(input: {
   sourceLocationId: string;
@@ -52,6 +53,7 @@ export async function processSerialTransferAction(input: {
         : receiveSerialTransfer(input, actor.id));
   revalidatePath("/dashboard/inventory/transfers");
   revalidatePath("/dashboard/inventory");
+  void revalidatePublicStore(["store", "inventory"]);
   return result;
 }
 export async function previewStockHandoverAction(input: {

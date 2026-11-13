@@ -1,12 +1,10 @@
-
 import { config } from "./config";
 
-export async function revalidatePublicSite(tags: string[]): Promise<boolean> {
-  const webUrl = config.webUrl();
+async function revalidateOrigin(origin: string, tags: string[]): Promise<boolean> {
   const secret = config.revalidationSecret();
-  if (!webUrl || !secret) return false;
+  if (!origin || !secret) return false;
   try {
-    const response = await fetch(`${webUrl}/api/revalidate`, {
+    const response = await fetch(`${origin}/api/revalidate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +15,19 @@ export async function revalidatePublicSite(tags: string[]): Promise<boolean> {
     });
     return response.ok;
   } catch (error) {
-    console.warn("Failed to revalidate public site cache:", error);
+    console.warn("Failed to revalidate public cache:", error);
     return false;
   }
+}
+
+export async function revalidatePublicStore(tags: string[]): Promise<boolean> {
+  return revalidateOrigin(config.storeUrl(), tags);
+}
+
+export async function revalidatePublicSite(tags: string[]): Promise<boolean> {
+  const [webOk, storeOk] = await Promise.all([
+    revalidateOrigin(config.webUrl(), tags),
+    revalidateOrigin(config.storeUrl(), tags),
+  ]);
+  return webOk || storeOk;
 }

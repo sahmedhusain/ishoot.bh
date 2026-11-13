@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const apps = ["admin", "web", "it"];
+const apps = ["admin", "web", "it", "store"];
 const locales = ["en", "ar"];
 const flat = (value, prefix = "", result = {}) => {
   for (const [key, child] of Object.entries(value)) {
@@ -74,4 +74,4 @@ for (const app of apps) {
 }
 
 if (failed) process.exit(1);
-console.log("Admin, Web, and IT locale key and placeholder checks passed.");
+console.log("Admin, Web, IT, and Store locale key and placeholder checks passed.");

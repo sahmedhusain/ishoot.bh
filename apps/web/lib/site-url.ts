@@ -16,7 +16,10 @@ export async function publicSiteUrl(): Promise<URL> {
     )
       return url;
   }
-  if (process.env.NODE_ENV !== "production")
+  if (
+    process.env.NODE_ENV !== "production" ||
+    process.env.NEXT_PHASE === "phase-production-build"
+  )
     return new URL("http://localhost:3000");
   throw new Error("Public website URL is not configured");
 }

@@ -9,19 +9,16 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
-import { CartLink } from "../store/CartLink";
-import { Menu, UserRound } from "lucide-react";
+import { Menu } from "lucide-react";
 import type { PublicCompanySettings } from "@platform/database/types";
 
 interface NavbarProps {
   company: PublicCompanySettings;
   pages?: { id: string; visible: boolean }[];
   links?: { id: string; href: string; label: string; external?: boolean }[];
-  accountHref?: string;
-  cartEnabled?: boolean;
 }
 
-export function Navbar({ company, pages, links, accountHref, cartEnabled }: NavbarProps) {
+export function Navbar({ company, pages, links }: NavbarProps) {
   const { t, locale, site } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -123,22 +120,10 @@ export function Navbar({ company, pages, links, accountHref, cartEnabled }: Navb
                 />
               </form>
             )}
-            {cartEnabled ? <CartLink className="w-10 h-10 grid place-items-center rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high/60 transition-colors" /> : null}
-            {accountHref ? (
-              <Link href={accountHref} aria-label={t("nav.account")} title={t("nav.account")} className="w-10 h-10 grid place-items-center rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high/60 transition-colors" data-testid="nav-account">
-                <UserRound className="w-5 h-5" aria-hidden="true" />
-              </Link>
-            ) : null}
             <SiteModeSwitch locale={locale} /><LanguageSwitcher />
           </div>
 
           <div className={`flex items-center gap-3 ${fullNavigation ? "lg:hidden" : ""}`}>
-            {cartEnabled ? <CartLink className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white" /> : null}
-            {accountHref ? (
-              <Link href={accountHref} aria-label={t("nav.account")} className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white">
-                <UserRound className="w-4 h-4" aria-hidden="true" />
-              </Link>
-            ) : null}
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-ink hover:bg-m3-surface-container-high transition-colors duration-150"

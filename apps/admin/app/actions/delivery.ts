@@ -36,6 +36,7 @@ import { requirePermission } from "../../lib/auth";
 import { requireShipmentAccess } from "../../lib/delivery-scope";
 import { validateActionArguments } from "../../lib/action-input";
 import { notifyLowStock } from "../../lib/low-stock";
+import { revalidatePublicStore } from "../../lib/revalidate-web";
 
 export async function moveShipmentAction(id: string, input: MoveShipmentInput) {
   return measureOperation("action:moveShipmentAction", async () => {
@@ -134,6 +135,7 @@ const refreshShipment = (id: string) => {
   revalidatePath(ROUTES.delivery.shipments);
   revalidatePath(ROUTES.delivery.shipment(id));
   revalidatePath(ROUTES.delivery.driver);
+  void revalidatePublicStore(["store", "delivery"]);
 };
 
 export async function assignShipmentAction(

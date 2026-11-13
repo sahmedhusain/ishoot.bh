@@ -1,5 +1,5 @@
 "use client";
-import { Select } from "@platform/ui";
+import { Button, Input, Select } from "@platform/ui";
 import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
@@ -7,7 +7,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { catalogueQuery, searchCatalogue } from "@platform/database/constants/catalogue-search";
 import { defaultWebsiteCommerce } from "@platform/database/constants/website-commerce";
 import { useTranslation } from "../../hooks/useTranslation";
-import { field, secondaryButton } from "../account/ui";
 import { PortfolioItem, PortfolioCategory } from "@platform/database";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryTabs } from "./CategoryTabs";
@@ -30,7 +29,7 @@ export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps)
   const params = useSearchParams();
   const config = site?.commerce ?? defaultWebsiteCommerce();
   const query = catalogueQuery(params, config.facetLabels);
-  const activeQuery = { ...query, q: config.search ? query.q : "", category: config.categories ? query.category : "all", sort: config.sorting ? query.sort : "featured" };
+  const activeQuery = { ...query, q: config.search ? query.q : "", category: config.categories ? query.category : "all", sort: config.sorting && query.sort !== "price-asc" && query.sort !== "price-desc" ? query.sort : "featured" };
   const [search, setSearch] = React.useState(query.q);
   React.useEffect(() => setSearch(query.q), [query.q]);
   const update = (patch: Record<string, string>) => {
@@ -49,14 +48,14 @@ export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps)
   return (
     <div className="space-y-12">
       <div className="flex flex-wrap items-end gap-4">
-        {config.search && <form className="flex flex-1 min-w-[min(100%,16rem)] gap-2" onSubmit={e => { e.preventDefault(); update({ q: search.trim() }); }}><input type="search" aria-label={t("portfolio.searchCatalogue")} placeholder={t("portfolio.searchPlaceholder")} maxLength={160} className={field} value={search} onChange={e => setSearch(e.target.value)} /><button type="submit" className={secondaryButton}>{t("portfolio.search")}</button></form>}
-        {config.sorting && <label className="text-sm space-y-1"><span className="block text-ink-muted">{t("portfolio.sortBy")}</span><Select className={`${field} min-w-[11rem]`} value={activeQuery.sort} onChange={e => update({ sort: e.target.value })}><option value="featured">{t("portfolio.sortFeatured")}</option><option value="name">{t("portfolio.sortName")}</option><option value="newest">{t("portfolio.sortNewest")}</option>{items.some(item => item.price != null) && <><option value="price-asc">{t("portfolio.sortPriceAsc")}</option><option value="price-desc">{t("portfolio.sortPriceDesc")}</option></>}</Select></label>}
+        {config.search && <form className="flex flex-1 min-w-[min(100%,16rem)] gap-2" onSubmit={e => { e.preventDefault(); update({ q: search.trim() }); }}><Input type="search" aria-label={t("portfolio.searchCatalogue")} placeholder={t("portfolio.searchPlaceholder")} maxLength={160} value={search} onChange={e => setSearch(e.target.value)} /><Button type="submit" variant="secondary">{t("portfolio.search")}</Button></form>}
+        {config.sorting && <label className="text-sm space-y-1"><span className="block text-ink-muted">{t("portfolio.sortBy")}</span><Select className="min-w-[11rem]" value={activeQuery.sort} onChange={e => update({ sort: e.target.value })}><option value="featured">{t("portfolio.sortFeatured")}</option><option value="name">{t("portfolio.sortName")}</option><option value="newest">{t("portfolio.sortNewest")}</option></Select></label>}
       </div>
       {!!config.facetLabels?.length && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{config.facetLabels.map(label => {
         const facts = items.flatMap(item => item.attributes).filter(fact => (fact.labelEn || fact.labelAr) === label);
         const options = Array.from(new Map(facts.map(fact => [fact.valueEn || fact.valueAr, ar ? fact.valueAr || fact.valueEn : fact.valueEn || fact.valueAr])).entries()).filter(([value]) => value);
         if (!options.length) return null;
-        return <label key={label} className="text-sm space-y-1"><span className="text-ink-muted">{ar ? facts[0].labelAr || label : label}</span><Select className={`${field} min-w-[11rem]`} value={params.get(`filter-${label}`) ?? ""} onChange={e => update({ [`filter-${label}`]: e.target.value })}><option value="">{t("portfolio.all")}</option>{options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</Select></label>;
+        return <label key={label} className="text-sm space-y-1"><span className="text-ink-muted">{ar ? facts[0].labelAr || label : label}</span><Select className="min-w-[11rem]" value={params.get(`filter-${label}`) ?? ""} onChange={e => update({ [`filter-${label}`]: e.target.value })}><option value="">{t("portfolio.all")}</option>{options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</Select></label>;
       })}</div>}
       {config.categories && <CategoryTabs
         categories={categories}
@@ -65,7 +64,7 @@ export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps)
         onSelect={(slug) => update({ category: slug })}
       />}
       <p role="status" className="text-sm text-ink-muted">{t("portfolio.resultsCount", { count: result.total })}</p>
-      {!result.total && <div className="py-12 space-y-4"><p className="text-lg">{t("portfolio.noResults")}</p><button type="button" className={secondaryButton} onClick={() => update({ q: "", category: "all", sort: "featured", ...Object.fromEntries((config.facetLabels ?? []).map(label => [`filter-${label}`, ""])) })}>{t("portfolio.clearFilters")}</button></div>}
+      {!result.total && <div className="py-12 space-y-4"><p className="text-lg">{t("portfolio.noResults")}</p><Button type="button" variant="secondary" onClick={() => update({ q: "", category: "all", sort: "featured", ...Object.fromEntries((config.facetLabels ?? []).map(label => [`filter-${label}`, ""])) })}>{t("portfolio.clearFilters")}</Button></div>}
       <motion.div
         layout={!reduced}
         className={collectionGridClass(layout)}
@@ -89,7 +88,7 @@ export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps)
         </AnimatePresence>
       </motion.div>
 
-      {result.pages > 1 && <nav aria-label={t("portfolio.resultPages")} className="flex items-center justify-between gap-3"><button type="button" className={secondaryButton} disabled={result.page <= 1} onClick={() => update({ page: String(result.page - 1) })}>{t("portfolio.previous")}</button><span className="text-sm text-ink-muted">{result.page} / {result.pages}</span><button type="button" className={secondaryButton} disabled={result.page >= result.pages} onClick={() => update({ page: String(result.page + 1) })}>{t("portfolio.next")}</button></nav>}
+      {result.pages > 1 && <nav aria-label={t("portfolio.resultPages")} className="flex items-center justify-between gap-3"><Button type="button" variant="secondary" disabled={result.page <= 1} onClick={() => update({ page: String(result.page - 1) })}>{t("portfolio.previous")}</Button><span className="text-sm text-ink-muted">{result.page} / {result.pages}</span><Button type="button" variant="secondary" disabled={result.page >= result.pages} onClick={() => update({ page: String(result.page + 1) })}>{t("portfolio.next")}</Button></nav>}
       <ShowcaseLightbox
         item={selectedItem}
         onClose={() => setSelectedItem(null)}

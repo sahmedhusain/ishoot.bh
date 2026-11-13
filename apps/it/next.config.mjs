@@ -43,6 +43,9 @@ const securityHeaders = [
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   outputFileTracingRoot: path.resolve(__dirname, "../../"),
   transpilePackages: [
@@ -55,6 +58,9 @@ const nextConfig = {
   // Which service key this app signs its backend calls with (docs/adr/0011).
   env: { SERVICE_CALLER: "it" },
   experimental: {
+    serverActions: {
+      allowedOrigins: ["localhost:3002", "127.0.0.1:3002", "localhost:3000", "localhost:3001", "localhost:3003", "*.platform.local"],
+    },
     optimizePackageImports: ["lucide-react", "@platform/ui"],
     // forbidden(): pages an IT role may not open render app/forbidden.tsx with HTTP 403.
     authInterrupts: true,

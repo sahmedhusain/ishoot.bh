@@ -6,7 +6,7 @@ import type { PortfolioItem } from "@platform/database/types";
 import type { CollectionLayout } from "@platform/database/website-presets";
 import { pickText } from "@platform/database/constants/languages";
 import { useTranslation } from "../../hooks/useTranslation";
-import { collectionHref, formatPrice } from "../../lib/site-copy";
+import { collectionHref } from "../../lib/site-copy";
 import { useSiteTone } from "../site/SiteTheme";
 import { ContentImage } from "../shared/ContentImage";
 
@@ -18,19 +18,17 @@ const ASPECT: Record<CollectionLayout, string> = {
 };
 
 function useItemFacts(item: PortfolioItem) {
-  const { locale, site } = useTranslation();
+  const { locale } = useTranslation();
   const subtitle = pickText(item.subtitle_en, item.subtitle_ar, locale);
   const project = [item.client_name, item.year].filter(Boolean).join(" · ");
-  const price = item.price !== undefined && site ? formatPrice(item.price, site.currency, locale) : "";
-  const priceNote = pickText(item.price_note_en, item.price_note_ar, locale);
-  return { title: pickText(item.title_en, item.title_ar, locale), subtitle, project, price, priceNote };
+  return { title: pickText(item.title_en, item.title_ar, locale), subtitle, project };
 }
 
 export function CollectionCard({ item, layout, tone: propTone, onOpen, horizontal = false }: { item: PortfolioItem; layout: CollectionLayout; tone?: "dark" | "light"; horizontal?: boolean; onOpen?: (item: PortfolioItem) => void }) {
   const { t, locale, site } = useTranslation();
   const siteTone = useSiteTone();
   const tone = propTone ?? (siteTone === "light" ? "light" : "dark");
-  const { title, subtitle, project, price, priceNote } = useItemFacts(item);
+  const { title, subtitle, project } = useItemFacts(item);
   const isVideo = Boolean(item.full_video_url || item.preview_video_url);
   const light = tone === "light";
   const heading = light ? "text-m3-on-surface group-hover:text-m3-primary" : "text-m3-on-surface group-hover:text-m3-primary";
@@ -53,12 +51,6 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
             {isVideo ? <Play className="h-4 w-4 fill-current" /> : <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />}
           </span>
         ) : null}
-        {layout === "listing" && price ? (
-          <span className="on-media absolute bottom-3 start-3 rounded-brand bg-black/75 px-3 py-1.5 text-sm font-semibold text-paper backdrop-blur-sm">
-            {price}
-            {priceNote ? <span className="ms-1 text-xs font-normal text-white/75">{priceNote}</span> : null}
-          </span>
-        ) : null}
       </div>
 
       <div className="space-y-1.5 pb-3 pt-4">
@@ -66,11 +58,9 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
         <div className="flex items-baseline justify-between gap-3">
           <h3 className={`font-display text-lg font-bold transition-colors sm:text-xl ${heading}`}>{title}</h3>
           {layout === "media" && item.year ? <span className={`shrink-0 text-xs font-semibold ${muted}`}>{item.year}</span> : null}
-          {layout === "product" && price ? <span className="shrink-0 text-sm font-bold text-m3-on-surface">{price}</span> : null}
         </div>
         {layout === "media" && item.client_name ? <p className={`text-xs font-medium sm:text-sm ${muted}`}>{item.client_name}</p> : null}
         {layout !== "media" && subtitle ? <p className={`text-sm ${muted}`}>{subtitle}</p> : null}
-        {layout === "product" && priceNote ? <p className={`text-xs ${muted}`}>{priceNote}</p> : null}
         {layout === "listing" && item.location ? (
           <p className={`flex items-center gap-1.5 text-xs ${muted}`}>
             <MapPin className="h-3.5 w-3.5" />

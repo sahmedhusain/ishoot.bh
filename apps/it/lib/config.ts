@@ -25,6 +25,7 @@ export const config = {
   secureCookies: () => process.env.NODE_ENV === "production",
 
   webUrl: () => process.env.WEB_URL || "",
+  storeUrl: () => process.env.STORE_URL || "",
 
   adminUrl: () => process.env.ADMIN_URL || "",
   adminPublicUrl: () =>
