@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { testDatabase } from "../../helpers";
-import { t } from "../helpers/locale";
+import { testDatabase } from "./helpers/helpers";
+import { t } from "./helpers/locale";
 
 const db = testDatabase();
 

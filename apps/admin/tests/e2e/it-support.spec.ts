@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { TICKET_CATEGORIES, ticketCategory } from "@platform/contracts";
-import { watchErrors } from "../../helpers";
-import { selectOption } from "../../select-option";
-import { t } from "../helpers/locale";
+import { watchErrors } from "./helpers/helpers";
+import { selectOption } from "./helpers/select-option";
+import { t } from "./helpers/locale";
 
 const s = t.itSupport;
 const PDF = Buffer.from(

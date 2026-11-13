@@ -1,13 +1,13 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
-import { testDatabase } from "../../helpers";
+import { testDatabase } from "./helpers/helpers";
 import {
   setIntegration,
   unlinkIntegration,
   updateIntegrationStatus,
-} from "../../integrations";
+} from "./helpers/integrations";
 const en = enLocale.admin;
 const ar = arLocale.admin;
 

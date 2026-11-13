@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { t } from "../helpers/locale";
+import { t } from "./helpers/locale";
 import { STYLE_PRESETS } from "../../lib/constants/theme";
-import { acceptConfirmations } from "../../helpers";
+import { acceptConfirmations } from "./helpers/helpers";
 
 for (const mode of ["light", "dark"] as const) {
   test.describe(`Material 3 / ${mode}`, () => {

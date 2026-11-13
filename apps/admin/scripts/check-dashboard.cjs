@@ -26,7 +26,7 @@ function load(file, mocks, jsx = false) {
     module, exports: module.exports, require(id) {
       if (jsx && id === "react/jsx-runtime") return require("react/jsx-runtime");
       id = ((i, m) => i in m ? i : (i.startsWith("@platform/database/") && "@platform/database" in m ? "@platform/database" : i))(id, mocks);
-      if (id === "../atomic" || id === "../db") return mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
+      if (id === "../atomic" || id === "../db" || id === "@platform/database") return mocks["@platform/database"] || mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
       if (id === "../finance/company-currency" && !(id in mocks)) return load("lib/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(filePath, id); if (real) return real; throw Error("Unmocked dependency: " + id); }
       return mocks[id];

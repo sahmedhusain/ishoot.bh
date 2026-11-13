@@ -1,17 +1,17 @@
-import { selectOption } from "../../select-option";
-import { acceptConfirmations } from "../../helpers";
+import { selectOption } from "./helpers/select-option";
+import { acceptConfirmations } from "./helpers/helpers";
 import zlib from "node:zlib";
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import users from "../../fixtures/users.json";
+import users from "../fixtures/users.json";
 import { ports } from "../../playwright.config";
-import { login, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
+import { login, testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
 import {
   disableDelivery,
   enableDelivery,
   enableStore,
   freshStockedProduct,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 
 const copy = t.delivery;
 const db = testDatabase();

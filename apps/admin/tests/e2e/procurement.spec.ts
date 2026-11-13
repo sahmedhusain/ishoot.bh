@@ -1,8 +1,8 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
-import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { setModule } from "../../modules";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { setModule } from "./helpers/modules";
 
 const copy = t.procurement;
 const db = testDatabase();

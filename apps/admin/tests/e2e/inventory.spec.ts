@@ -1,8 +1,8 @@
-import { acceptConfirmations } from "../../helpers";
+import { acceptConfirmations } from "./helpers/helpers";
 import { expect, test, type Page } from "@playwright/test";
-import { alertMessage, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { setModule } from "../../modules";
+import { alertMessage, testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { setModule } from "./helpers/modules";
 
 const copy = t.inventory;
 const db = testDatabase();

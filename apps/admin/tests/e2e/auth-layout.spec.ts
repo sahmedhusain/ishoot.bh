@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { alertMessage } from "../../helpers";
+import { alertMessage } from "./helpers/helpers";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
 const en = enLocale.admin;

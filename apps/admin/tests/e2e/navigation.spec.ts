@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
+import { watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
 
 test("every sidebar destination renders", async ({ page }) => {
   test.setTimeout(20 * 60_000);

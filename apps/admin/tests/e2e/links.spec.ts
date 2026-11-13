@@ -1,8 +1,8 @@
 import { expect, request as apiRequest, test } from "@playwright/test";
-import users from "../../fixtures/users.json";
-import { checkDownload, crawl } from "../../crawl";
-import { t } from "../helpers/locale";
-import { login } from "../../helpers";
+import users from "../fixtures/users.json";
+import { checkDownload, crawl } from "./helpers/crawl";
+import { t } from "./helpers/locale";
+import { login } from "./helpers/helpers";
 
 const SKIP = /\/logout|\/sign\/|\/acknowledge\/|\/login/;
 const GROUPS = ["legal", "hr", "finance", "clients", "assets", "company"];

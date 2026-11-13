@@ -1,15 +1,15 @@
-import { selectOption } from "../../select-option";
-import { acceptConfirmations } from "../../helpers";
+import { selectOption } from "./helpers/select-option";
+import { acceptConfirmations } from "./helpers/helpers";
 import { expect, test } from "@playwright/test";
-import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
 import {
   disableDelivery,
   enableDelivery,
   enableStore,
   freshStockedProduct,
   stockOf,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 
 const copy = t.delivery;
 const db = testDatabase();

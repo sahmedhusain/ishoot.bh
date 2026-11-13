@@ -266,6 +266,7 @@ async function runTests() {
         },
       },
     },
+    "../api/company": { getCompanyConfiguration: async () => ({ paymentTermsDays: 14 }) },
     "../types": { calculateInvoiceTotals: () => ({}) },
     "../finance/numbering": { allocateDocumentNumber: async () => "INV-2026-0001" },
     "./leave": {

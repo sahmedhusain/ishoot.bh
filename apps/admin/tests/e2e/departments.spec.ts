@@ -1,15 +1,15 @@
-import { selectOption } from "../../select-option";
-import { acceptConfirmations } from "../../helpers";
+import { selectOption } from "./helpers/select-option";
+import { acceptConfirmations } from "./helpers/helpers";
 import crypto from "node:crypto";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { en } from "../../locales";
-import users from "../../fixtures/users.json";
+import users from "../fixtures/users.json";
 import { cronSecret, ports } from "../../playwright.config";
-import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { enableStore, freshStockedProduct } from "../../store-fixtures";
-import { setModule } from "../../modules";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { enableStore, freshStockedProduct } from "./helpers/store-fixtures";
+import { setModule } from "./helpers/modules";
 
 const db = testDatabase();
 const web = `http://localhost:${ports.web}`;

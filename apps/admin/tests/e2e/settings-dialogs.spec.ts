@@ -1,4 +1,4 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
 import { formatMessage } from "@platform/locales";
 import enLocale from "../../locales/en.json";

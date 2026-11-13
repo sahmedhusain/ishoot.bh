@@ -1,15 +1,15 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
-import users from "../../fixtures/users.json";
+import users from "../fixtures/users.json";
 import { cronSecret, ports } from "../../playwright.config";
-import { login, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
+import { login, testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
 import {
   enableDelivery,
   enableStore,
   freshStockedProduct,
   disableDelivery,
-} from "../../store-fixtures";
+} from "./helpers/store-fixtures";
 
 const copy = t.reports;
 const db = testDatabase();

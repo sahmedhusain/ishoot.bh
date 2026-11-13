@@ -7,8 +7,8 @@ import {
   otherCompanyNames,
   themeVariable,
   watchErrors,
-} from "../../helpers";
-import { t } from "../helpers/locale";
+} from "./helpers/helpers";
+import { t } from "./helpers/locale";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/dashboard");

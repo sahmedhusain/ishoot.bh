@@ -2,7 +2,7 @@ import { expect, test, type Locator } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
-import { testDatabase } from "../../helpers";
+import { testDatabase } from "./helpers/helpers";
 const en = enLocale.admin;
 const ar = arLocale.admin;
 

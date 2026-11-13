@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
-import { acceptConfirmations } from "../../helpers";
+import { acceptConfirmations } from "./helpers/helpers";
 const en = enLocale.admin;
 const ar = arLocale.admin;
 

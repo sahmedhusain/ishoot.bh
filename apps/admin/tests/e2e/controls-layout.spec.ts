@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 const uiEn = enLocale.shared.ui;
 const uiAr = arLocale.shared.ui;
 const en = enLocale.admin;

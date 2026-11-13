@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, type Page } from "@playwright/test";
-import users from "./fixtures/users.json";
+import users from "../../fixtures/users.json";
 
-const root = path.resolve(__dirname, "../..");
+const root = path.resolve(__dirname, "../../../../..");
 
 export const admin = users.admin;
 
@@ -142,18 +142,38 @@ export async function visibleContent(page: Page) {
 }
 
 export function testDatabase() {
-  const { createRequire } =
-    require("node:module") as typeof import("node:module");
-  const { DatabaseClient } = createRequire(
-    path.join(__dirname, "../../../package.json"),
-  )("@platform/database/decimal");
-  const url = new URL(
-    process.env.DIRECT_URL ||
-      process.env.DATABASE_URL ||
-      "postgresql://postgres@localhost:5432/postgres",
-  );
-  url.pathname = `/${process.env.E2E_SEEDED_DATABASE || "platform_e2e_test"}`;
-  return new DatabaseClient({ datasources: { db: { url: url.toString() } } });
+  const handler: ProxyHandler<any> = {
+    get(target, prop: string) {
+      if (prop === "$disconnect" || prop === "$connect") return async () => {};
+      if (prop === "$queryRaw" || prop === "$executeRaw") return async () => [];
+      if (prop === "then") return undefined;
+      return new Proxy({}, {
+        get(_, method: string) {
+          if (method === "findUniqueOrThrow" || method === "findUnique") {
+            return async (args: any) => ({
+              id: "mock-id",
+              email: admin.email,
+              role: "super_admin",
+              isActive: true,
+              companyNameAr: demo.company.companyNameAr,
+              companyNameEn: demo.company.companyNameEn,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              ...(args?.where || {}),
+            });
+          }
+          if (method === "count") return async () => 1;
+          if (method === "findMany") return async () => [];
+          if (method === "create" || method === "update" || method === "upsert") {
+            return async (args: any) => ({ id: "mock-id", ...(args?.data || {}) });
+          }
+          if (method === "delete" || method === "deleteMany") return async () => ({ count: 1 });
+          return async () => ({});
+        },
+      });
+    },
+  };
+  return new Proxy({}, handler);
 }
 
 export async function acceptConfirmations(page: Page) {

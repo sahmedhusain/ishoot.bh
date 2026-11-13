@@ -1,7 +1,7 @@
-import users from "../../fixtures/users.json";
-import { t } from "../helpers/locale";
+import users from "../fixtures/users.json";
+import { t } from "./helpers/locale";
 import { expect, test } from "@playwright/test";
-import { admin, alertMessage, demo, login, testDatabase } from "../../helpers";
+import { admin, alertMessage, demo, login, testDatabase } from "./helpers/helpers";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 

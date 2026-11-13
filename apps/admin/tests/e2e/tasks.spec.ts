@@ -1,10 +1,10 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test, type Browser } from "@playwright/test";
-import users from "../../fixtures/users.json";
+import users from "../fixtures/users.json";
 import { ports } from "../../playwright.config";
-import { login, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { setModule } from "../../modules";
+import { login, testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { setModule } from "./helpers/modules";
 
 const copy = t.tasks;
 const db = testDatabase();

@@ -1,15 +1,15 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import { expect, test } from "@playwright/test";
 import { ports } from "../../playwright.config";
-import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { enableStore, freshStockedProduct } from "../../store-fixtures";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { enableStore, freshStockedProduct } from "./helpers/store-fixtures";
 import {
   startStripeStandIn,
   useStripeStandIn,
   type StandIn,
-} from "../../stripe-stand-in";
-import { updateIntegrationStatus } from "../../integrations";
+} from "./helpers/stripe-stand-in";
+import { updateIntegrationStatus } from "./helpers/integrations";
 
 const copy = t.orders;
 const db = testDatabase();

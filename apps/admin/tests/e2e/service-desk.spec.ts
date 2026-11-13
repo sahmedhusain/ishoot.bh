@@ -1,11 +1,11 @@
-import { selectOption } from "../../select-option";
+import { selectOption } from "./helpers/select-option";
 import crypto from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { en } from "../../locales";
 import { ports } from "../../playwright.config";
-import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../helpers/locale";
-import { enableStore, freshStockedProduct } from "../../store-fixtures";
+import { testDatabase, watchErrors } from "./helpers/helpers";
+import { t } from "./helpers/locale";
+import { enableStore, freshStockedProduct } from "./helpers/store-fixtures";
 
 const copy = t.serviceDesk;
 const db = testDatabase();

@@ -70,12 +70,12 @@ test("setup addresses use real routes and sanitized origins only", () => {
       );
       const route =
         link.kind === "callback"
-          ? "apps/web/app/api/account/[action]/callback/route.ts"
+          ? "apps/store/app/api/account/[action]/callback/route.ts"
           : provider.id === "resend"
             ? "apps/admin/app/api/webhooks/resend/route.ts"
             : link.kind === "webhook"
-              ? "apps/web/app/api/store/payment/webhook/[gateway]/route.ts"
-              : "apps/web/app/api/store/payment/return/route.ts";
+              ? "apps/store/app/api/store/payment/webhook/[gateway]/route.ts"
+              : "apps/store/app/api/store/payment/return/route.ts";
       expect(existsSync(path.resolve(__dirname, "../../../../", route))).toBe(true);
     }
     for (const invalid of [
