@@ -335,6 +335,8 @@
     "working": "Please wait…",
     "signOut": "Sign out",
     "hello": "Hello, {name}",
+    "orders": "Orders",
+    "wishlist": "Wishlist",
     "sections": {
       "profile": "Profile",
       "addresses": "Addresses",
@@ -445,6 +447,20 @@
     "removeAddress": "Remove"
   },
   "store": {
+    "add": "Add",
+    "fastDeliveryNotice": "Express Shipping & Local Pickup Available",
+    "fastDelivery": "Express Delivery",
+    "fastDeliverySub": "Fast courier shipping to your door",
+    "branchPickup": "Branch Pickup",
+    "branchPickupSub": "Ready in 1 hour at our branches",
+    "securePayment": "100% Guaranteed",
+    "securePaymentSub": "Original products & warranty",
+    "easyReturns": "Best Store Deals",
+    "easyReturnsSub": "Direct pricing & verified coupons",
+    "shopping": "Shopping",
+    "support": "Customer Support",
+    "cart": "Cart",
+    "acceptedPayments": "Visa · MasterCard · BenefitPay · Apple Pay",
     "pickupStatuses": {
       "shipped": "Ready for collection",
       "delivered": "Collected"

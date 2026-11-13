@@ -8,7 +8,7 @@ import {
   getNestedTranslation,
   formatMessage,
   type MessageValues,
-} from "@platform/locales";
+} from "../locales";
 import { useSite } from "../components/site/SiteProvider";
 import { siteCopyOverrides } from "../lib/site-copy";
 
@@ -34,9 +34,14 @@ export function useTranslation() {
     };
   }, [site, locale]);
 
-  function t(path: string, values?: MessageValues): string {
+  function t(path: string, values?: MessageValues & { defaultValue?: string }): string {
     const template = getNestedTranslation(translations, path);
-    if (!template || typeof template !== "string") return template;
+    const isUnresolved = !template || typeof template !== "string" || template === path;
+    if (isUnresolved) {
+      if (values?.defaultValue) return values.defaultValue as string;
+      if (typeof template === "string") return template;
+      return path;
+    }
     const merged = values ? { ...defaultValues, ...values } : defaultValues;
     if (values || /\{[A-Za-z0-9_]+\}/.test(template)) {
       try {

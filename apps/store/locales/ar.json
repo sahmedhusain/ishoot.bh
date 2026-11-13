@@ -335,6 +335,8 @@
     "working": "يرجى الانتظار…",
     "signOut": "تسجيل الخروج",
     "hello": "مرحبًا، {name}",
+    "orders": "الطلبات",
+    "wishlist": "قائمة الرغبات",
     "sections": {
       "profile": "الملف الشخصي",
       "addresses": "العناوين",
@@ -445,6 +447,20 @@
     "removeAddress": "إزالة"
   },
   "store": {
+    "add": "إضافة",
+    "fastDeliveryNotice": "التوصيل السريع والاستلام من الفروع متوفران",
+    "fastDelivery": "توصيل سريع",
+    "fastDeliverySub": "توصيل سريع حتى باب منزلكم",
+    "branchPickup": "استلام من الفرع",
+    "branchPickupSub": "جاهز خلال ساعة من فروعنا",
+    "securePayment": "ضمان 100%",
+    "securePaymentSub": "منتجات أصلية مع الضمان",
+    "easyReturns": "أفضل عروض المتجر",
+    "easyReturnsSub": "أسعار مباشرة وكوبونات معتمدة",
+    "shopping": "التسوق",
+    "support": "خدمة العملاء",
+    "cart": "السلة",
+    "acceptedPayments": "فيزا · ماستركارد · بنفت باي · أبل باي",
     "pickupStatuses": {
       "shipped": "جاهز للاستلام",
       "delivered": "تم الاستلام"

@@ -3,13 +3,7 @@
 export const serviceCaller = () => process.env.SERVICE_CALLER || "admin";
 
 export function apiUrl() {
-  const url =
-    process.env.API_URL ||
-    (process.env.NEXT_PHASE === "phase-production-build"
-      ? "http://127.0.0.1:8080"
-      : undefined);
-  if (!url)
-    throw new Error("API_URL is not set: point it at the backend gateway");
+  const url = process.env.API_URL || "http://127.0.0.1:8080";
   return url.replace(/\/+$/, "");
 }
 

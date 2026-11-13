@@ -37,8 +37,14 @@ function createModelProxy(): any {
         prop === "createMany"
       )
         return async () => ({ count: 0 });
-      if (prop === "create" || prop === "update" || prop === "delete" || prop === "upsert")
-        return async (args: any) => args?.data || null;
+      if (prop === "upsert")
+        return async (args: any) => ({
+          id: args?.where?.id || "mock-id",
+          lastNumber: 1,
+          ...(args?.create || args?.update || args?.data || {}),
+        });
+      if (prop === "create" || prop === "update" || prop === "delete")
+        return async (args: any) => ({ id: "mock-id", lastNumber: 1, ...(args?.data || {}) });
       return createModelProxy();
     },
     apply: () => Promise.resolve(null),

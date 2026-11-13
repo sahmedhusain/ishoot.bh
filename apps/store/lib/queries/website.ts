@@ -90,12 +90,10 @@ export async function getWebsiteEditor() {
 export async function getWebsiteSnapshot(
   preview = false,
 ): Promise<WebsiteSnapshot> {
-  const content = await db.websiteContent.findUnique({ where: { id: "main" } });
+  const content = await db.websiteContent.findUnique({ where: { id: "main" } }).catch(() => null);
   if (!preview && content?.published)
     return content.published as unknown as WebsiteSnapshot;
-  if (!preview || !content)
-    throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
-  return collectWebsiteDraft(validateWebsiteConfig(content.draft));
+  return collectWebsiteDraft(validateWebsiteConfig(content?.draft || defaultWebsiteConfig));
 }
 
 export const WEBSITE_SNAPSHOT_SECTIONS = [

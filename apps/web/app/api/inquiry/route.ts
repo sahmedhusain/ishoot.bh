@@ -3,8 +3,8 @@ import { isWebsitePreview } from "../../../lib/website";
 import {
   serverMessages,
   formatMessage,
-  getTranslations,
 } from "@platform/locales";
+import { getTranslations } from "../../../locales";
 
 import { requireFeatureEnabled, measureOperation } from "@platform/database";
 import { resolveWebsiteConfig } from "@platform/database/website-config";
@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
               ].includes(message)
             ? 400
             : 500;
-      if (status === 500) console.error("Inquiry submission failed", error);
+      console.error("Inquiry submission failed STACK:", error instanceof Error ? error.stack : error);
       return NextResponse.json(
         {
           error:
