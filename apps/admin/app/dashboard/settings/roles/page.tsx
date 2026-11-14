@@ -1,5 +1,6 @@
 import { forbidden } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
+import { requireAdminSettingAllowed } from "../../../../lib/admin-governance";
 import { ALL_RESOURCES, ALL_ACTIONS, getStaffRoles, getRoleDataScopes, isDefaultAllowed } from "@platform/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 import type { RoleWithGrants } from "../../../../types/roles";
@@ -10,6 +11,7 @@ export const generateMetadata = () => pageMetadata("settings/roles");
 export default async function RolesSettingsPage() {
   const actor = await requirePagePermission("users", "read");
   if (actor.role !== "super_admin") forbidden();
+  await requireAdminSettingAllowed("roles");
 
   const dbRoles = await getStaffRoles();
   const roles = dbRoles.map((r) => ({

@@ -1,5 +1,6 @@
 import { getCompanySettings, getDealPipeline, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
+import { requireAdminSettingAllowed } from "../../../../lib/admin-governance";
 import { PipelineSettingsView } from "../../../../components/settings/PipelineSettingsView";
 import { pageMetadata } from "../../../../lib/company-metadata";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PipelineSettingsPage() {
   await requirePagePermission("settings", "read");
+  await requireAdminSettingAllowed("pipeline");
   await requireFeatureEnabled("crm_deals");
   const [stages, company, canEdit] = await Promise.all([getDealPipeline(), getCompanySettings(), hasPermission("settings", "edit")]);
   return <PipelineSettingsView initialStages={stages} languages={company.content_languages} canEdit={canEdit} />;

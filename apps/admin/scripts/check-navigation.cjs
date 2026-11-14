@@ -114,6 +114,12 @@ for (const locale of ["en", "ar"]) {
           isFeatureEnabled: (key) => !disabled.includes(key),
         }),
       },
+      "../../hooks/useAdminGovernance": {
+        useAdminGovernance: () => ({
+          allowed: {},
+          isAllowed: () => true,
+        }),
+      },
       "../../lib/sidebar-navigation": nav,
     });
     return renderToStaticMarkup(React.createElement(Sidebar));

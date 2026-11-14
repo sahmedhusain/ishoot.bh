@@ -60,6 +60,7 @@ func newCompany(now time.Time) CompanyRecord {
 		Theme:				theme,
 		ContentLanguages:		[]string{"ar", "en"},
 		PrimaryLanguage:		"ar",
+		AdminAllowedSettings:		ptr(defaultAdminAllowedSettings()),
 		UpdatedAt:			now,
 	}
 }
@@ -92,6 +93,9 @@ func companyRecord(ctx context.Context, store *postgres.Store, lock bool) (Compa
 		}
 	}
 	out.Theme, _ = json.Marshal(normalizeCompanyTheme(out.Theme))
+	if out.AdminAllowedSettings == nil {
+		out.AdminAllowedSettings = ptr(defaultAdminAllowedSettings())
+	}
 	return out, nil
 }
 func (s *Service) Company(ctx context.Context) (CompanyRecord, error) {
@@ -217,6 +221,9 @@ func normalizeCompany(next *CompanyRecord, current CompanyRecord, patch map[stri
 		}
 	}
 	next.Theme, _ = json.Marshal(normalizeCompanyTheme(next.Theme))
+	if next.AdminAllowedSettings == nil {
+		next.AdminAllowedSettings = ptr(defaultAdminAllowedSettings())
+	}
 	return nil
 }
 func mergeCompany(current CompanyRecord, patch map[string]json.RawMessage) (CompanyRecord, error) {
@@ -279,9 +286,24 @@ func mergeCompany(current CompanyRecord, patch map[string]json.RawMessage) (Comp
 	for key, value := range updates {
 		if string(value) == "null" {
 			switch key {
-			case "companyNameEn", "companyNameAr", "vatEnabled", "vatPercentage", "defaultCurrency", "paymentTermsDays", "invoicePrefix", "invoiceNextNumber", "receiptPrefix", "receiptNextNumber", "defaultDiscountLimitPercent", "quotationsAlwaysNeedApproval", "contentLanguages", "primaryLanguage":
+			case "companyNameEn", "companyNameAr", "vatEnabled", "vatPercentage", "defaultCurrency", "paymentTermsDays", "invoicePrefix", "invoiceNextNumber", "receiptPrefix", "receiptNextNumber", "defaultDiscountLimitPercent", "quotationsAlwaysNeedApproval", "contentLanguages", "primaryLanguage", "adminAllowedSettings":
 				return current, ErrValidationFailed
 			}
+		}
+		if key == "adminAllowedSettings" {
+			base := defaultAdminAllowedSettings()
+			if current.AdminAllowedSettings != nil {
+				base = *current.AdminAllowedSettings
+			}
+			if err := json.Unmarshal(value, &base); err != nil {
+				return current, ErrValidationFailed
+			}
+			encoded, err := json.Marshal(base)
+			if err != nil {
+				return current, err
+			}
+			values[key] = encoded
+			continue
 		}
 		values[key] = value
 	}

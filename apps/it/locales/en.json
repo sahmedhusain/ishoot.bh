@@ -578,6 +578,50 @@
       "bodyHtml": "Code for the end of the page",
       "save": "Save tracking and code",
       "saving": "Saving…"
+    },
+    "tabs": {
+      "domains": "Domains",
+      "presentation": "Site Presentation",
+      "social": "Social Links",
+      "code": "Tracking Code"
+    },
+    "presentation": {
+      "heading": "Public Website Presentation",
+      "subtitle": "Executive profile, company story, mission, vision, and terms displayed on the public website.",
+      "save": "Save Presentation",
+      "saved": "Website presentation saved.",
+      "revalidate": "Revalidate Public Cache",
+      "revalidated": "Public website cache revalidated.",
+      "ceoNameEn": "CEO Name (EN)",
+      "ceoNameAr": "CEO Name (AR)",
+      "ceoTitleEn": "CEO Title (EN)",
+      "ceoTitleAr": "CEO Title (AR)",
+      "ceoQuoteEn": "CEO Quote (EN)",
+      "ceoQuoteAr": "CEO Quote (AR)",
+      "aboutTextEn": "About Text (EN)",
+      "aboutTextAr": "About Text (AR)",
+      "missionEn": "Mission (EN)",
+      "missionAr": "Mission (AR)",
+      "visionEn": "Vision (EN)",
+      "visionAr": "Vision (AR)",
+      "termsEn": "Terms & Conditions (EN)",
+      "termsAr": "Terms & Conditions (AR)"
+    },
+    "social": {
+      "heading": "Social Links (CMS Snapshot)",
+      "subtitle": "Manage social links in the CMS draft and publish the public website snapshot.",
+      "publish": "Publish Snapshot",
+      "published": "Website snapshot published.",
+      "platformPlaceholder": "Platform (e.g. Instagram)",
+      "urlPlaceholder": "https://...",
+      "add": "Add Link",
+      "added": "Social link added.",
+      "updated": "Social link updated.",
+      "deleted": "Social link deleted.",
+      "active": "Active",
+      "hidden": "Hidden",
+      "remove": "Remove link",
+      "empty": "No social links in the CMS draft yet."
     }
   },
   "audit": {
@@ -1036,7 +1080,9 @@
       "finance": "VAT & Banking",
       "sequences": "Document numbers",
       "branding": "Branding & Assets",
-      "setup": "Setup status"
+      "setup": "Setup status",
+      "appearance": "Appearance",
+      "governance": "Admin Governance"
     },
     "sections": {
       "basicInfo": "Basic information",
@@ -1076,7 +1122,15 @@
       "invoiceSequence": "Invoices sequence",
       "receiptSequence": "Receipts sequence",
       "prefix": "Prefix",
-      "nextNumber": "Next number"
+      "nextNumber": "Next number",
+      "foundedYear": "Founded Year",
+      "timeZone": "Time Zone",
+      "contentLanguages": "Content Languages",
+      "primaryLanguage": "Primary Language",
+      "mapUrl": "Map URL",
+      "vatCertificate": "VAT Certificate",
+      "defaultDiscountLimitPercent": "Default Discount Limit (%)",
+      "quotationsAlwaysNeedApproval": "Quotations Always Need Approval"
     },
     "socialPlatforms": {
       "instagram": "Instagram",
@@ -1096,7 +1150,121 @@
       "stamp": "Official company stamp",
       "signature": "Authorized CEO / Manager signature",
       "privateStampHint": "Stored privately for invoices & receipts only.",
-      "privateSignatureHint": "Stored privately for official documents only."
+      "privateSignatureHint": "Stored privately for official documents only.",
+      "fullLogoLight": "Full Logo (Light)",
+      "fullLogoDark": "Full Logo (Dark)",
+      "letterheadHeader": "Letterhead Header",
+      "letterheadFooter": "Letterhead Footer"
+    },
+    "appearance": {
+      "title": "Brand Theme & Appearance",
+      "subtitle": "Configure colors, typography, and default appearance modes across the platform.",
+      "save": "Save Appearance",
+      "saving": "Saving...",
+      "saved": "Appearance settings saved.",
+      "presetsTitle": "Style Presets",
+      "colorsTitle": "Color Palette",
+      "primaryColor": "Primary Color",
+      "accentColor": "Accent Color",
+      "contrastOk": "Contrast OK",
+      "typographyTitle": "Typography & Surface",
+      "defaultMode": "Default App Mode",
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "websiteMode": "Website Mode",
+      "websiteModes": {
+        "dark": "Dark",
+        "light": "Light"
+      },
+      "surface": "Surface Tone",
+      "surfaces": {
+        "tinted": "Tinted",
+        "neutral": "Neutral"
+      },
+      "fontScale": "Font Scale",
+      "headingWeight": "Heading Weight",
+      "headingCase": "Heading Case",
+      "bodyFont": "Body Font",
+      "systemFont": "System Default",
+      "headingFont": "Heading Font"
+    },
+    "governance": {
+      "title": "Admin Settings Governance",
+      "subtitle": "Control which settings pages and mutations Admin users can access vs. what remains restricted to IT.",
+      "resetDefaults": "Reset Defaults",
+      "itGroupTitle": "Infrastructure & Identity (IT-Only by Default)",
+      "operationalGroupTitle": "Operational Settings (Admin-Allowed by Default)",
+      "allowed": "Allowed in Admin",
+      "itOnly": "IT Only",
+      "items": {
+        "company": {
+          "label": "Company Profile",
+          "description": "Legal identity, business details, and brand assets"
+        },
+        "web": {
+          "label": "Website Settings",
+          "description": "Public presentation, social links, and CMS publish"
+        },
+        "tax": {
+          "label": "Tax & VAT",
+          "description": "VAT enablement, tax rate, and TRN certificate"
+        },
+        "appearance": {
+          "label": "Appearance & Theme",
+          "description": "Brand colors, typography, and default modes"
+        },
+        "domains": {
+          "label": "Custom Domains",
+          "description": "Domain routing and DNS verification"
+        },
+        "deployments": {
+          "label": "Deployments",
+          "description": "Release controls and environment status"
+        },
+        "roles": {
+          "label": "Roles & Permissions",
+          "description": "Admin RBAC role matrix management"
+        },
+        "audit": {
+          "label": "Audit Logs",
+          "description": "Administrative action audit trail"
+        },
+        "privacy": {
+          "label": "Privacy & Retention",
+          "description": "Data retention and erasure controls"
+        },
+        "approvals": {
+          "label": "Approval Workflows",
+          "description": "Quotation and request approval thresholds"
+        },
+        "departments": {
+          "label": "Departments",
+          "description": "Organizational departments setup"
+        },
+        "pipeline": {
+          "label": "Request Pipeline",
+          "description": "Pipeline stages and workflow states"
+        },
+        "storeSettings": {
+          "label": "Store Settings",
+          "description": "Storefront hours, checkout, and catalog rules"
+        },
+        "deliverySettings": {
+          "label": "Delivery Settings",
+          "description": "Delivery zones, fees, and dispatch rules"
+        },
+        "requestsSettings": {
+          "label": "Requests Settings",
+          "description": "Booking and inquiry handling rules"
+        },
+        "hrSettings": {
+          "label": "HR Settings",
+          "description": "Staff benefits and leave policies"
+        }
+      }
     }
   },
   "setupWizard": {

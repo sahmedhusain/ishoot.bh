@@ -13,6 +13,7 @@ import { revalidatePublicSite } from "../../lib/revalidate-web";
 import { publicSitePaths } from "../../lib/public-paths";
 import { normalizeDomain } from "@platform/database/constants/domains";
 import { requirePermission } from "../../lib/auth";
+import { assertAdminSettingAllowed } from "../../lib/admin-governance";
 import { validateActionArguments } from "../../lib/action-input";
 
 export async function checkDomainAction(
@@ -21,6 +22,7 @@ export async function checkDomainAction(
 ): Promise<DomainCheckResult> {
   return measureOperation("action:checkDomainAction", async () => {
     await requirePermission("settings", "edit");
+    await assertAdminSettingAllowed("domains");
     validateActionArguments("checkDomainAction", { kind, domain });
     return checkDomain(kind, domain, installationFingerprint);
   });
@@ -34,6 +36,7 @@ export interface DomainSettingsInput {
 export async function saveDomainsAction(input: DomainSettingsInput) {
   return measureOperation("action:saveDomainsAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("domains");
     validateActionArguments("saveDomainsAction", { input });
     const websiteDomain = normalizeDomain(input.websiteDomain);
     const adminDomain = normalizeDomain(input.adminDomain);

@@ -14,3 +14,4 @@ export * from "./files";
 export * from "./notify";
 export * from "./inbox";
 export * from "./staff-administration";
+export * from "./cms";

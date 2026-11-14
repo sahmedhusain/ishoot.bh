@@ -11,12 +11,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useAdminGovernance } from "../../hooks/useAdminGovernance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
   const { t } = useAdminLocale();
   const { can, role } = usePermissions();
+  const { isAllowed } = useAdminGovernance();
 
   const tabs = [
     {
@@ -24,17 +26,25 @@ export function SettingsNavTabs() {
       label: t.settingsTabs.preferences,
       icon: Sliders,
     },
-    {
-      href: ROUTES.settings.company,
-      label: t.settingsTabs.company,
-      icon: Building2,
-    },
-    {
-      href: ROUTES.settings.web,
-      label: t.settingsTabs.web,
-      icon: Globe,
-    },
-    ...(role === "super_admin" && can("settings", "read")
+    ...(isAllowed("company")
+      ? [
+          {
+            href: ROUTES.settings.company,
+            label: t.settingsTabs.company,
+            icon: Building2,
+          },
+        ]
+      : []),
+    ...(isAllowed("web")
+      ? [
+          {
+            href: ROUTES.settings.web,
+            label: t.settingsTabs.web,
+            icon: Globe,
+          },
+        ]
+      : []),
+    ...(role === "super_admin" && can("settings", "read") && isAllowed("approvals")
       ? [
           {
             href: ROUTES.settings.approvals,

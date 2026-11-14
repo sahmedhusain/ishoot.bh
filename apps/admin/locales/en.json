@@ -11782,6 +11782,11 @@
       "viewCustomerDossier": "View Customer Dossier",
       "revenue": "Revenue",
       "expenses": "Expenses"
+    },
+    "settingsGovernance": {
+      "restrictedTitle": "Managed by IT",
+      "restrictedDescription": "This settings section is currently restricted to the IT department. Contact your IT administrator if you need temporary access.",
+      "goToPreferences": "Go to Preferences"
     }
   },
   "shared": {

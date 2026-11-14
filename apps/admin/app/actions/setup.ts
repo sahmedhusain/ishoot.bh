@@ -39,6 +39,7 @@ import { revalidatePublicSite } from "../../lib/revalidate-web";
 import { publicSitePaths } from "../../lib/public-paths";
 import type { BrandTheme } from "@platform/database/constants/theme";
 import { requirePermission } from "../../lib/auth";
+import { assertAdminSettingAllowed } from "../../lib/admin-governance";
 import { validateActionArguments } from "../../lib/action-input";
 
 export interface SetupCompanyInput {
@@ -100,6 +101,7 @@ async function refreshPublicSite() {
 export async function saveSetupCompanyAction(input: SetupCompanyInput) {
   return measureOperation("action:saveSetupCompanyAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
     validateActionArguments("saveSetupCompanyAction", { input });
     const trim = (value?: string) => value?.trim() ?? "";
     if (!isBusinessActivity(input.businessActivity))
@@ -162,6 +164,7 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
 export async function saveSetupThemeAction(theme: BrandTheme) {
   return measureOperation("action:saveSetupThemeAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("appearance");
     validateActionArguments("saveSetupThemeAction", { theme });
     const saved = await runAtomicMutation(async () => {
       const company = await updateCompanyTheme(theme);
@@ -185,6 +188,7 @@ export async function saveSetupThemeAction(theme: BrandTheme) {
 export async function saveSetupConfigAction(input: SetupConfigInput) {
   return measureOperation("action:saveSetupConfigAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
     validateActionArguments("saveSetupConfigAction", { input });
     const invoicePrefix = input.invoicePrefix.trim().toUpperCase();
     const receiptPrefix = input.receiptPrefix.trim().toUpperCase();
@@ -241,6 +245,7 @@ export interface SetupWebsiteInput {
 export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
   return measureOperation("action:saveSetupWebsiteAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("saveSetupWebsiteAction", { input });
     const company = await getCompanySettings();
     const config = input.enabled
@@ -279,6 +284,7 @@ export async function completeSetupAction(options: {
 }) {
   return measureOperation("action:completeSetupAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
     validateActionArguments("completeSetupAction", { options });
     await runAtomicMutation(async () => {
       await completeCompanySetup();
@@ -320,6 +326,7 @@ export async function setupPreviewAction(locale: string) {
 export async function saveSetupWebsiteDraftAction(config: unknown) {
   return measureOperation("action:saveSetupWebsiteDraftAction", async () => {
     await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("saveSetupWebsiteDraftAction", { config });
     const company = await getCompanySettings();
     const draft = validateWebsiteConfig(

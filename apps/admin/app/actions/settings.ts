@@ -18,10 +18,22 @@ import {
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
+import { assertAdminSettingAllowed } from "../../lib/admin-governance";
 
 export async function updateCompanySettingsAction(settings: CompanySettings) {
   return measureOperation("action:updateCompanySettingsAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
+    if (
+      settings.vat_enabled !== undefined ||
+      settings.vat_percentage !== undefined ||
+      settings.vat_id !== undefined
+    ) {
+      await assertAdminSettingAllowed("tax");
+    }
+    if (settings.theme !== undefined) {
+      await assertAdminSettingAllowed("appearance");
+    }
     validateActionArguments("updateCompanySettingsAction", { settings });
     const { updated } = await runAtomicMutation(async () => {
       const updated = await updateCompanySettings(settings);
@@ -54,6 +66,7 @@ export async function saveCompanyAssetAction(
 ) {
   return measureOperation("action:saveCompanyAssetAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
     validateActionArguments("saveCompanyAssetAction", { assetKey, data });
     const { asset } = await runAtomicMutation(async () => {
       let verified = data;
@@ -111,6 +124,7 @@ export async function saveCompanyAssetAction(
 export async function deleteCompanyAssetAction(assetKey: string) {
   return measureOperation("action:deleteCompanyAssetAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("company");
     validateActionArguments("deleteCompanyAssetAction", { assetKey });
     const { deleted } = await runAtomicMutation(async () => {
       const deleted = await deleteCompanyAsset(assetKey);
@@ -149,6 +163,7 @@ export async function deleteCompanyAssetAction(assetKey: string) {
 export async function updateWebSettingsAction(settings: WebSettingsInput) {
   return measureOperation("action:updateWebSettingsAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("updateWebSettingsAction", { settings });
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
     const { updated } = await runAtomicMutation(async () => {
@@ -187,6 +202,7 @@ export async function updateWebSettingsAction(settings: WebSettingsInput) {
 export async function revalidateEntireSiteAction() {
   return measureOperation("action:revalidateEntireSiteAction", async () => {
     await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("revalidateEntireSiteAction", {});
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
     await revalidatePublicSite(
@@ -215,6 +231,7 @@ export async function createSocialLinkAction(data: {
 }) {
   return measureOperation("action:createSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("createSocialLinkAction", { data });
     const { createSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
@@ -249,6 +266,7 @@ export async function updateSocialLinkAction(
 ) {
   return measureOperation("action:updateSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("updateSocialLinkAction", { id, data });
     const { updateSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
@@ -274,6 +292,7 @@ export async function updateSocialLinkAction(
 export async function deleteSocialLinkAction(id: string) {
   return measureOperation("action:deleteSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("web");
     validateActionArguments("deleteSocialLinkAction", { id });
     const { deleteSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");

@@ -1,6 +1,7 @@
 import { ROUTES } from "../../../../constants/routes";
 import { redirect } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
+import { requireAdminSettingAllowed } from "../../../../lib/admin-governance";
 import {
   listApprovalPolicies,
   listSignaturePolicies,
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function ApprovalPoliciesPage() {
   const actor = await requirePagePermission("settings", "read");
   if (actor.role !== "super_admin") redirect(ROUTES.settings.root);
+  await requireAdminSettingAllowed("approvals");
 
   const [policies, rawEmployees, signaturePolicies] = await Promise.all([
     listApprovalPolicies(),

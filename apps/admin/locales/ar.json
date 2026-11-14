@@ -11782,6 +11782,11 @@
       "viewCustomerDossier": "عرض ملف العميل",
       "revenue": "الإيراد",
       "expenses": "المصروف"
+    },
+    "settingsGovernance": {
+      "restrictedTitle": "تُدار بواسطة تقنية المعلومات",
+      "restrictedDescription": "هذا القسم من الإعدادات مقصور حالياً على فريق تقنية المعلومات. تواصل مع مسؤول تقنية المعلومات إذا كنت بحاجة إلى صلاحية مؤقتة.",
+      "goToPreferences": "الانتقال إلى التفضيلات"
     }
   },
   "shared": {

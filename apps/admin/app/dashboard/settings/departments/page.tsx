@@ -1,6 +1,7 @@
 import { getCompanySettings, getDepartmentTree } from "@platform/database";
 import { listEmployees } from "@platform/api-client";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
+import { requireAdminSettingAllowed } from "../../../../lib/admin-governance";
 import { DepartmentsSettingsView } from "../../../../components/settings/DepartmentsSettingsView";
 import { pageMetadata } from "../../../../lib/company-metadata";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DepartmentsSettingsPage() {
   await requirePagePermission("settings", "read");
+  await requireAdminSettingAllowed("departments");
   const [departments, employees, company, canEdit] = await Promise.all([
     getDepartmentTree(),
     listEmployees().catch(() => []),

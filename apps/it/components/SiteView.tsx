@@ -7,14 +7,28 @@ import {
   CheckCircle2,
   CircleAlert,
   Code2,
+  Eye,
+  EyeOff,
+  FileText,
   Globe,
+  Link2,
   Loader2,
+  Plus,
+  RefreshCw,
   Save,
+  Send,
   ShieldAlert,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { formatMessage } from "@platform/locales";
-import type { SiteCode, SiteDomains } from "@platform/api-client";
+import type {
+  CMSContentSnapshot,
+  CMSSocialLink,
+  CompanyConfiguration,
+  SiteCode,
+  SiteDomains,
+} from "@platform/api-client";
 import type { DomainCheckResult } from "@platform/config/domain-check";
 import {
   dnsRecords,
@@ -27,6 +41,14 @@ import {
   saveSiteDomainsAction,
   type SiteOutcome,
 } from "../app/actions";
+import {
+  createItSocialLinkAction,
+  deleteItSocialLinkAction,
+  publishItWebsiteSnapshotAction,
+  revalidatePublicSiteFromItAction,
+  saveSitePresentationAction,
+  updateItSocialLinkAction,
+} from "../app/(desk)/site/actions";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
@@ -451,21 +473,495 @@ function CodeCard({
   );
 }
 
+function PresentationCard({
+  initial,
+  canEdit,
+  canRevalidate,
+}: {
+  initial: CompanyConfiguration;
+  canEdit: boolean;
+  canRevalidate: boolean;
+}) {
+  const { copy } = useCopy();
+  const p = copy.site.presentation;
+  const router = useRouter();
+  const [saving, setSaving] = React.useState(false);
+  const [revalidating, setRevalidating] = React.useState(false);
+  const [form, setForm] = React.useState({
+    ceoNameEn: initial.ceoNameEn ?? "",
+    ceoNameAr: initial.ceoNameAr ?? "",
+    ceoTitleEn: initial.ceoTitleEn ?? "",
+    ceoTitleAr: initial.ceoTitleAr ?? "",
+    ceoQuoteEn: initial.ceoQuoteEn ?? "",
+    ceoQuoteAr: initial.ceoQuoteAr ?? "",
+    aboutTextEn: initial.aboutTextEn ?? "",
+    aboutTextAr: initial.aboutTextAr ?? "",
+    missionEn: initial.missionEn ?? "",
+    missionAr: initial.missionAr ?? "",
+    visionEn: initial.visionEn ?? "",
+    visionAr: initial.visionAr ?? "",
+    termsEn: initial.termsEn ?? "",
+    termsAr: initial.termsAr ?? "",
+  });
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await saveSitePresentationAction({
+        ceoNameEn: form.ceoNameEn || null,
+        ceoNameAr: form.ceoNameAr || null,
+        ceoTitleEn: form.ceoTitleEn || null,
+        ceoTitleAr: form.ceoTitleAr || null,
+        ceoQuoteEn: form.ceoQuoteEn || null,
+        ceoQuoteAr: form.ceoQuoteAr || null,
+        aboutTextEn: form.aboutTextEn || null,
+        aboutTextAr: form.aboutTextAr || null,
+        missionEn: form.missionEn || null,
+        missionAr: form.missionAr || null,
+        visionEn: form.visionEn || null,
+        visionAr: form.visionAr || null,
+        termsEn: form.termsEn || null,
+        termsAr: form.termsAr || null,
+      });
+      if (res.ok) {
+        toast.success(p.saved);
+        router.refresh();
+      } else {
+        toast.error(copy.site.failed);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function revalidate() {
+    setRevalidating(true);
+    try {
+      const res = await revalidatePublicSiteFromItAction();
+      if (res.ok) toast.success(p.revalidated);
+      else toast.error(copy.site.failed);
+    } finally {
+      setRevalidating(false);
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="it-card p-4 space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="text-xs font-mono uppercase tracking-[0.14em] text-ink flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+            {p.heading}
+          </h2>
+          <p className="text-xs text-ink-muted mt-0.5">{p.subtitle}</p>
+        </div>
+        {canRevalidate && (
+          <button
+            type="button"
+            disabled={revalidating}
+            onClick={revalidate}
+            className="it-button border border-rule px-3 py-1.5 text-xs font-mono text-ink hover:bg-surface-muted disabled:opacity-60 inline-flex items-center gap-1.5"
+          >
+            {revalidating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
+            {p.revalidate}
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoNameEn}</span>
+          <input
+            disabled={!canEdit}
+            value={form.ceoNameEn}
+            onChange={(e) => setForm({ ...form, ceoNameEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoNameAr}</span>
+          <input
+            dir="rtl"
+            disabled={!canEdit}
+            value={form.ceoNameAr}
+            onChange={(e) => setForm({ ...form, ceoNameAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoTitleEn}</span>
+          <input
+            disabled={!canEdit}
+            value={form.ceoTitleEn}
+            onChange={(e) => setForm({ ...form, ceoTitleEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoTitleAr}</span>
+          <input
+            dir="rtl"
+            disabled={!canEdit}
+            value={form.ceoTitleAr}
+            onChange={(e) => setForm({ ...form, ceoTitleAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoQuoteEn}</span>
+          <textarea
+            rows={2}
+            disabled={!canEdit}
+            value={form.ceoQuoteEn}
+            onChange={(e) => setForm({ ...form, ceoQuoteEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.ceoQuoteAr}</span>
+          <textarea
+            dir="rtl"
+            rows={2}
+            disabled={!canEdit}
+            value={form.ceoQuoteAr}
+            onChange={(e) => setForm({ ...form, ceoQuoteAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.aboutTextEn}</span>
+          <textarea
+            rows={3}
+            disabled={!canEdit}
+            value={form.aboutTextEn}
+            onChange={(e) => setForm({ ...form, aboutTextEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.aboutTextAr}</span>
+          <textarea
+            dir="rtl"
+            rows={3}
+            disabled={!canEdit}
+            value={form.aboutTextAr}
+            onChange={(e) => setForm({ ...form, aboutTextAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.missionEn}</span>
+          <textarea
+            rows={2}
+            disabled={!canEdit}
+            value={form.missionEn}
+            onChange={(e) => setForm({ ...form, missionEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.missionAr}</span>
+          <textarea
+            dir="rtl"
+            rows={2}
+            disabled={!canEdit}
+            value={form.missionAr}
+            onChange={(e) => setForm({ ...form, missionAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.visionEn}</span>
+          <textarea
+            rows={2}
+            disabled={!canEdit}
+            value={form.visionEn}
+            onChange={(e) => setForm({ ...form, visionEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.visionAr}</span>
+          <textarea
+            dir="rtl"
+            rows={2}
+            disabled={!canEdit}
+            value={form.visionAr}
+            onChange={(e) => setForm({ ...form, visionAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.termsEn}</span>
+          <textarea
+            rows={3}
+            disabled={!canEdit}
+            value={form.termsEn}
+            onChange={(e) => setForm({ ...form, termsEn: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono text-ink-muted">{p.termsAr}</span>
+          <textarea
+            dir="rtl"
+            rows={3}
+            disabled={!canEdit}
+            value={form.termsAr}
+            onChange={(e) => setForm({ ...form, termsAr: e.target.value })}
+            className="w-full bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+        </label>
+      </div>
+
+      {canEdit && (
+        <div className="flex justify-end pt-2 border-t border-rule">
+          <button
+            type="submit"
+            disabled={saving}
+            className="it-button bg-accent text-accent-ink px-3 py-1.5 text-xs font-mono inline-flex items-center gap-1.5 disabled:opacity-60"
+          >
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <Save className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
+            {p.save}
+          </button>
+        </div>
+      )}
+    </form>
+  );
+}
+
+function SocialLinksCard({
+  snapshot,
+  canEdit,
+}: {
+  snapshot: CMSContentSnapshot;
+  canEdit: boolean;
+}) {
+  const { copy } = useCopy();
+  const s = copy.site.social;
+  const router = useRouter();
+  const draftLinks = Array.isArray((snapshot.draft as Record<string, unknown>)?.socialLinks)
+    ? ((snapshot.draft as Record<string, unknown>).socialLinks as CMSSocialLink[])
+    : [];
+  const [links, setLinks] = React.useState<CMSSocialLink[]>(draftLinks);
+  const [platform, setPlatform] = React.useState("");
+  const [url, setUrl] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [publishing, setPublishing] = React.useState(false);
+
+  async function addLink(e: React.FormEvent) {
+    e.preventDefault();
+    if (!platform.trim() || !url.trim()) return;
+    setBusy(true);
+    try {
+      const res = await createItSocialLinkAction({ platform, url });
+      if (res.ok) {
+        setLinks((prev) => [...prev, res.link]);
+        setPlatform("");
+        setUrl("");
+        toast.success(s.added);
+        router.refresh();
+      }
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleActive(link: CMSSocialLink) {
+    setBusy(true);
+    try {
+      const res = await updateItSocialLinkAction(link.id, {
+        is_active: !link.is_active,
+      });
+      if (res.ok) {
+        setLinks(res.links);
+        toast.success(s.updated);
+        router.refresh();
+      }
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeLink(id: string) {
+    setBusy(true);
+    try {
+      const res = await deleteItSocialLinkAction(id);
+      if (res.ok) {
+        setLinks(res.links);
+        toast.success(s.deleted);
+        router.refresh();
+      }
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function publishSnapshot() {
+    setPublishing(true);
+    try {
+      await publishItWebsiteSnapshotAction();
+      toast.success(s.published);
+      router.refresh();
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  return (
+    <div className="it-card p-4 space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="text-xs font-mono uppercase tracking-[0.14em] text-ink flex items-center gap-1.5">
+            <Link2 className="w-3.5 h-3.5" aria-hidden="true" />
+            {s.heading}
+          </h2>
+          <p className="text-xs text-ink-muted mt-0.5">{s.subtitle}</p>
+        </div>
+        {canEdit && (
+          <button
+            type="button"
+            disabled={publishing}
+            onClick={publishSnapshot}
+            className="it-button bg-accent text-accent-ink px-3 py-1.5 text-xs font-mono inline-flex items-center gap-1.5 disabled:opacity-60"
+          >
+            {publishing ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <Send className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
+            {s.publish}
+          </button>
+        )}
+      </div>
+
+      {canEdit && (
+        <form onSubmit={addLink} className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input
+            placeholder={s.platformPlaceholder}
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value)}
+            className="bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+          <input
+            placeholder={s.urlPlaceholder}
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="bg-surface-muted border border-rule px-2.5 py-1.5 text-xs text-ink"
+          />
+          <button
+            type="submit"
+            disabled={busy || !platform.trim() || !url.trim()}
+            className="it-button border border-rule px-3 py-1.5 text-xs font-mono text-ink hover:bg-surface-muted inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+            {s.add}
+          </button>
+        </form>
+      )}
+
+      {links.length === 0 ? (
+        <p className="text-xs font-mono text-ink-muted py-4 text-center border border-dashed border-rule">
+          {s.empty}
+        </p>
+      ) : (
+        <div className="divide-y divide-rule border border-rule">
+          {links.map((link) => (
+            <div
+              key={link.id}
+              className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs"
+            >
+              <div className="min-w-0 flex-1">
+                <span className="font-mono font-semibold text-ink">{link.platform}</span>
+                <p className="text-[11px] font-mono text-ink-muted truncate">{link.url}</p>
+              </div>
+              {canEdit && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => toggleActive(link)}
+                    className="it-button border border-rule px-2 py-1 text-[11px] font-mono inline-flex items-center gap-1"
+                  >
+                    {link.is_active ? (
+                      <>
+                        <Eye className="w-3 h-3" aria-hidden="true" />
+                        {s.active}
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3 h-3" aria-hidden="true" />
+                        {s.hidden}
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => removeLink(link.id)}
+                    aria-label={s.remove}
+                    className="it-button border border-rule px-2 py-1 text-[11px] font-mono text-danger hover:bg-surface-muted"
+                  >
+                    <Trash2 className="w-3 h-3" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type SiteTab = "domains" | "presentation" | "social" | "code";
+
 export function SiteView({
   domains,
   code,
+  company,
+  snapshot,
   canEditDomains,
   canCheckDomains,
   canEditCode,
+  canEditPresentation,
 }: {
   domains: SiteDomains | null;
-
   code: (SiteCode & Changed) | null | undefined;
+  company: CompanyConfiguration | null;
+  snapshot: CMSContentSnapshot | null;
   canEditDomains: boolean;
   canCheckDomains: boolean;
   canEditCode: boolean;
+  canEditPresentation: boolean;
 }) {
   const { copy } = useCopy();
+  const [tab, setTab] = React.useState<SiteTab>("domains");
+
+  const tabs: Array<{ id: SiteTab; label: string; show: boolean }> = [
+    { id: "domains", label: copy.site.tabs.domains, show: true },
+    { id: "presentation", label: copy.site.tabs.presentation, show: true },
+    { id: "social", label: copy.site.tabs.social, show: true },
+    { id: "code", label: copy.site.tabs.code, show: code !== undefined },
+  ];
+
   return (
     <div className="space-y-4">
       <PageTitle title={copy.site.title} description={copy.site.description} />
@@ -473,21 +969,62 @@ export function SiteView({
       {!canEditDomains && (
         <p className="text-xs font-mono text-ink-muted">{copy.site.readOnly}</p>
       )}
+
+      <div className="flex flex-wrap gap-1.5 border-b border-rule pb-2">
+        {tabs
+          .filter((t) => t.show)
+          .map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-[0.1em] border ${
+                tab === t.id
+                  ? "bg-accent text-accent-ink border-accent"
+                  : "bg-surface text-ink-muted border-rule hover:text-ink"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+      </div>
+
       <div className="space-y-4 pb-8">
-        {domains ? (
-          <DomainsCard
-            initial={domains}
-            canEdit={canEditDomains}
-            canCheck={canCheckDomains}
-          />
-        ) : (
-          <Unavailable />
-        )}
-        {code === undefined ? null : code ? (
-          <CodeCard initial={code} canEdit={canEditCode} />
-        ) : (
-          <Unavailable />
-        )}
+        {tab === "domains" &&
+          (domains ? (
+            <DomainsCard
+              initial={domains}
+              canEdit={canEditDomains}
+              canCheck={canCheckDomains}
+            />
+          ) : (
+            <Unavailable />
+          ))}
+
+        {tab === "presentation" &&
+          (company ? (
+            <PresentationCard
+              initial={company}
+              canEdit={canEditPresentation}
+              canRevalidate={canCheckDomains}
+            />
+          ) : (
+            <Unavailable />
+          ))}
+
+        {tab === "social" &&
+          (snapshot ? (
+            <SocialLinksCard snapshot={snapshot} canEdit={canEditDomains} />
+          ) : (
+            <Unavailable />
+          ))}
+
+        {tab === "code" &&
+          (code === undefined ? null : code ? (
+            <CodeCard initial={code} canEdit={canEditCode} />
+          ) : (
+            <Unavailable />
+          ))}
       </div>
     </div>
   );

@@ -11,10 +11,12 @@ import {
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
+import { assertAdminSettingAllowed } from "../../lib/admin-governance";
 
 export async function saveTaxRateAction(data: TaxRateInput) {
   return measureOperation("action:saveTaxRateAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("tax");
     validateActionArguments("saveTaxRateAction", { data });
     const tax = await runAtomicMutation(async () => {
       const saved = await saveTaxRate(data);
@@ -39,6 +41,7 @@ export async function saveTaxRateAction(data: TaxRateInput) {
 export async function deleteTaxRateAction(id: string) {
   return measureOperation("action:deleteTaxRateAction", async () => {
     const user = await requirePermission("settings", "write");
+    await assertAdminSettingAllowed("tax");
     validateActionArguments("deleteTaxRateAction", { id });
     await runAtomicMutation(async () => {
       await deleteTaxRate(id);

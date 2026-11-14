@@ -2754,6 +2754,9 @@ paths:
                   maxLength: 254
                   minLength: 1
                   type: string
+                username:
+                  maxLength: 64
+                  type: string
               required:
                 - email
               type: object
@@ -7572,6 +7575,59 @@ components:
         - quantity
         - movementType
       type: object
+    AdminAllowedSettings:
+      additionalProperties: false
+      properties:
+        appearance:
+          type: boolean
+        approvals:
+          type: boolean
+        audit:
+          type: boolean
+        company:
+          type: boolean
+        deliverySettings:
+          type: boolean
+        departments:
+          type: boolean
+        deployments:
+          type: boolean
+        domains:
+          type: boolean
+        hrSettings:
+          type: boolean
+        pipeline:
+          type: boolean
+        privacy:
+          type: boolean
+        requestsSettings:
+          type: boolean
+        roles:
+          type: boolean
+        storeSettings:
+          type: boolean
+        tax:
+          type: boolean
+        web:
+          type: boolean
+      required:
+        - company
+        - web
+        - tax
+        - appearance
+        - domains
+        - deployments
+        - roles
+        - audit
+        - privacy
+        - approvals
+        - departments
+        - pipeline
+        - storeSettings
+        - deliverySettings
+        - requestsSettings
+        - hrSettings
+      type: object
     ApprovalDecision:
       properties:
         approverId:
@@ -8101,6 +8157,8 @@ components:
         addressEn:
           nullable: true
           type: string
+        adminAllowedSettings:
+          $ref: '#/components/schemas/AdminAllowedSettings'
         bankAccountNumber:
           nullable: true
           type: string
@@ -8317,6 +8375,8 @@ components:
         addressEn:
           nullable: true
           type: string
+        adminAllowedSettings:
+          $ref: '#/components/schemas/AdminAllowedSettings'
         bankAccountNumber:
           nullable: true
           type: string
@@ -8585,6 +8645,7 @@ components:
         - city
         - country
         - mapUrl
+        - adminAllowedSettings
         - currencyLocked
         - revision
       type: object

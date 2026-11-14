@@ -10,6 +10,7 @@ import { getActiveTaxSummary } from "@platform/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
+import { AdminGovernanceProvider } from "../../hooks/useAdminGovernance";
 import { LiveProvider } from "../../components/live/LiveProvider";
 import { NotificationAlerts } from "../../components/live/NotificationAlerts";
 
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
       }}
     >
       <FeatureTogglesProvider initialFeatures={toggles}>
+        <AdminGovernanceProvider value={company.admin_allowed_settings}>
         <CompanyVatProvider
           value={{
             enabled: Boolean(company.vat_enabled),
@@ -78,6 +80,7 @@ export default async function DashboardLayout({
             </LiveProvider>
           </SidebarProvider>
         </CompanyVatProvider>
+        </AdminGovernanceProvider>
       </FeatureTogglesProvider>
     </PermissionsProvider>
   );

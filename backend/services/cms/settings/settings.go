@@ -16,5 +16,5 @@ type Config struct {
 }
 type CMS struct {
 	Readers	[]string	`env:"READERS" envDefault:"admin,web,store,it" envSeparator:"," validate:"min=1,dive,required"`
-	Writers	[]string	`env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	Writers	[]string	`env:"WRITERS" envDefault:"admin,it" envSeparator:"," validate:"min=1,dive,required"`
 }

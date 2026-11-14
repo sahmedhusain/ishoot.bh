@@ -166,8 +166,49 @@ export interface CompanySettings {
   terms_ar?: string;
   rules_en?: string;
   rules_ar?: string;
+  admin_allowed_settings?: AdminAllowedSettings;
   updated_at: string;
 }
+
+export interface AdminAllowedSettings {
+  company: boolean;
+  web: boolean;
+  tax: boolean;
+  appearance: boolean;
+  domains: boolean;
+  deployments: boolean;
+  roles: boolean;
+  audit: boolean;
+  privacy: boolean;
+  approvals: boolean;
+  departments: boolean;
+  pipeline: boolean;
+  storeSettings: boolean;
+  deliverySettings: boolean;
+  requestsSettings: boolean;
+  hrSettings: boolean;
+}
+
+export type AdminSettingKey = keyof AdminAllowedSettings;
+
+export const DEFAULT_ADMIN_ALLOWED_SETTINGS: AdminAllowedSettings = {
+  company: false,
+  web: false,
+  tax: false,
+  appearance: false,
+  domains: false,
+  deployments: false,
+  roles: false,
+  audit: false,
+  privacy: true,
+  approvals: true,
+  departments: true,
+  pipeline: true,
+  storeSettings: true,
+  deliverySettings: true,
+  requestsSettings: true,
+  hrSettings: true,
+};
 
 export interface HeroBanner {
   id: string;

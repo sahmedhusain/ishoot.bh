@@ -3690,6 +3690,24 @@ export interface components {
             unitCost?: string;
             variantId?: string;
         };
+        AdminAllowedSettings: {
+            appearance: boolean;
+            approvals: boolean;
+            audit: boolean;
+            company: boolean;
+            deliverySettings: boolean;
+            departments: boolean;
+            deployments: boolean;
+            domains: boolean;
+            hrSettings: boolean;
+            pipeline: boolean;
+            privacy: boolean;
+            requestsSettings: boolean;
+            roles: boolean;
+            storeSettings: boolean;
+            tax: boolean;
+            web: boolean;
+        };
         ApprovalDecision: {
             approverId: string;
             comments?: string | null;
@@ -3896,6 +3914,7 @@ export interface components {
             aboutTextEn?: string | null;
             addressAr?: string | null;
             addressEn?: string | null;
+            adminAllowedSettings?: components["schemas"]["AdminAllowedSettings"];
             bankAccountNumber?: string | null;
             bankIban?: string | null;
             bankName?: string | null;
@@ -3970,6 +3989,7 @@ export interface components {
             aboutTextEn: string | null;
             addressAr: string | null;
             addressEn: string | null;
+            adminAllowedSettings: components["schemas"]["AdminAllowedSettings"];
             bankAccountNumber: string | null;
             bankIban: string | null;
             bankName: string | null;
@@ -8201,6 +8221,7 @@ export interface operations {
                 "application/json": {
                     clientIp?: string;
                     email: string;
+                    username?: string;
                 };
             };
         };

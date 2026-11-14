@@ -3,6 +3,46 @@ import (
 	"encoding/json"
 	"time"
 )
+type AdminAllowedSettings struct {
+	Company          bool `json:"company"`
+	Web              bool `json:"web"`
+	Tax              bool `json:"tax"`
+	Appearance       bool `json:"appearance"`
+	Domains          bool `json:"domains"`
+	Deployments      bool `json:"deployments"`
+	Roles            bool `json:"roles"`
+	Audit            bool `json:"audit"`
+	Privacy          bool `json:"privacy"`
+	Approvals        bool `json:"approvals"`
+	Departments      bool `json:"departments"`
+	Pipeline         bool `json:"pipeline"`
+	StoreSettings    bool `json:"storeSettings"`
+	DeliverySettings bool `json:"deliverySettings"`
+	RequestsSettings bool `json:"requestsSettings"`
+	HrSettings       bool `json:"hrSettings"`
+}
+
+func defaultAdminAllowedSettings() AdminAllowedSettings {
+	return AdminAllowedSettings{
+		Company:          false,
+		Web:              false,
+		Tax:              false,
+		Appearance:       false,
+		Domains:          false,
+		Deployments:      false,
+		Roles:            false,
+		Audit:            false,
+		Privacy:          true,
+		Approvals:        true,
+		Departments:      true,
+		Pipeline:         true,
+		StoreSettings:    true,
+		DeliverySettings: true,
+		RequestsSettings: true,
+		HrSettings:       true,
+	}
+}
+
 type CompanyRecord struct {
 	WebsitePublished		bool		`json:"websitePublished"`
 	ID				string		`json:"id"`
@@ -73,9 +113,10 @@ type CompanyRecord struct {
 	FoundedYear			*int64		`json:"foundedYear"`
 	City				*string		`json:"city"`
 	Country				*string		`json:"country"`
-	MapUrl				*string		`json:"mapUrl"`
-	CurrencyLocked			bool		`json:"currencyLocked"`
-	Revision			int64		`json:"revision"`
+	MapUrl				*string			`json:"mapUrl"`
+	AdminAllowedSettings		*AdminAllowedSettings	`json:"adminAllowedSettings"`
+	CurrencyLocked			bool			`json:"currencyLocked"`
+	Revision			int64			`json:"revision"`
 }
 var companyPatchFields = map[string]bool{
 	"companyNameEn":		true,
@@ -143,5 +184,6 @@ var companyPatchFields = map[string]bool{
 	"city":				true,
 	"country":			true,
 	"mapUrl":			true,
+	"adminAllowedSettings":		true,
 	"websitePublished":		true,
 }

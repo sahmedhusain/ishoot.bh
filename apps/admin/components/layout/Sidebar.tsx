@@ -86,7 +86,24 @@ import {
   type SidebarCustomizationConfig,
 } from "../../lib/sidebar-navigation";
 import { useFeatureToggles } from "../../hooks/useFeatureToggles";
+import { useAdminGovernance } from "../../hooks/useAdminGovernance";
+import type { AdminSettingKey } from "../../lib/types";
 import { SidebarCustomizerModal } from "./SidebarCustomizerModal";
+
+const ROUTE_TO_GOVERNANCE_KEY: Record<string, AdminSettingKey> = {
+  [ROUTES.settings.company]: "company",
+  [ROUTES.settings.web]: "web",
+  [ROUTES.settings.roles]: "roles",
+  [ROUTES.settings.audit]: "audit",
+  [ROUTES.settings.privacy]: "privacy",
+  [ROUTES.settings.approvals]: "approvals",
+  [ROUTES.settings.departments]: "departments",
+  [ROUTES.settings.pipeline]: "pipeline",
+  [ROUTES.orders.settings]: "storeSettings",
+  [ROUTES.delivery.settings]: "deliverySettings",
+  [ROUTES.requests.settings]: "requestsSettings",
+  [ROUTES.hr.settings]: "hrSettings",
+};
 
 interface NavItem {
   href: string;
@@ -121,6 +138,7 @@ export function Sidebar() {
     return () => desktop.removeEventListener("change", close);
   }, [setIsMobileOpen]);
   const { isFeatureEnabled } = useFeatureToggles();
+  const { isAllowed: isSettingAllowed } = useAdminGovernance();
   const [folded, setFolded] = React.useState<Record<string, boolean>>({});
   const [customizerOpen, setCustomizerOpen] = React.useState(false);
   const storageKey = `platform_navigation_${user?.id ?? "guest"}`;
@@ -786,6 +804,8 @@ export function Sidebar() {
       .map((section) => ({
         ...section,
         items: section.items.filter((item) => {
+          const govKey = ROUTE_TO_GOVERNANCE_KEY[item.href];
+          if (govKey && !isSettingAllowed(govKey)) return false;
           if (item.moduleKey && !isFeatureEnabled(item.moduleKey)) return false;
           if (item.managersOnly && !managesTeam) return false;
           if (item.superAdminOnly && role !== "super_admin") return false;
@@ -795,7 +815,7 @@ export function Sidebar() {
       }))
       .filter((section) => section.items.length > 0)
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-  }, [sections, can, isFeatureEnabled, managesTeam, role, customConfig]);
+  }, [sections, can, isFeatureEnabled, isSettingAllowed, managesTeam, role, customConfig]);
 
   const visibleSections = React.useMemo(() => {
     const hiddenSet = new Set(customConfig.hiddenSections);

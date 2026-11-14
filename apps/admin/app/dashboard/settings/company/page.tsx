@@ -1,4 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
+import { requireAdminSettingAllowed } from "../../../../lib/admin-governance";
 import { getCompanyAssets } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { CompanySettingsView } from "../../../../components/settings/CompanySettingsView";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CompanySettingsPage() {
   await requirePagePermission("settings", "read");
+  await requireAdminSettingAllowed("company");
   const [settings, assets] = await Promise.all([
     getCachedCompanySettings(),
     getCompanyAssets(),
