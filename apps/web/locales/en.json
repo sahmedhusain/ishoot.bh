@@ -133,7 +133,15 @@
     "stats": {
       "badge": "In numbers"
     },
-    "studioImageAlt": "{companyName} workplace and team"
+    "studioImageAlt": "{companyName} workplace and team",
+    "credentialsBadge": "Corporate Profile",
+    "foundedLabel": "Established",
+    "crLabel": "Commercial Registration",
+    "headquartersLabel": "Headquarters",
+    "leadershipLabel": "Executive Leadership",
+    "requestConsultation": "Request Executive Consultation",
+    "executiveCtaTitle": "Partner with {companyName} for your next production",
+    "executiveCtaSub": "From concept development to final cinema-grade delivery — speak directly with our producers and specialists."
   },
   "contact": {
     "fullName": "Full Name",

@@ -69,110 +69,141 @@ export function ProductGrid({
   );
   const filteredItems = result.items;
   const ar = locale === "ar";
+  const hasActiveFilters = Boolean(
+    activeQuery.q ||
+      (activeQuery.category && activeQuery.category !== "all") ||
+      (activeQuery.sort && activeQuery.sort !== "featured") ||
+      (config.facetLabels ?? []).some((label) => Boolean(params.get(`filter-${label}`))),
+  );
+  const clearAllFilters = () =>
+    update({
+      q: "",
+      category: "all",
+      sort: "featured",
+      ...Object.fromEntries(
+        (config.facetLabels ?? []).map((facetLabel) => [
+          `filter-${facetLabel}`,
+          "",
+        ]),
+      ),
+    });
 
   return (
-    <div className="space-y-10" data-testid="product-grid">
-      <div className="flex flex-wrap items-end gap-4">
-        {config.search && (
-          <form
-            className="flex flex-1 min-w-[min(100%,16rem)] gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              update({ q: search.trim() });
-            }}
-          >
-            <input
-              type="search"
-              aria-label={t("store.searchCatalogue")}
-              placeholder={t("store.searchPlaceholder")}
-              maxLength={160}
-              className={field}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button type="submit" className={secondaryButton}>
-              {t("shared.common.search")}
-            </button>
-          </form>
-        )}
-        {config.sorting && (
-          <label className="text-sm space-y-1">
-            <span className="block text-ink-muted">{t("store.sortBy")}</span>
-            <Select
-              className={`${field} min-w-[12rem]`}
-              value={activeQuery.sort}
-              onChange={(e) => update({ sort: e.target.value })}
+    <div className="space-y-8" data-testid="product-grid">
+      <div className="rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant/60 p-4 sm:p-5 space-y-4">
+        <div className="flex flex-wrap items-end gap-4">
+          {config.search && (
+            <form
+              className="flex flex-1 min-w-[min(100%,16rem)] gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                update({ q: search.trim() });
+              }}
             >
-              <option value="featured">{t("store.sortFeatured")}</option>
-              <option value="name">{t("store.sortName")}</option>
-              <option value="newest">{t("store.sortNewest")}</option>
-              {items.some((item) => item.price != null) && (
-                <>
-                  <option value="price-asc">{t("store.sortPriceAsc")}</option>
-                  <option value="price-desc">{t("store.sortPriceDesc")}</option>
-                </>
-              )}
-            </Select>
-          </label>
-        )}
-      </div>
-
-      {!!config.facetLabels?.length && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {config.facetLabels.map((facetLabel) => {
-            const facts = items
-              .flatMap((item) => item.attributes)
-              .filter(
-                (fact) => (fact.labelEn || fact.labelAr) === facetLabel,
-              );
-            const options = Array.from(
-              new Map(
-                facts.map((fact) => [
-                  fact.valueEn || fact.valueAr,
-                  ar
-                    ? fact.valueAr || fact.valueEn
-                    : fact.valueEn || fact.valueAr,
-                ]),
-              ).entries(),
-            ).filter(([value]) => value);
-            if (!options.length) return null;
-            return (
-              <label key={facetLabel} className="text-sm space-y-1">
-                <span className="text-ink-muted">
-                  {ar ? facts[0].labelAr || facetLabel : facetLabel}
-                </span>
-                <Select
-                  className={`${field} min-w-[11rem]`}
-                  value={params.get(`filter-${facetLabel}`) ?? ""}
-                  onChange={(e) =>
-                    update({ [`filter-${facetLabel}`]: e.target.value })
-                  }
-                >
-                  <option value="">{t("shared.common.all")}</option>
-                  {options.map(([value, text]) => (
-                    <option key={value} value={value}>
-                      {text}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-            );
-          })}
+              <input
+                type="search"
+                aria-label={t("store.searchCatalogue")}
+                placeholder={t("store.searchPlaceholder")}
+                maxLength={160}
+                className={field}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <button type="submit" className={secondaryButton}>
+                {t("shared.common.search")}
+              </button>
+            </form>
+          )}
+          {config.sorting && (
+            <label className="text-sm space-y-1">
+              <span className="block text-ink-muted">{t("store.sortBy")}</span>
+              <Select
+                className={`${field} min-w-[12rem]`}
+                value={activeQuery.sort}
+                onChange={(e) => update({ sort: e.target.value })}
+              >
+                <option value="featured">{t("store.sortFeatured")}</option>
+                <option value="name">{t("store.sortName")}</option>
+                <option value="newest">{t("store.sortNewest")}</option>
+                {items.some((item) => item.price != null) && (
+                  <>
+                    <option value="price-asc">{t("store.sortPriceAsc")}</option>
+                    <option value="price-desc">{t("store.sortPriceDesc")}</option>
+                  </>
+                )}
+              </Select>
+            </label>
+          )}
         </div>
-      )}
 
-      {config.categories && !initialCategory && (
-        <CategoryTabs
-          categories={categories}
-          parents={config.categoryParents}
-          activeCategory={activeQuery.category}
-          onSelect={(slug) => update({ category: slug })}
-        />
-      )}
+        {!!config.facetLabels?.length && (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {config.facetLabels.map((facetLabel) => {
+              const facts = items
+                .flatMap((item) => item.attributes)
+                .filter(
+                  (fact) => (fact.labelEn || fact.labelAr) === facetLabel,
+                );
+              const options = Array.from(
+                new Map(
+                  facts.map((fact) => [
+                    fact.valueEn || fact.valueAr,
+                    ar
+                      ? fact.valueAr || fact.valueEn
+                      : fact.valueEn || fact.valueAr,
+                  ]),
+                ).entries(),
+              ).filter(([value]) => value);
+              if (!options.length) return null;
+              return (
+                <label key={facetLabel} className="text-sm space-y-1">
+                  <span className="text-ink-muted">
+                    {ar ? facts[0].labelAr || facetLabel : facetLabel}
+                  </span>
+                  <Select
+                    className={`${field} min-w-[11rem]`}
+                    value={params.get(`filter-${facetLabel}`) ?? ""}
+                    onChange={(e) =>
+                      update({ [`filter-${facetLabel}`]: e.target.value })
+                    }
+                  >
+                    <option value="">{t("shared.common.all")}</option>
+                    {options.map(([value, text]) => (
+                      <option key={value} value={value}>
+                        {text}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+              );
+            })}
+          </div>
+        )}
 
-      <p role="status" className="text-sm text-ink-muted">
-        {t("store.resultsCount", { count: result.total })}
-      </p>
+        {config.categories && !initialCategory && (
+          <CategoryTabs
+            categories={categories}
+            parents={config.categoryParents}
+            activeCategory={activeQuery.category}
+            onSelect={(slug) => update({ category: slug })}
+          />
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-m3-outline-variant/40">
+          <p role="status" data-testid="product-results-count" className="text-sm font-medium text-ink-muted">
+            {t("store.resultsCount", { count: result.total })}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              className={secondaryButton}
+              onClick={clearAllFilters}
+            >
+              {t("store.clearFilters")}
+            </button>
+          )}
+        </div>
+      </div>
 
       {!result.total && (
         <div className="py-12 space-y-4">
@@ -180,19 +211,7 @@ export function ProductGrid({
           <button
             type="button"
             className={secondaryButton}
-            onClick={() =>
-              update({
-                q: "",
-                category: "all",
-                sort: "featured",
-                ...Object.fromEntries(
-                  (config.facetLabels ?? []).map((facetLabel) => [
-                    `filter-${facetLabel}`,
-                    "",
-                  ]),
-                ),
-              })
-            }
+            onClick={clearAllFilters}
           >
             {t("store.clearFilters")}
           </button>

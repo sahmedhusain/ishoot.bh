@@ -133,7 +133,15 @@
     "stats": {
       "badge": "بالأرقام"
     },
-    "studioImageAlt": "مقر وفريق عمل {companyName}"
+    "studioImageAlt": "مقر وفريق عمل {companyName}",
+    "credentialsBadge": "الملف التعريفي الرسمي",
+    "foundedLabel": "سنة التأسيس",
+    "crLabel": "السجل التجاري",
+    "headquartersLabel": "المقر الرئيسي",
+    "leadershipLabel": "القيادة التنفيذية",
+    "requestConsultation": "اطلب استشارة تنفيذية",
+    "executiveCtaTitle": "تعاون مع {companyName} في مشروعك القادم",
+    "executiveCtaSub": "من تطوير الفكرة إلى التسليم السينمائي النهائي — تواصل مباشرة مع منتجينا ومتخصصينا."
   },
   "contact": {
     "fullName": "الاسم الكامل",
