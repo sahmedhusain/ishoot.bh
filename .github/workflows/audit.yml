@@ -61,8 +61,7 @@ jobs:
           SUPER_ADMIN_PASSWORD: disposable-seed-password
         run: |
           node scripts/env-tool.cjs init
-          docker compose --env-file .env up -d postgres --wait
-          ./run.sh db reset --demo all --yes
+          ./run.sh db reset --company ishoot --yes
           node scripts/verify-seed-dates.js
 
       - name: Pillar 2 – Codebase & Directory Isolation Scan

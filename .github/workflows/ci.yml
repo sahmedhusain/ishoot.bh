@@ -110,13 +110,12 @@ jobs:
         run: |
           ./run.sh db reset --empty --yes
           ./run.sh db bootstrap
-      - name: Migrate, seed and verify the demo profile
+      - name: Migrate, seed and verify the ishoot company profile
         env:
           SUPER_ADMIN_EMAIL: seed@example.test
           SUPER_ADMIN_PASSWORD: disposable-seed-password
-          COMPANY_PROFILE: demo
           SEED_VOLUME: "off"
-        run: ./run.sh db reset --light --profile demo --yes
+        run: ./run.sh db reset --company ishoot --yes
       - name: Go backend tests
         run: make -C backend test
       - name: Every company profile migrates, seeds and passes its demo checks
@@ -125,12 +124,13 @@ jobs:
           SUPER_ADMIN_PASSWORD: disposable-seed-password
           SEED_VOLUME: "off"
         run: |
-          for dir in seeds/assets/*/; do
-            [ -f "${dir}company.json" ] || continue
+          for dir in seeds/*/; do
+            [ -f "${dir}seed.sql" ] || continue
             profile="${dir%/}"
             profile="${profile##*/}"
             echo "::group::$profile"
-            ./run.sh db reset --light --profile "$profile" --yes
+            ./run.sh db seed "$profile"
+            node scripts/verify-seed-dates.js
             echo "::endgroup::"
           done
       - name: Bootstrap a company profile repeatedly
@@ -139,8 +139,8 @@ jobs:
           SUPER_ADMIN_PASSWORD: disposable-bootstrap-password
         run: |
           ./run.sh db reset --empty --yes
-          ./run.sh db bootstrap --profile demo
-          ./run.sh db bootstrap --profile demo
+          ./run.sh db bootstrap
+          ./run.sh db bootstrap
 
   e2e:
     name: End-to-end (admin, setup wizard, website, store, IT dashboard)
@@ -166,6 +166,12 @@ jobs:
           npm --prefix apps/web ci
           npm --prefix apps/store ci
       - uses: ./.github/actions/backend-stack
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Seed E2E database (Zayed Group)
+        run: ./run.sh db seed zayed-group
       - name: Production builds of the apps
         env:
           DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?sslmode=disable
@@ -182,7 +188,7 @@ jobs:
           npm --prefix apps/web run build
           npm --prefix apps/store run build
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npm --prefix apps/admin exec -- playwright install --with-deps chromium
       - name: Playwright E2E Tests
         run: |
           npm --prefix apps/admin run test:e2e
