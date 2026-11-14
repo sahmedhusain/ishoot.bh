@@ -3,6 +3,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const sharp = require(path.resolve(__dirname, "../apps/admin/node_modules/sharp"));
 const { COMPANIES } = require("./seed-companies.cjs");
+const { buildRichModuleSql } = require("./seed-rich-modules.cjs");
 
 const root = path.resolve(__dirname, "..");
 const templateSqlPath = path.join(root, "seeds/zayed-group/seed.sql");
@@ -395,99 +396,83 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
   }
 
   lines.push(``);
-  lines.push(`-- FINANCE & SALES`);
-  lines.push(`INSERT INTO finance.expense_category (id, code, name_en, name_ar, slug, sort_order, display_order, kind, is_system, is_active) VALUES ('ec-ops', 'OPS', 'Operations', 'تشغيل', 'operations', 1, 1, 'expense', true, true), ('ec-rent', 'RNT', 'Facility & Rent', 'إيجارات ومرافق', 'facility-rent', 2, 2, 'expense', true, true), ('ec-tech', 'TCH', 'Software & Cloud', 'برمجيات وسحابة', 'software-cloud', 3, 3, 'expense', true, true) ON CONFLICT (id) DO NOTHING;`);
-  lines.push(`INSERT INTO finance.tax_rate (id, code, name_en, name_ar, rate_percent, applies_to_invoices, applies_to_quotations, is_active, display_order, created_at, updated_at) VALUES ('tax-vat-10', 'VAT10', 'Bahrain VAT 10%', 'ضريبة القيمة المضافة 10%', 10.00, true, true, true, 1, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-  lines.push(`INSERT INTO sales.deal_pipeline_stage (id, name_en, name_ar, probability, sort_order, kind, is_system, is_active, created_at, updated_at) VALUES ('stg-new', 'Qualified', 'مؤهل', 20, 1, 'open', true, true, now(), now()), ('stg-prop', 'Proposal Sent', 'عرض سعر', 50, 2, 'open', true, true, now(), now()), ('stg-neg', 'Negotiation', 'تفاوض', 80, 3, 'open', true, true, now(), now()), ('stg-won', 'Closed Won', 'مغلق ناجح', 100, 4, 'won', true, true, now(), now()) ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`-- FINANCE, SALES, HR, INVENTORY, COMMERCE, DELIVERY, ITSM, WORKFLOW, NOTIFY, REALTIME & AUDIT`);
+  lines.push(buildRichModuleSql({
+    company,
+    companyJson,
+    domainHost,
+    staffRoster: STAFF_ROSTER,
+    customers: CUSTOMERS,
+    defaultPasswordHash: DEFAULT_PASSWORD_HASH,
+  }));
 
-  CUSTOMERS.forEach((c, idx) => {
-    const [cfEn, ...clEn] = c.nameEn.split(" ");
-    const clName = clEn.join(" ") || "Group";
-    lines.push(`INSERT INTO commerce.customer (id, first_name, last_name, name, email, phone, status, created_at, updated_at) VALUES (${sqlQ(c.id)}, ${sqlQ(cfEn)}, ${sqlQ(clName)}, ${sqlQ(c.nameEn)}, ${sqlQ(c.email)}, ${sqlQ(c.phone)}, 'active', now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO commerce.customer_address (id, customer_id, label, line1, city, country, is_default, created_at) VALUES (${sqlQ(`addr-${idx + 1}`)}, ${sqlQ(c.id)}, 'HQ', 'Building 120, Road 28', ${sqlQ(c.city)}, 'BH', true, now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, created_at, updated_at) VALUES (${sqlQ(`cnt-${idx + 1}`)}, ${sqlQ(cfEn)}, ${sqlQ(clName)}, ${sqlQ(c.email)}, ${sqlQ(c.phone)}, ${sqlQ(c.nameEn)}, 'client', 'active', now(), now()) ON CONFLICT (id) DO NOTHING;`);
-  });
-
-  // Invoices & Deals
-  const primarySvc = company.services[0] || { en: "Core Engagement", rate: 500 };
-  for (let i = 1; i <= 6; i++) {
-    const cust = CUSTOMERS[(i - 1) % CUSTOMERS.length];
-    const invId = `inv-${String(i).padStart(3, "0")}`;
-    const invNum = `${company.prefix}-2026-${100 + i}`;
-    const sub = primarySvc.rate * (i % 3 + 1);
-    const vat = sub * 0.1;
-    const tot = sub + vat;
-    const paid = i <= 4 ? tot : 0;
-    const bal = tot - paid;
-    const status = i <= 4 ? "paid" : "sent";
-    lines.push(`INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, created_at, updated_at) VALUES (${sqlQ(`deal-${i}`)}, ${sqlQ(`${cust.nameEn} — ${primarySvc.en}`)}, ${sqlQ(`cnt-${i}`)}, ${sqlQ(i <= 4 ? "stg-won" : "stg-prop")}, ${tot.toFixed(3)}, ${sqlQ(company.currency)}, ${i <= 4 ? 100 : 50}, now() + interval '14 days', ${sqlQ(i <= 4 ? "won" : "open")}, 'sami-khoury', now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, vat_rate, vat_amount, total, total_amount, amount_paid, balance_due, currency, vat_enabled, vat_percentage, created_by_id, created_at, updated_at) VALUES (${sqlQ(invId)}, ${sqlQ(invNum)}, ${sqlQ(`cnt-${i}`)}, ${sqlQ(status)}, now() - interval '${i * 7} days', now() + interval '23 days', ${sub.toFixed(3)}, 10.00, ${vat.toFixed(3)}, ${tot.toFixed(3)}, ${tot.toFixed(3)}, ${paid.toFixed(3)}, ${bal.toFixed(3)}, ${sqlQ(company.currency)}, true, 10.00, 'layla-nasser', now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order) VALUES (${sqlQ(`invi-${i}`)}, ${sqlQ(invId)}, ${sqlQ(primarySvc.en)}, ${i % 3 + 1}, ${primarySvc.rate.toFixed(3)}, ${sub.toFixed(3)}, 1) ON CONFLICT (id) DO NOTHING;`);
-    if (paid > 0) {
-      lines.push(`INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, created_by_id, created_at) VALUES (${sqlQ(`pay-${i}`)}, ${sqlQ(`PAY-${company.prefix}-${100 + i}`)}, ${sqlQ(invId)}, ${sqlQ(`cnt-${i}`)}, ${paid.toFixed(3)}, ${sqlQ(company.currency)}, 'bank_transfer', now() - interval '${i * 3} days', ${sqlQ(`TXN-${company.prefix}-${1000 + i}`)}, 'completed', 'faisal-mansour', now()) ON CONFLICT (id) DO NOTHING;`);
-    }
-  }
-
-  // Inventory
-  if (company.products.length > 0) {
-    lines.push(``);
-    lines.push(`-- INVENTORY`);
-    lines.push(`INSERT INTO inventory.warehouse (id, code, name_en, name_ar, address, is_active, is_default, branch_id, sort_order, created_at, updated_at) VALUES ('wh-main', 'WH-01', ${sqlQ(`${company.shortEn} Main Warehouse`)}, ${sqlQ(`${company.shortAr} المستودع الرئيسي`)}, ${sqlQ(company.addressEn)}, true, true, 'br-hq', 1, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO inventory.stock_location (id, warehouse_id, code, name, is_active, created_at) VALUES ('loc-a1', 'wh-main', 'A-01', 'Primary Bay A-01', true, now()) ON CONFLICT (id) DO NOTHING;`);
-    const cats = [...new Set(company.products.map((p) => p.cat))];
-    cats.forEach((cat, idx) => {
-      lines.push(`INSERT INTO inventory.product_category (id, name_en, name_ar, slug, sort_order, is_active, created_at, updated_at) VALUES (${sqlQ(`pcat-${idx + 1}`)}, ${sqlQ(cat)}, ${sqlQ(cat)}, ${sqlQ(cat.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}, ${idx + 1}, true, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    });
-    company.products.forEach((p, idx) => {
-      const catId = `pcat-${cats.indexOf(p.cat) + 1}`;
-      const pid = `prod-${idx + 1}`;
-      lines.push(`INSERT INTO inventory.product (id, sku, name_en, name_ar, category_id, cost_price, selling_price, cost, price, currency, is_active, created_at, updated_at) VALUES (${sqlQ(pid)}, ${sqlQ(p.sku)}, ${sqlQ(p.en)}, ${sqlQ(p.ar)}, ${sqlQ(catId)}, ${p.cost.toFixed(3)}, ${p.price.toFixed(3)}, ${p.cost.toFixed(3)}, ${p.price.toFixed(3)}, ${sqlQ(company.currency)}, true, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-      lines.push(`INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, on_hand, reserved, updated_at) VALUES (${sqlQ(`sl-${idx + 1}`)}, ${sqlQ(pid)}, 'loc-a1', ${25 + idx * 10}, 0, ${25 + idx * 10}, 0, now()) ON CONFLICT (id) DO NOTHING;`);
-    });
-  }
-
-  // Commerce & Delivery
-  lines.push(``);
-  lines.push(`-- COMMERCE & DELIVERY`);
-  lines.push(`INSERT INTO commerce.store_settings (id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold, guest_checkout, delivery_enabled, delivery_fee, free_delivery_over, pickup_enabled, cod_enabled, bank_transfer_enabled, order_notify_email, updated_at) VALUES ('default', ${sqlQ(company.currency)}, true, 10.000, 5.000, 50.000, ${company.hasStore}, ${company.hasStore}, 2.500, 50.000, ${company.hasStore}, ${company.hasStore}, true, ${sqlQ(company.email)}, now()) ON CONFLICT (id) DO UPDATE SET delivery_enabled = EXCLUDED.delivery_enabled, pickup_enabled = EXCLUDED.pickup_enabled, guest_checkout = EXCLUDED.guest_checkout, updated_at = now();`);
-  if (company.hasStore && company.products.length > 0) {
-    lines.push(`INSERT INTO commerce.store_region (id, code, name_en, name_ar, currency, default_language, branch_id, is_enabled, price_multiplier, settings) VALUES ('reg-bh', 'BH', 'Bahrain', 'البحرين', ${sqlQ(company.currency)}, 'ar', 'br-hq', true, 1.000, '{}'::jsonb) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES ('dz-manama', 'Capital Governorate', 'محافظة العاصمة', 2.000, 5.000, 40.000, true, 1, now(), now()), ('dz-muharraq', 'Muharraq Governorate', 'محافظة المحرق', 2.500, 5.000, 50.000, true, 2, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO commerce.retail_register (id, name, branch_id, is_active, code, revision, created_at, updated_at) VALUES ('reg-pos-1', 'Main Counter POS', 'br-hq', true, 'POS-01', 1, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-    const p0 = company.products[0];
-    lines.push(`INSERT INTO commerce.sales_order (id, number, customer_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, subtotal, vat_amount, delivery_fee, total, amount_paid, currency, locale, warehouse_id, placed_at, updated_at) VALUES ('ord-001', ${sqlQ(`${company.prefix}-ORD-1001`)}, 'cust-001', 'procurement@aljazeeragulf.bh', 'Al-Jazeera Gulf Holdings', '+97317223344', 'storefront', 'delivered', 'paid', 'card', 'delivery', ${p0.price.toFixed(3)}, ${(p0.price * 0.1).toFixed(3)}, 2.000, ${(p0.price * 1.1 + 2).toFixed(3)}, ${(p0.price * 1.1 + 2).toFixed(3)}, ${sqlQ(company.currency)}, 'en', 'wh-main', now() - interval '2 days', now()) ON CONFLICT (id) DO NOTHING;`);
-    lines.push(`INSERT INTO commerce.sales_order_line (id, order_id, product_id, sku, description, quantity, unit_price, vat_exempt, line_total, sort_order) VALUES ('ordl-001', 'ord-001', 'prod-1', ${sqlQ(p0.sku)}, ${sqlQ(p0.en)}, 1, ${p0.price.toFixed(3)}, false, ${p0.price.toFixed(3)}, 1) ON CONFLICT (id) DO NOTHING;`);
-  }
-
-  // CMS (when hasWeb is true)
   if (company.hasWeb) {
     lines.push(``);
-    lines.push(`-- CMS`);
+    lines.push(`-- CMS PAGES & STATS`);
     lines.push(`INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, is_visible, in_header, in_footer, sort_order, blocks, updated_at) VALUES`);
     lines.push(`  ('pg-home', 'home', 'home', ${sqlQ(company.shortEn)}, ${sqlQ(company.shortAr)}, true, true, false, 1, '[]'::jsonb, now()),`);
     lines.push(`  ('pg-about', 'about', 'about', 'About Us', 'من نحن', true, true, true, 2, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-contact', 'contact', 'contact', 'Contact', 'تواصل معنا', true, true, true, 3, '[]'::jsonb, now())`);
-    lines.push(`ON CONFLICT (id) DO NOTHING;`);
-
-    lines.push(`INSERT INTO cms.faq (id, question_en, question_ar, answer_en, answer_ar, is_published, sort_order, created_at) VALUES`);
-    lines.push(`  ('faq-1', ${sqlQ(`How do I request a proposal from ${company.shortEn}?`)}, ${sqlQ(`كيف يمكنني طلب عرض سعر من ${company.shortAr}؟`)}, 'Submit an inquiry through our contact page and our team responds within one business day.', 'أرسل طلبك عبر صفحة التواصل وسيرد فريقنا خلال يوم عمل واحد.', true, 1, now())`);
+    lines.push(`  ('pg-services', 'services', 'services', 'Services', 'خدماتنا', true, true, true, 3, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-work', 'work', 'portfolio', 'Portfolio', 'أعمالنا', true, true, true, 4, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-contact', 'contact', 'contact', 'Contact', 'تواصل معنا', true, true, true, 5, '[]'::jsonb, now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
 
     lines.push(`INSERT INTO cms.statistic (id, metric_value, label_en, label_ar, sort_order) VALUES`);
     lines.push(`  ('stat-1', '${2026 - company.foundedYear}+', 'Years of Excellence', 'سنوات من التميز', 1),`);
-    lines.push(`  ('stat-2', '120+', 'Enterprise Clients', 'عملاء المؤسسات', 2)`);
+    lines.push(`  ('stat-2', '120+', 'Enterprise Clients', 'عملاء المؤسسات', 2),`);
+    lines.push(`  ('stat-3', '99.4%', 'On-Time Delivery', 'الالتزام بالمواعيد', 3),`);
+    lines.push(`  ('stat-4', '24/7', 'Client Support', 'دعم العملاء', 4)`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
-
-  // Workflow & ITSM
-  lines.push(``);
-  lines.push(`-- WORKFLOW & ITSM`);
-  lines.push(`INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, created_at, updated_at) VALUES ('tsk-001', ${sqlQ(`Q4 Operational Review — ${company.shortEn}`)}, 'Prepare quarterly KPIs and finance reconciliation.', 'layla-nasser', now() + interval '5 days', 'high', 'in_progress', now(), now()) ON CONFLICT (id) DO NOTHING;`);
-  lines.push(`INSERT INTO itsm.sla_policy (priority, response_minutes, resolve_minutes, updated_at) VALUES ('medium', 60, 480, now()) ON CONFLICT (priority) DO NOTHING;`);
 
   lines.push(``);
   lines.push(`COMMIT;`);
   return lines.join("\n") + "\n";
+}
+
+const SERVICE_SCHEMAS = [
+  "identity",
+  "system",
+  "files",
+  "cms",
+  "sales",
+  "finance",
+  "hr",
+  "inventory",
+  "commerce",
+  "delivery",
+  "itsm",
+  "workflow",
+  "notify",
+  "realtime",
+  "audit",
+];
+
+function writePerServiceSeeds(company, dir, seedSql) {
+  const buckets = Object.fromEntries(SERVICE_SCHEMAS.map((s) => [s, []]));
+  const rawLines = seedSql.split("\n");
+  let buf = [];
+  for (const line of rawLines) {
+    const trimmed = line.trim();
+    if (!buf.length && (!trimmed || trimmed.startsWith("--") || trimmed === "BEGIN;" || trimmed === "COMMIT;")) {
+      continue;
+    }
+    buf.push(line);
+    if (trimmed.endsWith(";")) {
+      const stmt = buf.join("\n");
+      buf = [];
+      const m = stmt.match(/^INSERT INTO\s+([a-z_]+)\./i);
+      if (m && buckets[m[1]]) {
+        buckets[m[1]].push(stmt);
+      }
+    }
+  }
+  for (const svc of SERVICE_SCHEMAS) {
+    const stmts = buckets[svc];
+    const header = `-- ============================================================================\n-- SERVICE SEED (${svc}): ${company.nameEn} (${company.slug})\n-- ============================================================================\nBEGIN;\n`;
+    const body = stmts.length ? stmts.join("\n") : `-- No ${svc} rows for this company scenario.`;
+    fs.writeFileSync(path.join(dir, `seed.${svc}.sql`), `${header}\n${body}\n\nCOMMIT;\n`);
+  }
 }
 
 async function main() {
@@ -505,7 +490,8 @@ async function main() {
     fs.writeFileSync(path.join(dir, "company.json"), JSON.stringify(companyJson, null, 2) + "\n");
     fs.writeFileSync(path.join(dir, "theme.json"), JSON.stringify(themeJson, null, 2) + "\n");
     fs.writeFileSync(path.join(dir, "seed.sql"), seedSql);
-    console.log(`✓ Generated ${company.slug} (${company.activity}, web=${company.hasWeb}, store=${company.hasStore}, ${filesList.length} assets)`);
+    writePerServiceSeeds(company, dir, seedSql);
+    console.log(`✓ Generated ${company.slug} (${company.activity}, web=${company.hasWeb}, store=${company.hasStore}, ${filesList.length} assets, 15 service SQLs)`);
   }
   console.log(`\nDone: ${COMPANIES.length} standalone seed companies generated under seeds/.`);
 }

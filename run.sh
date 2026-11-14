@@ -621,7 +621,7 @@ ${BOLD}Database Engine & Migrations${RESET}
   db status                        Inspect schema migration state & table counts
   db new <service> <name>          Generate new SQL migration file for target service
   db generate                      Regenerate Go model code (sqlc) & frontend contract types
-  db seed <company>                Seed database using a company package in seeds/<company>/ (see ./run.sh company list)
+  db seed <company> [service]      Seed full company or single service (seed.<service>.sql) in seeds/<company>/
   db bootstrap                     Initialize minimal clean empty database (roles, permissions, admin only)
   db query "<SQL>"                 Execute direct SQL query on active database
   db psql                          Launch interactive psql terminal
@@ -981,9 +981,18 @@ SQL
       ;;
     seed)
       local target_company="${1:-}"
-      [ -n "$target_company" ] || die "Usage: ./run.sh db seed <company> (run './run.sh company list' to see available seeds)"
+      local target_service="${2:-}"
+      [ -n "$target_company" ] || die "Usage: ./run.sh db seed <company> [service] (run './run.sh company list' to see available seeds)"
       if [ "$target_company" = "bootstrap" ] || [ "$target_company" = "empty" ]; then
         cmd_db bootstrap
+        return
+      fi
+      if [ -n "$target_service" ]; then
+        local svc_file="seeds/${target_company}/seed.${target_service}.sql"
+        [ -f "$svc_file" ] || die "Unknown service seed \"$svc_file\". Available services: identity system files cms sales finance hr inventory commerce delivery itsm workflow notify realtime audit"
+        step "Seeding service $target_service from $svc_file"
+        run_sql_script "$svc_file"
+        ok "Seeded service $target_service for $target_company."
         return
       fi
       local seed_file="seeds/${target_company}/seed.sql"
