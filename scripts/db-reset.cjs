@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
-const explicitDemo = option("demo");
+const explicitDemo = option("demo") || option("preset");
 const explicitProfile = option("profile");
 let demo = explicitDemo || (flag("empty") ? undefined : process.env.SEED_PRESET?.trim());
 let profile = explicitProfile || (flag("empty") ? undefined : process.env.COMPANY_PROFILE?.trim());
@@ -43,43 +43,53 @@ if (profile === "all") {
 }
 
 async function selectProfileInteractive() {
-  if (flag("yes") || option("profile") || option("demo") || flag("empty") || !process.stdin.isTTY) return;
+  if (flag("yes") || option("profile") || option("demo") || option("preset") || flag("empty") || !process.stdin.isTTY) return;
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  console.log("\nSelect company profile or demo workspace:");
+  console.log("\nSelect company profile or industry preset:");
   console.log("  1) ishoot   — iShoot Cinema Production S.P.C. (Default)");
-  console.log("  2) demo     — Northwind Studio W.L.L.");
+  console.log("  2) demo     — Northwind Studio W.L.L. (All Modules)");
   console.log("  3) media    — Media & Production Preset");
-  console.log("  4) commerce — Store & Commerce Preset");
-  console.log("  5) services — Professional Services Preset");
-  console.log("  6) all      — All Business Modules Enabled");
-  console.log("  7) empty    — Empty Database (Setup Wizard)");
+  console.log("  4) products — Products & Inventory Preset");
+  console.log("  5) commerce — Store & Delivery Commerce Preset");
+  console.log("  6) services — Professional Services Preset");
+  console.log("  7) food     — Food & Hospitality Preset");
+  console.log("  8) agency   — Creative Agency Preset");
+  console.log("  9) empty    — Empty Database (IT Setup Wizard)");
 
-  const choice = (await rl.question("\nEnter selection [1-7] (default 1): ")).trim();
+  const choice = (await rl.question("\nEnter selection [1-9] (default 1): ")).trim();
   rl.close();
 
   switch (choice) {
     case "2":
       profile = "demo";
-      demo = undefined;
+      demo = "all";
       break;
     case "3":
       demo = "media";
       profile = "demo";
       break;
     case "4":
-      demo = "commerce";
+      demo = "products";
       profile = "demo";
       break;
     case "5":
-      demo = "services";
+      demo = "commerce";
       profile = "demo";
       break;
     case "6":
-      demo = "all";
+      demo = "services";
       profile = "demo";
       break;
     case "7":
+      demo = "food";
+      profile = "demo";
+      break;
+    case "8":
+      demo = "agency";
+      profile = "demo";
+      break;
+    case "9":
       args.push("--empty");
       demo = undefined;
       profile = undefined;
@@ -121,15 +131,19 @@ async function main() {
     profile = undefined;
   }
 
-  if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset (e.g. commerce, services, media, all)");
-  if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
+  if ((flag("demo") && (!option("demo") || option("demo").startsWith("--"))) || (flag("preset") && (!option("preset") || option("preset").startsWith("--")))) {
+    throw new Error("--demo/--preset needs a preset (e.g. media, products, commerce, services, food, agency, all)");
+  }
+  if (demo && flag("profile") && option("profile") !== "all" && option("profile") !== "demo") {
+    throw new Error("Choose --demo/--preset or --profile; presets use the shared demo company.");
+  }
   if (flag("empty") && explicitDemo) throw new Error("--empty cannot be combined with a demo preset.");
 
-  profile = demo ? "demo" : profile || "ishoot";
+  profile = demo ? (explicitProfile === "ishoot" ? "ishoot" : "demo") : profile || "ishoot";
   const mode = flag("empty") ? "empty" : "full";
   const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
 
-  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""})`}`);
+  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, preset "${demo}"` : ""})`}`);
   await confirm(target);
 
   if (mode === "empty") {
@@ -137,7 +151,7 @@ async function main() {
     resetServiceData();
     run(path.join(root, "run.sh"), ["db", "migrate"]);
     run(path.join(root, "run.sh"), ["db", "bootstrap"]);
-    console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
+    console.log("\nEmpty database ready. Sign in to the IT Console (IT_ADMIN_USERNAME / IT0001 from .env) to run the setup wizard.");
     return;
   }
 

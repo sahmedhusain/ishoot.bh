@@ -182,23 +182,35 @@ menu_quickstart() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== 🚀 Quick Start & Environment Initialization ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo)   - Northwind Studio Demo Data & Stack"
+    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo)   - All Modules & Demo Data"
     echo "  ${GREEN}[2]${RESET} iShoot Production Setup (--ishoot) - iShoot Cinema Production Profile"
-    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)              - Clean DB for Fresh Setup Wizard"
-    echo "  ${GREEN}[4]${RESET} Install Dependencies & Build All Go Binaries"
-    echo "  ${GREEN}[5]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
-    echo "  ${GREEN}[6]${RESET} Show Service Endpoint URLs & Network Ports"
+    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)              - Clean DB for IT Setup Wizard"
+    echo "  ${GREEN}[4]${RESET} Media Preset (--media)             - Media Production Preset"
+    echo "  ${GREEN}[5]${RESET} Products Preset (--products)       - Products & Inventory Preset"
+    echo "  ${GREEN}[6]${RESET} Commerce Preset (--commerce)       - Online Store & Delivery Preset"
+    echo "  ${GREEN}[7]${RESET} Services Preset (--services)       - Professional Services Preset"
+    echo "  ${GREEN}[8]${RESET} Food Preset (--food)               - Food & Hospitality Preset"
+    echo "  ${GREEN}[9]${RESET} Agency Preset (--agency)           - Creative Agency Preset"
+    echo "  ${GREEN}[10]${RESET} Install Dependencies & Build All Go Binaries"
+    echo "  ${GREEN}[11]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
+    echo "  ${GREEN}[12]${RESET} Show Service Endpoint URLs & Network Ports"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-6]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-12]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_setup --demo; pause_prompt ;;
       2) cmd_setup --ishoot; pause_prompt ;;
       3) cmd_setup --empty; pause_prompt ;;
-      4) cmd_install; pause_prompt ;;
-      5) cmd_upgrade; pause_prompt ;;
-      6) cmd_urls; pause_prompt ;;
+      4) cmd_setup --media; pause_prompt ;;
+      5) cmd_setup --products; pause_prompt ;;
+      6) cmd_setup --commerce; pause_prompt ;;
+      7) cmd_setup --services; pause_prompt ;;
+      8) cmd_setup --food; pause_prompt ;;
+      9) cmd_setup --agency; pause_prompt ;;
+      10) cmd_install; pause_prompt ;;
+      11) cmd_upgrade; pause_prompt ;;
+      12) cmd_urls; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -365,6 +377,8 @@ menu_db() {
       5)
         printf "Preset profile (demo|northwind|bootstrap|ishoot): "; read -r p_name
         cmd_db seed "$p_name"
+        printf "Optional activity preset (all|media|products|commerce|services|food|agency, blank to skip): "; read -r a_name
+        if [ -n "$a_name" ]; then cmd_db preset "$a_name"; fi
         pause_prompt
         ;;
       6)
@@ -606,8 +620,8 @@ ${BOLD}Database Engine & Migrations${RESET}
   db status                        Inspect schema migration state & table counts
   db new <service> <name>          Generate new SQL migration file for target service
   db generate                      Regenerate Go model code (sqlc) & frontend contract types
-  db seed [profile]                Seed database using specific preset (demo, northwind, ishoot)
-  db preset <name>                 Apply an activity preset on top of a seed (all, commerce, services, media)
+  db seed [profile]                Seed database using specific profile (demo, northwind, bootstrap, ishoot)
+  db preset <name>                 Apply an activity preset on top of a seed (all, media, products, commerce, services, food, agency)
   db query "<SQL>"                 Execute direct SQL query on active database
   db psql                          Launch interactive psql terminal
   db backup [file]                 Dump database to backups/
@@ -670,9 +684,14 @@ cmd_setup() {
         node scripts/env-tool.cjs set COMPANY_PROFILE "" SEED_PRESET ""
         YES=1 cmd_db reset --empty
         ;;
+      --media | --products | --commerce | --services | --food | --agency | --all)
+        local p_mode="${mode#--}"
+        node scripts/env-tool.cjs set COMPANY_PROFILE "demo" SEED_PRESET "$p_mode"
+        YES=1 cmd_db reset --preset "$p_mode"
+        ;;
       *)
         node scripts/env-tool.cjs set COMPANY_PROFILE "demo" SEED_PRESET "all"
-        YES=1 cmd_db reset --demo all
+        YES=1 cmd_db reset --preset all
         ;;
     esac
   fi

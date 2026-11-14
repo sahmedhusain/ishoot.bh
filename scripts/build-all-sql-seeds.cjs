@@ -70,11 +70,24 @@ const staffScopes = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.s
 const staffPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_permission) t") || [];
 const itPermissions = queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.it_permission) t") || [];
 const DEFAULT_PASSWORD_HASH = "$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU";
-const accounts = (queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.account) t") || [])
-  .filter((acc) => acc.email && acc.email !== "dgdfg@mail.com" && (acc.password_hash || acc.email.includes("@")))
-  .map((acc) => ({ ...acc, password_hash: DEFAULT_PASSWORD_HASH }));
+const EXCLUDED_BOOTSTRAP_IDS = new Set(["super-admin", "430c4105-6360-4415-bf1b-087d582c7fc6"]);
+const isBootstrapAccount = (acc) =>
+  EXCLUDED_BOOTSTRAP_IDS.has(acc.subject_id) ||
+  (acc.realm === "staff" && String(acc.username || "").toUpperCase() === "BA0001") ||
+  (acc.realm === "it" && String(acc.username || "").toUpperCase() === "IT0001");
+const rawAccounts = (queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.account) t") || [])
+  .filter((acc) => acc.email && acc.email !== "dgdfg@mail.com" && acc.username && !acc.email.endsWith("@example.test") && !isBootstrapAccount(acc));
+const validAccountKeys = new Set(rawAccounts.map((acc) => `${acc.realm}\u0000${acc.subject_id}`));
+const accounts = rawAccounts.map((acc) => ({
+  ...acc,
+  password_hash: DEFAULT_PASSWORD_HASH,
+  reporting_to:
+    acc.reporting_to && !EXCLUDED_BOOTSTRAP_IDS.has(acc.reporting_to) && validAccountKeys.has(`${acc.realm}\u0000${acc.reporting_to}`)
+      ? acc.reporting_to
+      : null,
+}));
 const staffAccess = (queryJson("SELECT json_agg(t) FROM (SELECT * FROM identity.staff_access) t") || [])
-  .filter((acc) => acc.subject_id !== "c91cb10d-a43c-4983-baed-b95ad8de76b2");
+  .filter((acc) => acc.subject_id !== "c91cb10d-a43c-4983-baed-b95ad8de76b2" && !EXCLUDED_BOOTSTRAP_IDS.has(acc.subject_id) && validAccountKeys.has(`staff\u0000${acc.subject_id}`));
 const departments = queryJson("SELECT json_agg(t) FROM (SELECT * FROM hr.department) t") || [];
 const baseEmployees = queryJson("SELECT json_agg(t) FROM (SELECT * FROM hr.employee) t") || [];
 const expenseCategories = queryJson("SELECT json_agg(t) FROM (SELECT * FROM finance.expense_category) t") || [];
@@ -862,6 +875,9 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`-- 1. CLEANUP PREVIOUS BUSINESS FIXTURES (Idempotent)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`TRUNCATE TABLE`);
+  lines.push(`    realtime.status_window,`);
+  lines.push(`    realtime.status,`);
+  lines.push(`    workflow.signature_request,`);
   lines.push(`    workflow.calendar_event,`);
   lines.push(`    workflow.task,`);
   lines.push(`    workflow.approval_decision,`);
@@ -869,51 +885,108 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`    workflow.minute_of_meeting,`);
   lines.push(`    workflow.official_letter,`);
   lines.push(`    workflow.letter_template,`);
+  lines.push(`    delivery.cod_settlement,`);
   lines.push(`    delivery.shipment_event,`);
   lines.push(`    delivery.shipment,`);
   lines.push(`    delivery.route_sheet,`);
+  lines.push(`    delivery.courier_agency,`);
   lines.push(`    delivery.vehicle,`);
   lines.push(`    delivery.delivery_slot,`);
   lines.push(`    delivery.delivery_zone,`);
+  lines.push(`    delivery.delivery_settings,`);
+  lines.push(`    commerce.retail_closing,`);
+  lines.push(`    commerce.retail_shift,`);
+  lines.push(`    commerce.retail_register,`);
   lines.push(`    commerce.sales_order_event,`);
   lines.push(`    commerce.sales_order_line,`);
   lines.push(`    commerce.sales_order,`);
+  lines.push(`    commerce.delivery_slot,`);
+  lines.push(`    commerce.delivery_zone,`);
+  lines.push(`    commerce.delivery_settings,`);
+  lines.push(`    commerce.store_region,`);
+  lines.push(`    commerce.customer_segment,`);
+  lines.push(`    commerce.store_settings,`);
   lines.push(`    commerce.coupon,`);
   lines.push(`    commerce.customer_address,`);
   lines.push(`    commerce.customer,`);
+  lines.push(`    inventory.stock_count_line,`);
+  lines.push(`    inventory.stock_count,`);
+  lines.push(`    inventory.stock_serial,`);
+  lines.push(`    inventory.stock_batch,`);
+  lines.push(`    inventory.goods_receipt_line,`);
+  lines.push(`    inventory.goods_receipt,`);
+  lines.push(`    inventory.purchase_order_line,`);
+  lines.push(`    inventory.purchase_order,`);
+  lines.push(`    inventory.product_packaging_unit,`);
+  lines.push(`    inventory.product_variant,`);
   lines.push(`    inventory.stock_movement,`);
   lines.push(`    inventory.stock_level,`);
   lines.push(`    inventory.product,`);
   lines.push(`    inventory.stock_location,`);
   lines.push(`    inventory.warehouse,`);
   lines.push(`    inventory.product_category,`);
+  lines.push(`    finance.supplier_payment,`);
+  lines.push(`    finance.supplier_bill_line,`);
+  lines.push(`    finance.supplier_bill,`);
+  lines.push(`    finance.journal_line,`);
+  lines.push(`    finance.journal_entry,`);
+  lines.push(`    finance.recurring_expense,`);
+  lines.push(`    finance.bank_settlement,`);
+  lines.push(`    finance.payment_method_config,`);
+  lines.push(`    finance.tax_rate,`);
   lines.push(`    finance.payment,`);
   lines.push(`    finance.invoice_item,`);
   lines.push(`    finance.invoice,`);
   lines.push(`    finance.expense,`);
   lines.push(`    finance.expense_category,`);
+  lines.push(`    sales.campaign,`);
+  lines.push(`    sales.deal_pipeline_stage,`);
   lines.push(`    sales.inquiry,`);
   lines.push(`    sales.quotation_item,`);
   lines.push(`    sales.quotation,`);
   lines.push(`    sales.deal,`);
   lines.push(`    sales.contact,`);
+  lines.push(`    hr.employee_credential,`);
+  lines.push(`    hr.salary_document,`);
+  lines.push(`    hr.shift_type,`);
+  lines.push(`    hr.benefit_plan,`);
+  lines.push(`    hr.leave_type,`);
   lines.push(`    hr.payroll_item,`);
   lines.push(`    hr.payroll_run,`);
   lines.push(`    hr.attendance_entry,`);
   lines.push(`    hr.leave_request,`);
   lines.push(`    hr.employee,`);
   lines.push(`    hr.department,`);
+  lines.push(`    cms.social_content_plan,`);
+  lines.push(`    cms.social_metric,`);
+  lines.push(`    cms.social_post,`);
+  lines.push(`    cms.social_link,`);
+  lines.push(`    cms.portfolio_item,`);
+  lines.push(`    cms.portfolio_category,`);
   lines.push(`    cms.content_snapshot,`);
   lines.push(`    cms.statistic,`);
   lines.push(`    cms.review,`);
   lines.push(`    cms.faq,`);
   lines.push(`    cms.article,`);
   lines.push(`    cms.page,`);
+  lines.push(`    itsm.support_program_rule,`);
+  lines.push(`    itsm.support_program,`);
+  lines.push(`    itsm.asset_handover,`);
+  lines.push(`    itsm.asset,`);
+  lines.push(`    itsm.asset_category,`);
   lines.push(`    itsm.ticket_comment,`);
   lines.push(`    itsm.ticket_event,`);
   lines.push(`    itsm.ticket,`);
   lines.push(`    itsm.sla_policy,`);
+  lines.push(`    notify.message,`);
+  lines.push(`    notify.category_setting,`);
+  lines.push(`    notify.preference,`);
   lines.push(`    notify.notification,`);
+  lines.push(`    identity.branch,`);
+  lines.push(`    system.service,`);
+  lines.push(`    system.public_holiday,`);
+  lines.push(`    system.backup_record,`);
+  lines.push(`    system.site_setting,`);
   lines.push(`    system.company_asset,`);
   lines.push(`    system.company`);
   lines.push(`CASCADE;`);
@@ -955,14 +1028,43 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   }
   lines.push(``);
 
-  for (const mod of moduleSettings) {
+  const allModuleKeys = Array.from(new Set([
+    ...moduleSettings.map((m) => m.module_key),
+    "crm_deals", "invoicing", "calendar", "equipment", "cms", "reviews",
+    "products", "procurement", "store", "delivery", "hr_payroll", "itsm",
+    "audit_trail", "notifications", "legal", "marketing", "pr", "tasks",
+  ]));
+  for (const modKey of allModuleKeys) {
     lines.push(`INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(mod.module_key)}, true, 'seed:sql', now())`);
+    lines.push(`VALUES (${sqlQuote(modKey)}, true, 'seed:sql', now())`);
     lines.push(`ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();`);
   }
   lines.push(``);
 
   lines.push(`INSERT INTO system.document_sequence (kind, prefix, next_number) VALUES ('invoice', '${isIshoot ? "ISH" : "INV"}', 201), ('receipt', 'RCT', 201) ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number;`);
+  lines.push(`INSERT INTO system.site_setting (id, website_domain, admin_domain, code, updated_at, updated_by) VALUES (true, ${sqlQuote(isIshoot ? "ishoot.bh" : "northwind.studio")}, ${sqlQuote(isIshoot ? "admin.ishoot.bh" : "admin.northwind.studio")}, '{"headHtml":"","bodyHtml":"","customCss":""}'::jsonb, now(), 'seed:sql') ON CONFLICT (id) DO UPDATE SET website_domain = EXCLUDED.website_domain, admin_domain = EXCLUDED.admin_domain, updated_at = now();`);
+  lines.push(`INSERT INTO system.backup_record (id, kind, file_name, file_size, checksum, status, error_message, created_by, created_at, verified_at, details) VALUES`);
+  lines.push(`  ('bkp-001', 'database', 'platform_db-2026-10-01.dump', 4829104, 'sha256:9f84b1c209e31a7f', 'verified', NULL, 'it-lead-001', now() - interval '30 days', now() - interval '30 days' + interval '5 minutes', '{"schemaCount":15,"tables":281}'::jsonb),`);
+  lines.push(`  ('bkp-002', 'bucket', 'seaweed-assets-2026-10-15.tar.gz', 19482010, 'sha256:7d12c4e5f8901234', 'verified', NULL, 'it-lead-001', now() - interval '15 days', now() - interval '15 days' + interval '3 minutes', '{"objects":58}'::jsonb),`);
+  lines.push(`  ('bkp-003', 'full', 'full-snapshot-2026-11-01.tar.zst', 24102912, 'sha256:3c90a1b2c3d4e5f6', 'completed', NULL, 'it-eng-001', now() - interval '7 days', now() - interval '7 days' + interval '6 minutes', '{"retentionDays":90}'::jsonb),`);
+  lines.push(`  ('bkp-004', 'database', 'platform_db-daily-latest.dump', 4915200, 'sha256:5e81f2a3b4c5d6e7', 'verified', NULL, 'it-eng-001', now() - interval '1 day', now() - interval '1 day' + interval '2 minutes', '{"automated":true}'::jsonb)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO system.public_holiday (id, date, name_en, name_ar) VALUES`);
+  lines.push(`  ('hol-2026-01', '2026-01-01 00:00:00+00', 'New Year''s Day', 'رأس السنة الميلادية'),`);
+  lines.push(`  ('hol-2026-02', '2026-03-20 00:00:00+00', 'Eid Al-Fitr', 'عيد الفطر المبارك'),`);
+  lines.push(`  ('hol-2026-03', '2026-05-01 00:00:00+00', 'Labour Day', 'عيد العمال'),`);
+  lines.push(`  ('hol-2026-04', '2026-05-27 00:00:00+00', 'Eid Al-Adha', 'عيد الأضحى المبارك'),`);
+  lines.push(`  ('hol-2026-05', '2026-06-16 00:00:00+00', 'Islamic New Year', 'رأس السنة الهجرية'),`);
+  lines.push(`  ('hol-2026-06', '2026-12-16 00:00:00+00', 'Bahrain National Day', 'اليوم الوطني لمملكة البحرين')`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO system.service (id, code, name_en, name_ar, category, description_en, description_ar, unit, default_rate, is_active, display_order, is_public, image_url, created_at, updated_at, is_sample) VALUES`);
+  lines.push(`  ('svc-001', 'TVC-PROD', 'Commercial Film & TVC Production', 'إنتاج الأفلام والإعلانات التجارية', 'production', 'End-to-end 8K commercial directing, cinematography, and soundstage production.', 'إخراج وتصوير إعلانات تجارية بدقة 8K واستوديوهات متكاملة.', 'project', 6500.000, true, 1, true, '/api/files/brand/logo-light_dbf1f2e280f5.png', now(), now(), false),`);
+  lines.push(`  ('svc-002', 'DOC-FEAT', 'Corporate Documentary Feature', 'أفلام وثائقية للمؤسسات', 'production', 'Multi-location documentary storytelling and archival interviews.', 'إنتاج أفلام وثائقية مؤسسية وتغطيات ميدانية متكاملة.', 'project', 4200.000, true, 2, true, '/api/files/brand/icon-light_68b1a95d35cf.png', now(), now(), false),`);
+  lines.push(`  ('svc-003', 'POST-GRADE', 'HDR Color Grading & Dolby Finishing', 'تصحيح الألوان HDR والمونتاج السينمائي', 'post', 'DaVinci Resolve Studio HDR grading suites with Sony BVM reference monitoring.', 'قاعات تلوين سينمائية ومعالجة صوتية محيطية احترافية.', 'day', 450.000, true, 3, true, '/api/files/brand/logo-dark_50ae2cfc6efa.png', now(), now(), false),`);
+  lines.push(`  ('svc-004', 'LIVE-OB', 'Multi-Camera Live Broadcast & OB', 'البث المباشر متعدد الكاميرات', 'events', 'Turnkey multi-cam broadcast switching and fiber transmission for summits and sports.', 'تغطية مباشرة وبث فضائي ورقمي للفعاليات والمؤتمرات الكبرى.', 'day', 1800.000, true, 4, true, '/api/files/brand/icon-dark_f661f555ebbe.png', now(), now(), false),`);
+  lines.push(`  ('svc-005', 'DRONE-CIN', 'Aerial Cinema & FPV Drone Unit', 'التصوير الجوي السينمائي والدرون', 'aerial', 'Licensed dual-operator Inspire 3 & custom FPV cinema rigs for GCC locations.', 'تصوير جوي سينمائي مرخص بدقة 8K مع طاقم متخصص.', 'day', 650.000, true, 5, true, '/api/files/brand/full-logo-light_112233445566.png', now(), now(), false),`);
+  lines.push(`  ('svc-006', 'STAGE-RENT', 'Soundstage A Acoustic Studio Lease', 'تأجير استوديو التصوير الصوتي المعزول', 'studio', 'Climate-controlled 450 sqm cyclorama stage with overhead DMX grid.', 'استوديو تصوير بمساحة 450 متر مربع مع إضاءة علوية وعزل صوتي.', 'day', 850.000, true, 6, true, '/api/files/brand/full-logo-dark_112233445577.png', now(), now(), false)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
@@ -1025,6 +1127,11 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   for (const acc of staffAccess) {
     lines.push(`INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', ${sqlQuote(acc.subject_id)}, '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
   }
+  lines.push(`INSERT INTO identity.branch (id, code, name, time_zone, business_day_start, is_active, revision, created_at, updated_at) VALUES`);
+  lines.push(`  ('br-hq', 'SEEF-HQ', 'Seef District Studio HQ', 'Asia/Bahrain', 8, true, 1, now(), now()),`);
+  lines.push(`  ('br-stage', 'STAGE-A', 'Manama Soundstage A & Color Suites', 'Asia/Bahrain', 8, true, 1, now(), now()),`);
+  lines.push(`  ('br-vault', 'VAULT-01', 'Equipment Vault & Rental Counter', 'Asia/Bahrain', 9, true, 1, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
@@ -1036,6 +1143,23 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d0000000-0000-0000-0000-000000000005', 'LOG', 'Logistics & Fleet', 'الخدمات اللوجستية والأسطول') ON CONFLICT (id) DO NOTHING;`);
   lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d0000000-0000-0000-0000-000000000006', 'POST', 'Post-Production & Grading', 'ما بعد الإنتاج والمونتاج') ON CONFLICT (id) DO NOTHING;`);
 
+  lines.push(`INSERT INTO hr.leave_type (id, code, name_en, name_ar, days_allowed_per_year, is_paid, pay_percent) VALUES`);
+  lines.push(`  ('lt-annual', 'annual', 'Annual Paid Leave', 'إجازة سنوية مدفوعة', 30.0, true, 100),`);
+  lines.push(`  ('lt-sick', 'sick', 'Medical / Sick Leave', 'إجازة مرضية', 15.0, true, 100),`);
+  lines.push(`  ('lt-emergency', 'emergency', 'Emergency Compassionate Leave', 'إجازة طارئة', 5.0, true, 100),`);
+  lines.push(`  ('lt-maternity', 'maternity', 'Parental & Maternity Leave', 'إجازة أمومة وأبوة', 60.0, true, 100)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO hr.benefit_plan (id, code, name_en, name_ar, coverage_details, employer_contribution, employee_contribution, created_at) VALUES`);
+  lines.push(`  ('bp-med-gold', 'MED-GOLD', 'GCC Executive Medical Gold', 'التأمين الصحي الذهبي الشامل', 'In-patient, outpatient, dental & optical coverage across GCC.', 85.000, 15.000, now()),`);
+  lines.push(`  ('bp-life-acc', 'LIFE-ACC', 'Set Safety & Crew Accident Cover', 'تأمين حوادث مواقع التصوير', '24/7 production set and aerial rig crew protection.', 35.000, 0.000, now()),`);
+  lines.push(`  ('bp-gosi-top', 'GOSI-PLUS', 'Supplementary Savings & Indemnity Plan', 'برنامج الادخار التقاعدي الإضافي', 'Employer-matched end-of-service indemnity savings plan.', 50.000, 25.000, now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO hr.shift_type (id, code, name_en, name_ar, allowance_mode, allowance_value, is_active) VALUES`);
+  lines.push(`  ('shf-std', 'STD-DAY', 'Standard Studio Day (08:30–17:30)', 'دوام الاستوديو الاعتيادي', 'fixed', 0.000, true),`);
+  lines.push(`  ('shf-loc', 'LOC-SHOOT', 'On-Location Field Call', 'تصوير خارجي ميداني', 'fixed', 25.000, true),`);
+  lines.push(`  ('shf-night', 'NIGHT-GRADE', 'Overnight Mastering Shift', 'مناوبة مونتاج وتلوين ليلية', 'percentage', 20.000, true)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
   for (const emp of orderedEmployees) {
     lines.push(`INSERT INTO hr.employee (id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, reporting_to, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at)`);
     lines.push(`VALUES (${sqlQuote(emp.id)}, ${sqlQuote(emp.employee_number)}, ${sqlQuote(emp.first_name_en)}, ${sqlQuote(emp.last_name_en)}, ${sqlQuote(emp.first_name_ar)}, ${sqlQuote(emp.last_name_ar)}, ${sqlQuote(emp.email)}, ${sqlQuote(emp.phone)}, ${sqlQuote(emp.job_title_en)}, ${sqlQuote(emp.job_title_ar)}, ${sqlQuote(emp.department_id)}, ${sqlQuote(emp.reporting_to)}, (CURRENT_DATE - INTERVAL '365 days')::date, 'active', ${emp.basic_salary}, ${emp.housing_allowance}, ${emp.transport_allowance}, 0.000, now(), now())`);
@@ -1045,7 +1169,7 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   // Historical Payroll Runs & Items
   for (const pr of payrollRuns) {
     lines.push(`INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at)`);
-    lines.push(`VALUES (${sqlQuote(pr.id)}, ${pr.month}, ${pr.year}, 'completed', ${pr.gross}.000, ${pr.ded}.000, ${pr.net}.000, 'BHD', (CURRENT_DATE - INTERVAL '${pr.daysAgo} days')::timestamptz, 'super-admin', now())`);
+    lines.push(`VALUES (${sqlQuote(pr.id)}, ${pr.month}, ${pr.year}, 'completed', ${pr.gross}.000, ${pr.ded}.000, ${pr.net}.000, 'BHD', (CURRENT_DATE - INTERVAL '${pr.daysAgo} days')::timestamptz, 'omar-haddad', now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
   for (const pi of payrollItems) {
@@ -1067,6 +1191,23 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     const emp = baseEmployees[e];
     lines.push(`INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)`);
     lines.push(`VALUES ('att-${emp.id}-today', ${sqlQuote(emp.id)}, CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+
+  // Salary Documents & Employee Credentials
+  for (let e = 0; e < Math.min(6, baseEmployees.length); e++) {
+    const emp = baseEmployees[e];
+    const kind = e % 3 === 0 ? "salary_certificate" : e % 3 === 1 ? "payslip" : "employment_letter";
+    const status = e < 4 ? "issued" : e === 4 ? "approved" : "pending";
+    lines.push(`INSERT INTO hr.salary_document (id, employee_id, kind, months, status, requested_by_id, reviewed_by_id, review_notes, snapshot, created_at, issued_at, updated_at)`);
+    lines.push(`VALUES ('saldoc-00${e + 1}', ${sqlQuote(emp.id)}, ${sqlQuote(kind)}, '["2026-08","2026-09","2026-10"]'::jsonb, ${sqlQuote(status)}, ${sqlQuote(emp.id)}, 'layla-nasser', 'Verified against monthly payroll ledger', ${sqlQuote({ employeeName: `${emp.first_name_en} ${emp.last_name_en}`, basicSalary: emp.basic_salary, currency: "BHD" })}, now() - interval '${e + 2} days', ${status === "issued" ? `now() - interval '${e + 1} days'` : "NULL"}, now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  for (let e = 0; e < baseEmployees.length; e++) {
+    const emp = baseEmployees[e];
+    const isVisa = e % 2 === 1;
+    lines.push(`INSERT INTO hr.employee_credential (id, employee_id, kind, visa_type, label, number, issuing_country, issue_date, expiry_date, sponsor, cost_amount, cost_currency, cost_frequency, cost_term_months, paid_by, file_url, notes, created_at, updated_at)`);
+    lines.push(`VALUES ('cred-0${String(e + 1).padStart(2, "0")}', ${sqlQuote(emp.id)}, ${sqlQuote(isVisa ? "work_visa" : "cpr_id")}, ${sqlQuote(isVisa ? "LMRA-Employment" : "National-ID")}, ${sqlQuote(isVisa ? "LMRA Work Residency Permit" : "Bahrain Central Population ID (CPR)")}, ${sqlQuote(`BH-${890120 + e * 37}`)}, 'BH', now() - interval '240 days', now() + interval '${120 + e * 30} days', ${sqlQuote(isIshoot ? "iShoot Cinema Production S.P.C." : "Northwind Studio W.L.L.")}, ${isVisa ? "172.000" : "10.000"}, 'BHD', 'annual', 24, 'company', NULL, 'Compliance record verified by HR', now(), now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
   lines.push(``);
@@ -1104,6 +1245,27 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     lines.push(`VALUES ('inq-${String(i + 1).padStart(3, "0")}', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', ${sqlQuote(contact.first_name + ' ' + contact.last_name)}, ${sqlQuote(contact.email)}, ${sqlQuote(contact.phone)}, 'new', now(), now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
+  lines.push(`INSERT INTO sales.deal_pipeline_stage (id, name_en, name_ar, sort_order, probability, kind, color, is_system, is_active, created_at, updated_at) VALUES`);
+  lines.push(`  ('stg-lead', 'Lead / Inquiry', 'عميل محتمل', 1, 20, 'open', '#64748b', true, true, now(), now()),`);
+  lines.push(`  ('stg-qualified', 'Qualified Scope', 'نطاق مؤهل', 2, 40, 'open', '#0284c7', true, true, now(), now()),`);
+  lines.push(`  ('stg-proposal', 'Proposal Sent', 'تم إرسال العرض', 3, 60, 'open', '#d97706', true, true, now(), now()),`);
+  lines.push(`  ('stg-negotiation', 'Commercial Negotiation', 'مفاوضات تجارية', 4, 80, 'open', '#7c3aed', true, true, now(), now()),`);
+  lines.push(`  ('stg-won', 'Closed Won', 'تم الفوز بالصفقة', 5, 100, 'won', '#16a34a', true, true, now(), now()),`);
+  lines.push(`  ('stg-lost', 'Closed Lost', 'صفقة منتهية', 6, 0, 'lost', '#dc2626', true, true, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  const campaigns = [
+    { id: "cmp-001", code: "F1-BGP-2026", name: "Formula 1 Grand Prix Broadcast Reel Outreach", channel: "email", status: "completed", budget: 1800, spend: 1650, coupon: "F1SPECIAL", ago: 45 },
+    { id: "cmp-002", code: "RAMADAN-TVC", name: "Ramadan & Eid Broadcast Production Bookings", channel: "email", status: "active", budget: 2500, spend: 1420, coupon: "RAMADAN2026", ago: 18 },
+    { id: "cmp-003", code: "GEAR-Q4-VIP", name: "Cinema Vault Executive Rental VIP Program", channel: "whatsapp", status: "active", budget: 1200, spend: 780, coupon: "PRODUCERVIP", ago: 10 },
+    { id: "cmp-004", code: "SOUNDSTAGE-PR", name: "Virtual Production & LED Volume Launch Event", channel: "events", status: "completed", budget: 3500, spend: 3390, coupon: "NEWGEAR100", ago: 30 },
+    { id: "cmp-005", code: "CORPORATE-DOC", name: "Annual ESG & Sustainability Documentary Pitch", channel: "email", status: "scheduled", budget: 1500, spend: 0, coupon: null, ago: -5 },
+    { id: "cmp-006", code: "GCC-AGENCY-Q1", name: "GCC Creative Agencies Technical Partner Packet", channel: "email", status: "draft", budget: 2000, spend: 0, coupon: null, ago: 2 },
+  ];
+  for (const c of campaigns) {
+    lines.push(`INSERT INTO sales.campaign (id, name, subject, body, status, sent_at, created_at, updated_at, code, channel, start_date, end_date, budget, spend, utm_campaign, coupon_code, notes, owner_id, created_by_id)`);
+    lines.push(`VALUES (${sqlQuote(c.id)}, ${sqlQuote(c.name)}, ${sqlQuote(c.name)}, 'Tailored cinema production packages and studio availability for your upcoming brand campaign.', ${sqlQuote(c.status)}, ${c.status === "completed" || c.status === "active" ? `now() - interval '${Math.max(1, c.ago)} days'` : "NULL"}, now(), now(), ${sqlQuote(c.code)}, ${sqlQuote(c.channel)}, now() - interval '${Math.max(1, c.ago)} days', now() + interval '30 days', ${c.budget}.000, ${c.spend}.000, ${sqlQuote(c.code.toLowerCase())}, ${sqlQuote(c.coupon)}, 'Campaign metrics synchronized with CRM deals.', 'sami-khoury', 'sami-khoury')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
@@ -1115,6 +1277,16 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`INSERT INTO finance.expense_category (id, code, name_en, name_ar, sort_order) VALUES`);
   lines.push(`  ('expcat-11', 'maintenance_repairs', 'Gear Calibration & Repairs', 'صيانة ومعايرة المعدات', 11),`);
   lines.push(`  ('expcat-12', 'legal_accounting', 'Legal & Professional Audit', 'استشارات قانونية ومحاسبية', 12)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO finance.tax_rate (id, code, name_en, name_ar, rate_percent, registration_number, certificate_url, certificate_valid_until, applies_to_invoices, applies_to_quotations, is_active, display_order, created_at, updated_at) VALUES`);
+  lines.push(`  ('tax-vat10', 'VAT10', 'Bahrain Standard VAT (10%)', 'ضريبة القيمة المضافة القياسية (10%)', 10.000, '200014982300002', NULL, now() + interval '365 days', true, true, true, 1, now(), now()),`);
+  lines.push(`  ('tax-zero', 'ZERO', 'Zero-Rated Export Production (0%)', 'صادرات وإنتاج معفى (0%)', 0.000, '200014982300002', NULL, now() + interval '365 days', true, true, true, 2, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO finance.payment_method_config (id, branch_id, code, name_en, name_ar, is_enabled, allow_change, requires_reference, surcharge_rate, sort_order, created_at, updated_at) VALUES`);
+  lines.push(`  ('pm-bank', 'br-hq', 'bank_transfer', 'Corporate Bank Transfer', 'تحويل بنكي مؤسسي', true, false, true, 0.000, 1, now(), now()),`);
+  lines.push(`  ('pm-benefit', 'br-hq', 'benefit_pay', 'BenefitPay Instant QR', 'بنفت باي الفوري', true, false, true, 0.000, 2, now(), now()),`);
+  lines.push(`  ('pm-card', 'br-hq', 'credit_card', 'Visa / Mastercard POS', 'بطاقة ائتمانية', true, false, true, 0.000, 3, now(), now()),`);
+  lines.push(`  ('pm-cash', 'br-hq', 'cash', 'Cash Counter', 'نقداً', true, true, false, 0.000, 4, now(), now())`);
   lines.push(`ON CONFLICT (id) DO NOTHING;`);
 
   for (const exp of expenses) {
@@ -1141,11 +1313,60 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     lines.push(`VALUES (${sqlQuote(pay.id)}, ${sqlQuote(pay.payment_number)}, ${sqlQuote(pay.invoice_id)}, ${sqlQuote(pay.contact_id)}, ${pay.amount}, 'BHD', ${sqlQuote(pay.payment_method)}, ${pay.payment_date_sql}, ${sqlQuote(pay.reference)}, 'completed', ${sqlQuote(pay.notes)}, now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
+  for (let b = 0; b < 8; b++) {
+    lines.push(`INSERT INTO finance.bank_settlement (id, settlement_number, bank_account, amount, currency, settled_at, status, notes, created_at)`);
+    lines.push(`VALUES ('bset-00${b + 1}', 'BSET-2026-00${b + 1}', ${sqlQuote(b % 2 === 0 ? "NBB Corporate IBAN ...8821" : "BBK Treasury IBAN ...4419")}, ${(2400 + b * 650).toFixed(3)}, 'BHD', now() - interval '${(8 - b) * 7} days', ${sqlQuote(b < 6 ? "completed" : "pending")}, 'Weekly card & BenefitPay merchant payout reconciliation', now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  const recurringDefs = [
+    { id: "rexp-01", en: "Soundstage A Commercial Lease", ar: "إيجار استوديو التصوير الرئيسي", cat: "expcat-04", vendor: "Seef Commercial Properties", amt: 1850, freq: "monthly" },
+    { id: "rexp-02", en: "Studio Power & District Cooling (EWA)", ar: "فواتير الكهرباء والتبريد المركزي", cat: "expcat-04", vendor: "Electricity & Water Authority", amt: 420, freq: "monthly" },
+    { id: "rexp-03", en: "Dedicated 10Gbps Symmetrical Studio Fiber", ar: "خط إنترنت الألياف البصرية 10 جيجابت", cat: "expcat-05", vendor: "Batelco Business", amt: 280, freq: "monthly" },
+    { id: "rexp-04", en: "Frame.io & AWS Cold Vault Replication", ar: "اشتراكات التخزين السحابي والنسخ الاحتياطي", cat: "expcat-05", vendor: "Amazon Web Services", amt: 340, freq: "monthly" },
+    { id: "rexp-05", en: "Cinema Camera All-Risk Float Insurance", ar: "تأمين شامل لمعدات التصوير والأسطول", cat: "expcat-12", vendor: "Bahrain National Insurance", amt: 950, freq: "quarterly" },
+    { id: "rexp-06", en: "24/7 Vault Security & Biometric Access", ar: "حراسة وأمن مستودع المعدات", cat: "expcat-04", vendor: "Gulf Shield Security", amt: 310, freq: "monthly" },
+  ];
+  for (const rx of recurringDefs) {
+    lines.push(`INSERT INTO finance.recurring_expense (id, title_en, title_ar, category_id, vendor_name, reference, amount, input_vat_amount, is_vat_recoverable, currency, payment_method, frequency, start_date, end_date, next_due_date, auto_record, remind_days_before, is_active, notes, created_by_id, last_recorded_at, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(rx.id)}, ${sqlQuote(rx.en)}, ${sqlQuote(rx.ar)}, ${sqlQuote(rx.cat)}, ${sqlQuote(rx.vendor)}, ${sqlQuote(`REC-${rx.id.toUpperCase()}`)}, ${rx.amt}.000, ${(rx.amt * 0.1).toFixed(3)}, true, 'BHD', 'bank_transfer', ${sqlQuote(rx.freq)}, now() - interval '180 days', now() + interval '185 days', now() + interval '15 days', true, 5, true, 'Recurring operating overhead', 'layla-nasser', now() - interval '15 days', now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  for (let j = 0; j < 10; j++) {
+    const jeId = `je-2026-${String(j + 1).padStart(3, "0")}`;
+    const amt = (1200 + j * 450).toFixed(3);
+    lines.push(`INSERT INTO finance.journal_entry (id, source_key, request_hash, period_id, posting_date, currency, memo, branch_id, reversal_of_id, created_by_id, created_at)`);
+    lines.push(`VALUES (${sqlQuote(jeId)}, ${sqlQuote(`seed:invoice:inv-0${String(j + 1).padStart(2, "0")}`)}, ${sqlQuote(`hash-${jeId}`)}, '2026-Q4', now() - interval '${30 - j * 2} days', 'BHD', 'Double-entry accrual posting for commercial billing cycle', 'br-hq', NULL, 'layla-nasser', now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO finance.journal_line (id, entry_id, account_id, debit, credit, memo) VALUES`);
+    lines.push(`  (${sqlQuote(`jl-${jeId}-1`)}, ${sqlQuote(jeId)}, 'acc-1100-ar', ${amt}, 0.000, 'Accounts Receivable Control'),`);
+    lines.push(`  (${sqlQuote(`jl-${jeId}-2`)}, ${sqlQuote(jeId)}, 'acc-4000-rev', 0.000, ${amt}, 'Production & Rental Revenue')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  for (let sb = 0; sb < 8; sb++) {
+    const billId = `sbill-00${sb + 1}`;
+    const sub = 1400 + sb * 350;
+    const vat = Math.round(sub * 0.1 * 1000) / 1000;
+    const tot = sub + vat;
+    const paid = sb < 5 ? tot : sb < 7 ? Math.round(tot * 0.5 * 1000) / 1000 : 0;
+    const st = sb < 5 ? "paid" : sb < 7 ? "partially_paid" : "approved";
+    lines.push(`INSERT INTO finance.supplier_bill (id, number, supplier_ref, supplier_id, purchase_order_id, bill_date, due_date, status, subtotal, vat_amount, total, amount_paid, expense_id, override_reason, attachment_url, note, created_by_id, approved_by_id, approved_at, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(billId)}, ${sqlQuote(`BILL-2026-00${sb + 1}`)}, ${sqlQuote(`SUP-INV-90${sb + 1}`)}, ${sqlQuote(`sup-00${(sb % 4) + 1}`)}, ${sqlQuote(`po-00${sb + 1}`)}, now() - interval '${35 - sb * 4} days', now() + interval '${sb * 5} days', ${sqlQuote(st)}, ${sub.toFixed(3)}, ${vat.toFixed(3)}, ${tot.toFixed(3)}, ${paid.toFixed(3)}, NULL, NULL, NULL, 'Studio equipment procurement supplier bill', 'faisal-mansour', 'layla-nasser', now() - interval '${34 - sb * 4} days', now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO finance.supplier_bill_line (id, bill_id, order_line_id, description, quantity, unit_price, sort_order) VALUES`);
+    lines.push(`  (${sqlQuote(`sbl-${billId}-1`)}, ${sqlQuote(billId)}, ${sqlQuote(`pol-${sb + 1}-1`)}, 'Cinema Production Optical & Lighting Supplies', 2.000, ${(sub / 2).toFixed(3)}, 1)`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    if (paid > 0) {
+      lines.push(`INSERT INTO finance.supplier_payment (id, bill_id, amount, paid_on, method, reference, created_by_id, created_at)`);
+      lines.push(`VALUES (${sqlQuote(`spay-${billId}`)}, ${sqlQuote(billId)}, ${paid.toFixed(3)}, now() - interval '${25 - sb * 3} days', 'bank_transfer', ${sqlQuote(`WIRE-SUP-00${sb + 1}`)}, 'layla-nasser', now())`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`-- 8. INVENTORY SERVICE (Categories, Warehouses, Locations, Products, Stock Levels)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
+  const primaryWhId = baseWarehouses[0]?.id || "wh-main";
   for (const cat of productCats) {
     lines.push(`INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)`);
     lines.push(`VALUES (${sqlQuote(cat.id)}, ${sqlQuote(cat.slug)}, ${sqlQuote(cat.en)}, ${sqlQuote(cat.ar)}, ${sqlQuote(cat.desc)}, ${sqlQuote(cat.ar)}, ${cat.sort}, true)`);
@@ -1165,7 +1386,8 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
 
   const primaryLocId = baseLocations[0]?.id || "loc-01";
 
-  for (const p of productList) {
+  for (let pi = 0; pi < productList.length; pi++) {
+    const p = productList[pi];
     const prodId = `prod-${p.sku.toLowerCase()}`;
     lines.push(`INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)`);
     lines.push(`VALUES (${sqlQuote(prodId)}, ${sqlQuote(p.sku)}, ${sqlQuote(p.en)}, ${sqlQuote(p.ar)}, ${sqlQuote(p.en)}, ${sqlQuote(p.ar)}, ${sqlQuote(p.cat)}, ${p.cost}.0000, ${p.price}.0000, 'BHD', 10.00, true, true, ${p.reorder}.00, now(), now())`);
@@ -1178,6 +1400,79 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     lines.push(`INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)`);
     lines.push(`VALUES ('sm-' || ${sqlQuote(prodId)}, ${sqlQuote(prodId)}, ${sqlQuote(primaryLocId)}, 'initial', 4.0000, ${p.cost}.0000, 'inventory', 'Initial vault intake & testing', now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+    if (pi < 8) {
+      for (const m of [
+        { k: "PL", en: "PL Mount Kit", ar: "نسخة PL", mult: 1.0, sort: 1 },
+        { k: "EF", en: "EF / LPL Kit", ar: "نسخة EF/LPL", mult: 1.08, sort: 2 },
+      ]) {
+        const varId = `var-${p.sku.toLowerCase()}-${m.k.toLowerCase()}`;
+        const varSku = `${p.sku}-${m.k}`;
+        const vPrice = Math.round(p.price * m.mult * 100) / 100;
+        const vCost = Math.round(p.cost * m.mult * 100) / 100;
+        lines.push(`INSERT INTO inventory.product_variant (id, product_id, sku, name_en, name_ar, barcode, cost_price, selling_price, is_active, attributes, price, cost, sort_order, created_at, updated_at)`);
+        lines.push(`VALUES (${sqlQuote(varId)}, ${sqlQuote(prodId)}, ${sqlQuote(varSku)}, ${sqlQuote(`${p.en} (${m.en})`)}, ${sqlQuote(`${p.ar} (${m.ar})`)}, ${sqlQuote(`8800${String(pi).padStart(3, "0")}${m.sort}`)}, ${vCost.toFixed(4)}, ${vPrice.toFixed(4)}, true, ${sqlQuote({ mount: m.k })}, ${vPrice.toFixed(3)}, ${vCost.toFixed(3)}, ${m.sort}, now(), now())`);
+        lines.push(`ON CONFLICT (id) DO NOTHING;`);
+      }
+    }
+    if (pi < 10) {
+      lines.push(`INSERT INTO inventory.product_packaging_unit (id, product_id, code, name, base_units, indivisible, barcode, revision, is_active, created_at)`);
+      lines.push(`VALUES ('pkg-${String(pi + 1).padStart(3, "0")}', ${sqlQuote(prodId)}, 'CASE-1', 'Flight Case Pack', 1.000, true, ${sqlQuote(`PKG-${p.sku}`)}, 1, true, now())`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
+  for (let poIdx = 0; poIdx < 8; poIdx++) {
+    const poId = `po-00${poIdx + 1}`;
+    const p = productList[poIdx % productList.length];
+    const prodId = `prod-${p.sku.toLowerCase()}`;
+    const qty = 2 + (poIdx % 3);
+    const sub = qty * p.cost;
+    const vat = Math.round(sub * 0.1 * 1000) / 1000;
+    const tot = sub + vat;
+    const status = poIdx < 4 ? "received" : poIdx < 6 ? "approved" : poIdx === 6 ? "sent" : "draft";
+    lines.push(`INSERT INTO inventory.purchase_order (id, number, supplier_id, status, order_date, expected_date, warehouse_id, requisition_id, rfq_id, note, terms, vat_enabled, vat_percentage, subtotal, vat_amount, total, sent_at, sent_via, created_by_id, approved_by_id, approved_at, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(poId)}, ${sqlQuote(`PO-2026-00${poIdx + 1}`)}, ${sqlQuote(`sup-00${(poIdx % 4) + 1}`)}, ${sqlQuote(status)}, now() - interval '${40 - poIdx * 4} days', now() + interval '${poIdx * 3} days', ${sqlQuote(primaryWhId)}, NULL, NULL, 'Vault equipment replenishment order', 'Net 30 upon warehouse inspection', true, 10.00, ${sub.toFixed(3)}, ${vat.toFixed(3)}, ${tot.toFixed(3)}, ${status !== "draft" ? `now() - interval '${39 - poIdx * 4} days'` : "NULL"}, 'email', 'karim-fawzi', ${status !== "draft" ? "'omar-haddad'" : "NULL"}, ${status !== "draft" ? `now() - interval '${39 - poIdx * 4} days'` : "NULL"}, now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO inventory.purchase_order_line (id, purchase_order_id, product_id, variant_key, description, quantity, unit_price, received_quantity, rejected_quantity, billed_quantity, sort_order)`);
+    lines.push(`VALUES (${sqlQuote(`pol-${poIdx + 1}-1`)}, ${sqlQuote(poId)}, ${sqlQuote(prodId)}, NULL, ${sqlQuote(p.en)}, ${qty}.000, ${p.cost}.000, ${status === "received" ? qty : 0}.000, 0.000, ${poIdx < 4 ? qty : 0}.000, 1)`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    if (poIdx < 6) {
+      const grId = `grn-00${poIdx + 1}`;
+      lines.push(`INSERT INTO inventory.goods_receipt (id, number, purchase_order_id, location_id, received_by_id, received_at, note, created_at)`);
+      lines.push(`VALUES (${sqlQuote(grId)}, ${sqlQuote(`GRN-2026-00${poIdx + 1}`)}, ${sqlQuote(poId)}, ${sqlQuote(primaryLocId)}, 'karim-fawzi', now() - interval '${28 - poIdx * 3} days', 'Serial numbers & optical check verified at dock', now())`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+      lines.push(`INSERT INTO inventory.goods_receipt_line (id, receipt_id, order_line_id, quantity, rejected_quantity, reject_reason, batch_number, expiry_date)`);
+      lines.push(`VALUES (${sqlQuote(`grnl-${poIdx + 1}`)}, ${sqlQuote(grId)}, ${sqlQuote(`pol-${poIdx + 1}-1`)}, ${qty}.000, 0.000, NULL, ${sqlQuote(`BCH-2026-00${poIdx + 1}`)}, NULL)`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
+  for (let bi = 0; bi < 12; bi++) {
+    const p = productList[bi % productList.length];
+    const prodId = `prod-${p.sku.toLowerCase()}`;
+    lines.push(`INSERT INTO inventory.stock_batch (id, batch_number, product_id, variant_id, location_id, initial_quantity, remaining_quantity, cost_per_unit, expiry_date, received_at, variant_key, created_at)`);
+    lines.push(`VALUES ('bat-0${String(bi + 1).padStart(2, "0")}', ${sqlQuote(`BCH-2026-0${String(bi + 1).padStart(2, "0")}`)}, ${sqlQuote(prodId)}, NULL, ${sqlQuote(primaryLocId)}, 4.0000, 4.0000, ${p.cost}.0000, NULL, now() - interval '${90 - bi * 5} days', NULL, now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  for (let si = 0; si < 20; si++) {
+    const p = productList[si % productList.length];
+    const prodId = `prod-${p.sku.toLowerCase()}`;
+    lines.push(`INSERT INTO inventory.stock_serial (id, code, product_id, variant_key, batch_key, location_id, manufacturer_serial, manufacturer_scope, status, package_id, generation_id, revision, created_at, updated_at)`);
+    lines.push(`VALUES ('ser-0${String(si + 1).padStart(2, "0")}', ${sqlQuote(`SN-ISH-2026-${String(si + 1).padStart(4, "0")}`)}, ${sqlQuote(prodId)}, NULL, ${sqlQuote(`BCH-2026-0${String((si % 12) + 1).padStart(2, "0")}`)}, ${sqlQuote(primaryLocId)}, ${sqlQuote(`MFG-${p.sku}-${700 + si}`)}, 'oem', ${sqlQuote(si % 5 === 0 ? "allocated" : "available")}, NULL, NULL, 1, now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  for (let sc = 0; sc < 4; sc++) {
+    const scId = `sc-00${sc + 1}`;
+    const st = sc < 2 ? "approved" : sc === 2 ? "counted" : "draft";
+    lines.push(`INSERT INTO inventory.stock_count (id, count_number, warehouse_id, status, notes, counted_by_id, approved_by_id, counted_at, approved_at, created_at, number, scope, note, created_by_id, submitted_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(scId)}, ${sqlQuote(`SC-2026-00${sc + 1}`)}, ${sqlQuote(primaryWhId)}, ${sqlQuote(st)}, 'Quarterly physical vault audit', 'karim-fawzi', ${st === "approved" ? "'omar-haddad'" : "NULL"}, now() - interval '${(4 - sc) * 14} days', ${st === "approved" ? `now() - interval '${(4 - sc) * 13} days'` : "NULL"}, now(), ${sqlQuote(`SC-2026-00${sc + 1}`)}, 'full_warehouse', 'Verified serial tags against ledger', 'karim-fawzi', now() - interval '${(4 - sc) * 14} days', now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    for (let li = 0; li < 5; li++) {
+      const p = productList[(sc * 5 + li) % productList.length];
+      const prodId = `prod-${p.sku.toLowerCase()}`;
+      lines.push(`INSERT INTO inventory.stock_count_line (id, count_id, product_id, variant_id, system_quantity, counted_quantity, variance, notes, variant_key, location_id, batch_key, expected, counted, note)`);
+      lines.push(`VALUES (${sqlQuote(`scl-${sc + 1}-${li + 1}`)}, ${sqlQuote(scId)}, ${sqlQuote(prodId)}, NULL, 4.000, 4.000, 0.000, 'Matched physical count', NULL, ${sqlQuote(primaryLocId)}, NULL, 4.000, 4.000, 'Verified')`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
   }
   lines.push(``);
 
@@ -1225,6 +1520,117 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`  ('ds-03', 'dz-02', 2, '10:00', '15:00', 6, true, now()),`);
   lines.push(`  ('ds-04', 'dz-03', 3, '09:00', '14:00', 6, true, now())`);
   lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+  lines.push(`INSERT INTO commerce.store_settings (id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold, guest_checkout, delivery_enabled, delivery_fee, free_delivery_over, pickup_enabled, cod_enabled, bank_transfer_enabled, bank_instructions_en, bank_instructions_ar, order_notify_email, payment_gateway, updated_at) VALUES`);
+  lines.push(`  ('default', 'BHD', false, 10.000, 10.000, 150.000, true, true, 5.000, 150.000, true, true, true, 'Transfer to NBB Corporate IBAN BH42NBOB00000123456789 with order number in reference.', 'التحويل إلى حساب بنك البحرين الوطني مع كتابة رقم الطلب في المرجع.', ${sqlQuote(isIshoot ? "orders@ishoot.bh" : "orders@northwind.studio")}, 'benefit_pay', now())`);
+  lines.push(`ON CONFLICT (id) DO UPDATE SET currency = EXCLUDED.currency, default_tax_rate = EXCLUDED.default_tax_rate, updated_at = now();`);
+  lines.push(`INSERT INTO commerce.customer_segment (id, name) VALUES ('seg-vip', 'Enterprise VIP'), ('seg-agency', 'Agency Partners'), ('seg-repeat', 'Frequent Renters'), ('seg-new', 'New Customers') ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO commerce.store_region (id, code, name_en, name_ar, currency, default_language, branch_id, is_enabled, price_multiplier, settings) VALUES`);
+  lines.push(`  ('reg-bh', 'BH', 'Bahrain', 'مملكة البحرين', 'BHD', 'en', 'br-hq', true, 1.000, '{"deliveryDays":1}'::jsonb),`);
+  lines.push(`  ('reg-sa', 'SA', 'Saudi Arabia (Eastern Province)', 'المملكة العربية السعودية', 'BHD', 'ar', 'br-hq', true, 1.150, '{"deliveryDays":3}'::jsonb),`);
+  lines.push(`  ('reg-ae', 'AE', 'United Arab Emirates', 'الإمارات العربية المتحدة', 'BHD', 'en', 'br-hq', true, 1.150, '{"deliveryDays":3}'::jsonb)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO commerce.delivery_settings (id, mode, sla_hours, time_zone, slot_days, lead_minutes, require_slot, updated_at) VALUES ('default', 'own', 24, 'Asia/Bahrain', 7, 120, false, now()) ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO delivery.delivery_settings (id, mode, sla_hours, time_zone, slot_days, lead_minutes, require_slot, updated_at) VALUES ('default', 'own', 24, 'Asia/Bahrain', 7, 120, false, now()) ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES`);
+  lines.push(`  ('dz-01', 'Capital Governorate (Manama & Seef)', 'محافظة العاصمة (المنامة والسيف)', 5.000, 20.000, 100.000, true, 1, now(), now()),`);
+  lines.push(`  ('dz-02', 'Northern Governorate (Saar & Budaiya)', 'المحافظة الشمالية (سار والبديع)', 7.000, 20.000, 150.000, true, 2, now(), now()),`);
+  lines.push(`  ('dz-03', 'Southern Governorate (Zallaq & Sakhir)', 'المحافظة الجنوبية (الزلاق والصخير)', 10.000, 30.000, 200.000, true, 3, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO commerce.delivery_slot (id, zone_id, weekday, start, "end", capacity, is_active, created_at) VALUES`);
+  lines.push(`  ('ds-01', 'dz-01', 1, '09:00', '13:00', 8, true, now()),`);
+  lines.push(`  ('ds-02', 'dz-01', 1, '14:00', '18:00', 8, true, now()),`);
+  lines.push(`  ('ds-03', 'dz-02', 2, '10:00', '15:00', 6, true, now()),`);
+  lines.push(`  ('ds-04', 'dz-03', 3, '09:00', '14:00', 6, true, now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+  lines.push(`INSERT INTO commerce.retail_register (id, name, branch_id, is_active, code, revision, created_at, updated_at) VALUES`);
+  lines.push(`  ('reg-seef-01', 'Seef HQ Studio Counter POS 1', 'br-hq', true, 'REG-SEEF-01', 1, now(), now()),`);
+  lines.push(`  ('reg-stage-01', 'Soundstage A Gear Desk POS', 'br-stage', true, 'REG-STAGE-01', 1, now(), now()),`);
+  lines.push(`  ('reg-vault-01', 'Equipment Vault Dispatch POS', 'br-vault', true, 'REG-VAULT-01', 1, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  for (let sh = 0; sh < 5; sh++) {
+    const shId = `rshift-00${sh + 1}`;
+    const regId = sh % 3 === 0 ? "reg-seef-01" : sh % 3 === 1 ? "reg-stage-01" : "reg-vault-01";
+    const isClosed = sh < 4;
+    const cashSales = 320 + sh * 85;
+    const cardSales = 640 + sh * 140;
+    const startCash = 100;
+    lines.push(`INSERT INTO commerce.retail_shift (id, register_id, cashier_id, opened_at, closed_at, starting_cash, closing_cash, expected_cash, status)`);
+    lines.push(`VALUES (${sqlQuote(shId)}, ${sqlQuote(regId)}, ${sh % 2 === 0 ? "'faisal-mansour'" : "'sami-khoury'"}, now() - interval '${(4 - sh) * 24 + 9} hours', ${isClosed ? `now() - interval '${(4 - sh) * 24 + 1} hours'` : "NULL"}, ${startCash.toFixed(3)}, ${isClosed ? (startCash + cashSales).toFixed(3) : "0.000"}, ${(startCash + cashSales).toFixed(3)}, ${sqlQuote(isClosed ? "closed" : "open")})`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    if (isClosed) {
+      lines.push(`INSERT INTO commerce.retail_closing (id, shift_id, closing_date, total_sales, total_cash, total_card, notes, branch_id, level, target_id, business_date, closed_at, closed_by_id, total_returns, total_other, cash_variance, snapshot, signature, journal_id, status, revision)`);
+      lines.push(`VALUES (${sqlQuote(`rclose-00${sh + 1}`)}, ${sqlQuote(shId)}, (CURRENT_DATE - INTERVAL '${4 - sh} days')::date, ${(cashSales + cardSales).toFixed(3)}, ${cashSales.toFixed(3)}, ${cardSales.toFixed(3)}, 'End of day Z-report balanced & deposited', 'br-hq', 'register', ${sqlQuote(regId)}, CURRENT_DATE - interval '${4 - sh} days', now() - interval '${(4 - sh) * 24 + 1} hours', 'faisal-mansour', 0.000, 0.000, 0.000, ${sqlQuote({ register: regId, transactions: 7 + sh })}, 'faisal-mansour:z-sign', ${sqlQuote(`je-2026-00${sh + 1}`)}, 'closed', 1)`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
+
+  lines.push(`INSERT INTO delivery.courier_agency (id, name, contact_name, email, phone, api_endpoint, is_active, created_at) VALUES`);
+  lines.push(`  ('cag-aramex', 'Aramex Bahrain Logistics', 'Hassan Al-Doseri', 'dispatch@aramex.bh', '+97317339000', 'https://ws.aramex.net/ShippingAPI.V2', true, now()),`);
+  lines.push(`  ('cag-dhl', 'DHL Express GCC', 'Tariq Janahi', 'bh-express@dhl.com', '+97317364100', 'https://express.api.dhl.com/mydhlapi', true, now()),`);
+  lines.push(`  ('cag-fleet', 'iShoot Direct Studio Fleet', 'Karim Fawzi', ${sqlQuote(isIshoot ? "fleet@ishoot.bh" : "fleet@northwind.studio")}, '+97317008811', NULL, true, now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  for (let rs = 0; rs < 5; rs++) {
+    const rStatus = rs < 3 ? "completed" : rs === 3 ? "in_progress" : "draft";
+    lines.push(`INSERT INTO delivery.route_sheet (id, number, driver_id, vehicle_id, status, run_date, created_at, updated_at)`);
+    lines.push(`VALUES ('rs-00${rs + 1}', 'RS-2026-00${rs + 1}', 'karim-fawzi', 'veh-0${(rs % 5) + 1}', ${sqlQuote(rStatus)}, (CURRENT_DATE - INTERVAL '${4 - rs} days')::date, now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+
+  for (let oi = 0; oi < 25; oi++) {
+    const cust = customers[oi % customers.length];
+    const addr = addresses[oi % addresses.length];
+    const p1 = productList[(oi * 2) % productList.length];
+    const p2 = productList[(oi * 2 + 1) % productList.length];
+    const sub = p1.price * 2 + p2.price;
+    const disc = oi % 5 === 0 ? Math.round(sub * 0.1 * 1000) / 1000 : 0;
+    const vat = Math.round((sub - disc) * 0.1 * 1000) / 1000;
+    const delFee = oi % 4 === 3 ? 0 : (sub > 150 ? 0 : 5);
+    const total = Math.round((sub - disc + vat + delFee) * 1000) / 1000;
+    const ordStatus = oi < 12 ? "delivered" : oi < 16 ? "shipped" : oi < 20 ? "placed" : oi < 23 ? "placed" : "cancelled";
+    const payStatus = oi < 20 ? "paid" : oi < 23 ? "unpaid" : "refunded";
+    const channel = oi % 3 === 0 ? "online" : oi % 3 === 1 ? "pos" : "phone";
+    const method = oi % 4 === 0 ? "benefit_pay" : oi % 4 === 1 ? "credit_card" : oi % 4 === 2 ? "bank_transfer" : "cod";
+    const fulfil = oi % 5 === 4 ? "pickup" : "delivery";
+    const ordId = `ord-${String(oi + 1).padStart(3, "0")}`;
+    const ordNum = `ORD-2026-${String(1001 + oi)}`;
+    const daysAgo = 30 - oi;
+    const shipJson = { line1: addr.line1, city: addr.city, state: addr.state, country: "BH", postalCode: addr.postal_code };
+
+    lines.push(`INSERT INTO commerce.sales_order (id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(ordId)}, ${sqlQuote(ordNum)}, ${sqlQuote(cust.id)}, NULL, ${sqlQuote(cust.email)}, ${sqlQuote(`${cust.first_name} ${cust.last_name}`)}, ${sqlQuote(cust.phone)}, ${sqlQuote(channel)}, ${sqlQuote(ordStatus)}, ${sqlQuote(payStatus)}, ${sqlQuote(method)}, ${sqlQuote(fulfil)}, ${sqlQuote(shipJson)}, ${sub.toFixed(3)}, ${disc.toFixed(3)}, ${disc > 0 ? "'RAMADAN2026'" : "NULL"}, ${vat.toFixed(3)}, ${delFee.toFixed(3)}, ${total.toFixed(3)}, ${payStatus === "paid" ? total.toFixed(3) : "0.000"}, ${payStatus === "refunded" ? total.toFixed(3) : "0.000"}, 'BHD', ${oi % 2 === 0 ? "'en'" : "'ar'"}, 'Storefront checkout verified', ${sqlQuote(primaryWhId)}, NULL, 'sami-khoury', now() - interval '${daysAgo} days', ${payStatus === "paid" ? `now() - interval '${daysAgo} days' + interval '5 minutes'` : "NULL"}, ${ordStatus === "shipped" || ordStatus === "delivered" ? `now() - interval '${Math.max(1, daysAgo - 1)} days'` : "NULL"}, ${ordStatus === "delivered" ? `now() - interval '${Math.max(0, daysAgo - 2)} days'` : "NULL"}, ${ordStatus === "cancelled" ? `now() - interval '${daysAgo} days' + interval '2 hours'` : "NULL"}, ${disc > 0 ? "'ramadan-tvc'" : "NULL"}, ${channel === "online" ? "'direct'" : "NULL"}, ${channel === "online" ? "'web'" : "NULL"}, now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+    lines.push(`INSERT INTO commerce.sales_order_line (id, order_id, product_id, variant_key, sku, description, quantity, unit_price, vat_exempt, line_total, location_id, returned_quantity, sort_order) VALUES`);
+    lines.push(`  (${sqlQuote(`ol-${ordId}-1`)}, ${sqlQuote(ordId)}, ${sqlQuote(`prod-${p1.sku.toLowerCase()}`)}, '', ${sqlQuote(p1.sku)}, ${sqlQuote(p1.en)}, 2.000, ${p1.price.toFixed(3)}, false, ${(p1.price * 2).toFixed(3)}, ${sqlQuote(primaryLocId)}, 0.000, 1),`);
+    lines.push(`  (${sqlQuote(`ol-${ordId}-2`)}, ${sqlQuote(ordId)}, ${sqlQuote(`prod-${p2.sku.toLowerCase()}`)}, '', ${sqlQuote(p2.sku)}, ${sqlQuote(p2.en)}, 1.000, ${p2.price.toFixed(3)}, false, ${p2.price.toFixed(3)}, ${sqlQuote(primaryLocId)}, 0.000, 2)`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+    lines.push(`INSERT INTO commerce.sales_order_event (id, order_id, kind, status, note, amount, by_id, created_at) VALUES`);
+    lines.push(`  (${sqlQuote(`oe-${ordId}-1`)}, ${sqlQuote(ordId)}, 'placed', 'placed', 'Order submitted through ${channel}', ${total.toFixed(3)}, 'sami-khoury', now() - interval '${daysAgo} days'),`);
+    lines.push(`  (${sqlQuote(`oe-${ordId}-2`)}, ${sqlQuote(ordId)}, ${sqlQuote(ordStatus === "cancelled" ? "cancelled" : "status_update")}, ${sqlQuote(ordStatus)}, 'Lifecycle updated to ${ordStatus}', ${total.toFixed(3)}, 'karim-fawzi', now() - interval '${Math.max(0, daysAgo - 1)} days')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+    if (oi < 18) {
+      const shStatus = oi < 11 ? "delivered" : oi < 15 ? "assigned" : "pending";
+      const shpId = `shp-${String(oi + 1).padStart(3, "0")}`;
+      const zId = `dz-0${(oi % 3) + 1}`;
+      const rsId = `rs-00${(oi % 5) + 1}`;
+      lines.push(`INSERT INTO delivery.shipment (id, number, order_id, status, method, zone_id, slot_id, slot_date, slot_start, slot_end, promised_by, recipient_name, recipient_phone, address, cod_amount, cod_collected, tracking_token, attempts, failure_reason, out_at, delivered_at, driver_id, vehicle_id, route_sheet_id, route_stop, proof_photo_url, proof_signature, agency_id, tracking_number, created_at, updated_at)`);
+      lines.push(`VALUES (${sqlQuote(shpId)}, ${sqlQuote(`SHP-2026-${String(101 + oi)}`)}, ${sqlQuote(ordId)}, ${sqlQuote(shStatus)}, 'own', ${sqlQuote(zId)}, 'ds-01', (CURRENT_DATE - INTERVAL '${Math.max(0, daysAgo - 1)} days')::date, '09:00', '13:00', now() - interval '${Math.max(0, daysAgo - 1)} days', ${sqlQuote(`${cust.first_name} ${cust.last_name}`)}, ${sqlQuote(cust.phone)}, ${sqlQuote(shipJson)}, ${method === "cod" ? total.toFixed(3) : "0.000"}, ${method === "cod" && shStatus === "delivered" ? total.toFixed(3) : "0.000"}, ${sqlQuote(`trk-${shpId}-bh2026`)}, 1, NULL, ${shStatus !== "pending" ? `now() - interval '${Math.max(0, daysAgo - 1)} days'` : "NULL"}, ${shStatus === "delivered" ? `now() - interval '${Math.max(0, daysAgo - 2)} days'` : "NULL"}, 'karim-fawzi', 'veh-0${(oi % 5) + 1}', ${sqlQuote(rsId)}, ${(oi % 5) + 1}, NULL, ${shStatus === "delivered" ? "'signed:recipient'" : "NULL"}, 'cag-fleet', ${sqlQuote(`ISH-FL-${7001 + oi}`)}, now(), now())`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+      lines.push(`INSERT INTO delivery.shipment_event (id, shipment_id, status, reason, note, by_id, at) VALUES`);
+      lines.push(`  (${sqlQuote(`she-${shpId}-1`)}, ${sqlQuote(shpId)}, 'pending', NULL, 'Shipment created for order ${ordNum}', 'karim-fawzi', now() - interval '${daysAgo} days'),`);
+      lines.push(`  (${sqlQuote(`she-${shpId}-2`)}, ${sqlQuote(shpId)}, ${sqlQuote(shStatus)}, NULL, 'Dispatch status updated to ${shStatus}', 'karim-fawzi', now() - interval '${Math.max(0, daysAgo - 1)} days')`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
+  for (let cs = 0; cs < 4; cs++) {
+    lines.push(`INSERT INTO delivery.cod_settlement (id, sheet_id, driver_id, amount_collected, amount_settled, status, settled_at, created_at)`);
+    lines.push(`VALUES ('cod-00${cs + 1}', 'rs-00${cs + 1}', 'karim-fawzi', ${(180 + cs * 95).toFixed(3)}, ${(180 + cs * 95).toFixed(3)}, ${cs < 3 ? "'settled'" : "'pending'"}, ${cs < 3 ? `now() - interval '${3 - cs} days'` : "NULL"}, now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
@@ -1263,10 +1669,37 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`  ('let-002', 'LET-2026-002', 'lt-02', 'Bahrain International Circuit (BIC)', 'Commercial Partnerships Director', 'Official Quotation Cover Letter - Formula 1 Bahrain GP 2026 Production Package', 'We are delighted to submit our comprehensive commercial quotation QTE-2026-001 for high-speed cinema camera operations, helicopter Cineflex coverage, and daily digital dailies turnarounds during the Formula 1 Gulf Air Bahrain Grand Prix 2026.', 'issued', '2026-02-01 11:30:00+00', '2026-02-01 11:00:00+00'),`);
   lines.push(`  ('let-003', 'LET-2026-003', 'lt-03', 'Karim Fawzi', 'Senior Production Manager', 'Equipment Vault Custody Transfer - Cinema Camera Packages', 'The undersigned hereby takes custody of Sony FX6 Cinema line package (AST-001) and Canon C70 package (AST-003) with associated Cooke anamorphic primes for the upcoming television commercial shoot.', 'draft', NULL, '2026-03-01 08:30:00+00')`);
   lines.push(`ON CONFLICT (id) DO UPDATE SET letter_number = EXCLUDED.letter_number, recipient_name = EXCLUDED.recipient_name, recipient_title = EXCLUDED.recipient_title, subject = EXCLUDED.subject, body = EXCLUDED.body, status = EXCLUDED.status, issued_at = EXCLUDED.issued_at;`);
+
+  const approvalSpecs = [
+    { id: "apr-001", kind: "purchase_order", entity: "po-001", req: "karim-fawzi", st: "approved", prio: "high", reason: "Replenish V-Mount battery & monitor inventory ahead of F1 weekend" },
+    { id: "apr-002", kind: "expense", entity: "exp-001", req: "tariq-saleh", st: "approved", prio: "normal", reason: "Anamorphic prime lens sub-lease for telecom commercial" },
+    { id: "apr-003", kind: "leave", entity: "lr-009", req: "sami-khoury", st: "pending", prio: "normal", reason: "Scheduled annual leave coverage handoff prepared" },
+    { id: "apr-004", kind: "discount", entity: "qte-004", req: "sami-khoury", st: "approved", prio: "high", reason: "10% multi-day studio bundle retainer concession" },
+    { id: "apr-005", kind: "budget", entity: "cmp-004", req: "hana-yousef", st: "pending", prio: "high", reason: "Virtual production showcase launch event hospitality budget" },
+    { id: "apr-006", kind: "purchase_order", entity: "po-007", req: "karim-fawzi", st: "pending", prio: "normal", reason: "Fiber optic SDI drum expansion" },
+    { id: "apr-007", kind: "expense", entity: "exp-012", req: "layla-nasser", st: "approved", prio: "high", reason: "Annual external VAT & financial audit fee" },
+    { id: "apr-008", kind: "leave", entity: "lr-010", req: "tariq-saleh", st: "rejected", prio: "low", reason: "Overlaps with BIC track shoot; rescheduled by mutual agreement" },
+  ];
+  for (const ap of approvalSpecs) {
+    lines.push(`INSERT INTO workflow.approval_request (id, kind, entity_id, requester_id, status, priority, reason, created_at, updated_at)`);
+    lines.push(`VALUES (${sqlQuote(ap.id)}, ${sqlQuote(ap.kind)}, ${sqlQuote(ap.entity)}, ${sqlQuote(ap.req)}, ${sqlQuote(ap.st)}, ${sqlQuote(ap.prio)}, ${sqlQuote(ap.reason)}, now() - interval '7 days', now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    if (ap.st !== "pending") {
+      lines.push(`INSERT INTO workflow.approval_decision (id, request_id, approver_id, decision, comments, decided_at)`);
+      lines.push(`VALUES (${sqlQuote(`apd-${ap.id}`)}, ${sqlQuote(ap.id)}, 'omar-haddad', ${sqlQuote(ap.st)}, ${sqlQuote(ap.st === "approved" ? "Approved within Q4 operating delegation." : "Deferred to post-event window.")}, now() - interval '5 days')`);
+      lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    }
+  }
+  for (let sr = 0; sr < 6; sr++) {
+    const isSigned = sr < 4;
+    lines.push(`INSERT INTO workflow.signature_request (id, title, document_type, document_id, requested_from, status, signature_url, signed_at, expires_at, created_at)`);
+    lines.push(`VALUES ('sig-00${sr + 1}', ${sqlQuote(sr % 2 === 0 ? `Client Production Agreement #${sr + 1}` : `Equipment Custody Release #${sr + 1}`)}, ${sqlQuote(sr % 2 === 0 ? "quotation" : "official_letter")}, ${sqlQuote(sr % 2 === 0 ? `qte-00${sr + 1}` : `let-00${(sr % 3) + 1}`)}, ${sqlQuote(contacts[sr].email)}, ${sqlQuote(isSigned ? "signed" : "pending")}, ${isSigned ? "'/api/files/brand/signature_28e82e5cdb91.png'" : "NULL"}, ${isSigned ? `now() - interval '${10 - sr} days'` : "NULL"}, now() + interval '30 days', now() - interval '12 days')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
-  lines.push(`-- 11. CMS SERVICE (Pages, Articles, FAQs, Statistics, Reviews, Snapshot)`);
+  lines.push(`-- 11. CMS SERVICE (Pages, Articles, FAQs, Statistics, Reviews, Portfolio, Social, Snapshot)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
   for (const page of pages) {
     lines.push(`INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at)`);
@@ -1298,13 +1731,51 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
 
+  lines.push(`INSERT INTO cms.portfolio_category (id, slug, name_en, name_ar, display_order) VALUES`);
+  lines.push(`  ('pcat-tvc', 'commercial-tvc', 'Commercial & Broadcast', 'الأفلام الإعلانية والتلفزيونية', 1),`);
+  lines.push(`  ('pcat-doc', 'documentaries', 'Corporate Documentaries', 'الأفلام الوثائقية المؤسسية', 2),`);
+  lines.push(`  ('pcat-events', 'live-events', 'Motorsport & Live Broadcast', 'الفعاليات الرياضية والبث المباشر', 3),`);
+  lines.push(`  ('pcat-brand', 'brand-campaigns', 'Luxury & Brand Storytelling', 'حملات العلامات التجارية الفاخرة', 4)`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  const portItems = [
+    { id: "pit-01", cat: "pcat-events", slug: "bic-f1-night-race", en: "Formula 1 Bahrain Night Race Cinema Reel", ar: "فيلم سباق فورمولا 1 الليلي البحرين", client: "Bahrain International Circuit", yr: 2026, loc: "Sakhir, Bahrain" },
+    { id: "pit-02", cat: "pcat-tvc", slug: "falcon-air-fleet", en: "Falcon Airways Dreamliner Fleet Master", ar: "الفيلم الرسمي لأسطول طيران الخليج", client: "Falcon Airways", yr: 2026, loc: "Manama & London" },
+    { id: "pit-03", cat: "pcat-doc", slug: "bapco-solar-horizon", en: "Bapco Energies Clean Horizon Documentary", ar: "وثائقي الطاقة النظيفة بابكو", client: "Bapco Energies", yr: 2026, loc: "Awali, Bahrain" },
+    { id: "pit-04", cat: "pcat-brand", slug: "marassi-pearls-campaign", en: "Marassi Waterfront Architectural Film", ar: "الحملة المعمارية لواجهة مراسي البحرين", client: "Eagle Hills Bahrain", yr: 2026, loc: "Diyar Al Muharraq" },
+    { id: "pit-05", cat: "pcat-tvc", slug: "stc-5g-ramadan", en: "STC 5G Standalone Ramadan Anthem", ar: "إعلان STC رمضان 5G", client: "STC Bahrain", yr: 2026, loc: "Soundstage A, Seef" },
+    { id: "pit-06", cat: "pcat-events", slug: "ewb-tech-summit", en: "Exhibition World Global Tech Summit Live", ar: "تغطية القمة التقنية مركز المعارض العالمي", client: "Exhibition World Bahrain", yr: 2026, loc: "Sakhir Hall 1" },
+  ];
+  for (const pi of portItems) {
+    lines.push(`INSERT INTO cms.portfolio_item (id, category_id, slug, title_en, title_ar, client_name, year, subtitle_en, subtitle_ar, price, price_note_en, price_note_ar, location, external_url)`);
+    lines.push(`VALUES (${sqlQuote(pi.id)}, ${sqlQuote(pi.cat)}, ${sqlQuote(pi.slug)}, ${sqlQuote(pi.en)}, ${sqlQuote(pi.ar)}, ${sqlQuote(pi.client)}, ${pi.yr}, 'Shot on ARRI Alexa 35 & Cooke Anamorphic Primes', 'تصوير بكاميرات ARRI Alexa 35 وعدسات سينمائية', 6500.000, 'Turnkey Production Package', 'باقة إنتاج متكاملة', ${sqlQuote(pi.loc)}, NULL)`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  lines.push(`INSERT INTO cms.social_link (id, platform, url, icon, is_active, display_order, created_at, updated_at) VALUES`);
+  lines.push(`  ('soc-ig', 'instagram', 'https://instagram.com/ishoot.bh', 'instagram', true, 1, now(), now()),`);
+  lines.push(`  ('soc-yt', 'youtube', 'https://youtube.com/@ishootbh', 'youtube', true, 2, now(), now()),`);
+  lines.push(`  ('soc-vm', 'vimeo', 'https://vimeo.com/ishootbh', 'video', true, 3, now(), now()),`);
+  lines.push(`  ('soc-li', 'linkedin', 'https://linkedin.com/company/ishoot-bh', 'linkedin', true, 4, now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  for (let sp = 0; sp < 4; sp++) {
+    const plat = sp % 2 === 0 ? "instagram" : "youtube";
+    lines.push(`INSERT INTO cms.social_post (id, platform, external_id, source_provider, source_account_id, caption, media_type, permalink, thumbnail_url, published_at, likes, comments, shares, views, reach, saves, fetched_at, created_at)`);
+    lines.push(`VALUES ('spst-00${sp + 1}', ${sqlQuote(plat)}, 'ext-post-00${sp + 1}', 'meta_graph', 'acct-01', 'Behind the scenes on Soundstage A lighting grid calibration with Aputure 600c Pro fixtures.', 'video', 'https://instagram.com/p/demo00${sp + 1}', '/api/files/brand/logo-light_dbf1f2e280f5.png', now() - interval '${(sp + 1) * 5} days', ${420 + sp * 110}, ${32 + sp * 8}, ${18 + sp * 5}, ${8400 + sp * 2100}, ${6800 + sp * 1500}, ${95 + sp * 20}, now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO cms.social_metric (id, platform, metric_type, value, source_provider, source_account_id, recorded_at, is_stale, error_status, created_at)`);
+    lines.push(`VALUES ('smet-00${sp + 1}', ${sqlQuote(plat)}, 'followers', ${18500 + sp * 1200}, 'meta_graph', 'acct-01', now() - interval '${sp} days', false, NULL, now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO cms.social_content_plan (id, title, caption, media_url, scheduled_for, status, published_url, assignee_id, created_by_id, created_at, updated_at)`);
+    lines.push(`VALUES ('scpl-00${sp + 1}', ${sqlQuote(`Studio BTS Reel #${sp + 1}`)}, 'Discover how our color grading theater masters Dolby Vision deliverables.', '/api/files/brand/logo-dark_50ae2cfc6efa.png', now() + interval '${sp + 3} days', ${sqlQuote(sp === 0 ? "published" : "scheduled")}, NULL, 'hana-yousef', 'hana-yousef', now(), now())`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+
   lines.push(`INSERT INTO cms.content_snapshot (id, draft, published, revision, published_at, updated_at)`);
   lines.push(`VALUES ('main', ${sqlQuote(contentSnapshot.draft)}, ${sqlQuote(contentSnapshot.published)}, ${contentSnapshot.revision || 1}, now(), now())`);
   lines.push(`ON CONFLICT (id) DO UPDATE SET draft = EXCLUDED.draft, published = EXCLUDED.published, updated_at = now();`);
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
-  lines.push(`-- 12. ITSM SERVICE (SLA Policies, Tickets, Timeline Events)`);
+  lines.push(`-- 12. ITSM SERVICE (SLA Policies, Tickets, Comments, Assets, Support Programs)`);
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`INSERT INTO itsm.sla_policy (priority, response_minutes, resolve_minutes, updated_by, updated_at) VALUES`);
   lines.push(`  ('critical', 30, 240, 'seed:sql', now()),`);
@@ -1314,31 +1785,114 @@ function generateCompanySeedSql(profileName, companyData, themeData, assetOverri
   lines.push(`ON CONFLICT (priority) DO UPDATE SET response_minutes = EXCLUDED.response_minutes, resolve_minutes = EXCLUDED.resolve_minutes, updated_at = now();`);
   lines.push(``);
 
-  for (const tkt of itsmTickets) {
+  for (let ti = 0; ti < itsmTickets.length; ti++) {
+    const tkt = itsmTickets[ti];
     const resolSql = tkt.resolAgo !== null ? `(CURRENT_DATE - INTERVAL '${tkt.resolAgo} days')::timestamptz` : "NULL";
     const respSql = `(CURRENT_DATE - INTERVAL '${tkt.respAgo} days')::timestamptz`;
     const createdSql = `(CURRENT_DATE - INTERVAL '${tkt.createdAgo} days')::timestamptz`;
 
     lines.push(`INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)`);
-    lines.push(`VALUES (${sqlQuote(tkt.id)}, 'super-admin', 'Super Admin', 'admin@ishoot.bh', ${sqlQuote(tkt.cat)}, ${sqlQuote(tkt.sub)}, ${sqlQuote(tkt.prio)}, ${sqlQuote(tkt.status)}, ${sqlQuote(tkt.title)}, ${sqlQuote(tkt.desc)}, ${sqlQuote(tkt.ref)}, '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', ${respSql}, now() + interval '24 hours', ${respSql}, ${resolSql}, ${createdSql}, now())`);
+    lines.push(`VALUES (${sqlQuote(tkt.id)}, 'omar-haddad', 'Omar Haddad', 'omar-haddad@example.com', ${sqlQuote(tkt.cat)}, ${sqlQuote(tkt.sub)}, ${sqlQuote(tkt.prio)}, ${sqlQuote(tkt.status)}, ${sqlQuote(tkt.title)}, ${sqlQuote(tkt.desc)}, ${sqlQuote(tkt.ref)}, 'it-eng-001', 'IT Systems Engineer', ${respSql}, now() + interval '24 hours', ${respSql}, ${resolSql}, ${createdSql}, now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
 
     const eventId = tkt.id.replace(/^70/, "7e");
     lines.push(`INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)`);
-    lines.push(`VALUES (${sqlQuote(eventId)}, ${sqlQuote(tkt.id)}, 'staff', 'super-admin', 'status_change', 'in_progress', ${sqlQuote(tkt.status)}, '{"message": "Action logged in service desk"}'::jsonb, ${createdSql})`);
+    lines.push(`VALUES (${sqlQuote(eventId)}, ${sqlQuote(tkt.id)}, 'staff', 'omar-haddad', 'status_change', 'in_progress', ${sqlQuote(tkt.status)}, '{"message": "Action logged in service desk"}'::jsonb, ${createdSql})`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+
+    const cmt1 = tkt.id.replace(/^70/, "7c");
+    const cmt2 = tkt.id.replace(/^70/, "7d");
+    lines.push(`INSERT INTO itsm.ticket_comment (id, ticket_id, author_realm, author_id, author_name, body, internal, created_at) VALUES`);
+    lines.push(`  (${sqlQuote(cmt1)}, ${sqlQuote(tkt.id)}, 'staff', 'omar-haddad', 'Omar Haddad', 'Issue logged during active studio schedule; please prioritize diagnostics.', false, ${createdSql}),`);
+    lines.push(`  (${sqlQuote(cmt2)}, ${sqlQuote(tkt.id)}, 'it', 'it-eng-001', 'IT Systems Engineer', 'Diagnostic check completed and telemetry captured on rack switch.', true, ${respSql})`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
   }
+  lines.push(`INSERT INTO itsm.asset_category (id, code, name_en, name_ar) VALUES`);
+  lines.push(`  ('acat-wkst', 'WORKSTATION', 'Editing & Grading Workstations', 'محطات المونتاج والتلوين'),`);
+  lines.push(`  ('acat-nas', 'STORAGE', 'NAS & Archival Arrays', 'وحدات التخزين والشبكات'),`);
+  lines.push(`  ('acat-net', 'NETWORK', '10GbE Switches & Wireless Links', 'مبدلات الشبكة والاتصال اللاسلكي'),`);
+  lines.push(`  ('acat-mon', 'MONITOR', 'HDR Reference Monitors', 'شاشات المعايرة المرجعية')`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  for (let ai = 0; ai < 8; ai++) {
+    const emp = baseEmployees[ai % baseEmployees.length];
+    const assetId = `ast-00${ai + 1}`;
+    lines.push(`INSERT INTO itsm.asset (id, asset_tag, category_id, name, brand, model, serial_number, purchase_date, purchase_cost, currency, supplier, invoice_reference, warranty_until, condition, status, specs)`);
+    lines.push(`VALUES (${sqlQuote(assetId)}, ${sqlQuote(`IT-TAG-${1001 + ai}`)}, ${sqlQuote(ai % 4 === 0 ? "acat-wkst" : ai % 4 === 1 ? "acat-nas" : ai % 4 === 2 ? "acat-net" : "acat-mon")}, ${sqlQuote(`Studio Worknode ${ai + 1}`)}, ${sqlQuote(ai % 2 === 0 ? "Apple" : "Synology")}, ${sqlQuote(ai % 2 === 0 ? "Mac Studio M2 Ultra" : "RS3621RPxs")}, ${sqlQuote(`C02ZN${9000 + ai}Q`)}, now() - interval '280 days', ${1450 + ai * 300}.000, 'BHD', 'Almoayyed Enterprise Systems', 'SUP-IT-2026', now() + interval '450 days', 'excellent', 'assigned', '{"ram":"128GB","nic":"10GbE"}'::jsonb)`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+    lines.push(`INSERT INTO itsm.asset_handover (id, reference, asset_id, employee_id, kind, status, handover_date, condition)`);
+    lines.push(`VALUES ('ahov-00${ai + 1}', 'HOV-IT-00${ai + 1}', ${sqlQuote(assetId)}, ${sqlQuote(emp.id)}, 'issue', 'completed', now() - interval '250 days', 'excellent')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  lines.push(`INSERT INTO itsm.support_program (id, code, name_en, name_ar, provider, claim_period_months, prorate, is_active, notes, created_at, updated_at) VALUES`);
+  lines.push(`  ('sprg-tamkeen', 'TAMKEEN-WAGE', 'Tamkeen National Employment Support', 'دعم الأجور الوطني - تمكين', 'Tamkeen Labour Fund', 12, true, true, 'Active wage subsidy program for Bahraini creative & engineering hires.', now(), now()),`);
+  lines.push(`  ('sprg-applecare', 'AC-ENT', 'AppleCare+ for Studio Enterprise', 'أبل كير للمؤسسات', 'Apple Authorized Bahrain', 36, false, true, 'Hardware rapid replacement coverage for all Mac Studio edit suites.', now(), now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO itsm.support_program_rule (id, program_id, effective_from, effective_to, wage_basis) VALUES`);
+  lines.push(`  ('sprgr-01', 'sprg-tamkeen', now() - interval '180 days', now() + interval '540 days', 'basic_plus_allowances'),`);
+  lines.push(`  ('sprgr-02', 'sprg-applecare', now() - interval '180 days', now() + interval '900 days', 'hardware_asset')`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
   lines.push(``);
 
   lines.push(`-- ----------------------------------------------------------------------------`);
-  lines.push(`-- 13. NOTIFY SERVICE (In-App Notification Feed)`);
+  lines.push(`-- 13. NOTIFY, REALTIME & AUDIT SERVICES`);
   lines.push(`-- ----------------------------------------------------------------------------`);
   lines.push(`INSERT INTO notify.notification (id, realm, recipient, category, priority, title, body, caller, silent, deliver_at, created_at) VALUES`);
-  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'super-admin', 'finance', 'high', 'Invoice Payment Received', 'Payment of 14,500 BHD received from NBB for 65th Anniversary Film.', 'finance-svc', false, now() - interval '1 hour', now() - interval '1 hour'),`);
-  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad2', 'staff', 'super-admin', 'inventory', 'normal', 'Equipment Check-in Complete', 'ARRI Alexa 35 & Cooke lenses safely returned to Vault.', 'inventory-svc', false, now() - interval '3 hours', now() - interval '3 hours'),`);
-  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad3', 'staff', 'super-admin', 'sales', 'normal', 'New High-Value Deal Qualified', 'Toyota Land Cruiser Offroad TVC proposal requested by E.K. Kanoo.', 'sales-svc', false, now() - interval '5 hours', now() - interval '5 hours'),`);
-  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad4', 'staff', 'super-admin', 'hr', 'low', 'Monthly Payroll Run Processed', 'Payroll for October 2026 successfully disbursed to all 12 employees.', 'hr-svc', false, now() - interval '1 day', now() - interval '1 day')`);
+  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'omar-haddad', 'finance', 'high', 'Invoice Payment Received', 'Payment of 14,500 BHD received from NBB for 65th Anniversary Film.', 'finance-svc', false, now() - interval '1 hour', now() - interval '1 hour'),`);
+  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad2', 'staff', 'karim-fawzi', 'inventory', 'normal', 'Equipment Check-in Complete', 'ARRI Alexa 35 & Cooke lenses safely returned to Vault.', 'inventory-svc', false, now() - interval '3 hours', now() - interval '3 hours'),`);
+  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad3', 'staff', 'sami-khoury', 'sales', 'normal', 'New High-Value Deal Qualified', 'Toyota Land Cruiser Offroad TVC proposal requested by E.K. Kanoo.', 'sales-svc', false, now() - interval '5 hours', now() - interval '5 hours'),`);
+  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad4', 'staff', 'layla-nasser', 'hr', 'low', 'Monthly Payroll Run Processed', 'Payroll for October 2026 successfully disbursed to all 10 employees.', 'hr-svc', false, now() - interval '1 day', now() - interval '1 day'),`);
+  lines.push(`  ('90da75a0-0445-4b10-ad20-a6366b6a0ad5', 'it', 'it-lead-001', 'itsm', 'high', 'Automated Backup Verified', 'Daily database & S3 snapshot checksum verified without errors.', 'system-svc', false, now() - interval '2 hours', now() - interval '2 hours')`);
   lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO notify.preference (realm, user_id, muted_until, sound_enabled, sound, volume, popups_enabled, desktop_enabled, updated_at) VALUES`);
+  lines.push(`  ('staff', 'omar-haddad', NULL, true, 'chime', 80, true, true, now()),`);
+  lines.push(`  ('staff', 'layla-nasser', NULL, true, 'chime', 70, true, true, now()),`);
+  lines.push(`  ('it', 'it-lead-001', NULL, true, 'ping', 90, true, true, now())`);
+  lines.push(`ON CONFLICT (realm, user_id) DO NOTHING;`);
+  lines.push(`INSERT INTO notify.category_setting (realm, user_id, category, muted, sound) VALUES`);
+  lines.push(`  ('staff', 'omar-haddad', 'finance', false, true),`);
+  lines.push(`  ('staff', 'omar-haddad', 'sales', false, true),`);
+  lines.push(`  ('it', 'it-lead-001', 'itsm', false, true)`);
+  lines.push(`ON CONFLICT (realm, user_id, category) DO NOTHING;`);
+  for (let m = 0; m < 8; m++) {
+    const chan = m % 3 === 2 ? "whatsapp" : "email";
+    const mId = `91da75a0-0445-4b10-ad20-a6366b6a0a0${m + 1}`;
+    const c = contacts[m % contacts.length];
+    lines.push(`INSERT INTO notify.message (id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html, status, attempts, provider, provider_id, last_error, created_at, updated_at, sent_at)`);
+    lines.push(`VALUES (${sqlQuote(mId)}, ${sqlQuote(m % 2 === 0 ? "finance" : "commerce")}, ${sqlQuote(`seed-msg-${m + 1}`)}, 'system', ${sqlQuote(chan)}, ${sqlQuote(chan === "email" ? c.email : c.phone)}, ${sqlQuote(`Order & Invoice Dispatch Notification #${m + 1}`)}, 'Your official document and dispatch link have been issued cleanly.', '<p>Your official document and dispatch link have been issued cleanly.</p>', 'sent', 1, ${sqlQuote(chan === "email" ? "smtp" : "whatsapp-cloud")}, ${sqlQuote(`prov-msg-${100 + m}`)}, NULL, now() - interval '${8 - m} hours', now(), now() - interval '${8 - m} hours')`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
+  lines.push(`INSERT INTO realtime.status (realm, user_id, status, message, expires_at, updated_at) VALUES`);
+  lines.push(`  ('staff', 'omar-haddad', 'online', 'Reviewing Q4 studio schedule', now() + interval '8 hours', now()),`);
+  lines.push(`  ('staff', 'yusuf-rahman', 'online', 'Directing Soundstage A shoot', now() + interval '6 hours', now()),`);
+  lines.push(`  ('staff', 'layla-nasser', 'online', 'Monthly close & audit prep', now() + interval '8 hours', now()),`);
+  lines.push(`  ('staff', 'karim-fawzi', 'busy', 'Dispatching camera fleet to Sakhir', now() + interval '4 hours', now()),`);
+  lines.push(`  ('it', 'it-lead-001', 'online', 'Monitoring cluster telemetry', now() + interval '8 hours', now()),`);
+  lines.push(`  ('it', 'it-eng-001', 'online', 'On-call platform reliability', now() + interval '8 hours', now())`);
+  lines.push(`ON CONFLICT (realm, user_id) DO NOTHING;`);
+  lines.push(`INSERT INTO realtime.status_window (id, realm, user_id, source, source_id, kind, starts_at, ends_at, updated_at) VALUES`);
+  lines.push(`  ('80da75a0-0445-4b10-ad20-a6366b6a0a01', 'staff', 'karim-fawzi', 'calendar', 'evt-01', 'on_location', now() + interval '1 hour', now() + interval '9 hours', now()),`);
+  lines.push(`  ('80da75a0-0445-4b10-ad20-a6366b6a0a02', 'staff', 'noor-hamdan', 'calendar', 'evt-08', 'grading_session', now() + interval '2 hours', now() + interval '6 hours', now()),`);
+  lines.push(`  ('80da75a0-0445-4b10-ad20-a6366b6a0a03', 'it', 'it-eng-001', 'itsm', 'maint-01', 'maintenance_window', now() + interval '1 day', now() + interval '1 day' + interval '3 hours', now())`);
+  lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  const auditEvents = [
+    ["system.company.updated", "system", "company", "updated", "omar-haddad"],
+    ["finance.invoice.issued", "finance", "invoice", "issued", "layla-nasser"],
+    ["finance.payment.recorded", "finance", "payment", "recorded", "faisal-mansour"],
+    ["commerce.order.placed", "commerce", "sales_order", "placed", "sami-khoury"],
+    ["delivery.shipment.dispatched", "delivery", "shipment", "dispatched", "karim-fawzi"],
+    ["inventory.stock_count.approved", "inventory", "stock_count", "approved", "omar-haddad"],
+    ["hr.payroll_run.completed", "hr", "payroll_run", "completed", "layla-nasser"],
+    ["workflow.approval.granted", "workflow", "approval_request", "approved", "omar-haddad"],
+    ["cms.content_snapshot.published", "cms", "content_snapshot", "published", "hana-yousef"],
+    ["itsm.backup.verified", "system", "backup_record", "verified", "it-lead-001"],
+  ];
+  for (let ae = 0; ae < auditEvents.length; ae++) {
+    const [subj, svc, ent, verb, actor] = auditEvents[ae];
+    const hexId = `a0da75a0-0445-4b10-ad20-a6366b6a0a${String(ae + 1).padStart(2, "0")}`;
+    lines.push(`INSERT INTO audit.event (id, subject, service, entity, verb, actor, occurred_at, received_at, payload, trace_id)`);
+    lines.push(`VALUES (${sqlQuote(hexId)}, ${sqlQuote(subj)}, ${sqlQuote(svc)}, ${sqlQuote(ent)}, ${sqlQuote(verb)}, ${sqlQuote(actor)}, now() - interval '${(10 - ae) * 3} hours', now() - interval '${(10 - ae) * 3} hours', ${sqlQuote({ source: "seed:sql", actor, entity: ent })}, ${sqlQuote(`tr-${ae + 1}-seed`)})`);
+    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  }
   lines.push(``);
 
   lines.push(`COMMIT;`);
@@ -1420,22 +1974,20 @@ ON CONFLICT (id) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.na
 ${itPermissions.map((p) => `INSERT INTO identity.it_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(p.id)}, ${sqlQuote(p.role_id)}, ${sqlQuote(p.resource)}, ${sqlQuote(p.action)}, true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`).join("\n")}
 ${staffPermissions.map((p) => `INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES (${sqlQuote(p.id)}, ${sqlQuote(p.role_id)}, ${sqlQuote(p.resource)}, ${sqlQuote(p.action)}, true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;`).join("\n")}
 
--- First Accounts (Email: admin@example.com, Password: Admin12345678!)
+-- Bootstrap Accounts Note:
+-- First bootstrap accounts (BA0001 in staff realm, IT0001 in it realm) are provisioned
+-- and authenticated exclusively from environment variables (.env) with MFA disabled on launch.
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES
-  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '${DEFAULT_PASSWORD_HASH}', '{"it_admin"}', true, false, NULL, now(), now()),
-  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '${DEFAULT_PASSWORD_HASH}', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
+  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '${DEFAULT_PASSWORD_HASH}', '{"it_manager"}', true, false, NULL, now(), now()),
   ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '${DEFAULT_PASSWORD_HASH}', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
   ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '${DEFAULT_PASSWORD_HASH}', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '${DEFAULT_PASSWORD_HASH}', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '${DEFAULT_PASSWORD_HASH}', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
-  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '${DEFAULT_PASSWORD_HASH}', '{"it_auditor"}', true, false, 'it-manager-001', now(), now()),
-  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '${DEFAULT_PASSWORD_HASH}', '{"super_admin"}', true, false, NULL, now(), now())
+  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '${DEFAULT_PASSWORD_HASH}', '{"it_auditor"}', true, false, 'it-manager-001', now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
 
-INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'super-admin', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
-
--- Default modules (14 feature modules)
+-- Default modules (18 feature modules)
 INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) VALUES
   ('crm_deals', true, 'bootstrap', now()),
   ('invoicing', true, 'bootstrap', now()),
@@ -1450,7 +2002,11 @@ INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) 
   ('hr_payroll', true, 'bootstrap', now()),
   ('itsm', true, 'bootstrap', now()),
   ('audit_trail', true, 'bootstrap', now()),
-  ('notifications', true, 'bootstrap', now())
+  ('notifications', true, 'bootstrap', now()),
+  ('legal', true, 'bootstrap', now()),
+  ('marketing', true, 'bootstrap', now()),
+  ('pr', true, 'bootstrap', now()),
+  ('tasks', true, 'bootstrap', now())
 ON CONFLICT (module_key) DO NOTHING;
 
 -- Default SLA Policies
@@ -1466,16 +2022,101 @@ COMMIT;
 fs.writeFileSync(path.join(root, "seeds/sql/seed_bootstrap.sql"), bootstrapSql);
 console.log("✓ seeds/sql/seed_bootstrap.sql written.");
 
-// Preset SQL files
-const presetActivities = ["all", "products", "services", "commerce", "food", "agency"];
-for (const act of presetActivities) {
-  const presetSql = `-- Preset SQL Override: ${act}
+// Distinct Activity Preset SQL files
+const ALL_PRESET_MODULES = [
+  "crm_deals", "invoicing", "calendar", "equipment", "cms", "reviews",
+  "products", "procurement", "store", "delivery", "hr_payroll", "itsm",
+  "audit_trail", "notifications", "legal", "marketing", "pr", "tasks",
+];
+const PRESET_DEFINITIONS = {
+  media: {
+    activity: "media",
+    stylePreset: "cinematic",
+    heroStyle: "cinematic",
+    collection: { slug: "works", layout: "media", fields: ["client", "year", "video", "credits", "gallery"] },
+    enabled: ["crm_deals", "invoicing", "calendar", "equipment", "cms", "reviews", "products", "hr_payroll", "itsm", "audit_trail", "notifications", "tasks", "marketing", "pr", "legal"],
+  },
+  products: {
+    activity: "products",
+    stylePreset: "fresh",
+    heroStyle: "split",
+    collection: { slug: "products", layout: "product", fields: ["subtitle", "price", "attributes", "externalUrl", "gallery"] },
+    enabled: ["crm_deals", "invoicing", "cms", "reviews", "products", "procurement", "store", "delivery", "hr_payroll", "itsm", "audit_trail", "notifications", "tasks"],
+  },
+  commerce: {
+    activity: "online_store",
+    stylePreset: "market",
+    heroStyle: "split",
+    collection: { slug: "shop", layout: "product", fields: ["subtitle", "price", "attributes", "gallery"] },
+    enabled: ["invoicing", "cms", "reviews", "products", "procurement", "store", "delivery", "hr_payroll", "itsm", "audit_trail", "notifications", "marketing"],
+  },
+  services: {
+    activity: "services",
+    stylePreset: "corporate",
+    heroStyle: "split",
+    collection: { slug: "projects", layout: "case", fields: ["client", "year", "subtitle", "attributes", "gallery"] },
+    enabled: ["crm_deals", "invoicing", "calendar", "cms", "reviews", "hr_payroll", "itsm", "audit_trail", "notifications", "tasks", "legal"],
+  },
+  food: {
+    activity: "food",
+    stylePreset: "friendly",
+    heroStyle: "cinematic",
+    collection: { slug: "menu", layout: "product", fields: ["subtitle", "price", "attributes", "gallery"] },
+    enabled: ["invoicing", "calendar", "cms", "reviews", "products", "procurement", "store", "delivery", "hr_payroll", "itsm", "audit_trail", "notifications"],
+  },
+  agency: {
+    activity: "agency",
+    stylePreset: "modern",
+    heroStyle: "split",
+    collection: { slug: "case-studies", layout: "case", fields: ["client", "year", "subtitle", "video", "attributes", "gallery"] },
+    enabled: ["crm_deals", "invoicing", "calendar", "cms", "reviews", "hr_payroll", "itsm", "audit_trail", "notifications", "tasks", "marketing", "pr"],
+  },
+  all: {
+    activity: "media",
+    stylePreset: "cinematic",
+    heroStyle: "cinematic",
+    collection: { slug: "works", layout: "media", fields: ["client", "year", "video", "credits", "gallery"] },
+    enabled: ALL_PRESET_MODULES,
+  },
+};
+
+fs.mkdirSync(path.join(root, "seeds/sql/presets"), { recursive: true });
+for (const [act, cfg] of Object.entries(PRESET_DEFINITIONS)) {
+  const enabledSet = new Set(cfg.enabled);
+  const disabled = ALL_PRESET_MODULES.filter((m) => !enabledSet.has(m));
+  const storeEnabled = enabledSet.has("store");
+  const presetSql = `-- Preset SQL Override: ${act} (${cfg.activity})
 BEGIN;
-UPDATE system.company SET data = jsonb_set(data, '{businessActivity}', '"${act === "all" ? "media" : act}"') WHERE singleton = true;
-UPDATE system.module_setting SET enabled = true WHERE module_key IN ('crm_deals', 'invoicing', 'calendar', 'equipment', 'cms', 'reviews', 'products', 'procurement', 'store', 'delivery', 'hr_payroll', 'itsm', 'audit_trail', 'notifications');
+UPDATE system.company
+SET
+  data = COALESCE(data, '{}'::jsonb) || jsonb_build_object(
+    'businessActivity', ${sqlQuote(cfg.activity)},
+    'theme', COALESCE(data->'theme', '{}'::jsonb) || jsonb_build_object('stylePreset', ${sqlQuote(cfg.stylePreset)}),
+    'website', COALESCE(data->'website', '{}'::jsonb) || jsonb_build_object(
+      'heroStyle', ${sqlQuote(cfg.heroStyle)},
+      'collection', ${sqlQuote(cfg.collection)}
+    )
+  ),
+  updated_by = ${sqlQuote(`preset:${act}`)},
+  updated_at = now()
+WHERE singleton = true;
+
+UPDATE system.module_setting
+SET enabled = true, updated_by = ${sqlQuote(`preset:${act}`)}, updated_at = now()
+WHERE module_key IN (${cfg.enabled.map(sqlQuote).join(", ")});
+${disabled.length > 0 ? `
+UPDATE system.module_setting
+SET enabled = false, updated_by = ${sqlQuote(`preset:${act}`)}, updated_at = now()
+WHERE module_key IN (${disabled.map(sqlQuote).join(", ")});
+` : ""}
+UPDATE commerce.store_settings
+SET delivery_enabled = ${enabledSet.has("delivery") ? "true" : "false"},
+    pickup_enabled = ${storeEnabled ? "true" : "false"},
+    updated_at = now()
+WHERE id = 'default';
 COMMIT;
 `;
   fs.writeFileSync(path.join(root, `seeds/sql/presets/preset_${act}.sql`), presetSql);
 }
-console.log(`✓ ${presetActivities.length} preset SQL files written to seeds/sql/presets/`);
+console.log(`✓ ${Object.keys(PRESET_DEFINITIONS).length} preset SQL files written to seeds/sql/presets/`);
 console.log("\nAll expanded SQL seeds generated successfully!");

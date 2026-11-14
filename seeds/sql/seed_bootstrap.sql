@@ -1393,22 +1393,20 @@ INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, c
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_create', 'viewer', 'it_support', 'create', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_edit', 'viewer', 'it_support', 'edit', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 
--- First Accounts (Email: admin@example.com, Password: Admin12345678!)
+-- Bootstrap Accounts Note:
+-- First bootstrap accounts (BA0001 in staff realm, IT0001 in it realm) are provisioned
+-- and authenticated exclusively from environment variables (.env) with MFA disabled on launch.
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES
-  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_admin"}', true, false, NULL, now(), now()),
-  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
+  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, NULL, now(), now()),
   ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
   ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
-  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, 'it-manager-001', now(), now()),
-  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"super_admin"}', true, false, NULL, now(), now())
+  ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, 'it-manager-001', now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
 
-INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'super-admin', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
-
--- Default modules (14 feature modules)
+-- Default modules (18 feature modules)
 INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) VALUES
   ('crm_deals', true, 'bootstrap', now()),
   ('invoicing', true, 'bootstrap', now()),
@@ -1423,7 +1421,11 @@ INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) 
   ('hr_payroll', true, 'bootstrap', now()),
   ('itsm', true, 'bootstrap', now()),
   ('audit_trail', true, 'bootstrap', now()),
-  ('notifications', true, 'bootstrap', now())
+  ('notifications', true, 'bootstrap', now()),
+  ('legal', true, 'bootstrap', now()),
+  ('marketing', true, 'bootstrap', now()),
+  ('pr', true, 'bootstrap', now()),
+  ('tasks', true, 'bootstrap', now())
 ON CONFLICT (module_key) DO NOTHING;
 
 -- Default SLA Policies

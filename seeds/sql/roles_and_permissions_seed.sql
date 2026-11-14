@@ -1840,10 +1840,7 @@ INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, c
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_create', 'viewer', 'it_support', 'create', true, now()) ON CONFLICT (role_id, resource, action) DO UPDATE SET allowed = true;
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_edit', 'viewer', 'it_support', 'edit', true, now()) ON CONFLICT (role_id, resource, action) DO UPDATE SET allowed = true;
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'IT0001', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{it_admin}', true, false, NULL, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
-VALUES ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{it_manager}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now())
+VALUES ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{it_manager}', true, false, NULL, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{it_lead}', true, false, 'it-manager-001', now(), now())
@@ -1860,9 +1857,8 @@ ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username =
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$GmEkIDiHNtqMSGZHMxrYcA$2qeUv1LyB9nTE1XRUU8G8jURidJ56ILWukLHxs16tR8', '{it_auditor}', true, false, 'it-manager-001', now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
-UPDATE identity.account SET reporting_to = NULL WHERE realm = 'staff' AND subject_id = 'super-admin';
-UPDATE identity.account SET reporting_to = 'super-admin' WHERE realm = 'staff' AND subject_id = 'omar-haddad';
-UPDATE identity.account SET reporting_to = 'super-admin' WHERE realm = 'staff' AND subject_id = 'yusuf-rahman';
+UPDATE identity.account SET reporting_to = NULL WHERE realm = 'staff' AND subject_id = 'omar-haddad';
+UPDATE identity.account SET reporting_to = 'omar-haddad' WHERE realm = 'staff' AND subject_id = 'yusuf-rahman';
 UPDATE identity.account SET reporting_to = 'yusuf-rahman' WHERE realm = 'staff' AND subject_id = 'layla-nasser';
 UPDATE identity.account SET reporting_to = 'yusuf-rahman' WHERE realm = 'staff' AND subject_id = 'karim-fawzi';
 UPDATE identity.account SET reporting_to = 'karim-fawzi' WHERE realm = 'staff' AND subject_id = 'tariq-saleh';
