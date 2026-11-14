@@ -22,7 +22,7 @@
     "themeModes": {
       "light": "Light",
       "dark": "Dark",
-      "mixed": "Mixed"
+      "system": "System"
     },
     "documentsAndDownloads": "Documents and downloads",
     "cancel": "Cancel",

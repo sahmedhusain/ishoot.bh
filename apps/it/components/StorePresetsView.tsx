@@ -83,7 +83,7 @@ export function StorePresetsView({ canEdit }: { canEdit: boolean }) {
 
   const [activity, setActivity] = React.useState<(typeof BUSINESS_ACTIVITIES)[number]>("retail");
   const [recipe, setRecipe] = React.useState<(typeof LAYOUT_RECIPES)[number]>("boutique");
-  const [mode, setMode] = React.useState<"light" | "dark" | "mixed">("light");
+  const [mode, setMode] = React.useState<"light" | "dark" | "system">("light");
   const [motionMode, setMotionMode] = React.useState<"full" | "reduced" | "off">("full");
   const [density, setDensity] = React.useState<"comfortable" | "compact">("comfortable");
   const [corners, setCorners] = React.useState<"brand" | "rounded" | "square">("rounded");
@@ -287,12 +287,12 @@ export function StorePresetsView({ canEdit }: { canEdit: boolean }) {
             <select
               disabled={!canEdit}
               value={mode}
-              onChange={(e) => setMode(e.target.value as "light" | "dark" | "mixed")}
+              onChange={(e) => setMode(e.target.value as "light" | "dark" | "system")}
               className="it-field-sunken w-full font-mono text-xs py-1"
             >
               <option value="light">{sp.modeLight}</option>
               <option value="dark">{sp.modeDark}</option>
-              <option value="mixed">{sp.modeMixed}</option>
+              <option value="system">{sp.modeSystem}</option>
             </select>
           </div>
           <div className="space-y-1">

@@ -1645,7 +1645,7 @@
     "siteMode": "Default Surface Mode",
     "modeLight": "Light",
     "modeDark": "Dark",
-    "modeMixed": "Mixed",
+    "modeSystem": "System",
     "motionProfile": "Motion Profile",
     "motionFull": "Full (M3 Spatial Springs)",
     "motionReduced": "Reduced",

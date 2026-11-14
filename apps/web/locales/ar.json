@@ -22,7 +22,7 @@
     "themeModes": {
       "light": "فاتح",
       "dark": "داكن",
-      "mixed": "مختلط"
+      "system": "النظام"
     },
     "documentsAndDownloads": "المستندات والتنزيلات",
     "cancel": "إلغاء",

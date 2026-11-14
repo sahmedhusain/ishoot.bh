@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import type { Transition } from "framer-motion";
-import { Check, ChevronDown, Moon, Sparkles, Sun } from "lucide-react";
+import { Check, ChevronDown, Monitor, Moon, Sun } from "lucide-react";
 import { useSite } from "./SiteProvider";
 import { usePathname } from "next/navigation";
 import { getTranslations } from "@platform/locales";
 import {
+  SITE_MODES,
   resolveSiteMode,
   siteBaseTone,
   type SiteMode,
@@ -18,6 +19,7 @@ import {
 const ThemeContext = React.createContext<{
   design: WebsiteDesign;
   mode: SiteMode;
+  systemDark: boolean;
   setMode: (mode: SiteMode) => void;
 } | null>(null);
 export const useSiteTheme = () => React.useContext(ThemeContext);
@@ -52,30 +54,40 @@ export function SiteThemeProvider({
   design: WebsiteDesign;
   children: React.ReactNode;
 }) {
-  const [mode, setCurrentMode] = React.useState(design.defaultMode);
+  const [mode, setCurrentMode] = React.useState<SiteMode>(() =>
+    (design.defaultMode as string) === "mixed" ? "system" : design.defaultMode,
+  );
+  const [systemDark, setSystemDark] = React.useState(false);
   const apply = React.useCallback(
-    (next: SiteMode) => {
+    (next: SiteMode, isSystemDark: boolean) => {
       const root = document.documentElement;
+      const tone = siteBaseTone(design, next, isSystemDark);
       root.dataset.siteMode = next;
-      root.dataset.siteTone = siteBaseTone(design, next);
+      root.dataset.siteTone = tone;
       root.classList.remove("light", "dark");
-      root.classList.add(root.dataset.siteTone);
+      root.classList.add(tone);
     },
     [design],
   );
-  const availableModes = React.useMemo<SiteMode[]>(
-    () =>
-      design.allowedModes.includes("mixed")
-        ? ["light", "dark", "mixed"]
-        : ["light", "dark"],
-    [design.allowedModes],
-  );
+  const availableModes = React.useMemo<SiteMode[]>(() => {
+    const allowed = new Set(
+      design.allowedModes.map((m) =>
+        (m as string) === "mixed" ? "system" : m,
+      ),
+    );
+    const ordered = SITE_MODES.filter((m) => allowed.has(m));
+    return ordered.length ? ordered : ["light", "dark", "system"];
+  }, [design.allowedModes]);
   React.useEffect(() => {
     const system = window.matchMedia("(prefers-color-scheme: dark)");
     const sync = () => {
       let saved: string | null = null;
       try {
         saved = localStorage.getItem("site-mode");
+        if (saved === "mixed") {
+          saved = "system";
+          localStorage.setItem("site-mode", "system");
+        }
         const rawWebAppearance = JSON.parse(
           localStorage.getItem("platform_web_appearance") || "null",
         );
@@ -95,11 +107,9 @@ export function SiteThemeProvider({
           }
         }
       } catch {}
-      const next =
-        saved && availableModes.includes(saved as SiteMode)
-          ? (saved as SiteMode)
-          : resolveSiteMode(design, saved, system.matches);
-      apply(next);
+      const next = resolveSiteMode(design, saved, system.matches);
+      setSystemDark(system.matches);
+      apply(next, system.matches);
       setCurrentMode(next);
     };
     sync();
@@ -115,11 +125,13 @@ export function SiteThemeProvider({
     try {
       localStorage.setItem("site-mode", next);
     } catch {}
-    apply(next);
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setSystemDark(isDark);
+    apply(next, isDark);
     setCurrentMode(next);
   }
   return (
-    <ThemeContext.Provider value={{ design, mode, setMode }}>
+    <ThemeContext.Provider value={{ design, mode, systemDark, setMode }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -128,7 +140,7 @@ export function SiteThemeProvider({
 const MODE_ICONS: Record<SiteMode, typeof Sun> = {
   light: Sun,
   dark: Moon,
-  mixed: Sparkles,
+  system: Monitor,
 };
 
 export function SiteModeSwitch({
@@ -165,12 +177,15 @@ export function SiteModeSwitch({
 
   if (!theme) return null;
 
-  const modes: SiteMode[] = theme.design.allowedModes.includes("mixed")
-    ? ["light", "dark", "mixed"]
-    : ["light", "dark"];
+  const allowedSet = new Set(
+    theme.design.allowedModes.map((m) =>
+      (m as string) === "mixed" ? "system" : m,
+    ),
+  );
+  const modes: SiteMode[] = SITE_MODES.filter((m) => allowedSet.has(m));
   const t = getTranslations(locale as "en" | "ar");
   const names = t.common.themeModes;
-  const CurrentIcon = MODE_ICONS[theme.mode] ?? Sparkles;
+  const CurrentIcon = MODE_ICONS[theme.mode] ?? Monitor;
   const menuPosition =
     placement === "up" ? "bottom-full mb-2 end-0" : "top-full mt-2 end-0";
 
@@ -203,7 +218,7 @@ export function SiteModeSwitch({
           className={`absolute ${menuPosition} z-[95] min-w-44 rounded-xl border border-m3-outline-variant bg-m3-surface-container-high p-1.5 shadow-xl text-m3-on-surface`}
         >
           {modes.map((m) => {
-            const Icon = MODE_ICONS[m] ?? Sparkles;
+            const Icon = MODE_ICONS[m] ?? Monitor;
             const active = theme.mode === m;
             return (
               <button
@@ -278,13 +293,9 @@ export function SiteRegion({
   const actualTone: SiteTone =
     selected && selected !== "inherit"
       ? selected
-      : theme?.mode === "light"
-        ? "light"
-        : theme?.mode === "dark"
-          ? "dark"
-          : theme
-            ? siteBaseTone(theme.design, theme.mode)
-            : "dark";
+      : theme
+        ? siteBaseTone(theme.design, theme.mode, theme.systemDark)
+        : "dark";
   return (
     <ToneContext.Provider value={actualTone}>
       <Tag

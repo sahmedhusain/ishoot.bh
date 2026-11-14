@@ -1,6 +1,6 @@
 import { formatMessage, serverTemplates } from "@platform/locales";
 
-export const SITE_MODES = ["light", "dark", "mixed"] as const;
+export const SITE_MODES = ["light", "dark", "system"] as const;
 export type SiteMode = (typeof SITE_MODES)[number];
 export const SITE_TONES = ["inherit", "light", "dark"] as const;
 export type SiteTone = (typeof SITE_TONES)[number];
@@ -24,7 +24,7 @@ export interface WebsiteDesign {
   defaultMode: SiteMode;
   followSystem: boolean;
   visitorSwitching: boolean;
-  mixedBase: "light" | "dark";
+  mixedBase?: "light" | "dark";
   tones: Record<SiteRegion, SiteTone>;
   motion: "full" | "reduced" | "off";
   motionScheme?: "standard" | "expressive";
@@ -42,11 +42,10 @@ export function defaultWebsiteDesign(
 ): WebsiteDesign {
   return {
     version: 1,
-    allowedModes: ["light", "dark", "mixed"],
+    allowedModes: ["light", "dark", "system"],
     defaultMode: legacyMode,
     followSystem: false,
     visitorSwitching: false,
-    mixedBase: "light",
     tones: Object.fromEntries(
       SITE_REGIONS.map((region) => [region, "inherit"]),
     ) as WebsiteDesign["tones"],
@@ -62,6 +61,10 @@ export function defaultWebsiteDesign(
   };
 }
 
+function normalizeSiteModeValue(value: unknown): unknown {
+  return value === "mixed" ? "system" : value;
+}
+
 export function validateWebsiteDesign(value: unknown): WebsiteDesign {
   const fail = (): never => {
     throw new Error(formatMessage(serverTemplates.invalid0, { 0: "design" }));
@@ -69,16 +72,19 @@ export function validateWebsiteDesign(value: unknown): WebsiteDesign {
   if (!value || typeof value !== "object" || Array.isArray(value))
     return fail();
   const raw = value as WebsiteDesign;
+  const normalizedAllowed = Array.isArray(raw.allowedModes)
+    ? Array.from(new Set(raw.allowedModes.map((m) => normalizeSiteModeValue(m))))
+    : [];
+  const normalizedDefault = normalizeSiteModeValue(raw.defaultMode);
   if (
     raw.version !== 1 ||
     !Array.isArray(raw.allowedModes) ||
-    !raw.allowedModes.length ||
-    raw.allowedModes.some((mode) => !SITE_MODES.includes(mode)) ||
-    new Set(raw.allowedModes).size !== raw.allowedModes.length ||
-    !raw.allowedModes.includes(raw.defaultMode) ||
+    !normalizedAllowed.length ||
+    normalizedAllowed.some((mode) => !SITE_MODES.includes(mode as SiteMode)) ||
+    !normalizedAllowed.includes(normalizedDefault as SiteMode) ||
     typeof raw.followSystem !== "boolean" ||
     typeof raw.visitorSwitching !== "boolean" ||
-    !["light", "dark"].includes(raw.mixedBase) ||
+    (raw.mixedBase !== undefined && !["light", "dark"].includes(raw.mixedBase)) ||
     !["full", "reduced", "off"].includes(raw.motion) ||
     !["standard", "wide"].includes(raw.contentWidth) ||
     !["comfortable", "compact"].includes(raw.density) ||
@@ -96,11 +102,11 @@ export function validateWebsiteDesign(value: unknown): WebsiteDesign {
     return fail();
   return {
     version: 1,
-    allowedModes: [...raw.allowedModes],
-    defaultMode: raw.defaultMode,
+    allowedModes: normalizedAllowed as SiteMode[],
+    defaultMode: normalizedDefault as SiteMode,
     followSystem: raw.followSystem,
     visitorSwitching: raw.visitorSwitching,
-    mixedBase: raw.mixedBase,
+    ...(raw.mixedBase !== undefined ? { mixedBase: raw.mixedBase } : {}),
     tones: Object.fromEntries(
       SITE_REGIONS.map((region) => [region, raw.tones[region]]),
     ) as WebsiteDesign["tones"],
@@ -125,26 +131,38 @@ export function resolveSiteMode(
   visitor?: string | null,
   systemDark?: boolean,
 ): SiteMode {
+  const allowed = Array.from(
+    new Set(design.allowedModes.map((m) => normalizeSiteModeValue(m) as SiteMode)),
+  );
+  const normalizedVisitor = normalizeSiteModeValue(visitor);
   if (
     design.visitorSwitching &&
-    design.allowedModes.includes(visitor as SiteMode)
+    allowed.includes(normalizedVisitor as SiteMode)
   )
-    return visitor as SiteMode;
+    return normalizedVisitor as SiteMode;
+  const def = normalizeSiteModeValue(design.defaultMode) as SiteMode;
+  if (def === "system" && systemDark !== undefined) return "system";
   const system = systemDark ? "dark" : "light";
   return design.followSystem &&
     systemDark !== undefined &&
-    design.allowedModes.includes(system)
+    allowed.includes(system)
     ? system
-    : design.defaultMode;
+    : def;
 }
 
 export function siteBaseTone(
   design: WebsiteDesign,
   mode: SiteMode,
+  systemDark?: boolean,
 ): "light" | "dark" {
-  return mode === "mixed" ? design.mixedBase : mode;
+  const normalized = normalizeSiteModeValue(mode);
+  if (normalized === "system") {
+    if (systemDark !== undefined) return systemDark ? "dark" : "light";
+    return design.mixedBase === "dark" ? "dark" : "light";
+  }
+  return normalized as "light" | "dark";
 }
 
 export function siteThemeBootstrap(design: WebsiteDesign) {
-  return `(()=>{const d=${JSON.stringify(design)};let v;try{v=localStorage.getItem('site-mode')}catch{}const s=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const m=d.visitorSwitching&&d.allowedModes.includes(v)?v:d.followSystem&&d.allowedModes.includes(s)?s:d.defaultMode;const e=document.documentElement;e.dataset.siteMode=m;e.dataset.siteTone=m==='mixed'?d.mixedBase:m;e.classList.remove('light','dark');e.classList.add(e.dataset.siteTone)})()`;
+  return `(()=>{const d=${JSON.stringify(design)};let v;try{v=localStorage.getItem('site-mode')}catch{}if(v==='mixed')v='system';const a=[...new Set((d.allowedModes||[]).map(x=>x==='mixed'?'system':x))];const s=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const def=d.defaultMode==='mixed'?'system':d.defaultMode;const m=d.visitorSwitching&&a.includes(v)?v:def==='system'?'system':d.followSystem&&a.includes(s)?s:def;const t=m==='system'?s:m;const e=document.documentElement;e.dataset.siteMode=m;e.dataset.siteTone=t;e.classList.remove('light','dark');e.classList.add(t)})()`;
 }

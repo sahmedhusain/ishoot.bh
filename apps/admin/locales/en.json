@@ -8018,10 +8018,9 @@
         "summaryAddress": "Catalogue address",
         "design": {
           "title": "Website appearance and motion",
-          "hint": "Colors and fonts come from company branding. These settings publish with the website draft. Mixed mode enables independently themed regions.",
+          "hint": "Colors and fonts come from company branding. These settings publish with the website draft.",
           "allowedAppearances": "Allowed appearances",
           "defaultAppearance": "Default appearance",
-          "mixedBase": "Mixed appearance base",
           "followSystem": "Follow system appearance when allowed",
           "visitorSwitching": "Allow visitors to switch appearance",
           "motion": "Motion",
@@ -8037,12 +8036,12 @@
           "footerLayout": "Footer layout",
           "spacing": "Spacing",
           "comfortable": "Comfortable",
-          "mixedRegions": "Mixed appearance regions",
+          "sectionTones": "Section appearance overrides",
           "inherit": "Inherit",
           "modes": {
             "light": "Light",
             "dark": "Dark",
-            "mixed": "Mixed"
+            "system": "System"
           },
           "regions": {
             "header": "Header",
@@ -8455,7 +8454,7 @@
         "websiteDefault": "Website default",
         "categorySlug": "Category slug (empty shows all)",
         "catalogueCardStyle": "Catalogue card style",
-        "sectionToneMixed": "Section tone in mixed mode",
+        "sectionTone": "Section appearance tone",
         "toneInherit": "Inherit",
         "toneLight": "Light",
         "toneDark": "Dark",

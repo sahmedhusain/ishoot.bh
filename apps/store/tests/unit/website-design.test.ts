@@ -108,15 +108,22 @@ describe("website design and commerce snapshots", () => {
     };
     expect(resolveSiteMode(design, "dark", true)).toBe("light");
     expect(
-      resolveSiteMode({ ...design, visitorSwitching: true }, "mixed", true),
+      resolveSiteMode({ ...design, visitorSwitching: true }, "system", true),
     ).toBe("light");
+    expect(
+      resolveSiteMode(
+        { ...defaultWebsiteDesign(), visitorSwitching: true },
+        "system",
+        false,
+      ),
+    ).toBe("system");
     expect(
       resolveSiteMode(
         { ...defaultWebsiteDesign(), visitorSwitching: true },
         "mixed",
         false,
       ),
-    ).toBe("mixed");
+    ).toBe("system");
     expect(
       resolveSiteMode(
         { ...defaultWebsiteDesign(), followSystem: true },
@@ -124,9 +131,8 @@ describe("website design and commerce snapshots", () => {
         false,
       ),
     ).toBe("light");
-    expect(siteBaseTone({ ...design, mixedBase: "dark" }, "mixed")).toBe(
-      "dark",
-    );
+    expect(siteBaseTone(design, "system", true)).toBe("dark");
+    expect(siteBaseTone(design, "system", false)).toBe("light");
   });
   test.each([
     "defaultMode",
@@ -143,7 +149,7 @@ describe("website design and commerce snapshots", () => {
   test("the first-paint script and runtime choose the same mode, even when storage is unavailable", () => {
     for (const visitorSwitching of [false, true])
       for (const followSystem of [false, true])
-        for (const saved of ["light", "dark", "mixed", "invalid"]) {
+        for (const saved of ["light", "dark", "system", "mixed", "invalid"]) {
           const design = {
             ...defaultWebsiteDesign(),
             visitorSwitching,
@@ -180,7 +186,7 @@ describe("website design and commerce snapshots", () => {
   test("scoped palettes expose semantic foregrounds, native scheme and both logos", () => {
     const css = websiteThemeStylesheet(DEFAULT_THEME);
     expect(css).toContain(
-      'html[data-site-mode="mixed"] [data-site-tone="light"]',
+      'html[data-site-mode] [data-site-tone="light"]',
     );
     expect(css).toContain("--site-logo-dark:none");
     expect(css).toContain("color-scheme:dark");

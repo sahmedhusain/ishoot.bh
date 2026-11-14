@@ -92,21 +92,6 @@ export function WebsiteDesignFields({
             ))}
           </Select>
         </label>
-        <label className="space-y-1 text-sm">
-          <span>{copy.mixedBase}</span>
-          <Select
-            value={design.mixedBase}
-            onChange={(e) =>
-              set({ mixedBase: e.target.value as WebsiteDesign["mixedBase"] })
-            }
-          >
-            {["light", "dark"].map((mode) => (
-              <option key={mode} value={mode}>
-                {modes[mode as "light" | "dark"]}
-              </option>
-            ))}
-          </Select>
-        </label>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -198,7 +183,7 @@ export function WebsiteDesignFields({
       </div>
       <details>
         <summary className="cursor-pointer text-sm font-medium py-2">
-          {copy.mixedRegions}
+          {copy.sectionTones}
         </summary>
         <div className="grid gap-3 sm:grid-cols-2 mt-3">
           {SITE_REGIONS.map((region) => (

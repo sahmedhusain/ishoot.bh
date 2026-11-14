@@ -1271,7 +1271,7 @@ export function themeStylesheet(input: BrandTheme) {
 export function websiteThemeStylesheet(input: BrandTheme) {
   const { light, dark } = themeVariables(normalizeTheme(input));
   return (["light", "dark"] as const).map(mode => block(
-    `:root[data-site-tone="${mode}"],html[data-site-mode="mixed"] [data-site-tone="${mode}"]`,
+    `:root[data-site-tone="${mode}"],html[data-site-mode] [data-site-tone="${mode}"]`,
     {
       ...(mode === "light" ? light : dark),
       "--brand-bg-base": "var(--m3-color-surface)",

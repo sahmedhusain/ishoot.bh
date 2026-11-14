@@ -100,7 +100,7 @@ export interface StoreActivityPreset {
   layoutRecipe: StoreLayoutRecipe;
   primaryColor: string;
   accentColor: string;
-  defaultMode: "light" | "dark" | "mixed";
+  defaultMode: "light" | "dark" | "system";
   motion: "full" | "reduced" | "off";
   capabilities: Partial<WebsiteCommerce["capabilities"]>;
 }

@@ -393,7 +393,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug, activi
                     <button type="button" aria-label={copy.remove} onClick={() => setBlocks((blocks) => blocks.filter((b) => b.id !== block.id))} className="p-1.5 rounded-md text-rose-600 hover:bg-rose-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
                   )}
                 </div>
-                {open === block.id && <div className="border-t border-outline-variant p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150"><label className="sm:col-span-2 space-y-1 text-sm"><span>{copy.fields.sectionToneMixed}</span><Select value={block.tone ?? "inherit"} disabled={locked} onChange={e => setBlocks(blocks => blocks.map(b => b.id === block.id ? { ...b, tone: e.target.value as "inherit" | "light" | "dark" } : b))}><option value="inherit">{copy.fields.toneInherit}</option><option value="light">{copy.fields.toneLight}</option><option value="dark">{copy.fields.toneDark}</option></Select></label>{editor(block)}</div>}
+                {open === block.id && <div className="border-t border-outline-variant p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150"><label className="sm:col-span-2 space-y-1 text-sm"><span>{copy.fields.sectionTone}</span><Select value={block.tone ?? "inherit"} disabled={locked} onChange={e => setBlocks(blocks => blocks.map(b => b.id === block.id ? { ...b, tone: e.target.value as "inherit" | "light" | "dark" } : b))}><option value="inherit">{copy.fields.toneInherit}</option><option value="light">{copy.fields.toneLight}</option><option value="dark">{copy.fields.toneDark}</option></Select></label>{editor(block)}</div>}
               </Card>
             </li>
           );

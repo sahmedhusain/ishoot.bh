@@ -110,9 +110,9 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
     await design.getByRole("combobox", { name, exact: true }).click();
     await page.getByRole("option", { name: value, exact: true }).click();
   };
-  await select("Default appearance", "Mixed");
+  await select("Default appearance", "System");
   await design.getByLabel("Allow visitors to switch appearance").check();
-  await design.getByText("Mixed appearance regions", { exact: true }).click();
+  await design.getByText("Section appearance overrides", { exact: true }).click();
   await select("Header", "Dark");
   await select("Footer", "Dark");
   await select("Contact", "Light");
@@ -124,7 +124,7 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   const saved = await db.websiteContent.findUniqueOrThrow({
     where: { id: "main" },
   });
-  expect((saved.draft as any).design.defaultMode).toBe("mixed");
+  expect((saved.draft as any).design.defaultMode).toBe("system");
   expect((saved.published as any).config.design).toEqual(
     (original.published as any).config.design,
   );
@@ -138,7 +138,7 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   await previewPage.goto(preview!);
   await expect(previewPage.locator("html")).toHaveAttribute(
     "data-site-mode",
-    "mixed",
+    "system",
   );
   await previewPage.close();
   await page
@@ -157,7 +157,7 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   await publicPage.goto("http://localhost:3013/en/contact");
   await expect(publicPage.locator("html")).toHaveAttribute(
     "data-site-mode",
-    "mixed",
+    "system",
   );
   await expect(
     publicPage.locator('[data-site-region="header"]'),
@@ -169,14 +169,14 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   await publicPage.reload();
   await expect(publicPage.locator("html")).toHaveAttribute(
     "data-site-mode",
-    "mixed",
+    "system",
   );
   const originalMode =
     (original.published as any)?.config?.design?.defaultMode ??
     (original.published as any)?.brandTheme?.websiteMode ??
     (originalBrand.theme as any)?.websiteMode ??
     "dark";
-  for (const expectedMode of [originalMode, "mixed"]) {
+  for (const expectedMode of [originalMode, "system"]) {
     await page.reload();
     const current = await db.websiteContent.findUniqueOrThrow({
       where: { id: "main" },
@@ -206,7 +206,7 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
     expect(
       (await db.websiteContent.findUniqueOrThrow({ where: { id: "main" } }))
         .draft as any,
-    ).toMatchObject({ design: { defaultMode: "mixed" } });
+    ).toMatchObject({ design: { defaultMode: "system" } });
   }
   await publicPage.close();
 });
@@ -236,7 +236,7 @@ test("both languages and all tones fit compact, tablet and wide windows without 
       for (const [mode, label] of [
         ["light", locale === "ar" ? "فاتح" : "Light"],
         ["dark", locale === "ar" ? "داكن" : "Dark"],
-        ["mixed", locale === "ar" ? "مختلط" : "Mixed"],
+        ["system", locale === "ar" ? "النظام" : "System"],
       ]) {
         await page
           .locator("footer")
@@ -264,7 +264,7 @@ test("both languages and all tones fit compact, tablet and wide windows without 
     }
 });
 
-test("saved mixed appearance scopes regions before hydration", async ({
+test("saved system appearance scopes regions before hydration", async ({
   browser,
   request,
 }) => {
@@ -285,10 +285,10 @@ test("saved mixed appearance scopes regions before hydration", async ({
   await invalidate(request);
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.addInitScript(() => localStorage.setItem("site-mode", "mixed"));
+  await page.addInitScript(() => localStorage.setItem("site-mode", "system"));
   await page.route("**/_next/**/*.js", (route) => route.abort());
   await page.goto("/en/contact");
-  await expect(page.locator("html")).toHaveAttribute("data-site-mode", "mixed");
+  await expect(page.locator("html")).toHaveAttribute("data-site-mode", "system");
   expect(
     await page
       .locator('[data-site-region="header"]')
@@ -829,10 +829,9 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
   publication.config.design = {
     ...defaultWebsiteDesign(),
     ...publication.config.design,
-    defaultMode: "mixed",
-    allowedModes: ["light", "dark", "mixed"],
+    defaultMode: "system",
+    allowedModes: ["light", "dark", "system"],
     visitorSwitching: true,
-    mixedBase: "dark",
     tones: {
       ...(publication.config.design?.tones ?? defaultWebsiteDesign().tones),
       collection: "light",
