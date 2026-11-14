@@ -41,8 +41,8 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
               <Truck className="h-5 w-5 text-m3-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-m3-on-surface">Express Delivery</h3>
-              <p className="text-[11px] text-m3-on-surface-variant">Fast courier shipping to your door</p>
+              <h3 className="text-xs font-bold text-m3-on-surface">{t.store.expressDelivery}</h3>
+              <p className="text-[11px] text-m3-on-surface-variant">{t.store.expressDeliverySub}</p>
             </div>
           </div>
 
@@ -51,8 +51,8 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
               <Store className="h-5 w-5 text-m3-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-m3-on-surface">Branch Pickup</h3>
-              <p className="text-[11px] text-m3-on-surface-variant">Ready in 1 hour at our branches</p>
+              <h3 className="text-xs font-bold text-m3-on-surface">{t.store.branchPickupHome}</h3>
+              <p className="text-[11px] text-m3-on-surface-variant">{t.store.branchPickupHomeSub}</p>
             </div>
           </div>
 
@@ -61,8 +61,8 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
               <Tag className="h-5 w-5 text-m3-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-m3-on-surface">Best Store Deals</h3>
-              <p className="text-[11px] text-m3-on-surface-variant">Direct pricing & verified coupons</p>
+              <h3 className="text-xs font-bold text-m3-on-surface">{t.store.bestDeals}</h3>
+              <p className="text-[11px] text-m3-on-surface-variant">{t.store.bestDealsSub}</p>
             </div>
           </div>
 
@@ -71,8 +71,8 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
               <ShieldCheck className="h-5 w-5 text-m3-primary" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-m3-on-surface">100% Guaranteed</h3>
-              <p className="text-[11px] text-m3-on-surface-variant">Original products & warranty</p>
+              <h3 className="text-xs font-bold text-m3-on-surface">{t.store.guaranteed}</h3>
+              <p className="text-[11px] text-m3-on-surface-variant">{t.store.guaranteedSub}</p>
             </div>
           </div>
         </section>
@@ -86,7 +86,7 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
                   {t.store.categoriesTitle}
                 </h2>
                 <p className="text-xs text-m3-on-surface-variant">
-                  Browse products by store collection
+                  {t.store.browseByCollection}
                 </p>
               </div>
               <Link
@@ -127,7 +127,7 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
                 {t.store.allProducts}
               </h2>
               <p className="text-xs text-m3-on-surface-variant">
-                Top selling items available for instant delivery or local pickup
+                {t.store.topSellingSubtitle}
               </p>
             </div>
           </div>

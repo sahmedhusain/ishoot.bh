@@ -44,7 +44,7 @@ export function Navbar({ company }: NavbarProps) {
             <div className="flex items-center gap-4 truncate">
               <span className="inline-flex items-center gap-1.5 font-medium">
                 <Truck className="h-3.5 w-3.5 text-m3-primary" aria-hidden="true" />
-                {t("store.fastDeliveryNotice", { defaultValue: "Express Shipping & Local Pickup Available" })}
+                {t("store.fastDeliveryNotice")}
               </span>
               {company.phone && (
                 <a
@@ -82,7 +82,7 @@ export function Navbar({ company }: NavbarProps) {
               type="search"
               name="q"
               aria-label={t("store.searchCatalogue")}
-              placeholder={t("store.searchPlaceholder", { defaultValue: "Search products, categories, SKUs..." })}
+              placeholder={t("store.searchPlaceholder")}
               className="w-full h-11 rounded-full bg-m3-surface-container-low border border-m3-outline-variant px-4 ps-11 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant transition-all focus:outline-none focus:border-m3-primary focus:bg-m3-surface-container-lowest focus:ring-2 focus:ring-m3-primary/20"
             />
             <Search className="h-4 w-4 absolute start-4 text-m3-on-surface-variant pointer-events-none" aria-hidden="true" />

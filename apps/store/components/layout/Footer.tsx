@@ -54,8 +54,8 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
                 <Truck className="h-5 w-5 text-m3-primary" aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.fastDelivery", { defaultValue: "Fast Delivery" })}</h4>
-                <p className="text-[11px] text-m3-on-surface-variant">{t("store.fastDeliverySub", { defaultValue: "Express courier to your door" })}</p>
+                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.fastDelivery")}</h4>
+                <p className="text-[11px] text-m3-on-surface-variant">{t("store.fastDeliverySub")}</p>
               </div>
             </div>
 
@@ -64,8 +64,8 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
                 <Store className="h-5 w-5 text-m3-primary" aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.branchPickup", { defaultValue: "Store Pickup" })}</h4>
-                <p className="text-[11px] text-m3-on-surface-variant">{t("store.branchPickupSub", { defaultValue: "Ready in 1 hour at branches" })}</p>
+                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.branchPickup")}</h4>
+                <p className="text-[11px] text-m3-on-surface-variant">{t("store.branchPickupSub")}</p>
               </div>
             </div>
 
@@ -74,8 +74,8 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
                 <ShieldCheck className="h-5 w-5 text-m3-primary" aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.securePayment", { defaultValue: "100% Secure" })}</h4>
-                <p className="text-[11px] text-m3-on-surface-variant">{t("store.securePaymentSub", { defaultValue: "Encrypted checkout gateways" })}</p>
+                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.securePayment")}</h4>
+                <p className="text-[11px] text-m3-on-surface-variant">{t("store.securePaymentSub")}</p>
               </div>
             </div>
 
@@ -84,8 +84,8 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
                 <RotateCcw className="h-5 w-5 text-m3-primary" aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.easyReturns", { defaultValue: "Easy Returns" })}</h4>
-                <p className="text-[11px] text-m3-on-surface-variant">{t("store.easyReturnsSub", { defaultValue: "Hassle-free exchange policy" })}</p>
+                <h4 className="text-xs font-bold text-m3-on-surface">{t("store.easyReturns")}</h4>
+                <p className="text-[11px] text-m3-on-surface-variant">{t("store.easyReturnsSub")}</p>
               </div>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
             {/* Shop Links */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface">
-                {t("store.shopping", { defaultValue: "Shopping" })}
+                {t("store.shopping")}
               </h3>
               <ul className="space-y-2 text-xs text-m3-on-surface-variant">
                 <li>
@@ -173,7 +173,7 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
             {/* Contact & Social */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-m3-on-surface">
-                {t("store.support", { defaultValue: "Customer Support" })}
+                {t("store.support")}
               </h3>
               <ul className="space-y-2 text-xs text-m3-on-surface-variant">
                 {company.phone && (
@@ -230,7 +230,7 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
 
             <div className="flex items-center gap-2 text-m3-on-surface-variant">
               <CreditCard className="h-4 w-4 text-m3-primary" aria-hidden="true" />
-              <span className="text-[11px] font-medium">{t("store.acceptedPayments", { defaultValue: "Visa · Mastercard · BenefitPay · Apple Pay · COD" })}</span>
+              <span className="text-[11px] font-medium">{t("store.acceptedPayments")}</span>
             </div>
           </div>
         </div>

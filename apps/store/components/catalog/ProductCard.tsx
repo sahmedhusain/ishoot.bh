@@ -67,7 +67,7 @@ export function ProductCard({ item, horizontal = false }: ProductCardProps) {
           {/* Wishlist Link */}
           <Link
             href={`/${locale}/account?next=${encodeURIComponent(`/${locale}/products/${item.slug}`)}`}
-            aria-label={t("account.saveToWishlist", { defaultValue: "Save to Wishlist" })}
+            aria-label={t("account.saveToWishlist")}
             className="absolute top-3 end-3 z-20 h-9 w-9 rounded-full bg-m3-surface-container-lowest/90 backdrop-blur-sm grid place-items-center text-m3-on-surface hover:text-m3-primary transition-colors shadow-sm pointer-events-auto"
           >
             <Heart className="h-4 w-4" aria-hidden="true" />
@@ -120,7 +120,7 @@ export function ProductCard({ item, horizontal = false }: ProductCardProps) {
                 </span>
               ) : (
                 <span className="text-xs text-m3-on-surface-variant font-medium">
-                  {t("store.contactForPrice", { defaultValue: "Price on request" })}
+                  {t("store.contactForPrice")}
                 </span>
               )}
             </div>
@@ -138,12 +138,12 @@ export function ProductCard({ item, horizontal = false }: ProductCardProps) {
               {added || isInCart ? (
                 <>
                   <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t("store.added", { defaultValue: "Added" })}</span>
+                  <span>{t("store.addedShort")}</span>
                 </>
               ) : (
                 <>
                   <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t("store.add", { defaultValue: "Add" })}</span>
+                  <span>{t("store.add")}</span>
                 </>
               )}
             </button>
