@@ -46,6 +46,7 @@ export function ProductCard({ item, horizontal = false }: ProductCardProps) {
         horizontal ? "sm:flex-row" : ""
       }`}
       data-testid={`product-card-${item.slug}`}
+      data-product-id={item.id}
     >
       <Link
         href={`/${locale}/products/${item.slug}`}

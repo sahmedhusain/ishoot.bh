@@ -19,9 +19,9 @@ export default async function CollectionPage({
   const [{ website, config, info }, isPreview, t, query] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale), searchParams]);
   if (!website) notFound();
   if (collection === info.articles.slug && collection !== info.collection.slug)
-    return <ArticlesIndex articles={liveArticles(website.articles)} locale={locale} base={`/${locale}/${info.articles.slug}`} query={query} />;
+    return <ArticlesIndex articles={liveArticles(website.articles ?? [])} locale={locale} base={`/${locale}/${info.articles.slug}`} query={query} />;
   if (collection !== info.collection.slug) {
-    const page = findPage(website.pages, { slug: collection }, isPreview);
+    const page = findPage(website.pages ?? [], { slug: collection }, isPreview);
     if (page) return <CmsPageView page={page} locale={locale} />;
   }
   if (collection !== info.collection.slug) {
@@ -34,7 +34,7 @@ export default async function CollectionPage({
     notFound();
   }
 
-  const items = website.portfolio;
+  const items = website.portfolio ?? [];
   const categories = website.categories ?? Array.from(
     new Map(
       items

@@ -51,14 +51,6 @@ export default async function RootLayout({
       className={theme.defaultMode === "light" ? "light" : "dark"}
     >
       <head>
-        <Script
-          id="admin-theme-bootstrap"
-          strategy="beforeInteractive"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: appearanceBootstrapScript() + `try{var m=localStorage.getItem("platform_admin_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
-          }}
-        />
         {fontsHref ? (
           <>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -77,6 +69,14 @@ export default async function RootLayout({
         />
       </head>
       <body data-admin-app className="min-h-screen bg-surface text-ink antialiased font-sans selection:bg-secondary-container selection:text-on-secondary-container transition-colors duration-base ease-standard">
+        <Script
+          id="admin-theme-bootstrap"
+          strategy="beforeInteractive"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: appearanceBootstrapScript() + `try{var m=localStorage.getItem("platform_admin_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
+          }}
+        />
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
           <AdminLocaleProvider activity={company?.business_activity} initialLocale={initialLocale} initialTranslations={initialTranslations}>
             <CompanyCurrencyProvider currency={company?.default_currency}><PhoneCountryProvider country={company?.country}><ConfirmationProvider>

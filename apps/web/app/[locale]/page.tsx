@@ -34,38 +34,44 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!snapshot) return null;
   const page = findPage(snapshot.pages, { type: "home" }, preview);
   if (page === null) notFound();
-  if (page) return <CmsPageView page={page} locale={locale} />;
+  if (page && page.blocks.length > 0) return <CmsPageView page={page} locale={locale} />;
   const website = snapshot;
-  const catalogueItems = website.portfolio;
+  const catalogueItems = website.portfolio ?? [];
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
-  const heroStyle = info.heroStyle === "cinematic" && !website.banners.length ? "centered" : info.heroStyle;
+  const banners = website.banners ?? [];
+  const heroStyle = info.heroStyle === "cinematic" && !banners.length ? "centered" : info.heroStyle;
+  const config = website.config ?? {
+    aboutImageUrl: undefined,
+    pillars: [],
+    sections: [],
+  };
   const components: Record<WebsiteSection, React.ReactNode> = {
     about: (
       <>
-        <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />
-        <PillarsOfCraft pillars={website.config.pillars} />
+        <AboutSection imageUrl={config.aboutImageUrl} clientLogos={website.clients ?? []} company={company} />
+        <PillarsOfCraft pillars={config.pillars ?? []} />
       </>
     ),
-    clients: <LogoMarquee logos={website.clients} />,
-    services: <ServicesSection services={website.services} />,
-    portfolio: <WorksSection items={catalogueItems} categories={website.categories} />,
-    stats: <StatsSection stats={website.stats} />,
-    reviews: <ReviewsSection reviews={reviews} />,
-    faq: <FAQSection faqs={website.faqs} />,
+    clients: <LogoMarquee logos={website.clients ?? []} />,
+    services: <ServicesSection services={website.services ?? []} />,
+    portfolio: <WorksSection items={catalogueItems} categories={website.categories ?? []} />,
+    stats: <StatsSection stats={website.stats ?? []} />,
+    reviews: <ReviewsSection reviews={reviews ?? []} />,
+    faq: <FAQSection faqs={website.faqs ?? []} />,
     cta: null,
   };
-  const sections = website.config.sections
+  const sections = (config.sections ?? [])
     .filter((section) => section.visible && section.id !== "cta");
-  const showCtaBanner = website.config.sections.find((s) => s.id === "cta")?.visible ?? true;
+  const showCtaBanner = config.sections?.find((s) => s.id === "cta")?.visible ?? true;
   return (
     <div className="home-page flex flex-col w-full">
       {heroStyle === "cinematic" ? (
-        <ShowcaseHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
+        <ShowcaseHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
       ) : heroStyle === "split" ? (
-        <SplitHero banners={website.banners} title={name} subtitle={tagline} />
+        <SplitHero banners={banners} title={name} subtitle={tagline} />
       ) : (
-        <CenteredHero banners={website.banners} title={name} subtitle={tagline} />
+        <CenteredHero banners={banners} title={name} subtitle={tagline} />
       )}
       {sections.map((section) => (
         <div key={section.id} data-reveal={REVEAL_SECTIONS.includes(section.id) ? "" : undefined}>

@@ -39,7 +39,7 @@ export function CartView({ locale, currency, shopHref, fulfilments }: { locale: 
   }, [fulfilments.delivery, fulfilments.pickup]);
   const { quote, loading, failed, retry } = useQuote(lines, appliedCoupon, fulfilment);
   const name = (l: { nameEn: string; nameAr: string; variantEn: string; variantAr: string }) => [locale === "ar" ? l.nameAr || l.nameEn : l.nameEn, locale === "ar" ? l.variantAr : l.variantEn].filter(Boolean).join(" · ");
-  const setQuantity = (productId: string, variantKey: string, quantity: number) => writeCart(lines.map((l) => (l.productId === productId && (l.variantId ?? "") === variantKey ? { ...l, quantity } : l)).filter((l) => l.quantity > 0));
+  const setQuantity = (productId: string, variantKey: string, quantity: number) => writeCart(lines.map((l) => (l.productId === productId && ((l.variantId ?? "") === variantKey || !l.variantId) ? { ...l, quantity } : l)).filter((l) => l.quantity > 0));
   const blocked = loading || !quote?.lines.length || (quote?.problems.length ?? 0) > 0;
   const couponProblem = quote?.problems.find((p) => p.problem.startsWith("coupon"));
 

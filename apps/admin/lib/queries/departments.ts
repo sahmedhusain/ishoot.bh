@@ -84,7 +84,7 @@ export async function saveDepartment(input: DepartmentInput) {
     nameAr: input.name_ar,
     parentId: input.parent_id || null,
     headId: input.manager_id || null,
-  }, "service-token");
+  });
 }
 
 export async function deleteDepartment(id: string) {

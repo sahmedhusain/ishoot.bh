@@ -40,13 +40,6 @@ export default async function RootLayout({
       className={theme.defaultMode === "dark" ? "dark" : "light"}
     >
       <head>
-        <Script
-          id="it-theme-bootstrap"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `try{var m=localStorage.getItem("platform_it_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
-          }}
-        />
         {fontsHref ? <link rel="stylesheet" href={fontsHref} /> : null}
         <style
           id="company-theme"
@@ -54,6 +47,13 @@ export default async function RootLayout({
         />
       </head>
       <body className="it-app-body min-h-screen antialiased bg-[#f4f6f8] dark:bg-[#0b1320] text-slate-900 dark:text-slate-100 font-sans">
+        <Script
+          id="it-theme-bootstrap"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `try{var m=localStorage.getItem("platform_it_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
+          }}
+        />
         <CopyProvider copy={copy} locale="en">
           <CurrencyLocaleProvider value="en">
             <ConfirmationProvider><TelemetryMonitor />{children}</ConfirmationProvider>

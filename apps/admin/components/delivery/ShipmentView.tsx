@@ -35,7 +35,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
   const assignable = dispatchable && !bookingBlocked;
   const driverName = (d: DriverOption) => (locale === "ar" ? d.name_ar : d.name_en);
   const [handover, setHandover] = React.useState({ agencyId: shipment.courier_booking_agency?.id ?? shipment.agency?.id ?? agencies[0]?.id ?? "", trackingNumber: "", fee: "", weightKg: "", lengthCm: "", widthCm: "", heightCm: "" });
-  const money = (value: number) => formatCurrencyValue(value, shipment.order.currency, locale === "ar");
+  const money = (value: number) => formatCurrencyValue(value, shipment.order?.currency ?? currency, locale === "ar");
   const next = bookingBlocked ? [] : SHIPMENT_TRANSITIONS[shipment.status as ShipmentStatus] ?? [];
   const selectedAgency = agencies.find(agency => agency.id === handover.agencyId);
   const automaticBooking = dispatchable && !!selectedAgency && selectedAgency.kind !== "manual" && !handover.trackingNumber.trim();
@@ -99,8 +99,8 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <PageHeader
         title={<><span dir="ltr" className="break-all">{shipment.number}</span><ShipmentStatusPill status={shipment.status} />{shipment.late && <LatePill />}</>}
-        description={<><Link href={ROUTES.orders.detail(shipment.order.id)} className="hover:text-accent">{formatMessage(copy.order, { number: shipment.order.number })}</Link>
-            {" · "}
+        description={<>{shipment.order ? <Link href={ROUTES.orders.detail(shipment.order.id)} className="hover:text-accent">{formatMessage(copy.order, { number: shipment.order.number })}</Link> : (shipment.order_id ? <span className="font-mono text-xs">{shipment.order_id}</span> : null)}
+            {shipment.order || shipment.order_id ? " · " : ""}
             {(t.delivery.methods as Record<string, string>)[shipment.method]}
             {" · "}
             {formatMessage(copy.attempts, { count: shipment.attempts })}</>}
@@ -240,7 +240,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.items}</h2>
         <ul className="divide-y divide-outline-variant text-sm">
-          {shipment.order.lines.map((l, index) => (
+          {(shipment.order?.lines ?? []).map((l, index) => (
             <li key={index} className="flex justify-between gap-3 py-2"><span>{l.description} <span className="font-mono text-xs text-ink-muted" dir="ltr">{l.sku}</span></span><span className="tabular-nums">× {l.quantity}</span></li>
           ))}
         </ul>

@@ -29,11 +29,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
   return (
     <div className="w-full flex flex-col">
-      <CEOHero company={company} imageUrl={website.config.aboutImageUrl} />
+      <CEOHero company={company} imageUrl={website?.config?.aboutImageUrl} />
 
-      <PillarsOfCraft pillars={website.config.pillars} />
+      <PillarsOfCraft pillars={website?.config?.pillars ?? []} />
 
-      <StatsSection stats={website.stats} />
+      <StatsSection stats={website?.stats ?? []} />
 
       {config.showEquipment ? <EquipmentGrid equipment={equipment} /> : null}
     </div>

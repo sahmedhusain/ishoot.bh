@@ -37,9 +37,11 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
 
     const account = JSON.parse(fs.readFileSync(accountFile, "utf8")) as {
       email: string;
+      username?: string;
       password: string;
       secret: string;
     };
+    const rootUsername = account.username || account.email.split("@")[0];
 
     await page.goto("/login");
     const usernameInput = page.locator('input[name="username"]');
@@ -47,7 +49,7 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
     await expect(usernameInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
 
-    await usernameInput.fill(account.email);
+    await usernameInput.fill(rootUsername);
     await passwordInput.fill(account.password);
     await page.locator('button[type="submit"]').click();
 
@@ -74,13 +76,14 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
     });
     expect(created.subjectId).toBeTruthy();
 
+    const tempUsername = tempEmail.split("@")[0];
     const guest = await browser.newContext({
       baseURL: baseURL || "http://localhost:3002",
     });
     try {
       const other = await guest.newPage();
       await other.goto("/login");
-      await other.locator('input[name="username"]').fill(tempEmail);
+      await other.locator('input[name="username"]').fill(tempUsername);
       await other.locator('input[name="password"]').fill(tempPassword);
       await other.locator('button[type="submit"]').click();
 

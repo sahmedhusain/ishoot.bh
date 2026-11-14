@@ -1,5 +1,5 @@
 import { ProductCard } from "../../../../components/catalog/ProductCard";
-import { catalogueProductPrices, storeProductForItem } from "@platform/database/queries/store";
+import { catalogueProductPrices, getStoreCatalog, storeProductForItem } from "@platform/database/queries/store";
 import { ContentImage } from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
 import { notFound } from "next/navigation";
@@ -21,7 +21,8 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const { website } = await getSite();
   if (!website) return {};
-  const item = website.portfolio.find((project) => project.slug === slug);
+  const { items: catalogItems } = await getStoreCatalog(website.portfolio ?? [], website.categories ?? []);
+  const item = catalogItems.find((project) => project.slug === slug || project.id === slug);
   if (!item) return {};
   const title = pickText(item.title_en, item.title_ar, locale);
   const description =
@@ -45,10 +46,13 @@ export default async function ProductDetailPage({
   if (!website) notFound();
 
   const isRTL = locale === "ar";
-  const item = website.portfolio.find((project) => project.slug === slug);
+  const storeOn = await storeEnabled().catch(() => false);
+  const { items: catalogItems } = storeOn
+    ? await getStoreCatalog(website.portfolio ?? [], website.categories ?? [])
+    : { items: website.portfolio ?? [] };
+  const item = catalogItems.find((project) => project.slug === slug || project.id === slug);
   if (!item) notFound();
 
-  const storeOn = await storeEnabled().catch(() => false);
   const customer =
     storeOn && config.commerce.capabilities.accounts && config.commerce.capabilities.wishlist
       ? { signedIn: true, profile: await currentCustomer() }
@@ -77,7 +81,7 @@ export default async function ProductDetailPage({
   const relatedItems =
     config.commerce.relatedItems === false
       ? []
-      : website.portfolio
+      : catalogItems
           .filter((entry) => entry.id !== item.id && (!item.category_id || entry.category_id === item.category_id))
           .slice(0, 3);
   const relatedPrices =

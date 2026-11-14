@@ -16,12 +16,12 @@ test.describe("Admin Architecture, Auth & Go Gateway API", () => {
     const submitButton = page.locator('button[type="submit"]:visible');
 
     await expect(usernameField).toBeVisible();
-    await usernameField.fill(admin.email);
+    await usernameField.fill(admin.username);
     await passwordField.fill("WrongPass123!");
     await submitButton.click();
     await expect(page.locator('[role="alert"]#login-error:visible')).toBeVisible();
 
-    await usernameField.fill(admin.email);
+    await usernameField.fill(admin.username);
     await passwordField.fill(admin.password);
     await submitButton.click();
     await expect(page).not.toHaveURL(/\/login/);

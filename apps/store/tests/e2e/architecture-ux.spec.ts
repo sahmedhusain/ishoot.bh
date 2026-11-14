@@ -110,11 +110,15 @@ test.describe("Store Architecture & UX", () => {
     const initialCountText = await resultsCount.innerText();
     expect(initialCountText).toMatch(/\d+/);
 
+    const firstCardTitle = await page.locator('[data-testid^="product-card-"] h3').first().innerText();
+    const searchQuery = firstCardTitle.trim().split(/\s+/)[0] || "POS";
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
     const searchInput = page.locator('#main-content input[type="search"]');
     await expect(searchInput).toBeVisible();
-    await searchInput.fill("ARRI");
+    await searchInput.fill(searchQuery);
     await searchInput.press("Enter");
-    await expect(page).toHaveURL(/[?&]q=ARRI/);
+    await expect(page).toHaveURL(new RegExp(`[?&]q=${escapedQuery}`));
     await expect(resultsCount).toContainText(/\d+/);
 
     const sortCombo = page.getByRole("combobox", { name: /sort by/i });
@@ -130,10 +134,10 @@ test.describe("Store Architecture & UX", () => {
       await expect(categoryButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
     }
 
-    const clearBtn = page.locator('[data-testid="product-grid"]').getByRole("button", { name: /clear/i });
+    const clearBtn = page.locator('[data-testid="product-grid"]').getByRole("button", { name: /clear/i }).first();
     await expect(clearBtn).toBeVisible();
     await clearBtn.click();
-    await expect(page).not.toHaveURL(/[?&]q=ARRI/);
+    await expect(page).not.toHaveURL(new RegExp(`[?&]q=${escapedQuery}`));
 
     const addCartBtn = page.locator('button[aria-label="Add to cart"]').first();
     await expect(addCartBtn).toBeVisible();
@@ -144,9 +148,14 @@ test.describe("Store Architecture & UX", () => {
     await expect(page.locator('[data-testid="cart-lines"] li').first()).toBeVisible();
   });
 
-  test("validates GET /api/health and POST /api/store/quote", async ({ request, baseURL }) => {
+  test("validates GET /api/health and POST /api/store/quote", async ({ page, request, baseURL }) => {
     const healthRes = await request.get("/api/health");
     expect(healthRes.status()).toBe(200);
+
+    await page.goto("/en");
+    const firstProductId =
+      (await page.locator('[data-testid^="product-card-"]').first().getAttribute("data-product-id")) ||
+      "prod-1";
 
     const origin = baseURL || "http://localhost:3003";
     const emptyQuoteRes = await request.post("/api/store/quote", {
@@ -167,7 +176,7 @@ test.describe("Store Architecture & UX", () => {
         "Content-Type": "application/json",
       },
       data: {
-        lines: [{ productId: "prod-cam-alx-35", quantity: 1 }],
+        lines: [{ productId: firstProductId, quantity: 1 }],
         fulfilment: "delivery",
       },
     });
@@ -177,7 +186,7 @@ test.describe("Store Architecture & UX", () => {
       problems: unknown[];
     };
     expect(stockedQuote.lines).toHaveLength(1);
-    expect(stockedQuote.lines[0].productId).toBe("prod-cam-alx-35");
+    expect(stockedQuote.lines[0].productId).toBe(firstProductId);
     expect(stockedQuote.problems).toHaveLength(0);
   });
 });

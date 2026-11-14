@@ -26,12 +26,14 @@ import {
 } from "../api/commerce";
 import { createInvoice } from "../api/finance";
 import {
+  listCategories,
   listProducts,
   getProduct,
   listVariants,
   listStockLevels,
   listWarehouses,
 } from "../api/inventory";
+import type { PortfolioCategory, PortfolioItem } from "../types";
 import { listShipments as listApiShipments } from "../api/delivery";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { getStoreRegion } from "./regional-store";
@@ -252,6 +254,65 @@ export async function saveCoupon(input: CouponInput) {
   });
 }
 
+export async function getStoreCatalog(
+  portfolio: PortfolioItem[] = [],
+  portfolioCategories: PortfolioCategory[] = [],
+): Promise<{ items: PortfolioItem[]; categories: PortfolioCategory[] }> {
+  try {
+    const [apiProducts, apiCategories] = await Promise.all([
+      listProducts().catch(() => []),
+      listCategories().catch(() => []),
+    ]);
+    const activeProducts = (apiProducts ?? []).filter((p) => p.isActive);
+    if (activeProducts.length > 0) {
+      const portfolioById = new Map(portfolio.map((item) => [item.id, item]));
+      const activeCats = (apiCategories ?? [])
+        .filter((c) => c.isActive)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      const invCategories: PortfolioCategory[] = activeCats.map((c, idx) => ({
+        id: c.id,
+        slug: c.slug,
+        name_en: c.nameEn,
+        name_ar: c.nameAr || c.nameEn,
+        display_order: c.sortOrder ?? idx + 1,
+      }));
+      const catById = new Map(invCategories.map((c) => [c.id, c]));
+      const items: PortfolioItem[] = activeProducts.map((p, idx) => {
+        const linked = portfolioById.get(p.id);
+        const category = p.categoryId ? catById.get(p.categoryId) : linked?.category;
+        return {
+          id: p.id,
+          category_id: p.categoryId ?? linked?.category_id,
+          category,
+          slug: linked?.slug ?? p.id,
+          title_en: p.nameEn,
+          title_ar: p.nameAr || p.nameEn,
+          client_name: linked?.client_name ?? "",
+          subtitle_en: p.sku || linked?.subtitle_en,
+          subtitle_ar: p.sku || linked?.subtitle_ar,
+          price: num(p.sellingPrice),
+          price_note_en: linked?.price_note_en,
+          price_note_ar: linked?.price_note_ar,
+          location: linked?.location,
+          attributes: linked?.attributes ?? [],
+          aspect_ratio: linked?.aspect_ratio ?? "1:1",
+          thumbnail_url: linked?.thumbnail_url ?? "",
+          description_en: p.descriptionEn || linked?.description_en,
+          description_ar: p.descriptionAr || linked?.description_ar,
+          is_featured: linked?.is_featured ?? idx < 6,
+          display_order: linked?.display_order ?? idx + 1,
+          created_at: p.createdAt || new Date().toISOString(),
+        };
+      });
+      return {
+        items,
+        categories: invCategories.length > 0 ? invCategories : portfolioCategories,
+      };
+    }
+  } catch {}
+  return { items: portfolio, categories: portfolioCategories };
+}
+
 export async function catalogueProductPrices(itemIds: string[]) {
   if (!itemIds.length) return new Map<string, number>();
   try {
@@ -433,7 +494,12 @@ export async function quoteCart(
   }[] = [];
   for (const line of cart) {
     const product = products.find((p: any) => p.id === line.productId);
-    const variant = product?.variants.find((v: any) => v.id === line.variantId);
+    const activeVariants = (product?.variants ?? []).filter((v: any) => v.isActive);
+    const variant = line.variantId
+      ? product?.variants.find((v: any) => v.id === line.variantId)
+      : activeVariants.length === 1
+        ? activeVariants[0]
+        : undefined;
     if (
       !product ||
       (product.variants.length

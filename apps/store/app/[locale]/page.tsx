@@ -4,7 +4,7 @@ import { Promotions } from "../../components/store/Promotions";
 import { StoreHero } from "../../components/store/StoreHero";
 import { ProductGrid } from "../../components/store/ProductGrid";
 import { storeEnabled } from "../../lib/customer";
-import { catalogueProductPrices } from "@platform/database";
+import { getStoreCatalog } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../lib/site";
 
@@ -17,16 +17,10 @@ export default async function StoreHomePage({ params }: { params: Promise<{ loca
   ]);
   if (!website) return null;
 
-  const prices = storeOn
-    ? await catalogueProductPrices(website.portfolio.map((item) => item.id))
-    : new Map<string, number>();
-  const catalogueItems = website.portfolio.map((item) =>
-    prices.has(item.id)
-      ? { ...item, price: prices.get(item.id) as number | undefined }
-      : item,
-  );
-  const banner = website.banners[0];
-  const categories = website.categories ?? [];
+  const { items: catalogueItems, categories } = storeOn
+    ? await getStoreCatalog(website.portfolio ?? [], website.categories ?? [])
+    : { items: website.portfolio ?? [], categories: website.categories ?? [] };
+  const banner = website.banners?.[0];
 
   return (
     <div className="home-page flex flex-col w-full space-y-12 pb-20">

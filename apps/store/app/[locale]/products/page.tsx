@@ -1,7 +1,7 @@
 import { Promotions } from "../../../components/store/Promotions";
 import { ProductGrid } from "../../../components/store/ProductGrid";
 import { storeEnabled } from "../../../lib/customer";
-import { catalogueProductPrices } from "@platform/database/queries/store";
+import { getStoreCatalog } from "@platform/database/queries/store";
 import { getSite, siteTranslations } from "../../../lib/site";
 
 export async function generateMetadata({
@@ -30,15 +30,9 @@ export default async function ProductsPage({
   ]);
   if (!website) return null;
 
-  const prices = storeOn
-    ? await catalogueProductPrices(website.portfolio.map((item) => item.id))
-    : new Map<string, number>();
-  const catalogueItems = website.portfolio.map((item) =>
-    prices.has(item.id)
-      ? { ...item, price: prices.get(item.id) as number | undefined }
-      : item,
-  );
-  const categories = website.categories ?? [];
+  const { items: catalogueItems, categories } = storeOn
+    ? await getStoreCatalog(website.portfolio ?? [], website.categories ?? [])
+    : { items: website.portfolio ?? [], categories: website.categories ?? [] };
 
   return (
     <div className="space-y-8 pb-20">

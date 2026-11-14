@@ -12,6 +12,7 @@ import {
   updateCompanyConfigurationForIT,
   completeCompanySetupForIT,
 } from "@platform/api-client";
+import { serviceToken } from "../api/service-token";
 import { assertSupportedCurrency } from "../constants/finance";
 import {
   isFontMimeType,
@@ -291,7 +292,7 @@ async function updateCompanySettingsInTransaction(
   )
     throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
 
-  const updated = await updateCompanyConfigurationForIT("service-token", {
+  const updated = await updateCompanyConfigurationForIT(await serviceToken(), {
     companyNameEn: updates.company_name_en,
     companyNameAr: updates.company_name_ar,
       crNumber: updates.cr_number,
@@ -378,7 +379,7 @@ export async function updateCompanyTheme(
 }
 
 export async function completeCompanySetup(): Promise<CompanySettings> {
-  await completeCompanySetupForIT("service-token");
+  await completeCompanySetupForIT(await serviceToken());
   return getCompanySettings();
 }
 

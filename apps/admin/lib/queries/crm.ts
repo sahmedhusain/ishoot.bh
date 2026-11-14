@@ -1,4 +1,5 @@
 import { db } from "@platform/database";
+import { serviceToken } from "../api/service-token";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
@@ -304,7 +305,7 @@ export async function getCustomerDossier(
 
       access?.audit === false
         ? Promise.resolve([])
-        : listAuditEvents("service-token", { subject: id }).then(res => res.items).catch(() => []),
+        : serviceToken().then(st => listAuditEvents(st, { subject: id })).then(res => res.items).catch(() => []),
     ]);
 
     const pagination = {
@@ -789,7 +790,7 @@ export async function globalAdminSearch(
       });
     }
     const people = categories.has("people")
-      ? await listITAccountsForIT("service-token")
+      ? await listITAccountsForIT(await serviceToken())
       : null;
     const peopleList: any[] = Array.isArray(people) ? people : (people as any)?.items || [];
     for (const p of peopleList.filter((p: any) => {

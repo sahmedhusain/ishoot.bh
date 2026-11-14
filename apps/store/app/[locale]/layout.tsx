@@ -84,8 +84,6 @@ export default async function LocaleLayout({
         </>
       ) : null}
       <style id="company-theme" nonce={nonce} dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
-      <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
-      {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
     </head>
   );
 
@@ -97,6 +95,8 @@ export default async function LocaleLayout({
       <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={storeBaseTone(config.design, config.design.defaultMode)} data-site-tone={storeBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-density={config.design.density} data-corners={corners} data-borders={borders} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}
         <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
+          <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
+          {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
           <WebsiteOffline company={company} locale={locale} t={t} />
         </body>
       </html>
@@ -110,6 +110,8 @@ export default async function LocaleLayout({
         className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-paper ${isRTL ? "font-arabic" : "font-sans"}`}
         data-activity={info.activity}
       >
+        <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
+        {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:bg-white focus:text-black focus:p-3"

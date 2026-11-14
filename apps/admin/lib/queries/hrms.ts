@@ -10,35 +10,54 @@ export async function createEmployee(
   data: any,
   actorId: string,
 ): Promise<Employee> {
-  return createEmployeeApi(data, "service-token") as any;
+  return createEmployeeApi(data) as any;
 }
 
-export async function listEmployees(filters: any): Promise<{ items: Employee[]; total: number }> {
-  const employees = await listEmployeesApi("service-token");
-  const filtered = ((employees as any) || []).filter((e: any) => {
-    if (filters.departmentId && e.departmentId !== filters.departmentId) return false;
-    if (filters.status && e.status !== filters.status) return false;
-    if (filters.search) {
-      const s = filters.search.toLowerCase();
-      return e.employeeNumber?.toLowerCase().includes(s) || e.firstNameEn?.toLowerCase().includes(s) || e.lastNameEn?.toLowerCase().includes(s);
-    }
-    return true;
-  });
-  const pageSize = 25;
-  const page = Math.max(1, filters.page || 1);
-  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
-  return {
-    total: filtered.length,
-    items: items,
-  };
+export async function listEmployees(filters: any = {}): Promise<{ items: Employee[]; total: number }> {
+  try {
+    const employees = await listEmployeesApi();
+    const filtered = ((employees as any) || []).filter((e: any) => {
+      if (filters?.departmentId && e.departmentId !== filters.departmentId) return false;
+      if (filters?.status && e.status !== filters.status) return false;
+      if (filters?.search) {
+        const s = filters.search.toLowerCase();
+        return (
+          e.employeeNumber?.toLowerCase().includes(s) ||
+          e.firstNameEn?.toLowerCase().includes(s) ||
+          e.lastNameEn?.toLowerCase().includes(s)
+        );
+      }
+      return true;
+    });
+    const pageSize = 25;
+    const page = Math.max(1, filters?.page || 1);
+    const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+    return {
+      total: filtered.length,
+      items: items,
+    };
+  } catch (error) {
+    console.error("Failed to list employees:", error);
+    return { items: [], total: 0 };
+  }
 }
 
 export async function getEmployeeById(id: string): Promise<Employee | null> {
-  return getEmployeeApi(id, "service-token") as any;
+  try {
+    return (await getEmployeeApi(id)) as any;
+  } catch (error) {
+    console.error(`Failed to get employee ${id}:`, error);
+    return null;
+  }
 }
 
 export async function listDepartments(): Promise<Department[]> {
-  return listDepartmentsApi() as any;
+  try {
+    return (await listDepartmentsApi()) as any;
+  } catch (error) {
+    console.error("Failed to list departments:", error);
+    return [];
+  }
 }
 
 export async function createDepartment(data: any): Promise<Department> {
