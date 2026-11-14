@@ -39,6 +39,9 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 # outputFileTracingRoot is the repo root, so standalone nests the app one level down.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/pdfkit ./apps/admin/node_modules/pdfkit
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/pdfkit ./node_modules/pdfkit
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/@react-pdf ./apps/admin/node_modules/@react-pdf
 COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./seeds/assets
 COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./apps/admin/seeds/assets
 

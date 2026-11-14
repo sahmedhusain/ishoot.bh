@@ -12,7 +12,6 @@ import type {
 } from "@platform/database/types";
 import QRCode from "qrcode";
 import {
-  db,
   getClientAcceptance,
   getTaxCertificate,
   mapContact,
@@ -26,6 +25,7 @@ import {
   type SignableDocument,
 } from "@platform/database/queries/document-signing";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
+import { getUserById } from "../queries/users";
 import {
   resolvePdfBrand,
   type ClientAcceptance,
@@ -86,39 +86,17 @@ async function pdfSigning(
 ): Promise<CompanySignature | null> {
   const state = await getSigningState(type, id);
   if (!state.signed || !state.signedAt) return null;
-  const employee = state.signedBy?.id
-    ? (
-        await db.user.findUnique({
-          where: { id: state.signedBy.id },
-          select: {
-            employee: {
-              select: {
-                firstNameEn: true,
-                lastNameEn: true,
-                firstNameAr: true,
-                lastNameAr: true,
-                jobTitleEn: true,
-                jobTitleAr: true,
-              },
-            },
-          },
-        })
-      )?.employee
+  const profile = state.signedBy?.id
+    ? await getUserById(state.signedBy.id).catch(() => null)
     : null;
   const isAr = language === "ar";
   return {
     signatureSrc: state.signatureUrl
       ? ((await resolveConfiguredPdfAsset(state.signatureUrl)) ?? null)
       : null,
-    signerName: employee
-      ? isAr
-        ? `${employee.firstNameAr} ${employee.lastNameAr}`
-        : `${employee.firstNameEn} ${employee.lastNameEn}`
-      : (state.signedBy?.name ?? ""),
-    signerTitle: employee
-      ? isAr
-        ? employee.jobTitleAr
-        : employee.jobTitleEn
+    signerName: profile?.full_name || state.signedBy?.name || "",
+    signerTitle: profile?.department_name_en
+      ? (isAr ? profile.department_name_ar || profile.department_name_en : profile.department_name_en)
       : null,
     signedAt: state.signedAt,
   };

@@ -125,11 +125,21 @@ export async function fileResponse(
 ): Promise<Response | null> {
   const file = await readFile(record.fileUrl);
   if (!file?.body) return null;
+  const bytes = await file.arrayBuffer();
+  if (bytes.byteLength === 0) return null;
+  const contentType = file.headers.get("content-type") || record.mimeType;
+  if (
+    bytes.byteLength <= 512 &&
+    !record.mimeType.includes("svg") &&
+    contentType.includes("svg")
+  ) {
+    return null;
+  }
   const disposition = options.download ? "attachment" : "inline";
-  return new Response(file.body, {
+  return new Response(bytes, {
     headers: {
-      "Content-Type": record.mimeType,
-      "Content-Length": String(record.fileSize),
+      "Content-Type": contentType,
+      "Content-Length": String(bytes.byteLength),
       "Cache-Control":
         options.cacheControl ??
         (record.isPublic

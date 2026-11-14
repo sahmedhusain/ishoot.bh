@@ -170,6 +170,9 @@ func (h *Handler) read(c echo.Context) error {
 	header := c.Response().Header()
 	header.Set("X-File-Public", strconv.FormatBool(f.Public))
 	header.Set("X-File-Name", url.PathEscape(f.FileName))
+	if f.Size > 0 {
+		header.Set(echo.HeaderContentLength, strconv.FormatInt(f.Size, 10))
+	}
 	header.Set("Cache-Control", "no-store")
 	return c.Stream(http.StatusOK, f.MIMEType, body)
 }

@@ -25,7 +25,7 @@ const nextConfig = {
   },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
-  serverExternalPackages: ['@react-pdf/renderer', 'libphonenumber-js', 'bcryptjs', 'sharp'],
+  serverExternalPackages: ['@react-pdf/renderer', '@react-pdf/font', 'pdfkit', 'libphonenumber-js', 'bcryptjs', 'sharp'],
   transpilePackages: [],
   env: { SERVICE_CALLER: 'admin' },
   experimental: {

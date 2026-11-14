@@ -6,9 +6,36 @@ import { FILE_URL_PREFIX } from "@platform/contracts";
 import { fileResponse, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 
+function detectSeedMime(p: string): string {
+  const low = p.toLowerCase();
+  if (low.endsWith(".svg")) return "image/svg+xml";
+  if (low.endsWith(".jpg") || low.endsWith(".jpeg")) return "image/jpeg";
+  if (low.endsWith(".webp")) return "image/webp";
+  if (low.endsWith(".woff2")) return "font/woff2";
+  if (low.endsWith(".ttf")) return "font/ttf";
+  if (low.endsWith(".otf")) return "font/otf";
+  if (low.endsWith(".pdf")) return "application/pdf";
+  return "image/png";
+}
+
+function findFileRecursive(dir: string, targets: string[]): string | null {
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const hit = findFileRecursive(full, targets);
+        if (hit) return hit;
+      } else if (targets.some((t) => entry.name.toLowerCase() === t.toLowerCase())) {
+        return full;
+      }
+    }
+  } catch {}
+  return null;
+}
+
 function findLocalSeedAssetResponse(folder: string, name: string): NextResponse | null {
   try {
-    const root = path.resolve(process.cwd(), "../../");
     const cleanName = name.replace(/_[a-f0-9]{8,16}\.([a-z0-9]+)$/i, ".$1");
     const aliases = [cleanName, name];
 
@@ -22,28 +49,48 @@ function findLocalSeedAssetResponse(folder: string, name: string): NextResponse 
       aliases.push("icon-dark.png", "icon-light.png");
     }
 
-    for (const alias of aliases) {
-      const candidates = [
-        path.join(root, "seeds/assets/demo/assets", folder, alias),
-        path.join(root, "seeds/assets/ishoot/assets", folder, alias),
-        path.join(process.cwd(), "seeds/assets/demo/assets", folder, alias),
-        path.join(process.cwd(), "seeds/assets/ishoot/assets", folder, alias),
-      ];
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          const bytes = fs.readFileSync(p);
-          const mime = p.endsWith(".svg")
-            ? "image/svg+xml"
-            : p.endsWith(".jpg") || p.endsWith(".jpeg")
-              ? "image/jpeg"
-              : "image/png";
-          return new NextResponse(bytes, {
-            headers: {
-              "Content-Type": mime,
-              "Cache-Control": "public, max-age=31536000, immutable",
-            },
-          });
+    const roots = [
+      "/app/seeds/assets",
+      "/seeds/assets",
+      path.resolve(process.cwd(), "../../seeds/assets"),
+      path.resolve(process.cwd(), "../seeds/assets"),
+      path.resolve(process.cwd(), "seeds/assets"),
+    ];
+
+    for (const root of roots) {
+      if (!fs.existsSync(root)) continue;
+      for (const alias of aliases) {
+        const candidates = [
+          path.join(root, "demo/assets", folder, alias),
+          path.join(root, "ishoot/assets", folder, alias),
+          path.join(root, "ishoot/assets/brand", alias),
+          path.join(root, "ishoot/assets/brand/signatures", alias),
+          path.join(root, "ishoot/assets/fonts", alias),
+          path.join(root, "ishoot/assets/media/banners", alias),
+        ];
+        for (const p of candidates) {
+          if (fs.existsSync(p)) {
+            const bytes = fs.readFileSync(p);
+            return new NextResponse(bytes, {
+              headers: {
+                "Content-Type": detectSeedMime(p),
+                "Content-Length": String(bytes.byteLength),
+                "Cache-Control": "public, max-age=31536000, immutable",
+              },
+            });
+          }
         }
+      }
+      const deepMatch = findFileRecursive(root, aliases);
+      if (deepMatch) {
+        const bytes = fs.readFileSync(deepMatch);
+        return new NextResponse(bytes, {
+          headers: {
+            "Content-Type": detectSeedMime(deepMatch),
+            "Content-Length": String(bytes.byteLength),
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        });
       }
     }
   } catch {}
@@ -62,6 +109,7 @@ function brandFallbackResponse(name: string): NextResponse {
   return new NextResponse(svg, {
     headers: {
       "Content-Type": "image/svg+xml",
+      "Content-Length": String(Buffer.byteLength(svg, "utf8")),
       "Cache-Control": "public, max-age=3600",
     },
   });

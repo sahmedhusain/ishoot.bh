@@ -130,7 +130,41 @@ func (s *Service) Open(ctx context.Context, url string) (io.ReadCloser, domain.F
 	if err != nil {
 		return nil, domain.File{}, err
 	}
-	body, _, err := s.objects.Get(ctx, s.bucket(f.Public), loc.Key())
+	body, info, err := s.objects.Get(ctx, s.bucket(f.Public), loc.Key())
+	if err == nil {
+		if info.Size > 0 {
+			f.Size = info.Size
+		}
+		// Detect previously cached 312-byte fallback SVGs written when seeds/assets wasn't mounted
+		if f.MIMEType != "image/svg+xml" {
+			peek, readErr := io.ReadAll(io.LimitReader(body, 513))
+			if readErr != nil {
+				_ = body.Close()
+				return nil, domain.File{}, readErr
+			}
+			if len(peek) <= 512 && bytes.Contains(peek, []byte("<svg")) {
+				_ = body.Close()
+				if data, mime, found := findSeedAssetFile(f.URL, f.FileName); found {
+					_ = s.objects.Put(ctx, s.bucket(f.Public), loc.Key(), bytes.NewReader(data), int64(len(data)), mime)
+					f.Size = int64(len(data))
+					f.MIMEType = mime
+					return io.NopCloser(bytes.NewReader(data)), f, nil
+				}
+				f.Size = int64(len(peek))
+				f.MIMEType = "image/svg+xml"
+				return io.NopCloser(bytes.NewReader(peek)), f, nil
+			}
+			// Rewind by wrapping peek + remaining body
+			return struct {
+				io.Reader
+				io.Closer
+			}{
+				Reader: io.MultiReader(bytes.NewReader(peek), body),
+				Closer: body,
+			}, f, nil
+		}
+		return body, f, nil
+	}
 	if errors.Is(err, objectstore.ErrNotFound) {
 		// Read real physical asset from seeds/assets/ on disk or generate fallback
 		data, mime, found := findSeedAssetFile(f.URL, f.FileName)
@@ -142,10 +176,7 @@ func (s *Service) Open(ctx context.Context, url string) (io.ReadCloser, domain.F
 		f.MIMEType = mime
 		return io.NopCloser(bytes.NewReader(data)), f, nil
 	}
-	if err != nil {
-		return nil, domain.File{}, err
-	}
-	return body, f, nil
+	return nil, domain.File{}, err
 }
 
 var seedHashRegex = regexp.MustCompile(`^([a-zA-Z0-9_-]+)_[a-f0-9]{8,16}\.([a-z0-9]+)$`)
@@ -157,21 +188,57 @@ func cleanSeedFileName(name string) string {
 	return name
 }
 
+func detectAssetMime(p string) string {
+	low := strings.ToLower(p)
+	switch {
+	case strings.HasSuffix(low, ".svg"):
+		return "image/svg+xml"
+	case strings.HasSuffix(low, ".jpg") || strings.HasSuffix(low, ".jpeg"):
+		return "image/jpeg"
+	case strings.HasSuffix(low, ".webp"):
+		return "image/webp"
+	case strings.HasSuffix(low, ".woff2"):
+		return "font/woff2"
+	case strings.HasSuffix(low, ".ttf"):
+		return "font/ttf"
+	case strings.HasSuffix(low, ".otf"):
+		return "font/otf"
+	case strings.HasSuffix(low, ".pdf"):
+		return "application/pdf"
+	default:
+		return "image/png"
+	}
+}
+
 func findSeedAssetFile(url, fileName string) ([]byte, string, bool) {
-	candidates := []string{
+	var candidates []string
+	if envDir := strings.TrimSpace(os.Getenv("FILES_SEED_ASSETS_DIR")); envDir != "" {
+		candidates = append(candidates, envDir)
+	}
+	candidates = append(candidates,
+		"/seeds/assets",
+		"/app/seeds/assets",
 		"seeds/assets",
 		"../seeds/assets",
 		"../../seeds/assets",
 		"../../../seeds/assets",
 		"../../../../seeds/assets",
+	)
+
+	folder := ""
+	trimmed := strings.TrimPrefix(url, catalog.Files.URLPrefix)
+	if idx := strings.Index(trimmed, "/"); idx > 0 {
+		folder = trimmed[:idx]
 	}
+
 	baseName := filepath.Base(fileName)
 	if baseName == "" || baseName == "." {
 		baseName = filepath.Base(url)
 	}
 	cleanName := cleanSeedFileName(baseName)
+	cleanURLName := cleanSeedFileName(filepath.Base(url))
 
-	aliases := []string{cleanName, baseName}
+	aliases := []string{cleanName, cleanURLName, baseName, filepath.Base(url)}
 	if strings.Contains(cleanName, "logo-light") {
 		aliases = append(aliases, "logo-text-light.png", "full-logo-light.png", "logo-light.png")
 	} else if strings.Contains(cleanName, "logo-dark") {
@@ -182,25 +249,61 @@ func findSeedAssetFile(url, fileName string) ([]byte, string, bool) {
 		aliases = append(aliases, "icon-dark.png", "icon-light.png")
 	}
 
+	seenAliases := make(map[string]bool)
+	var uniqueAliases []string
+	for _, a := range aliases {
+		if a != "" && !seenAliases[a] {
+			seenAliases[a] = true
+			uniqueAliases = append(uniqueAliases, a)
+		}
+	}
+
 	for _, root := range candidates {
-		for _, name := range aliases {
+		info, err := os.Stat(root)
+		if err != nil || !info.IsDir() {
+			continue
+		}
+		for _, name := range uniqueAliases {
 			subpaths := []string{
 				filepath.Join(root, "demo/assets/brand", name),
 				filepath.Join(root, "ishoot/assets/brand", name),
+				filepath.Join(root, "ishoot/assets/brand/signatures", name),
+				filepath.Join(root, "ishoot/assets/fonts", name),
 				filepath.Join(root, "demo/assets/media/banners", name),
 				filepath.Join(root, "demo/assets/media/clients", name),
 				filepath.Join(root, "ishoot/assets/media/banners", name),
+				filepath.Join(root, "ishoot/raw", name),
+			}
+			if folder != "" {
+				subpaths = append(subpaths,
+					filepath.Join(root, "ishoot/assets", folder, name),
+					filepath.Join(root, "demo/assets", folder, name),
+				)
 			}
 			for _, p := range subpaths {
 				if data, err := os.ReadFile(p); err == nil && len(data) > 0 {
-					mime := "image/png"
-					if strings.HasSuffix(p, ".svg") {
-						mime = "image/svg+xml"
-					} else if strings.HasSuffix(p, ".jpg") || strings.HasSuffix(p, ".jpeg") {
-						mime = "image/jpeg"
-					}
-					return data, mime, true
+					return data, detectAssetMime(p), true
 				}
+			}
+		}
+		// Recursive fallback inside mounted seeds/assets directory
+		var matchedPath string
+		_ = filepath.WalkDir(root, func(p string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil || d.IsDir() {
+				return nil
+			}
+			base := filepath.Base(p)
+			for _, alias := range uniqueAliases {
+				if strings.EqualFold(base, alias) {
+					matchedPath = p
+					return filepath.SkipAll
+				}
+			}
+			return nil
+		})
+		if matchedPath != "" {
+			if data, err := os.ReadFile(matchedPath); err == nil && len(data) > 0 {
+				return data, detectAssetMime(matchedPath), true
 			}
 		}
 	}

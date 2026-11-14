@@ -35,14 +35,27 @@ export async function printPdfUrl(pdfUrl: string): Promise<void> {
     !response.headers.get("content-type")?.includes("application/pdf")
   )
     throw new Error(serverMessages.pdfUnavailable);
-  const url = URL.createObjectURL(await response.blob());
+  const blob = await response.blob();
+  if (!blob.size) throw new Error(serverMessages.pdfUnavailable);
+  const url = URL.createObjectURL(blob);
   const frame = document.createElement("iframe");
   frame.style.cssText =
     "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
   frame.src = url;
   document.body.appendChild(frame);
   await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const fallbackTimer = setTimeout(() => {
+      window.open(url, "_blank", "noopener");
+      finish();
+    }, 3500);
     frame.onload = () => {
+      clearTimeout(fallbackTimer);
       setTimeout(() => {
         try {
           frame.contentWindow?.focus();
@@ -50,8 +63,13 @@ export async function printPdfUrl(pdfUrl: string): Promise<void> {
         } catch {
           window.open(url, "_blank", "noopener");
         }
-        resolve();
+        finish();
       }, 300);
+    };
+    frame.onerror = () => {
+      clearTimeout(fallbackTimer);
+      window.open(url, "_blank", "noopener");
+      finish();
     };
   });
   setTimeout(() => {

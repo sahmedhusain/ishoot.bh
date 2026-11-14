@@ -2,8 +2,8 @@ import { serverMessages, formatMessage } from "@platform/locales";
 
 import React from "react";
 import { Document, Page, View, renderToBuffer } from "@react-pdf/renderer";
-import { db } from "@platform/database";
 import type { CompanySettings } from "@platform/database/types";
+import { getUserById } from "../queries/users";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import {
   Letterhead,
@@ -79,61 +79,24 @@ function documentReference(kind: string, id: string, issuedAt: Date | null) {
 }
 
 async function salarySignatory(
-  documentId: string,
+  _documentId: string,
   reviewedById: string | null,
   issuedAt: Date | null,
   company: CompanySettings,
   locale: "en" | "ar",
 ): Promise<CompanySignature> {
-  const drawn = reviewedById
-    ? await db.approvalDecision.findFirst({
-      where: {
-        decidedById: reviewedById,
-        decision: "approved",
-        signatureData: { not: null },
-        approvalRequest: {
-          targetType: "salary_document",
-          targetId: documentId,
-        },
-      },
-      orderBy: { decidedAt: "desc" },
-      select: { signatureData: true },
-    })
-    : null;
   const reviewer = reviewedById
-    ? await db.user.findUnique({
-      where: { id: reviewedById },
-      select: {
-        fullName: true,
-        signatureUrl: true,
-        employee: {
-          select: {
-            jobTitleEn: true,
-            jobTitleAr: true,
-            firstNameEn: true,
-            lastNameEn: true,
-            firstNameAr: true,
-            lastNameAr: true,
-          },
-        },
-      },
-    })
+    ? await getUserById(reviewedById).catch(() => null)
     : null;
-  const own = await resolveConfiguredPdfAsset(
-    drawn?.signatureData ?? reviewer?.signatureUrl,
-  );
+  const own = await resolveConfiguredPdfAsset(reviewer?.signature_url);
   if (reviewer && own)
     return {
       signatureSrc: own,
-      signerName: reviewer.employee
-        ? locale === "ar"
-          ? `${reviewer.employee.firstNameAr} ${reviewer.employee.lastNameAr}`
-          : `${reviewer.employee.firstNameEn} ${reviewer.employee.lastNameEn}`
-        : reviewer.fullName,
+      signerName: reviewer.full_name,
       signerTitle:
         locale === "ar"
-          ? reviewer.employee?.jobTitleAr
-          : reviewer.employee?.jobTitleEn,
+          ? reviewer.department_name_ar || reviewer.department_name_en || null
+          : reviewer.department_name_en || null,
       signedAt: issuedAt?.toISOString() ?? null,
     };
   return {

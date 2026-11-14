@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import type { CompanySettings } from "@platform/database/types";
-import { registerPdfFont } from "./shared-styles";
+import { PDF_FONT, registerPdfFont } from "./shared-styles";
 
 interface LabelItem {
   code: string;
@@ -32,12 +32,7 @@ export async function generateStockLabelsPdf(
   company?: CompanySettings | null,
   locale: "en" | "ar" = "en",
 ) {
-  if (company?.theme) {
-    try {
-      await registerPdfFont(company.theme);
-    } catch {
-    }
-  }
+  const hasFont = await registerPdfFont(company?.theme).catch(() => false);
 
   const widthPt = Math.max(25, job.template.widthMm) * MM_TO_PT;
   const heightPt = Math.max(15, job.template.heightMm) * MM_TO_PT;
@@ -57,7 +52,7 @@ export async function generateStockLabelsPdf(
             flexDirection: "column",
             justifyContent: "space-between",
             backgroundColor: "#FFFFFF",
-            fontFamily: "Helvetica",
+            fontFamily: hasFont ? PDF_FONT : "Helvetica",
           }}
         >
           <View
