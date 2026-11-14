@@ -176,7 +176,7 @@ export function InvoiceDetailView({
                   amount: invoice.discount_amount,
                   label: invoice.discount_type === "percentage" ? `${t.finance.discount} (${invoice.discount_value}%)` : t.finance.discount,
                 }}
-                vat={invoice.vat_enabled ? { percentage: invoice.vat_percentage, amount: invoice.vat_amount } : null}
+                vat={invoice.vat_enabled && Number(invoice.vat_amount) > 0 ? { percentage: invoice.vat_percentage, amount: invoice.vat_amount } : null}
                 taxes={invoice.other_taxes ?? []}
                 total={invoice.total_amount}
                 paid={invoice.amount_paid}

@@ -124,7 +124,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
             <Field label={c.fields.vendor}><Input value={editing.value.vendor_name ?? ""} onChange={(e) => set("vendor_name", e.target.value)} /></Field>
             <Field label={c.fields.reference} hint={c.fields.referenceHint}><Input dir="ltr" value={editing.value.reference ?? ""} onChange={(e) => set("reference", e.target.value)} /></Field>
             <Field label={c.fields.amount}><Input type="number" min={0} step="any" dir="ltr" value={editing.value.amount || ""} onChange={(e) => set("amount", Number(e.target.value))} /></Field>
-            {vat.enabled ? (
+            {(vat.enabled || Number(editing.value.input_vat_amount ?? 0) > 0) ? (
               <Field label={c.fields.inputVat}><Input type="number" min={0} step="any" dir="ltr" value={editing.value.input_vat_amount || ""} onChange={(e) => set("input_vat_amount", Number(e.target.value))} /></Field>
             ) : null}
             <Field label={c.fields.paymentMethod}>

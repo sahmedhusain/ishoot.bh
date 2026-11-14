@@ -174,10 +174,12 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
           <Field label={copy.terms} wide>
             {(id) => <Input id={id} maxLength={2000} value={form.terms} onChange={(e) => set({ terms: e.target.value })} className="rounded-lg" />}
           </Field>
-          <label className="flex items-center gap-2.5 text-sm text-ink">
-            <input type="checkbox" className="h-4 w-4 accent-accent" checked={form.vatEnabled} onChange={(e) => set({ vatEnabled: e.target.checked })} />
-            {`${copy.vat} (${company.vatPercentage}%)`}
-          </label>
+          {(company.vatEnabled || Boolean(order?.vat_enabled) || Number(order?.vat_amount ?? 0) > 0) && (
+            <label className="flex items-center gap-2.5 text-sm text-ink">
+              <input type="checkbox" className="h-4 w-4 accent-accent" checked={form.vatEnabled} onChange={(e) => set({ vatEnabled: e.target.checked })} />
+              {`${copy.vat} (${company.vatPercentage}%)`}
+            </label>
+          )}
         </fieldset>
         <h2 className="font-bold text-ink">{t.procurement.lines.title}</h2>
         {editable ? (

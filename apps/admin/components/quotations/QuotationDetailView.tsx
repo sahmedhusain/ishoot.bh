@@ -429,7 +429,7 @@ export function QuotationDetailView({
                 label: `${qdT.discount} (${quotation.discountType})`,
                 className: "text-amber-600 dark:text-amber-400",
               }}
-              vat={quotation.vatEnabled ? { percentage: quotation.vatPercentage, amount: quotation.vatAmount } : null}
+              vat={quotation.vatEnabled && Number(quotation.vatAmount) > 0 ? { percentage: quotation.vatPercentage, amount: quotation.vatAmount } : null}
               taxes={quotation.taxes ?? []}
               total={quotation.totalAmount}
             />

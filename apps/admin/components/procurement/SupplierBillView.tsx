@@ -13,6 +13,7 @@ import { ROUTES } from "../../constants/routes";
 import { approveSupplierBillAction, attachSupplierBillFileAction, cancelSupplierBillAction, recordSupplierPaymentAction, saveSupplierBillAction } from "../../app/actions/procurement";
 import { uploadForClaim } from "../../lib/upload-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { StatusPill } from "./StatusPill";
@@ -38,6 +39,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights }: SupplierBillViewProps) {
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
+  const companyVat = useCompanyVat();
   const copy = t.procurement.bills;
   const common = t.procurement.common;
   const router = useRouter();
@@ -122,9 +124,11 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
           <Field label={common.note} wide>
             {(id) => <Input id={id} maxLength={1000} value={form.note} onChange={(e) => set({ note: e.target.value })} className="rounded-lg" />}
           </Field>
-          <Field label={copy.vatAmount}>
-            {(id) => <Input id={id} name="vatAmount" type="number" min={0} step="any" value={form.vatAmount} onChange={(e) => set({ vatAmount: e.target.value })} className="rounded-lg" />}
-          </Field>
+          {(companyVat.enabled || Number(bill?.vat_amount ?? fromOrder?.vatAmount ?? form.vatAmount ?? 0) > 0) && (
+            <Field label={copy.vatAmount}>
+              {(id) => <Input id={id} name="vatAmount" type="number" min={0} step="any" value={form.vatAmount} onChange={(e) => set({ vatAmount: e.target.value })} className="rounded-lg" />}
+            </Field>
+          )}
         </fieldset>
         {bill && (
           <div className="flex flex-wrap items-center gap-3" data-testid="bill-file">
@@ -208,7 +212,9 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
 
         <dl className="ms-auto w-full sm:w-72 space-y-1 text-sm" data-testid="bill-totals">
           <div className="flex justify-between"><dt className="text-ink-muted">{common.subtotal}</dt><dd><CurrencyDisplay amount={editable ? subtotal : bill?.subtotal ?? 0} currency={currency} /></dd></div>
-          <div className="flex justify-between"><dt className="text-ink-muted">{common.vat}</dt><dd><CurrencyDisplay amount={editable ? Number(form.vatAmount) || 0 : bill?.vat_amount ?? 0} currency={currency} /></dd></div>
+          {(editable ? Number(form.vatAmount) || 0 : bill?.vat_amount ?? 0) > 0 && (
+            <div className="flex justify-between"><dt className="text-ink-muted">{common.vat}</dt><dd><CurrencyDisplay amount={editable ? Number(form.vatAmount) || 0 : bill?.vat_amount ?? 0} currency={currency} /></dd></div>
+          )}
           <div className="flex justify-between font-bold border-t border-outline-variant pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={editable ? total : bill?.total ?? 0} currency={currency} /></dd></div>
           {bill && bill.status !== "draft" && (
             <>
