@@ -21,12 +21,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -39,7 +39,7 @@ jobs:
             apps/store/package-lock.json
 
       - name: Setup Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v5
         with:
           go-version: "1.25"
           cache: true
@@ -50,22 +50,18 @@ jobs:
         run: |
           # Root package.json has no dependencies (it only holds script shims),
           # so there is nothing to install there.
-          npm --prefix apps/admin install
-          npm --prefix apps/it install
-          npm --prefix apps/web install
-          npm --prefix apps/store install
+          npm --prefix apps/admin ci
+          npm --prefix apps/it ci
+          npm --prefix apps/web ci
+          npm --prefix apps/store ci
 
-      - name: Pillar 1 – Seed & Preset Parity Verification
+      - name: Start Postgres & Verify Seed/Preset Parity
         env:
           SUPER_ADMIN_EMAIL: seed@example.test
           SUPER_ADMIN_PASSWORD: disposable-seed-password
         run: |
-          # verify-seed-dates.js reads finance.invoice, so the database it inspects
-          # has to exist first. This pillar previously ran before any infra was up
-          # and failed with "Set DATABASE_DIRECT_URL or DATABASE_URL in .env".
-          # env-tool init writes .env from .env.example and derives DATABASE_URL /
-          # DATABASE_DIRECT_URL for the local stack (also needed by docker compose).
           node scripts/env-tool.cjs init
+          docker compose --env-file .env up -d postgres --wait
           ./run.sh db reset --demo all --yes
           node scripts/verify-seed-dates.js
 
@@ -89,7 +85,7 @@ jobs:
 
       - name: Start Platform Infrastructure & Services
         run: |
-          docker compose up -d --wait
+          docker compose --env-file .env up -d --build --wait
           ./scripts/check-health.sh
 
       - name: Pillar 3 – Newman API Contract Smoke Tests

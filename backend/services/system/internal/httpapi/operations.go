@@ -12,13 +12,30 @@ import (
 func (h *handler) operationsRoutes(e *echo.Echo) {
 	desk := e.Group("/v1/system/desk", authn.Require(h.opts.Verifier, authn.RealmIT))
 	desk.GET("/health", func(c echo.Context) error {
+		filesAdminURL := "http://files:9090"
+		if h.opts.FilesURL != "" && h.opts.FilesURL != "http://files:8080" {
+			filesAdminURL = h.opts.FilesURL
+		}
 		endpoints := app.ServiceEndpoints{
-			Identity:	"http://identity:8080",
-			ITSM:		"http://itsm:8080",
-			Files:		h.opts.FilesURL,
-			Notify:		"http://notify:8080",
-			Realtime:	"http://realtime:8080",
-			Audit:		"http://audit:8080",
+			Gateway:         "http://gateway:9090",
+			Identity:        "http://identity:9090",
+			ITSM:            "http://itsm:9090",
+			Files:           filesAdminURL,
+			Notify:          "http://notify:9090",
+			Realtime:        "http://realtime:9090",
+			Audit:           "http://audit:9090",
+			CMS:             "http://cms:9090",
+			Commerce:        "http://commerce:9090",
+			Delivery:        "http://delivery:9090",
+			Finance:         "http://finance:9090",
+			HR:              "http://hr:9090",
+			Inventory:       "http://inventory:9090",
+			Sales:           "http://sales:9090",
+			Workflow:        "http://workflow:9090",
+			Mailpit:         "http://mailpit:8025",
+			WhatsAppSandbox: "http://whatsapp-sandbox:8080",
+			SeaweedFS:       "http://seaweedfs:8333",
+			NATS:            "http://nats:8222",
 		}
 		items, err := h.svc.SystemHealth(c.Request().Context(), endpoints)
 		if err != nil {

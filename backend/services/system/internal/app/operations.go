@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"github.com/google/uuid"
 	"platform.local/backend/services/system/internal/postgres"
@@ -23,57 +24,112 @@ type ServiceHealth struct {
 	Error		string		`json:"error,omitempty"`
 }
 type ServiceEndpoints struct {
-	Identity	string
-	ITSM		string
-	Files		string
-	Notify		string
-	Realtime	string
-	Audit		string
+	Gateway         string
+	Identity        string
+	ITSM            string
+	Files           string
+	Notify          string
+	Realtime        string
+	Audit           string
+	CMS             string
+	Commerce        string
+	Delivery        string
+	Finance         string
+	HR              string
+	Inventory       string
+	Sales           string
+	Workflow        string
+	Mailpit         string
+	WhatsAppSandbox string
+	SeaweedFS       string
+	NATS            string
 }
 func (s *Service) SystemHealth(ctx context.Context, endpoints ServiceEndpoints) ([]ServiceHealth, error) {
-	services := []struct {
-		name	string
-		url	string
-	}{
-		{"system", "http://127.0.0.1:8080/readyz"},
-		{"identity", strings.TrimRight(endpoints.Identity, "/") + "/readyz"},
-		{"itsm", strings.TrimRight(endpoints.ITSM, "/") + "/readyz"},
-		{"files", strings.TrimRight(endpoints.Files, "/") + "/readyz"},
-		{"notify", strings.TrimRight(endpoints.Notify, "/") + "/readyz"},
-		{"realtime", strings.TrimRight(endpoints.Realtime, "/") + "/readyz"},
-		{"audit", strings.TrimRight(endpoints.Audit, "/") + "/readyz"},
+	type target struct {
+		name     string
+		url      string
+		fallback string
+		allow4xx bool
+	}
+	makeReadyz := func(base string) string {
+		trimmed := strings.TrimRight(base, "/")
+		if trimmed == "" {
+			return ""
+		}
+		return trimmed + "/readyz"
+	}
+	services := []target{
+		{"system", "http://127.0.0.1:9090/readyz", "http://127.0.0.1:9084/readyz", false},
+		{"gateway", makeReadyz(endpoints.Gateway), "http://127.0.0.1:9080/readyz", false},
+		{"identity", makeReadyz(endpoints.Identity), "http://127.0.0.1:9082/readyz", false},
+		{"itsm", makeReadyz(endpoints.ITSM), "http://127.0.0.1:9083/readyz", false},
+		{"files", makeReadyz(endpoints.Files), "http://127.0.0.1:9081/readyz", false},
+		{"notify", makeReadyz(endpoints.Notify), "http://127.0.0.1:9086/readyz", false},
+		{"realtime", makeReadyz(endpoints.Realtime), "http://127.0.0.1:9087/readyz", false},
+		{"audit", makeReadyz(endpoints.Audit), "http://127.0.0.1:9085/readyz", false},
+		{"cms", makeReadyz(endpoints.CMS), "http://127.0.0.1:9088/readyz", false},
+		{"commerce", makeReadyz(endpoints.Commerce), "http://127.0.0.1:9089/readyz", false},
+		{"delivery", makeReadyz(endpoints.Delivery), "http://127.0.0.1:9090/readyz", false},
+		{"finance", makeReadyz(endpoints.Finance), "http://127.0.0.1:9091/readyz", false},
+		{"hr", makeReadyz(endpoints.HR), "http://127.0.0.1:9092/readyz", false},
+		{"inventory", makeReadyz(endpoints.Inventory), "http://127.0.0.1:9093/readyz", false},
+		{"sales", makeReadyz(endpoints.Sales), "http://127.0.0.1:9094/readyz", false},
+		{"workflow", makeReadyz(endpoints.Workflow), "http://127.0.0.1:9095/readyz", false},
+		{"mailpit", strings.TrimRight(endpoints.Mailpit, "/") + "/livez", "http://127.0.0.1:8025/livez", false},
+		{"whatsapp-sandbox", strings.TrimRight(endpoints.WhatsAppSandbox, "/") + "/livez", "http://127.0.0.1:8095/livez", true},
+		{"seaweedfs", strings.TrimRight(endpoints.SeaweedFS, "/") + "/", "http://127.0.0.1:8333/", true},
+		{"nats", strings.TrimRight(endpoints.NATS, "/") + "/healthz", "http://127.0.0.1:8222/healthz", false},
 	}
 	client := &http.Client{Timeout: 2 * time.Second}
 	results := make([]ServiceHealth, len(services))
+	var wg sync.WaitGroup
 	for i, svc := range services {
-		start := time.Now()
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.url, nil)
-		if err != nil {
-			results[i] = ServiceHealth{
-				Name:	svc.name, Status: "unhealthy", CheckedAt: start, Error: err.Error(),
+		wg.Add(1)
+		go func(idx int, tgt target) {
+			defer wg.Done()
+			probe := func(rawURL string) (ServiceHealth, bool) {
+				start := time.Now()
+				req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+				if err != nil {
+					return ServiceHealth{Name: tgt.name, Status: "unhealthy", CheckedAt: start, Error: err.Error()}, false
+				}
+				resp, err := client.Do(req)
+				latency := time.Since(start).Milliseconds()
+				if err != nil {
+					return ServiceHealth{Name: tgt.name, Status: "unhealthy", LatencyMs: latency, CheckedAt: start, Error: err.Error()}, false
+				}
+				_ = resp.Body.Close()
+				healthy := resp.StatusCode == http.StatusOK || (tgt.allow4xx && resp.StatusCode < http.StatusInternalServerError)
+				status := "healthy"
+				var errMsg string
+				if !healthy {
+					status = "unhealthy"
+					errMsg = fmt.Sprintf("HTTP %d", resp.StatusCode)
+				}
+				return ServiceHealth{
+					Name:      tgt.name,
+					Status:    status,
+					LatencyMs: latency,
+					CheckedAt: start,
+					Error:     errMsg,
+				}, true
 			}
-			continue
-		}
-		resp, err := client.Do(req)
-		latency := time.Since(start).Milliseconds()
-		if err != nil {
-			results[i] = ServiceHealth{
-				Name:	svc.name, Status: "unhealthy", LatencyMs: latency, CheckedAt: start, Error: err.Error(),
+			primaryURL := tgt.url
+			if primaryURL == "" {
+				primaryURL = tgt.fallback
 			}
-			continue
-		}
-		_ = resp.Body.Close()
-		status := "healthy"
-		if resp.StatusCode != http.StatusOK {
-			status = "unhealthy"
-		}
-		results[i] = ServiceHealth{
-			Name:		svc.name,
-			Status:		status,
-			LatencyMs:	latency,
-			CheckedAt:	start,
-		}
+			res, reached := probe(primaryURL)
+			if !reached && tgt.fallback != "" && tgt.fallback != primaryURL {
+				if fbRes, fbReached := probe(tgt.fallback); fbReached || res.Error != "" {
+					if fbReached {
+						res = fbRes
+					}
+				}
+			}
+			results[idx] = res
+		}(i, svc)
 	}
+	wg.Wait()
 	return results, nil
 }
 type RuntimeConfigView struct {
@@ -139,7 +195,7 @@ type OutboxLagView struct {
 	Pending	int64	`json:"pending"`
 }
 func (s *Service) DatabaseStats(ctx context.Context) (DatabaseStatsView, error) {
-	knownSchemas := []string{"system", "identity", "itsm", "notify", "audit", "files"}
+	knownSchemas := []string{"system", "identity", "itsm", "notify", "audit", "files", "cms", "commerce", "delivery", "finance", "hr", "inventory", "sales", "workflow", "realtime"}
 	var versions []SchemaVersion
 	var lags []OutboxLagView
 	var allRiverStats []postgres.RiverQueueStat

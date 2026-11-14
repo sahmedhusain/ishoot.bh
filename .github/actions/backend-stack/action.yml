@@ -7,7 +7,10 @@ runs:
   steps:
     - name: Generate .env (service keys, storage credentials)
       shell: bash
-      run: node scripts/env-tool.cjs init
+      run: '[ -f .env ] || node scripts/env-tool.cjs init'
+    - name: Ensure service keys exist
+      shell: bash
+      run: node scripts/env-tool.cjs service-keys
     - name: Start the stack
       shell: bash
       run: docker compose up -d --build --wait

@@ -62,8 +62,10 @@ func (s SMTP) Send(ctx context.Context, msg Message) (Result, error) {
 	}
 	defer func() { _ = client.Close() }()
 	if s.TLS == "starttls" {
-		if err := client.StartTLS(&tls.Config{ServerName: s.Host, MinVersion: tls.VersionTLS12}); err != nil {
-			return Result{}, fmt.Errorf("smtp starttls: %w", err)
+		if ok, _ := client.Extension("STARTTLS"); ok || (s.Host != "mailpit" && s.Host != "localhost" && s.Host != "127.0.0.1") {
+			if err := client.StartTLS(&tls.Config{ServerName: s.Host, MinVersion: tls.VersionTLS12}); err != nil {
+				return Result{}, fmt.Errorf("smtp starttls: %w", err)
+			}
 		}
 	}
 	if s.Username != "" {

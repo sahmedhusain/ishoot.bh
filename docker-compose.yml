@@ -101,6 +101,8 @@ x-notify: &notify
     NATS_URL: ${NATS_URL:-nats://nats:4222}
     NOTIFY_SERVICE_KEY: ${NOTIFY_SERVICE_KEY:?Set NOTIFY_SERVICE_KEY in .env}
     NOTIFY_SYSTEM_URL: http://system:8080
+    NOTIFY_SEND_CALLERS: ${NOTIFY_SEND_CALLERS:-admin,web,store,it}
+    NOTIFY_INBOX_CALLERS: ${NOTIFY_INBOX_CALLERS:-admin,web,store,it}
     # Locally every e-mail goes to Mailpit and every WhatsApp message to the sandbox; nothing leaves the machine.
     NOTIFY_EMAIL_PROVIDER: ${NOTIFY_EMAIL_PROVIDER:-smtp}
     NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-Platform <no-reply@platform.test>}
@@ -154,11 +156,12 @@ x-system: &system
     SYSTEM_SERVICE_KEY: ${SYSTEM_SERVICE_KEY:?Set SYSTEM_SERVICE_KEY in .env}
     SYSTEM_FILES_URL: ${SYSTEM_FILES_URL:-http://files:8080}
     SYSTEM_COMPANY_BODY_LIMIT: ${SYSTEM_COMPANY_BODY_LIMIT:-1048576}
+    SYSTEM_COMPANY_WRITERS: ${SYSTEM_COMPANY_WRITERS:-admin,it}
     SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,store,it,notify}
     SYSTEM_MODULE_READ_CALLERS: ${SYSTEM_MODULE_READ_CALLERS:-identity}
-    SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin}
-    SYSTEM_INTEGRATION_WRITERS: ${SYSTEM_INTEGRATION_WRITERS:-admin}
-    SYSTEM_DOMAIN_WRITERS: ${SYSTEM_DOMAIN_WRITERS:-admin}
+    SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin,it}
+    SYSTEM_INTEGRATION_WRITERS: ${SYSTEM_INTEGRATION_WRITERS:-admin,it}
+    SYSTEM_DOMAIN_WRITERS: ${SYSTEM_DOMAIN_WRITERS:-admin,it}
     NATS_URL: ${NATS_URL:-nats://nats:4222}
     SECRETS_KEYS: ${SECRETS_KEYS:-primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=}
     SECRETS_PRIMARY_KEY_ID: ${SECRETS_PRIMARY_KEY_ID:-primary}
@@ -960,7 +963,7 @@ services:
     volumes:
       - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "127.0.0.1:${PROMETHEUS_PORT:-9091}:9090"
+      - "127.0.0.1:${PROMETHEUS_PORT:-9099}:9090"
 
   grafana:
     image: grafana/grafana:11.5.2

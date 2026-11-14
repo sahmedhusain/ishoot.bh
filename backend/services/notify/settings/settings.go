@@ -16,8 +16,8 @@ type Config struct {
 	Notify	Notify		`envPrefix:"NOTIFY_"`
 }
 type Notify struct {
-	SendCallers	[]string	`env:"SEND_CALLERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
-	InboxCallers	[]string	`env:"INBOX_CALLERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
+	SendCallers	[]string	`env:"SEND_CALLERS" envDefault:"admin,web,store,it" envSeparator:"," validate:"min=1,dive,required"`
+	InboxCallers	[]string	`env:"INBOX_CALLERS" envDefault:"admin,web,store,it" envSeparator:"," validate:"min=1,dive,required"`
 	InboxBodyLimit	int64	`env:"INBOX_BODY_LIMIT" envDefault:"2097152" validate:"gt=0"`
 	InboxRetention	time.Duration	`env:"INBOX_RETENTION" envDefault:"8760h" validate:"gte=0"`
 	InboxPurgeEvery	time.Duration	`env:"INBOX_PURGE_EVERY" envDefault:"6h" validate:"gte=0"`
@@ -34,13 +34,13 @@ type Notify struct {
 	ServiceKey	string	`env:"SERVICE_KEY"`
 	SystemURL	string	`env:"SYSTEM_URL" envDefault:"http://system:8080" validate:"url"`
 	EmailProvider	string	`env:"EMAIL_PROVIDER" envDefault:"integration" validate:"oneof=integration smtp"`
-	EmailFrom	string	`env:"EMAIL_FROM" envDefault:"Platform <no-reply@example.com>"`
+	EmailFrom	string	`env:"EMAIL_FROM" envDefault:"Platform <no-reply@platform.test>"`
 	ResendURL	string	`env:"RESEND_URL" envDefault:"https://api.resend.com" validate:"url"`
 	SMTPHost	string	`env:"SMTP_HOST" envDefault:"mailpit"`
 	SMTPPort	int	`env:"SMTP_PORT" envDefault:"1025" validate:"gt=0,lt=65536"`
 	SMTPUsername	string	`env:"SMTP_USERNAME"`
 	SMTPPassword	string	`env:"SMTP_PASSWORD"`
-	SMTPTLS	string	`env:"SMTP_TLS" envDefault:"starttls" validate:"oneof=none starttls tls"`
+	SMTPTLS	string	`env:"SMTP_TLS" envDefault:"none" validate:"oneof=none starttls tls"`
 	WhatsAppURL	string	`env:"WHATSAPP_URL" envDefault:"https://graph.facebook.com/v21.0" validate:"url"`
 	WhatsAppCredentials	string	`env:"WHATSAPP_CREDENTIALS" envDefault:"integration" validate:"oneof=integration static"`
 	WhatsAppPhoneID		string	`env:"WHATSAPP_PHONE_ID"`

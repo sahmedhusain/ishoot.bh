@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -48,10 +48,10 @@ jobs:
             apps/store/package-lock.json
       - name: Install dependencies per app
         run: |
-          npm --prefix apps/admin install
-          npm --prefix apps/it install
-          npm --prefix apps/web install
-          npm --prefix apps/store install
+          npm --prefix apps/admin ci
+          npm --prefix apps/it ci
+          npm --prefix apps/web ci
+          npm --prefix apps/store ci
       - name: Lint
         run: |
           npm --prefix apps/admin run lint
@@ -72,7 +72,7 @@ jobs:
           npm --prefix apps/store test
         env:
           CI: true
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: static-results
@@ -84,8 +84,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -93,7 +93,8 @@ jobs:
             apps/admin/package-lock.json
             apps/it/package-lock.json
             apps/web/package-lock.json
-      - uses: actions/setup-go@v7
+            apps/store/package-lock.json
+      - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
@@ -101,6 +102,7 @@ jobs:
         run: |
           npm --prefix apps/admin ci
           node scripts/env-tool.cjs init
+          docker compose --env-file .env up -d postgres --wait
       - name: Empty schema bootstraps cleanly and idempotently
         env:
           SUPER_ADMIN_EMAIL: seed@example.test
@@ -141,14 +143,14 @@ jobs:
           ./run.sh db bootstrap --profile demo
 
   e2e:
-    name: End-to-end (admin, setup wizard, website, IT dashboard)
+    name: End-to-end (admin, setup wizard, website, store, IT dashboard)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
       E2E_SERVER_MODE: start
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -156,11 +158,13 @@ jobs:
             apps/admin/package-lock.json
             apps/it/package-lock.json
             apps/web/package-lock.json
+            apps/store/package-lock.json
       - name: Install dependencies per app
         run: |
-          npm --prefix apps/admin install
-          npm --prefix apps/it install
-          npm --prefix apps/web install
+          npm --prefix apps/admin ci
+          npm --prefix apps/it ci
+          npm --prefix apps/web ci
+          npm --prefix apps/store ci
       - uses: ./.github/actions/backend-stack
       - name: Production builds of the apps
         env:
@@ -176,6 +180,7 @@ jobs:
           npm --prefix apps/admin run build
           npm --prefix apps/it run build
           npm --prefix apps/web run build
+          npm --prefix apps/store run build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Playwright E2E Tests
@@ -183,9 +188,10 @@ jobs:
           npm --prefix apps/admin run test:e2e
           npm --prefix apps/it run test:e2e
           npm --prefix apps/web run test:e2e
+          npm --prefix apps/store run test:e2e
         env:
           CI: true
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-results
