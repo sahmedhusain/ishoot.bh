@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { confirmPasswordReset, isApiError, queueMessage } from "@platform/api-client";
 import { escapeEmailHtml } from "@platform/email";
 import { REALM } from "../../../../lib/identity-session";
+import { emitItTelemetry } from "../../../../lib/telemetry";
 
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/reset-password:POST", async () => {
@@ -39,6 +40,15 @@ export async function POST(req: NextRequest) {
           String(email).trim().toLowerCase().slice(0, 254),
           trustedClientIp(req.headers),
         ));
+        void emitItTelemetry({
+          level: "WARN",
+          service: "auth/admin",
+          user: subjectId || String(email).trim().toLowerCase(),
+          action: "CREDENTIAL_CHANGE",
+          message: `Admin password reset completed for ${String(email).trim().toLowerCase()}`,
+          ipAddress: trustedClientIp(req.headers),
+          userAgent: req.headers.get("user-agent") || undefined,
+        });
       } catch (error) {
         if (isApiError(error, "reset_invalid"))
           return NextResponse.json(

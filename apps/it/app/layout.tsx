@@ -10,6 +10,7 @@ import { ConfirmationProvider, CurrencyLocaleProvider } from "@platform/ui";
 import "./globals.css";
 import "./it-design.css";
 import { CopyProvider } from "../components/CopyProvider";
+import { TelemetryMonitor } from "../components/TelemetryMonitor";
 import { copyFor } from "../lib/i18n";
 import { getCompanyBranding } from "../lib/company-branding";
 
@@ -55,7 +56,7 @@ export default async function RootLayout({
       <body className="it-app-body min-h-screen antialiased bg-[#f4f6f8] dark:bg-[#0b1320] text-slate-900 dark:text-slate-100 font-sans">
         <CopyProvider copy={copy} locale="en">
           <CurrencyLocaleProvider value="en">
-            <ConfirmationProvider>{children}</ConfirmationProvider>
+            <ConfirmationProvider><TelemetryMonitor />{children}</ConfirmationProvider>
             <Toaster richColors closeButton position="top-right" />
           </CurrencyLocaleProvider>
         </CopyProvider>

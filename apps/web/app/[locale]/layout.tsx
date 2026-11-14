@@ -1,6 +1,7 @@
 import { isWebsitePreview } from "../../lib/website";
 import Script from "next/script";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
+import { TelemetryMonitor } from "../../components/TelemetryMonitor";
 import * as React from "react";
 import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
 import { isRtlLocale } from "@platform/locales/registry";
@@ -125,6 +126,7 @@ export default async function LocaleLayout({
           <SmoothScroll>
             <Navbar company={company} pages={config.pages} links={menus?.header} />
             <SiteRegion as="main" region="page" id="main-content" className="w-full">
+              <TelemetryMonitor />
               {children}
             </SiteRegion>
             <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />

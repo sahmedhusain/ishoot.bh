@@ -7,6 +7,7 @@ import { createActivityLog } from "@platform/database/queries/activity";
 import { trustedClientIp } from "@platform/database/services/abuse-limits";
 import { readLoginInput } from "../../../../lib/login-input";
 import { REALM, sessionCookies } from "../../../../lib/identity-session";
+import { emitItTelemetry } from "../../../../lib/telemetry";
 
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/login:POST", async () => {
@@ -56,8 +57,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
       }
 
-      after(() =>
-        createActivityLog({
+      after(() => {
+        void createActivityLog({
           user_id: user?.id ?? credential.subjectId,
           action: "login",
           entity_type: "auth",
@@ -65,8 +66,18 @@ export async function POST(req: NextRequest) {
           details: { role: user?.role, department: user?.department },
           ip_address: ipAddress,
           user_agent: userAgent,
-        }).catch((error) => console.error("Login activity log failed:", error)),
-      );
+        }).catch((error) => console.error("Login activity log failed:", error));
+        void emitItTelemetry({
+          level: "INFO",
+          service: "auth/admin",
+          user: identifier.toLowerCase(),
+          action: "AUTH_LOGIN",
+          message: `Admin login for ${identifier.toLowerCase()}`,
+          ipAddress,
+          userAgent,
+          metadata: { userId: user?.id ?? credential.subjectId, role: user?.role },
+        });
+      });
 
       const response = NextResponse.json({
         success: true,

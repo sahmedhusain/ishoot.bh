@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { cookies, headers } from "next/headers";
+import { pushLogs } from "../lib/logger-queue";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -90,6 +91,20 @@ export async function signInAction(
       clientIp: clientIp || undefined,
     });
     await setCookies(sessionCookies(credential, identifier));
+    const reqHeaders = await headers();
+    pushLogs([
+      {
+        timestamp: new Date().toISOString(),
+        level: "INFO",
+        service: "auth/it",
+        user: identifier,
+        action: "AUTH_LOGIN",
+        message: `IT login for ${identifier}`,
+        ipAddress: clientIp || reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim(),
+        userAgent: reqHeaders.get("user-agent")?.slice(0, 512) || undefined,
+        metadata: { subjectId: credential.subjectId },
+      },
+    ]);
     const status = await getCompanySetupStatusForIT(credential.accessToken).catch(() => null);
     if (status && status.finished === false) {
       targetUrl = "/setup";
@@ -104,8 +119,21 @@ export async function signInAction(
 }
 
 export async function signOutAction() {
+  const reqHeaders = await headers();
   const refresh = (await cookies()).get(config.refreshCookie())?.value;
   if (refresh) await signOut(REALM, refresh).catch(() => undefined);
+  pushLogs([
+    {
+      timestamp: new Date().toISOString(),
+      level: "INFO",
+      service: "auth/it",
+      user: "it-staff",
+      action: "AUTH_LOGOUT",
+      message: "IT session signed out",
+      ipAddress: reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || reqHeaders.get("x-real-ip")?.trim(),
+      userAgent: reqHeaders.get("user-agent")?.slice(0, 512) || undefined,
+    },
+  ]);
   await setCookies(clearedCookies());
   redirect("/login");
 }
@@ -581,6 +609,19 @@ export async function resetPasswordAction(
       email,
       clientIp,
     );
+    const reqHeaders = await headers();
+    pushLogs([
+      {
+        timestamp: new Date().toISOString(),
+        level: "WARN",
+        service: "auth/it",
+        user: subjectId || email,
+        action: "CREDENTIAL_CHANGE",
+        message: `IT password reset completed for ${email}`,
+        ipAddress: clientIp || reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim(),
+        userAgent: reqHeaders.get("user-agent")?.slice(0, 512) || undefined,
+      },
+    ]);
     await queueMessage({
       channel: "email",
       to: email,

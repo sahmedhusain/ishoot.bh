@@ -1,6 +1,7 @@
 import { isWebsitePreview } from "../../lib/website";
 import Script from "next/script";
 import { StorePreviewBridge } from "../../components/site/StorePreviewBridge";
+import { TelemetryMonitor } from "../../components/TelemetryMonitor";
 import { storeEnabled, orderingEnabled } from "../../lib/customer";
 import * as React from "react";
 import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
@@ -132,6 +133,7 @@ export default async function LocaleLayout({
           <SmoothScroll>
             <StoreNavbar cartEnabled={ordering} company={company} pages={config.pages} links={menus?.header} accountHref={store && config.commerce.capabilities.accounts ? `/${locale}/account` : undefined} />
             <StoreRegion as="main" region="page" id="main-content" className="w-full">
+              <TelemetryMonitor />
               {children}
             </StoreRegion>
             <StoreFooter company={company} socialLinks={socialLinks} />

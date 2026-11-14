@@ -17,6 +17,7 @@ import { isCompanySetupCompleted } from "@platform/database";
 import { AdminLocaleProvider } from "../hooks/useAdminLocale";
 import { AdminThemeProvider } from "../hooks/useAdminTheme";
 import { UnsavedChangesProvider } from "../hooks/useUnsavedChanges";
+import { TelemetryMonitor } from "../components/TelemetryMonitor";
 import { Toaster } from "sonner";
 
 export const generateMetadata = () => companyMetadata();
@@ -79,7 +80,7 @@ export default async function RootLayout({
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
           <AdminLocaleProvider activity={company?.business_activity} initialLocale={initialLocale} initialTranslations={initialTranslations}>
             <CompanyCurrencyProvider currency={company?.default_currency}><PhoneCountryProvider country={company?.country}><ConfirmationProvider>
-              <UnsavedChangesProvider><OverlayScrollbarsProvider />{children}</UnsavedChangesProvider>
+              <UnsavedChangesProvider><OverlayScrollbarsProvider /><TelemetryMonitor />{children}</UnsavedChangesProvider>
             </ConfirmationProvider></PhoneCountryProvider></CompanyCurrencyProvider>
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>

@@ -1,0 +1,223 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: platform-prod
+  labels:
+    app: web
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+        tier: frontend
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/ishoot-bh/web:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: IT_INTERNAL_URL
+              value: http://it.platform-prod.svc.cluster.local:3002
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: platform-prod
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin
+  namespace: platform-prod
+  labels:
+    app: admin
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+        tier: frontend
+    spec:
+      containers:
+        - name: admin
+          image: ghcr.io/ishoot-bh/admin:latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: IT_INTERNAL_URL
+              value: http://it.platform-prod.svc.cluster.local:3002
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin
+  namespace: platform-prod
+spec:
+  selector:
+    app: admin
+  ports:
+    - port: 3001
+      targetPort: 3001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: it
+  namespace: platform-prod
+  labels:
+    app: it
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: it
+  template:
+    metadata:
+      labels:
+        app: it
+        tier: frontend
+    spec:
+      containers:
+        - name: it
+          image: ghcr.io/ishoot-bh/it:latest
+          ports:
+            - containerPort: 3002
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: it
+  namespace: platform-prod
+spec:
+  selector:
+    app: it
+  ports:
+    - port: 3002
+      targetPort: 3002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+  namespace: platform-prod
+  labels:
+    app: store
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: store
+  template:
+    metadata:
+      labels:
+        app: store
+        tier: frontend
+    spec:
+      containers:
+        - name: store
+          image: ghcr.io/ishoot-bh/store:latest
+          ports:
+            - containerPort: 3003
+          env:
+            - name: IT_INTERNAL_URL
+              value: http://it.platform-prod.svc.cluster.local:3002
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store
+  namespace: platform-prod
+spec:
+  selector:
+    app: store
+  ports:
+    - port: 3003
+      targetPort: 3003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: platform-prod
+  labels:
+    app: gateway
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        tier: backend
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/ishoot-bh/gateway:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: platform-prod
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
