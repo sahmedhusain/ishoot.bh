@@ -9,6 +9,7 @@ import { LegalModal } from "../shared/LegalModal";
 import { CreditCard, ShieldCheck, Truck, RotateCcw, HelpCircle, Store, MapPin, Phone, Mail } from "lucide-react";
 import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
 import { SocialIcon } from "./SocialIcon";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface FooterProps {
   company: PublicCompanySettings;
@@ -212,14 +213,19 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
             </div>
           </div>
 
-          {/* Bottom Copyright & Payment Gateways */}
-          <div className="pt-6 border-t border-m3-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-m3-on-surface-variant">
+          {/* Bottom Copyright, Switchers & Payment Gateways */}
+          <div className="pt-6 border-t border-m3-outline-variant/40 flex flex-col lg:flex-row items-center justify-between gap-4 text-xs text-m3-on-surface-variant">
             <div>
               © {new Date().getFullYear()}{" "}
               {isArabic
                 ? company.company_name_ar || company.company_name_en
                 : company.company_name_en}{" "}
               · {t("footer.allRights")}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <LanguageSwitcher variant="footer" />
+              <SiteModeSwitch locale={locale} placement="up" />
             </div>
 
             <div className="flex items-center gap-2 text-m3-on-surface-variant">

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { Transition } from "framer-motion";
+import { Check, ChevronDown, Moon, Sparkles, Sun } from "lucide-react";
 import { useSite } from "./SiteProvider";
 import { usePathname } from "next/navigation";
 import { getTranslations } from "@platform/locales";
@@ -62,6 +63,13 @@ export function SiteThemeProvider({
     },
     [design],
   );
+  const availableModes = React.useMemo<SiteMode[]>(
+    () =>
+      design.allowedModes.includes("mixed")
+        ? ["light", "dark", "mixed"]
+        : ["light", "dark"],
+    [design.allowedModes],
+  );
   React.useEffect(() => {
     const system = window.matchMedia("(prefers-color-scheme: dark)");
     const sync = () => {
@@ -87,7 +95,10 @@ export function SiteThemeProvider({
           }
         }
       } catch {}
-      const next = resolveSiteMode(design, saved, system.matches);
+      const next =
+        saved && availableModes.includes(saved as SiteMode)
+          ? (saved as SiteMode)
+          : resolveSiteMode(design, saved, system.matches);
       apply(next);
       setCurrentMode(next);
     };
@@ -98,9 +109,9 @@ export function SiteThemeProvider({
       system.removeEventListener("change", sync);
       window.removeEventListener("storage", sync);
     };
-  }, [design, apply]);
+  }, [design, apply, availableModes]);
   function setMode(next: SiteMode) {
-    if (!design.visitorSwitching || !design.allowedModes.includes(next)) return;
+    if (!availableModes.includes(next)) return;
     try {
       localStorage.setItem("site-mode", next);
     } catch {}
@@ -114,28 +125,115 @@ export function SiteThemeProvider({
   );
 }
 
-export function SiteModeSwitch({ locale }: { locale: string }) {
+const MODE_ICONS: Record<SiteMode, typeof Sun> = {
+  light: Sun,
+  dark: Moon,
+  mixed: Sparkles,
+};
+
+export function SiteModeSwitch({
+  locale,
+  placement = "up",
+}: {
+  locale: string;
+  placement?: "up" | "down";
+}) {
   const theme = useSiteTheme();
-  if (!theme?.design.visitorSwitching || theme.design.allowedModes.length < 2)
-    return null;
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  if (!theme) return null;
+
+  const modes: SiteMode[] = theme.design.allowedModes.includes("mixed")
+    ? ["light", "dark", "mixed"]
+    : ["light", "dark"];
   const t = getTranslations(locale as "en" | "ar");
   const names = t.common.themeModes;
+  const CurrentIcon = MODE_ICONS[theme.mode] ?? Sparkles;
+  const menuPosition =
+    placement === "up" ? "bottom-full mb-2 end-0" : "top-full mt-2 end-0";
+
   return (
-    <fieldset className="site-mode-switch">
-      <legend className="sr-only">
-        {t.common.themeAppearance}
-      </legend>
-      {theme.design.allowedModes.map((mode) => (
-        <button
-          type="button"
-          key={mode}
-          aria-pressed={theme.mode === mode}
-          onClick={() => theme.setMode(mode)}
+    <div ref={containerRef} className="relative inline-block">
+      <button
+        type="button"
+        data-testid="appearance-switcher"
+        aria-label={t.common.themeAppearance}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-2 min-h-9 px-3.5 py-2 rounded-full border border-m3-outline-variant bg-m3-surface-container-high text-m3-on-surface text-xs font-medium hover:border-m3-primary transition-colors cursor-pointer"
+      >
+        <CurrentIcon
+          className="w-4 h-4 shrink-0 text-m3-primary"
+          aria-hidden="true"
+        />
+        <span>{names[theme.mode]}</span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          aria-label={t.common.themeAppearance}
+          className={`absolute ${menuPosition} z-[95] min-w-44 rounded-xl border border-m3-outline-variant bg-m3-surface-container-high p-1.5 shadow-xl text-m3-on-surface`}
         >
-          {names[mode]}
-        </button>
-      ))}
-    </fieldset>
+          {modes.map((m) => {
+            const Icon = MODE_ICONS[m] ?? Sparkles;
+            const active = theme.mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active}
+                onClick={() => {
+                  theme.setMode(m);
+                  setOpen(false);
+                }}
+                className={`no-btn-shape w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  active
+                    ? "bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
+                    : "text-m3-on-surface hover:bg-m3-surface-container-highest"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span>{names[m]}</span>
+                </span>
+                {active && (
+                  <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 

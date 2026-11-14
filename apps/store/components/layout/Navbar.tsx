@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandImage } from "../site/BrandImage";
-import { SiteRegion, SiteModeSwitch } from "../site/SiteTheme";
+import { SiteRegion } from "../site/SiteTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
@@ -57,8 +57,7 @@ export function Navbar({ company }: NavbarProps) {
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <SiteModeSwitch locale={locale} />
-              <LanguageSwitcher />
+              <LanguageSwitcher variant="compact" />
             </div>
           </div>
         </div>

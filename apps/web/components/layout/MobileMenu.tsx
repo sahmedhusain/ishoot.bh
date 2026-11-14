@@ -115,7 +115,8 @@ export function MobileMenu({
 
       <div className="space-y-4 pt-4 border-t border-m3-outline-variant">
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <SiteModeSwitch locale={locale} /><LanguageSwitcher />
+          <LanguageSwitcher variant="footer" />
+          <SiteModeSwitch locale={locale} placement="up" />
         </div>
         {(locale === "ar" ? company.address_ar : company.address_en) ? (
           <div className="text-center text-xs text-ink-muted">

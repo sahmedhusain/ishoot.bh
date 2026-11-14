@@ -10,6 +10,7 @@ import { collectionHref } from "../../lib/site-copy";
 import { ArrowUpRight } from "lucide-react";
 import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
 import { SocialIcon } from "./SocialIcon";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Reveal } from "../shared/Reveal";
 import { LegalModal } from "../shared/LegalModal";
 
@@ -188,8 +189,9 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
             {" · "}
             {t("footer.allRights")}
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <SiteModeSwitch locale={locale} />
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <LanguageSwitcher variant="footer" />
+            <SiteModeSwitch locale={locale} placement="up" />
             <button
               onClick={() => setModalType("rules")}
               className="footer-link bg-transparent border-none cursor-pointer"

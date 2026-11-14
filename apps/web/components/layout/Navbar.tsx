@@ -1,6 +1,6 @@
 "use client";
 import { BrandImage } from "../site/BrandImage";
-import { SiteRegion, SiteModeSwitch } from "../site/SiteTheme";
+import { SiteRegion } from "../site/SiteTheme";
 
 import * as React from "react";
 import Link from "next/link";
@@ -120,7 +120,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
                 />
               </form>
             )}
-            <SiteModeSwitch locale={locale} /><LanguageSwitcher />
+            <LanguageSwitcher variant="compact" />
           </div>
 
           <div className={`flex items-center gap-3 ${fullNavigation ? "lg:hidden" : ""}`}>
