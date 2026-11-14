@@ -41,21 +41,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     faq: <FAQSection faqs={website.faqs} />,
     cta: null,
   };
-  let lightBand = 0;
   const sections = website.config.sections
-    .filter((section) => section.visible && section.id !== "cta")
-    .map((section) => {
-      if (
-        section.id === "about" ||
-        section.id === "portfolio" ||
-        section.id === "reviews"
-      )
-        lightBand += 1;
-      return {
-        ...section,
-        slope: lightBand % 2 === 0 && lightBand > 0 ? "right" : "left",
-      };
-    });
+    .filter((section) => section.visible && section.id !== "cta");
   return (
     <div className="home-page flex flex-col w-full">
       {heroStyle === "cinematic" ? (
@@ -66,7 +53,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <CenteredHero banners={website.banners} title={name} subtitle={tagline} />
       )}
       {sections.map((section) => (
-        <div key={section.id} data-slope={section.slope} data-reveal={REVEAL_SECTIONS.includes(section.id) ? "" : undefined}>
+        <div key={section.id} data-reveal={REVEAL_SECTIONS.includes(section.id) ? "" : undefined}>
           {components[section.id]}
         </div>
       ))}

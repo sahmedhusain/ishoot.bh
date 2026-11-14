@@ -466,23 +466,16 @@ html[lang="en"] h2.font-display {
 }
 
 :root {
-  --section-slope: clamp(24px, 3vw, 48px);
-  --slope-shape: polygon(0 0, 100% 100%, 0 100%);
-  --rule-angle: 0.8deg;
+  --section-slope: 0px;
+  --slope-shape: none;
+  --rule-angle: 0deg;
   --rule-color: rgba(255, 255, 255, 0.15);
 }
-[data-slope="left"] {
-  --slope-shape: polygon(0 0, 100% 100%, 0 100%);
-  --rule-angle: 0.8deg;
-}
-[data-slope="right"] {
-  --slope-shape: polygon(0 100%, 100% 0, 100% 100%);
-  --rule-angle: -0.8deg;
-}
-
+[data-slope="left"],
+[data-slope="right"],
 body:has(.home-page > [data-slope="right"]:last-child) .site-footer {
-  --slope-shape: polygon(0 100%, 100% 0, 100% 100%);
-  --rule-angle: -0.8deg;
+  --slope-shape: none;
+  --rule-angle: 0deg;
 }
 #main-content section:not(#home),
 .site-footer {
@@ -490,18 +483,17 @@ body:has(.home-page > [data-slope="right"]:last-child) .site-footer {
   overflow: visible;
   margin-top: 0;
   clip-path: none;
-  border-top: 0;
+  border-top: 1px solid rgb(var(--m3-color-outline-variant) / 0.35);
   border-bottom: 0;
 }
 #main-content section:not(#home)::before,
 .site-footer::before {
-  content: "";
-  position: absolute;
+  display: none;
+  content: none;
   inset-inline: 0;
-  top: calc(-1 * var(--section-slope));
-  height: var(--section-slope);
-  background: inherit;
-  clip-path: var(--slope-shape);
+  top: 0;
+  height: 0;
+  clip-path: none;
   pointer-events: none;
 }
 
@@ -519,7 +511,7 @@ body:has(.home-page > [data-slope="right"]:last-child) .site-footer {
   bottom: 0;
   height: 1px;
   background: var(--rule-color);
-  transform: skewY(var(--rule-angle));
+  transform: none;
   transform-origin: center;
   pointer-events: none;
 }

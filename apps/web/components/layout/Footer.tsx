@@ -83,7 +83,7 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
     <SiteRegion region="footer"><footer className="site-footer relative bg-brand-surface border-t border-white/10 pt-16 sm:pt-24 pb-6">
       <div className="shell relative">
         {showInvitation && (
-          <Reveal className="footer-invitation sloped-rule-bottom">
+          <Reveal className="footer-invitation border-b border-white/10 pb-12">
             <p className="web-eyebrow text-ink-muted">
               {t("footer.invitationLabel")}
             </p>

@@ -56,22 +56,17 @@ export interface BlockContext {
 
 const REVEAL_HERE: readonly BlockType[] = ["catalogue", "services", "testimonials", "faq", "clients", "pillars", "equipment"];
 
-const LIGHT: readonly BlockType[] = ["about", "catalogue", "testimonials"];
-
 export async function PageBlocks({ blocks, context }: { blocks: Block[]; context: BlockContext }) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const { locale, website, company } = context;
-  let light = 0;
   return (
     <>
       {blocks
         .filter((block) => block.visible)
         .map((block) => {
-          if (LIGHT.includes(block.type)) light += 1;
-          const slope = light % 2 === 0 && light > 0 ? "right" : "left";
           const node = renderBlock(block, context);
           return node ? (
-            <div key={block.id} data-slope={slope} data-block={block.type} data-reveal={REVEAL_HERE.includes(block.type) ? "" : undefined}>
+            <div key={block.id} data-block={block.type} data-reveal={REVEAL_HERE.includes(block.type) ? "" : undefined}>
               <SiteRegion tone={block.tone}>{node}</SiteRegion>
             </div>
           ) : null;
