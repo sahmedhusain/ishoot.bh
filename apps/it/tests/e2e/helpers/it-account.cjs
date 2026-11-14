@@ -15,9 +15,9 @@ if (fs.existsSync(target)) {
   console.log("IT account: kept", path.relative(process.cwd(), target));
   process.exit(0);
 }
-const email = process.env.E2E_IT_EMAIL || "e2e-it@example.test";
+let loginEmail = process.env.E2E_IT_EMAIL || "e2e-it@example.test";
 const password = crypto.randomBytes(18).toString("base64url");
-const args = [
+const bootstrapArgs = [
   "compose",
   ...(process.env.COMPOSE_ARGS?.split(" ").filter(Boolean) ?? []),
   "run",
@@ -26,17 +26,40 @@ const args = [
   "identity",
   "bootstrap-it",
   "-email",
-  email,
+  loginEmail,
 ];
-const output = execFileSync("docker", args, {
-  input: password + "\n",
-  encoding: "utf8",
-  stdio: ["pipe", "pipe", "inherit"],
-});
+let output;
+try {
+  output = execFileSync("docker", bootstrapArgs, {
+    input: password + "\n",
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+} catch {
+  loginEmail = process.env.E2E_IT_RECOVER_EMAIL || "admin@example.com";
+  const recoverArgs = [
+    "compose",
+    ...(process.env.COMPOSE_ARGS?.split(" ").filter(Boolean) ?? []),
+    "run",
+    "--rm",
+    "-T",
+    "identity",
+    "recover-it",
+    "-email",
+    loginEmail,
+    "-actor",
+    "e2e-runner",
+  ];
+  output = execFileSync("docker", recoverArgs, {
+    input: password + "\n",
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "inherit"],
+  });
+}
 const secret = output.match(/secret: ([A-Z2-7]+)/)?.[1];
-if (!secret) throw new Error("bootstrap-it printed no authenticator secret");
+if (!secret) throw new Error("bootstrap-it/recover-it printed no authenticator secret");
 fs.mkdirSync(path.dirname(target), { recursive: true });
-fs.writeFileSync(target, JSON.stringify({ email, password, secret }), {
+fs.writeFileSync(target, JSON.stringify({ email: loginEmail, password, secret }), {
   mode: 0o600,
 });
-console.log("IT account: created", email);
+console.log("IT account: ready", loginEmail);

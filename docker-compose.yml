@@ -229,6 +229,7 @@ x-cms: &cms
   environment:
     <<: *service-env
     SERVICE_NAME: cms
+    CMS_READERS: ${CMS_READERS:-admin,web,store,it}
     DATABASE_URL: postgres://svc_cms:${CMS_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_DIRECT_URL: postgres://svc_cms:${CMS_DB_PASSWORD:?Set CMS_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
@@ -268,6 +269,7 @@ x-delivery: &delivery
   environment:
     <<: *service-env
     SERVICE_NAME: delivery
+    DELIVERY_READERS: ${DELIVERY_READERS:-admin,it,web,store,commerce}
     DATABASE_URL: postgres://svc_delivery:${DELIVERY_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_DIRECT_URL: postgres://svc_delivery:${DELIVERY_DB_PASSWORD:?Set DELIVERY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}

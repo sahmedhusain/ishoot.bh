@@ -12,335 +12,335 @@ import (
 )
 
 type CommerceCoupon struct {
-	ID                string
-	Code              string
-	DiscountType      string
-	DiscountValue     pgtype.Numeric
-	MinOrderAmount    pgtype.Numeric
-	MaxDiscountAmount pgtype.Numeric
-	StartsAt          *time.Time
-	ExpiresAt         *time.Time
-	UsageLimit        *int32
-	UsageCount        int32
-	IsActive          bool
-	CreatedAt         time.Time
-	Kind              *string
-	Value             pgtype.Numeric
-	MinOrder          pgtype.Numeric
-	EndsAt            *time.Time
-	MaxUses           *int32
-	UsedCount         *int32
+	ID                string         `json:"id"`
+	Code              string         `json:"code"`
+	DiscountType      string         `json:"discountType"`
+	DiscountValue     pgtype.Numeric `json:"discountValue"`
+	MinOrderAmount    pgtype.Numeric `json:"minOrderAmount"`
+	MaxDiscountAmount pgtype.Numeric `json:"maxDiscountAmount"`
+	StartsAt          *time.Time     `json:"startsAt"`
+	ExpiresAt         *time.Time     `json:"expiresAt"`
+	UsageLimit        *int32         `json:"usageLimit"`
+	UsageCount        int32          `json:"usageCount"`
+	IsActive          bool           `json:"isActive"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	Kind              *string        `json:"kind"`
+	Value             pgtype.Numeric `json:"value"`
+	MinOrder          pgtype.Numeric `json:"minOrder"`
+	EndsAt            *time.Time     `json:"endsAt"`
+	MaxUses           *int32         `json:"maxUses"`
+	UsedCount         *int32         `json:"usedCount"`
 }
 
 type CommerceCustomer struct {
-	ID              string
-	Email           *string
-	Phone           *string
-	FirstName       string
-	LastName        string
-	Status          string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Name            *string
-	PasswordHash    *string
-	EmailVerifiedAt *time.Time
-	Locale          *string
-	GoogleSub       *string
-	AppleSub        *string
-	MarketingOptIn  *bool
-	CrmContactID    *string
+	ID              string     `json:"id"`
+	Email           *string    `json:"email"`
+	Phone           *string    `json:"phone"`
+	FirstName       string     `json:"firstName"`
+	LastName        string     `json:"lastName"`
+	Status          string     `json:"status"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	Name            *string    `json:"name"`
+	PasswordHash    *string    `json:"passwordHash"`
+	EmailVerifiedAt *time.Time `json:"emailVerifiedAt"`
+	Locale          *string    `json:"locale"`
+	GoogleSub       *string    `json:"googleSub"`
+	AppleSub        *string    `json:"appleSub"`
+	MarketingOptIn  *bool      `json:"marketingOptIn"`
+	CrmContactID    *string    `json:"crmContactId"`
 }
 
 type CommerceCustomerAddress struct {
-	ID          string
-	CustomerID  string
-	AddressType string
-	Label       string
-	Line1       string
-	Line2       string
-	City        string
-	State       string
-	PostalCode  string
-	Country     string
-	IsDefault   bool
-	Name        *string
-	Phone       *string
-	Area        *string
-	CreatedAt   *time.Time
+	ID          string     `json:"id"`
+	CustomerID  string     `json:"customerId"`
+	AddressType string     `json:"addressType"`
+	Label       string     `json:"label"`
+	Line1       string     `json:"line1"`
+	Line2       string     `json:"line2"`
+	City        string     `json:"city"`
+	State       string     `json:"state"`
+	PostalCode  string     `json:"postalCode"`
+	Country     string     `json:"country"`
+	IsDefault   bool       `json:"isDefault"`
+	Name        *string    `json:"name"`
+	Phone       *string    `json:"phone"`
+	Area        *string    `json:"area"`
+	CreatedAt   *time.Time `json:"createdAt"`
 }
 
 type CommerceCustomerAuthCode struct {
-	ID        string
-	Email     *string
-	CodeHash  *string
-	Attempts  *int32
-	ExpiresAt *time.Time
-	UsedAt    *time.Time
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	Email     *string    `json:"email"`
+	CodeHash  *string    `json:"codeHash"`
+	Attempts  *int32     `json:"attempts"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	UsedAt    *time.Time `json:"usedAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type CommerceCustomerSegment struct {
-	ID   string
-	Name *string
+	ID   string  `json:"id"`
+	Name *string `json:"name"`
 }
 
 type CommerceCustomerSession struct {
-	ID         string
-	CustomerID *string
-	TokenHash  *string
-	ExpiresAt  *time.Time
-	UserAgent  *string
-	CreatedAt  time.Time
+	ID         string     `json:"id"`
+	CustomerID *string    `json:"customerId"`
+	TokenHash  *string    `json:"tokenHash"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	UserAgent  *string    `json:"userAgent"`
+	CreatedAt  time.Time  `json:"createdAt"`
 }
 
 type CommerceDeliverySetting struct {
-	ID          string
-	Mode        *string
-	SlaHours    *int32
-	TimeZone    *string
-	SlotDays    *int32
-	LeadMinutes *int32
-	RequireSlot *bool
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	Mode        *string   `json:"mode"`
+	SlaHours    *int32    `json:"slaHours"`
+	TimeZone    *string   `json:"timeZone"`
+	SlotDays    *int32    `json:"slotDays"`
+	LeadMinutes *int32    `json:"leadMinutes"`
+	RequireSlot *bool     `json:"requireSlot"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type CommerceDeliverySlot struct {
-	ID        string
-	ZoneID    *string
-	Weekday   *int32
-	Start     *string
-	End       *string
-	Capacity  *int32
-	IsActive  *bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	ZoneID    *string   `json:"zoneId"`
+	Weekday   *int32    `json:"weekday"`
+	Start     *string   `json:"start"`
+	End       *string   `json:"end"`
+	Capacity  *int32    `json:"capacity"`
+	IsActive  *bool     `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type CommerceDeliveryZone struct {
-	ID        string
-	NameEn    *string
-	NameAr    *string
-	Fee       pgtype.Numeric
-	MinOrder  pgtype.Numeric
-	FreeOver  pgtype.Numeric
-	IsActive  *bool
-	SortOrder *int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string         `json:"id"`
+	NameEn    *string        `json:"nameEn"`
+	NameAr    *string        `json:"nameAr"`
+	Fee       pgtype.Numeric `json:"fee"`
+	MinOrder  pgtype.Numeric `json:"minOrder"`
+	FreeOver  pgtype.Numeric `json:"freeOver"`
+	IsActive  *bool          `json:"isActive"`
+	SortOrder *int32         `json:"sortOrder"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 type CommerceInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type CommerceOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type CommerceRetailClosing struct {
-	ID           string
-	ShiftID      string
-	ClosingDate  pgtype.Date
-	TotalSales   pgtype.Numeric
-	TotalCash    pgtype.Numeric
-	TotalCard    pgtype.Numeric
-	Notes        *string
-	BranchID     *string
-	Level        *string
-	TargetID     *string
-	BusinessDate *time.Time
-	ClosedAt     *time.Time
-	ClosedByID   *string
-	TotalReturns pgtype.Numeric
-	TotalOther   pgtype.Numeric
-	CashVariance pgtype.Numeric
-	Snapshot     []byte
-	Signature    *string
-	JournalID    *string
-	Status       *string
-	Revision     *int32
+	ID           string         `json:"id"`
+	ShiftID      string         `json:"shiftId"`
+	ClosingDate  pgtype.Date    `json:"closingDate"`
+	TotalSales   pgtype.Numeric `json:"totalSales"`
+	TotalCash    pgtype.Numeric `json:"totalCash"`
+	TotalCard    pgtype.Numeric `json:"totalCard"`
+	Notes        *string        `json:"notes"`
+	BranchID     *string        `json:"branchId"`
+	Level        *string        `json:"level"`
+	TargetID     *string        `json:"targetId"`
+	BusinessDate *time.Time     `json:"businessDate"`
+	ClosedAt     *time.Time     `json:"closedAt"`
+	ClosedByID   *string        `json:"closedById"`
+	TotalReturns pgtype.Numeric `json:"totalReturns"`
+	TotalOther   pgtype.Numeric `json:"totalOther"`
+	CashVariance pgtype.Numeric `json:"cashVariance"`
+	Snapshot     []byte         `json:"snapshot"`
+	Signature    *string        `json:"signature"`
+	JournalID    *string        `json:"journalId"`
+	Status       *string        `json:"status"`
+	Revision     *int32         `json:"revision"`
 }
 
 type CommerceRetailRegister struct {
-	ID        string
-	Name      string
-	BranchID  *string
-	IsActive  bool
-	Code      *string
-	Revision  *int32
-	CreatedAt *time.Time
-	UpdatedAt *time.Time
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	BranchID  *string    `json:"branchId"`
+	IsActive  bool       `json:"isActive"`
+	Code      *string    `json:"code"`
+	Revision  *int32     `json:"revision"`
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 type CommerceRetailShift struct {
-	ID           string
-	RegisterID   string
-	CashierID    string
-	OpenedAt     time.Time
-	ClosedAt     *time.Time
-	StartingCash pgtype.Numeric
-	ClosingCash  pgtype.Numeric
-	ExpectedCash pgtype.Numeric
-	Status       string
+	ID           string         `json:"id"`
+	RegisterID   string         `json:"registerId"`
+	CashierID    string         `json:"cashierId"`
+	OpenedAt     time.Time      `json:"openedAt"`
+	ClosedAt     *time.Time     `json:"closedAt"`
+	StartingCash pgtype.Numeric `json:"startingCash"`
+	ClosingCash  pgtype.Numeric `json:"closingCash"`
+	ExpectedCash pgtype.Numeric `json:"expectedCash"`
+	Status       string         `json:"status"`
 }
 
 type CommerceSalesOrder struct {
-	ID              string
-	Number          string
-	CustomerID      *string
-	ContactID       *string
-	Email           *string
-	Name            string
-	Phone           *string
-	Channel         string
-	Status          string
-	PaymentStatus   string
-	PaymentMethod   string
-	Fulfilment      string
-	ShippingAddress []byte
-	Subtotal        pgtype.Numeric
-	DiscountAmount  pgtype.Numeric
-	CouponCode      *string
-	VatAmount       pgtype.Numeric
-	DeliveryFee     pgtype.Numeric
-	Total           pgtype.Numeric
-	AmountPaid      pgtype.Numeric
-	AmountRefunded  pgtype.Numeric
-	Currency        string
-	Locale          string
-	Note            *string
-	WarehouseID     *string
-	InvoiceID       *string
-	CreatedByID     *string
-	PlacedAt        time.Time
-	PaidAt          *time.Time
-	ShippedAt       *time.Time
-	DeliveredAt     *time.Time
-	CancelledAt     *time.Time
-	UtmCampaign     *string
-	UtmSource       *string
-	UtmMedium       *string
-	UpdatedAt       time.Time
+	ID              string         `json:"id"`
+	Number          string         `json:"number"`
+	CustomerID      *string        `json:"customerId"`
+	ContactID       *string        `json:"contactId"`
+	Email           *string        `json:"email"`
+	Name            string         `json:"name"`
+	Phone           *string        `json:"phone"`
+	Channel         string         `json:"channel"`
+	Status          string         `json:"status"`
+	PaymentStatus   string         `json:"paymentStatus"`
+	PaymentMethod   string         `json:"paymentMethod"`
+	Fulfilment      string         `json:"fulfilment"`
+	ShippingAddress []byte         `json:"shippingAddress"`
+	Subtotal        pgtype.Numeric `json:"subtotal"`
+	DiscountAmount  pgtype.Numeric `json:"discountAmount"`
+	CouponCode      *string        `json:"couponCode"`
+	VatAmount       pgtype.Numeric `json:"vatAmount"`
+	DeliveryFee     pgtype.Numeric `json:"deliveryFee"`
+	Total           pgtype.Numeric `json:"total"`
+	AmountPaid      pgtype.Numeric `json:"amountPaid"`
+	AmountRefunded  pgtype.Numeric `json:"amountRefunded"`
+	Currency        string         `json:"currency"`
+	Locale          string         `json:"locale"`
+	Note            *string        `json:"note"`
+	WarehouseID     *string        `json:"warehouseId"`
+	InvoiceID       *string        `json:"invoiceId"`
+	CreatedByID     *string        `json:"createdById"`
+	PlacedAt        time.Time      `json:"placedAt"`
+	PaidAt          *time.Time     `json:"paidAt"`
+	ShippedAt       *time.Time     `json:"shippedAt"`
+	DeliveredAt     *time.Time     `json:"deliveredAt"`
+	CancelledAt     *time.Time     `json:"cancelledAt"`
+	UtmCampaign     *string        `json:"utmCampaign"`
+	UtmSource       *string        `json:"utmSource"`
+	UtmMedium       *string        `json:"utmMedium"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
 }
 
 type CommerceSalesOrderEvent struct {
-	ID        string
-	OrderID   string
-	Kind      string
-	Status    *string
-	Note      *string
-	Amount    pgtype.Numeric
-	ByID      *string
-	CreatedAt time.Time
+	ID        string         `json:"id"`
+	OrderID   string         `json:"orderId"`
+	Kind      string         `json:"kind"`
+	Status    *string        `json:"status"`
+	Note      *string        `json:"note"`
+	Amount    pgtype.Numeric `json:"amount"`
+	ByID      *string        `json:"byId"`
+	CreatedAt time.Time      `json:"createdAt"`
 }
 
 type CommerceSalesOrderLine struct {
-	ID               string
-	OrderID          string
-	ProductID        string
-	VariantKey       string
-	Sku              string
-	Description      string
-	Quantity         pgtype.Numeric
-	UnitPrice        pgtype.Numeric
-	VatExempt        bool
-	LineTotal        pgtype.Numeric
-	LocationID       *string
-	ReturnedQuantity pgtype.Numeric
-	SortOrder        int32
+	ID               string         `json:"id"`
+	OrderID          string         `json:"orderId"`
+	ProductID        string         `json:"productId"`
+	VariantKey       string         `json:"variantKey"`
+	Sku              string         `json:"sku"`
+	Description      string         `json:"description"`
+	Quantity         pgtype.Numeric `json:"quantity"`
+	UnitPrice        pgtype.Numeric `json:"unitPrice"`
+	VatExempt        bool           `json:"vatExempt"`
+	LineTotal        pgtype.Numeric `json:"lineTotal"`
+	LocationID       *string        `json:"locationId"`
+	ReturnedQuantity pgtype.Numeric `json:"returnedQuantity"`
+	SortOrder        int32          `json:"sortOrder"`
 }
 
 type CommerceShipment struct {
-	ID                      string
-	Number                  *string
-	OrderID                 *string
-	Status                  *string
-	Method                  *string
-	ZoneID                  *string
-	SlotID                  *string
-	SlotDate                *time.Time
-	SlotStart               *string
-	SlotEnd                 *string
-	PromisedBy              *time.Time
-	RecipientName           *string
-	RecipientPhone          *string
-	Address                 []byte
-	CodAmount               pgtype.Numeric
-	CodCollected            pgtype.Numeric
-	TrackingToken           *string
-	Attempts                *int32
-	FailureReason           *string
-	OutAt                   *time.Time
-	DeliveredAt             *time.Time
-	DriverID                *string
-	VehicleID               *string
-	RouteSheetID            *string
-	RouteStop               *int32
-	ProofPhotoUrl           *string
-	ProofSignature          *string
-	CodSettlementID         *string
-	AgencyID                *string
-	TrackingNumber          *string
-	CourierBookingAgencyID  *string
-	CourierBookingStatus    *string
-	CourierBookingStartedAt *time.Time
-	LabelUrl                *string
-	AgencyFee               pgtype.Numeric
-	AgencyInvoiceID         *string
-	TrackedAt               *time.Time
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
+	ID                      string         `json:"id"`
+	Number                  *string        `json:"number"`
+	OrderID                 *string        `json:"orderId"`
+	Status                  *string        `json:"status"`
+	Method                  *string        `json:"method"`
+	ZoneID                  *string        `json:"zoneId"`
+	SlotID                  *string        `json:"slotId"`
+	SlotDate                *time.Time     `json:"slotDate"`
+	SlotStart               *string        `json:"slotStart"`
+	SlotEnd                 *string        `json:"slotEnd"`
+	PromisedBy              *time.Time     `json:"promisedBy"`
+	RecipientName           *string        `json:"recipientName"`
+	RecipientPhone          *string        `json:"recipientPhone"`
+	Address                 []byte         `json:"address"`
+	CodAmount               pgtype.Numeric `json:"codAmount"`
+	CodCollected            pgtype.Numeric `json:"codCollected"`
+	TrackingToken           *string        `json:"trackingToken"`
+	Attempts                *int32         `json:"attempts"`
+	FailureReason           *string        `json:"failureReason"`
+	OutAt                   *time.Time     `json:"outAt"`
+	DeliveredAt             *time.Time     `json:"deliveredAt"`
+	DriverID                *string        `json:"driverId"`
+	VehicleID               *string        `json:"vehicleId"`
+	RouteSheetID            *string        `json:"routeSheetId"`
+	RouteStop               *int32         `json:"routeStop"`
+	ProofPhotoUrl           *string        `json:"proofPhotoUrl"`
+	ProofSignature          *string        `json:"proofSignature"`
+	CodSettlementID         *string        `json:"codSettlementId"`
+	AgencyID                *string        `json:"agencyId"`
+	TrackingNumber          *string        `json:"trackingNumber"`
+	CourierBookingAgencyID  *string        `json:"courierBookingAgencyId"`
+	CourierBookingStatus    *string        `json:"courierBookingStatus"`
+	CourierBookingStartedAt *time.Time     `json:"courierBookingStartedAt"`
+	LabelUrl                *string        `json:"labelUrl"`
+	AgencyFee               pgtype.Numeric `json:"agencyFee"`
+	AgencyInvoiceID         *string        `json:"agencyInvoiceId"`
+	TrackedAt               *time.Time     `json:"trackedAt"`
+	CreatedAt               time.Time      `json:"createdAt"`
+	UpdatedAt               time.Time      `json:"updatedAt"`
 }
 
 type CommerceShipmentEvent struct {
-	ID         string
-	ShipmentID *string
-	Status     *string
-	Reason     *string
-	Note       *string
-	ByID       *string
-	At         *time.Time
+	ID         string     `json:"id"`
+	ShipmentID *string    `json:"shipmentId"`
+	Status     *string    `json:"status"`
+	Reason     *string    `json:"reason"`
+	Note       *string    `json:"note"`
+	ByID       *string    `json:"byId"`
+	At         *time.Time `json:"at"`
 }
 
 type CommerceStoreRegion struct {
-	ID              string
-	Code            *string
-	NameEn          *string
-	NameAr          *string
-	Currency        *string
-	DefaultLanguage *string
-	BranchID        *string
-	IsEnabled       *bool
-	PriceMultiplier pgtype.Numeric
-	Settings        []byte
+	ID              string         `json:"id"`
+	Code            *string        `json:"code"`
+	NameEn          *string        `json:"nameEn"`
+	NameAr          *string        `json:"nameAr"`
+	Currency        *string        `json:"currency"`
+	DefaultLanguage *string        `json:"defaultLanguage"`
+	BranchID        *string        `json:"branchId"`
+	IsEnabled       *bool          `json:"isEnabled"`
+	PriceMultiplier pgtype.Numeric `json:"priceMultiplier"`
+	Settings        []byte         `json:"settings"`
 }
 
 type CommerceStoreSetting struct {
-	ID                    string
-	Currency              string
-	TaxInclusive          bool
-	DefaultTaxRate        pgtype.Numeric
-	MinimumOrderAmount    pgtype.Numeric
-	FreeShippingThreshold pgtype.Numeric
-	GuestCheckout         *bool
-	DeliveryEnabled       *bool
-	DeliveryFee           pgtype.Numeric
-	FreeDeliveryOver      pgtype.Numeric
-	PickupEnabled         *bool
-	CodEnabled            *bool
-	BankTransferEnabled   *bool
-	BankInstructionsEn    *string
-	BankInstructionsAr    *string
-	OrderNotifyEmail      *string
-	PaymentGateway        *string
-	UpdatedAt             *time.Time
+	ID                    string         `json:"id"`
+	Currency              string         `json:"currency"`
+	TaxInclusive          bool           `json:"taxInclusive"`
+	DefaultTaxRate        pgtype.Numeric `json:"defaultTaxRate"`
+	MinimumOrderAmount    pgtype.Numeric `json:"minimumOrderAmount"`
+	FreeShippingThreshold pgtype.Numeric `json:"freeShippingThreshold"`
+	GuestCheckout         *bool          `json:"guestCheckout"`
+	DeliveryEnabled       *bool          `json:"deliveryEnabled"`
+	DeliveryFee           pgtype.Numeric `json:"deliveryFee"`
+	FreeDeliveryOver      pgtype.Numeric `json:"freeDeliveryOver"`
+	PickupEnabled         *bool          `json:"pickupEnabled"`
+	CodEnabled            *bool          `json:"codEnabled"`
+	BankTransferEnabled   *bool          `json:"bankTransferEnabled"`
+	BankInstructionsEn    *string        `json:"bankInstructionsEn"`
+	BankInstructionsAr    *string        `json:"bankInstructionsAr"`
+	OrderNotifyEmail      *string        `json:"orderNotifyEmail"`
+	PaymentGateway        *string        `json:"paymentGateway"`
+	UpdatedAt             *time.Time     `json:"updatedAt"`
 }

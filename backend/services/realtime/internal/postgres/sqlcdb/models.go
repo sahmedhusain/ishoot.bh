@@ -9,22 +9,22 @@ import (
 )
 
 type RealtimeStatus struct {
-	Realm     string
-	UserID    string
-	Status    string
-	Message   *string
-	ExpiresAt *time.Time
-	UpdatedAt time.Time
+	Realm     string     `json:"realm"`
+	UserID    string     `json:"userId"`
+	Status    string     `json:"status"`
+	Message   *string    `json:"message"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
 }
 
 type RealtimeStatusWindow struct {
-	ID        string
-	Realm     string
-	UserID    string
-	Source    string
-	SourceID  string
-	Kind      string
-	StartsAt  time.Time
-	EndsAt    time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Realm     string    `json:"realm"`
+	UserID    string    `json:"userId"`
+	Source    string    `json:"source"`
+	SourceID  string    `json:"sourceId"`
+	Kind      string    `json:"kind"`
+	StartsAt  time.Time `json:"startsAt"`
+	EndsAt    time.Time `json:"endsAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

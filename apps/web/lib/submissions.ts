@@ -12,7 +12,16 @@ export function signInSecret() {
 
 export function sameOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
-  return !!origin && origin === req.nextUrl.origin;
+  if (!origin) return false;
+  if (origin === req.nextUrl.origin) return true;
+  const host =
+    req.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    req.headers.get("host");
+  if (!host) return false;
+  const proto =
+    req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    req.nextUrl.protocol.replace(/:$/, "");
+  return origin === `${proto}://${host}`;
 }
 
 export function errorKey(error: unknown) {

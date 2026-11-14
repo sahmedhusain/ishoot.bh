@@ -11,6 +11,15 @@ const ACTIVITY_USER_SELECT = {
   updatedAt: true,
 } as const;
 
+function toIsoStringSafe(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  }
+  return new Date().toISOString();
+}
+
 function mapActivity(a: any): ActivityLog {
   return {
     id: a.id,
@@ -22,8 +31,8 @@ function mapActivity(a: any): ActivityLog {
           email: a.user.email,
           role: a.user.role as any,
           avatar_url: a.user.avatarUrl || undefined,
-          created_at: a.user.createdAt.toISOString(),
-          updated_at: a.user.updatedAt.toISOString(),
+          created_at: toIsoStringSafe(a.user.createdAt),
+          updated_at: toIsoStringSafe(a.user.updatedAt),
         }
       : undefined,
     action: a.action,
@@ -33,7 +42,7 @@ function mapActivity(a: any): ActivityLog {
     diff_payload: a.diffPayload || undefined,
     ip_address: a.ipAddress || undefined,
     user_agent: a.userAgent || undefined,
-    created_at: a.createdAt.toISOString(),
+    created_at: toIsoStringSafe(a.createdAt),
   };
 }
 

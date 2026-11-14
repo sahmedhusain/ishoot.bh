@@ -38,7 +38,14 @@ function createModelProxy(): any {
       )
         return async () => ({ count: 0 });
       if (prop === "create" || prop === "update" || prop === "delete" || prop === "upsert")
-        return async (args: any) => args?.data || null;
+        return async (args: any) => ({
+          id: args?.where?.id ?? args?.data?.id ?? `act-${Date.now()}`,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...(args?.create || {}),
+          ...(args?.update || {}),
+          ...(args?.data || {}),
+        });
       return createModelProxy();
     },
     apply: () => Promise.resolve(null),

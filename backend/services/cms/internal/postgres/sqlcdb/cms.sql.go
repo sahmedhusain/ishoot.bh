@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
 	"time"
 )
+
 const createArticle = `-- name: CreateArticle :one
 INSERT INTO cms.article (
     id, slug, title_en, title_ar, excerpt_en, excerpt_ar,
@@ -19,29 +21,31 @@ INSERT INTO cms.article (
     now(), now()
 ) RETURNING id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at
 `
+
 type CreateArticleParams struct {
-	ID			string
-	Slug			string
-	TitleEn			string
-	TitleAr			string
-	ExcerptEn		*string
-	ExcerptAr		*string
-	BodyEn			[]byte
-	BodyAr			[]byte
-	BodyHtmlEn		*string
-	BodyHtmlAr		*string
-	CoverUrl		*string
-	Category		string
-	Tags			[]string
-	AuthorName		*string
-	Status			string
-	PublishAt		*time.Time
-	Featured		bool
-	SeoTitleEn		*string
-	SeoTitleAr		*string
-	SeoDescriptionEn	*string
-	SeoDescriptionAr	*string
+	ID               string     `json:"id"`
+	Slug             string     `json:"slug"`
+	TitleEn          string     `json:"titleEn"`
+	TitleAr          string     `json:"titleAr"`
+	ExcerptEn        *string    `json:"excerptEn"`
+	ExcerptAr        *string    `json:"excerptAr"`
+	BodyEn           []byte     `json:"bodyEn"`
+	BodyAr           []byte     `json:"bodyAr"`
+	BodyHtmlEn       *string    `json:"bodyHtmlEn"`
+	BodyHtmlAr       *string    `json:"bodyHtmlAr"`
+	CoverUrl         *string    `json:"coverUrl"`
+	Category         string     `json:"category"`
+	Tags             []string   `json:"tags"`
+	AuthorName       *string    `json:"authorName"`
+	Status           string     `json:"status"`
+	PublishAt        *time.Time `json:"publishAt"`
+	Featured         bool       `json:"featured"`
+	SeoTitleEn       *string    `json:"seoTitleEn"`
+	SeoTitleAr       *string    `json:"seoTitleAr"`
+	SeoDescriptionEn *string    `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string    `json:"seoDescriptionAr"`
 }
+
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (CmsArticle, error) {
 	row := q.db.QueryRow(ctx, createArticle,
 		arg.ID,
@@ -94,6 +98,7 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (C
 	)
 	return i, err
 }
+
 const createFAQ = `-- name: CreateFAQ :one
 INSERT INTO cms.faq (
     id, question_en, question_ar, answer_en, answer_ar,
@@ -103,16 +108,18 @@ INSERT INTO cms.faq (
     $6, $7, $8, now()
 ) RETURNING id, question_en, question_ar, answer_en, answer_ar, category, is_published, sort_order, created_at
 `
+
 type CreateFAQParams struct {
-	ID		string
-	QuestionEn	string
-	QuestionAr	string
-	AnswerEn	string
-	AnswerAr	string
-	Category	string
-	IsPublished	bool
-	SortOrder	int32
+	ID          string `json:"id"`
+	QuestionEn  string `json:"questionEn"`
+	QuestionAr  string `json:"questionAr"`
+	AnswerEn    string `json:"answerEn"`
+	AnswerAr    string `json:"answerAr"`
+	Category    string `json:"category"`
+	IsPublished bool   `json:"isPublished"`
+	SortOrder   int32  `json:"sortOrder"`
 }
+
 func (q *Queries) CreateFAQ(ctx context.Context, arg CreateFAQParams) (CmsFaq, error) {
 	row := q.db.QueryRow(ctx, createFAQ,
 		arg.ID,
@@ -138,6 +145,7 @@ func (q *Queries) CreateFAQ(ctx context.Context, arg CreateFAQParams) (CmsFaq, e
 	)
 	return i, err
 }
+
 const createPage = `-- name: CreatePage :one
 INSERT INTO cms.page (
     id, slug, page_type, title_en, title_ar,
@@ -149,22 +157,24 @@ INSERT INTO cms.page (
     $10, $11, $12, $13, $14, now(), now()
 ) RETURNING id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at
 `
+
 type CreatePageParams struct {
-	ID			string
-	Slug			string
-	PageType		string
-	TitleEn			string
-	TitleAr			string
-	SeoTitleEn		*string
-	SeoTitleAr		*string
-	SeoDescriptionEn	*string
-	SeoDescriptionAr	*string
-	Blocks			json.RawMessage
-	IsVisible		bool
-	InHeader		bool
-	InFooter		bool
-	SortOrder		int32
+	ID               string          `json:"id"`
+	Slug             string          `json:"slug"`
+	PageType         string          `json:"pageType"`
+	TitleEn          string          `json:"titleEn"`
+	TitleAr          string          `json:"titleAr"`
+	SeoTitleEn       *string         `json:"seoTitleEn"`
+	SeoTitleAr       *string         `json:"seoTitleAr"`
+	SeoDescriptionEn *string         `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string         `json:"seoDescriptionAr"`
+	Blocks           json.RawMessage `json:"blocks"`
+	IsVisible        bool            `json:"isVisible"`
+	InHeader         bool            `json:"inHeader"`
+	InFooter         bool            `json:"inFooter"`
+	SortOrder        int32           `json:"sortOrder"`
 }
+
 func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (CmsPage, error) {
 	row := q.db.QueryRow(ctx, createPage,
 		arg.ID,
@@ -203,6 +213,7 @@ func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (CmsPage
 	)
 	return i, err
 }
+
 const createReview = `-- name: CreateReview :one
 INSERT INTO cms.review (
     id, author_en, author_ar, company_en, company_ar,
@@ -212,19 +223,21 @@ INSERT INTO cms.review (
     $6, $7, $8, $9, $10, $11, now()
 ) RETURNING id, author_en, author_ar, company_en, company_ar, quote_en, quote_ar, rating, is_approved, sort_order, year, created_at
 `
+
 type CreateReviewParams struct {
-	ID		string
-	AuthorEn	string
-	AuthorAr	string
-	CompanyEn	*string
-	CompanyAr	*string
-	QuoteEn		string
-	QuoteAr		string
-	Rating		int32
-	IsApproved	bool
-	SortOrder	int32
-	Year		string
+	ID         string  `json:"id"`
+	AuthorEn   string  `json:"authorEn"`
+	AuthorAr   string  `json:"authorAr"`
+	CompanyEn  *string `json:"companyEn"`
+	CompanyAr  *string `json:"companyAr"`
+	QuoteEn    string  `json:"quoteEn"`
+	QuoteAr    string  `json:"quoteAr"`
+	Rating     int32   `json:"rating"`
+	IsApproved bool    `json:"isApproved"`
+	SortOrder  int32   `json:"sortOrder"`
+	Year       string  `json:"year"`
 }
+
 func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (CmsReview, error) {
 	row := q.db.QueryRow(ctx, createReview,
 		arg.ID,
@@ -256,44 +269,56 @@ func (q *Queries) CreateReview(ctx context.Context, arg CreateReviewParams) (Cms
 	)
 	return i, err
 }
+
 const deleteArticle = `-- name: DeleteArticle :exec
 DELETE FROM cms.article WHERE id = $1
 `
+
 func (q *Queries) DeleteArticle(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteArticle, id)
 	return err
 }
+
 const deleteFAQ = `-- name: DeleteFAQ :exec
 DELETE FROM cms.faq WHERE id = $1
 `
+
 func (q *Queries) DeleteFAQ(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteFAQ, id)
 	return err
 }
+
 const deletePage = `-- name: DeletePage :exec
 DELETE FROM cms.page WHERE id = $1
 `
+
 func (q *Queries) DeletePage(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deletePage, id)
 	return err
 }
+
 const deleteReview = `-- name: DeleteReview :exec
 DELETE FROM cms.review WHERE id = $1
 `
+
 func (q *Queries) DeleteReview(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteReview, id)
 	return err
 }
+
 const deleteStatistic = `-- name: DeleteStatistic :exec
 DELETE FROM cms.statistic WHERE id = $1
 `
+
 func (q *Queries) DeleteStatistic(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteStatistic, id)
 	return err
 }
+
 const getArticleByID = `-- name: GetArticleByID :one
 SELECT id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at FROM cms.article WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetArticleByID(ctx context.Context, id string) (CmsArticle, error) {
 	row := q.db.QueryRow(ctx, getArticleByID, id)
 	var i CmsArticle
@@ -324,9 +349,11 @@ func (q *Queries) GetArticleByID(ctx context.Context, id string) (CmsArticle, er
 	)
 	return i, err
 }
+
 const getArticleBySlug = `-- name: GetArticleBySlug :one
 SELECT id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at FROM cms.article WHERE slug = $1 LIMIT 1
 `
+
 func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (CmsArticle, error) {
 	row := q.db.QueryRow(ctx, getArticleBySlug, slug)
 	var i CmsArticle
@@ -357,9 +384,11 @@ func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (CmsArticle
 	)
 	return i, err
 }
+
 const getContentSnapshot = `-- name: GetContentSnapshot :one
 SELECT id, draft, published, revision, published_at, updated_at FROM cms.content_snapshot WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetContentSnapshot(ctx context.Context, id string) (CmsContentSnapshot, error) {
 	row := q.db.QueryRow(ctx, getContentSnapshot, id)
 	var i CmsContentSnapshot
@@ -373,9 +402,11 @@ func (q *Queries) GetContentSnapshot(ctx context.Context, id string) (CmsContent
 	)
 	return i, err
 }
+
 const getPageByID = `-- name: GetPageByID :one
 SELECT id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at FROM cms.page WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetPageByID(ctx context.Context, id string) (CmsPage, error) {
 	row := q.db.QueryRow(ctx, getPageByID, id)
 	var i CmsPage
@@ -399,9 +430,11 @@ func (q *Queries) GetPageByID(ctx context.Context, id string) (CmsPage, error) {
 	)
 	return i, err
 }
+
 const getPageBySlug = `-- name: GetPageBySlug :one
 SELECT id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at FROM cms.page WHERE slug = $1 LIMIT 1
 `
+
 func (q *Queries) GetPageBySlug(ctx context.Context, slug string) (CmsPage, error) {
 	row := q.db.QueryRow(ctx, getPageBySlug, slug)
 	var i CmsPage
@@ -425,10 +458,12 @@ func (q *Queries) GetPageBySlug(ctx context.Context, slug string) (CmsPage, erro
 	)
 	return i, err
 }
+
 const listAllArticles = `-- name: ListAllArticles :many
 SELECT id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at FROM cms.article
 ORDER BY created_at DESC
 `
+
 func (q *Queries) ListAllArticles(ctx context.Context) ([]CmsArticle, error) {
 	rows, err := q.db.Query(ctx, listAllArticles)
 	if err != nil {
@@ -472,9 +507,11 @@ func (q *Queries) ListAllArticles(ctx context.Context) ([]CmsArticle, error) {
 	}
 	return items, nil
 }
+
 const listAllFAQs = `-- name: ListAllFAQs :many
 SELECT id, question_en, question_ar, answer_en, answer_ar, category, is_published, sort_order, created_at FROM cms.faq ORDER BY sort_order ASC, created_at ASC
 `
+
 func (q *Queries) ListAllFAQs(ctx context.Context) ([]CmsFaq, error) {
 	rows, err := q.db.Query(ctx, listAllFAQs)
 	if err != nil {
@@ -504,9 +541,11 @@ func (q *Queries) ListAllFAQs(ctx context.Context) ([]CmsFaq, error) {
 	}
 	return items, nil
 }
+
 const listAllPages = `-- name: ListAllPages :many
 SELECT id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at FROM cms.page ORDER BY sort_order ASC, created_at DESC
 `
+
 func (q *Queries) ListAllPages(ctx context.Context) ([]CmsPage, error) {
 	rows, err := q.db.Query(ctx, listAllPages)
 	if err != nil {
@@ -543,9 +582,11 @@ func (q *Queries) ListAllPages(ctx context.Context) ([]CmsPage, error) {
 	}
 	return items, nil
 }
+
 const listAllReviews = `-- name: ListAllReviews :many
 SELECT id, author_en, author_ar, company_en, company_ar, quote_en, quote_ar, rating, is_approved, sort_order, year, created_at FROM cms.review ORDER BY sort_order ASC, created_at DESC
 `
+
 func (q *Queries) ListAllReviews(ctx context.Context) ([]CmsReview, error) {
 	rows, err := q.db.Query(ctx, listAllReviews)
 	if err != nil {
@@ -578,9 +619,11 @@ func (q *Queries) ListAllReviews(ctx context.Context) ([]CmsReview, error) {
 	}
 	return items, nil
 }
+
 const listApprovedReviews = `-- name: ListApprovedReviews :many
 SELECT id, author_en, author_ar, company_en, company_ar, quote_en, quote_ar, rating, is_approved, sort_order, year, created_at FROM cms.review WHERE is_approved = true ORDER BY sort_order ASC, created_at DESC
 `
+
 func (q *Queries) ListApprovedReviews(ctx context.Context) ([]CmsReview, error) {
 	rows, err := q.db.Query(ctx, listApprovedReviews)
 	if err != nil {
@@ -613,11 +656,13 @@ func (q *Queries) ListApprovedReviews(ctx context.Context) ([]CmsReview, error) 
 	}
 	return items, nil
 }
+
 const listPublishedArticles = `-- name: ListPublishedArticles :many
 SELECT id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at FROM cms.article
 WHERE status = 'published' AND (publish_at IS NULL OR publish_at <= now())
 ORDER BY featured DESC, publish_at DESC NULLS LAST, created_at DESC
 `
+
 func (q *Queries) ListPublishedArticles(ctx context.Context) ([]CmsArticle, error) {
 	rows, err := q.db.Query(ctx, listPublishedArticles)
 	if err != nil {
@@ -661,9 +706,11 @@ func (q *Queries) ListPublishedArticles(ctx context.Context) ([]CmsArticle, erro
 	}
 	return items, nil
 }
+
 const listPublishedFAQs = `-- name: ListPublishedFAQs :many
 SELECT id, question_en, question_ar, answer_en, answer_ar, category, is_published, sort_order, created_at FROM cms.faq WHERE is_published = true ORDER BY sort_order ASC, created_at ASC
 `
+
 func (q *Queries) ListPublishedFAQs(ctx context.Context) ([]CmsFaq, error) {
 	rows, err := q.db.Query(ctx, listPublishedFAQs)
 	if err != nil {
@@ -693,9 +740,11 @@ func (q *Queries) ListPublishedFAQs(ctx context.Context) ([]CmsFaq, error) {
 	}
 	return items, nil
 }
+
 const listStatistics = `-- name: ListStatistics :many
 SELECT id, metric_value, label_en, label_ar, sub_label_en, sub_label_ar, icon, sort_order FROM cms.statistic ORDER BY sort_order ASC, id ASC
 `
+
 func (q *Queries) ListStatistics(ctx context.Context) ([]CmsStatistic, error) {
 	rows, err := q.db.Query(ctx, listStatistics)
 	if err != nil {
@@ -724,9 +773,11 @@ func (q *Queries) ListStatistics(ctx context.Context) ([]CmsStatistic, error) {
 	}
 	return items, nil
 }
+
 const listVisiblePages = `-- name: ListVisiblePages :many
 SELECT id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at FROM cms.page WHERE is_visible = true ORDER BY sort_order ASC, title_en ASC
 `
+
 func (q *Queries) ListVisiblePages(ctx context.Context) ([]CmsPage, error) {
 	rows, err := q.db.Query(ctx, listVisiblePages)
 	if err != nil {
@@ -763,6 +814,7 @@ func (q *Queries) ListVisiblePages(ctx context.Context) ([]CmsPage, error) {
 	}
 	return items, nil
 }
+
 const publishContentSnapshot = `-- name: PublishContentSnapshot :one
 INSERT INTO cms.content_snapshot (id, draft, published, revision, published_at, updated_at)
 VALUES ($1, $2, $2, 1, now(), now())
@@ -772,10 +824,12 @@ ON CONFLICT (id) DO UPDATE SET
     updated_at = now()
 RETURNING id, draft, published, revision, published_at, updated_at
 `
+
 type PublishContentSnapshotParams struct {
-	ID	string
-	Draft	json.RawMessage
+	ID    string          `json:"id"`
+	Draft json.RawMessage `json:"draft"`
 }
+
 func (q *Queries) PublishContentSnapshot(ctx context.Context, arg PublishContentSnapshotParams) (CmsContentSnapshot, error) {
 	row := q.db.QueryRow(ctx, publishContentSnapshot, arg.ID, arg.Draft)
 	var i CmsContentSnapshot
@@ -789,6 +843,7 @@ func (q *Queries) PublishContentSnapshot(ctx context.Context, arg PublishContent
 	)
 	return i, err
 }
+
 const updateArticle = `-- name: UpdateArticle :one
 UPDATE cms.article SET
     slug = $2,
@@ -815,29 +870,31 @@ UPDATE cms.article SET
 WHERE id = $1
 RETURNING id, slug, title_en, title_ar, excerpt_en, excerpt_ar, body_en, body_ar, body_html_en, body_html_ar, cover_url, category, tags, author_name, status, publish_at, featured, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, created_at, updated_at
 `
+
 type UpdateArticleParams struct {
-	ID			string
-	Slug			string
-	TitleEn			string
-	TitleAr			string
-	ExcerptEn		*string
-	ExcerptAr		*string
-	BodyEn			[]byte
-	BodyAr			[]byte
-	BodyHtmlEn		*string
-	BodyHtmlAr		*string
-	CoverUrl		*string
-	Category		string
-	Tags			[]string
-	AuthorName		*string
-	Status			string
-	PublishAt		*time.Time
-	Featured		bool
-	SeoTitleEn		*string
-	SeoTitleAr		*string
-	SeoDescriptionEn	*string
-	SeoDescriptionAr	*string
+	ID               string     `json:"id"`
+	Slug             string     `json:"slug"`
+	TitleEn          string     `json:"titleEn"`
+	TitleAr          string     `json:"titleAr"`
+	ExcerptEn        *string    `json:"excerptEn"`
+	ExcerptAr        *string    `json:"excerptAr"`
+	BodyEn           []byte     `json:"bodyEn"`
+	BodyAr           []byte     `json:"bodyAr"`
+	BodyHtmlEn       *string    `json:"bodyHtmlEn"`
+	BodyHtmlAr       *string    `json:"bodyHtmlAr"`
+	CoverUrl         *string    `json:"coverUrl"`
+	Category         string     `json:"category"`
+	Tags             []string   `json:"tags"`
+	AuthorName       *string    `json:"authorName"`
+	Status           string     `json:"status"`
+	PublishAt        *time.Time `json:"publishAt"`
+	Featured         bool       `json:"featured"`
+	SeoTitleEn       *string    `json:"seoTitleEn"`
+	SeoTitleAr       *string    `json:"seoTitleAr"`
+	SeoDescriptionEn *string    `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string    `json:"seoDescriptionAr"`
 }
+
 func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (CmsArticle, error) {
 	row := q.db.QueryRow(ctx, updateArticle,
 		arg.ID,
@@ -890,6 +947,7 @@ func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (C
 	)
 	return i, err
 }
+
 const updateFAQ = `-- name: UpdateFAQ :one
 UPDATE cms.faq SET
     question_en = $2,
@@ -902,16 +960,18 @@ UPDATE cms.faq SET
 WHERE id = $1
 RETURNING id, question_en, question_ar, answer_en, answer_ar, category, is_published, sort_order, created_at
 `
+
 type UpdateFAQParams struct {
-	ID		string
-	QuestionEn	string
-	QuestionAr	string
-	AnswerEn	string
-	AnswerAr	string
-	Category	string
-	IsPublished	bool
-	SortOrder	int32
+	ID          string `json:"id"`
+	QuestionEn  string `json:"questionEn"`
+	QuestionAr  string `json:"questionAr"`
+	AnswerEn    string `json:"answerEn"`
+	AnswerAr    string `json:"answerAr"`
+	Category    string `json:"category"`
+	IsPublished bool   `json:"isPublished"`
+	SortOrder   int32  `json:"sortOrder"`
 }
+
 func (q *Queries) UpdateFAQ(ctx context.Context, arg UpdateFAQParams) (CmsFaq, error) {
 	row := q.db.QueryRow(ctx, updateFAQ,
 		arg.ID,
@@ -937,6 +997,7 @@ func (q *Queries) UpdateFAQ(ctx context.Context, arg UpdateFAQParams) (CmsFaq, e
 	)
 	return i, err
 }
+
 const updatePage = `-- name: UpdatePage :one
 UPDATE cms.page SET
     slug = $2,
@@ -956,22 +1017,24 @@ UPDATE cms.page SET
 WHERE id = $1
 RETURNING id, slug, page_type, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at
 `
+
 type UpdatePageParams struct {
-	ID			string
-	Slug			string
-	PageType		string
-	TitleEn			string
-	TitleAr			string
-	SeoTitleEn		*string
-	SeoTitleAr		*string
-	SeoDescriptionEn	*string
-	SeoDescriptionAr	*string
-	Blocks			json.RawMessage
-	IsVisible		bool
-	InHeader		bool
-	InFooter		bool
-	SortOrder		int32
+	ID               string          `json:"id"`
+	Slug             string          `json:"slug"`
+	PageType         string          `json:"pageType"`
+	TitleEn          string          `json:"titleEn"`
+	TitleAr          string          `json:"titleAr"`
+	SeoTitleEn       *string         `json:"seoTitleEn"`
+	SeoTitleAr       *string         `json:"seoTitleAr"`
+	SeoDescriptionEn *string         `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string         `json:"seoDescriptionAr"`
+	Blocks           json.RawMessage `json:"blocks"`
+	IsVisible        bool            `json:"isVisible"`
+	InHeader         bool            `json:"inHeader"`
+	InFooter         bool            `json:"inFooter"`
+	SortOrder        int32           `json:"sortOrder"`
 }
+
 func (q *Queries) UpdatePage(ctx context.Context, arg UpdatePageParams) (CmsPage, error) {
 	row := q.db.QueryRow(ctx, updatePage,
 		arg.ID,
@@ -1010,6 +1073,7 @@ func (q *Queries) UpdatePage(ctx context.Context, arg UpdatePageParams) (CmsPage
 	)
 	return i, err
 }
+
 const updateReview = `-- name: UpdateReview :one
 UPDATE cms.review SET
     author_en = $2,
@@ -1025,19 +1089,21 @@ UPDATE cms.review SET
 WHERE id = $1
 RETURNING id, author_en, author_ar, company_en, company_ar, quote_en, quote_ar, rating, is_approved, sort_order, year, created_at
 `
+
 type UpdateReviewParams struct {
-	ID		string
-	AuthorEn	string
-	AuthorAr	string
-	CompanyEn	*string
-	CompanyAr	*string
-	QuoteEn		string
-	QuoteAr		string
-	Rating		int32
-	IsApproved	bool
-	SortOrder	int32
-	Year		string
+	ID         string  `json:"id"`
+	AuthorEn   string  `json:"authorEn"`
+	AuthorAr   string  `json:"authorAr"`
+	CompanyEn  *string `json:"companyEn"`
+	CompanyAr  *string `json:"companyAr"`
+	QuoteEn    string  `json:"quoteEn"`
+	QuoteAr    string  `json:"quoteAr"`
+	Rating     int32   `json:"rating"`
+	IsApproved bool    `json:"isApproved"`
+	SortOrder  int32   `json:"sortOrder"`
+	Year       string  `json:"year"`
 }
+
 func (q *Queries) UpdateReview(ctx context.Context, arg UpdateReviewParams) (CmsReview, error) {
 	row := q.db.QueryRow(ctx, updateReview,
 		arg.ID,
@@ -1069,6 +1135,7 @@ func (q *Queries) UpdateReview(ctx context.Context, arg UpdateReviewParams) (Cms
 	)
 	return i, err
 }
+
 const upsertContentDraft = `-- name: UpsertContentDraft :one
 INSERT INTO cms.content_snapshot (id, draft, revision, updated_at)
 VALUES ($1, $2, $3, now())
@@ -1078,11 +1145,13 @@ ON CONFLICT (id) DO UPDATE SET
     updated_at = now()
 RETURNING id, draft, published, revision, published_at, updated_at
 `
+
 type UpsertContentDraftParams struct {
-	ID		string
-	Draft		json.RawMessage
-	Revision	int32
+	ID       string          `json:"id"`
+	Draft    json.RawMessage `json:"draft"`
+	Revision int32           `json:"revision"`
 }
+
 func (q *Queries) UpsertContentDraft(ctx context.Context, arg UpsertContentDraftParams) (CmsContentSnapshot, error) {
 	row := q.db.QueryRow(ctx, upsertContentDraft, arg.ID, arg.Draft, arg.Revision)
 	var i CmsContentSnapshot
@@ -1096,6 +1165,7 @@ func (q *Queries) UpsertContentDraft(ctx context.Context, arg UpsertContentDraft
 	)
 	return i, err
 }
+
 const upsertStatistic = `-- name: UpsertStatistic :one
 INSERT INTO cms.statistic (
     id, metric_value, label_en, label_ar, sub_label_en, sub_label_ar, icon, sort_order
@@ -1111,16 +1181,18 @@ INSERT INTO cms.statistic (
     sort_order = EXCLUDED.sort_order
 RETURNING id, metric_value, label_en, label_ar, sub_label_en, sub_label_ar, icon, sort_order
 `
+
 type UpsertStatisticParams struct {
-	ID		string
-	MetricValue	string
-	LabelEn		string
-	LabelAr		string
-	SubLabelEn	*string
-	SubLabelAr	*string
-	Icon		*string
-	SortOrder	int32
+	ID          string  `json:"id"`
+	MetricValue string  `json:"metricValue"`
+	LabelEn     string  `json:"labelEn"`
+	LabelAr     string  `json:"labelAr"`
+	SubLabelEn  *string `json:"subLabelEn"`
+	SubLabelAr  *string `json:"subLabelAr"`
+	Icon        *string `json:"icon"`
+	SortOrder   int32   `json:"sortOrder"`
 }
+
 func (q *Queries) UpsertStatistic(ctx context.Context, arg UpsertStatisticParams) (CmsStatistic, error) {
 	row := q.db.QueryRow(ctx, upsertStatistic,
 		arg.ID,

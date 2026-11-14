@@ -1,12 +1,15 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
 	"time"
 )
+
 const getEvent = `-- name: GetEvent :one
 SELECT id, subject, service, entity, verb, actor, occurred_at, received_at, payload, trace_id FROM audit.event WHERE id = $1
 `
+
 func (q *Queries) GetEvent(ctx context.Context, id string) (AuditEvent, error) {
 	row := q.db.QueryRow(ctx, getEvent, id)
 	var i AuditEvent
@@ -24,22 +27,25 @@ func (q *Queries) GetEvent(ctx context.Context, id string) (AuditEvent, error) {
 	)
 	return i, err
 }
+
 const insertEvent = `-- name: InsertEvent :execrows
 INSERT INTO audit.event (id, subject, service, entity, verb, actor, occurred_at, payload, trace_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (id) DO NOTHING
 `
+
 type InsertEventParams struct {
-	ID		string
-	Subject		string
-	Service		string
-	Entity		string
-	Verb		string
-	Actor		*string
-	OccurredAt	time.Time
-	Payload		json.RawMessage
-	TraceID		*string
+	ID         string          `json:"id"`
+	Subject    string          `json:"subject"`
+	Service    string          `json:"service"`
+	Entity     string          `json:"entity"`
+	Verb       string          `json:"verb"`
+	Actor      *string         `json:"actor"`
+	OccurredAt time.Time       `json:"occurredAt"`
+	Payload    json.RawMessage `json:"payload"`
+	TraceID    *string         `json:"traceId"`
 }
+
 func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) (int64, error) {
 	result, err := q.db.Exec(ctx, insertEvent,
 		arg.ID,
@@ -57,6 +63,7 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) (int64
 	}
 	return result.RowsAffected(), nil
 }
+
 const listEvents = `-- name: ListEvents :many
 SELECT id, subject, service, entity, verb, actor, occurred_at, received_at, payload, trace_id FROM audit.event
 WHERE ($1::text IS NULL OR subject = $1)
@@ -68,17 +75,19 @@ WHERE ($1::text IS NULL OR subject = $1)
 ORDER BY occurred_at DESC, id DESC
 LIMIT $9
 `
+
 type ListEventsParams struct {
-	Subject		*string
-	Service		*string
-	Actor		*string
-	FromTime	*time.Time
-	ToTime		*time.Time
-	HasCursor	bool
-	BeforeOccurred	time.Time
-	BeforeID	string
-	PageSize	int32
+	Subject        *string    `json:"subject"`
+	Service        *string    `json:"service"`
+	Actor          *string    `json:"actor"`
+	FromTime       *time.Time `json:"fromTime"`
+	ToTime         *time.Time `json:"toTime"`
+	HasCursor      bool       `json:"hasCursor"`
+	BeforeOccurred time.Time  `json:"beforeOccurred"`
+	BeforeID       string     `json:"beforeId"`
+	PageSize       int32      `json:"pageSize"`
 }
+
 func (q *Queries) ListEvents(ctx context.Context, arg ListEventsParams) ([]AuditEvent, error) {
 	rows, err := q.db.Query(ctx, listEvents,
 		arg.Subject,
@@ -119,15 +128,18 @@ func (q *Queries) ListEvents(ctx context.Context, arg ListEventsParams) ([]Audit
 	}
 	return items, nil
 }
+
 const subjects = `-- name: Subjects :many
 SELECT subject, count(*)::bigint AS events, max(occurred_at)::timestamptz AS last_at
 FROM audit.event GROUP BY subject ORDER BY subject LIMIT 500
 `
+
 type SubjectsRow struct {
-	Subject	string
-	Events	int64
-	LastAt	time.Time
+	Subject string    `json:"subject"`
+	Events  int64     `json:"events"`
+	LastAt  time.Time `json:"lastAt"`
 }
+
 func (q *Queries) Subjects(ctx context.Context) ([]SubjectsRow, error) {
 	rows, err := q.db.Query(ctx, subjects)
 	if err != nil {

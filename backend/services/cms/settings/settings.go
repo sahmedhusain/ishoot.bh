@@ -15,6 +15,6 @@ type Config struct {
 	Outbox		outbox.Config	`envPrefix:"OUTBOX_"`
 }
 type CMS struct {
-	Readers	[]string	`env:"READERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
+	Readers	[]string	`env:"READERS" envDefault:"admin,web,store,it" envSeparator:"," validate:"min=1,dive,required"`
 	Writers	[]string	`env:"WRITERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
 }

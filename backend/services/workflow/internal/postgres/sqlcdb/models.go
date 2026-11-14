@@ -12,113 +12,113 @@ import (
 )
 
 type WorkflowApprovalDecision struct {
-	ID         string
-	RequestID  string
-	ApproverID string
-	Decision   string
-	Comments   *string
-	DecidedAt  time.Time
+	ID         string    `json:"id"`
+	RequestID  string    `json:"requestId"`
+	ApproverID string    `json:"approverId"`
+	Decision   string    `json:"decision"`
+	Comments   *string   `json:"comments"`
+	DecidedAt  time.Time `json:"decidedAt"`
 }
 
 type WorkflowApprovalRequest struct {
-	ID          string
-	Kind        string
-	EntityID    string
-	RequesterID string
-	Status      string
-	Priority    string
-	Reason      *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	Kind        string    `json:"kind"`
+	EntityID    string    `json:"entityId"`
+	RequesterID string    `json:"requesterId"`
+	Status      string    `json:"status"`
+	Priority    string    `json:"priority"`
+	Reason      *string   `json:"reason"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type WorkflowCalendarEvent struct {
-	ID          string
-	Title       string
-	Description *string
-	StartTime   time.Time
-	EndTime     time.Time
-	IsAllDay    bool
-	Location    *string
-	OrganizerID string
-	EventType   string
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description *string   `json:"description"`
+	StartTime   time.Time `json:"startTime"`
+	EndTime     time.Time `json:"endTime"`
+	IsAllDay    bool      `json:"isAllDay"`
+	Location    *string   `json:"location"`
+	OrganizerID string    `json:"organizerId"`
+	EventType   string    `json:"eventType"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type WorkflowInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type WorkflowLetterTemplate struct {
-	ID           string
-	NameEn       string
-	NameAr       string
-	TemplateBody string
-	SortOrder    int32
+	ID           string `json:"id"`
+	NameEn       string `json:"nameEn"`
+	NameAr       string `json:"nameAr"`
+	TemplateBody string `json:"templateBody"`
+	SortOrder    int32  `json:"sortOrder"`
 }
 
 type WorkflowMinuteOfMeeting struct {
-	ID          string
-	MomNumber   string
-	Title       string
-	MeetingDate pgtype.Date
-	Attendees   []string
-	Discussion  string
-	ActionItems *string
-	Status      string
-	CreatedAt   time.Time
+	ID          string      `json:"id"`
+	MomNumber   string      `json:"momNumber"`
+	Title       string      `json:"title"`
+	MeetingDate pgtype.Date `json:"meetingDate"`
+	Attendees   []string    `json:"attendees"`
+	Discussion  string      `json:"discussion"`
+	ActionItems *string     `json:"actionItems"`
+	Status      string      `json:"status"`
+	CreatedAt   time.Time   `json:"createdAt"`
 }
 
 type WorkflowOfficialLetter struct {
-	ID             string
-	LetterNumber   string
-	TemplateID     *string
-	RecipientName  string
-	RecipientTitle *string
-	Subject        string
-	Body           string
-	Status         string
-	IssuedAt       *time.Time
-	CreatedAt      time.Time
+	ID             string     `json:"id"`
+	LetterNumber   string     `json:"letterNumber"`
+	TemplateID     *string    `json:"templateId"`
+	RecipientName  string     `json:"recipientName"`
+	RecipientTitle *string    `json:"recipientTitle"`
+	Subject        string     `json:"subject"`
+	Body           string     `json:"body"`
+	Status         string     `json:"status"`
+	IssuedAt       *time.Time `json:"issuedAt"`
+	CreatedAt      time.Time  `json:"createdAt"`
 }
 
 type WorkflowOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type WorkflowSignatureRequest struct {
-	ID            string
-	Title         string
-	DocumentType  string
-	DocumentID    string
-	RequestedFrom string
-	Status        string
-	SignatureUrl  *string
-	SignedAt      *time.Time
-	ExpiresAt     *time.Time
-	CreatedAt     time.Time
+	ID            string     `json:"id"`
+	Title         string     `json:"title"`
+	DocumentType  string     `json:"documentType"`
+	DocumentID    string     `json:"documentId"`
+	RequestedFrom string     `json:"requestedFrom"`
+	Status        string     `json:"status"`
+	SignatureUrl  *string    `json:"signatureUrl"`
+	SignedAt      *time.Time `json:"signedAt"`
+	ExpiresAt     *time.Time `json:"expiresAt"`
+	CreatedAt     time.Time  `json:"createdAt"`
 }
 
 type WorkflowTask struct {
-	ID                string
-	Title             string
-	Description       *string
-	AssignedTo        *string
-	DueDate           *time.Time
-	Status            string
-	Priority          string
-	RelatedEntityType *string
-	RelatedEntityID   *string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID                string     `json:"id"`
+	Title             string     `json:"title"`
+	Description       *string    `json:"description"`
+	AssignedTo        *string    `json:"assignedTo"`
+	DueDate           *time.Time `json:"dueDate"`
+	Status            string     `json:"status"`
+	Priority          string     `json:"priority"`
+	RelatedEntityType *string    `json:"relatedEntityType"`
+	RelatedEntityID   *string    `json:"relatedEntityId"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
 }

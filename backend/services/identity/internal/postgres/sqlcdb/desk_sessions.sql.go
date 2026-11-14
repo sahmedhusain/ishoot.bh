@@ -1,8 +1,10 @@
 package sqlcdb
+
 import (
 	"context"
 	"time"
 )
+
 const listDeskSessions = `-- name: ListDeskSessions :many
 SELECT f.id, f.realm, f.subject_id, a.email, f.created_at, f.expires_at, f.revoked_at
 FROM identity.session_family f
@@ -12,21 +14,23 @@ WHERE ($1::text = '' OR f.realm = $1)
   AND f.id > $3::uuid
 ORDER BY f.id LIMIT $4::int
 `
+
 type ListDeskSessionsParams struct {
-	Realm		string
-	SubjectID	string
-	Cursor		string
-	RowLimit	int32
+	Realm     string `json:"realm"`
+	SubjectID string `json:"subjectId"`
+	Cursor    string `json:"cursor"`
+	RowLimit  int32  `json:"rowLimit"`
 }
 type ListDeskSessionsRow struct {
-	ID		string
-	Realm		string
-	SubjectID	string
-	Email		*string
-	CreatedAt	time.Time
-	ExpiresAt	time.Time
-	RevokedAt	*time.Time
+	ID        string     `json:"id"`
+	Realm     string     `json:"realm"`
+	SubjectID string     `json:"subjectId"`
+	Email     *string    `json:"email"`
+	CreatedAt time.Time  `json:"createdAt"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	RevokedAt *time.Time `json:"revokedAt"`
 }
+
 func (q *Queries) ListDeskSessions(ctx context.Context, arg ListDeskSessionsParams) ([]ListDeskSessionsRow, error) {
 	rows, err := q.db.Query(ctx, listDeskSessions,
 		arg.Realm,

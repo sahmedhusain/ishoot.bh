@@ -12,201 +12,201 @@ import (
 )
 
 type ItsmAsset struct {
-	ID               string
-	AssetTag         *string
-	CategoryID       *string
-	Name             *string
-	Brand            *string
-	Model            *string
-	SerialNumber     *string
-	PurchaseDate     *time.Time
-	PurchaseCost     pgtype.Numeric
-	Currency         *string
-	Supplier         *string
-	InvoiceReference *string
-	WarrantyUntil    *time.Time
-	Condition        *string
-	Status           *string
-	Specs            []byte
+	ID               string         `json:"id"`
+	AssetTag         *string        `json:"assetTag"`
+	CategoryID       *string        `json:"categoryId"`
+	Name             *string        `json:"name"`
+	Brand            *string        `json:"brand"`
+	Model            *string        `json:"model"`
+	SerialNumber     *string        `json:"serialNumber"`
+	PurchaseDate     *time.Time     `json:"purchaseDate"`
+	PurchaseCost     pgtype.Numeric `json:"purchaseCost"`
+	Currency         *string        `json:"currency"`
+	Supplier         *string        `json:"supplier"`
+	InvoiceReference *string        `json:"invoiceReference"`
+	WarrantyUntil    *time.Time     `json:"warrantyUntil"`
+	Condition        *string        `json:"condition"`
+	Status           *string        `json:"status"`
+	Specs            []byte         `json:"specs"`
 }
 
 type ItsmAssetCategory struct {
-	ID     string
-	Code   *string
-	NameEn *string
-	NameAr *string
+	ID     string  `json:"id"`
+	Code   *string `json:"code"`
+	NameEn *string `json:"nameEn"`
+	NameAr *string `json:"nameAr"`
 }
 
 type ItsmAssetHandover struct {
-	ID           string
-	Reference    *string
-	AssetID      *string
-	EmployeeID   *string
-	Kind         *string
-	Status       *string
-	HandoverDate *time.Time
-	Condition    *string
+	ID           string     `json:"id"`
+	Reference    *string    `json:"reference"`
+	AssetID      *string    `json:"assetId"`
+	EmployeeID   *string    `json:"employeeId"`
+	Kind         *string    `json:"kind"`
+	Status       *string    `json:"status"`
+	HandoverDate *time.Time `json:"handoverDate"`
+	Condition    *string    `json:"condition"`
 }
 
 type ItsmCompanyAsset struct {
-	ID        string
-	AssetKey  *string
-	Title     *string
-	FileUrl   *string
-	MimeType  *string
-	FileSize  *int32
-	UpdatedAt time.Time
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	AssetKey  *string   `json:"assetKey"`
+	Title     *string   `json:"title"`
+	FileUrl   *string   `json:"fileUrl"`
+	MimeType  *string   `json:"mimeType"`
+	FileSize  *int32    `json:"fileSize"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type ItsmInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type ItsmOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type ItsmSlaPolicy struct {
-	Priority        string
-	ResponseMinutes int32
-	ResolveMinutes  int32
-	UpdatedBy       *string
-	UpdatedAt       time.Time
+	Priority        string    `json:"priority"`
+	ResponseMinutes int32     `json:"responseMinutes"`
+	ResolveMinutes  int32     `json:"resolveMinutes"`
+	UpdatedBy       *string   `json:"updatedBy"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
 type ItsmSupportProgram struct {
-	ID                string
-	Code              *string
-	NameEn            *string
-	NameAr            *string
-	Provider          *string
-	ClaimPeriodMonths *int32
-	Prorate           *bool
-	IsActive          *bool
-	Notes             *string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID                string    `json:"id"`
+	Code              *string   `json:"code"`
+	NameEn            *string   `json:"nameEn"`
+	NameAr            *string   `json:"nameAr"`
+	Provider          *string   `json:"provider"`
+	ClaimPeriodMonths *int32    `json:"claimPeriodMonths"`
+	Prorate           *bool     `json:"prorate"`
+	IsActive          *bool     `json:"isActive"`
+	Notes             *string   `json:"notes"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
 type ItsmSupportProgramRule struct {
-	ID            string
-	ProgramID     *string
-	EffectiveFrom *time.Time
-	EffectiveTo   *time.Time
-	WageBasis     *string
+	ID            string     `json:"id"`
+	ProgramID     *string    `json:"programId"`
+	EffectiveFrom *time.Time `json:"effectiveFrom"`
+	EffectiveTo   *time.Time `json:"effectiveTo"`
+	WageBasis     *string    `json:"wageBasis"`
 }
 
 type ItsmSupportReimbursement struct {
-	ID             string
-	EmployeeID     *string
-	Provider       *string
-	PeriodStart    *string
-	PeriodEnd      *string
-	ClaimedAmount  pgtype.Numeric
-	ReceivedAmount pgtype.Numeric
-	ReceivedOn     *time.Time
-	Reference      *string
-	RecordedByID   *string
-	CreatedAt      time.Time
+	ID             string         `json:"id"`
+	EmployeeID     *string        `json:"employeeId"`
+	Provider       *string        `json:"provider"`
+	PeriodStart    *string        `json:"periodStart"`
+	PeriodEnd      *string        `json:"periodEnd"`
+	ClaimedAmount  pgtype.Numeric `json:"claimedAmount"`
+	ReceivedAmount pgtype.Numeric `json:"receivedAmount"`
+	ReceivedOn     *time.Time     `json:"receivedOn"`
+	Reference      *string        `json:"reference"`
+	RecordedByID   *string        `json:"recordedById"`
+	CreatedAt      time.Time      `json:"createdAt"`
 }
 
 type ItsmTask struct {
-	ID           string
-	Number       *string
-	Title        *string
-	Description  *string
-	ProjectID    *string
-	Status       *string
-	Priority     *string
-	AssigneeID   *string
-	DepartmentID *string
-	StartDate    *time.Time
-	DueDate      *time.Time
-	SortOrder    *int32
-	LinkType     *string
-	LinkID       *string
-	CreatedByID  *string
-	CompletedAt  *time.Time
-	RemindedAt   *time.Time
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string     `json:"id"`
+	Number       *string    `json:"number"`
+	Title        *string    `json:"title"`
+	Description  *string    `json:"description"`
+	ProjectID    *string    `json:"projectId"`
+	Status       *string    `json:"status"`
+	Priority     *string    `json:"priority"`
+	AssigneeID   *string    `json:"assigneeId"`
+	DepartmentID *string    `json:"departmentId"`
+	StartDate    *time.Time `json:"startDate"`
+	DueDate      *time.Time `json:"dueDate"`
+	SortOrder    *int32     `json:"sortOrder"`
+	LinkType     *string    `json:"linkType"`
+	LinkID       *string    `json:"linkId"`
+	CreatedByID  *string    `json:"createdById"`
+	CompletedAt  *time.Time `json:"completedAt"`
+	RemindedAt   *time.Time `json:"remindedAt"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
 }
 
 type ItsmTaskComment struct {
-	ID        string
-	TaskID    *string
-	AuthorID  *string
-	Body      *string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	TaskID    *string   `json:"taskId"`
+	AuthorID  *string   `json:"authorId"`
+	Body      *string   `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type ItsmTicket struct {
-	ID              string
-	Number          int64
-	RequesterID     string
-	RequesterName   string
-	RequesterEmail  string
-	Category        string
-	Subcategory     string
-	Priority        string
-	Status          string
-	Title           string
-	Description     string
-	AssetRef        *string
-	AssigneeID      *string
-	AssigneeName    *string
-	RespondBy       time.Time
-	ResolveBy       time.Time
-	FirstResponseAt *time.Time
-	BreachedAt      *time.Time
-	ResolvedAt      *time.Time
-	ClosedAt        *time.Time
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	RemindedAt      *time.Time
+	ID              string     `json:"id"`
+	Number          int64      `json:"number"`
+	RequesterID     string     `json:"requesterId"`
+	RequesterName   string     `json:"requesterName"`
+	RequesterEmail  string     `json:"requesterEmail"`
+	Category        string     `json:"category"`
+	Subcategory     string     `json:"subcategory"`
+	Priority        string     `json:"priority"`
+	Status          string     `json:"status"`
+	Title           string     `json:"title"`
+	Description     string     `json:"description"`
+	AssetRef        *string    `json:"assetRef"`
+	AssigneeID      *string    `json:"assigneeId"`
+	AssigneeName    *string    `json:"assigneeName"`
+	RespondBy       time.Time  `json:"respondBy"`
+	ResolveBy       time.Time  `json:"resolveBy"`
+	FirstResponseAt *time.Time `json:"firstResponseAt"`
+	BreachedAt      *time.Time `json:"breachedAt"`
+	ResolvedAt      *time.Time `json:"resolvedAt"`
+	ClosedAt        *time.Time `json:"closedAt"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	RemindedAt      *time.Time `json:"remindedAt"`
 }
 
 type ItsmTicketAttachment struct {
-	TicketID  string
-	FileUrl   string
-	FileName  string
-	MimeType  string
-	FileSize  int64
-	AddedBy   string
-	CreatedAt time.Time
-	CommentID *string
+	TicketID  string    `json:"ticketId"`
+	FileUrl   string    `json:"fileUrl"`
+	FileName  string    `json:"fileName"`
+	MimeType  string    `json:"mimeType"`
+	FileSize  int64     `json:"fileSize"`
+	AddedBy   string    `json:"addedBy"`
+	CreatedAt time.Time `json:"createdAt"`
+	CommentID *string   `json:"commentId"`
 }
 
 type ItsmTicketComment struct {
-	ID          string
-	TicketID    string
-	AuthorRealm string
-	AuthorID    string
-	AuthorName  string
-	Body        string
-	Internal    bool
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	TicketID    string    `json:"ticketId"`
+	AuthorRealm string    `json:"authorRealm"`
+	AuthorID    string    `json:"authorId"`
+	AuthorName  string    `json:"authorName"`
+	Body        string    `json:"body"`
+	Internal    bool      `json:"internal"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type ItsmTicketEvent struct {
-	ID         string
-	TicketID   string
-	ActorRealm string
-	ActorID    string
-	Kind       string
-	FromStatus *string
-	ToStatus   *string
-	Detail     json.RawMessage
-	CreatedAt  time.Time
+	ID         string          `json:"id"`
+	TicketID   string          `json:"ticketId"`
+	ActorRealm string          `json:"actorRealm"`
+	ActorID    string          `json:"actorId"`
+	Kind       string          `json:"kind"`
+	FromStatus *string         `json:"fromStatus"`
+	ToStatus   *string         `json:"toStatus"`
+	Detail     json.RawMessage `json:"detail"`
+	CreatedAt  time.Time       `json:"createdAt"`
 }

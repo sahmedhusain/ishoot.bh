@@ -1,19 +1,23 @@
 package sqlcdb
+
 import (
 	"context"
 	"time"
 )
+
 const attachmentNames = `-- name: AttachmentNames :many
 SELECT message_id, position, filename, content_type, length(content)::bigint AS size
 FROM notify.attachment WHERE message_id = $1 ORDER BY position
 `
+
 type AttachmentNamesRow struct {
-	MessageID	string
-	Position	int32
-	Filename	string
-	ContentType	string
-	Size		int64
+	MessageID   string `json:"messageId"`
+	Position    int32  `json:"position"`
+	Filename    string `json:"filename"`
+	ContentType string `json:"contentType"`
+	Size        int64  `json:"size"`
 }
+
 func (q *Queries) AttachmentNames(ctx context.Context, messageID string) ([]AttachmentNamesRow, error) {
 	rows, err := q.db.Query(ctx, attachmentNames, messageID)
 	if err != nil {
@@ -39,9 +43,11 @@ func (q *Queries) AttachmentNames(ctx context.Context, messageID string) ([]Atta
 	}
 	return items, nil
 }
+
 const attachments = `-- name: Attachments :many
 SELECT message_id, position, filename, content_type, content FROM notify.attachment WHERE message_id = $1 ORDER BY position
 `
+
 func (q *Queries) Attachments(ctx context.Context, messageID string) ([]NotifyAttachment, error) {
 	rows, err := q.db.Query(ctx, attachments, messageID)
 	if err != nil {
@@ -67,15 +73,18 @@ func (q *Queries) Attachments(ctx context.Context, messageID string) ([]NotifyAt
 	}
 	return items, nil
 }
+
 const countByStatus = `-- name: CountByStatus :many
 SELECT status, channel, count(*)::bigint AS messages FROM notify.message
 WHERE created_at >= $1 GROUP BY status, channel
 `
+
 type CountByStatusRow struct {
-	Status		string
-	Channel		string
-	Messages	int64
+	Status   string `json:"status"`
+	Channel  string `json:"channel"`
+	Messages int64  `json:"messages"`
 }
+
 func (q *Queries) CountByStatus(ctx context.Context, since time.Time) ([]CountByStatusRow, error) {
 	rows, err := q.db.Query(ctx, countByStatus, since)
 	if err != nil {
@@ -95,9 +104,11 @@ func (q *Queries) CountByStatus(ctx context.Context, since time.Time) ([]CountBy
 	}
 	return items, nil
 }
+
 const getMessage = `-- name: GetMessage :one
 SELECT id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html, status, attempts, provider, provider_id, last_error, created_at, updated_at, sent_at FROM notify.message WHERE id = $1
 `
+
 func (q *Queries) GetMessage(ctx context.Context, id string) (NotifyMessage, error) {
 	row := q.db.QueryRow(ctx, getMessage, id)
 	var i NotifyMessage
@@ -122,17 +133,20 @@ func (q *Queries) GetMessage(ctx context.Context, id string) (NotifyMessage, err
 	)
 	return i, err
 }
+
 const insertAttachment = `-- name: InsertAttachment :exec
 INSERT INTO notify.attachment (message_id, position, filename, content_type, content)
 VALUES ($1, $2, $3, $4, $5)
 `
+
 type InsertAttachmentParams struct {
-	MessageID	string
-	Position	int32
-	Filename	string
-	ContentType	string
-	Content		[]byte
+	MessageID   string `json:"messageId"`
+	Position    int32  `json:"position"`
+	Filename    string `json:"filename"`
+	ContentType string `json:"contentType"`
+	Content     []byte `json:"content"`
 }
+
 func (q *Queries) InsertAttachment(ctx context.Context, arg InsertAttachmentParams) error {
 	_, err := q.db.Exec(ctx, insertAttachment,
 		arg.MessageID,
@@ -143,22 +157,25 @@ func (q *Queries) InsertAttachment(ctx context.Context, arg InsertAttachmentPara
 	)
 	return err
 }
+
 const insertMessage = `-- name: InsertMessage :execrows
 INSERT INTO notify.message (id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (caller, idempotency_key) DO NOTHING
 `
+
 type InsertMessageParams struct {
-	ID		string
-	Caller		string
-	IdempotencyKey	string
-	Actor		*string
-	Channel		string
-	Recipient	string
-	Subject		*string
-	BodyText	*string
-	BodyHtml	*string
+	ID             string  `json:"id"`
+	Caller         string  `json:"caller"`
+	IdempotencyKey string  `json:"idempotencyKey"`
+	Actor          *string `json:"actor"`
+	Channel        string  `json:"channel"`
+	Recipient      string  `json:"recipient"`
+	Subject        *string `json:"subject"`
+	BodyText       *string `json:"bodyText"`
+	BodyHtml       *string `json:"bodyHtml"`
 }
+
 func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error) {
 	result, err := q.db.Exec(ctx, insertMessage,
 		arg.ID,
@@ -176,6 +193,7 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) (i
 	}
 	return result.RowsAffected(), nil
 }
+
 const listMessages = `-- name: ListMessages :many
 SELECT id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html, status, attempts, provider, provider_id, last_error, created_at, updated_at, sent_at FROM notify.message
 WHERE ($1::text IS NULL OR status = $1)
@@ -184,14 +202,16 @@ WHERE ($1::text IS NULL OR status = $1)
 ORDER BY created_at DESC, id DESC
 LIMIT $6
 `
+
 type ListMessagesParams struct {
-	Status		*string
-	Channel		*string
-	HasCursor	bool
-	BeforeCreated	time.Time
-	BeforeID	string
-	PageSize	int32
+	Status        *string   `json:"status"`
+	Channel       *string   `json:"channel"`
+	HasCursor     bool      `json:"hasCursor"`
+	BeforeCreated time.Time `json:"beforeCreated"`
+	BeforeID      string    `json:"beforeId"`
+	PageSize      int32     `json:"pageSize"`
 }
+
 func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]NotifyMessage, error) {
 	rows, err := q.db.Query(ctx, listMessages,
 		arg.Status,
@@ -236,9 +256,11 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]N
 	}
 	return items, nil
 }
+
 const lockMessage = `-- name: LockMessage :one
 SELECT id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html, status, attempts, provider, provider_id, last_error, created_at, updated_at, sent_at FROM notify.message WHERE id = $1 FOR UPDATE
 `
+
 func (q *Queries) LockMessage(ctx context.Context, id string) (NotifyMessage, error) {
 	row := q.db.QueryRow(ctx, lockMessage, id)
 	var i NotifyMessage
@@ -263,16 +285,19 @@ func (q *Queries) LockMessage(ctx context.Context, id string) (NotifyMessage, er
 	)
 	return i, err
 }
+
 const markAttempt = `-- name: MarkAttempt :exec
 UPDATE notify.message SET attempts = attempts + 1, provider = $1, last_error = $2, updated_at = $3
 WHERE id = $4
 `
+
 type MarkAttemptParams struct {
-	Provider	*string
-	LastError	*string
-	Now		time.Time
-	ID		string
+	Provider  *string   `json:"provider"`
+	LastError *string   `json:"lastError"`
+	Now       time.Time `json:"now"`
+	ID        string    `json:"id"`
 }
+
 func (q *Queries) MarkAttempt(ctx context.Context, arg MarkAttemptParams) error {
 	_, err := q.db.Exec(ctx, markAttempt,
 		arg.Provider,
@@ -282,17 +307,20 @@ func (q *Queries) MarkAttempt(ctx context.Context, arg MarkAttemptParams) error 
 	)
 	return err
 }
+
 const markFailed = `-- name: MarkFailed :exec
 UPDATE notify.message SET status = 'failed', attempts = attempts + 1, provider = $1, last_error = $2,
     updated_at = $3
 WHERE id = $4
 `
+
 type MarkFailedParams struct {
-	Provider	*string
-	LastError	*string
-	Now		time.Time
-	ID		string
+	Provider  *string   `json:"provider"`
+	LastError *string   `json:"lastError"`
+	Now       time.Time `json:"now"`
+	ID        string    `json:"id"`
 }
+
 func (q *Queries) MarkFailed(ctx context.Context, arg MarkFailedParams) error {
 	_, err := q.db.Exec(ctx, markFailed,
 		arg.Provider,
@@ -302,17 +330,20 @@ func (q *Queries) MarkFailed(ctx context.Context, arg MarkFailedParams) error {
 	)
 	return err
 }
+
 const markSent = `-- name: MarkSent :exec
 UPDATE notify.message SET status = 'sent', attempts = attempts + 1, provider = $1, provider_id = $2,
     last_error = NULL, sent_at = $3, updated_at = $3
 WHERE id = $4
 `
+
 type MarkSentParams struct {
-	Provider	*string
-	ProviderID	*string
-	Now		*time.Time
-	ID		string
+	Provider   *string    `json:"provider"`
+	ProviderID *string    `json:"providerId"`
+	Now        *time.Time `json:"now"`
+	ID         string     `json:"id"`
 }
+
 func (q *Queries) MarkSent(ctx context.Context, arg MarkSentParams) error {
 	_, err := q.db.Exec(ctx, markSent,
 		arg.Provider,
@@ -322,13 +353,16 @@ func (q *Queries) MarkSent(ctx context.Context, arg MarkSentParams) error {
 	)
 	return err
 }
+
 const messageByKey = `-- name: MessageByKey :one
 SELECT id, caller, idempotency_key, actor, channel, recipient, subject, body_text, body_html, status, attempts, provider, provider_id, last_error, created_at, updated_at, sent_at FROM notify.message WHERE caller = $1 AND idempotency_key = $2
 `
+
 type MessageByKeyParams struct {
-	Caller		string
-	IdempotencyKey	string
+	Caller         string `json:"caller"`
+	IdempotencyKey string `json:"idempotencyKey"`
 }
+
 func (q *Queries) MessageByKey(ctx context.Context, arg MessageByKeyParams) (NotifyMessage, error) {
 	row := q.db.QueryRow(ctx, messageByKey, arg.Caller, arg.IdempotencyKey)
 	var i NotifyMessage
@@ -353,13 +387,16 @@ func (q *Queries) MessageByKey(ctx context.Context, arg MessageByKeyParams) (Not
 	)
 	return i, err
 }
+
 const requeue = `-- name: Requeue :execrows
 UPDATE notify.message SET status = 'queued', updated_at = $1 WHERE id = $2 AND status = 'failed'
 `
+
 type RequeueParams struct {
-	Now	time.Time
-	ID	string
+	Now time.Time `json:"now"`
+	ID  string    `json:"id"`
 }
+
 func (q *Queries) Requeue(ctx context.Context, arg RequeueParams) (int64, error) {
 	result, err := q.db.Exec(ctx, requeue, arg.Now, arg.ID)
 	if err != nil {

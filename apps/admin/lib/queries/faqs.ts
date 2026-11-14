@@ -54,6 +54,7 @@ export async function createFaq(data: {
   answerAr: string;
   category?: string;
   isPublished?: boolean;
+  sortOrder?: number;
 }) {
   const created = await createFAQ("", {
     questionEn: data.questionEn,
@@ -62,6 +63,7 @@ export async function createFaq(data: {
     answerAr: data.answerAr,
     category: data.category ?? "general",
     isPublished: data.isPublished ?? true,
+    sortOrder: data.sortOrder ?? 0,
   });
   return {
     ...created,

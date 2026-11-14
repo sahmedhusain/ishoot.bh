@@ -1,13 +1,16 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
-	"time"
 	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
+
 const company = `-- name: Company :one
 SELECT id, singleton, data, currency_locked, revision, updated_by, updated_at FROM system.company WHERE singleton
 `
+
 func (q *Queries) Company(ctx context.Context) (SystemCompany, error) {
 	row := q.db.QueryRow(ctx, company)
 	var i SystemCompany
@@ -22,9 +25,11 @@ func (q *Queries) Company(ctx context.Context) (SystemCompany, error) {
 	)
 	return i, err
 }
+
 const companyAssetByURL = `-- name: CompanyAssetByURL :one
 SELECT id, asset_key, title, file_url, mime_type, file_size, created_at, updated_at FROM system.company_asset WHERE file_url=$1 LIMIT 1
 `
+
 func (q *Queries) CompanyAssetByURL(ctx context.Context, fileUrl string) (SystemCompanyAsset, error) {
 	row := q.db.QueryRow(ctx, companyAssetByURL, fileUrl)
 	var i SystemCompanyAsset
@@ -40,9 +45,11 @@ func (q *Queries) CompanyAssetByURL(ctx context.Context, fileUrl string) (System
 	)
 	return i, err
 }
+
 const companyAssets = `-- name: CompanyAssets :many
 SELECT id, asset_key, title, file_url, mime_type, file_size, created_at, updated_at FROM system.company_asset ORDER BY asset_key
 `
+
 func (q *Queries) CompanyAssets(ctx context.Context) ([]SystemCompanyAsset, error) {
 	rows, err := q.db.Query(ctx, companyAssets)
 	if err != nil {
@@ -71,16 +78,20 @@ func (q *Queries) CompanyAssets(ctx context.Context) ([]SystemCompanyAsset, erro
 	}
 	return items, nil
 }
+
 const deleteCompanyAsset = `-- name: DeleteCompanyAsset :exec
 DELETE FROM system.company_asset WHERE asset_key=$1
 `
+
 func (q *Queries) DeleteCompanyAsset(ctx context.Context, assetKey string) error {
 	_, err := q.db.Exec(ctx, deleteCompanyAsset, assetKey)
 	return err
 }
+
 const documentSequences = `-- name: DocumentSequences :many
 SELECT kind, prefix, next_number FROM system.document_sequence ORDER BY kind
 `
+
 func (q *Queries) DocumentSequences(ctx context.Context) ([]SystemDocumentSequence, error) {
 	rows, err := q.db.Query(ctx, documentSequences)
 	if err != nil {
@@ -100,9 +111,11 @@ func (q *Queries) DocumentSequences(ctx context.Context) ([]SystemDocumentSequen
 	}
 	return items, nil
 }
+
 const lockCompany = `-- name: LockCompany :one
 SELECT id, singleton, data, currency_locked, revision, updated_by, updated_at FROM system.company WHERE singleton FOR UPDATE
 `
+
 func (q *Queries) LockCompany(ctx context.Context) (SystemCompany, error) {
 	row := q.db.QueryRow(ctx, lockCompany)
 	var i SystemCompany
@@ -117,20 +130,25 @@ func (q *Queries) LockCompany(ctx context.Context) (SystemCompany, error) {
 	)
 	return i, err
 }
+
 const lockCompanyCurrency = `-- name: LockCompanyCurrency :exec
 UPDATE system.company SET currency_locked=true WHERE singleton
 `
+
 func (q *Queries) LockCompanyCurrency(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, lockCompanyCurrency)
 	return err
 }
+
 const numberReservation = `-- name: NumberReservation :one
 SELECT caller, idempotency_key, kind, document_date, document_number, created_at FROM system.number_reservation WHERE caller=$1 AND idempotency_key=$2
 `
+
 type NumberReservationParams struct {
-	Caller		string
-	IdempotencyKey	string
+	Caller         string `json:"caller"`
+	IdempotencyKey string `json:"idempotencyKey"`
 }
+
 func (q *Queries) NumberReservation(ctx context.Context, arg NumberReservationParams) (SystemNumberReservation, error) {
 	row := q.db.QueryRow(ctx, numberReservation, arg.Caller, arg.IdempotencyKey)
 	var i SystemNumberReservation
@@ -144,29 +162,35 @@ func (q *Queries) NumberReservation(ctx context.Context, arg NumberReservationPa
 	)
 	return i, err
 }
+
 const reserveDocumentNumber = `-- name: ReserveDocumentNumber :one
 UPDATE system.document_sequence SET next_number=next_number+1 WHERE kind=$1 AND next_number<2147483647 RETURNING prefix,next_number-1 AS allocated
 `
+
 type ReserveDocumentNumberRow struct {
-	Prefix		string
-	Allocated	int32
+	Prefix    string `json:"prefix"`
+	Allocated int32  `json:"allocated"`
 }
+
 func (q *Queries) ReserveDocumentNumber(ctx context.Context, kind string) (ReserveDocumentNumberRow, error) {
 	row := q.db.QueryRow(ctx, reserveDocumentNumber, kind)
 	var i ReserveDocumentNumberRow
 	err := row.Scan(&i.Prefix, &i.Allocated)
 	return i, err
 }
+
 const saveCompany = `-- name: SaveCompany :exec
 INSERT INTO system.company(id,data,updated_by,updated_at) VALUES ($1,$2,$3,$4)
 ON CONFLICT(singleton) DO UPDATE SET data=EXCLUDED.data,revision=system.company.revision+1,updated_by=EXCLUDED.updated_by,updated_at=EXCLUDED.updated_at
 `
+
 type SaveCompanyParams struct {
-	ID	string
-	Data	json.RawMessage
-	Actor	string
-	Now	time.Time
+	ID    string          `json:"id"`
+	Data  json.RawMessage `json:"data"`
+	Actor string          `json:"actor"`
+	Now   time.Time       `json:"now"`
 }
+
 func (q *Queries) SaveCompany(ctx context.Context, arg SaveCompanyParams) error {
 	_, err := q.db.Exec(ctx, saveCompany,
 		arg.ID,
@@ -176,20 +200,23 @@ func (q *Queries) SaveCompany(ctx context.Context, arg SaveCompanyParams) error 
 	)
 	return err
 }
+
 const saveCompanyAsset = `-- name: SaveCompanyAsset :exec
 INSERT INTO system.company_asset(id,asset_key,title,file_url,mime_type,file_size,created_at,updated_at)
 VALUES ($1,$2,$3,$4,$5,$6,$7,$7)
 ON CONFLICT(asset_key) DO UPDATE SET title=EXCLUDED.title,file_url=EXCLUDED.file_url,mime_type=EXCLUDED.mime_type,file_size=EXCLUDED.file_size,updated_at=EXCLUDED.updated_at
 `
+
 type SaveCompanyAssetParams struct {
-	ID		string
-	AssetKey	string
-	Title		string
-	FileUrl		string
-	MimeType	*string
-	FileSize	*int64
-	Now		time.Time
+	ID       string    `json:"id"`
+	AssetKey string    `json:"assetKey"`
+	Title    string    `json:"title"`
+	FileUrl  string    `json:"fileUrl"`
+	MimeType *string   `json:"mimeType"`
+	FileSize *int64    `json:"fileSize"`
+	Now      time.Time `json:"now"`
 }
+
 func (q *Queries) SaveCompanyAsset(ctx context.Context, arg SaveCompanyAssetParams) error {
 	_, err := q.db.Exec(ctx, saveCompanyAsset,
 		arg.ID,
@@ -202,29 +229,35 @@ func (q *Queries) SaveCompanyAsset(ctx context.Context, arg SaveCompanyAssetPara
 	)
 	return err
 }
+
 const saveDocumentSequence = `-- name: SaveDocumentSequence :exec
 INSERT INTO system.document_sequence(kind,prefix,next_number) VALUES ($1,$2,$3)
 ON CONFLICT(kind) DO UPDATE SET prefix=EXCLUDED.prefix,next_number=EXCLUDED.next_number
 `
+
 type SaveDocumentSequenceParams struct {
-	Kind		string
-	Prefix		string
-	NextNumber	int64
+	Kind       string `json:"kind"`
+	Prefix     string `json:"prefix"`
+	NextNumber int64  `json:"nextNumber"`
 }
+
 func (q *Queries) SaveDocumentSequence(ctx context.Context, arg SaveDocumentSequenceParams) error {
 	_, err := q.db.Exec(ctx, saveDocumentSequence, arg.Kind, arg.Prefix, arg.NextNumber)
 	return err
 }
+
 const saveNumberReservation = `-- name: SaveNumberReservation :exec
 INSERT INTO system.number_reservation(caller,idempotency_key,kind,document_date,document_number) VALUES ($1,$2,$3,$4,$5)
 `
+
 type SaveNumberReservationParams struct {
-	Caller		string
-	IdempotencyKey	string
-	Kind		string
-	DocumentDate	pgtype.Date
-	DocumentNumber	string
+	Caller         string      `json:"caller"`
+	IdempotencyKey string      `json:"idempotencyKey"`
+	Kind           string      `json:"kind"`
+	DocumentDate   pgtype.Date `json:"documentDate"`
+	DocumentNumber string      `json:"documentNumber"`
 }
+
 func (q *Queries) SaveNumberReservation(ctx context.Context, arg SaveNumberReservationParams) error {
 	_, err := q.db.Exec(ctx, saveNumberReservation,
 		arg.Caller,

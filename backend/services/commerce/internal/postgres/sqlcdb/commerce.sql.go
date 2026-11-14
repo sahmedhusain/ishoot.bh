@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
-	"time"
 	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
+
 const closeRetailShift = `-- name: CloseRetailShift :one
 UPDATE commerce.retail_shift SET
     closed_at = now(),
@@ -13,11 +15,13 @@ UPDATE commerce.retail_shift SET
 WHERE id = $1
 RETURNING id, register_id, cashier_id, opened_at, closed_at, starting_cash, closing_cash, expected_cash, status
 `
+
 type CloseRetailShiftParams struct {
-	ID		string
-	ClosingCash	pgtype.Numeric
-	ExpectedCash	pgtype.Numeric
+	ID           string         `json:"id"`
+	ClosingCash  pgtype.Numeric `json:"closingCash"`
+	ExpectedCash pgtype.Numeric `json:"expectedCash"`
 }
+
 func (q *Queries) CloseRetailShift(ctx context.Context, arg CloseRetailShiftParams) (CommerceRetailShift, error) {
 	row := q.db.QueryRow(ctx, closeRetailShift, arg.ID, arg.ClosingCash, arg.ExpectedCash)
 	var i CommerceRetailShift
@@ -34,6 +38,7 @@ func (q *Queries) CloseRetailShift(ctx context.Context, arg CloseRetailShiftPara
 	)
 	return i, err
 }
+
 const createCoupon = `-- name: CreateCoupon :one
 INSERT INTO commerce.coupon (
     id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, expires_at, usage_limit, usage_count, is_active, created_at
@@ -41,19 +46,21 @@ INSERT INTO commerce.coupon (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
 ) RETURNING id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, expires_at, usage_limit, usage_count, is_active, created_at
 `
+
 type CreateCouponParams struct {
-	ID			string
-	Code			string
-	DiscountType		string
-	DiscountValue		pgtype.Numeric
-	MinOrderAmount		pgtype.Numeric
-	MaxDiscountAmount	pgtype.Numeric
-	StartsAt		*time.Time
-	ExpiresAt		*time.Time
-	UsageLimit		*int32
-	UsageCount		int32
-	IsActive		bool
+	ID                string         `json:"id"`
+	Code              string         `json:"code"`
+	DiscountType      string         `json:"discountType"`
+	DiscountValue     pgtype.Numeric `json:"discountValue"`
+	MinOrderAmount    pgtype.Numeric `json:"minOrderAmount"`
+	MaxDiscountAmount pgtype.Numeric `json:"maxDiscountAmount"`
+	StartsAt          *time.Time     `json:"startsAt"`
+	ExpiresAt         *time.Time     `json:"expiresAt"`
+	UsageLimit        *int32         `json:"usageLimit"`
+	UsageCount        int32          `json:"usageCount"`
+	IsActive          bool           `json:"isActive"`
 }
+
 func (q *Queries) CreateCoupon(ctx context.Context, arg CreateCouponParams) (CommerceCoupon, error) {
 	row := q.db.QueryRow(ctx, createCoupon,
 		arg.ID,
@@ -85,6 +92,7 @@ func (q *Queries) CreateCoupon(ctx context.Context, arg CreateCouponParams) (Com
 	)
 	return i, err
 }
+
 const createCustomer = `-- name: CreateCustomer :one
 INSERT INTO commerce.customer (
     id, email, phone, first_name, last_name, status, created_at, updated_at
@@ -92,14 +100,16 @@ INSERT INTO commerce.customer (
     $1, $2, $3, $4, $5, $6, now(), now()
 ) RETURNING id, email, phone, first_name, last_name, status, created_at, updated_at
 `
+
 type CreateCustomerParams struct {
-	ID		string
-	Email		*string
-	Phone		*string
-	FirstName	string
-	LastName	string
-	Status		string
+	ID        string  `json:"id"`
+	Email     *string `json:"email"`
+	Phone     *string `json:"phone"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Status    string  `json:"status"`
 }
+
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (CommerceCustomer, error) {
 	row := q.db.QueryRow(ctx, createCustomer,
 		arg.ID,
@@ -122,6 +132,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	)
 	return i, err
 }
+
 const createCustomerAddress = `-- name: CreateCustomerAddress :one
 INSERT INTO commerce.customer_address (
     id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default
@@ -129,19 +140,21 @@ INSERT INTO commerce.customer_address (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 ) RETURNING id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default
 `
+
 type CreateCustomerAddressParams struct {
-	ID		string
-	CustomerID	string
-	AddressType	string
-	Label		string
-	Line1		string
-	Line2		string
-	City		string
-	State		string
-	PostalCode	string
-	Country		string
-	IsDefault	bool
+	ID          string `json:"id"`
+	CustomerID  string `json:"customerId"`
+	AddressType string `json:"addressType"`
+	Label       string `json:"label"`
+	Line1       string `json:"line1"`
+	Line2       string `json:"line2"`
+	City        string `json:"city"`
+	State       string `json:"state"`
+	PostalCode  string `json:"postalCode"`
+	Country     string `json:"country"`
+	IsDefault   bool   `json:"isDefault"`
 }
+
 func (q *Queries) CreateCustomerAddress(ctx context.Context, arg CreateCustomerAddressParams) (CommerceCustomerAddress, error) {
 	row := q.db.QueryRow(ctx, createCustomerAddress,
 		arg.ID,
@@ -172,6 +185,7 @@ func (q *Queries) CreateCustomerAddress(ctx context.Context, arg CreateCustomerA
 	)
 	return i, err
 }
+
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO commerce.sales_order (
     id, number, customer_id, contact_id, email, name, phone, channel, status,
@@ -187,38 +201,40 @@ INSERT INTO commerce.sales_order (
     now(), $28, $29, $30, now()
 ) RETURNING id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at
 `
+
 type CreateOrderParams struct {
-	ID		string
-	Number		string
-	CustomerID	*string
-	ContactID	*string
-	Email		*string
-	Name		string
-	Phone		*string
-	Channel		string
-	Status		string
-	PaymentStatus	string
-	PaymentMethod	string
-	Fulfilment	string
-	ShippingAddress	[]byte
-	Subtotal	pgtype.Numeric
-	DiscountAmount	pgtype.Numeric
-	CouponCode	*string
-	VatAmount	pgtype.Numeric
-	DeliveryFee	pgtype.Numeric
-	Total		pgtype.Numeric
-	AmountPaid	pgtype.Numeric
-	AmountRefunded	pgtype.Numeric
-	Currency	string
-	Locale		string
-	Note		*string
-	WarehouseID	*string
-	InvoiceID	*string
-	CreatedByID	*string
-	UtmCampaign	*string
-	UtmSource	*string
-	UtmMedium	*string
+	ID              string         `json:"id"`
+	Number          string         `json:"number"`
+	CustomerID      *string        `json:"customerId"`
+	ContactID       *string        `json:"contactId"`
+	Email           *string        `json:"email"`
+	Name            string         `json:"name"`
+	Phone           *string        `json:"phone"`
+	Channel         string         `json:"channel"`
+	Status          string         `json:"status"`
+	PaymentStatus   string         `json:"paymentStatus"`
+	PaymentMethod   string         `json:"paymentMethod"`
+	Fulfilment      string         `json:"fulfilment"`
+	ShippingAddress []byte         `json:"shippingAddress"`
+	Subtotal        pgtype.Numeric `json:"subtotal"`
+	DiscountAmount  pgtype.Numeric `json:"discountAmount"`
+	CouponCode      *string        `json:"couponCode"`
+	VatAmount       pgtype.Numeric `json:"vatAmount"`
+	DeliveryFee     pgtype.Numeric `json:"deliveryFee"`
+	Total           pgtype.Numeric `json:"total"`
+	AmountPaid      pgtype.Numeric `json:"amountPaid"`
+	AmountRefunded  pgtype.Numeric `json:"amountRefunded"`
+	Currency        string         `json:"currency"`
+	Locale          string         `json:"locale"`
+	Note            *string        `json:"note"`
+	WarehouseID     *string        `json:"warehouseId"`
+	InvoiceID       *string        `json:"invoiceId"`
+	CreatedByID     *string        `json:"createdById"`
+	UtmCampaign     *string        `json:"utmCampaign"`
+	UtmSource       *string        `json:"utmSource"`
+	UtmMedium       *string        `json:"utmMedium"`
 }
+
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (CommerceSalesOrder, error) {
 	row := q.db.QueryRow(ctx, createOrder,
 		arg.ID,
@@ -293,6 +309,7 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Comme
 	)
 	return i, err
 }
+
 const createOrderEvent = `-- name: CreateOrderEvent :one
 INSERT INTO commerce.sales_order_event (
     id, order_id, kind, status, note, amount, by_id, created_at
@@ -300,15 +317,17 @@ INSERT INTO commerce.sales_order_event (
     $1, $2, $3, $4, $5, $6, $7, now()
 ) RETURNING id, order_id, kind, status, note, amount, by_id, created_at
 `
+
 type CreateOrderEventParams struct {
-	ID	string
-	OrderID	string
-	Kind	string
-	Status	*string
-	Note	*string
-	Amount	pgtype.Numeric
-	ByID	*string
+	ID      string         `json:"id"`
+	OrderID string         `json:"orderId"`
+	Kind    string         `json:"kind"`
+	Status  *string        `json:"status"`
+	Note    *string        `json:"note"`
+	Amount  pgtype.Numeric `json:"amount"`
+	ByID    *string        `json:"byId"`
 }
+
 func (q *Queries) CreateOrderEvent(ctx context.Context, arg CreateOrderEventParams) (CommerceSalesOrderEvent, error) {
 	row := q.db.QueryRow(ctx, createOrderEvent,
 		arg.ID,
@@ -332,6 +351,7 @@ func (q *Queries) CreateOrderEvent(ctx context.Context, arg CreateOrderEventPara
 	)
 	return i, err
 }
+
 const createOrderLine = `-- name: CreateOrderLine :one
 INSERT INTO commerce.sales_order_line (
     id, order_id, product_id, variant_key, sku, description, quantity, unit_price, vat_exempt, line_total, location_id, returned_quantity, sort_order
@@ -339,21 +359,23 @@ INSERT INTO commerce.sales_order_line (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 ) RETURNING id, order_id, product_id, variant_key, sku, description, quantity, unit_price, vat_exempt, line_total, location_id, returned_quantity, sort_order
 `
+
 type CreateOrderLineParams struct {
-	ID			string
-	OrderID			string
-	ProductID		string
-	VariantKey		string
-	Sku			string
-	Description		string
-	Quantity		pgtype.Numeric
-	UnitPrice		pgtype.Numeric
-	VatExempt		bool
-	LineTotal		pgtype.Numeric
-	LocationID		*string
-	ReturnedQuantity	pgtype.Numeric
-	SortOrder		int32
+	ID               string         `json:"id"`
+	OrderID          string         `json:"orderId"`
+	ProductID        string         `json:"productId"`
+	VariantKey       string         `json:"variantKey"`
+	Sku              string         `json:"sku"`
+	Description      string         `json:"description"`
+	Quantity         pgtype.Numeric `json:"quantity"`
+	UnitPrice        pgtype.Numeric `json:"unitPrice"`
+	VatExempt        bool           `json:"vatExempt"`
+	LineTotal        pgtype.Numeric `json:"lineTotal"`
+	LocationID       *string        `json:"locationId"`
+	ReturnedQuantity pgtype.Numeric `json:"returnedQuantity"`
+	SortOrder        int32          `json:"sortOrder"`
 }
+
 func (q *Queries) CreateOrderLine(ctx context.Context, arg CreateOrderLineParams) (CommerceSalesOrderLine, error) {
 	row := q.db.QueryRow(ctx, createOrderLine,
 		arg.ID,
@@ -388,6 +410,7 @@ func (q *Queries) CreateOrderLine(ctx context.Context, arg CreateOrderLineParams
 	)
 	return i, err
 }
+
 const createRetailRegister = `-- name: CreateRetailRegister :one
 INSERT INTO commerce.retail_register (
     id, name, branch_id, is_active
@@ -395,12 +418,14 @@ INSERT INTO commerce.retail_register (
     $1, $2, $3, $4
 ) RETURNING id, name, branch_id, is_active
 `
+
 type CreateRetailRegisterParams struct {
-	ID		string
-	Name		string
-	BranchID	*string
-	IsActive	bool
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	BranchID *string `json:"branchId"`
+	IsActive bool    `json:"isActive"`
 }
+
 func (q *Queries) CreateRetailRegister(ctx context.Context, arg CreateRetailRegisterParams) (CommerceRetailRegister, error) {
 	row := q.db.QueryRow(ctx, createRetailRegister,
 		arg.ID,
@@ -417,6 +442,7 @@ func (q *Queries) CreateRetailRegister(ctx context.Context, arg CreateRetailRegi
 	)
 	return i, err
 }
+
 const createRetailShift = `-- name: CreateRetailShift :one
 INSERT INTO commerce.retail_shift (
     id, register_id, cashier_id, opened_at, starting_cash, closing_cash, expected_cash, status
@@ -424,15 +450,17 @@ INSERT INTO commerce.retail_shift (
     $1, $2, $3, now(), $4, $5, $6, $7
 ) RETURNING id, register_id, cashier_id, opened_at, closed_at, starting_cash, closing_cash, expected_cash, status
 `
+
 type CreateRetailShiftParams struct {
-	ID		string
-	RegisterID	string
-	CashierID	string
-	StartingCash	pgtype.Numeric
-	ClosingCash	pgtype.Numeric
-	ExpectedCash	pgtype.Numeric
-	Status		string
+	ID           string         `json:"id"`
+	RegisterID   string         `json:"registerId"`
+	CashierID    string         `json:"cashierId"`
+	StartingCash pgtype.Numeric `json:"startingCash"`
+	ClosingCash  pgtype.Numeric `json:"closingCash"`
+	ExpectedCash pgtype.Numeric `json:"expectedCash"`
+	Status       string         `json:"status"`
 }
+
 func (q *Queries) CreateRetailShift(ctx context.Context, arg CreateRetailShiftParams) (CommerceRetailShift, error) {
 	row := q.db.QueryRow(ctx, createRetailShift,
 		arg.ID,
@@ -457,9 +485,11 @@ func (q *Queries) CreateRetailShift(ctx context.Context, arg CreateRetailShiftPa
 	)
 	return i, err
 }
+
 const getCouponByCode = `-- name: GetCouponByCode :one
 SELECT id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, expires_at, usage_limit, usage_count, is_active, created_at FROM commerce.coupon WHERE code = $1 LIMIT 1
 `
+
 func (q *Queries) GetCouponByCode(ctx context.Context, code string) (CommerceCoupon, error) {
 	row := q.db.QueryRow(ctx, getCouponByCode, code)
 	var i CommerceCoupon
@@ -479,9 +509,11 @@ func (q *Queries) GetCouponByCode(ctx context.Context, code string) (CommerceCou
 	)
 	return i, err
 }
+
 const getCustomerByEmail = `-- name: GetCustomerByEmail :one
 SELECT id, email, phone, first_name, last_name, status, created_at, updated_at FROM commerce.customer WHERE email = $1 LIMIT 1
 `
+
 func (q *Queries) GetCustomerByEmail(ctx context.Context, email *string) (CommerceCustomer, error) {
 	row := q.db.QueryRow(ctx, getCustomerByEmail, email)
 	var i CommerceCustomer
@@ -497,9 +529,11 @@ func (q *Queries) GetCustomerByEmail(ctx context.Context, email *string) (Commer
 	)
 	return i, err
 }
+
 const getCustomerByID = `-- name: GetCustomerByID :one
 SELECT id, email, phone, first_name, last_name, status, created_at, updated_at FROM commerce.customer WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetCustomerByID(ctx context.Context, id string) (CommerceCustomer, error) {
 	row := q.db.QueryRow(ctx, getCustomerByID, id)
 	var i CommerceCustomer
@@ -515,9 +549,11 @@ func (q *Queries) GetCustomerByID(ctx context.Context, id string) (CommerceCusto
 	)
 	return i, err
 }
+
 const getOrderByID = `-- name: GetOrderByID :one
 SELECT id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at FROM commerce.sales_order WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetOrderByID(ctx context.Context, id string) (CommerceSalesOrder, error) {
 	row := q.db.QueryRow(ctx, getOrderByID, id)
 	var i CommerceSalesOrder
@@ -561,9 +597,11 @@ func (q *Queries) GetOrderByID(ctx context.Context, id string) (CommerceSalesOrd
 	)
 	return i, err
 }
+
 const getOrderByNumber = `-- name: GetOrderByNumber :one
 SELECT id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at FROM commerce.sales_order WHERE number = $1 LIMIT 1
 `
+
 func (q *Queries) GetOrderByNumber(ctx context.Context, number string) (CommerceSalesOrder, error) {
 	row := q.db.QueryRow(ctx, getOrderByNumber, number)
 	var i CommerceSalesOrder
@@ -607,9 +645,11 @@ func (q *Queries) GetOrderByNumber(ctx context.Context, number string) (Commerce
 	)
 	return i, err
 }
+
 const getStoreSettings = `-- name: GetStoreSettings :one
 SELECT id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold FROM commerce.store_settings WHERE id = 'default' LIMIT 1
 `
+
 func (q *Queries) GetStoreSettings(ctx context.Context) (CommerceStoreSetting, error) {
 	row := q.db.QueryRow(ctx, getStoreSettings)
 	var i CommerceStoreSetting
@@ -623,9 +663,11 @@ func (q *Queries) GetStoreSettings(ctx context.Context) (CommerceStoreSetting, e
 	)
 	return i, err
 }
+
 const listCoupons = `-- name: ListCoupons :many
 SELECT id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, expires_at, usage_limit, usage_count, is_active, created_at FROM commerce.coupon ORDER BY created_at DESC
 `
+
 func (q *Queries) ListCoupons(ctx context.Context) ([]CommerceCoupon, error) {
 	rows, err := q.db.Query(ctx, listCoupons)
 	if err != nil {
@@ -658,9 +700,11 @@ func (q *Queries) ListCoupons(ctx context.Context) ([]CommerceCoupon, error) {
 	}
 	return items, nil
 }
+
 const listCustomerAddresses = `-- name: ListCustomerAddresses :many
 SELECT id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default FROM commerce.customer_address WHERE customer_id = $1 ORDER BY is_default DESC, id ASC
 `
+
 func (q *Queries) ListCustomerAddresses(ctx context.Context, customerID string) ([]CommerceCustomerAddress, error) {
 	rows, err := q.db.Query(ctx, listCustomerAddresses, customerID)
 	if err != nil {
@@ -692,9 +736,11 @@ func (q *Queries) ListCustomerAddresses(ctx context.Context, customerID string) 
 	}
 	return items, nil
 }
+
 const listCustomers = `-- name: ListCustomers :many
 SELECT id, email, phone, first_name, last_name, status, created_at, updated_at FROM commerce.customer ORDER BY created_at DESC
 `
+
 func (q *Queries) ListCustomers(ctx context.Context) ([]CommerceCustomer, error) {
 	rows, err := q.db.Query(ctx, listCustomers)
 	if err != nil {
@@ -723,9 +769,11 @@ func (q *Queries) ListCustomers(ctx context.Context) ([]CommerceCustomer, error)
 	}
 	return items, nil
 }
+
 const listOrderEvents = `-- name: ListOrderEvents :many
 SELECT id, order_id, kind, status, note, amount, by_id, created_at FROM commerce.sales_order_event WHERE order_id = $1 ORDER BY created_at ASC
 `
+
 func (q *Queries) ListOrderEvents(ctx context.Context, orderID string) ([]CommerceSalesOrderEvent, error) {
 	rows, err := q.db.Query(ctx, listOrderEvents, orderID)
 	if err != nil {
@@ -754,9 +802,11 @@ func (q *Queries) ListOrderEvents(ctx context.Context, orderID string) ([]Commer
 	}
 	return items, nil
 }
+
 const listOrderLines = `-- name: ListOrderLines :many
 SELECT id, order_id, product_id, variant_key, sku, description, quantity, unit_price, vat_exempt, line_total, location_id, returned_quantity, sort_order FROM commerce.sales_order_line WHERE order_id = $1 ORDER BY sort_order ASC, id ASC
 `
+
 func (q *Queries) ListOrderLines(ctx context.Context, orderID string) ([]CommerceSalesOrderLine, error) {
 	rows, err := q.db.Query(ctx, listOrderLines, orderID)
 	if err != nil {
@@ -790,9 +840,11 @@ func (q *Queries) ListOrderLines(ctx context.Context, orderID string) ([]Commerc
 	}
 	return items, nil
 }
+
 const listOrders = `-- name: ListOrders :many
 SELECT id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at FROM commerce.sales_order ORDER BY placed_at DESC
 `
+
 func (q *Queries) ListOrders(ctx context.Context) ([]CommerceSalesOrder, error) {
 	rows, err := q.db.Query(ctx, listOrders)
 	if err != nil {
@@ -849,9 +901,11 @@ func (q *Queries) ListOrders(ctx context.Context) ([]CommerceSalesOrder, error) 
 	}
 	return items, nil
 }
+
 const listOrdersByCustomer = `-- name: ListOrdersByCustomer :many
 SELECT id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at FROM commerce.sales_order WHERE customer_id = $1 ORDER BY placed_at DESC
 `
+
 func (q *Queries) ListOrdersByCustomer(ctx context.Context, customerID *string) ([]CommerceSalesOrder, error) {
 	rows, err := q.db.Query(ctx, listOrdersByCustomer, customerID)
 	if err != nil {
@@ -908,9 +962,11 @@ func (q *Queries) ListOrdersByCustomer(ctx context.Context, customerID *string) 
 	}
 	return items, nil
 }
+
 const listRetailRegisters = `-- name: ListRetailRegisters :many
 SELECT id, name, branch_id, is_active FROM commerce.retail_register ORDER BY name ASC
 `
+
 func (q *Queries) ListRetailRegisters(ctx context.Context) ([]CommerceRetailRegister, error) {
 	rows, err := q.db.Query(ctx, listRetailRegisters)
 	if err != nil {
@@ -935,9 +991,11 @@ func (q *Queries) ListRetailRegisters(ctx context.Context) ([]CommerceRetailRegi
 	}
 	return items, nil
 }
+
 const listRetailShifts = `-- name: ListRetailShifts :many
 SELECT id, register_id, cashier_id, opened_at, closed_at, starting_cash, closing_cash, expected_cash, status FROM commerce.retail_shift ORDER BY opened_at DESC
 `
+
 func (q *Queries) ListRetailShifts(ctx context.Context) ([]CommerceRetailShift, error) {
 	rows, err := q.db.Query(ctx, listRetailShifts)
 	if err != nil {
@@ -967,6 +1025,7 @@ func (q *Queries) ListRetailShifts(ctx context.Context) ([]CommerceRetailShift, 
 	}
 	return items, nil
 }
+
 const updateCustomer = `-- name: UpdateCustomer :one
 UPDATE commerce.customer SET
     email = $2,
@@ -978,14 +1037,16 @@ UPDATE commerce.customer SET
 WHERE id = $1
 RETURNING id, email, phone, first_name, last_name, status, created_at, updated_at
 `
+
 type UpdateCustomerParams struct {
-	ID		string
-	Email		*string
-	Phone		*string
-	FirstName	string
-	LastName	string
-	Status		string
+	ID        string  `json:"id"`
+	Email     *string `json:"email"`
+	Phone     *string `json:"phone"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Status    string  `json:"status"`
 }
+
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (CommerceCustomer, error) {
 	row := q.db.QueryRow(ctx, updateCustomer,
 		arg.ID,
@@ -1008,6 +1069,7 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) 
 	)
 	return i, err
 }
+
 const updateOrderPaymentStatus = `-- name: UpdateOrderPaymentStatus :one
 UPDATE commerce.sales_order SET
     payment_status = $2,
@@ -1017,12 +1079,14 @@ UPDATE commerce.sales_order SET
 WHERE id = $1
 RETURNING id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at
 `
+
 type UpdateOrderPaymentStatusParams struct {
-	ID		string
-	PaymentStatus	string
-	AmountPaid	pgtype.Numeric
-	PaidAt		*time.Time
+	ID            string         `json:"id"`
+	PaymentStatus string         `json:"paymentStatus"`
+	AmountPaid    pgtype.Numeric `json:"amountPaid"`
+	PaidAt        *time.Time     `json:"paidAt"`
 }
+
 func (q *Queries) UpdateOrderPaymentStatus(ctx context.Context, arg UpdateOrderPaymentStatusParams) (CommerceSalesOrder, error) {
 	row := q.db.QueryRow(ctx, updateOrderPaymentStatus,
 		arg.ID,
@@ -1071,6 +1135,7 @@ func (q *Queries) UpdateOrderPaymentStatus(ctx context.Context, arg UpdateOrderP
 	)
 	return i, err
 }
+
 const updateOrderStatus = `-- name: UpdateOrderStatus :one
 UPDATE commerce.sales_order SET
     status = $2,
@@ -1078,10 +1143,12 @@ UPDATE commerce.sales_order SET
 WHERE id = $1
 RETURNING id, number, customer_id, contact_id, email, name, phone, channel, status, payment_status, payment_method, fulfilment, shipping_address, subtotal, discount_amount, coupon_code, vat_amount, delivery_fee, total, amount_paid, amount_refunded, currency, locale, note, warehouse_id, invoice_id, created_by_id, placed_at, paid_at, shipped_at, delivered_at, cancelled_at, utm_campaign, utm_source, utm_medium, updated_at
 `
+
 type UpdateOrderStatusParams struct {
-	ID	string
-	Status	string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (CommerceSalesOrder, error) {
 	row := q.db.QueryRow(ctx, updateOrderStatus, arg.ID, arg.Status)
 	var i CommerceSalesOrder
@@ -1125,6 +1192,7 @@ func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusPa
 	)
 	return i, err
 }
+
 const upsertStoreSettings = `-- name: UpsertStoreSettings :one
 INSERT INTO commerce.store_settings (
     id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold
@@ -1139,13 +1207,15 @@ ON CONFLICT (id) DO UPDATE SET
     free_shipping_threshold = EXCLUDED.free_shipping_threshold
 RETURNING id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold
 `
+
 type UpsertStoreSettingsParams struct {
-	Currency		string
-	TaxInclusive		bool
-	DefaultTaxRate		pgtype.Numeric
-	MinimumOrderAmount	pgtype.Numeric
-	FreeShippingThreshold	pgtype.Numeric
+	Currency              string         `json:"currency"`
+	TaxInclusive          bool           `json:"taxInclusive"`
+	DefaultTaxRate        pgtype.Numeric `json:"defaultTaxRate"`
+	MinimumOrderAmount    pgtype.Numeric `json:"minimumOrderAmount"`
+	FreeShippingThreshold pgtype.Numeric `json:"freeShippingThreshold"`
 }
+
 func (q *Queries) UpsertStoreSettings(ctx context.Context, arg UpsertStoreSettingsParams) (CommerceStoreSetting, error) {
 	row := q.db.QueryRow(ctx, upsertStoreSettings,
 		arg.Currency,

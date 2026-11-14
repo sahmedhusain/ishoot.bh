@@ -1,19 +1,23 @@
 package sqlcdb
+
 import (
 	"context"
 	"time"
 )
+
 const claimFile = `-- name: ClaimFile :one
 UPDATE files.upload_object
 SET claimed_at = $1
 WHERE file_url = $2 AND owner_id = $3 AND claimed_at IS NULL AND expires_at > $1
 RETURNING id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at
 `
+
 type ClaimFileParams struct {
-	Now	*time.Time
-	FileUrl	string
-	OwnerID	*string
+	Now     *time.Time `json:"now"`
+	FileUrl string     `json:"fileUrl"`
+	OwnerID *string    `json:"ownerId"`
 }
+
 func (q *Queries) ClaimFile(ctx context.Context, arg ClaimFileParams) (FilesUploadObject, error) {
 	row := q.db.QueryRow(ctx, claimFile, arg.Now, arg.FileUrl, arg.OwnerID)
 	var i FilesUploadObject
@@ -31,9 +35,11 @@ func (q *Queries) ClaimFile(ctx context.Context, arg ClaimFileParams) (FilesUplo
 	)
 	return i, err
 }
+
 const deleteFile = `-- name: DeleteFile :execrows
 DELETE FROM files.upload_object WHERE file_url = $1
 `
+
 func (q *Queries) DeleteFile(ctx context.Context, fileUrl string) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteFile, fileUrl)
 	if err != nil {
@@ -41,16 +47,20 @@ func (q *Queries) DeleteFile(ctx context.Context, fileUrl string) (int64, error)
 	}
 	return result.RowsAffected(), nil
 }
+
 const deleteFilesByID = `-- name: DeleteFilesByID :exec
 DELETE FROM files.upload_object WHERE id = ANY($1::text[])
 `
+
 func (q *Queries) DeleteFilesByID(ctx context.Context, ids []string) error {
 	_, err := q.db.Exec(ctx, deleteFilesByID, ids)
 	return err
 }
+
 const getFile = `-- name: GetFile :one
 SELECT id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at FROM files.upload_object WHERE file_url = $1
 `
+
 func (q *Queries) GetFile(ctx context.Context, fileUrl string) (FilesUploadObject, error) {
 	row := q.db.QueryRow(ctx, getFile, fileUrl)
 	var i FilesUploadObject
@@ -68,23 +78,26 @@ func (q *Queries) GetFile(ctx context.Context, fileUrl string) (FilesUploadObjec
 	)
 	return i, err
 }
+
 const insertFile = `-- name: InsertFile :one
 INSERT INTO files.upload_object (id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (file_url) DO NOTHING
 RETURNING id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at
 `
+
 type InsertFileParams struct {
-	ID		string
-	FileUrl		string
-	OwnerID		*string
-	FileName	string
-	FileSize	int64
-	MimeType	string
-	IsPublic	bool
-	ClaimedAt	*time.Time
-	ExpiresAt	time.Time
+	ID        string     `json:"id"`
+	FileUrl   string     `json:"fileUrl"`
+	OwnerID   *string    `json:"ownerId"`
+	FileName  string     `json:"fileName"`
+	FileSize  int64      `json:"fileSize"`
+	MimeType  string     `json:"mimeType"`
+	IsPublic  bool       `json:"isPublic"`
+	ClaimedAt *time.Time `json:"claimedAt"`
+	ExpiresAt time.Time  `json:"expiresAt"`
 }
+
 func (q *Queries) InsertFile(ctx context.Context, arg InsertFileParams) (FilesUploadObject, error) {
 	row := q.db.QueryRow(ctx, insertFile,
 		arg.ID,
@@ -112,9 +125,11 @@ func (q *Queries) InsertFile(ctx context.Context, arg InsertFileParams) (FilesUp
 	)
 	return i, err
 }
+
 const listFiles = `-- name: ListFiles :many
 SELECT id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at FROM files.upload_object WHERE file_url = ANY($1::text[]) ORDER BY file_url
 `
+
 func (q *Queries) ListFiles(ctx context.Context, fileUrls []string) ([]FilesUploadObject, error) {
 	rows, err := q.db.Query(ctx, listFiles, fileUrls)
 	if err != nil {
@@ -145,6 +160,7 @@ func (q *Queries) ListFiles(ctx context.Context, fileUrls []string) ([]FilesUplo
 	}
 	return items, nil
 }
+
 const lockExpiredUploads = `-- name: LockExpiredUploads :many
 SELECT id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at FROM files.upload_object
 WHERE claimed_at IS NULL AND expires_at < $1
@@ -152,10 +168,12 @@ ORDER BY expires_at
 LIMIT $2
 FOR UPDATE SKIP LOCKED
 `
+
 type LockExpiredUploadsParams struct {
-	Now		time.Time
-	BatchSize	int32
+	Now       time.Time `json:"now"`
+	BatchSize int32     `json:"batchSize"`
 }
+
 func (q *Queries) LockExpiredUploads(ctx context.Context, arg LockExpiredUploadsParams) ([]FilesUploadObject, error) {
 	rows, err := q.db.Query(ctx, lockExpiredUploads, arg.Now, arg.BatchSize)
 	if err != nil {
@@ -186,6 +204,7 @@ func (q *Queries) LockExpiredUploads(ctx context.Context, arg LockExpiredUploads
 	}
 	return items, nil
 }
+
 const lockOrphanedPrivateUploads = `-- name: LockOrphanedPrivateUploads :many
 SELECT id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at FROM files.upload_object
 WHERE claimed_at IS NOT NULL AND claimed_at < $1
@@ -193,10 +212,12 @@ ORDER BY claimed_at
 LIMIT $2
 FOR UPDATE SKIP LOCKED
 `
+
 type LockOrphanedPrivateUploadsParams struct {
-	OlderThan	time.Time
-	BatchSize	int32
+	OlderThan time.Time `json:"olderThan"`
+	BatchSize int32     `json:"batchSize"`
 }
+
 func (q *Queries) LockOrphanedPrivateUploads(ctx context.Context, arg LockOrphanedPrivateUploadsParams) ([]FilesUploadObject, error) {
 	rows, err := q.db.Query(ctx, lockOrphanedPrivateUploads, arg.OlderThan, arg.BatchSize)
 	if err != nil {

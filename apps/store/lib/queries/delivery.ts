@@ -141,7 +141,7 @@ const zoneTerms = (z: any) => ({
 });
 
 export async function listDeliveryZones() {
-  const zones = await listDeliveryZones();
+  const zones = await listDeliveryZonesApi();
   return zones.map((z) => ({
     id: z.id,
     name_en: z.nameEn,
@@ -204,7 +204,7 @@ export async function deleteDeliverySlot(id: string) {
 
 export async function activeZoneTerms() {
   if (!(await isFeatureEnabled("delivery"))) return [];
-  const zones = await listDeliveryZones();
+  const zones = await listDeliveryZonesApi();
   return zones.filter(z => z.isActive).map(zoneTerms);
 }
 

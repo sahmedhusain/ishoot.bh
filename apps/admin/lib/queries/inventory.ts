@@ -394,7 +394,7 @@ export async function getStockCount(id: string, actorId?: string): Promise<any> 
 }
 
 export async function listStockCounts(actorId?: string): Promise<any> {
-  return listStockCounts();
+  return listStockCountsApi();
 }
 
 export async function recordCountedQuantities(

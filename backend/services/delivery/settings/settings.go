@@ -15,7 +15,7 @@ type Config struct {
 	Outbox		outbox.Config		`envPrefix:"OUTBOX_"`
 }
 type DeliverySettings struct {
-	Readers		[]string	`env:"READERS" envDefault:"admin,it,web,commerce" envSeparator:"," validate:"min=1,dive,required"`
+	Readers		[]string	`env:"READERS" envDefault:"admin,it,web,store,commerce" envSeparator:"," validate:"min=1,dive,required"`
 	Writers		[]string	`env:"WRITERS" envDefault:"admin,commerce" envSeparator:"," validate:"min=1,dive,required"`
 	ServiceKey	string		`env:"SERVICE_KEY"`
 	FilesURL	string		`env:"FILES_URL" envDefault:"http://files:8080" validate:"http_url"`

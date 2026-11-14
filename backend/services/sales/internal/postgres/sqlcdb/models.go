@@ -12,316 +12,316 @@ import (
 )
 
 type SalesCampaign struct {
-	ID          string
-	Name        string
-	Subject     string
-	Body        string
-	Status      string
-	SentAt      *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Code        *string
-	Channel     *string
-	StartDate   *time.Time
-	EndDate     *time.Time
-	Budget      pgtype.Numeric
-	Spend       pgtype.Numeric
-	UtmCampaign *string
-	CouponCode  *string
-	Notes       *string
-	OwnerID     *string
-	CreatedByID *string
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Subject     string         `json:"subject"`
+	Body        string         `json:"body"`
+	Status      string         `json:"status"`
+	SentAt      *time.Time     `json:"sentAt"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	Code        *string        `json:"code"`
+	Channel     *string        `json:"channel"`
+	StartDate   *time.Time     `json:"startDate"`
+	EndDate     *time.Time     `json:"endDate"`
+	Budget      pgtype.Numeric `json:"budget"`
+	Spend       pgtype.Numeric `json:"spend"`
+	UtmCampaign *string        `json:"utmCampaign"`
+	CouponCode  *string        `json:"couponCode"`
+	Notes       *string        `json:"notes"`
+	OwnerID     *string        `json:"ownerId"`
+	CreatedByID *string        `json:"createdById"`
 }
 
 type SalesContact struct {
-	ID          string
-	FirstName   string
-	LastName    *string
-	Email       *string
-	Phone       *string
-	Company     *string
-	ContactType string
-	Status      string
-	Notes       *string
-	Tags        []string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	FirstName   string    `json:"firstName"`
+	LastName    *string   `json:"lastName"`
+	Email       *string   `json:"email"`
+	Phone       *string   `json:"phone"`
+	Company     *string   `json:"company"`
+	ContactType string    `json:"contactType"`
+	Status      string    `json:"status"`
+	Notes       *string   `json:"notes"`
+	Tags        []string  `json:"tags"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type SalesCrmContact struct {
-	ID                       string
-	FirstName                *string
-	LastName                 *string
-	Email                    *string
-	EmailNorm                *string
-	Phone                    *string
-	PhoneE164                *string
-	CompanyName              *string
-	VatNumber                *string
-	JobTitle                 *string
-	ContactType              *string
-	ClientKind               *string
-	CompanyOrigin            *string
-	CompanyNameAr            *string
-	LegalForm                *string
-	CrNumber                 *string
-	CrExpiryDate             *time.Time
-	RegistrationNumber       *string
-	RegistrationCountry      *string
-	GovernmentType           *string
-	SupplierNumber           *string
-	RequiresPurchaseOrder    *bool
-	Nationality              *string
-	Industry                 *string
-	Website                  *string
-	PreferredLanguage        *string
-	PaymentTermsDays         *int32
-	AddressCountry           *string
-	AddressCity              *string
-	AddressArea              *string
-	AddressBlock             *string
-	AddressRoad              *string
-	AddressBuilding          *string
-	AddressUnit              *string
-	AddressLine              *string
-	AddressState             *string
-	AddressPostalCode        *string
-	AddressPoBox             *string
-	Notes                    *string
-	CreatedAt                time.Time
-	UpdatedAt                time.Time
-	SupplierLeadTimeDays     *int32
-	SupplierPaymentTermsDays *int32
+	ID                       string     `json:"id"`
+	FirstName                *string    `json:"firstName"`
+	LastName                 *string    `json:"lastName"`
+	Email                    *string    `json:"email"`
+	EmailNorm                *string    `json:"emailNorm"`
+	Phone                    *string    `json:"phone"`
+	PhoneE164                *string    `json:"phoneE164"`
+	CompanyName              *string    `json:"companyName"`
+	VatNumber                *string    `json:"vatNumber"`
+	JobTitle                 *string    `json:"jobTitle"`
+	ContactType              *string    `json:"contactType"`
+	ClientKind               *string    `json:"clientKind"`
+	CompanyOrigin            *string    `json:"companyOrigin"`
+	CompanyNameAr            *string    `json:"companyNameAr"`
+	LegalForm                *string    `json:"legalForm"`
+	CrNumber                 *string    `json:"crNumber"`
+	CrExpiryDate             *time.Time `json:"crExpiryDate"`
+	RegistrationNumber       *string    `json:"registrationNumber"`
+	RegistrationCountry      *string    `json:"registrationCountry"`
+	GovernmentType           *string    `json:"governmentType"`
+	SupplierNumber           *string    `json:"supplierNumber"`
+	RequiresPurchaseOrder    *bool      `json:"requiresPurchaseOrder"`
+	Nationality              *string    `json:"nationality"`
+	Industry                 *string    `json:"industry"`
+	Website                  *string    `json:"website"`
+	PreferredLanguage        *string    `json:"preferredLanguage"`
+	PaymentTermsDays         *int32     `json:"paymentTermsDays"`
+	AddressCountry           *string    `json:"addressCountry"`
+	AddressCity              *string    `json:"addressCity"`
+	AddressArea              *string    `json:"addressArea"`
+	AddressBlock             *string    `json:"addressBlock"`
+	AddressRoad              *string    `json:"addressRoad"`
+	AddressBuilding          *string    `json:"addressBuilding"`
+	AddressUnit              *string    `json:"addressUnit"`
+	AddressLine              *string    `json:"addressLine"`
+	AddressState             *string    `json:"addressState"`
+	AddressPostalCode        *string    `json:"addressPostalCode"`
+	AddressPoBox             *string    `json:"addressPoBox"`
+	Notes                    *string    `json:"notes"`
+	CreatedAt                time.Time  `json:"createdAt"`
+	UpdatedAt                time.Time  `json:"updatedAt"`
+	SupplierLeadTimeDays     *int32     `json:"supplierLeadTimeDays"`
+	SupplierPaymentTermsDays *int32     `json:"supplierPaymentTermsDays"`
 }
 
 type SalesCrmDeal struct {
-	ID                string
-	ContactID         *string
-	SourceInquiryID   *string
-	Title             *string
-	DealStage         *string
-	DealValue         pgtype.Numeric
-	Currency          *string
-	Probability       *int32
-	ExpectedCloseDate *time.Time
-	ShootDate         *time.Time
-	LostReason        *string
-	AssignedTo        *string
-	Notes             *string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID                string         `json:"id"`
+	ContactID         *string        `json:"contactId"`
+	SourceInquiryID   *string        `json:"sourceInquiryId"`
+	Title             *string        `json:"title"`
+	DealStage         *string        `json:"dealStage"`
+	DealValue         pgtype.Numeric `json:"dealValue"`
+	Currency          *string        `json:"currency"`
+	Probability       *int32         `json:"probability"`
+	ExpectedCloseDate *time.Time     `json:"expectedCloseDate"`
+	ShootDate         *time.Time     `json:"shootDate"`
+	LostReason        *string        `json:"lostReason"`
+	AssignedTo        *string        `json:"assignedTo"`
+	Notes             *string        `json:"notes"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
 }
 
 type SalesDeal struct {
-	ID                string
-	Title             string
-	ContactID         *string
-	Stage             string
-	Value             pgtype.Numeric
-	Currency          string
-	Probability       int32
-	ExpectedCloseDate *time.Time
-	Status            string
-	AssignedTo        *string
-	Notes             *string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID                string         `json:"id"`
+	Title             string         `json:"title"`
+	ContactID         *string        `json:"contactId"`
+	Stage             string         `json:"stage"`
+	Value             pgtype.Numeric `json:"value"`
+	Currency          string         `json:"currency"`
+	Probability       int32          `json:"probability"`
+	ExpectedCloseDate *time.Time     `json:"expectedCloseDate"`
+	Status            string         `json:"status"`
+	AssignedTo        *string        `json:"assignedTo"`
+	Notes             *string        `json:"notes"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
 }
 
 type SalesDealPipelineStage struct {
-	ID          string
-	NameEn      *string
-	NameAr      *string
-	SortOrder   *int32
-	Probability *int32
-	Kind        *string
-	Color       *string
-	IsSystem    *bool
-	IsActive    *bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	NameEn      *string   `json:"nameEn"`
+	NameAr      *string   `json:"nameAr"`
+	SortOrder   *int32    `json:"sortOrder"`
+	Probability *int32    `json:"probability"`
+	Kind        *string   `json:"kind"`
+	Color       *string   `json:"color"`
+	IsSystem    *bool     `json:"isSystem"`
+	IsActive    *bool     `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type SalesInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type SalesInquiry struct {
-	ID             string
-	InquiryType    string
-	Subject        string
-	Message        string
-	Status         string
-	Priority       string
-	RequesterName  string
-	RequesterEmail string
-	RequesterPhone *string
-	AssigneeID     *string
-	DealID         *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string    `json:"id"`
+	InquiryType    string    `json:"inquiryType"`
+	Subject        string    `json:"subject"`
+	Message        string    `json:"message"`
+	Status         string    `json:"status"`
+	Priority       string    `json:"priority"`
+	RequesterName  string    `json:"requesterName"`
+	RequesterEmail string    `json:"requesterEmail"`
+	RequesterPhone *string   `json:"requesterPhone"`
+	AssigneeID     *string   `json:"assigneeId"`
+	DealID         *string   `json:"dealId"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 type SalesOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type SalesQuotation struct {
-	ID                 string
-	QuotationNumber    string
-	DealID             *string
-	ContactID          *string
-	Status             string
-	Subtotal           pgtype.Numeric
-	Discount           pgtype.Numeric
-	VatRate            pgtype.Numeric
-	VatAmount          pgtype.Numeric
-	Total              pgtype.Numeric
-	Currency           string
-	ValidUntil         *time.Time
-	Terms              *string
-	Notes              *string
-	IssuedAt           *time.Time
-	AcceptedAt         *time.Time
-	RejectedAt         *time.Time
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	Revision           *int32
-	ClientID           *string
-	InquiryID          *string
-	InvoiceID          *string
-	IssueDate          *time.Time
-	ValidUntilDate     *time.Time
-	VatEnabled         *bool
-	VatPercentage      pgtype.Numeric
-	OtherTaxAmount     pgtype.Numeric
-	DiscountType       *string
-	DiscountValue      pgtype.Numeric
-	DiscountAmount     pgtype.Numeric
-	TotalAmount        pgtype.Numeric
-	Language           *string
-	AcceptanceEvidence *string
-	ApprovalRevision   *int32
-	ContentHash        *string
-	RawRate            pgtype.Numeric
-	FxMarginPercent    pgtype.Numeric
-	EffectiveRate      pgtype.Numeric
-	PdfStoragePath     *string
-	DeliveryChannel    *string
-	DeliveredAt        *time.Time
-	TermsEn            *string
-	TermsAr            *string
-	CreatedByID        *string
-	SalesOwnerID       *string
-	SignedByID         *string
-	SignedAt           *time.Time
-	SignerSignatureUrl *string
+	ID                 string         `json:"id"`
+	QuotationNumber    string         `json:"quotationNumber"`
+	DealID             *string        `json:"dealId"`
+	ContactID          *string        `json:"contactId"`
+	Status             string         `json:"status"`
+	Subtotal           pgtype.Numeric `json:"subtotal"`
+	Discount           pgtype.Numeric `json:"discount"`
+	VatRate            pgtype.Numeric `json:"vatRate"`
+	VatAmount          pgtype.Numeric `json:"vatAmount"`
+	Total              pgtype.Numeric `json:"total"`
+	Currency           string         `json:"currency"`
+	ValidUntil         *time.Time     `json:"validUntil"`
+	Terms              *string        `json:"terms"`
+	Notes              *string        `json:"notes"`
+	IssuedAt           *time.Time     `json:"issuedAt"`
+	AcceptedAt         *time.Time     `json:"acceptedAt"`
+	RejectedAt         *time.Time     `json:"rejectedAt"`
+	CreatedAt          time.Time      `json:"createdAt"`
+	UpdatedAt          time.Time      `json:"updatedAt"`
+	Revision           *int32         `json:"revision"`
+	ClientID           *string        `json:"clientId"`
+	InquiryID          *string        `json:"inquiryId"`
+	InvoiceID          *string        `json:"invoiceId"`
+	IssueDate          *time.Time     `json:"issueDate"`
+	ValidUntilDate     *time.Time     `json:"validUntilDate"`
+	VatEnabled         *bool          `json:"vatEnabled"`
+	VatPercentage      pgtype.Numeric `json:"vatPercentage"`
+	OtherTaxAmount     pgtype.Numeric `json:"otherTaxAmount"`
+	DiscountType       *string        `json:"discountType"`
+	DiscountValue      pgtype.Numeric `json:"discountValue"`
+	DiscountAmount     pgtype.Numeric `json:"discountAmount"`
+	TotalAmount        pgtype.Numeric `json:"totalAmount"`
+	Language           *string        `json:"language"`
+	AcceptanceEvidence *string        `json:"acceptanceEvidence"`
+	ApprovalRevision   *int32         `json:"approvalRevision"`
+	ContentHash        *string        `json:"contentHash"`
+	RawRate            pgtype.Numeric `json:"rawRate"`
+	FxMarginPercent    pgtype.Numeric `json:"fxMarginPercent"`
+	EffectiveRate      pgtype.Numeric `json:"effectiveRate"`
+	PdfStoragePath     *string        `json:"pdfStoragePath"`
+	DeliveryChannel    *string        `json:"deliveryChannel"`
+	DeliveredAt        *time.Time     `json:"deliveredAt"`
+	TermsEn            *string        `json:"termsEn"`
+	TermsAr            *string        `json:"termsAr"`
+	CreatedByID        *string        `json:"createdById"`
+	SalesOwnerID       *string        `json:"salesOwnerId"`
+	SignedByID         *string        `json:"signedById"`
+	SignedAt           *time.Time     `json:"signedAt"`
+	SignerSignatureUrl *string        `json:"signerSignatureUrl"`
 }
 
 type SalesQuotationItem struct {
-	ID          string
-	QuotationID string
-	Description string
-	Quantity    pgtype.Numeric
-	UnitPrice   pgtype.Numeric
-	Amount      pgtype.Numeric
-	SortOrder   int32
+	ID          string         `json:"id"`
+	QuotationID string         `json:"quotationId"`
+	Description string         `json:"description"`
+	Quantity    pgtype.Numeric `json:"quantity"`
+	UnitPrice   pgtype.Numeric `json:"unitPrice"`
+	Amount      pgtype.Numeric `json:"amount"`
+	SortOrder   int32          `json:"sortOrder"`
 }
 
 type SalesQuotationLineItem struct {
-	ID            string
-	QuotationID   *string
-	DescriptionEn *string
-	DescriptionAr *string
-	Quantity      pgtype.Numeric
-	UnitPrice     pgtype.Numeric
-	LineTotal     pgtype.Numeric
-	OrderIndex    *int32
+	ID            string         `json:"id"`
+	QuotationID   *string        `json:"quotationId"`
+	DescriptionEn *string        `json:"descriptionEn"`
+	DescriptionAr *string        `json:"descriptionAr"`
+	Quantity      pgtype.Numeric `json:"quantity"`
+	UnitPrice     pgtype.Numeric `json:"unitPrice"`
+	LineTotal     pgtype.Numeric `json:"lineTotal"`
+	OrderIndex    *int32         `json:"orderIndex"`
 }
 
 type SalesSalesAttributionChange struct {
-	ID          string
-	EntityType  *string
-	EntityID    *string
-	FromUserID  *string
-	ToUserID    *string
-	ChangedByID *string
-	Reason      *string
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	EntityType  *string   `json:"entityType"`
+	EntityID    *string   `json:"entityId"`
+	FromUserID  *string   `json:"fromUserId"`
+	ToUserID    *string   `json:"toUserId"`
+	ChangedByID *string   `json:"changedById"`
+	Reason      *string   `json:"reason"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type SalesSalesOrder struct {
-	ID              string
-	Number          *string
-	CustomerID      *string
-	ContactID       *string
-	Email           *string
-	Name            *string
-	Phone           *string
-	Channel         *string
-	Status          *string
-	PaymentStatus   *string
-	PaymentMethod   *string
-	Fulfilment      *string
-	ShippingAddress []byte
-	Subtotal        pgtype.Numeric
-	DiscountAmount  pgtype.Numeric
-	CouponCode      *string
-	VatAmount       pgtype.Numeric
-	DeliveryFee     pgtype.Numeric
-	Total           pgtype.Numeric
-	AmountPaid      pgtype.Numeric
-	AmountRefunded  pgtype.Numeric
-	Currency        *string
-	Locale          *string
-	Note            *string
-	WarehouseID     *string
-	InvoiceID       *string
-	CreatedByID     *string
-	PlacedAt        *time.Time
-	PaidAt          *time.Time
-	ShippedAt       *time.Time
-	DeliveredAt     *time.Time
-	CancelledAt     *time.Time
-	UtmCampaign     *string
-	UtmSource       *string
-	UtmMedium       *string
-	UpdatedAt       time.Time
+	ID              string         `json:"id"`
+	Number          *string        `json:"number"`
+	CustomerID      *string        `json:"customerId"`
+	ContactID       *string        `json:"contactId"`
+	Email           *string        `json:"email"`
+	Name            *string        `json:"name"`
+	Phone           *string        `json:"phone"`
+	Channel         *string        `json:"channel"`
+	Status          *string        `json:"status"`
+	PaymentStatus   *string        `json:"paymentStatus"`
+	PaymentMethod   *string        `json:"paymentMethod"`
+	Fulfilment      *string        `json:"fulfilment"`
+	ShippingAddress []byte         `json:"shippingAddress"`
+	Subtotal        pgtype.Numeric `json:"subtotal"`
+	DiscountAmount  pgtype.Numeric `json:"discountAmount"`
+	CouponCode      *string        `json:"couponCode"`
+	VatAmount       pgtype.Numeric `json:"vatAmount"`
+	DeliveryFee     pgtype.Numeric `json:"deliveryFee"`
+	Total           pgtype.Numeric `json:"total"`
+	AmountPaid      pgtype.Numeric `json:"amountPaid"`
+	AmountRefunded  pgtype.Numeric `json:"amountRefunded"`
+	Currency        *string        `json:"currency"`
+	Locale          *string        `json:"locale"`
+	Note            *string        `json:"note"`
+	WarehouseID     *string        `json:"warehouseId"`
+	InvoiceID       *string        `json:"invoiceId"`
+	CreatedByID     *string        `json:"createdById"`
+	PlacedAt        *time.Time     `json:"placedAt"`
+	PaidAt          *time.Time     `json:"paidAt"`
+	ShippedAt       *time.Time     `json:"shippedAt"`
+	DeliveredAt     *time.Time     `json:"deliveredAt"`
+	CancelledAt     *time.Time     `json:"cancelledAt"`
+	UtmCampaign     *string        `json:"utmCampaign"`
+	UtmSource       *string        `json:"utmSource"`
+	UtmMedium       *string        `json:"utmMedium"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
 }
 
 type SalesSalesOrderEvent struct {
-	ID        string
-	OrderID   *string
-	Kind      *string
-	Status    *string
-	Note      *string
-	Amount    pgtype.Numeric
-	ByID      *string
-	CreatedAt time.Time
+	ID        string         `json:"id"`
+	OrderID   *string        `json:"orderId"`
+	Kind      *string        `json:"kind"`
+	Status    *string        `json:"status"`
+	Note      *string        `json:"note"`
+	Amount    pgtype.Numeric `json:"amount"`
+	ByID      *string        `json:"byId"`
+	CreatedAt time.Time      `json:"createdAt"`
 }
 
 type SalesSalesOrderLine struct {
-	ID               string
-	OrderID          *string
-	ProductID        *string
-	VariantKey       *string
-	Sku              *string
-	Description      *string
-	Quantity         pgtype.Numeric
-	UnitPrice        pgtype.Numeric
-	VatExempt        *bool
-	LineTotal        pgtype.Numeric
-	LocationID       *string
-	ReturnedQuantity pgtype.Numeric
-	SortOrder        *int32
+	ID               string         `json:"id"`
+	OrderID          *string        `json:"orderId"`
+	ProductID        *string        `json:"productId"`
+	VariantKey       *string        `json:"variantKey"`
+	Sku              *string        `json:"sku"`
+	Description      *string        `json:"description"`
+	Quantity         pgtype.Numeric `json:"quantity"`
+	UnitPrice        pgtype.Numeric `json:"unitPrice"`
+	VatExempt        *bool          `json:"vatExempt"`
+	LineTotal        pgtype.Numeric `json:"lineTotal"`
+	LocationID       *string        `json:"locationId"`
+	ReturnedQuantity pgtype.Numeric `json:"returnedQuantity"`
+	SortOrder        *int32         `json:"sortOrder"`
 }

@@ -1,35 +1,41 @@
 package sqlcdb
+
 import (
 	"context"
 	"time"
 )
+
 const countActiveITAdmins = `-- name: CountActiveITAdmins :one
 SELECT count(*) FROM identity.account
 WHERE realm='it' AND active AND password_hash IS NOT NULL AND roles @> ARRAY['it_admin']
 `
+
 func (q *Queries) CountActiveITAdmins(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countActiveITAdmins)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
+
 const listITAccounts = `-- name: ListITAccounts :many
 SELECT subject_id,email,roles,active,mfa_enabled,created_at,last_login_at FROM identity.account
 WHERE realm='it' AND subject_id > $1::text ORDER BY subject_id LIMIT $2::int
 `
+
 type ListITAccountsParams struct {
-	Cursor		string
-	RowLimit	int32
+	Cursor   string `json:"cursor"`
+	RowLimit int32  `json:"rowLimit"`
 }
 type ListITAccountsRow struct {
-	SubjectID	string
-	Email		string
-	Roles		[]string
-	Active		bool
-	MfaEnabled	bool
-	CreatedAt	time.Time
-	LastLoginAt	*time.Time
+	SubjectID   string     `json:"subjectId"`
+	Email       string     `json:"email"`
+	Roles       []string   `json:"roles"`
+	Active      bool       `json:"active"`
+	MfaEnabled  bool       `json:"mfaEnabled"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	LastLoginAt *time.Time `json:"lastLoginAt"`
 }
+
 func (q *Queries) ListITAccounts(ctx context.Context, arg ListITAccountsParams) ([]ListITAccountsRow, error) {
 	rows, err := q.db.Query(ctx, listITAccounts, arg.Cursor, arg.RowLimit)
 	if err != nil {
@@ -57,16 +63,19 @@ func (q *Queries) ListITAccounts(ctx context.Context, arg ListITAccountsParams) 
 	}
 	return items, nil
 }
+
 const setITAccountAccess = `-- name: SetITAccountAccess :exec
 UPDATE identity.account SET roles = $1::text[], active = $2, updated_at = $3
 WHERE realm='it' AND subject_id = $4
 `
+
 type SetITAccountAccessParams struct {
-	Roles		[]string
-	Active		bool
-	Now		time.Time
-	SubjectID	string
+	Roles     []string  `json:"roles"`
+	Active    bool      `json:"active"`
+	Now       time.Time `json:"now"`
+	SubjectID string    `json:"subjectId"`
 }
+
 func (q *Queries) SetITAccountAccess(ctx context.Context, arg SetITAccountAccessParams) error {
 	_, err := q.db.Exec(ctx, setITAccountAccess,
 		arg.Roles,

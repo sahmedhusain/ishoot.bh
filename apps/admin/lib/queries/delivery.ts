@@ -8,6 +8,7 @@ import {
   upcomingSlots,
   zoneForAddress,
   type DeliveryMode,
+  type SlotTemplate,
 } from "../constants/delivery";
 import { isFeatureEnabled } from "./features";
 import { getCompanySettings } from "./company-settings";
@@ -141,7 +142,7 @@ const zoneTerms = (z: any) => ({
 });
 
 export async function listDeliveryZones() {
-  const zones = await listDeliveryZones();
+  const zones = await listDeliveryZonesApi();
   return zones.map((z) => ({
     id: z.id,
     name_en: z.nameEn,
@@ -151,14 +152,14 @@ export async function listDeliveryZones() {
     min_order: numOrNull(z.minOrder),
     free_over: numOrNull(z.freeOver),
     is_active: z.isActive,
-    slots: [],
+    slots: [] as SlotTemplate[],
   }));
 }
 export type DeliveryZoneRecord = Awaited<
   ReturnType<typeof listDeliveryZones>
 >[number];
 
-export async function listSharedSlots() {
+export async function listSharedSlots(): Promise<SlotTemplate[]> {
   return [];
 }
 
@@ -204,7 +205,7 @@ export async function deleteDeliverySlot(id: string) {
 
 export async function activeZoneTerms() {
   if (!(await isFeatureEnabled("delivery"))) return [];
-  const zones = await listDeliveryZones();
+  const zones = await listDeliveryZonesApi();
   return zones.filter(z => z.isActive).map(zoneTerms);
 }
 

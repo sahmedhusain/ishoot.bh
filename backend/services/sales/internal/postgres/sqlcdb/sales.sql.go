@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
-	"time"
 	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
+
 const assignInquiry = `-- name: AssignInquiry :one
 UPDATE sales.inquiry SET
     assignee_id = $2,
@@ -11,10 +13,12 @@ UPDATE sales.inquiry SET
 WHERE id = $1
 RETURNING id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at
 `
+
 type AssignInquiryParams struct {
-	ID		string
-	AssigneeID	*string
+	ID         string  `json:"id"`
+	AssigneeID *string `json:"assigneeId"`
 }
+
 func (q *Queries) AssignInquiry(ctx context.Context, arg AssignInquiryParams) (SalesInquiry, error) {
 	row := q.db.QueryRow(ctx, assignInquiry, arg.ID, arg.AssigneeID)
 	var i SalesInquiry
@@ -35,6 +39,7 @@ func (q *Queries) AssignInquiry(ctx context.Context, arg AssignInquiryParams) (S
 	)
 	return i, err
 }
+
 const createCampaign = `-- name: CreateCampaign :one
 INSERT INTO sales.campaign (
     id, name, subject, body, status, sent_at, created_at, updated_at
@@ -42,14 +47,16 @@ INSERT INTO sales.campaign (
     $1, $2, $3, $4, $5, $6, now(), now()
 ) RETURNING id, name, subject, body, status, sent_at, created_at, updated_at
 `
+
 type CreateCampaignParams struct {
-	ID	string
-	Name	string
-	Subject	string
-	Body	string
-	Status	string
-	SentAt	*time.Time
+	ID      string     `json:"id"`
+	Name    string     `json:"name"`
+	Subject string     `json:"subject"`
+	Body    string     `json:"body"`
+	Status  string     `json:"status"`
+	SentAt  *time.Time `json:"sentAt"`
 }
+
 func (q *Queries) CreateCampaign(ctx context.Context, arg CreateCampaignParams) (SalesCampaign, error) {
 	row := q.db.QueryRow(ctx, createCampaign,
 		arg.ID,
@@ -72,6 +79,7 @@ func (q *Queries) CreateCampaign(ctx context.Context, arg CreateCampaignParams) 
 	)
 	return i, err
 }
+
 const createContact = `-- name: CreateContact :one
 INSERT INTO sales.contact (
     id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at
@@ -79,18 +87,20 @@ INSERT INTO sales.contact (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now(), now()
 ) RETURNING id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at
 `
+
 type CreateContactParams struct {
-	ID		string
-	FirstName	string
-	LastName	*string
-	Email		*string
-	Phone		*string
-	Company		*string
-	ContactType	string
-	Status		string
-	Notes		*string
-	Tags		[]string
+	ID          string   `json:"id"`
+	FirstName   string   `json:"firstName"`
+	LastName    *string  `json:"lastName"`
+	Email       *string  `json:"email"`
+	Phone       *string  `json:"phone"`
+	Company     *string  `json:"company"`
+	ContactType string   `json:"contactType"`
+	Status      string   `json:"status"`
+	Notes       *string  `json:"notes"`
+	Tags        []string `json:"tags"`
 }
+
 func (q *Queries) CreateContact(ctx context.Context, arg CreateContactParams) (SalesContact, error) {
 	row := q.db.QueryRow(ctx, createContact,
 		arg.ID,
@@ -121,6 +131,7 @@ func (q *Queries) CreateContact(ctx context.Context, arg CreateContactParams) (S
 	)
 	return i, err
 }
+
 const createDeal = `-- name: CreateDeal :one
 INSERT INTO sales.deal (
     id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at
@@ -128,19 +139,21 @@ INSERT INTO sales.deal (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now()
 ) RETURNING id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at
 `
+
 type CreateDealParams struct {
-	ID			string
-	Title			string
-	ContactID		*string
-	Stage			string
-	Value			pgtype.Numeric
-	Currency		string
-	Probability		int32
-	ExpectedCloseDate	*time.Time
-	Status			string
-	AssignedTo		*string
-	Notes			*string
+	ID                string         `json:"id"`
+	Title             string         `json:"title"`
+	ContactID         *string        `json:"contactId"`
+	Stage             string         `json:"stage"`
+	Value             pgtype.Numeric `json:"value"`
+	Currency          string         `json:"currency"`
+	Probability       int32          `json:"probability"`
+	ExpectedCloseDate *time.Time     `json:"expectedCloseDate"`
+	Status            string         `json:"status"`
+	AssignedTo        *string        `json:"assignedTo"`
+	Notes             *string        `json:"notes"`
 }
+
 func (q *Queries) CreateDeal(ctx context.Context, arg CreateDealParams) (SalesDeal, error) {
 	row := q.db.QueryRow(ctx, createDeal,
 		arg.ID,
@@ -173,6 +186,7 @@ func (q *Queries) CreateDeal(ctx context.Context, arg CreateDealParams) (SalesDe
 	)
 	return i, err
 }
+
 const createInquiry = `-- name: CreateInquiry :one
 INSERT INTO sales.inquiry (
     id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at
@@ -180,19 +194,21 @@ INSERT INTO sales.inquiry (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now(), now()
 ) RETURNING id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at
 `
+
 type CreateInquiryParams struct {
-	ID		string
-	InquiryType	string
-	Subject		string
-	Message		string
-	Status		string
-	Priority	string
-	RequesterName	string
-	RequesterEmail	string
-	RequesterPhone	*string
-	AssigneeID	*string
-	DealID		*string
+	ID             string  `json:"id"`
+	InquiryType    string  `json:"inquiryType"`
+	Subject        string  `json:"subject"`
+	Message        string  `json:"message"`
+	Status         string  `json:"status"`
+	Priority       string  `json:"priority"`
+	RequesterName  string  `json:"requesterName"`
+	RequesterEmail string  `json:"requesterEmail"`
+	RequesterPhone *string `json:"requesterPhone"`
+	AssigneeID     *string `json:"assigneeId"`
+	DealID         *string `json:"dealId"`
 }
+
 func (q *Queries) CreateInquiry(ctx context.Context, arg CreateInquiryParams) (SalesInquiry, error) {
 	row := q.db.QueryRow(ctx, createInquiry,
 		arg.ID,
@@ -225,6 +241,7 @@ func (q *Queries) CreateInquiry(ctx context.Context, arg CreateInquiryParams) (S
 	)
 	return i, err
 }
+
 const createQuotation = `-- name: CreateQuotation :one
 INSERT INTO sales.quotation (
     id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at
@@ -232,23 +249,25 @@ INSERT INTO sales.quotation (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, now(), now()
 ) RETURNING id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at
 `
+
 type CreateQuotationParams struct {
-	ID		string
-	QuotationNumber	string
-	DealID		*string
-	ContactID	*string
-	Status		string
-	Subtotal	pgtype.Numeric
-	Discount	pgtype.Numeric
-	VatRate		pgtype.Numeric
-	VatAmount	pgtype.Numeric
-	Total		pgtype.Numeric
-	Currency	string
-	ValidUntil	*time.Time
-	Terms		*string
-	Notes		*string
-	IssuedAt	*time.Time
+	ID              string         `json:"id"`
+	QuotationNumber string         `json:"quotationNumber"`
+	DealID          *string        `json:"dealId"`
+	ContactID       *string        `json:"contactId"`
+	Status          string         `json:"status"`
+	Subtotal        pgtype.Numeric `json:"subtotal"`
+	Discount        pgtype.Numeric `json:"discount"`
+	VatRate         pgtype.Numeric `json:"vatRate"`
+	VatAmount       pgtype.Numeric `json:"vatAmount"`
+	Total           pgtype.Numeric `json:"total"`
+	Currency        string         `json:"currency"`
+	ValidUntil      *time.Time     `json:"validUntil"`
+	Terms           *string        `json:"terms"`
+	Notes           *string        `json:"notes"`
+	IssuedAt        *time.Time     `json:"issuedAt"`
 }
+
 func (q *Queries) CreateQuotation(ctx context.Context, arg CreateQuotationParams) (SalesQuotation, error) {
 	row := q.db.QueryRow(ctx, createQuotation,
 		arg.ID,
@@ -291,51 +310,65 @@ func (q *Queries) CreateQuotation(ctx context.Context, arg CreateQuotationParams
 	)
 	return i, err
 }
+
 const deleteCampaign = `-- name: DeleteCampaign :exec
 DELETE FROM sales.campaign WHERE id = $1
 `
+
 func (q *Queries) DeleteCampaign(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteCampaign, id)
 	return err
 }
+
 const deleteContact = `-- name: DeleteContact :exec
 DELETE FROM sales.contact WHERE id = $1
 `
+
 func (q *Queries) DeleteContact(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteContact, id)
 	return err
 }
+
 const deleteDeal = `-- name: DeleteDeal :exec
 DELETE FROM sales.deal WHERE id = $1
 `
+
 func (q *Queries) DeleteDeal(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteDeal, id)
 	return err
 }
+
 const deleteInquiry = `-- name: DeleteInquiry :exec
 DELETE FROM sales.inquiry WHERE id = $1
 `
+
 func (q *Queries) DeleteInquiry(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteInquiry, id)
 	return err
 }
+
 const deleteQuotation = `-- name: DeleteQuotation :exec
 DELETE FROM sales.quotation WHERE id = $1
 `
+
 func (q *Queries) DeleteQuotation(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteQuotation, id)
 	return err
 }
+
 const deleteQuotationItems = `-- name: DeleteQuotationItems :exec
 DELETE FROM sales.quotation_item WHERE quotation_id = $1
 `
+
 func (q *Queries) DeleteQuotationItems(ctx context.Context, quotationID string) error {
 	_, err := q.db.Exec(ctx, deleteQuotationItems, quotationID)
 	return err
 }
+
 const getCampaignByID = `-- name: GetCampaignByID :one
 SELECT id, name, subject, body, status, sent_at, created_at, updated_at FROM sales.campaign WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetCampaignByID(ctx context.Context, id string) (SalesCampaign, error) {
 	row := q.db.QueryRow(ctx, getCampaignByID, id)
 	var i SalesCampaign
@@ -351,9 +384,11 @@ func (q *Queries) GetCampaignByID(ctx context.Context, id string) (SalesCampaign
 	)
 	return i, err
 }
+
 const getContactByID = `-- name: GetContactByID :one
 SELECT id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at FROM sales.contact WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetContactByID(ctx context.Context, id string) (SalesContact, error) {
 	row := q.db.QueryRow(ctx, getContactByID, id)
 	var i SalesContact
@@ -373,9 +408,11 @@ func (q *Queries) GetContactByID(ctx context.Context, id string) (SalesContact, 
 	)
 	return i, err
 }
+
 const getDealByID = `-- name: GetDealByID :one
 SELECT id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at FROM sales.deal WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetDealByID(ctx context.Context, id string) (SalesDeal, error) {
 	row := q.db.QueryRow(ctx, getDealByID, id)
 	var i SalesDeal
@@ -396,9 +433,11 @@ func (q *Queries) GetDealByID(ctx context.Context, id string) (SalesDeal, error)
 	)
 	return i, err
 }
+
 const getInquiryByID = `-- name: GetInquiryByID :one
 SELECT id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at FROM sales.inquiry WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetInquiryByID(ctx context.Context, id string) (SalesInquiry, error) {
 	row := q.db.QueryRow(ctx, getInquiryByID, id)
 	var i SalesInquiry
@@ -419,9 +458,11 @@ func (q *Queries) GetInquiryByID(ctx context.Context, id string) (SalesInquiry, 
 	)
 	return i, err
 }
+
 const getQuotationByID = `-- name: GetQuotationByID :one
 SELECT id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at FROM sales.quotation WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetQuotationByID(ctx context.Context, id string) (SalesQuotation, error) {
 	row := q.db.QueryRow(ctx, getQuotationByID, id)
 	var i SalesQuotation
@@ -448,9 +489,11 @@ func (q *Queries) GetQuotationByID(ctx context.Context, id string) (SalesQuotati
 	)
 	return i, err
 }
+
 const getQuotationByNumber = `-- name: GetQuotationByNumber :one
 SELECT id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at FROM sales.quotation WHERE quotation_number = $1 LIMIT 1
 `
+
 func (q *Queries) GetQuotationByNumber(ctx context.Context, quotationNumber string) (SalesQuotation, error) {
 	row := q.db.QueryRow(ctx, getQuotationByNumber, quotationNumber)
 	var i SalesQuotation
@@ -477,6 +520,7 @@ func (q *Queries) GetQuotationByNumber(ctx context.Context, quotationNumber stri
 	)
 	return i, err
 }
+
 const insertQuotationItem = `-- name: InsertQuotationItem :one
 INSERT INTO sales.quotation_item (
     id, quotation_id, description, quantity, unit_price, amount, sort_order
@@ -484,15 +528,17 @@ INSERT INTO sales.quotation_item (
     $1, $2, $3, $4, $5, $6, $7
 ) RETURNING id, quotation_id, description, quantity, unit_price, amount, sort_order
 `
+
 type InsertQuotationItemParams struct {
-	ID		string
-	QuotationID	string
-	Description	string
-	Quantity	pgtype.Numeric
-	UnitPrice	pgtype.Numeric
-	Amount		pgtype.Numeric
-	SortOrder	int32
+	ID          string         `json:"id"`
+	QuotationID string         `json:"quotationId"`
+	Description string         `json:"description"`
+	Quantity    pgtype.Numeric `json:"quantity"`
+	UnitPrice   pgtype.Numeric `json:"unitPrice"`
+	Amount      pgtype.Numeric `json:"amount"`
+	SortOrder   int32          `json:"sortOrder"`
 }
+
 func (q *Queries) InsertQuotationItem(ctx context.Context, arg InsertQuotationItemParams) (SalesQuotationItem, error) {
 	row := q.db.QueryRow(ctx, insertQuotationItem,
 		arg.ID,
@@ -515,9 +561,11 @@ func (q *Queries) InsertQuotationItem(ctx context.Context, arg InsertQuotationIt
 	)
 	return i, err
 }
+
 const listCampaigns = `-- name: ListCampaigns :many
 SELECT id, name, subject, body, status, sent_at, created_at, updated_at FROM sales.campaign ORDER BY created_at DESC
 `
+
 func (q *Queries) ListCampaigns(ctx context.Context) ([]SalesCampaign, error) {
 	rows, err := q.db.Query(ctx, listCampaigns)
 	if err != nil {
@@ -546,9 +594,11 @@ func (q *Queries) ListCampaigns(ctx context.Context) ([]SalesCampaign, error) {
 	}
 	return items, nil
 }
+
 const listContacts = `-- name: ListContacts :many
 SELECT id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at FROM sales.contact ORDER BY created_at DESC
 `
+
 func (q *Queries) ListContacts(ctx context.Context) ([]SalesContact, error) {
 	rows, err := q.db.Query(ctx, listContacts)
 	if err != nil {
@@ -581,9 +631,11 @@ func (q *Queries) ListContacts(ctx context.Context) ([]SalesContact, error) {
 	}
 	return items, nil
 }
+
 const listDeals = `-- name: ListDeals :many
 SELECT id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at FROM sales.deal ORDER BY created_at DESC
 `
+
 func (q *Queries) ListDeals(ctx context.Context) ([]SalesDeal, error) {
 	rows, err := q.db.Query(ctx, listDeals)
 	if err != nil {
@@ -617,9 +669,11 @@ func (q *Queries) ListDeals(ctx context.Context) ([]SalesDeal, error) {
 	}
 	return items, nil
 }
+
 const listDealsByContact = `-- name: ListDealsByContact :many
 SELECT id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at FROM sales.deal WHERE contact_id = $1 ORDER BY created_at DESC
 `
+
 func (q *Queries) ListDealsByContact(ctx context.Context, contactID *string) ([]SalesDeal, error) {
 	rows, err := q.db.Query(ctx, listDealsByContact, contactID)
 	if err != nil {
@@ -653,9 +707,11 @@ func (q *Queries) ListDealsByContact(ctx context.Context, contactID *string) ([]
 	}
 	return items, nil
 }
+
 const listInquiries = `-- name: ListInquiries :many
 SELECT id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at FROM sales.inquiry ORDER BY created_at DESC
 `
+
 func (q *Queries) ListInquiries(ctx context.Context) ([]SalesInquiry, error) {
 	rows, err := q.db.Query(ctx, listInquiries)
 	if err != nil {
@@ -689,9 +745,11 @@ func (q *Queries) ListInquiries(ctx context.Context) ([]SalesInquiry, error) {
 	}
 	return items, nil
 }
+
 const listQuotationItems = `-- name: ListQuotationItems :many
 SELECT id, quotation_id, description, quantity, unit_price, amount, sort_order FROM sales.quotation_item WHERE quotation_id = $1 ORDER BY sort_order ASC
 `
+
 func (q *Queries) ListQuotationItems(ctx context.Context, quotationID string) ([]SalesQuotationItem, error) {
 	rows, err := q.db.Query(ctx, listQuotationItems, quotationID)
 	if err != nil {
@@ -719,9 +777,11 @@ func (q *Queries) ListQuotationItems(ctx context.Context, quotationID string) ([
 	}
 	return items, nil
 }
+
 const listQuotations = `-- name: ListQuotations :many
 SELECT id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at FROM sales.quotation ORDER BY created_at DESC
 `
+
 func (q *Queries) ListQuotations(ctx context.Context) ([]SalesQuotation, error) {
 	rows, err := q.db.Query(ctx, listQuotations)
 	if err != nil {
@@ -761,6 +821,7 @@ func (q *Queries) ListQuotations(ctx context.Context) ([]SalesQuotation, error) 
 	}
 	return items, nil
 }
+
 const updateCampaign = `-- name: UpdateCampaign :one
 UPDATE sales.campaign SET
     name = $2,
@@ -772,14 +833,16 @@ UPDATE sales.campaign SET
 WHERE id = $1
 RETURNING id, name, subject, body, status, sent_at, created_at, updated_at
 `
+
 type UpdateCampaignParams struct {
-	ID	string
-	Name	string
-	Subject	string
-	Body	string
-	Status	string
-	SentAt	*time.Time
+	ID      string     `json:"id"`
+	Name    string     `json:"name"`
+	Subject string     `json:"subject"`
+	Body    string     `json:"body"`
+	Status  string     `json:"status"`
+	SentAt  *time.Time `json:"sentAt"`
 }
+
 func (q *Queries) UpdateCampaign(ctx context.Context, arg UpdateCampaignParams) (SalesCampaign, error) {
 	row := q.db.QueryRow(ctx, updateCampaign,
 		arg.ID,
@@ -802,6 +865,7 @@ func (q *Queries) UpdateCampaign(ctx context.Context, arg UpdateCampaignParams) 
 	)
 	return i, err
 }
+
 const updateContact = `-- name: UpdateContact :one
 UPDATE sales.contact SET
     first_name = $2,
@@ -817,18 +881,20 @@ UPDATE sales.contact SET
 WHERE id = $1
 RETURNING id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at
 `
+
 type UpdateContactParams struct {
-	ID		string
-	FirstName	string
-	LastName	*string
-	Email		*string
-	Phone		*string
-	Company		*string
-	ContactType	string
-	Status		string
-	Notes		*string
-	Tags		[]string
+	ID          string   `json:"id"`
+	FirstName   string   `json:"firstName"`
+	LastName    *string  `json:"lastName"`
+	Email       *string  `json:"email"`
+	Phone       *string  `json:"phone"`
+	Company     *string  `json:"company"`
+	ContactType string   `json:"contactType"`
+	Status      string   `json:"status"`
+	Notes       *string  `json:"notes"`
+	Tags        []string `json:"tags"`
 }
+
 func (q *Queries) UpdateContact(ctx context.Context, arg UpdateContactParams) (SalesContact, error) {
 	row := q.db.QueryRow(ctx, updateContact,
 		arg.ID,
@@ -859,6 +925,7 @@ func (q *Queries) UpdateContact(ctx context.Context, arg UpdateContactParams) (S
 	)
 	return i, err
 }
+
 const updateDeal = `-- name: UpdateDeal :one
 UPDATE sales.deal SET
     title = $2,
@@ -875,19 +942,21 @@ UPDATE sales.deal SET
 WHERE id = $1
 RETURNING id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at
 `
+
 type UpdateDealParams struct {
-	ID			string
-	Title			string
-	ContactID		*string
-	Stage			string
-	Value			pgtype.Numeric
-	Currency		string
-	Probability		int32
-	ExpectedCloseDate	*time.Time
-	Status			string
-	AssignedTo		*string
-	Notes			*string
+	ID                string         `json:"id"`
+	Title             string         `json:"title"`
+	ContactID         *string        `json:"contactId"`
+	Stage             string         `json:"stage"`
+	Value             pgtype.Numeric `json:"value"`
+	Currency          string         `json:"currency"`
+	Probability       int32          `json:"probability"`
+	ExpectedCloseDate *time.Time     `json:"expectedCloseDate"`
+	Status            string         `json:"status"`
+	AssignedTo        *string        `json:"assignedTo"`
+	Notes             *string        `json:"notes"`
 }
+
 func (q *Queries) UpdateDeal(ctx context.Context, arg UpdateDealParams) (SalesDeal, error) {
 	row := q.db.QueryRow(ctx, updateDeal,
 		arg.ID,
@@ -920,6 +989,7 @@ func (q *Queries) UpdateDeal(ctx context.Context, arg UpdateDealParams) (SalesDe
 	)
 	return i, err
 }
+
 const updateDealStage = `-- name: UpdateDealStage :one
 UPDATE sales.deal SET
     stage = $2,
@@ -928,11 +998,13 @@ UPDATE sales.deal SET
 WHERE id = $1
 RETURNING id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at
 `
+
 type UpdateDealStageParams struct {
-	ID	string
-	Stage	string
-	Status	string
+	ID     string `json:"id"`
+	Stage  string `json:"stage"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateDealStage(ctx context.Context, arg UpdateDealStageParams) (SalesDeal, error) {
 	row := q.db.QueryRow(ctx, updateDealStage, arg.ID, arg.Stage, arg.Status)
 	var i SalesDeal
@@ -953,6 +1025,7 @@ func (q *Queries) UpdateDealStage(ctx context.Context, arg UpdateDealStageParams
 	)
 	return i, err
 }
+
 const updateInquiryStatus = `-- name: UpdateInquiryStatus :one
 UPDATE sales.inquiry SET
     status = $2,
@@ -960,10 +1033,12 @@ UPDATE sales.inquiry SET
 WHERE id = $1
 RETURNING id, inquiry_type, subject, message, status, priority, requester_name, requester_email, requester_phone, assignee_id, deal_id, created_at, updated_at
 `
+
 type UpdateInquiryStatusParams struct {
-	ID	string
-	Status	string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateInquiryStatus(ctx context.Context, arg UpdateInquiryStatusParams) (SalesInquiry, error) {
 	row := q.db.QueryRow(ctx, updateInquiryStatus, arg.ID, arg.Status)
 	var i SalesInquiry
@@ -984,6 +1059,7 @@ func (q *Queries) UpdateInquiryStatus(ctx context.Context, arg UpdateInquiryStat
 	)
 	return i, err
 }
+
 const updateQuotation = `-- name: UpdateQuotation :one
 UPDATE sales.quotation SET
     deal_id = $2,
@@ -1002,21 +1078,23 @@ UPDATE sales.quotation SET
 WHERE id = $1
 RETURNING id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at
 `
+
 type UpdateQuotationParams struct {
-	ID		string
-	DealID		*string
-	ContactID	*string
-	Status		string
-	Subtotal	pgtype.Numeric
-	Discount	pgtype.Numeric
-	VatRate		pgtype.Numeric
-	VatAmount	pgtype.Numeric
-	Total		pgtype.Numeric
-	Currency	string
-	ValidUntil	*time.Time
-	Terms		*string
-	Notes		*string
+	ID         string         `json:"id"`
+	DealID     *string        `json:"dealId"`
+	ContactID  *string        `json:"contactId"`
+	Status     string         `json:"status"`
+	Subtotal   pgtype.Numeric `json:"subtotal"`
+	Discount   pgtype.Numeric `json:"discount"`
+	VatRate    pgtype.Numeric `json:"vatRate"`
+	VatAmount  pgtype.Numeric `json:"vatAmount"`
+	Total      pgtype.Numeric `json:"total"`
+	Currency   string         `json:"currency"`
+	ValidUntil *time.Time     `json:"validUntil"`
+	Terms      *string        `json:"terms"`
+	Notes      *string        `json:"notes"`
 }
+
 func (q *Queries) UpdateQuotation(ctx context.Context, arg UpdateQuotationParams) (SalesQuotation, error) {
 	row := q.db.QueryRow(ctx, updateQuotation,
 		arg.ID,
@@ -1057,6 +1135,7 @@ func (q *Queries) UpdateQuotation(ctx context.Context, arg UpdateQuotationParams
 	)
 	return i, err
 }
+
 const updateQuotationStatus = `-- name: UpdateQuotationStatus :one
 UPDATE sales.quotation SET
     status = $2,
@@ -1066,10 +1145,12 @@ UPDATE sales.quotation SET
 WHERE id = $1
 RETURNING id, quotation_number, deal_id, contact_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, accepted_at, rejected_at, created_at, updated_at
 `
+
 type UpdateQuotationStatusParams struct {
-	ID	string
-	Status	string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateQuotationStatus(ctx context.Context, arg UpdateQuotationStatusParams) (SalesQuotation, error) {
 	row := q.db.QueryRow(ctx, updateQuotationStatus, arg.ID, arg.Status)
 	var i SalesQuotation

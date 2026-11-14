@@ -9,14 +9,14 @@ import (
 )
 
 type FilesUploadObject struct {
-	ID        string
-	FileUrl   string
-	OwnerID   *string
-	FileName  string
-	FileSize  int64
-	MimeType  string
-	IsPublic  bool
-	ClaimedAt *time.Time
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	FileUrl   string     `json:"fileUrl"`
+	OwnerID   *string    `json:"ownerId"`
+	FileName  string     `json:"fileName"`
+	FileSize  int64      `json:"fileSize"`
+	MimeType  string     `json:"mimeType"`
+	IsPublic  bool       `json:"isPublic"`
+	ClaimedAt *time.Time `json:"claimedAt"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }

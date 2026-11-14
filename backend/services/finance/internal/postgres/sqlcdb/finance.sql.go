@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
-	"time"
 	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
+
 const createBankSettlement = `-- name: CreateBankSettlement :one
 INSERT INTO finance.bank_settlement (
     id, settlement_number, bank_account, amount, currency, settled_at, status, notes, created_at
@@ -11,16 +13,18 @@ INSERT INTO finance.bank_settlement (
     $1, $2, $3, $4, $5, $6, $7, $8, now()
 ) RETURNING id, settlement_number, bank_account, amount, currency, settled_at, status, notes, created_at
 `
+
 type CreateBankSettlementParams struct {
-	ID			string
-	SettlementNumber	string
-	BankAccount		string
-	Amount			pgtype.Numeric
-	Currency		string
-	SettledAt		time.Time
-	Status			string
-	Notes			*string
+	ID               string         `json:"id"`
+	SettlementNumber string         `json:"settlementNumber"`
+	BankAccount      string         `json:"bankAccount"`
+	Amount           pgtype.Numeric `json:"amount"`
+	Currency         string         `json:"currency"`
+	SettledAt        time.Time      `json:"settledAt"`
+	Status           string         `json:"status"`
+	Notes            *string        `json:"notes"`
 }
+
 func (q *Queries) CreateBankSettlement(ctx context.Context, arg CreateBankSettlementParams) (FinanceBankSettlement, error) {
 	row := q.db.QueryRow(ctx, createBankSettlement,
 		arg.ID,
@@ -46,6 +50,7 @@ func (q *Queries) CreateBankSettlement(ctx context.Context, arg CreateBankSettle
 	)
 	return i, err
 }
+
 const createExpense = `-- name: CreateExpense :one
 INSERT INTO finance.expense (
     id, title, category_id, amount, currency, expense_date, status,
@@ -55,20 +60,22 @@ INSERT INTO finance.expense (
     $8, $9, $10, $11, $12, now(), now()
 ) RETURNING id, title, category_id, amount, currency, expense_date, status, notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at
 `
+
 type CreateExpenseParams struct {
-	ID		string
-	Title		string
-	CategoryID	*string
-	Amount		pgtype.Numeric
-	Currency	string
-	ExpenseDate	pgtype.Date
-	Status		string
-	Notes		*string
-	Vendor		*string
-	ReceiptUrl	*string
-	CreatedBy	*string
-	ApprovedBy	*string
+	ID          string         `json:"id"`
+	Title       string         `json:"title"`
+	CategoryID  *string        `json:"categoryId"`
+	Amount      pgtype.Numeric `json:"amount"`
+	Currency    string         `json:"currency"`
+	ExpenseDate pgtype.Date    `json:"expenseDate"`
+	Status      string         `json:"status"`
+	Notes       *string        `json:"notes"`
+	Vendor      *string        `json:"vendor"`
+	ReceiptUrl  *string        `json:"receiptUrl"`
+	CreatedBy   *string        `json:"createdBy"`
+	ApprovedBy  *string        `json:"approvedBy"`
 }
+
 func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (FinanceExpense, error) {
 	row := q.db.QueryRow(ctx, createExpense,
 		arg.ID,
@@ -103,6 +110,7 @@ func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (F
 	)
 	return i, err
 }
+
 const createExpenseCategory = `-- name: CreateExpenseCategory :one
 INSERT INTO finance.expense_category (
     id, name_en, name_ar, code, sort_order
@@ -110,13 +118,15 @@ INSERT INTO finance.expense_category (
     $1, $2, $3, $4, $5
 ) RETURNING id, name_en, name_ar, code, sort_order
 `
+
 type CreateExpenseCategoryParams struct {
-	ID		string
-	NameEn		string
-	NameAr		string
-	Code		string
-	SortOrder	int32
+	ID        string `json:"id"`
+	NameEn    string `json:"nameEn"`
+	NameAr    string `json:"nameAr"`
+	Code      string `json:"code"`
+	SortOrder int32  `json:"sortOrder"`
 }
+
 func (q *Queries) CreateExpenseCategory(ctx context.Context, arg CreateExpenseCategoryParams) (FinanceExpenseCategory, error) {
 	row := q.db.QueryRow(ctx, createExpenseCategory,
 		arg.ID,
@@ -135,6 +145,7 @@ func (q *Queries) CreateExpenseCategory(ctx context.Context, arg CreateExpenseCa
 	)
 	return i, err
 }
+
 const createInvoice = `-- name: CreateInvoice :one
 INSERT INTO finance.invoice (
     id, invoice_number, quotation_id, contact_id, deal_id, status,
@@ -148,26 +159,28 @@ INSERT INTO finance.invoice (
     now(), now()
 ) RETURNING id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at
 `
+
 type CreateInvoiceParams struct {
-	ID		string
-	InvoiceNumber	string
-	QuotationID	*string
-	ContactID	*string
-	DealID		*string
-	Status		string
-	IssueDate	pgtype.Date
-	DueDate		pgtype.Date
-	Subtotal	pgtype.Numeric
-	Discount	pgtype.Numeric
-	VatRate		pgtype.Numeric
-	VatAmount	pgtype.Numeric
-	Total		pgtype.Numeric
-	AmountPaid	pgtype.Numeric
-	BalanceDue	pgtype.Numeric
-	Currency	string
-	Notes		*string
-	Terms		*string
+	ID            string         `json:"id"`
+	InvoiceNumber string         `json:"invoiceNumber"`
+	QuotationID   *string        `json:"quotationId"`
+	ContactID     *string        `json:"contactId"`
+	DealID        *string        `json:"dealId"`
+	Status        string         `json:"status"`
+	IssueDate     pgtype.Date    `json:"issueDate"`
+	DueDate       pgtype.Date    `json:"dueDate"`
+	Subtotal      pgtype.Numeric `json:"subtotal"`
+	Discount      pgtype.Numeric `json:"discount"`
+	VatRate       pgtype.Numeric `json:"vatRate"`
+	VatAmount     pgtype.Numeric `json:"vatAmount"`
+	Total         pgtype.Numeric `json:"total"`
+	AmountPaid    pgtype.Numeric `json:"amountPaid"`
+	BalanceDue    pgtype.Numeric `json:"balanceDue"`
+	Currency      string         `json:"currency"`
+	Notes         *string        `json:"notes"`
+	Terms         *string        `json:"terms"`
 }
+
 func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, createInvoice,
 		arg.ID,
@@ -214,6 +227,7 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (F
 	)
 	return i, err
 }
+
 const createPayment = `-- name: CreatePayment :one
 INSERT INTO finance.payment (
     id, payment_number, invoice_id, contact_id, amount, currency,
@@ -223,19 +237,21 @@ INSERT INTO finance.payment (
     $7, $8, $9, $10, $11, now()
 ) RETURNING id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at
 `
+
 type CreatePaymentParams struct {
-	ID		string
-	PaymentNumber	string
-	InvoiceID	*string
-	ContactID	*string
-	Amount		pgtype.Numeric
-	Currency	string
-	PaymentMethod	string
-	PaymentDate	pgtype.Date
-	Reference	*string
-	Status		string
-	Notes		*string
+	ID            string         `json:"id"`
+	PaymentNumber string         `json:"paymentNumber"`
+	InvoiceID     *string        `json:"invoiceId"`
+	ContactID     *string        `json:"contactId"`
+	Amount        pgtype.Numeric `json:"amount"`
+	Currency      string         `json:"currency"`
+	PaymentMethod string         `json:"paymentMethod"`
+	PaymentDate   pgtype.Date    `json:"paymentDate"`
+	Reference     *string        `json:"reference"`
+	Status        string         `json:"status"`
+	Notes         *string        `json:"notes"`
 }
+
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (FinancePayment, error) {
 	row := q.db.QueryRow(ctx, createPayment,
 		arg.ID,
@@ -267,44 +283,56 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (F
 	)
 	return i, err
 }
+
 const deleteExpense = `-- name: DeleteExpense :exec
 DELETE FROM finance.expense WHERE id = $1
 `
+
 func (q *Queries) DeleteExpense(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteExpense, id)
 	return err
 }
+
 const deleteExpenseCategory = `-- name: DeleteExpenseCategory :exec
 DELETE FROM finance.expense_category WHERE id = $1
 `
+
 func (q *Queries) DeleteExpenseCategory(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteExpenseCategory, id)
 	return err
 }
+
 const deleteInvoice = `-- name: DeleteInvoice :exec
 DELETE FROM finance.invoice WHERE id = $1
 `
+
 func (q *Queries) DeleteInvoice(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteInvoice, id)
 	return err
 }
+
 const deleteInvoiceItems = `-- name: DeleteInvoiceItems :exec
 DELETE FROM finance.invoice_item WHERE invoice_id = $1
 `
+
 func (q *Queries) DeleteInvoiceItems(ctx context.Context, invoiceID string) error {
 	_, err := q.db.Exec(ctx, deleteInvoiceItems, invoiceID)
 	return err
 }
+
 const deletePayment = `-- name: DeletePayment :exec
 DELETE FROM finance.payment WHERE id = $1
 `
+
 func (q *Queries) DeletePayment(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deletePayment, id)
 	return err
 }
+
 const getExpenseByID = `-- name: GetExpenseByID :one
 SELECT id, title, category_id, amount, currency, expense_date, status, notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at FROM finance.expense WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetExpenseByID(ctx context.Context, id string) (FinanceExpense, error) {
 	row := q.db.QueryRow(ctx, getExpenseByID, id)
 	var i FinanceExpense
@@ -326,9 +354,11 @@ func (q *Queries) GetExpenseByID(ctx context.Context, id string) (FinanceExpense
 	)
 	return i, err
 }
+
 const getInvoiceByID = `-- name: GetInvoiceByID :one
 SELECT id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at FROM finance.invoice WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetInvoiceByID(ctx context.Context, id string) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, getInvoiceByID, id)
 	var i FinanceInvoice
@@ -356,9 +386,11 @@ func (q *Queries) GetInvoiceByID(ctx context.Context, id string) (FinanceInvoice
 	)
 	return i, err
 }
+
 const getInvoiceByNumber = `-- name: GetInvoiceByNumber :one
 SELECT id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at FROM finance.invoice WHERE invoice_number = $1 LIMIT 1
 `
+
 func (q *Queries) GetInvoiceByNumber(ctx context.Context, invoiceNumber string) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, getInvoiceByNumber, invoiceNumber)
 	var i FinanceInvoice
@@ -386,9 +418,11 @@ func (q *Queries) GetInvoiceByNumber(ctx context.Context, invoiceNumber string) 
 	)
 	return i, err
 }
+
 const getPaymentByID = `-- name: GetPaymentByID :one
 SELECT id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at FROM finance.payment WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetPaymentByID(ctx context.Context, id string) (FinancePayment, error) {
 	row := q.db.QueryRow(ctx, getPaymentByID, id)
 	var i FinancePayment
@@ -408,6 +442,7 @@ func (q *Queries) GetPaymentByID(ctx context.Context, id string) (FinancePayment
 	)
 	return i, err
 }
+
 const insertInvoiceItem = `-- name: InsertInvoiceItem :one
 INSERT INTO finance.invoice_item (
     id, invoice_id, description, quantity, unit_price, amount, sort_order
@@ -415,15 +450,17 @@ INSERT INTO finance.invoice_item (
     $1, $2, $3, $4, $5, $6, $7
 ) RETURNING id, invoice_id, description, quantity, unit_price, amount, sort_order
 `
+
 type InsertInvoiceItemParams struct {
-	ID		string
-	InvoiceID	string
-	Description	string
-	Quantity	pgtype.Numeric
-	UnitPrice	pgtype.Numeric
-	Amount		pgtype.Numeric
-	SortOrder	int32
+	ID          string         `json:"id"`
+	InvoiceID   string         `json:"invoiceId"`
+	Description string         `json:"description"`
+	Quantity    pgtype.Numeric `json:"quantity"`
+	UnitPrice   pgtype.Numeric `json:"unitPrice"`
+	Amount      pgtype.Numeric `json:"amount"`
+	SortOrder   int32          `json:"sortOrder"`
 }
+
 func (q *Queries) InsertInvoiceItem(ctx context.Context, arg InsertInvoiceItemParams) (FinanceInvoiceItem, error) {
 	row := q.db.QueryRow(ctx, insertInvoiceItem,
 		arg.ID,
@@ -446,9 +483,11 @@ func (q *Queries) InsertInvoiceItem(ctx context.Context, arg InsertInvoiceItemPa
 	)
 	return i, err
 }
+
 const listBankSettlements = `-- name: ListBankSettlements :many
 SELECT id, settlement_number, bank_account, amount, currency, settled_at, status, notes, created_at FROM finance.bank_settlement ORDER BY settled_at DESC
 `
+
 func (q *Queries) ListBankSettlements(ctx context.Context) ([]FinanceBankSettlement, error) {
 	rows, err := q.db.Query(ctx, listBankSettlements)
 	if err != nil {
@@ -478,9 +517,11 @@ func (q *Queries) ListBankSettlements(ctx context.Context) ([]FinanceBankSettlem
 	}
 	return items, nil
 }
+
 const listExpenseCategories = `-- name: ListExpenseCategories :many
 SELECT id, name_en, name_ar, code, sort_order FROM finance.expense_category ORDER BY sort_order ASC, name_en ASC
 `
+
 func (q *Queries) ListExpenseCategories(ctx context.Context) ([]FinanceExpenseCategory, error) {
 	rows, err := q.db.Query(ctx, listExpenseCategories)
 	if err != nil {
@@ -506,9 +547,11 @@ func (q *Queries) ListExpenseCategories(ctx context.Context) ([]FinanceExpenseCa
 	}
 	return items, nil
 }
+
 const listExpenses = `-- name: ListExpenses :many
 SELECT id, title, category_id, amount, currency, expense_date, status, notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at FROM finance.expense ORDER BY expense_date DESC, created_at DESC
 `
+
 func (q *Queries) ListExpenses(ctx context.Context) ([]FinanceExpense, error) {
 	rows, err := q.db.Query(ctx, listExpenses)
 	if err != nil {
@@ -543,9 +586,11 @@ func (q *Queries) ListExpenses(ctx context.Context) ([]FinanceExpense, error) {
 	}
 	return items, nil
 }
+
 const listInvoiceItems = `-- name: ListInvoiceItems :many
 SELECT id, invoice_id, description, quantity, unit_price, amount, sort_order FROM finance.invoice_item WHERE invoice_id = $1 ORDER BY sort_order ASC
 `
+
 func (q *Queries) ListInvoiceItems(ctx context.Context, invoiceID string) ([]FinanceInvoiceItem, error) {
 	rows, err := q.db.Query(ctx, listInvoiceItems, invoiceID)
 	if err != nil {
@@ -573,9 +618,11 @@ func (q *Queries) ListInvoiceItems(ctx context.Context, invoiceID string) ([]Fin
 	}
 	return items, nil
 }
+
 const listInvoices = `-- name: ListInvoices :many
 SELECT id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at FROM finance.invoice ORDER BY created_at DESC
 `
+
 func (q *Queries) ListInvoices(ctx context.Context) ([]FinanceInvoice, error) {
 	rows, err := q.db.Query(ctx, listInvoices)
 	if err != nil {
@@ -616,9 +663,11 @@ func (q *Queries) ListInvoices(ctx context.Context) ([]FinanceInvoice, error) {
 	}
 	return items, nil
 }
+
 const listPayments = `-- name: ListPayments :many
 SELECT id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at FROM finance.payment ORDER BY created_at DESC
 `
+
 func (q *Queries) ListPayments(ctx context.Context) ([]FinancePayment, error) {
 	rows, err := q.db.Query(ctx, listPayments)
 	if err != nil {
@@ -651,9 +700,11 @@ func (q *Queries) ListPayments(ctx context.Context) ([]FinancePayment, error) {
 	}
 	return items, nil
 }
+
 const listPaymentsByInvoice = `-- name: ListPaymentsByInvoice :many
 SELECT id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at FROM finance.payment WHERE invoice_id = $1 ORDER BY created_at DESC
 `
+
 func (q *Queries) ListPaymentsByInvoice(ctx context.Context, invoiceID *string) ([]FinancePayment, error) {
 	rows, err := q.db.Query(ctx, listPaymentsByInvoice, invoiceID)
 	if err != nil {
@@ -686,6 +737,7 @@ func (q *Queries) ListPaymentsByInvoice(ctx context.Context, invoiceID *string) 
 	}
 	return items, nil
 }
+
 const recordPaymentOnInvoice = `-- name: RecordPaymentOnInvoice :one
 UPDATE finance.invoice SET
     amount_paid = amount_paid + $2,
@@ -695,10 +747,12 @@ UPDATE finance.invoice SET
 WHERE id = $1
 RETURNING id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at
 `
+
 type RecordPaymentOnInvoiceParams struct {
-	ID		string
-	AmountPaid	pgtype.Numeric
+	ID         string         `json:"id"`
+	AmountPaid pgtype.Numeric `json:"amountPaid"`
 }
+
 func (q *Queries) RecordPaymentOnInvoice(ctx context.Context, arg RecordPaymentOnInvoiceParams) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, recordPaymentOnInvoice, arg.ID, arg.AmountPaid)
 	var i FinanceInvoice
@@ -726,6 +780,7 @@ func (q *Queries) RecordPaymentOnInvoice(ctx context.Context, arg RecordPaymentO
 	)
 	return i, err
 }
+
 const updateExpense = `-- name: UpdateExpense :one
 UPDATE finance.expense SET
     title = $2,
@@ -742,19 +797,21 @@ UPDATE finance.expense SET
 WHERE id = $1
 RETURNING id, title, category_id, amount, currency, expense_date, status, notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at
 `
+
 type UpdateExpenseParams struct {
-	ID		string
-	Title		string
-	CategoryID	*string
-	Amount		pgtype.Numeric
-	Currency	string
-	ExpenseDate	pgtype.Date
-	Status		string
-	Notes		*string
-	Vendor		*string
-	ReceiptUrl	*string
-	ApprovedBy	*string
+	ID          string         `json:"id"`
+	Title       string         `json:"title"`
+	CategoryID  *string        `json:"categoryId"`
+	Amount      pgtype.Numeric `json:"amount"`
+	Currency    string         `json:"currency"`
+	ExpenseDate pgtype.Date    `json:"expenseDate"`
+	Status      string         `json:"status"`
+	Notes       *string        `json:"notes"`
+	Vendor      *string        `json:"vendor"`
+	ReceiptUrl  *string        `json:"receiptUrl"`
+	ApprovedBy  *string        `json:"approvedBy"`
 }
+
 func (q *Queries) UpdateExpense(ctx context.Context, arg UpdateExpenseParams) (FinanceExpense, error) {
 	row := q.db.QueryRow(ctx, updateExpense,
 		arg.ID,
@@ -788,6 +845,7 @@ func (q *Queries) UpdateExpense(ctx context.Context, arg UpdateExpenseParams) (F
 	)
 	return i, err
 }
+
 const updateExpenseCategory = `-- name: UpdateExpenseCategory :one
 UPDATE finance.expense_category SET
     name_en = $2,
@@ -797,13 +855,15 @@ UPDATE finance.expense_category SET
 WHERE id = $1
 RETURNING id, name_en, name_ar, code, sort_order
 `
+
 type UpdateExpenseCategoryParams struct {
-	ID		string
-	NameEn		string
-	NameAr		string
-	Code		string
-	SortOrder	int32
+	ID        string `json:"id"`
+	NameEn    string `json:"nameEn"`
+	NameAr    string `json:"nameAr"`
+	Code      string `json:"code"`
+	SortOrder int32  `json:"sortOrder"`
 }
+
 func (q *Queries) UpdateExpenseCategory(ctx context.Context, arg UpdateExpenseCategoryParams) (FinanceExpenseCategory, error) {
 	row := q.db.QueryRow(ctx, updateExpenseCategory,
 		arg.ID,
@@ -822,6 +882,7 @@ func (q *Queries) UpdateExpenseCategory(ctx context.Context, arg UpdateExpenseCa
 	)
 	return i, err
 }
+
 const updateExpenseStatus = `-- name: UpdateExpenseStatus :one
 UPDATE finance.expense SET
     status = $2,
@@ -830,11 +891,13 @@ UPDATE finance.expense SET
 WHERE id = $1
 RETURNING id, title, category_id, amount, currency, expense_date, status, notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at
 `
+
 type UpdateExpenseStatusParams struct {
-	ID		string
-	Status		string
-	ApprovedBy	*string
+	ID         string  `json:"id"`
+	Status     string  `json:"status"`
+	ApprovedBy *string `json:"approvedBy"`
 }
+
 func (q *Queries) UpdateExpenseStatus(ctx context.Context, arg UpdateExpenseStatusParams) (FinanceExpense, error) {
 	row := q.db.QueryRow(ctx, updateExpenseStatus, arg.ID, arg.Status, arg.ApprovedBy)
 	var i FinanceExpense
@@ -856,6 +919,7 @@ func (q *Queries) UpdateExpenseStatus(ctx context.Context, arg UpdateExpenseStat
 	)
 	return i, err
 }
+
 const updateInvoice = `-- name: UpdateInvoice :one
 UPDATE finance.invoice SET
     quotation_id = $2,
@@ -878,25 +942,27 @@ UPDATE finance.invoice SET
 WHERE id = $1
 RETURNING id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at
 `
+
 type UpdateInvoiceParams struct {
-	ID		string
-	QuotationID	*string
-	ContactID	*string
-	DealID		*string
-	Status		string
-	IssueDate	pgtype.Date
-	DueDate		pgtype.Date
-	Subtotal	pgtype.Numeric
-	Discount	pgtype.Numeric
-	VatRate		pgtype.Numeric
-	VatAmount	pgtype.Numeric
-	Total		pgtype.Numeric
-	AmountPaid	pgtype.Numeric
-	BalanceDue	pgtype.Numeric
-	Currency	string
-	Notes		*string
-	Terms		*string
+	ID          string         `json:"id"`
+	QuotationID *string        `json:"quotationId"`
+	ContactID   *string        `json:"contactId"`
+	DealID      *string        `json:"dealId"`
+	Status      string         `json:"status"`
+	IssueDate   pgtype.Date    `json:"issueDate"`
+	DueDate     pgtype.Date    `json:"dueDate"`
+	Subtotal    pgtype.Numeric `json:"subtotal"`
+	Discount    pgtype.Numeric `json:"discount"`
+	VatRate     pgtype.Numeric `json:"vatRate"`
+	VatAmount   pgtype.Numeric `json:"vatAmount"`
+	Total       pgtype.Numeric `json:"total"`
+	AmountPaid  pgtype.Numeric `json:"amountPaid"`
+	BalanceDue  pgtype.Numeric `json:"balanceDue"`
+	Currency    string         `json:"currency"`
+	Notes       *string        `json:"notes"`
+	Terms       *string        `json:"terms"`
 }
+
 func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, updateInvoice,
 		arg.ID,
@@ -942,6 +1008,7 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (F
 	)
 	return i, err
 }
+
 const updateInvoiceStatus = `-- name: UpdateInvoiceStatus :one
 UPDATE finance.invoice SET
     status = $2,
@@ -949,10 +1016,12 @@ UPDATE finance.invoice SET
 WHERE id = $1
 RETURNING id, invoice_number, quotation_id, contact_id, deal_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at
 `
+
 type UpdateInvoiceStatusParams struct {
-	ID	string
-	Status	string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStatusParams) (FinanceInvoice, error) {
 	row := q.db.QueryRow(ctx, updateInvoiceStatus, arg.ID, arg.Status)
 	var i FinanceInvoice

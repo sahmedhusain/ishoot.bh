@@ -1,23 +1,27 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
 	"time"
 )
+
 const activeMutesFor = `-- name: ActiveMutesFor :many
 SELECT user_id, entity_type, entity_id FROM notify.mute
 WHERE realm = $1 AND user_id = ANY($2::text[]) AND (until IS NULL OR until > $3)
 `
+
 type ActiveMutesForParams struct {
-	Realm	string
-	Users	[]string
-	Now	*time.Time
+	Realm string     `json:"realm"`
+	Users []string   `json:"users"`
+	Now   *time.Time `json:"now"`
 }
 type ActiveMutesForRow struct {
-	UserID		string
-	EntityType	string
-	EntityID	string
+	UserID     string `json:"userId"`
+	EntityType string `json:"entityType"`
+	EntityID   string `json:"entityId"`
 }
+
 func (q *Queries) ActiveMutesFor(ctx context.Context, arg ActiveMutesForParams) ([]ActiveMutesForRow, error) {
 	rows, err := q.db.Query(ctx, activeMutesFor, arg.Realm, arg.Users, arg.Now)
 	if err != nil {
@@ -37,18 +41,21 @@ func (q *Queries) ActiveMutesFor(ctx context.Context, arg ActiveMutesForParams) 
 	}
 	return items, nil
 }
+
 const categorySettings = `-- name: CategorySettings :many
 SELECT category, muted, sound FROM notify.category_setting WHERE realm = $1 AND user_id = $2 ORDER BY category
 `
+
 type CategorySettingsParams struct {
-	Realm	string
-	UserID	string
+	Realm  string `json:"realm"`
+	UserID string `json:"userId"`
 }
 type CategorySettingsRow struct {
-	Category	string
-	Muted		bool
-	Sound		bool
+	Category string `json:"category"`
+	Muted    bool   `json:"muted"`
+	Sound    bool   `json:"sound"`
 }
+
 func (q *Queries) CategorySettings(ctx context.Context, arg CategorySettingsParams) ([]CategorySettingsRow, error) {
 	rows, err := q.db.Query(ctx, categorySettings, arg.Realm, arg.UserID)
 	if err != nil {
@@ -68,6 +75,7 @@ func (q *Queries) CategorySettings(ctx context.Context, arg CategorySettingsPara
 	}
 	return items, nil
 }
+
 const changeNotifications = `-- name: ChangeNotifications :execrows
 UPDATE notify.notification SET
     read_at = CASE $1::text
@@ -92,17 +100,19 @@ WHERE realm = $3 AND recipient = $4 AND deliver_at <= $2 AND category = ANY($5::
         ELSE archived_at IS NULL
       END)
 `
+
 type ChangeNotificationsParams struct {
-	Action		string
-	Now		*time.Time
-	Realm		string
-	Recipient	string
-	Categories	[]string
-	Category	*string
-	Every		bool
-	Ids		[]string
-	Filter		string
+	Action     string     `json:"action"`
+	Now        *time.Time `json:"now"`
+	Realm      string     `json:"realm"`
+	Recipient  string     `json:"recipient"`
+	Categories []string   `json:"categories"`
+	Category   *string    `json:"category"`
+	Every      bool       `json:"every"`
+	Ids        []string   `json:"ids"`
+	Filter     string     `json:"filter"`
 }
+
 func (q *Queries) ChangeNotifications(ctx context.Context, arg ChangeNotificationsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, changeNotifications,
 		arg.Action,
@@ -120,26 +130,32 @@ func (q *Queries) ChangeNotifications(ctx context.Context, arg ChangeNotificatio
 	}
 	return result.RowsAffected(), nil
 }
+
 const deleteCategorySettings = `-- name: DeleteCategorySettings :exec
 DELETE FROM notify.category_setting WHERE realm = $1 AND user_id = $2
 `
+
 type DeleteCategorySettingsParams struct {
-	Realm	string
-	UserID	string
+	Realm  string `json:"realm"`
+	UserID string `json:"userId"`
 }
+
 func (q *Queries) DeleteCategorySettings(ctx context.Context, arg DeleteCategorySettingsParams) error {
 	_, err := q.db.Exec(ctx, deleteCategorySettings, arg.Realm, arg.UserID)
 	return err
 }
+
 const deleteMute = `-- name: DeleteMute :execrows
 DELETE FROM notify.mute WHERE realm = $1 AND user_id = $2 AND entity_type = $3 AND entity_id = $4
 `
+
 type DeleteMuteParams struct {
-	Realm		string
-	UserID		string
-	EntityType	string
-	EntityID	string
+	Realm      string `json:"realm"`
+	UserID     string `json:"userId"`
+	EntityType string `json:"entityType"`
+	EntityID   string `json:"entityId"`
 }
+
 func (q *Queries) DeleteMute(ctx context.Context, arg DeleteMuteParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteMute,
 		arg.Realm,
@@ -152,6 +168,7 @@ func (q *Queries) DeleteMute(ctx context.Context, arg DeleteMuteParams) (int64, 
 	}
 	return result.RowsAffected(), nil
 }
+
 const deleteNotifications = `-- name: DeleteNotifications :execrows
 DELETE FROM notify.notification
 WHERE realm = $1 AND recipient = $2 AND deliver_at <= $3 AND category = ANY($4::text[])
@@ -165,16 +182,18 @@ WHERE realm = $1 AND recipient = $2 AND deliver_at <= $3 AND category = ANY($4::
         ELSE archived_at IS NULL
       END)
 `
+
 type DeleteNotificationsParams struct {
-	Realm		string
-	Recipient	string
-	Now		time.Time
-	Categories	[]string
-	Category	*string
-	Every		bool
-	Ids		[]string
-	Filter		string
+	Realm      string    `json:"realm"`
+	Recipient  string    `json:"recipient"`
+	Now        time.Time `json:"now"`
+	Categories []string  `json:"categories"`
+	Category   *string   `json:"category"`
+	Every      bool      `json:"every"`
+	Ids        []string  `json:"ids"`
+	Filter     string    `json:"filter"`
 }
+
 func (q *Queries) DeleteNotifications(ctx context.Context, arg DeleteNotificationsParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteNotifications,
 		arg.Realm,
@@ -191,9 +210,11 @@ func (q *Queries) DeleteNotifications(ctx context.Context, arg DeleteNotificatio
 	}
 	return result.RowsAffected(), nil
 }
+
 const getNotification = `-- name: GetNotification :one
 SELECT id, realm, recipient, category, priority, title, body, message_key, message_params, action_url, entity_type, entity_id, actor, caller, dedupe_key, silent, deliver_at, read_at, archived_at, created_at FROM notify.notification WHERE id = $1
 `
+
 func (q *Queries) GetNotification(ctx context.Context, id string) (NotifyNotification, error) {
 	row := q.db.QueryRow(ctx, getNotification, id)
 	var i NotifyNotification
@@ -221,13 +242,16 @@ func (q *Queries) GetNotification(ctx context.Context, id string) (NotifyNotific
 	)
 	return i, err
 }
+
 const getPreference = `-- name: GetPreference :one
 SELECT realm, user_id, muted_until, sound_enabled, sound, volume, popups_enabled, desktop_enabled, updated_at FROM notify.preference WHERE realm = $1 AND user_id = $2
 `
+
 type GetPreferenceParams struct {
-	Realm	string
-	UserID	string
+	Realm  string `json:"realm"`
+	UserID string `json:"userId"`
 }
+
 func (q *Queries) GetPreference(ctx context.Context, arg GetPreferenceParams) (NotifyPreference, error) {
 	row := q.db.QueryRow(ctx, getPreference, arg.Realm, arg.UserID)
 	var i NotifyPreference
@@ -244,16 +268,19 @@ func (q *Queries) GetPreference(ctx context.Context, arg GetPreferenceParams) (N
 	)
 	return i, err
 }
+
 const insertCategorySetting = `-- name: InsertCategorySetting :exec
 INSERT INTO notify.category_setting (realm, user_id, category, muted, sound) VALUES ($1, $2, $3, $4, $5)
 `
+
 type InsertCategorySettingParams struct {
-	Realm		string
-	UserID		string
-	Category	string
-	Muted		bool
-	Sound		bool
+	Realm    string `json:"realm"`
+	UserID   string `json:"userId"`
+	Category string `json:"category"`
+	Muted    bool   `json:"muted"`
+	Sound    bool   `json:"sound"`
 }
+
 func (q *Queries) InsertCategorySetting(ctx context.Context, arg InsertCategorySettingParams) error {
 	_, err := q.db.Exec(ctx, insertCategorySetting,
 		arg.Realm,
@@ -264,6 +291,7 @@ func (q *Queries) InsertCategorySetting(ctx context.Context, arg InsertCategoryS
 	)
 	return err
 }
+
 const insertNotification = `-- name: InsertNotification :execrows
 INSERT INTO notify.notification (id, realm, recipient, category, priority, title, body, message_key, message_params,
     action_url, entity_type, entity_id, actor, caller, dedupe_key, silent, deliver_at, read_at, archived_at, created_at)
@@ -271,28 +299,30 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
     $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
 ON CONFLICT DO NOTHING
 `
+
 type InsertNotificationParams struct {
-	ID		string
-	Realm		string
-	Recipient	string
-	Category	string
-	Priority	string
-	Title		string
-	Body		string
-	MessageKey	*string
-	MessageParams	json.RawMessage
-	ActionUrl	*string
-	EntityType	*string
-	EntityID	*string
-	Actor		*string
-	Caller		string
-	DedupeKey	*string
-	Silent		bool
-	DeliverAt	time.Time
-	ReadAt		*time.Time
-	ArchivedAt	*time.Time
-	CreatedAt	time.Time
+	ID            string          `json:"id"`
+	Realm         string          `json:"realm"`
+	Recipient     string          `json:"recipient"`
+	Category      string          `json:"category"`
+	Priority      string          `json:"priority"`
+	Title         string          `json:"title"`
+	Body          string          `json:"body"`
+	MessageKey    *string         `json:"messageKey"`
+	MessageParams json.RawMessage `json:"messageParams"`
+	ActionUrl     *string         `json:"actionUrl"`
+	EntityType    *string         `json:"entityType"`
+	EntityID      *string         `json:"entityId"`
+	Actor         *string         `json:"actor"`
+	Caller        string          `json:"caller"`
+	DedupeKey     *string         `json:"dedupeKey"`
+	Silent        bool            `json:"silent"`
+	DeliverAt     time.Time       `json:"deliverAt"`
+	ReadAt        *time.Time      `json:"readAt"`
+	ArchivedAt    *time.Time      `json:"archivedAt"`
+	CreatedAt     time.Time       `json:"createdAt"`
 }
+
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) (int64, error) {
 	result, err := q.db.Exec(ctx, insertNotification,
 		arg.ID,
@@ -321,16 +351,19 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 	}
 	return result.RowsAffected(), nil
 }
+
 const listMutes = `-- name: ListMutes :many
 SELECT realm, user_id, entity_type, entity_id, until, created_at FROM notify.mute
 WHERE realm = $1 AND user_id = $2 AND (until IS NULL OR until > $3)
 ORDER BY created_at DESC
 `
+
 type ListMutesParams struct {
-	Realm	string
-	UserID	string
-	Now	*time.Time
+	Realm  string     `json:"realm"`
+	UserID string     `json:"userId"`
+	Now    *time.Time `json:"now"`
 }
+
 func (q *Queries) ListMutes(ctx context.Context, arg ListMutesParams) ([]NotifyMute, error) {
 	rows, err := q.db.Query(ctx, listMutes, arg.Realm, arg.UserID, arg.Now)
 	if err != nil {
@@ -357,6 +390,7 @@ func (q *Queries) ListMutes(ctx context.Context, arg ListMutesParams) ([]NotifyM
 	}
 	return items, nil
 }
+
 const listNotifications = `-- name: ListNotifications :many
 SELECT id, realm, recipient, category, priority, title, body, message_key, message_params, action_url, entity_type, entity_id, actor, caller, dedupe_key, silent, deliver_at, read_at, archived_at, created_at FROM notify.notification
 WHERE realm = $1 AND recipient = $2 AND deliver_at <= $3 AND category = ANY($4::text[])
@@ -372,18 +406,20 @@ WHERE realm = $1 AND recipient = $2 AND deliver_at <= $3 AND category = ANY($4::
 ORDER BY deliver_at DESC, id DESC
 LIMIT $10
 `
+
 type ListNotificationsParams struct {
-	Realm		string
-	Recipient	string
-	Now		time.Time
-	Categories	[]string
-	Category	*string
-	Filter		string
-	HasCursor	bool
-	BeforeAt	time.Time
-	BeforeID	string
-	PageSize	int32
+	Realm      string    `json:"realm"`
+	Recipient  string    `json:"recipient"`
+	Now        time.Time `json:"now"`
+	Categories []string  `json:"categories"`
+	Category   *string   `json:"category"`
+	Filter     string    `json:"filter"`
+	HasCursor  bool      `json:"hasCursor"`
+	BeforeAt   time.Time `json:"beforeAt"`
+	BeforeID   string    `json:"beforeId"`
+	PageSize   int32     `json:"pageSize"`
 }
+
 func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]NotifyNotification, error) {
 	rows, err := q.db.Query(ctx, listNotifications,
 		arg.Realm,
@@ -435,18 +471,21 @@ func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsPa
 	}
 	return items, nil
 }
+
 const mutedCategoriesFor = `-- name: MutedCategoriesFor :many
 SELECT user_id, category FROM notify.category_setting
 WHERE realm = $1 AND user_id = ANY($2::text[]) AND muted
 `
+
 type MutedCategoriesForParams struct {
-	Realm	string
-	Users	[]string
+	Realm string   `json:"realm"`
+	Users []string `json:"users"`
 }
 type MutedCategoriesForRow struct {
-	UserID		string
-	Category	string
+	UserID   string `json:"userId"`
+	Category string `json:"category"`
 }
+
 func (q *Queries) MutedCategoriesFor(ctx context.Context, arg MutedCategoriesForParams) ([]MutedCategoriesForRow, error) {
 	rows, err := q.db.Query(ctx, mutedCategoriesFor, arg.Realm, arg.Users)
 	if err != nil {
@@ -466,17 +505,20 @@ func (q *Queries) MutedCategoriesFor(ctx context.Context, arg MutedCategoriesFor
 	}
 	return items, nil
 }
+
 const ownNotification = `-- name: OwnNotification :one
 SELECT id, realm, recipient, category, priority, title, body, message_key, message_params, action_url, entity_type, entity_id, actor, caller, dedupe_key, silent, deliver_at, read_at, archived_at, created_at FROM notify.notification
 WHERE id = $1 AND realm = $2 AND recipient = $3 AND deliver_at <= $4 AND category = ANY($5::text[])
 `
+
 type OwnNotificationParams struct {
-	ID		string
-	Realm		string
-	Recipient	string
-	Now		time.Time
-	Categories	[]string
+	ID         string    `json:"id"`
+	Realm      string    `json:"realm"`
+	Recipient  string    `json:"recipient"`
+	Now        time.Time `json:"now"`
+	Categories []string  `json:"categories"`
 }
+
 func (q *Queries) OwnNotification(ctx context.Context, arg OwnNotificationParams) (NotifyNotification, error) {
 	row := q.db.QueryRow(ctx, ownNotification,
 		arg.ID,
@@ -510,9 +552,11 @@ func (q *Queries) OwnNotification(ctx context.Context, arg OwnNotificationParams
 	)
 	return i, err
 }
+
 const purgeMutes = `-- name: PurgeMutes :execrows
 DELETE FROM notify.mute WHERE until IS NOT NULL AND until < $1
 `
+
 func (q *Queries) PurgeMutes(ctx context.Context, before *time.Time) (int64, error) {
 	result, err := q.db.Exec(ctx, purgeMutes, before)
 	if err != nil {
@@ -520,10 +564,12 @@ func (q *Queries) PurgeMutes(ctx context.Context, before *time.Time) (int64, err
 	}
 	return result.RowsAffected(), nil
 }
+
 const purgeNotifications = `-- name: PurgeNotifications :execrows
 DELETE FROM notify.notification
 WHERE created_at < $1 AND (read_at IS NOT NULL OR archived_at IS NOT NULL)
 `
+
 func (q *Queries) PurgeNotifications(ctx context.Context, before time.Time) (int64, error) {
 	result, err := q.db.Exec(ctx, purgeNotifications, before)
 	if err != nil {
@@ -531,22 +577,25 @@ func (q *Queries) PurgeNotifications(ctx context.Context, before time.Time) (int
 	}
 	return result.RowsAffected(), nil
 }
+
 const unreadByCategory = `-- name: UnreadByCategory :many
 SELECT category, count(*)::bigint AS unread FROM notify.notification
 WHERE realm = $1 AND recipient = $2 AND deliver_at <= $3 AND category = ANY($4::text[])
   AND read_at IS NULL AND archived_at IS NULL AND NOT silent
 GROUP BY category
 `
+
 type UnreadByCategoryParams struct {
-	Realm		string
-	Recipient	string
-	Now		time.Time
-	Categories	[]string
+	Realm      string    `json:"realm"`
+	Recipient  string    `json:"recipient"`
+	Now        time.Time `json:"now"`
+	Categories []string  `json:"categories"`
 }
 type UnreadByCategoryRow struct {
-	Category	string
-	Unread		int64
+	Category string `json:"category"`
+	Unread   int64  `json:"unread"`
 }
+
 func (q *Queries) UnreadByCategory(ctx context.Context, arg UnreadByCategoryParams) ([]UnreadByCategoryRow, error) {
 	rows, err := q.db.Query(ctx, unreadByCategory,
 		arg.Realm,
@@ -571,19 +620,22 @@ func (q *Queries) UnreadByCategory(ctx context.Context, arg UnreadByCategoryPara
 	}
 	return items, nil
 }
+
 const upsertMute = `-- name: UpsertMute :exec
 INSERT INTO notify.mute (realm, user_id, entity_type, entity_id, until, created_at)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (realm, user_id, entity_type, entity_id) DO UPDATE SET until = EXCLUDED.until
 `
+
 type UpsertMuteParams struct {
-	Realm		string
-	UserID		string
-	EntityType	string
-	EntityID	string
-	Until		*time.Time
-	Now		time.Time
+	Realm      string     `json:"realm"`
+	UserID     string     `json:"userId"`
+	EntityType string     `json:"entityType"`
+	EntityID   string     `json:"entityId"`
+	Until      *time.Time `json:"until"`
+	Now        time.Time  `json:"now"`
 }
+
 func (q *Queries) UpsertMute(ctx context.Context, arg UpsertMuteParams) error {
 	_, err := q.db.Exec(ctx, upsertMute,
 		arg.Realm,
@@ -595,6 +647,7 @@ func (q *Queries) UpsertMute(ctx context.Context, arg UpsertMuteParams) error {
 	)
 	return err
 }
+
 const upsertPreference = `-- name: UpsertPreference :exec
 INSERT INTO notify.preference (realm, user_id, muted_until, sound_enabled, sound, volume, popups_enabled, desktop_enabled, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -603,17 +656,19 @@ ON CONFLICT (realm, user_id) DO UPDATE SET
     volume = EXCLUDED.volume, popups_enabled = EXCLUDED.popups_enabled, desktop_enabled = EXCLUDED.desktop_enabled,
     updated_at = EXCLUDED.updated_at
 `
+
 type UpsertPreferenceParams struct {
-	Realm		string
-	UserID		string
-	MutedUntil	*time.Time
-	SoundEnabled	bool
-	Sound		string
-	Volume		int16
-	PopupsEnabled	bool
-	DesktopEnabled	bool
-	Now		time.Time
+	Realm          string     `json:"realm"`
+	UserID         string     `json:"userId"`
+	MutedUntil     *time.Time `json:"mutedUntil"`
+	SoundEnabled   bool       `json:"soundEnabled"`
+	Sound          string     `json:"sound"`
+	Volume         int16      `json:"volume"`
+	PopupsEnabled  bool       `json:"popupsEnabled"`
+	DesktopEnabled bool       `json:"desktopEnabled"`
+	Now            time.Time  `json:"now"`
 }
+
 func (q *Queries) UpsertPreference(ctx context.Context, arg UpsertPreferenceParams) error {
 	_, err := q.db.Exec(ctx, upsertPreference,
 		arg.Realm,

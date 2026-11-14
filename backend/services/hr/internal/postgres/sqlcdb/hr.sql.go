@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
-	"time"
 	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
+
 const createDepartment = `-- name: CreateDepartment :one
 INSERT INTO hr.department (
     id, name_en, name_ar, code, head_id, parent_id
@@ -11,14 +13,16 @@ INSERT INTO hr.department (
     $1, $2, $3, $4, $5, $6
 ) RETURNING id, name_en, name_ar, code, head_id, parent_id
 `
+
 type CreateDepartmentParams struct {
-	ID		string
-	NameEn		string
-	NameAr		string
-	Code		string
-	HeadID		*string
-	ParentID	*string
+	ID       string  `json:"id"`
+	NameEn   string  `json:"nameEn"`
+	NameAr   string  `json:"nameAr"`
+	Code     string  `json:"code"`
+	HeadID   *string `json:"headId"`
+	ParentID *string `json:"parentId"`
 }
+
 func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (HrDepartment, error) {
 	row := q.db.QueryRow(ctx, createDepartment,
 		arg.ID,
@@ -39,6 +43,7 @@ func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentPara
 	)
 	return i, err
 }
+
 const createEmployee = `-- name: CreateEmployee :one
 INSERT INTO hr.employee (
     id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar,
@@ -52,25 +57,27 @@ INSERT INTO hr.employee (
     now(), now()
 ) RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
+
 type CreateEmployeeParams struct {
-	ID			string
-	EmployeeNumber		string
-	FirstNameEn		string
-	LastNameEn		string
-	FirstNameAr		string
-	LastNameAr		string
-	Email			string
-	Phone			*string
-	JobTitleEn		string
-	JobTitleAr		string
-	DepartmentID		*string
-	HireDate		pgtype.Date
-	Status			string
-	BasicSalary		pgtype.Numeric
-	HousingAllowance	pgtype.Numeric
-	TransportAllowance	pgtype.Numeric
-	OtherAllowances		pgtype.Numeric
+	ID                 string         `json:"id"`
+	EmployeeNumber     string         `json:"employeeNumber"`
+	FirstNameEn        string         `json:"firstNameEn"`
+	LastNameEn         string         `json:"lastNameEn"`
+	FirstNameAr        string         `json:"firstNameAr"`
+	LastNameAr         string         `json:"lastNameAr"`
+	Email              string         `json:"email"`
+	Phone              *string        `json:"phone"`
+	JobTitleEn         string         `json:"jobTitleEn"`
+	JobTitleAr         string         `json:"jobTitleAr"`
+	DepartmentID       *string        `json:"departmentId"`
+	HireDate           pgtype.Date    `json:"hireDate"`
+	Status             string         `json:"status"`
+	BasicSalary        pgtype.Numeric `json:"basicSalary"`
+	HousingAllowance   pgtype.Numeric `json:"housingAllowance"`
+	TransportAllowance pgtype.Numeric `json:"transportAllowance"`
+	OtherAllowances    pgtype.Numeric `json:"otherAllowances"`
 }
+
 func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (HrEmployee, error) {
 	row := q.db.QueryRow(ctx, createEmployee,
 		arg.ID,
@@ -116,6 +123,7 @@ func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) 
 	)
 	return i, err
 }
+
 const createLeaveRequest = `-- name: CreateLeaveRequest :one
 INSERT INTO hr.leave_request (
     id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at
@@ -123,16 +131,18 @@ INSERT INTO hr.leave_request (
     $1, $2, $3, $4, $5, $6, $7, $8, now(), now()
 ) RETURNING id, employee_id, leave_type, start_date, end_date, days_count, status, reason, approved_by, created_at, updated_at
 `
+
 type CreateLeaveRequestParams struct {
-	ID		string
-	EmployeeID	string
-	LeaveType	string
-	StartDate	pgtype.Date
-	EndDate		pgtype.Date
-	DaysCount	pgtype.Numeric
-	Status		string
-	Reason		*string
+	ID         string         `json:"id"`
+	EmployeeID string         `json:"employeeId"`
+	LeaveType  string         `json:"leaveType"`
+	StartDate  pgtype.Date    `json:"startDate"`
+	EndDate    pgtype.Date    `json:"endDate"`
+	DaysCount  pgtype.Numeric `json:"daysCount"`
+	Status     string         `json:"status"`
+	Reason     *string        `json:"reason"`
 }
+
 func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequestParams) (HrLeaveRequest, error) {
 	row := q.db.QueryRow(ctx, createLeaveRequest,
 		arg.ID,
@@ -160,6 +170,7 @@ func (q *Queries) CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequest
 	)
 	return i, err
 }
+
 const createPayrollRun = `-- name: CreatePayrollRun :one
 INSERT INTO hr.payroll_run (
     id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at
@@ -167,18 +178,20 @@ INSERT INTO hr.payroll_run (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now()
 ) RETURNING id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at
 `
+
 type CreatePayrollRunParams struct {
-	ID		string
-	PeriodMonth	int32
-	PeriodYear	int32
-	Status		string
-	TotalGross	pgtype.Numeric
-	TotalDeductions	pgtype.Numeric
-	TotalNet	pgtype.Numeric
-	Currency	string
-	ProcessedAt	*time.Time
-	ApprovedBy	*string
+	ID              string         `json:"id"`
+	PeriodMonth     int32          `json:"periodMonth"`
+	PeriodYear      int32          `json:"periodYear"`
+	Status          string         `json:"status"`
+	TotalGross      pgtype.Numeric `json:"totalGross"`
+	TotalDeductions pgtype.Numeric `json:"totalDeductions"`
+	TotalNet        pgtype.Numeric `json:"totalNet"`
+	Currency        string         `json:"currency"`
+	ProcessedAt     *time.Time     `json:"processedAt"`
+	ApprovedBy      *string        `json:"approvedBy"`
 }
+
 func (q *Queries) CreatePayrollRun(ctx context.Context, arg CreatePayrollRunParams) (HrPayrollRun, error) {
 	row := q.db.QueryRow(ctx, createPayrollRun,
 		arg.ID,
@@ -208,23 +221,29 @@ func (q *Queries) CreatePayrollRun(ctx context.Context, arg CreatePayrollRunPara
 	)
 	return i, err
 }
+
 const deleteDepartment = `-- name: DeleteDepartment :exec
 DELETE FROM hr.department WHERE id = $1
 `
+
 func (q *Queries) DeleteDepartment(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteDepartment, id)
 	return err
 }
+
 const deleteEmployee = `-- name: DeleteEmployee :exec
 DELETE FROM hr.employee WHERE id = $1
 `
+
 func (q *Queries) DeleteEmployee(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteEmployee, id)
 	return err
 }
+
 const getDepartmentByID = `-- name: GetDepartmentByID :one
 SELECT id, name_en, name_ar, code, head_id, parent_id FROM hr.department WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetDepartmentByID(ctx context.Context, id string) (HrDepartment, error) {
 	row := q.db.QueryRow(ctx, getDepartmentByID, id)
 	var i HrDepartment
@@ -238,9 +257,11 @@ func (q *Queries) GetDepartmentByID(ctx context.Context, id string) (HrDepartmen
 	)
 	return i, err
 }
+
 const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
 SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee WHERE email = $1 LIMIT 1
 `
+
 func (q *Queries) GetEmployeeByEmail(ctx context.Context, email string) (HrEmployee, error) {
 	row := q.db.QueryRow(ctx, getEmployeeByEmail, email)
 	var i HrEmployee
@@ -268,9 +289,11 @@ func (q *Queries) GetEmployeeByEmail(ctx context.Context, email string) (HrEmplo
 	)
 	return i, err
 }
+
 const getEmployeeByID = `-- name: GetEmployeeByID :one
 SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetEmployeeByID(ctx context.Context, id string) (HrEmployee, error) {
 	row := q.db.QueryRow(ctx, getEmployeeByID, id)
 	var i HrEmployee
@@ -298,9 +321,11 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id string) (HrEmployee, e
 	)
 	return i, err
 }
+
 const getLeaveRequestByID = `-- name: GetLeaveRequestByID :one
 SELECT id, employee_id, leave_type, start_date, end_date, days_count, status, reason, approved_by, created_at, updated_at FROM hr.leave_request WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetLeaveRequestByID(ctx context.Context, id string) (HrLeaveRequest, error) {
 	row := q.db.QueryRow(ctx, getLeaveRequestByID, id)
 	var i HrLeaveRequest
@@ -319,9 +344,11 @@ func (q *Queries) GetLeaveRequestByID(ctx context.Context, id string) (HrLeaveRe
 	)
 	return i, err
 }
+
 const getPayrollRunByID = `-- name: GetPayrollRunByID :one
 SELECT id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at FROM hr.payroll_run WHERE id = $1 LIMIT 1
 `
+
 func (q *Queries) GetPayrollRunByID(ctx context.Context, id string) (HrPayrollRun, error) {
 	row := q.db.QueryRow(ctx, getPayrollRunByID, id)
 	var i HrPayrollRun
@@ -340,6 +367,7 @@ func (q *Queries) GetPayrollRunByID(ctx context.Context, id string) (HrPayrollRu
 	)
 	return i, err
 }
+
 const insertPayrollItem = `-- name: InsertPayrollItem :one
 INSERT INTO hr.payroll_item (
     id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status
@@ -347,16 +375,18 @@ INSERT INTO hr.payroll_item (
     $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status
 `
+
 type InsertPayrollItemParams struct {
-	ID		string
-	PayrollRunID	string
-	EmployeeID	string
-	BasicSalary	pgtype.Numeric
-	Allowances	pgtype.Numeric
-	Deductions	pgtype.Numeric
-	NetSalary	pgtype.Numeric
-	Status		string
+	ID           string         `json:"id"`
+	PayrollRunID string         `json:"payrollRunId"`
+	EmployeeID   string         `json:"employeeId"`
+	BasicSalary  pgtype.Numeric `json:"basicSalary"`
+	Allowances   pgtype.Numeric `json:"allowances"`
+	Deductions   pgtype.Numeric `json:"deductions"`
+	NetSalary    pgtype.Numeric `json:"netSalary"`
+	Status       string         `json:"status"`
 }
+
 func (q *Queries) InsertPayrollItem(ctx context.Context, arg InsertPayrollItemParams) (HrPayrollItem, error) {
 	row := q.db.QueryRow(ctx, insertPayrollItem,
 		arg.ID,
@@ -381,9 +411,11 @@ func (q *Queries) InsertPayrollItem(ctx context.Context, arg InsertPayrollItemPa
 	)
 	return i, err
 }
+
 const listAttendanceByDate = `-- name: ListAttendanceByDate :many
 SELECT id, employee_id, entry_date, check_in, check_out, status, notes, created_at FROM hr.attendance_entry WHERE entry_date = $1 ORDER BY employee_id ASC
 `
+
 func (q *Queries) ListAttendanceByDate(ctx context.Context, entryDate pgtype.Date) ([]HrAttendanceEntry, error) {
 	rows, err := q.db.Query(ctx, listAttendanceByDate, entryDate)
 	if err != nil {
@@ -412,9 +444,11 @@ func (q *Queries) ListAttendanceByDate(ctx context.Context, entryDate pgtype.Dat
 	}
 	return items, nil
 }
+
 const listAttendanceByEmployee = `-- name: ListAttendanceByEmployee :many
 SELECT id, employee_id, entry_date, check_in, check_out, status, notes, created_at FROM hr.attendance_entry WHERE employee_id = $1 ORDER BY entry_date DESC
 `
+
 func (q *Queries) ListAttendanceByEmployee(ctx context.Context, employeeID string) ([]HrAttendanceEntry, error) {
 	rows, err := q.db.Query(ctx, listAttendanceByEmployee, employeeID)
 	if err != nil {
@@ -443,9 +477,11 @@ func (q *Queries) ListAttendanceByEmployee(ctx context.Context, employeeID strin
 	}
 	return items, nil
 }
+
 const listDepartments = `-- name: ListDepartments :many
 SELECT id, name_en, name_ar, code, head_id, parent_id FROM hr.department ORDER BY name_en ASC
 `
+
 func (q *Queries) ListDepartments(ctx context.Context) ([]HrDepartment, error) {
 	rows, err := q.db.Query(ctx, listDepartments)
 	if err != nil {
@@ -472,9 +508,11 @@ func (q *Queries) ListDepartments(ctx context.Context) ([]HrDepartment, error) {
 	}
 	return items, nil
 }
+
 const listEmployees = `-- name: ListEmployees :many
 SELECT id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to FROM hr.employee ORDER BY employee_number ASC
 `
+
 func (q *Queries) ListEmployees(ctx context.Context) ([]HrEmployee, error) {
 	rows, err := q.db.Query(ctx, listEmployees)
 	if err != nil {
@@ -515,9 +553,11 @@ func (q *Queries) ListEmployees(ctx context.Context) ([]HrEmployee, error) {
 	}
 	return items, nil
 }
+
 const listLeaveRequests = `-- name: ListLeaveRequests :many
 SELECT id, employee_id, leave_type, start_date, end_date, days_count, status, reason, approved_by, created_at, updated_at FROM hr.leave_request ORDER BY created_at DESC
 `
+
 func (q *Queries) ListLeaveRequests(ctx context.Context) ([]HrLeaveRequest, error) {
 	rows, err := q.db.Query(ctx, listLeaveRequests)
 	if err != nil {
@@ -549,9 +589,11 @@ func (q *Queries) ListLeaveRequests(ctx context.Context) ([]HrLeaveRequest, erro
 	}
 	return items, nil
 }
+
 const listLeaveRequestsByEmployee = `-- name: ListLeaveRequestsByEmployee :many
 SELECT id, employee_id, leave_type, start_date, end_date, days_count, status, reason, approved_by, created_at, updated_at FROM hr.leave_request WHERE employee_id = $1 ORDER BY start_date DESC
 `
+
 func (q *Queries) ListLeaveRequestsByEmployee(ctx context.Context, employeeID string) ([]HrLeaveRequest, error) {
 	rows, err := q.db.Query(ctx, listLeaveRequestsByEmployee, employeeID)
 	if err != nil {
@@ -583,9 +625,11 @@ func (q *Queries) ListLeaveRequestsByEmployee(ctx context.Context, employeeID st
 	}
 	return items, nil
 }
+
 const listPayrollItems = `-- name: ListPayrollItems :many
 SELECT id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status FROM hr.payroll_item WHERE payroll_run_id = $1
 `
+
 func (q *Queries) ListPayrollItems(ctx context.Context, payrollRunID string) ([]HrPayrollItem, error) {
 	rows, err := q.db.Query(ctx, listPayrollItems, payrollRunID)
 	if err != nil {
@@ -614,9 +658,11 @@ func (q *Queries) ListPayrollItems(ctx context.Context, payrollRunID string) ([]
 	}
 	return items, nil
 }
+
 const listPayrollRuns = `-- name: ListPayrollRuns :many
 SELECT id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at FROM hr.payroll_run ORDER BY period_year DESC, period_month DESC
 `
+
 func (q *Queries) ListPayrollRuns(ctx context.Context) ([]HrPayrollRun, error) {
 	rows, err := q.db.Query(ctx, listPayrollRuns)
 	if err != nil {
@@ -648,6 +694,7 @@ func (q *Queries) ListPayrollRuns(ctx context.Context) ([]HrPayrollRun, error) {
 	}
 	return items, nil
 }
+
 const recordAttendance = `-- name: RecordAttendance :one
 INSERT INTO hr.attendance_entry (
     id, employee_id, entry_date, check_in, check_out, status, notes, created_at
@@ -660,15 +707,17 @@ INSERT INTO hr.attendance_entry (
     notes = EXCLUDED.notes
 RETURNING id, employee_id, entry_date, check_in, check_out, status, notes, created_at
 `
+
 type RecordAttendanceParams struct {
-	ID		string
-	EmployeeID	string
-	EntryDate	pgtype.Date
-	CheckIn		*time.Time
-	CheckOut	*time.Time
-	Status		string
-	Notes		*string
+	ID         string      `json:"id"`
+	EmployeeID string      `json:"employeeId"`
+	EntryDate  pgtype.Date `json:"entryDate"`
+	CheckIn    *time.Time  `json:"checkIn"`
+	CheckOut   *time.Time  `json:"checkOut"`
+	Status     string      `json:"status"`
+	Notes      *string     `json:"notes"`
 }
+
 func (q *Queries) RecordAttendance(ctx context.Context, arg RecordAttendanceParams) (HrAttendanceEntry, error) {
 	row := q.db.QueryRow(ctx, recordAttendance,
 		arg.ID,
@@ -692,6 +741,7 @@ func (q *Queries) RecordAttendance(ctx context.Context, arg RecordAttendancePara
 	)
 	return i, err
 }
+
 const updateDepartment = `-- name: UpdateDepartment :one
 UPDATE hr.department SET
     name_en = $2,
@@ -702,14 +752,16 @@ UPDATE hr.department SET
 WHERE id = $1
 RETURNING id, name_en, name_ar, code, head_id, parent_id
 `
+
 type UpdateDepartmentParams struct {
-	ID		string
-	NameEn		string
-	NameAr		string
-	Code		string
-	HeadID		*string
-	ParentID	*string
+	ID       string  `json:"id"`
+	NameEn   string  `json:"nameEn"`
+	NameAr   string  `json:"nameAr"`
+	Code     string  `json:"code"`
+	HeadID   *string `json:"headId"`
+	ParentID *string `json:"parentId"`
 }
+
 func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (HrDepartment, error) {
 	row := q.db.QueryRow(ctx, updateDepartment,
 		arg.ID,
@@ -730,6 +782,7 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 	)
 	return i, err
 }
+
 const updateEmployee = `-- name: UpdateEmployee :one
 UPDATE hr.employee SET
     first_name_en = $2,
@@ -751,24 +804,26 @@ UPDATE hr.employee SET
 WHERE id = $1
 RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
+
 type UpdateEmployeeParams struct {
-	ID			string
-	FirstNameEn		string
-	LastNameEn		string
-	FirstNameAr		string
-	LastNameAr		string
-	Email			string
-	Phone			*string
-	JobTitleEn		string
-	JobTitleAr		string
-	DepartmentID		*string
-	HireDate		pgtype.Date
-	Status			string
-	BasicSalary		pgtype.Numeric
-	HousingAllowance	pgtype.Numeric
-	TransportAllowance	pgtype.Numeric
-	OtherAllowances		pgtype.Numeric
+	ID                 string         `json:"id"`
+	FirstNameEn        string         `json:"firstNameEn"`
+	LastNameEn         string         `json:"lastNameEn"`
+	FirstNameAr        string         `json:"firstNameAr"`
+	LastNameAr         string         `json:"lastNameAr"`
+	Email              string         `json:"email"`
+	Phone              *string        `json:"phone"`
+	JobTitleEn         string         `json:"jobTitleEn"`
+	JobTitleAr         string         `json:"jobTitleAr"`
+	DepartmentID       *string        `json:"departmentId"`
+	HireDate           pgtype.Date    `json:"hireDate"`
+	Status             string         `json:"status"`
+	BasicSalary        pgtype.Numeric `json:"basicSalary"`
+	HousingAllowance   pgtype.Numeric `json:"housingAllowance"`
+	TransportAllowance pgtype.Numeric `json:"transportAllowance"`
+	OtherAllowances    pgtype.Numeric `json:"otherAllowances"`
 }
+
 func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) (HrEmployee, error) {
 	row := q.db.QueryRow(ctx, updateEmployee,
 		arg.ID,
@@ -813,6 +868,7 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 	)
 	return i, err
 }
+
 const updateEmployeeStatus = `-- name: UpdateEmployeeStatus :one
 UPDATE hr.employee SET
     status = $2,
@@ -820,10 +876,12 @@ UPDATE hr.employee SET
 WHERE id = $1
 RETURNING id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at, reporting_to
 `
+
 type UpdateEmployeeStatusParams struct {
-	ID	string
-	Status	string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
+
 func (q *Queries) UpdateEmployeeStatus(ctx context.Context, arg UpdateEmployeeStatusParams) (HrEmployee, error) {
 	row := q.db.QueryRow(ctx, updateEmployeeStatus, arg.ID, arg.Status)
 	var i HrEmployee
@@ -851,6 +909,7 @@ func (q *Queries) UpdateEmployeeStatus(ctx context.Context, arg UpdateEmployeeSt
 	)
 	return i, err
 }
+
 const updateLeaveRequestStatus = `-- name: UpdateLeaveRequestStatus :one
 UPDATE hr.leave_request SET
     status = $2,
@@ -859,11 +918,13 @@ UPDATE hr.leave_request SET
 WHERE id = $1
 RETURNING id, employee_id, leave_type, start_date, end_date, days_count, status, reason, approved_by, created_at, updated_at
 `
+
 type UpdateLeaveRequestStatusParams struct {
-	ID		string
-	Status		string
-	ApprovedBy	*string
+	ID         string  `json:"id"`
+	Status     string  `json:"status"`
+	ApprovedBy *string `json:"approvedBy"`
 }
+
 func (q *Queries) UpdateLeaveRequestStatus(ctx context.Context, arg UpdateLeaveRequestStatusParams) (HrLeaveRequest, error) {
 	row := q.db.QueryRow(ctx, updateLeaveRequestStatus, arg.ID, arg.Status, arg.ApprovedBy)
 	var i HrLeaveRequest
@@ -882,6 +943,7 @@ func (q *Queries) UpdateLeaveRequestStatus(ctx context.Context, arg UpdateLeaveR
 	)
 	return i, err
 }
+
 const updatePayrollRunStatus = `-- name: UpdatePayrollRunStatus :one
 UPDATE hr.payroll_run SET
     status = $2,
@@ -890,11 +952,13 @@ UPDATE hr.payroll_run SET
 WHERE id = $1
 RETURNING id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at
 `
+
 type UpdatePayrollRunStatusParams struct {
-	ID		string
-	Status		string
-	ApprovedBy	*string
+	ID         string  `json:"id"`
+	Status     string  `json:"status"`
+	ApprovedBy *string `json:"approvedBy"`
 }
+
 func (q *Queries) UpdatePayrollRunStatus(ctx context.Context, arg UpdatePayrollRunStatusParams) (HrPayrollRun, error) {
 	row := q.db.QueryRow(ctx, updatePayrollRunStatus, arg.ID, arg.Status, arg.ApprovedBy)
 	var i HrPayrollRun

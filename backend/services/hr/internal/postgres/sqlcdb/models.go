@@ -12,373 +12,373 @@ import (
 )
 
 type HrAttendanceEntry struct {
-	ID                     string
-	EmployeeID             string
-	EntryDate              pgtype.Date
-	CheckIn                *time.Time
-	CheckOut               *time.Time
-	Status                 string
-	Notes                  *string
-	CreatedAt              time.Time
-	Date                   *time.Time
-	LateMinutes            *int32
-	OvertimeMinutes        *int32
-	OvertimeNightMinutes   *int32
-	OvertimeRestDayMinutes *int32
-	OvertimeHolidayMinutes *int32
-	ShiftTypeID            *string
-	Source                 *string
-	RecordedByID           *string
-	UpdatedAt              *time.Time
+	ID                     string      `json:"id"`
+	EmployeeID             string      `json:"employeeId"`
+	EntryDate              pgtype.Date `json:"entryDate"`
+	CheckIn                *time.Time  `json:"checkIn"`
+	CheckOut               *time.Time  `json:"checkOut"`
+	Status                 string      `json:"status"`
+	Notes                  *string     `json:"notes"`
+	CreatedAt              time.Time   `json:"createdAt"`
+	Date                   *time.Time  `json:"date"`
+	LateMinutes            *int32      `json:"lateMinutes"`
+	OvertimeMinutes        *int32      `json:"overtimeMinutes"`
+	OvertimeNightMinutes   *int32      `json:"overtimeNightMinutes"`
+	OvertimeRestDayMinutes *int32      `json:"overtimeRestDayMinutes"`
+	OvertimeHolidayMinutes *int32      `json:"overtimeHolidayMinutes"`
+	ShiftTypeID            *string     `json:"shiftTypeId"`
+	Source                 *string     `json:"source"`
+	RecordedByID           *string     `json:"recordedById"`
+	UpdatedAt              *time.Time  `json:"updatedAt"`
 }
 
 type HrBenefitPlan struct {
-	ID                   string
-	Code                 *string
-	NameEn               *string
-	NameAr               *string
-	CoverageDetails      *string
-	EmployerContribution pgtype.Numeric
-	EmployeeContribution pgtype.Numeric
-	CreatedAt            time.Time
+	ID                   string         `json:"id"`
+	Code                 *string        `json:"code"`
+	NameEn               *string        `json:"nameEn"`
+	NameAr               *string        `json:"nameAr"`
+	CoverageDetails      *string        `json:"coverageDetails"`
+	EmployerContribution pgtype.Numeric `json:"employerContribution"`
+	EmployeeContribution pgtype.Numeric `json:"employeeContribution"`
+	CreatedAt            time.Time      `json:"createdAt"`
 }
 
 type HrDepartment struct {
-	ID           string
-	NameEn       string
-	NameAr       string
-	Code         string
-	HeadID       *string
-	ParentID     *string
-	CatalogueKey *string
-	ManagerID    *string
-	DeputyID     *string
-	CostCentre   *string
-	SortOrder    *int32
-	IsActive     *bool
-	CreatedAt    *time.Time
-	UpdatedAt    *time.Time
+	ID           string     `json:"id"`
+	NameEn       string     `json:"nameEn"`
+	NameAr       string     `json:"nameAr"`
+	Code         string     `json:"code"`
+	HeadID       *string    `json:"headId"`
+	ParentID     *string    `json:"parentId"`
+	CatalogueKey *string    `json:"catalogueKey"`
+	ManagerID    *string    `json:"managerId"`
+	DeputyID     *string    `json:"deputyId"`
+	CostCentre   *string    `json:"costCentre"`
+	SortOrder    *int32     `json:"sortOrder"`
+	IsActive     *bool      `json:"isActive"`
+	CreatedAt    *time.Time `json:"createdAt"`
+	UpdatedAt    *time.Time `json:"updatedAt"`
 }
 
 type HrEmployee struct {
-	ID                 string
-	EmployeeNumber     string
-	FirstNameEn        string
-	LastNameEn         string
-	FirstNameAr        string
-	LastNameAr         string
-	Email              string
-	Phone              *string
-	JobTitleEn         string
-	JobTitleAr         string
-	DepartmentID       *string
-	HireDate           pgtype.Date
-	Status             string
-	BasicSalary        pgtype.Numeric
-	HousingAllowance   pgtype.Numeric
-	TransportAllowance pgtype.Numeric
-	OtherAllowances    pgtype.Numeric
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	ReportingTo        *string
-	UserID             *string
-	CprNumber          *string
-	CprExpiryDate      *time.Time
-	Nationality        *string
-	DateOfBirth        *time.Time
-	Gender             *string
-	PassportNumber     *string
-	PassportCountry    *string
-	PassportExpiryDate *time.Time
-	LeaveBalanceDays   pgtype.Numeric
+	ID                 string         `json:"id"`
+	EmployeeNumber     string         `json:"employeeNumber"`
+	FirstNameEn        string         `json:"firstNameEn"`
+	LastNameEn         string         `json:"lastNameEn"`
+	FirstNameAr        string         `json:"firstNameAr"`
+	LastNameAr         string         `json:"lastNameAr"`
+	Email              string         `json:"email"`
+	Phone              *string        `json:"phone"`
+	JobTitleEn         string         `json:"jobTitleEn"`
+	JobTitleAr         string         `json:"jobTitleAr"`
+	DepartmentID       *string        `json:"departmentId"`
+	HireDate           pgtype.Date    `json:"hireDate"`
+	Status             string         `json:"status"`
+	BasicSalary        pgtype.Numeric `json:"basicSalary"`
+	HousingAllowance   pgtype.Numeric `json:"housingAllowance"`
+	TransportAllowance pgtype.Numeric `json:"transportAllowance"`
+	OtherAllowances    pgtype.Numeric `json:"otherAllowances"`
+	CreatedAt          time.Time      `json:"createdAt"`
+	UpdatedAt          time.Time      `json:"updatedAt"`
+	ReportingTo        *string        `json:"reportingTo"`
+	UserID             *string        `json:"userId"`
+	CprNumber          *string        `json:"cprNumber"`
+	CprExpiryDate      *time.Time     `json:"cprExpiryDate"`
+	Nationality        *string        `json:"nationality"`
+	DateOfBirth        *time.Time     `json:"dateOfBirth"`
+	Gender             *string        `json:"gender"`
+	PassportNumber     *string        `json:"passportNumber"`
+	PassportCountry    *string        `json:"passportCountry"`
+	PassportExpiryDate *time.Time     `json:"passportExpiryDate"`
+	LeaveBalanceDays   pgtype.Numeric `json:"leaveBalanceDays"`
 }
 
 type HrEmployeeCredential struct {
-	ID             string
-	EmployeeID     *string
-	Kind           *string
-	VisaType       *string
-	Label          *string
-	Number         *string
-	IssuingCountry *string
-	IssueDate      *time.Time
-	ExpiryDate     *time.Time
-	Sponsor        *string
-	CostAmount     pgtype.Numeric
-	CostCurrency   *string
-	CostFrequency  *string
-	CostTermMonths *int32
-	PaidBy         *string
-	FileUrl        *string
-	Notes          *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string         `json:"id"`
+	EmployeeID     *string        `json:"employeeId"`
+	Kind           *string        `json:"kind"`
+	VisaType       *string        `json:"visaType"`
+	Label          *string        `json:"label"`
+	Number         *string        `json:"number"`
+	IssuingCountry *string        `json:"issuingCountry"`
+	IssueDate      *time.Time     `json:"issueDate"`
+	ExpiryDate     *time.Time     `json:"expiryDate"`
+	Sponsor        *string        `json:"sponsor"`
+	CostAmount     pgtype.Numeric `json:"costAmount"`
+	CostCurrency   *string        `json:"costCurrency"`
+	CostFrequency  *string        `json:"costFrequency"`
+	CostTermMonths *int32         `json:"costTermMonths"`
+	PaidBy         *string        `json:"paidBy"`
+	FileUrl        *string        `json:"fileUrl"`
+	Notes          *string        `json:"notes"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type HrEmployeeGosiRecord struct {
-	ID                 string
-	EmployeeID         *string
-	Category           *string
-	RegistrationNumber *string
-	RegisteredWage     pgtype.Numeric
+	ID                 string         `json:"id"`
+	EmployeeID         *string        `json:"employeeId"`
+	Category           *string        `json:"category"`
+	RegistrationNumber *string        `json:"registrationNumber"`
+	RegisteredWage     pgtype.Numeric `json:"registeredWage"`
 }
 
 type HrEmployeeHandover struct {
-	ID             string
-	Reference      *string
-	EmployeeID     *string
-	Kind           *string
-	LeaveRequestID *string
-	EffectiveDate  *time.Time
-	ReturnDate     *time.Time
-	Reason         *string
-	Status         *string
-	CasesMode      *string
-	DelegateUserID *string
+	ID             string     `json:"id"`
+	Reference      *string    `json:"reference"`
+	EmployeeID     *string    `json:"employeeId"`
+	Kind           *string    `json:"kind"`
+	LeaveRequestID *string    `json:"leaveRequestId"`
+	EffectiveDate  *time.Time `json:"effectiveDate"`
+	ReturnDate     *time.Time `json:"returnDate"`
+	Reason         *string    `json:"reason"`
+	Status         *string    `json:"status"`
+	CasesMode      *string    `json:"casesMode"`
+	DelegateUserID *string    `json:"delegateUserId"`
 }
 
 type HrEmployeeHandoverCase struct {
-	ID           string
-	HandoverID   *string
-	CaseType     *string
-	CaseID       *string
-	Label        *string
-	ToUserID     *string
-	Status       *string
-	ReassignedAt *time.Time
-	CreatedAt    time.Time
+	ID           string     `json:"id"`
+	HandoverID   *string    `json:"handoverId"`
+	CaseType     *string    `json:"caseType"`
+	CaseID       *string    `json:"caseId"`
+	Label        *string    `json:"label"`
+	ToUserID     *string    `json:"toUserId"`
+	Status       *string    `json:"status"`
+	ReassignedAt *time.Time `json:"reassignedAt"`
+	CreatedAt    time.Time  `json:"createdAt"`
 }
 
 type HrEmployeeRecurringPay struct {
-	ID         string
-	EmployeeID *string
-	Kind       *string
-	Category   *string
-	Label      *string
-	Amount     pgtype.Numeric
-	StartMonth *string
-	EndMonth   *string
-	IsActive   *bool
-	Note       *string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID         string         `json:"id"`
+	EmployeeID *string        `json:"employeeId"`
+	Kind       *string        `json:"kind"`
+	Category   *string        `json:"category"`
+	Label      *string        `json:"label"`
+	Amount     pgtype.Numeric `json:"amount"`
+	StartMonth *string        `json:"startMonth"`
+	EndMonth   *string        `json:"endMonth"`
+	IsActive   *bool          `json:"isActive"`
+	Note       *string        `json:"note"`
+	CreatedAt  time.Time      `json:"createdAt"`
+	UpdatedAt  time.Time      `json:"updatedAt"`
 }
 
 type HrEmployeeSupport struct {
-	ID              string
-	EmployeeID      *string
-	ProgramID       *string
-	Status          *string
-	Qualification   *string
-	ApplicationRef  *string
-	AppliedOn       *time.Time
-	DecidedOn       *time.Time
-	StartMonth      *string
-	EndMonth        *string
-	ApprovedPercent pgtype.Numeric
-	ApprovedAmount  pgtype.Numeric
-	MonthlyCap      pgtype.Numeric
-	Notes           *string
-	CreatedByID     *string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID              string         `json:"id"`
+	EmployeeID      *string        `json:"employeeId"`
+	ProgramID       *string        `json:"programId"`
+	Status          *string        `json:"status"`
+	Qualification   *string        `json:"qualification"`
+	ApplicationRef  *string        `json:"applicationRef"`
+	AppliedOn       *time.Time     `json:"appliedOn"`
+	DecidedOn       *time.Time     `json:"decidedOn"`
+	StartMonth      *string        `json:"startMonth"`
+	EndMonth        *string        `json:"endMonth"`
+	ApprovedPercent pgtype.Numeric `json:"approvedPercent"`
+	ApprovedAmount  pgtype.Numeric `json:"approvedAmount"`
+	MonthlyCap      pgtype.Numeric `json:"monthlyCap"`
+	Notes           *string        `json:"notes"`
+	CreatedByID     *string        `json:"createdById"`
+	CreatedAt       time.Time      `json:"createdAt"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
 }
 
 type HrEmployeeSupportEvent struct {
-	ID        string
-	SupportID *string
-	Action    *string
-	Details   []byte
-	ActorID   *string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	SupportID *string   `json:"supportId"`
+	Action    *string   `json:"action"`
+	Details   []byte    `json:"details"`
+	ActorID   *string   `json:"actorId"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type HrGosiComponent struct {
-	ID              string
-	Code            *string
-	NameEn          *string
-	NameAr          *string
-	EmployeePercent pgtype.Numeric
-	EmployerPercent pgtype.Numeric
+	ID              string         `json:"id"`
+	Code            *string        `json:"code"`
+	NameEn          *string        `json:"nameEn"`
+	NameAr          *string        `json:"nameAr"`
+	EmployeePercent pgtype.Numeric `json:"employeePercent"`
+	EmployerPercent pgtype.Numeric `json:"employerPercent"`
 }
 
 type HrGosiSetting struct {
-	NationalityCategories []byte
+	NationalityCategories []byte `json:"nationalityCategories"`
 }
 
 type HrInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type HrLeaveAdjustment struct {
-	ID          string
-	EmployeeID  *string
-	LeaveTypeID *string
-	Year        *int32
-	Days        pgtype.Numeric
-	Reason      *string
-	CreatedByID *string
-	CreatedAt   time.Time
+	ID          string         `json:"id"`
+	EmployeeID  *string        `json:"employeeId"`
+	LeaveTypeID *string        `json:"leaveTypeId"`
+	Year        *int32         `json:"year"`
+	Days        pgtype.Numeric `json:"days"`
+	Reason      *string        `json:"reason"`
+	CreatedByID *string        `json:"createdById"`
+	CreatedAt   time.Time      `json:"createdAt"`
 }
 
 type HrLeaveRequest struct {
-	ID            string
-	EmployeeID    string
-	LeaveType     string
-	StartDate     pgtype.Date
-	EndDate       pgtype.Date
-	DaysCount     pgtype.Numeric
-	Status        string
-	Reason        *string
-	ApprovedBy    *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	LeaveTypeID   *string
-	FullDay       *bool
-	Hours         pgtype.Numeric
-	DayPortion    *string
-	Days          pgtype.Numeric
-	AttachmentUrl *string
-	ApprovedByID  *string
-	ApprovedAt    *time.Time
-	ReviewNotes   *string
+	ID            string         `json:"id"`
+	EmployeeID    string         `json:"employeeId"`
+	LeaveType     string         `json:"leaveType"`
+	StartDate     pgtype.Date    `json:"startDate"`
+	EndDate       pgtype.Date    `json:"endDate"`
+	DaysCount     pgtype.Numeric `json:"daysCount"`
+	Status        string         `json:"status"`
+	Reason        *string        `json:"reason"`
+	ApprovedBy    *string        `json:"approvedBy"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+	LeaveTypeID   *string        `json:"leaveTypeId"`
+	FullDay       *bool          `json:"fullDay"`
+	Hours         pgtype.Numeric `json:"hours"`
+	DayPortion    *string        `json:"dayPortion"`
+	Days          pgtype.Numeric `json:"days"`
+	AttachmentUrl *string        `json:"attachmentUrl"`
+	ApprovedByID  *string        `json:"approvedById"`
+	ApprovedAt    *time.Time     `json:"approvedAt"`
+	ReviewNotes   *string        `json:"reviewNotes"`
 }
 
 type HrLeaveType struct {
-	ID                 string
-	Code               *string
-	NameEn             *string
-	NameAr             *string
-	DaysAllowedPerYear pgtype.Numeric
-	IsPaid             *bool
-	PayPercent         *int32
+	ID                 string         `json:"id"`
+	Code               *string        `json:"code"`
+	NameEn             *string        `json:"nameEn"`
+	NameAr             *string        `json:"nameAr"`
+	DaysAllowedPerYear pgtype.Numeric `json:"daysAllowedPerYear"`
+	IsPaid             *bool          `json:"isPaid"`
+	PayPercent         *int32         `json:"payPercent"`
 }
 
 type HrOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type HrPayrollItem struct {
-	ID                  string
-	PayrollRunID        string
-	EmployeeID          string
-	BasicSalary         pgtype.Numeric
-	Allowances          pgtype.Numeric
-	Deductions          pgtype.Numeric
-	NetSalary           pgtype.Numeric
-	Status              string
-	HousingAllowance    pgtype.Numeric
-	TransportAllowance  pgtype.Numeric
-	OtherAllowances     pgtype.Numeric
-	GrossSalary         pgtype.Numeric
-	GosiEmployee        pgtype.Numeric
-	GosiEmployer        pgtype.Numeric
-	ExternalSupport     pgtype.Numeric
-	CalculationSnapshot []byte
-	OtherDeductions     pgtype.Numeric
-	Bonus               pgtype.Numeric
-	OvertimePay         pgtype.Numeric
-	ShiftAllowance      pgtype.Numeric
-	Commission          pgtype.Numeric
-	AbsenceDeduction    pgtype.Numeric
-	LeaveDeduction      pgtype.Numeric
-	LatenessDeduction   pgtype.Numeric
-	AttendanceSummary   []byte
-	AdjustmentNote      *string
-	EditedByID          *string
-	EditedAt            *time.Time
-	PaymentStatus       *string
-	PaidAt              *time.Time
-	PaidByID            *string
-	PaymentMethod       *string
-	PaymentReference    *string
-	CreatedAt           *time.Time
+	ID                  string         `json:"id"`
+	PayrollRunID        string         `json:"payrollRunId"`
+	EmployeeID          string         `json:"employeeId"`
+	BasicSalary         pgtype.Numeric `json:"basicSalary"`
+	Allowances          pgtype.Numeric `json:"allowances"`
+	Deductions          pgtype.Numeric `json:"deductions"`
+	NetSalary           pgtype.Numeric `json:"netSalary"`
+	Status              string         `json:"status"`
+	HousingAllowance    pgtype.Numeric `json:"housingAllowance"`
+	TransportAllowance  pgtype.Numeric `json:"transportAllowance"`
+	OtherAllowances     pgtype.Numeric `json:"otherAllowances"`
+	GrossSalary         pgtype.Numeric `json:"grossSalary"`
+	GosiEmployee        pgtype.Numeric `json:"gosiEmployee"`
+	GosiEmployer        pgtype.Numeric `json:"gosiEmployer"`
+	ExternalSupport     pgtype.Numeric `json:"externalSupport"`
+	CalculationSnapshot []byte         `json:"calculationSnapshot"`
+	OtherDeductions     pgtype.Numeric `json:"otherDeductions"`
+	Bonus               pgtype.Numeric `json:"bonus"`
+	OvertimePay         pgtype.Numeric `json:"overtimePay"`
+	ShiftAllowance      pgtype.Numeric `json:"shiftAllowance"`
+	Commission          pgtype.Numeric `json:"commission"`
+	AbsenceDeduction    pgtype.Numeric `json:"absenceDeduction"`
+	LeaveDeduction      pgtype.Numeric `json:"leaveDeduction"`
+	LatenessDeduction   pgtype.Numeric `json:"latenessDeduction"`
+	AttendanceSummary   []byte         `json:"attendanceSummary"`
+	AdjustmentNote      *string        `json:"adjustmentNote"`
+	EditedByID          *string        `json:"editedById"`
+	EditedAt            *time.Time     `json:"editedAt"`
+	PaymentStatus       *string        `json:"paymentStatus"`
+	PaidAt              *time.Time     `json:"paidAt"`
+	PaidByID            *string        `json:"paidById"`
+	PaymentMethod       *string        `json:"paymentMethod"`
+	PaymentReference    *string        `json:"paymentReference"`
+	CreatedAt           *time.Time     `json:"createdAt"`
 }
 
 type HrPayrollItemLine struct {
-	ID            string
-	PayrollItemID *string
-	Kind          *string
-	Category      *string
-	Label         *string
-	Amount        pgtype.Numeric
-	Note          *string
-	Source        *string
-	RecurringID   *string
-	DisplayOrder  *int32
-	CreatedByID   *string
-	CreatedAt     time.Time
+	ID            string         `json:"id"`
+	PayrollItemID *string        `json:"payrollItemId"`
+	Kind          *string        `json:"kind"`
+	Category      *string        `json:"category"`
+	Label         *string        `json:"label"`
+	Amount        pgtype.Numeric `json:"amount"`
+	Note          *string        `json:"note"`
+	Source        *string        `json:"source"`
+	RecurringID   *string        `json:"recurringId"`
+	DisplayOrder  *int32         `json:"displayOrder"`
+	CreatedByID   *string        `json:"createdById"`
+	CreatedAt     time.Time      `json:"createdAt"`
 }
 
 type HrPayrollRun struct {
-	ID                string
-	PeriodMonth       int32
-	PeriodYear        int32
-	Status            string
-	TotalGross        pgtype.Numeric
-	TotalDeductions   pgtype.Numeric
-	TotalNet          pgtype.Numeric
-	Currency          string
-	ProcessedAt       *time.Time
-	ApprovedBy        *string
-	CreatedAt         time.Time
-	Month             *int32
-	Year              *int32
-	PeriodStart       *time.Time
-	PeriodEnd         *time.Time
-	AttendanceStart   *time.Time
-	AttendanceEnd     *time.Time
-	PayDate           *time.Time
-	TotalEmployerCost pgtype.Numeric
-	ApprovedByID      *string
-	ApprovedAt        *time.Time
-	PaidAt            *time.Time
-	UpdatedAt         *time.Time
+	ID                string         `json:"id"`
+	PeriodMonth       int32          `json:"periodMonth"`
+	PeriodYear        int32          `json:"periodYear"`
+	Status            string         `json:"status"`
+	TotalGross        pgtype.Numeric `json:"totalGross"`
+	TotalDeductions   pgtype.Numeric `json:"totalDeductions"`
+	TotalNet          pgtype.Numeric `json:"totalNet"`
+	Currency          string         `json:"currency"`
+	ProcessedAt       *time.Time     `json:"processedAt"`
+	ApprovedBy        *string        `json:"approvedBy"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	Month             *int32         `json:"month"`
+	Year              *int32         `json:"year"`
+	PeriodStart       *time.Time     `json:"periodStart"`
+	PeriodEnd         *time.Time     `json:"periodEnd"`
+	AttendanceStart   *time.Time     `json:"attendanceStart"`
+	AttendanceEnd     *time.Time     `json:"attendanceEnd"`
+	PayDate           *time.Time     `json:"payDate"`
+	TotalEmployerCost pgtype.Numeric `json:"totalEmployerCost"`
+	ApprovedByID      *string        `json:"approvedById"`
+	ApprovedAt        *time.Time     `json:"approvedAt"`
+	PaidAt            *time.Time     `json:"paidAt"`
+	UpdatedAt         *time.Time     `json:"updatedAt"`
 }
 
 type HrRetailShift struct {
-	ID          string
-	BranchID    *string
-	ShiftNumber *string
-	OpenedByID  *string
-	ClosedByID  *string
-	OpenedAt    *time.Time
-	ClosedAt    *time.Time
-	Status      *string
-	Revision    *int32
+	ID          string     `json:"id"`
+	BranchID    *string    `json:"branchId"`
+	ShiftNumber *string    `json:"shiftNumber"`
+	OpenedByID  *string    `json:"openedById"`
+	ClosedByID  *string    `json:"closedById"`
+	OpenedAt    *time.Time `json:"openedAt"`
+	ClosedAt    *time.Time `json:"closedAt"`
+	Status      *string    `json:"status"`
+	Revision    *int32     `json:"revision"`
 }
 
 type HrSalaryDocument struct {
-	ID            string
-	EmployeeID    *string
-	Kind          *string
-	Months        []byte
-	Status        *string
-	RequestedByID *string
-	ReviewedByID  *string
-	ReviewNotes   *string
-	Snapshot      []byte
-	CreatedAt     time.Time
-	IssuedAt      *time.Time
-	UpdatedAt     time.Time
+	ID            string     `json:"id"`
+	EmployeeID    *string    `json:"employeeId"`
+	Kind          *string    `json:"kind"`
+	Months        []byte     `json:"months"`
+	Status        *string    `json:"status"`
+	RequestedByID *string    `json:"requestedById"`
+	ReviewedByID  *string    `json:"reviewedById"`
+	ReviewNotes   *string    `json:"reviewNotes"`
+	Snapshot      []byte     `json:"snapshot"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	IssuedAt      *time.Time `json:"issuedAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 }
 
 type HrShiftType struct {
-	ID             string
-	Code           *string
-	NameEn         *string
-	NameAr         *string
-	AllowanceMode  *string
-	AllowanceValue pgtype.Numeric
-	IsActive       *bool
+	ID             string         `json:"id"`
+	Code           *string        `json:"code"`
+	NameEn         *string        `json:"nameEn"`
+	NameAr         *string        `json:"nameAr"`
+	AllowanceMode  *string        `json:"allowanceMode"`
+	AllowanceValue pgtype.Numeric `json:"allowanceValue"`
+	IsActive       *bool          `json:"isActive"`
 }

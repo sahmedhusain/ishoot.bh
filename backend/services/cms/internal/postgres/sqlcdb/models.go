@@ -12,266 +12,266 @@ import (
 )
 
 type CmsArticle struct {
-	ID               string
-	Slug             string
-	TitleEn          string
-	TitleAr          string
-	ExcerptEn        *string
-	ExcerptAr        *string
-	BodyEn           []byte
-	BodyAr           []byte
-	BodyHtmlEn       *string
-	BodyHtmlAr       *string
-	CoverUrl         *string
-	Category         string
-	Tags             []string
-	AuthorName       *string
-	Status           string
-	PublishAt        *time.Time
-	Featured         bool
-	SeoTitleEn       *string
-	SeoTitleAr       *string
-	SeoDescriptionEn *string
-	SeoDescriptionAr *string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               string     `json:"id"`
+	Slug             string     `json:"slug"`
+	TitleEn          string     `json:"titleEn"`
+	TitleAr          string     `json:"titleAr"`
+	ExcerptEn        *string    `json:"excerptEn"`
+	ExcerptAr        *string    `json:"excerptAr"`
+	BodyEn           []byte     `json:"bodyEn"`
+	BodyAr           []byte     `json:"bodyAr"`
+	BodyHtmlEn       *string    `json:"bodyHtmlEn"`
+	BodyHtmlAr       *string    `json:"bodyHtmlAr"`
+	CoverUrl         *string    `json:"coverUrl"`
+	Category         string     `json:"category"`
+	Tags             []string   `json:"tags"`
+	AuthorName       *string    `json:"authorName"`
+	Status           string     `json:"status"`
+	PublishAt        *time.Time `json:"publishAt"`
+	Featured         bool       `json:"featured"`
+	SeoTitleEn       *string    `json:"seoTitleEn"`
+	SeoTitleAr       *string    `json:"seoTitleAr"`
+	SeoDescriptionEn *string    `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string    `json:"seoDescriptionAr"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
 }
 
 type CmsCmsArticle struct {
-	ID               string
-	Slug             *string
-	TitleEn          *string
-	TitleAr          *string
-	ExcerptEn        *string
-	ExcerptAr        *string
-	BodyEn           []byte
-	BodyAr           []byte
-	BodyHtmlEn       *string
-	BodyHtmlAr       *string
-	CoverUrl         *string
-	Category         *string
-	AuthorID         *string
-	AuthorName       *string
-	Status           *string
-	PublishAt        *time.Time
-	Featured         *bool
-	SeoTitleEn       *string
-	SeoTitleAr       *string
-	SeoDescriptionEn *string
-	SeoDescriptionAr *string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	IsSample         *bool
+	ID               string     `json:"id"`
+	Slug             *string    `json:"slug"`
+	TitleEn          *string    `json:"titleEn"`
+	TitleAr          *string    `json:"titleAr"`
+	ExcerptEn        *string    `json:"excerptEn"`
+	ExcerptAr        *string    `json:"excerptAr"`
+	BodyEn           []byte     `json:"bodyEn"`
+	BodyAr           []byte     `json:"bodyAr"`
+	BodyHtmlEn       *string    `json:"bodyHtmlEn"`
+	BodyHtmlAr       *string    `json:"bodyHtmlAr"`
+	CoverUrl         *string    `json:"coverUrl"`
+	Category         *string    `json:"category"`
+	AuthorID         *string    `json:"authorId"`
+	AuthorName       *string    `json:"authorName"`
+	Status           *string    `json:"status"`
+	PublishAt        *time.Time `json:"publishAt"`
+	Featured         *bool      `json:"featured"`
+	SeoTitleEn       *string    `json:"seoTitleEn"`
+	SeoTitleAr       *string    `json:"seoTitleAr"`
+	SeoDescriptionEn *string    `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string    `json:"seoDescriptionAr"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	IsSample         *bool      `json:"isSample"`
 }
 
 type CmsCmsPage struct {
-	ID               string
-	Slug             *string
-	PageType         *string
-	TitleEn          *string
-	TitleAr          *string
-	SeoTitleEn       *string
-	SeoTitleAr       *string
-	SeoDescriptionEn *string
-	SeoDescriptionAr *string
+	ID               string  `json:"id"`
+	Slug             *string `json:"slug"`
+	PageType         *string `json:"pageType"`
+	TitleEn          *string `json:"titleEn"`
+	TitleAr          *string `json:"titleAr"`
+	SeoTitleEn       *string `json:"seoTitleEn"`
+	SeoTitleAr       *string `json:"seoTitleAr"`
+	SeoDescriptionEn *string `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string `json:"seoDescriptionAr"`
 }
 
 type CmsContentSnapshot struct {
-	ID          string
-	Draft       json.RawMessage
-	Published   []byte
-	Revision    int32
-	PublishedAt *time.Time
-	UpdatedAt   time.Time
+	ID          string          `json:"id"`
+	Draft       json.RawMessage `json:"draft"`
+	Published   []byte          `json:"published"`
+	Revision    int32           `json:"revision"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	UpdatedAt   time.Time       `json:"updatedAt"`
 }
 
 type CmsFaq struct {
-	ID          string
-	QuestionEn  string
-	QuestionAr  string
-	AnswerEn    string
-	AnswerAr    string
-	Category    string
-	IsPublished bool
-	SortOrder   int32
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	QuestionEn  string    `json:"questionEn"`
+	QuestionAr  string    `json:"questionAr"`
+	AnswerEn    string    `json:"answerEn"`
+	AnswerAr    string    `json:"answerAr"`
+	Category    string    `json:"category"`
+	IsPublished bool      `json:"isPublished"`
+	SortOrder   int32     `json:"sortOrder"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type CmsInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type CmsOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type CmsPage struct {
-	ID               string
-	Slug             string
-	PageType         string
-	TitleEn          string
-	TitleAr          string
-	SeoTitleEn       *string
-	SeoTitleAr       *string
-	SeoDescriptionEn *string
-	SeoDescriptionAr *string
-	Blocks           json.RawMessage
-	IsVisible        bool
-	InHeader         bool
-	InFooter         bool
-	SortOrder        int32
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               string          `json:"id"`
+	Slug             string          `json:"slug"`
+	PageType         string          `json:"pageType"`
+	TitleEn          string          `json:"titleEn"`
+	TitleAr          string          `json:"titleAr"`
+	SeoTitleEn       *string         `json:"seoTitleEn"`
+	SeoTitleAr       *string         `json:"seoTitleAr"`
+	SeoDescriptionEn *string         `json:"seoDescriptionEn"`
+	SeoDescriptionAr *string         `json:"seoDescriptionAr"`
+	Blocks           json.RawMessage `json:"blocks"`
+	IsVisible        bool            `json:"isVisible"`
+	InHeader         bool            `json:"inHeader"`
+	InFooter         bool            `json:"inFooter"`
+	SortOrder        int32           `json:"sortOrder"`
+	CreatedAt        time.Time       `json:"createdAt"`
+	UpdatedAt        time.Time       `json:"updatedAt"`
 }
 
 type CmsPortfolioCategory struct {
-	ID           string
-	Slug         *string
-	NameEn       *string
-	NameAr       *string
-	DisplayOrder *int32
+	ID           string  `json:"id"`
+	Slug         *string `json:"slug"`
+	NameEn       *string `json:"nameEn"`
+	NameAr       *string `json:"nameAr"`
+	DisplayOrder *int32  `json:"displayOrder"`
 }
 
 type CmsPortfolioItem struct {
-	ID          string
-	CategoryID  *string
-	Slug        *string
-	TitleEn     *string
-	TitleAr     *string
-	ClientName  *string
-	Year        *int32
-	SubtitleEn  *string
-	SubtitleAr  *string
-	Price       pgtype.Numeric
-	PriceNoteEn *string
-	PriceNoteAr *string
-	Location    *string
-	ExternalUrl *string
+	ID          string         `json:"id"`
+	CategoryID  *string        `json:"categoryId"`
+	Slug        *string        `json:"slug"`
+	TitleEn     *string        `json:"titleEn"`
+	TitleAr     *string        `json:"titleAr"`
+	ClientName  *string        `json:"clientName"`
+	Year        *int32         `json:"year"`
+	SubtitleEn  *string        `json:"subtitleEn"`
+	SubtitleAr  *string        `json:"subtitleAr"`
+	Price       pgtype.Numeric `json:"price"`
+	PriceNoteEn *string        `json:"priceNoteEn"`
+	PriceNoteAr *string        `json:"priceNoteAr"`
+	Location    *string        `json:"location"`
+	ExternalUrl *string        `json:"externalUrl"`
 }
 
 type CmsReview struct {
-	ID         string
-	AuthorEn   string
-	AuthorAr   string
-	CompanyEn  *string
-	CompanyAr  *string
-	QuoteEn    string
-	QuoteAr    string
-	Rating     int32
-	IsApproved bool
-	SortOrder  int32
-	Year       string
-	CreatedAt  time.Time
+	ID         string    `json:"id"`
+	AuthorEn   string    `json:"authorEn"`
+	AuthorAr   string    `json:"authorAr"`
+	CompanyEn  *string   `json:"companyEn"`
+	CompanyAr  *string   `json:"companyAr"`
+	QuoteEn    string    `json:"quoteEn"`
+	QuoteAr    string    `json:"quoteAr"`
+	Rating     int32     `json:"rating"`
+	IsApproved bool      `json:"isApproved"`
+	SortOrder  int32     `json:"sortOrder"`
+	Year       string    `json:"year"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type CmsSocialContentPlan struct {
-	ID           string
-	Title        *string
-	Caption      *string
-	MediaUrl     *string
-	ScheduledFor *time.Time
-	Status       *string
-	PublishedUrl *string
-	AssigneeID   *string
-	CreatedByID  *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string     `json:"id"`
+	Title        *string    `json:"title"`
+	Caption      *string    `json:"caption"`
+	MediaUrl     *string    `json:"mediaUrl"`
+	ScheduledFor *time.Time `json:"scheduledFor"`
+	Status       *string    `json:"status"`
+	PublishedUrl *string    `json:"publishedUrl"`
+	AssigneeID   *string    `json:"assigneeId"`
+	CreatedByID  *string    `json:"createdById"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
 }
 
 type CmsSocialInsightSnapshot struct {
-	ID              string
-	Platform        *string
-	SourceProvider  *string
-	SourceAccountID *string
-	PeriodDays      *int32
-	PeriodStart     *time.Time
-	PeriodEnd       *time.Time
-	TimeZone        *string
-	Metrics         []byte
-	NativeMetrics   []byte
-	RecordedAt      *time.Time
+	ID              string     `json:"id"`
+	Platform        *string    `json:"platform"`
+	SourceProvider  *string    `json:"sourceProvider"`
+	SourceAccountID *string    `json:"sourceAccountId"`
+	PeriodDays      *int32     `json:"periodDays"`
+	PeriodStart     *time.Time `json:"periodStart"`
+	PeriodEnd       *time.Time `json:"periodEnd"`
+	TimeZone        *string    `json:"timeZone"`
+	Metrics         []byte     `json:"metrics"`
+	NativeMetrics   []byte     `json:"nativeMetrics"`
+	RecordedAt      *time.Time `json:"recordedAt"`
 }
 
 type CmsSocialLink struct {
-	ID           string
-	Platform     *string
-	Url          *string
-	Icon         *string
-	IsActive     *bool
-	DisplayOrder *int32
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string    `json:"id"`
+	Platform     *string   `json:"platform"`
+	Url          *string   `json:"url"`
+	Icon         *string   `json:"icon"`
+	IsActive     *bool     `json:"isActive"`
+	DisplayOrder *int32    `json:"displayOrder"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type CmsSocialMetric struct {
-	ID              string
-	Platform        *string
-	MetricType      *string
-	Value           *float64
-	SourceProvider  *string
-	SourceAccountID *string
-	RecordedAt      *time.Time
-	IsStale         *bool
-	ErrorStatus     *string
-	CreatedAt       time.Time
+	ID              string     `json:"id"`
+	Platform        *string    `json:"platform"`
+	MetricType      *string    `json:"metricType"`
+	Value           *float64   `json:"value"`
+	SourceProvider  *string    `json:"sourceProvider"`
+	SourceAccountID *string    `json:"sourceAccountId"`
+	RecordedAt      *time.Time `json:"recordedAt"`
+	IsStale         *bool      `json:"isStale"`
+	ErrorStatus     *string    `json:"errorStatus"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type CmsSocialPost struct {
-	ID              string
-	Platform        *string
-	ExternalID      *string
-	SourceProvider  *string
-	SourceAccountID *string
-	Caption         *string
-	MediaType       *string
-	Permalink       *string
-	ThumbnailUrl    *string
-	PublishedAt     *time.Time
-	Likes           *float64
-	Comments        *float64
-	Shares          *float64
-	Views           *float64
-	Reach           *float64
-	Saves           *float64
-	FetchedAt       *time.Time
-	CreatedAt       time.Time
+	ID              string     `json:"id"`
+	Platform        *string    `json:"platform"`
+	ExternalID      *string    `json:"externalId"`
+	SourceProvider  *string    `json:"sourceProvider"`
+	SourceAccountID *string    `json:"sourceAccountId"`
+	Caption         *string    `json:"caption"`
+	MediaType       *string    `json:"mediaType"`
+	Permalink       *string    `json:"permalink"`
+	ThumbnailUrl    *string    `json:"thumbnailUrl"`
+	PublishedAt     *time.Time `json:"publishedAt"`
+	Likes           *float64   `json:"likes"`
+	Comments        *float64   `json:"comments"`
+	Shares          *float64   `json:"shares"`
+	Views           *float64   `json:"views"`
+	Reach           *float64   `json:"reach"`
+	Saves           *float64   `json:"saves"`
+	FetchedAt       *time.Time `json:"fetchedAt"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type CmsSocialPostSnapshot struct {
-	ID              string
-	PostID          *string
-	SourceAccountID *string
-	RecordedAt      *time.Time
-	Counters        []byte
+	ID              string     `json:"id"`
+	PostID          *string    `json:"postId"`
+	SourceAccountID *string    `json:"sourceAccountId"`
+	RecordedAt      *time.Time `json:"recordedAt"`
+	Counters        []byte     `json:"counters"`
 }
 
 type CmsStatistic struct {
-	ID          string
-	MetricValue string
-	LabelEn     string
-	LabelAr     string
-	SubLabelEn  *string
-	SubLabelAr  *string
-	Icon        *string
-	SortOrder   int32
+	ID          string  `json:"id"`
+	MetricValue string  `json:"metricValue"`
+	LabelEn     string  `json:"labelEn"`
+	LabelAr     string  `json:"labelAr"`
+	SubLabelEn  *string `json:"subLabelEn"`
+	SubLabelAr  *string `json:"subLabelAr"`
+	Icon        *string `json:"icon"`
+	SortOrder   int32   `json:"sortOrder"`
 }
 
 type CmsWebsiteContent struct {
-	ID          string
-	Draft       []byte
-	Published   []byte
-	Previous    []byte
-	Revision    *int32
-	PublishedAt *time.Time
-	UpdatedAt   time.Time
+	ID          string     `json:"id"`
+	Draft       []byte     `json:"draft"`
+	Published   []byte     `json:"published"`
+	Previous    []byte     `json:"previous"`
+	Revision    *int32     `json:"revision"`
+	PublishedAt *time.Time `json:"publishedAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }

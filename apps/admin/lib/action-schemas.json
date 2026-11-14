@@ -1942,6 +1942,10 @@
           "isPublished": {
             "kind": "boolean",
             "optional": true
+          },
+          "sortOrder": {
+            "kind": "number",
+            "optional": true
           }
         },
         "optional": false
@@ -1980,6 +1984,10 @@
           },
           "isPublished": {
             "kind": "boolean",
+            "optional": true
+          },
+          "sortOrder": {
+            "kind": "number",
             "optional": true
           }
         },

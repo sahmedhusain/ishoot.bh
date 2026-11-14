@@ -1,9 +1,11 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
 	"time"
 )
+
 const claimSyncLease = `-- name: ClaimSyncLease :execrows
 UPDATE system.integration_setting
 SET sync_lease_token = $1,
@@ -12,12 +14,14 @@ WHERE provider = $3
   AND is_active = true
   AND (sync_lease_until IS NULL OR sync_lease_until <= $4)
 `
+
 type ClaimSyncLeaseParams struct {
-	SyncLeaseToken	*string
-	SyncLeaseUntil	*time.Time
-	Provider	string
-	Now		*time.Time
+	SyncLeaseToken *string    `json:"syncLeaseToken"`
+	SyncLeaseUntil *time.Time `json:"syncLeaseUntil"`
+	Provider       string     `json:"provider"`
+	Now            *time.Time `json:"now"`
 }
+
 func (q *Queries) ClaimSyncLease(ctx context.Context, arg ClaimSyncLeaseParams) (int64, error) {
 	result, err := q.db.Exec(ctx, claimSyncLease,
 		arg.SyncLeaseToken,
@@ -30,9 +34,11 @@ func (q *Queries) ClaimSyncLease(ctx context.Context, arg ClaimSyncLeaseParams) 
 	}
 	return result.RowsAffected(), nil
 }
+
 const getIntegration = `-- name: GetIntegration :one
 SELECT provider, is_active, credentials, config, sync_lease_token, sync_lease_until, health_status, last_checked_at, last_error, account_name, last_synced_at, updated_at, updated_by FROM system.integration_setting WHERE provider = $1
 `
+
 func (q *Queries) GetIntegration(ctx context.Context, provider string) (SystemIntegrationSetting, error) {
 	row := q.db.QueryRow(ctx, getIntegration, provider)
 	var i SystemIntegrationSetting
@@ -53,9 +59,11 @@ func (q *Queries) GetIntegration(ctx context.Context, provider string) (SystemIn
 	)
 	return i, err
 }
+
 const listIntegrations = `-- name: ListIntegrations :many
 SELECT provider, is_active, credentials, config, sync_lease_token, sync_lease_until, health_status, last_checked_at, last_error, account_name, last_synced_at, updated_at, updated_by FROM system.integration_setting ORDER BY provider
 `
+
 func (q *Queries) ListIntegrations(ctx context.Context) ([]SystemIntegrationSetting, error) {
 	rows, err := q.db.Query(ctx, listIntegrations)
 	if err != nil {
@@ -89,6 +97,7 @@ func (q *Queries) ListIntegrations(ctx context.Context) ([]SystemIntegrationSett
 	}
 	return items, nil
 }
+
 const unlinkIntegration = `-- name: UnlinkIntegration :exec
 INSERT INTO system.integration_setting (
     provider, is_active, credentials, config, health_status, last_error, account_name, last_synced_at, sync_lease_token, sync_lease_until, updated_by, updated_at
@@ -107,15 +116,18 @@ INSERT INTO system.integration_setting (
     updated_by = EXCLUDED.updated_by,
     updated_at = EXCLUDED.updated_at
 `
+
 type UnlinkIntegrationParams struct {
-	Provider	string
-	UpdatedBy	*string
-	UpdatedAt	time.Time
+	Provider  string    `json:"provider"`
+	UpdatedBy *string   `json:"updatedBy"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
+
 func (q *Queries) UnlinkIntegration(ctx context.Context, arg UnlinkIntegrationParams) error {
 	_, err := q.db.Exec(ctx, unlinkIntegration, arg.Provider, arg.UpdatedBy, arg.UpdatedAt)
 	return err
 }
+
 const updateIntegrationStatus = `-- name: UpdateIntegrationStatus :exec
 UPDATE system.integration_setting
 SET health_status = $1,
@@ -130,19 +142,21 @@ SET health_status = $1,
     updated_at = $10
 WHERE provider = $11
 `
+
 type UpdateIntegrationStatusParams struct {
-	HealthStatus	string
-	LastError	*string
-	AccountName	*string
-	LastCheckedAt	*time.Time
-	LastSyncedAt	*time.Time
-	Config		json.RawMessage
-	Credentials	*string
-	SyncLeaseToken	*string
-	SyncLeaseUntil	*time.Time
-	UpdatedAt	time.Time
-	Provider	string
+	HealthStatus   string          `json:"healthStatus"`
+	LastError      *string         `json:"lastError"`
+	AccountName    *string         `json:"accountName"`
+	LastCheckedAt  *time.Time      `json:"lastCheckedAt"`
+	LastSyncedAt   *time.Time      `json:"lastSyncedAt"`
+	Config         json.RawMessage `json:"config"`
+	Credentials    *string         `json:"credentials"`
+	SyncLeaseToken *string         `json:"syncLeaseToken"`
+	SyncLeaseUntil *time.Time      `json:"syncLeaseUntil"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
+	Provider       string          `json:"provider"`
 }
+
 func (q *Queries) UpdateIntegrationStatus(ctx context.Context, arg UpdateIntegrationStatusParams) error {
 	_, err := q.db.Exec(ctx, updateIntegrationStatus,
 		arg.HealthStatus,
@@ -159,6 +173,7 @@ func (q *Queries) UpdateIntegrationStatus(ctx context.Context, arg UpdateIntegra
 	)
 	return err
 }
+
 const upsertIntegration = `-- name: UpsertIntegration :exec
 INSERT INTO system.integration_setting (
     provider, is_active, credentials, config, health_status, last_error, account_name, updated_by, updated_at
@@ -174,17 +189,19 @@ INSERT INTO system.integration_setting (
     updated_by = EXCLUDED.updated_by,
     updated_at = EXCLUDED.updated_at
 `
+
 type UpsertIntegrationParams struct {
-	Provider	string
-	IsActive	bool
-	Credentials	*string
-	Config		json.RawMessage
-	HealthStatus	string
-	LastError	*string
-	AccountName	*string
-	UpdatedBy	*string
-	UpdatedAt	time.Time
+	Provider     string          `json:"provider"`
+	IsActive     bool            `json:"isActive"`
+	Credentials  *string         `json:"credentials"`
+	Config       json.RawMessage `json:"config"`
+	HealthStatus string          `json:"healthStatus"`
+	LastError    *string         `json:"lastError"`
+	AccountName  *string         `json:"accountName"`
+	UpdatedBy    *string         `json:"updatedBy"`
+	UpdatedAt    time.Time       `json:"updatedAt"`
 }
+
 func (q *Queries) UpsertIntegration(ctx context.Context, arg UpsertIntegrationParams) error {
 	_, err := q.db.Exec(ctx, upsertIntegration,
 		arg.Provider,

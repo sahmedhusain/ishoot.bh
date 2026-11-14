@@ -12,416 +12,416 @@ import (
 )
 
 type InventoryGoodsReceipt struct {
-	ID              string
-	Number          *string
-	PurchaseOrderID *string
-	LocationID      *string
-	ReceivedByID    *string
-	ReceivedAt      *time.Time
-	Note            *string
-	CreatedAt       time.Time
+	ID              string     `json:"id"`
+	Number          *string    `json:"number"`
+	PurchaseOrderID *string    `json:"purchaseOrderId"`
+	LocationID      *string    `json:"locationId"`
+	ReceivedByID    *string    `json:"receivedById"`
+	ReceivedAt      *time.Time `json:"receivedAt"`
+	Note            *string    `json:"note"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type InventoryGoodsReceiptLine struct {
-	ID               string
-	ReceiptID        *string
-	OrderLineID      *string
-	Quantity         pgtype.Numeric
-	RejectedQuantity pgtype.Numeric
-	RejectReason     *string
-	BatchNumber      *string
-	ExpiryDate       *time.Time
+	ID               string         `json:"id"`
+	ReceiptID        *string        `json:"receiptId"`
+	OrderLineID      *string        `json:"orderLineId"`
+	Quantity         pgtype.Numeric `json:"quantity"`
+	RejectedQuantity pgtype.Numeric `json:"rejectedQuantity"`
+	RejectReason     *string        `json:"rejectReason"`
+	BatchNumber      *string        `json:"batchNumber"`
+	ExpiryDate       *time.Time     `json:"expiryDate"`
 }
 
 type InventoryInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type InventoryOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type InventoryProduct struct {
-	ID             string
-	Sku            string
-	NameEn         string
-	NameAr         string
-	DescriptionEn  string
-	DescriptionAr  string
-	CategoryID     *string
-	CostPrice      pgtype.Numeric
-	SellingPrice   pgtype.Numeric
-	Currency       string
-	TaxRate        pgtype.Numeric
-	Barcode        *string
-	IsActive       bool
-	TrackInventory bool
-	ReorderPoint   pgtype.Numeric
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	Brand          *string
-	Unit           *string
-	Cost           pgtype.Numeric
-	Price          pgtype.Numeric
-	VatExempt      *bool
+	ID             string         `json:"id"`
+	Sku            string         `json:"sku"`
+	NameEn         string         `json:"nameEn"`
+	NameAr         string         `json:"nameAr"`
+	DescriptionEn  string         `json:"descriptionEn"`
+	DescriptionAr  string         `json:"descriptionAr"`
+	CategoryID     *string        `json:"categoryId"`
+	CostPrice      pgtype.Numeric `json:"costPrice"`
+	SellingPrice   pgtype.Numeric `json:"sellingPrice"`
+	Currency       string         `json:"currency"`
+	TaxRate        pgtype.Numeric `json:"taxRate"`
+	Barcode        *string        `json:"barcode"`
+	IsActive       bool           `json:"isActive"`
+	TrackInventory bool           `json:"trackInventory"`
+	ReorderPoint   pgtype.Numeric `json:"reorderPoint"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	Brand          *string        `json:"brand"`
+	Unit           *string        `json:"unit"`
+	Cost           pgtype.Numeric `json:"cost"`
+	Price          pgtype.Numeric `json:"price"`
+	VatExempt      *bool          `json:"vatExempt"`
 }
 
 type InventoryProductCategory struct {
-	ID            string
-	Slug          string
-	NameEn        string
-	NameAr        string
-	DescriptionEn string
-	DescriptionAr string
-	ParentID      *string
-	SortOrder     int32
-	IsActive      bool
-	CreatedAt     *time.Time
-	UpdatedAt     *time.Time
+	ID            string     `json:"id"`
+	Slug          string     `json:"slug"`
+	NameEn        string     `json:"nameEn"`
+	NameAr        string     `json:"nameAr"`
+	DescriptionEn string     `json:"descriptionEn"`
+	DescriptionAr string     `json:"descriptionAr"`
+	ParentID      *string    `json:"parentId"`
+	SortOrder     int32      `json:"sortOrder"`
+	IsActive      bool       `json:"isActive"`
+	CreatedAt     *time.Time `json:"createdAt"`
+	UpdatedAt     *time.Time `json:"updatedAt"`
 }
 
 type InventoryProductPackagingUnit struct {
-	ID          string
-	ProductID   *string
-	Code        *string
-	Name        *string
-	BaseUnits   pgtype.Numeric
-	Indivisible *bool
-	Barcode     *string
-	Revision    *int32
-	IsActive    *bool
-	CreatedAt   time.Time
+	ID          string         `json:"id"`
+	ProductID   *string        `json:"productId"`
+	Code        *string        `json:"code"`
+	Name        *string        `json:"name"`
+	BaseUnits   pgtype.Numeric `json:"baseUnits"`
+	Indivisible *bool          `json:"indivisible"`
+	Barcode     *string        `json:"barcode"`
+	Revision    *int32         `json:"revision"`
+	IsActive    *bool          `json:"isActive"`
+	CreatedAt   time.Time      `json:"createdAt"`
 }
 
 type InventoryProductVariant struct {
-	ID           string
-	ProductID    string
-	Sku          string
-	NameEn       string
-	NameAr       string
-	Barcode      *string
-	CostPrice    pgtype.Numeric
-	SellingPrice pgtype.Numeric
-	IsActive     bool
-	Attributes   json.RawMessage
-	Price        pgtype.Numeric
-	Cost         pgtype.Numeric
-	SortOrder    *int32
-	CreatedAt    *time.Time
-	UpdatedAt    *time.Time
+	ID           string          `json:"id"`
+	ProductID    string          `json:"productId"`
+	Sku          string          `json:"sku"`
+	NameEn       string          `json:"nameEn"`
+	NameAr       string          `json:"nameAr"`
+	Barcode      *string         `json:"barcode"`
+	CostPrice    pgtype.Numeric  `json:"costPrice"`
+	SellingPrice pgtype.Numeric  `json:"sellingPrice"`
+	IsActive     bool            `json:"isActive"`
+	Attributes   json.RawMessage `json:"attributes"`
+	Price        pgtype.Numeric  `json:"price"`
+	Cost         pgtype.Numeric  `json:"cost"`
+	SortOrder    *int32          `json:"sortOrder"`
+	CreatedAt    *time.Time      `json:"createdAt"`
+	UpdatedAt    *time.Time      `json:"updatedAt"`
 }
 
 type InventoryPurchaseOrder struct {
-	ID            string
-	Number        *string
-	SupplierID    *string
-	Status        *string
-	OrderDate     *time.Time
-	ExpectedDate  *time.Time
-	WarehouseID   *string
-	RequisitionID *string
-	RfqID         *string
-	Note          *string
-	Terms         *string
-	VatEnabled    *bool
-	VatPercentage pgtype.Numeric
-	Subtotal      pgtype.Numeric
-	VatAmount     pgtype.Numeric
-	Total         pgtype.Numeric
-	SentAt        *time.Time
-	SentVia       *string
-	CreatedByID   *string
-	ApprovedByID  *string
-	ApprovedAt    *time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            string         `json:"id"`
+	Number        *string        `json:"number"`
+	SupplierID    *string        `json:"supplierId"`
+	Status        *string        `json:"status"`
+	OrderDate     *time.Time     `json:"orderDate"`
+	ExpectedDate  *time.Time     `json:"expectedDate"`
+	WarehouseID   *string        `json:"warehouseId"`
+	RequisitionID *string        `json:"requisitionId"`
+	RfqID         *string        `json:"rfqId"`
+	Note          *string        `json:"note"`
+	Terms         *string        `json:"terms"`
+	VatEnabled    *bool          `json:"vatEnabled"`
+	VatPercentage pgtype.Numeric `json:"vatPercentage"`
+	Subtotal      pgtype.Numeric `json:"subtotal"`
+	VatAmount     pgtype.Numeric `json:"vatAmount"`
+	Total         pgtype.Numeric `json:"total"`
+	SentAt        *time.Time     `json:"sentAt"`
+	SentVia       *string        `json:"sentVia"`
+	CreatedByID   *string        `json:"createdById"`
+	ApprovedByID  *string        `json:"approvedById"`
+	ApprovedAt    *time.Time     `json:"approvedAt"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
 }
 
 type InventoryPurchaseOrderLine struct {
-	ID               string
-	PurchaseOrderID  *string
-	ProductID        *string
-	VariantKey       *string
-	Description      *string
-	Quantity         pgtype.Numeric
-	UnitPrice        pgtype.Numeric
-	ReceivedQuantity pgtype.Numeric
-	RejectedQuantity pgtype.Numeric
-	BilledQuantity   pgtype.Numeric
-	SortOrder        *int32
+	ID               string         `json:"id"`
+	PurchaseOrderID  *string        `json:"purchaseOrderId"`
+	ProductID        *string        `json:"productId"`
+	VariantKey       *string        `json:"variantKey"`
+	Description      *string        `json:"description"`
+	Quantity         pgtype.Numeric `json:"quantity"`
+	UnitPrice        pgtype.Numeric `json:"unitPrice"`
+	ReceivedQuantity pgtype.Numeric `json:"receivedQuantity"`
+	RejectedQuantity pgtype.Numeric `json:"rejectedQuantity"`
+	BilledQuantity   pgtype.Numeric `json:"billedQuantity"`
+	SortOrder        *int32         `json:"sortOrder"`
 }
 
 type InventoryPurchaseRequisition struct {
-	ID             string
-	Number         *string
-	RequestedByID  *string
-	DepartmentID   *string
-	Status         *string
-	NeededBy       *time.Time
-	Note           *string
-	DecisionNote   *string
-	EstimatedTotal pgtype.Numeric
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string         `json:"id"`
+	Number         *string        `json:"number"`
+	RequestedByID  *string        `json:"requestedById"`
+	DepartmentID   *string        `json:"departmentId"`
+	Status         *string        `json:"status"`
+	NeededBy       *time.Time     `json:"neededBy"`
+	Note           *string        `json:"note"`
+	DecisionNote   *string        `json:"decisionNote"`
+	EstimatedTotal pgtype.Numeric `json:"estimatedTotal"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type InventoryPurchaseRequisitionLine struct {
-	ID                string
-	RequisitionID     *string
-	ProductID         *string
-	VariantKey        *string
-	Description       *string
-	Quantity          pgtype.Numeric
-	EstimatedUnitCost pgtype.Numeric
-	SortOrder         *int32
+	ID                string         `json:"id"`
+	RequisitionID     *string        `json:"requisitionId"`
+	ProductID         *string        `json:"productId"`
+	VariantKey        *string        `json:"variantKey"`
+	Description       *string        `json:"description"`
+	Quantity          pgtype.Numeric `json:"quantity"`
+	EstimatedUnitCost pgtype.Numeric `json:"estimatedUnitCost"`
+	SortOrder         *int32         `json:"sortOrder"`
 }
 
 type InventoryRfq struct {
-	ID            string
-	Number        *string
-	RequisitionID *string
-	Title         *string
-	Status        *string
-	DueDate       *time.Time
-	Note          *string
-	CreatedByID   *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            string     `json:"id"`
+	Number        *string    `json:"number"`
+	RequisitionID *string    `json:"requisitionId"`
+	Title         *string    `json:"title"`
+	Status        *string    `json:"status"`
+	DueDate       *time.Time `json:"dueDate"`
+	Note          *string    `json:"note"`
+	CreatedByID   *string    `json:"createdById"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 }
 
 type InventoryRfqLine struct {
-	ID          string
-	RfqID       *string
-	ProductID   *string
-	VariantKey  *string
-	Description *string
-	Quantity    pgtype.Numeric
-	SortOrder   *int32
+	ID          string         `json:"id"`
+	RfqID       *string        `json:"rfqId"`
+	ProductID   *string        `json:"productId"`
+	VariantKey  *string        `json:"variantKey"`
+	Description *string        `json:"description"`
+	Quantity    pgtype.Numeric `json:"quantity"`
+	SortOrder   *int32         `json:"sortOrder"`
 }
 
 type InventoryRfqQuote struct {
-	ID           string
-	RfqID        *string
-	LineID       *string
-	SupplierID   *string
-	UnitPrice    pgtype.Numeric
-	LeadTimeDays *int32
-	Note         *string
-	Selected     *bool
-	CreatedAt    time.Time
+	ID           string         `json:"id"`
+	RfqID        *string        `json:"rfqId"`
+	LineID       *string        `json:"lineId"`
+	SupplierID   *string        `json:"supplierId"`
+	UnitPrice    pgtype.Numeric `json:"unitPrice"`
+	LeadTimeDays *int32         `json:"leadTimeDays"`
+	Note         *string        `json:"note"`
+	Selected     *bool          `json:"selected"`
+	CreatedAt    time.Time      `json:"createdAt"`
 }
 
 type InventoryStockAcknowledgment struct {
-	ID           string
-	AllocationID *string
-	Revision     *int32
-	Stage        *string
-	ActorID      *string
-	SignerName   *string
-	Statement    *string
-	Manifest     []byte
-	ManifestHash *string
-	Signature    *string
-	CreatedAt    time.Time
+	ID           string    `json:"id"`
+	AllocationID *string   `json:"allocationId"`
+	Revision     *int32    `json:"revision"`
+	Stage        *string   `json:"stage"`
+	ActorID      *string   `json:"actorId"`
+	SignerName   *string   `json:"signerName"`
+	Statement    *string   `json:"statement"`
+	Manifest     []byte    `json:"manifest"`
+	ManifestHash *string   `json:"manifestHash"`
+	Signature    *string   `json:"signature"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type InventoryStockAllocation struct {
-	ID                    string
-	Number                *string
-	Kind                  *string
-	SourceLocationID      *string
-	TransitLocationID     *string
-	DestinationLocationID *string
-	Status                *string
-	Revision              *int32
-	CreatedByID           *string
-	ApprovedByID          *string
-	CarrierID             *string
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	ID                    string    `json:"id"`
+	Number                *string   `json:"number"`
+	Kind                  *string   `json:"kind"`
+	SourceLocationID      *string   `json:"sourceLocationId"`
+	TransitLocationID     *string   `json:"transitLocationId"`
+	DestinationLocationID *string   `json:"destinationLocationId"`
+	Status                *string   `json:"status"`
+	Revision              *int32    `json:"revision"`
+	CreatedByID           *string   `json:"createdById"`
+	ApprovedByID          *string   `json:"approvedById"`
+	CarrierID             *string   `json:"carrierId"`
+	CreatedAt             time.Time `json:"createdAt"`
+	UpdatedAt             time.Time `json:"updatedAt"`
 }
 
 type InventoryStockAllocationLine struct {
-	ID           string
-	AllocationID *string
-	ProductID    *string
-	VariantKey   *string
-	BatchKey     *string
-	Requested    pgtype.Numeric
-	Dispatched   pgtype.Numeric
-	Received     pgtype.Numeric
-	Rejected     pgtype.Numeric
-	UnitSnapshot []byte
+	ID           string         `json:"id"`
+	AllocationID *string        `json:"allocationId"`
+	ProductID    *string        `json:"productId"`
+	VariantKey   *string        `json:"variantKey"`
+	BatchKey     *string        `json:"batchKey"`
+	Requested    pgtype.Numeric `json:"requested"`
+	Dispatched   pgtype.Numeric `json:"dispatched"`
+	Received     pgtype.Numeric `json:"received"`
+	Rejected     pgtype.Numeric `json:"rejected"`
+	UnitSnapshot []byte         `json:"unitSnapshot"`
 }
 
 type InventoryStockBatch struct {
-	ID                string
-	BatchNumber       string
-	ProductID         string
-	VariantID         *string
-	LocationID        string
-	InitialQuantity   pgtype.Numeric
-	RemainingQuantity pgtype.Numeric
-	CostPerUnit       pgtype.Numeric
-	ExpiryDate        *time.Time
-	ReceivedAt        time.Time
-	VariantKey        *string
-	CreatedAt         *time.Time
+	ID                string         `json:"id"`
+	BatchNumber       string         `json:"batchNumber"`
+	ProductID         string         `json:"productId"`
+	VariantID         *string        `json:"variantId"`
+	LocationID        string         `json:"locationId"`
+	InitialQuantity   pgtype.Numeric `json:"initialQuantity"`
+	RemainingQuantity pgtype.Numeric `json:"remainingQuantity"`
+	CostPerUnit       pgtype.Numeric `json:"costPerUnit"`
+	ExpiryDate        *time.Time     `json:"expiryDate"`
+	ReceivedAt        time.Time      `json:"receivedAt"`
+	VariantKey        *string        `json:"variantKey"`
+	CreatedAt         *time.Time     `json:"createdAt"`
 }
 
 type InventoryStockCount struct {
-	ID           string
-	CountNumber  string
-	WarehouseID  string
-	Status       string
-	Notes        *string
-	CountedByID  *string
-	ApprovedByID *string
-	CountedAt    *time.Time
-	ApprovedAt   *time.Time
-	CreatedAt    time.Time
-	Number       *string
-	Scope        *string
-	Note         *string
-	CreatedByID  *string
-	SubmittedAt  *time.Time
-	UpdatedAt    *time.Time
+	ID           string     `json:"id"`
+	CountNumber  string     `json:"countNumber"`
+	WarehouseID  string     `json:"warehouseId"`
+	Status       string     `json:"status"`
+	Notes        *string    `json:"notes"`
+	CountedByID  *string    `json:"countedById"`
+	ApprovedByID *string    `json:"approvedById"`
+	CountedAt    *time.Time `json:"countedAt"`
+	ApprovedAt   *time.Time `json:"approvedAt"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	Number       *string    `json:"number"`
+	Scope        *string    `json:"scope"`
+	Note         *string    `json:"note"`
+	CreatedByID  *string    `json:"createdById"`
+	SubmittedAt  *time.Time `json:"submittedAt"`
+	UpdatedAt    *time.Time `json:"updatedAt"`
 }
 
 type InventoryStockCountLine struct {
-	ID              string
-	CountID         string
-	ProductID       string
-	VariantID       *string
-	SystemQuantity  pgtype.Numeric
-	CountedQuantity pgtype.Numeric
-	Variance        pgtype.Numeric
-	Notes           *string
-	VariantKey      *string
-	LocationID      *string
-	BatchKey        *string
-	Expected        pgtype.Numeric
-	Counted         pgtype.Numeric
-	Note            *string
+	ID              string         `json:"id"`
+	CountID         string         `json:"countId"`
+	ProductID       string         `json:"productId"`
+	VariantID       *string        `json:"variantId"`
+	SystemQuantity  pgtype.Numeric `json:"systemQuantity"`
+	CountedQuantity pgtype.Numeric `json:"countedQuantity"`
+	Variance        pgtype.Numeric `json:"variance"`
+	Notes           *string        `json:"notes"`
+	VariantKey      *string        `json:"variantKey"`
+	LocationID      *string        `json:"locationId"`
+	BatchKey        *string        `json:"batchKey"`
+	Expected        pgtype.Numeric `json:"expected"`
+	Counted         pgtype.Numeric `json:"counted"`
+	Note            *string        `json:"note"`
 }
 
 type InventoryStockItem struct {
-	ID              string
-	ProductID       *string
-	VariantKey      *string
-	AverageCost     pgtype.Numeric
-	ReorderPoint    pgtype.Numeric
-	ReorderQuantity pgtype.Numeric
-	LowAlertedAt    *time.Time
-	UpdatedAt       time.Time
+	ID              string         `json:"id"`
+	ProductID       *string        `json:"productId"`
+	VariantKey      *string        `json:"variantKey"`
+	AverageCost     pgtype.Numeric `json:"averageCost"`
+	ReorderPoint    pgtype.Numeric `json:"reorderPoint"`
+	ReorderQuantity pgtype.Numeric `json:"reorderQuantity"`
+	LowAlertedAt    *time.Time     `json:"lowAlertedAt"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
 }
 
 type InventoryStockLevel struct {
-	ID                string
-	ProductID         string
-	VariantID         *string
-	LocationID        string
-	QuantityOnHand    pgtype.Numeric
-	QuantityReserved  pgtype.Numeric
-	QuantityAvailable pgtype.Numeric
-	ReorderPoint      pgtype.Numeric
-	UpdatedAt         time.Time
-	VariantKey        *string
-	BatchKey          *string
-	OnHand            pgtype.Numeric
-	Reserved          pgtype.Numeric
+	ID                string         `json:"id"`
+	ProductID         string         `json:"productId"`
+	VariantID         *string        `json:"variantId"`
+	LocationID        string         `json:"locationId"`
+	QuantityOnHand    pgtype.Numeric `json:"quantityOnHand"`
+	QuantityReserved  pgtype.Numeric `json:"quantityReserved"`
+	QuantityAvailable pgtype.Numeric `json:"quantityAvailable"`
+	ReorderPoint      pgtype.Numeric `json:"reorderPoint"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
+	VariantKey        *string        `json:"variantKey"`
+	BatchKey          *string        `json:"batchKey"`
+	OnHand            pgtype.Numeric `json:"onHand"`
+	Reserved          pgtype.Numeric `json:"reserved"`
 }
 
 type InventoryStockLocation struct {
-	ID          string
-	WarehouseID string
-	Code        string
-	Name        string
-	IsActive    bool
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	WarehouseID string    `json:"warehouseId"`
+	Code        string    `json:"code"`
+	Name        string    `json:"name"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type InventoryStockMovement struct {
-	ID           string
-	MovementType string
-	ProductID    string
-	VariantID    *string
-	LocationID   string
-	Quantity     pgtype.Numeric
-	UnitCost     pgtype.Numeric
-	SourceType   string
-	SourceID     *string
-	TransferID   *string
-	Reason       *string
-	Note         *string
-	CreatedByID  *string
-	CreatedAt    time.Time
-	Type         *string
-	VariantKey   *string
-	BatchKey     *string
+	ID           string         `json:"id"`
+	MovementType string         `json:"movementType"`
+	ProductID    string         `json:"productId"`
+	VariantID    *string        `json:"variantId"`
+	LocationID   string         `json:"locationId"`
+	Quantity     pgtype.Numeric `json:"quantity"`
+	UnitCost     pgtype.Numeric `json:"unitCost"`
+	SourceType   string         `json:"sourceType"`
+	SourceID     *string        `json:"sourceId"`
+	TransferID   *string        `json:"transferId"`
+	Reason       *string        `json:"reason"`
+	Note         *string        `json:"note"`
+	CreatedByID  *string        `json:"createdById"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	Type         *string        `json:"type"`
+	VariantKey   *string        `json:"variantKey"`
+	BatchKey     *string        `json:"batchKey"`
 }
 
 type InventoryStockPackage struct {
-	ID          string
-	Code        *string
-	Kind        *string
-	LocationID  *string
-	ParentID    *string
-	Status      *string
-	SealNumber  *string
-	Revision    *int32
-	CreatedByID *string
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	Code        *string   `json:"code"`
+	Kind        *string   `json:"kind"`
+	LocationID  *string   `json:"locationId"`
+	ParentID    *string   `json:"parentId"`
+	Status      *string   `json:"status"`
+	SealNumber  *string   `json:"sealNumber"`
+	Revision    *int32    `json:"revision"`
+	CreatedByID *string   `json:"createdById"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type InventoryStockSerial struct {
-	ID                 string
-	Code               *string
-	ProductID          *string
-	VariantKey         *string
-	BatchKey           *string
-	LocationID         *string
-	ManufacturerSerial *string
-	ManufacturerScope  *string
-	Status             *string
-	PackageID          *string
-	GenerationID       *string
-	Revision           *int32
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID                 string    `json:"id"`
+	Code               *string   `json:"code"`
+	ProductID          *string   `json:"productId"`
+	VariantKey         *string   `json:"variantKey"`
+	BatchKey           *string   `json:"batchKey"`
+	LocationID         *string   `json:"locationId"`
+	ManufacturerSerial *string   `json:"manufacturerSerial"`
+	ManufacturerScope  *string   `json:"manufacturerScope"`
+	Status             *string   `json:"status"`
+	PackageID          *string   `json:"packageId"`
+	GenerationID       *string   `json:"generationId"`
+	Revision           *int32    `json:"revision"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
 type InventoryStockTraceEvent struct {
-	ID         string
-	EntityType *string
-	EntityID   *string
-	Revision   *int32
-	Action     *string
-	ActorID    *string
-	Details    []byte
-	CreatedAt  time.Time
+	ID         string    `json:"id"`
+	EntityType *string   `json:"entityType"`
+	EntityID   *string   `json:"entityId"`
+	Revision   *int32    `json:"revision"`
+	Action     *string   `json:"action"`
+	ActorID    *string   `json:"actorId"`
+	Details    []byte    `json:"details"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type InventoryWarehouse struct {
-	ID        string
-	Code      string
-	NameEn    string
-	NameAr    string
-	Address   *string
-	IsActive  bool
-	IsDefault bool
-	BranchID  *string
-	SortOrder int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Code      string    `json:"code"`
+	NameEn    string    `json:"nameEn"`
+	NameAr    string    `json:"nameAr"`
+	Address   *string   `json:"address"`
+	IsActive  bool      `json:"isActive"`
+	IsDefault bool      `json:"isDefault"`
+	BranchID  *string   `json:"branchId"`
+	SortOrder int32     `json:"sortOrder"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

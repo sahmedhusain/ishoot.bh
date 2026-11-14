@@ -1,40 +1,48 @@
 package sqlcdb
+
 import (
 	"context"
 	"encoding/json"
 	"time"
 )
+
 const deleteDebugToggle = `-- name: DeleteDebugToggle :exec
 DELETE FROM system.debug_toggle
 WHERE service = $1
 `
+
 func (q *Queries) DeleteDebugToggle(ctx context.Context, service string) error {
 	_, err := q.db.Exec(ctx, deleteDebugToggle, service)
 	return err
 }
+
 const deleteExpiredDebugToggles = `-- name: DeleteExpiredDebugToggles :exec
 DELETE FROM system.debug_toggle
 WHERE expires_at <= now()
 `
+
 func (q *Queries) DeleteExpiredDebugToggles(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, deleteExpiredDebugToggles)
 	return err
 }
+
 const getAPIKeyByHash = `-- name: GetAPIKeyByHash :one
 SELECT id, name, key_prefix, scopes, rate_limit, last_used_at, expires_at, revoked_at
 FROM system.api_key
 WHERE key_hash = $1
 `
+
 type GetAPIKeyByHashRow struct {
-	ID		string
-	Name		string
-	KeyPrefix	string
-	Scopes		[]string
-	RateLimit	int32
-	LastUsedAt	*time.Time
-	ExpiresAt	*time.Time
-	RevokedAt	*time.Time
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	KeyPrefix  string     `json:"keyPrefix"`
+	Scopes     []string   `json:"scopes"`
+	RateLimit  int32      `json:"rateLimit"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	RevokedAt  *time.Time `json:"revokedAt"`
 }
+
 func (q *Queries) GetAPIKeyByHash(ctx context.Context, keyHash string) (GetAPIKeyByHashRow, error) {
 	row := q.db.QueryRow(ctx, getAPIKeyByHash, keyHash)
 	var i GetAPIKeyByHashRow
@@ -50,21 +58,24 @@ func (q *Queries) GetAPIKeyByHash(ctx context.Context, keyHash string) (GetAPIKe
 	)
 	return i, err
 }
+
 const insertAPIKey = `-- name: InsertAPIKey :exec
 INSERT INTO system.api_key (id, name, key_prefix, key_hash, scopes, rate_limit, expires_at, created_by, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 `
+
 type InsertAPIKeyParams struct {
-	ID		string
-	Name		string
-	KeyPrefix	string
-	KeyHash		string
-	Scopes		[]string
-	RateLimit	int32
-	ExpiresAt	*time.Time
-	CreatedBy	string
-	CreatedAt	time.Time
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	KeyPrefix string     `json:"keyPrefix"`
+	KeyHash   string     `json:"keyHash"`
+	Scopes    []string   `json:"scopes"`
+	RateLimit int32      `json:"rateLimit"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	CreatedBy string     `json:"createdBy"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
+
 func (q *Queries) InsertAPIKey(ctx context.Context, arg InsertAPIKeyParams) error {
 	_, err := q.db.Exec(ctx, insertAPIKey,
 		arg.ID,
@@ -79,22 +90,25 @@ func (q *Queries) InsertAPIKey(ctx context.Context, arg InsertAPIKeyParams) erro
 	)
 	return err
 }
+
 const insertBackupRecord = `-- name: InsertBackupRecord :exec
 INSERT INTO system.backup_record (id, kind, file_name, file_size, checksum, status, error_message, created_by, created_at, details)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 `
+
 type InsertBackupRecordParams struct {
-	ID		string
-	Kind		string
-	FileName	string
-	FileSize	int64
-	Checksum	string
-	Status		string
-	ErrorMessage	*string
-	CreatedBy	string
-	CreatedAt	time.Time
-	Details		json.RawMessage
+	ID           string          `json:"id"`
+	Kind         string          `json:"kind"`
+	FileName     string          `json:"fileName"`
+	FileSize     int64           `json:"fileSize"`
+	Checksum     string          `json:"checksum"`
+	Status       string          `json:"status"`
+	ErrorMessage *string         `json:"errorMessage"`
+	CreatedBy    string          `json:"createdBy"`
+	CreatedAt    time.Time       `json:"createdAt"`
+	Details      json.RawMessage `json:"details"`
 }
+
 func (q *Queries) InsertBackupRecord(ctx context.Context, arg InsertBackupRecordParams) error {
 	_, err := q.db.Exec(ctx, insertBackupRecord,
 		arg.ID,
@@ -110,23 +124,26 @@ func (q *Queries) InsertBackupRecord(ctx context.Context, arg InsertBackupRecord
 	)
 	return err
 }
+
 const listAPIKeys = `-- name: ListAPIKeys :many
 SELECT id, name, key_prefix, scopes, rate_limit, last_used_at, expires_at, created_by, created_at, revoked_at
 FROM system.api_key
 ORDER BY created_at DESC
 `
+
 type ListAPIKeysRow struct {
-	ID		string
-	Name		string
-	KeyPrefix	string
-	Scopes		[]string
-	RateLimit	int32
-	LastUsedAt	*time.Time
-	ExpiresAt	*time.Time
-	CreatedBy	string
-	CreatedAt	time.Time
-	RevokedAt	*time.Time
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	KeyPrefix  string     `json:"keyPrefix"`
+	Scopes     []string   `json:"scopes"`
+	RateLimit  int32      `json:"rateLimit"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	CreatedBy  string     `json:"createdBy"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	RevokedAt  *time.Time `json:"revokedAt"`
 }
+
 func (q *Queries) ListAPIKeys(ctx context.Context) ([]ListAPIKeysRow, error) {
 	rows, err := q.db.Query(ctx, listAPIKeys)
 	if err != nil {
@@ -157,12 +174,14 @@ func (q *Queries) ListAPIKeys(ctx context.Context) ([]ListAPIKeysRow, error) {
 	}
 	return items, nil
 }
+
 const listBackupRecords = `-- name: ListBackupRecords :many
 SELECT id, kind, file_name, file_size, checksum, status, error_message, created_by, created_at, verified_at, details
 FROM system.backup_record
 ORDER BY created_at DESC
 LIMIT $1
 `
+
 func (q *Queries) ListBackupRecords(ctx context.Context, limit int32) ([]SystemBackupRecord, error) {
 	rows, err := q.db.Query(ctx, listBackupRecords, limit)
 	if err != nil {
@@ -194,11 +213,13 @@ func (q *Queries) ListBackupRecords(ctx context.Context, limit int32) ([]SystemB
 	}
 	return items, nil
 }
+
 const listDebugToggles = `-- name: ListDebugToggles :many
 SELECT id, service, log_level, enabled_by, enabled_at, expires_at
 FROM system.debug_toggle
 WHERE expires_at > now()
 `
+
 func (q *Queries) ListDebugToggles(ctx context.Context) ([]SystemDebugToggle, error) {
 	rows, err := q.db.Query(ctx, listDebugToggles)
 	if err != nil {
@@ -225,44 +246,53 @@ func (q *Queries) ListDebugToggles(ctx context.Context) ([]SystemDebugToggle, er
 	}
 	return items, nil
 }
+
 const recordAPIKeyUse = `-- name: RecordAPIKeyUse :exec
 UPDATE system.api_key
 SET last_used_at = $2
 WHERE id = $1
 `
+
 type RecordAPIKeyUseParams struct {
-	ID		string
-	LastUsedAt	*time.Time
+	ID         string     `json:"id"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
 }
+
 func (q *Queries) RecordAPIKeyUse(ctx context.Context, arg RecordAPIKeyUseParams) error {
 	_, err := q.db.Exec(ctx, recordAPIKeyUse, arg.ID, arg.LastUsedAt)
 	return err
 }
+
 const revokeAPIKey = `-- name: RevokeAPIKey :exec
 UPDATE system.api_key
 SET revoked_at = $2
 WHERE id = $1 AND revoked_at IS NULL
 `
+
 type RevokeAPIKeyParams struct {
-	ID		string
-	RevokedAt	*time.Time
+	ID        string     `json:"id"`
+	RevokedAt *time.Time `json:"revokedAt"`
 }
+
 func (q *Queries) RevokeAPIKey(ctx context.Context, arg RevokeAPIKeyParams) error {
 	_, err := q.db.Exec(ctx, revokeAPIKey, arg.ID, arg.RevokedAt)
 	return err
 }
+
 const updateBackupStatus = `-- name: UpdateBackupStatus :exec
 UPDATE system.backup_record
 SET status = $2, error_message = $3, verified_at = $4, details = $5
 WHERE id = $1
 `
+
 type UpdateBackupStatusParams struct {
-	ID		string
-	Status		string
-	ErrorMessage	*string
-	VerifiedAt	*time.Time
-	Details		json.RawMessage
+	ID           string          `json:"id"`
+	Status       string          `json:"status"`
+	ErrorMessage *string         `json:"errorMessage"`
+	VerifiedAt   *time.Time      `json:"verifiedAt"`
+	Details      json.RawMessage `json:"details"`
 }
+
 func (q *Queries) UpdateBackupStatus(ctx context.Context, arg UpdateBackupStatusParams) error {
 	_, err := q.db.Exec(ctx, updateBackupStatus,
 		arg.ID,
@@ -273,20 +303,23 @@ func (q *Queries) UpdateBackupStatus(ctx context.Context, arg UpdateBackupStatus
 	)
 	return err
 }
+
 const upsertDebugToggle = `-- name: UpsertDebugToggle :exec
 INSERT INTO system.debug_toggle (id, service, log_level, enabled_by, enabled_at, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (service) DO UPDATE
 SET log_level = EXCLUDED.log_level, enabled_by = EXCLUDED.enabled_by, enabled_at = EXCLUDED.enabled_at, expires_at = EXCLUDED.expires_at
 `
+
 type UpsertDebugToggleParams struct {
-	ID		string
-	Service		string
-	LogLevel	string
-	EnabledBy	string
-	EnabledAt	time.Time
-	ExpiresAt	time.Time
+	ID        string    `json:"id"`
+	Service   string    `json:"service"`
+	LogLevel  string    `json:"logLevel"`
+	EnabledBy string    `json:"enabledBy"`
+	EnabledAt time.Time `json:"enabledAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
+
 func (q *Queries) UpsertDebugToggle(ctx context.Context, arg UpsertDebugToggleParams) error {
 	_, err := q.db.Exec(ctx, upsertDebugToggle,
 		arg.ID,

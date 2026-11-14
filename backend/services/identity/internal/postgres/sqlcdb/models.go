@@ -11,276 +11,276 @@ import (
 )
 
 type IdentityAccount struct {
-	Realm                     string
-	SubjectID                 string
-	Email                     string
-	PasswordHash              *string
-	Roles                     []string
-	Active                    bool
-	MfaEnabled                bool
-	MfaSecretEncrypted        *string
-	MfaLastStep               *int64
-	LastLoginAt               *time.Time
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	MfaPendingSecretEncrypted *string
-	MfaPendingExpiresAt       *time.Time
-	Username                  *string
-	ReportingTo               *string
+	Realm                     string     `json:"realm"`
+	SubjectID                 string     `json:"subjectId"`
+	Email                     string     `json:"email"`
+	PasswordHash              *string    `json:"passwordHash"`
+	Roles                     []string   `json:"roles"`
+	Active                    bool       `json:"active"`
+	MfaEnabled                bool       `json:"mfaEnabled"`
+	MfaSecretEncrypted        *string    `json:"mfaSecretEncrypted"`
+	MfaLastStep               *int64     `json:"mfaLastStep"`
+	LastLoginAt               *time.Time `json:"lastLoginAt"`
+	CreatedAt                 time.Time  `json:"createdAt"`
+	UpdatedAt                 time.Time  `json:"updatedAt"`
+	MfaPendingSecretEncrypted *string    `json:"mfaPendingSecretEncrypted"`
+	MfaPendingExpiresAt       *time.Time `json:"mfaPendingExpiresAt"`
+	Username                  *string    `json:"username"`
+	ReportingTo               *string    `json:"reportingTo"`
 }
 
 type IdentityAuthChallenge struct {
-	ID        string
-	UserID    *string
-	Email     *string
-	Type      *string
-	CodeHash  *string
-	ExpiresAt *time.Time
-	Attempts  *int32
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	UserID    *string    `json:"userId"`
+	Email     *string    `json:"email"`
+	Type      *string    `json:"type"`
+	CodeHash  *string    `json:"codeHash"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	Attempts  *int32     `json:"attempts"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type IdentityBranch struct {
-	ID               string
-	Code             *string
-	Name             *string
-	TimeZone         *string
-	BusinessDayStart *int32
-	IsActive         *bool
-	Revision         *int32
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               string    `json:"id"`
+	Code             *string   `json:"code"`
+	Name             *string   `json:"name"`
+	TimeZone         *string   `json:"timeZone"`
+	BusinessDayStart *int32    `json:"businessDayStart"`
+	IsActive         *bool     `json:"isActive"`
+	Revision         *int32    `json:"revision"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type IdentityBranchGrant struct {
-	ID        string
-	BranchID  *string
-	UserID    *string
-	CanManage *bool
+	ID        string  `json:"id"`
+	BranchID  *string `json:"branchId"`
+	UserID    *string `json:"userId"`
+	CanManage *bool   `json:"canManage"`
 }
 
 type IdentityCustomerCode struct {
-	Email     string
-	ID        string
-	HashKind  string
-	CodeHash  string
-	Attempts  int32
-	ExpiresAt time.Time
-	UsedAt    *time.Time
+	Email     string     `json:"email"`
+	ID        string     `json:"id"`
+	HashKind  string     `json:"hashKind"`
+	CodeHash  string     `json:"codeHash"`
+	Attempts  int32      `json:"attempts"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	UsedAt    *time.Time `json:"usedAt"`
 }
 
 type IdentityCustomerProvider struct {
-	Provider        string
-	ProviderSubject string
-	Realm           string
-	SubjectID       string
-	CreatedAt       time.Time
+	Provider        string    `json:"provider"`
+	ProviderSubject string    `json:"providerSubject"`
+	Realm           string    `json:"realm"`
+	SubjectID       string    `json:"subjectId"`
+	CreatedAt       time.Time `json:"createdAt"`
 }
 
 type IdentityInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type IdentityItPermission struct {
-	ID        string
-	RoleID    string
-	Resource  string
-	Action    string
-	Allowed   bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	RoleID    string    `json:"roleId"`
+	Resource  string    `json:"resource"`
+	Action    string    `json:"action"`
+	Allowed   bool      `json:"allowed"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type IdentityItRole struct {
-	ID              string
-	NameEn          string
-	NameAr          string
-	IsSystem        bool
-	ReportingToRole *string
-	Revision        int64
-	CreatedAt       time.Time
+	ID              string    `json:"id"`
+	NameEn          string    `json:"nameEn"`
+	NameAr          string    `json:"nameAr"`
+	IsSystem        bool      `json:"isSystem"`
+	ReportingToRole *string   `json:"reportingToRole"`
+	Revision        int64     `json:"revision"`
+	CreatedAt       time.Time `json:"createdAt"`
 }
 
 type IdentityLegacyResetChallenge struct {
-	ID        string
-	Realm     string
-	SubjectID string
-	CodeHash  string
-	Kind      string
-	UsedAt    *time.Time
-	Attempts  int32
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	Realm     string     `json:"realm"`
+	SubjectID string     `json:"subjectId"`
+	CodeHash  string     `json:"codeHash"`
+	Kind      string     `json:"kind"`
+	UsedAt    *time.Time `json:"usedAt"`
+	Attempts  int32      `json:"attempts"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type IdentityMfaRecoveryCode struct {
-	Realm     string
-	SubjectID string
-	CodeHash  string
-	UsedAt    *time.Time
-	ID        *string
-	UserID    *string
+	Realm     string     `json:"realm"`
+	SubjectID string     `json:"subjectId"`
+	CodeHash  string     `json:"codeHash"`
+	UsedAt    *time.Time `json:"usedAt"`
+	ID        *string    `json:"id"`
+	UserID    *string    `json:"userId"`
 }
 
 type IdentityOauthState struct {
-	StateHash       string
-	Provider        string
-	RedirectUri     string
-	NextPath        string
-	Locale          string
-	SecretEncrypted string
-	ClaimsEncrypted *string
-	ExchangingAt    *time.Time
-	ConsumedAt      *time.Time
-	ExpiresAt       time.Time
-	CreatedAt       time.Time
+	StateHash       string     `json:"stateHash"`
+	Provider        string     `json:"provider"`
+	RedirectUri     string     `json:"redirectUri"`
+	NextPath        string     `json:"nextPath"`
+	Locale          string     `json:"locale"`
+	SecretEncrypted string     `json:"secretEncrypted"`
+	ClaimsEncrypted *string    `json:"claimsEncrypted"`
+	ExchangingAt    *time.Time `json:"exchangingAt"`
+	ConsumedAt      *time.Time `json:"consumedAt"`
+	ExpiresAt       time.Time  `json:"expiresAt"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type IdentityOutbox struct {
-	ID          string
-	Subject     string
-	Payload     []byte
-	Headers     []byte
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string     `json:"id"`
+	Subject     string     `json:"subject"`
+	Payload     []byte     `json:"payload"`
+	Headers     []byte     `json:"headers"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	PublishedAt *time.Time `json:"publishedAt"`
+	Attempts    int32      `json:"attempts"`
+	NextTryAt   time.Time  `json:"nextTryAt"`
+	LastError   *string    `json:"lastError"`
 }
 
 type IdentityPasswordReset struct {
-	TokenHash string
-	Realm     string
-	SubjectID string
-	ExpiresAt time.Time
-	UsedAt    *time.Time
-	CreatedAt time.Time
+	TokenHash string     `json:"tokenHash"`
+	Realm     string     `json:"realm"`
+	SubjectID string     `json:"subjectId"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	UsedAt    *time.Time `json:"usedAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type IdentityPermission struct {
-	ID        string
-	Role      *string
-	Resource  *string
-	Action    *string
-	Allowed   *bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	Role      *string   `json:"role"`
+	Resource  *string   `json:"resource"`
+	Action    *string   `json:"action"`
+	Allowed   *bool     `json:"allowed"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type IdentityProfileProjection struct {
-	Realm            string
-	SubjectID        string
-	Version          int64
-	DeliveredVersion int64
-	Deleted          bool
-	UpdatedAt        time.Time
+	Realm            string    `json:"realm"`
+	SubjectID        string    `json:"subjectId"`
+	Version          int64     `json:"version"`
+	DeliveredVersion int64     `json:"deliveredVersion"`
+	Deleted          bool      `json:"deleted"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type IdentityRefreshToken struct {
-	TokenHash  string
-	FamilyID   string
-	ConsumedAt *time.Time
-	CreatedAt  time.Time
+	TokenHash  string     `json:"tokenHash"`
+	FamilyID   string     `json:"familyId"`
+	ConsumedAt *time.Time `json:"consumedAt"`
+	CreatedAt  time.Time  `json:"createdAt"`
 }
 
 type IdentityRole struct {
-	ID        string
-	NameEn    *string
-	NameAr    *string
-	IsSystem  *bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	NameEn    *string   `json:"nameEn"`
+	NameAr    *string   `json:"nameAr"`
+	IsSystem  *bool     `json:"isSystem"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type IdentityRoleDataScope struct {
-	Role  *string
-	Area  *string
-	Scope *string
+	Role  *string `json:"role"`
+	Area  *string `json:"area"`
+	Scope *string `json:"scope"`
 }
 
 type IdentitySession struct {
-	ID        string
-	UserID    *string
-	Token     *string
-	IpAddress *string
-	UserAgent *string
-	ExpiresAt *time.Time
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	UserID    *string    `json:"userId"`
+	Token     *string    `json:"token"`
+	IpAddress *string    `json:"ipAddress"`
+	UserAgent *string    `json:"userAgent"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type IdentitySessionFamily struct {
-	ID        string
-	SubjectID string
-	Realm     string
-	ExpiresAt time.Time
-	RevokedAt *time.Time
-	CreatedAt time.Time
-	UserAgent *string
-	ClientIp  *string
+	ID        string     `json:"id"`
+	SubjectID string     `json:"subjectId"`
+	Realm     string     `json:"realm"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	RevokedAt *time.Time `json:"revokedAt"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UserAgent *string    `json:"userAgent"`
+	ClientIp  *string    `json:"clientIp"`
 }
 
 type IdentityStaffAccess struct {
-	Realm               string
-	SubjectID           string
-	PermissionOverrides []byte
-	UpdatedAt           time.Time
-	DisplayName         string
-	DataScopes          []byte
+	Realm               string    `json:"realm"`
+	SubjectID           string    `json:"subjectId"`
+	PermissionOverrides []byte    `json:"permissionOverrides"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	DisplayName         string    `json:"displayName"`
+	DataScopes          []byte    `json:"dataScopes"`
 }
 
 type IdentityStaffPermission struct {
-	ID        string
-	RoleID    string
-	Resource  string
-	Action    string
-	Allowed   bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	RoleID    string    `json:"roleId"`
+	Resource  string    `json:"resource"`
+	Action    string    `json:"action"`
+	Allowed   bool      `json:"allowed"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type IdentityStaffRole struct {
-	ID              string
-	NameEn          string
-	NameAr          string
-	IsSystem        bool
-	CreatedAt       time.Time
-	Revision        int64
-	ReportingToRole *string
+	ID              string    `json:"id"`
+	NameEn          string    `json:"nameEn"`
+	NameAr          string    `json:"nameAr"`
+	IsSystem        bool      `json:"isSystem"`
+	CreatedAt       time.Time `json:"createdAt"`
+	Revision        int64     `json:"revision"`
+	ReportingToRole *string   `json:"reportingToRole"`
 }
 
 type IdentityStaffRoleScope struct {
-	RoleID string
-	Area   string
-	Scope  string
+	RoleID string `json:"roleId"`
+	Area   string `json:"area"`
+	Scope  string `json:"scope"`
 }
 
 type IdentityUser struct {
-	ID                        string
-	Email                     *string
-	FullName                  *string
-	PasswordHash              *string
-	Role                      *string
-	Permissions               []byte
-	AvatarUrl                 *string
-	SignatureUrl              *string
-	Phone                     *string
-	Department                *string
-	DepartmentID              *string
-	ManagerID                 *string
-	IsActive                  *bool
-	LastLoginAt               *time.Time
-	MfaEnabled                *bool
-	MfaSecretEncrypted        *string
-	MfaPendingSecretEncrypted *string
-	MfaPendingExpiresAt       *time.Time
-	MfaLastStep               *int64
-	ResetToken                *string
-	ResetExpiresAt            *time.Time
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	DiscountLimitPercent      pgtype.Numeric
-	CommissionRatePercent     pgtype.Numeric
-	ArchivedAt                *time.Time
-	ArchivedByID              *string
-	SuspendedAt               *time.Time
-	SuspendedByID             *string
-	SuspensionReason          *string
+	ID                        string         `json:"id"`
+	Email                     *string        `json:"email"`
+	FullName                  *string        `json:"fullName"`
+	PasswordHash              *string        `json:"passwordHash"`
+	Role                      *string        `json:"role"`
+	Permissions               []byte         `json:"permissions"`
+	AvatarUrl                 *string        `json:"avatarUrl"`
+	SignatureUrl              *string        `json:"signatureUrl"`
+	Phone                     *string        `json:"phone"`
+	Department                *string        `json:"department"`
+	DepartmentID              *string        `json:"departmentId"`
+	ManagerID                 *string        `json:"managerId"`
+	IsActive                  *bool          `json:"isActive"`
+	LastLoginAt               *time.Time     `json:"lastLoginAt"`
+	MfaEnabled                *bool          `json:"mfaEnabled"`
+	MfaSecretEncrypted        *string        `json:"mfaSecretEncrypted"`
+	MfaPendingSecretEncrypted *string        `json:"mfaPendingSecretEncrypted"`
+	MfaPendingExpiresAt       *time.Time     `json:"mfaPendingExpiresAt"`
+	MfaLastStep               *int64         `json:"mfaLastStep"`
+	ResetToken                *string        `json:"resetToken"`
+	ResetExpiresAt            *time.Time     `json:"resetExpiresAt"`
+	CreatedAt                 time.Time      `json:"createdAt"`
+	UpdatedAt                 time.Time      `json:"updatedAt"`
+	DiscountLimitPercent      pgtype.Numeric `json:"discountLimitPercent"`
+	CommissionRatePercent     pgtype.Numeric `json:"commissionRatePercent"`
+	ArchivedAt                *time.Time     `json:"archivedAt"`
+	ArchivedByID              *string        `json:"archivedById"`
+	SuspendedAt               *time.Time     `json:"suspendedAt"`
+	SuspendedByID             *string        `json:"suspendedById"`
+	SuspensionReason          *string        `json:"suspensionReason"`
 }

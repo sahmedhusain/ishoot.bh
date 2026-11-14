@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { getReviews, getStudioEquipment } from "@platform/database";
+import { pickText } from "@platform/database/constants/languages";
 import type { CmsPageRecord } from "@platform/database/queries/cms-pages";
 import { getSite } from "../../lib/site";
+import { collectionHref } from "../../lib/site-copy";
+import { ExecutiveCtaBanner } from "../about/ExecutiveCtaBanner";
 import { Reveal } from "../shared/Reveal";
 import { PageBlocks } from "./PageBlocks";
 
@@ -16,6 +19,10 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
   const content = website;
   const title = locale === "ar" ? page.title_ar || page.title_en : page.title_en || page.title_ar;
   const opensWithHero = page.blocks.find((block) => block.visible)?.type === "hero";
+  const showCtaBanner =
+    page.page_type === "home" &&
+    !types.has("cta") &&
+    (website.config.sections.find((s) => s.id === "cta")?.visible ?? true);
   return (
     <div className={`${page.page_type === "home" ? "home-page " : ""}flex flex-col w-full min-h-screen bg-brand-base text-ink`}>
       {page.page_type === "custom" && !opensWithHero && (
@@ -29,6 +36,13 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
         blocks={page.blocks}
         context={{ home: page.page_type === "home", locale, website: content, company, reviews, equipment, contact, showEquipment: info.showEquipment, articlesBase: `/${locale}/${info.articles.slug}` }}
       />
+      {showCtaBanner && (
+        <ExecutiveCtaBanner
+          locale={locale}
+          companyName={pickText(company.company_name_en, company.company_name_ar, locale)}
+          catalogueHref={collectionHref(info, locale)}
+        />
+      )}
     </div>
   );
 }

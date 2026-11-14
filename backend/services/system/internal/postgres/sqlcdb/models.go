@@ -12,1270 +12,1270 @@ import (
 )
 
 type SystemAbuseWindow struct {
-	Key       string
-	Count     *int32
-	ExpiresAt *time.Time
+	Key       string     `json:"key"`
+	Count     *int32     `json:"count"`
+	ExpiresAt *time.Time `json:"expiresAt"`
 }
 
 type SystemAccountChangeRequest struct {
-	ID            string
-	UserID        *string
-	RequestedByID *string
-	Changes       []byte
-	Before        []byte
-	Reason        *string
-	Status        *string
-	DecidedByID   *string
-	ReviewNotes   *string
-	DecidedAt     *time.Time
-	CreatedAt     time.Time
+	ID            string     `json:"id"`
+	UserID        *string    `json:"userId"`
+	RequestedByID *string    `json:"requestedById"`
+	Changes       []byte     `json:"changes"`
+	Before        []byte     `json:"before"`
+	Reason        *string    `json:"reason"`
+	Status        *string    `json:"status"`
+	DecidedByID   *string    `json:"decidedById"`
+	ReviewNotes   *string    `json:"reviewNotes"`
+	DecidedAt     *time.Time `json:"decidedAt"`
+	CreatedAt     time.Time  `json:"createdAt"`
 }
 
 type SystemAccountingAccount struct {
-	ID       string
-	Code     *string
-	Name     *string
-	Kind     *string
-	IsActive *bool
+	ID       string  `json:"id"`
+	Code     *string `json:"code"`
+	Name     *string `json:"name"`
+	Kind     *string `json:"kind"`
+	IsActive *bool   `json:"isActive"`
 }
 
 type SystemAccountingPeriod struct {
-	ID         string
-	Name       *string
-	StartsOn   *time.Time
-	EndsOn     *time.Time
-	Status     *string
-	ClosedByID *string
-	ClosedAt   *time.Time
+	ID         string     `json:"id"`
+	Name       *string    `json:"name"`
+	StartsOn   *time.Time `json:"startsOn"`
+	EndsOn     *time.Time `json:"endsOn"`
+	Status     *string    `json:"status"`
+	ClosedByID *string    `json:"closedById"`
+	ClosedAt   *time.Time `json:"closedAt"`
 }
 
 type SystemActivityLog struct {
-	ID          string
-	UserID      *string
-	Action      *string
-	EntityType  *string
-	EntityID    *string
-	Details     []byte
-	DiffPayload []byte
+	ID          string  `json:"id"`
+	UserID      *string `json:"userId"`
+	Action      *string `json:"action"`
+	EntityType  *string `json:"entityType"`
+	EntityID    *string `json:"entityId"`
+	Details     []byte  `json:"details"`
+	DiffPayload []byte  `json:"diffPayload"`
 }
 
 type SystemAnnouncement struct {
-	ID                      string
-	Reference               *string
-	TitleEn                 *string
-	TitleAr                 *string
-	BodyEn                  *string
-	BodyAr                  *string
-	Category                *string
-	Priority                *string
-	Audience                *string
-	Official                *bool
-	RequiresAcknowledgement *bool
-	Pinned                  *bool
-	Status                  *string
-	PublishAt               *time.Time
-	ExpiresAt               *time.Time
-	PublishedAt             *time.Time
-	CreatedByID             *string
-	SignedByID              *string
-	SignatureUrl            *string
-	SignedAt                *time.Time
-	DecisionNotes           *string
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
+	ID                      string     `json:"id"`
+	Reference               *string    `json:"reference"`
+	TitleEn                 *string    `json:"titleEn"`
+	TitleAr                 *string    `json:"titleAr"`
+	BodyEn                  *string    `json:"bodyEn"`
+	BodyAr                  *string    `json:"bodyAr"`
+	Category                *string    `json:"category"`
+	Priority                *string    `json:"priority"`
+	Audience                *string    `json:"audience"`
+	Official                *bool      `json:"official"`
+	RequiresAcknowledgement *bool      `json:"requiresAcknowledgement"`
+	Pinned                  *bool      `json:"pinned"`
+	Status                  *string    `json:"status"`
+	PublishAt               *time.Time `json:"publishAt"`
+	ExpiresAt               *time.Time `json:"expiresAt"`
+	PublishedAt             *time.Time `json:"publishedAt"`
+	CreatedByID             *string    `json:"createdById"`
+	SignedByID              *string    `json:"signedById"`
+	SignatureUrl            *string    `json:"signatureUrl"`
+	SignedAt                *time.Time `json:"signedAt"`
+	DecisionNotes           *string    `json:"decisionNotes"`
+	CreatedAt               time.Time  `json:"createdAt"`
+	UpdatedAt               time.Time  `json:"updatedAt"`
 }
 
 type SystemAnnouncementReceipt struct {
-	AnnouncementID *string
-	UserID         *string
-	ReadAt         *time.Time
-	AcknowledgedAt *time.Time
-	HiddenAt       *time.Time
+	AnnouncementID *string    `json:"announcementId"`
+	UserID         *string    `json:"userId"`
+	ReadAt         *time.Time `json:"readAt"`
+	AcknowledgedAt *time.Time `json:"acknowledgedAt"`
+	HiddenAt       *time.Time `json:"hiddenAt"`
 }
 
 type SystemApiKey struct {
-	ID         string
-	Name       string
-	KeyPrefix  string
-	KeyHash    string
-	Scopes     []string
-	RateLimit  int32
-	LastUsedAt *time.Time
-	ExpiresAt  *time.Time
-	CreatedBy  string
-	CreatedAt  time.Time
-	RevokedAt  *time.Time
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	KeyPrefix  string     `json:"keyPrefix"`
+	KeyHash    string     `json:"keyHash"`
+	Scopes     []string   `json:"scopes"`
+	RateLimit  int32      `json:"rateLimit"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	CreatedBy  string     `json:"createdBy"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	RevokedAt  *time.Time `json:"revokedAt"`
 }
 
 type SystemApprovalDecision struct {
-	ID                string
-	ApprovalRequestID *string
-	Decision          *string
-	DecidedByID       *string
-	Reason            *string
-	Step              *int32
-	SignatureData     *string
-	DecidedAt         *time.Time
+	ID                string     `json:"id"`
+	ApprovalRequestID *string    `json:"approvalRequestId"`
+	Decision          *string    `json:"decision"`
+	DecidedByID       *string    `json:"decidedById"`
+	Reason            *string    `json:"reason"`
+	Step              *int32     `json:"step"`
+	SignatureData     *string    `json:"signatureData"`
+	DecidedAt         *time.Time `json:"decidedAt"`
 }
 
 type SystemApprovalPolicy struct {
-	ID                 string
-	TargetType         *string
-	Enabled            *bool
-	AllowSelfApproval  *bool
-	ReminderAfterHours *int32
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID                 string    `json:"id"`
+	TargetType         *string   `json:"targetType"`
+	Enabled            *bool     `json:"enabled"`
+	AllowSelfApproval  *bool     `json:"allowSelfApproval"`
+	ReminderAfterHours *int32    `json:"reminderAfterHours"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
 type SystemApprovalPolicyStep struct {
-	ID                 string
-	PolicyID           *string
-	Order              *int32
-	ApproverMode       *string
-	RoleKey            *string
-	UserID             *string
-	Permission         *string
-	MinAmount          pgtype.Numeric
-	MinDays            pgtype.Numeric
-	MinDiscountPercent pgtype.Numeric
-	EscalateAfterHours *int32
-	EscalateMode       *string
-	EscalateRoleKey    *string
-	EscalateUserID     *string
+	ID                 string         `json:"id"`
+	PolicyID           *string        `json:"policyId"`
+	Order              *int32         `json:"order"`
+	ApproverMode       *string        `json:"approverMode"`
+	RoleKey            *string        `json:"roleKey"`
+	UserID             *string        `json:"userId"`
+	Permission         *string        `json:"permission"`
+	MinAmount          pgtype.Numeric `json:"minAmount"`
+	MinDays            pgtype.Numeric `json:"minDays"`
+	MinDiscountPercent pgtype.Numeric `json:"minDiscountPercent"`
+	EscalateAfterHours *int32         `json:"escalateAfterHours"`
+	EscalateMode       *string        `json:"escalateMode"`
+	EscalateRoleKey    *string        `json:"escalateRoleKey"`
+	EscalateUserID     *string        `json:"escalateUserId"`
 }
 
 type SystemApprovalRequest struct {
-	ID             string
-	TargetType     *string
-	TargetID       *string
-	Revision       *int32
-	ContentHash    *string
-	Status         *string
-	RequestedByID  *string
-	PolicySnapshot []byte
-	DiffPayload    []byte
-	DiscountReason *string
-	PolicyID       *string
-	CurrentStep    *int32
-	SelfApproved   *bool
+	ID             string  `json:"id"`
+	TargetType     *string `json:"targetType"`
+	TargetID       *string `json:"targetId"`
+	Revision       *int32  `json:"revision"`
+	ContentHash    *string `json:"contentHash"`
+	Status         *string `json:"status"`
+	RequestedByID  *string `json:"requestedById"`
+	PolicySnapshot []byte  `json:"policySnapshot"`
+	DiffPayload    []byte  `json:"diffPayload"`
+	DiscountReason *string `json:"discountReason"`
+	PolicyID       *string `json:"policyId"`
+	CurrentStep    *int32  `json:"currentStep"`
+	SelfApproved   *bool   `json:"selfApproved"`
 }
 
 type SystemAttachment struct {
-	ID           string
-	FileName     *string
-	FileUrl      *string
-	FileSize     *int32
-	MimeType     *string
-	EntityType   *string
-	EntityID     *string
-	UploadedByID *string
-	CreatedAt    time.Time
+	ID           string    `json:"id"`
+	FileName     *string   `json:"fileName"`
+	FileUrl      *string   `json:"fileUrl"`
+	FileSize     *int32    `json:"fileSize"`
+	MimeType     *string   `json:"mimeType"`
+	EntityType   *string   `json:"entityType"`
+	EntityID     *string   `json:"entityId"`
+	UploadedByID *string   `json:"uploadedById"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type SystemBackupRecord struct {
-	ID           string
-	Kind         string
-	FileName     string
-	FileSize     int64
-	Checksum     string
-	Status       string
-	ErrorMessage *string
-	CreatedBy    string
-	CreatedAt    time.Time
-	VerifiedAt   *time.Time
-	Details      json.RawMessage
+	ID           string          `json:"id"`
+	Kind         string          `json:"kind"`
+	FileName     string          `json:"fileName"`
+	FileSize     int64           `json:"fileSize"`
+	Checksum     string          `json:"checksum"`
+	Status       string          `json:"status"`
+	ErrorMessage *string         `json:"errorMessage"`
+	CreatedBy    string          `json:"createdBy"`
+	CreatedAt    time.Time       `json:"createdAt"`
+	VerifiedAt   *time.Time      `json:"verifiedAt"`
+	Details      json.RawMessage `json:"details"`
 }
 
 type SystemBankSettlement struct {
-	ID               string
-	PaymentID        *string
-	SettlementDate   *time.Time
-	ReceivedAmount   pgtype.Numeric
-	ReceivedCurrency *string
-	SettledAmountBhd pgtype.Numeric
-	BankFeeBhd       pgtype.Numeric
-	FxGainLossBhd    pgtype.Numeric
-	BankReference    *string
-	Status           *string
-	CreatedAt        time.Time
+	ID               string         `json:"id"`
+	PaymentID        *string        `json:"paymentId"`
+	SettlementDate   *time.Time     `json:"settlementDate"`
+	ReceivedAmount   pgtype.Numeric `json:"receivedAmount"`
+	ReceivedCurrency *string        `json:"receivedCurrency"`
+	SettledAmountBhd pgtype.Numeric `json:"settledAmountBhd"`
+	BankFeeBhd       pgtype.Numeric `json:"bankFeeBhd"`
+	FxGainLossBhd    pgtype.Numeric `json:"fxGainLossBhd"`
+	BankReference    *string        `json:"bankReference"`
+	Status           *string        `json:"status"`
+	CreatedAt        time.Time      `json:"createdAt"`
 }
 
 type SystemBroadcast struct {
-	ID          string
-	Name        *string
-	SegmentID   *string
-	CampaignID  *string
-	SubjectEn   *string
-	SubjectAr   *string
-	BodyEn      *string
-	BodyAr      *string
-	Status      *string
-	CreatedByID *string
-	QueuedAt    *time.Time
-	SentAt      *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string     `json:"id"`
+	Name        *string    `json:"name"`
+	SegmentID   *string    `json:"segmentId"`
+	CampaignID  *string    `json:"campaignId"`
+	SubjectEn   *string    `json:"subjectEn"`
+	SubjectAr   *string    `json:"subjectAr"`
+	BodyEn      *string    `json:"bodyEn"`
+	BodyAr      *string    `json:"bodyAr"`
+	Status      *string    `json:"status"`
+	CreatedByID *string    `json:"createdById"`
+	QueuedAt    *time.Time `json:"queuedAt"`
+	SentAt      *time.Time `json:"sentAt"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 type SystemBroadcastRecipient struct {
-	ID          string
-	BroadcastID *string
-	CustomerID  *string
-	Email       *string
-	Locale      *string
-	Status      *string
-	Error       *string
-	SentAt      *time.Time
+	ID          string     `json:"id"`
+	BroadcastID *string    `json:"broadcastId"`
+	CustomerID  *string    `json:"customerId"`
+	Email       *string    `json:"email"`
+	Locale      *string    `json:"locale"`
+	Status      *string    `json:"status"`
+	Error       *string    `json:"error"`
+	SentAt      *time.Time `json:"sentAt"`
 }
 
 type SystemCalendarEvent struct {
-	ID               string
-	Title            *string
-	TitleAr          *string
-	Description      *string
-	StartDate        *time.Time
-	EndDate          *time.Time
-	AllDay           *bool
-	Location         *string
-	Color            *string
-	EventType        *string
-	DealID           *string
-	CreatedByID      *string
-	GoogleEventID    *string
-	GoogleCalendarID *string
-	Recurrence       *string
-	Reminders        []byte
-	Attendees        []byte
-	Visibility       *string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               string     `json:"id"`
+	Title            *string    `json:"title"`
+	TitleAr          *string    `json:"titleAr"`
+	Description      *string    `json:"description"`
+	StartDate        *time.Time `json:"startDate"`
+	EndDate          *time.Time `json:"endDate"`
+	AllDay           *bool      `json:"allDay"`
+	Location         *string    `json:"location"`
+	Color            *string    `json:"color"`
+	EventType        *string    `json:"eventType"`
+	DealID           *string    `json:"dealId"`
+	CreatedByID      *string    `json:"createdById"`
+	GoogleEventID    *string    `json:"googleEventId"`
+	GoogleCalendarID *string    `json:"googleCalendarId"`
+	Recurrence       *string    `json:"recurrence"`
+	Reminders        []byte     `json:"reminders"`
+	Attendees        []byte     `json:"attendees"`
+	Visibility       *string    `json:"visibility"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
 }
 
 type SystemCalendarFeedToken struct {
-	ID         string
-	UserID     *string
-	TokenHash  *string
-	LastUsedAt *time.Time
-	CreatedAt  time.Time
+	ID         string     `json:"id"`
+	UserID     *string    `json:"userId"`
+	TokenHash  *string    `json:"tokenHash"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	CreatedAt  time.Time  `json:"createdAt"`
 }
 
 type SystemCannedReply struct {
-	ID        string
-	Title     *string
-	BodyEn    *string
-	BodyAr    *string
-	IsActive  *bool
-	SortOrder *int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Title     *string   `json:"title"`
+	BodyEn    *string   `json:"bodyEn"`
+	BodyAr    *string   `json:"bodyAr"`
+	IsActive  *bool     `json:"isActive"`
+	SortOrder *int32    `json:"sortOrder"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemClientContactPerson struct {
-	ID           string
-	ContactID    *string
-	FullName     *string
-	Position     *string
-	Department   *string
-	Email        *string
-	Phone        *string
-	IsPrimary    *bool
-	Notes        *string
-	DisplayOrder *int32
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string    `json:"id"`
+	ContactID    *string   `json:"contactId"`
+	FullName     *string   `json:"fullName"`
+	Position     *string   `json:"position"`
+	Department   *string   `json:"department"`
+	Email        *string   `json:"email"`
+	Phone        *string   `json:"phone"`
+	IsPrimary    *bool     `json:"isPrimary"`
+	Notes        *string   `json:"notes"`
+	DisplayOrder *int32    `json:"displayOrder"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type SystemClientLogo struct {
-	ID           string
-	Name         *string
-	LogoUrl      *string
-	WebsiteUrl   *string
-	IsDarkLogo   *bool
-	DisplayOrder *int32
-	IsActive     *bool
+	ID           string  `json:"id"`
+	Name         *string `json:"name"`
+	LogoUrl      *string `json:"logoUrl"`
+	WebsiteUrl   *string `json:"websiteUrl"`
+	IsDarkLogo   *bool   `json:"isDarkLogo"`
+	DisplayOrder *int32  `json:"displayOrder"`
+	IsActive     *bool   `json:"isActive"`
 }
 
 type SystemClientSignature struct {
-	ID              string
-	DocumentType    *string
-	DocumentID      *string
-	Method          *string
-	Status          *string
-	TokenHash       *string
-	ExpiresAt       *time.Time
-	RecipientEmail  *string
-	SignerName      *string
-	SignerTitle     *string
-	SignatureData   *string
-	SignedFileUrl   *string
-	TermsText       *string
-	TermsAccepted   *bool
-	DocumentHash    *string
-	SignedIp        *string
-	SignedUserAgent *string
-	SignedAt        *time.Time
-	ViewedAt        *time.Time
-	RevokedAt       *time.Time
-	CreatedByID     *string
-	CreatedAt       time.Time
+	ID              string     `json:"id"`
+	DocumentType    *string    `json:"documentType"`
+	DocumentID      *string    `json:"documentId"`
+	Method          *string    `json:"method"`
+	Status          *string    `json:"status"`
+	TokenHash       *string    `json:"tokenHash"`
+	ExpiresAt       *time.Time `json:"expiresAt"`
+	RecipientEmail  *string    `json:"recipientEmail"`
+	SignerName      *string    `json:"signerName"`
+	SignerTitle     *string    `json:"signerTitle"`
+	SignatureData   *string    `json:"signatureData"`
+	SignedFileUrl   *string    `json:"signedFileUrl"`
+	TermsText       *string    `json:"termsText"`
+	TermsAccepted   *bool      `json:"termsAccepted"`
+	DocumentHash    *string    `json:"documentHash"`
+	SignedIp        *string    `json:"signedIp"`
+	SignedUserAgent *string    `json:"signedUserAgent"`
+	SignedAt        *time.Time `json:"signedAt"`
+	ViewedAt        *time.Time `json:"viewedAt"`
+	RevokedAt       *time.Time `json:"revokedAt"`
+	CreatedByID     *string    `json:"createdById"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type SystemCodSettlement struct {
-	ID          string
-	Number      *string
-	DriverID    *string
-	AgencyID    *string
-	Expected    pgtype.Numeric
-	Received    pgtype.Numeric
-	Note        *string
-	SettledByID *string
-	SettledAt   *time.Time
+	ID          string         `json:"id"`
+	Number      *string        `json:"number"`
+	DriverID    *string        `json:"driverId"`
+	AgencyID    *string        `json:"agencyId"`
+	Expected    pgtype.Numeric `json:"expected"`
+	Received    pgtype.Numeric `json:"received"`
+	Note        *string        `json:"note"`
+	SettledByID *string        `json:"settledById"`
+	SettledAt   *time.Time     `json:"settledAt"`
 }
 
 type SystemCommunicationMessage struct {
-	ID          string
-	ThreadID    *string
-	MessageID   *string
-	InReplyTo   *string
-	Direction   *string
-	FromEmail   *string
-	ToEmail     *string
-	Subject     *string
-	BodyText    *string
-	BodyHtml    *string
-	Status      *string
-	DeliveryLog []byte
-	InvoiceID   *string
-	QuotationID *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	ThreadID    *string   `json:"threadId"`
+	MessageID   *string   `json:"messageId"`
+	InReplyTo   *string   `json:"inReplyTo"`
+	Direction   *string   `json:"direction"`
+	FromEmail   *string   `json:"fromEmail"`
+	ToEmail     *string   `json:"toEmail"`
+	Subject     *string   `json:"subject"`
+	BodyText    *string   `json:"bodyText"`
+	BodyHtml    *string   `json:"bodyHtml"`
+	Status      *string   `json:"status"`
+	DeliveryLog []byte    `json:"deliveryLog"`
+	InvoiceID   *string   `json:"invoiceId"`
+	QuotationID *string   `json:"quotationId"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type SystemCommunicationSetting struct {
-	ID                     string
-	ManagersAnnounceToTeam *bool
-	UpdatedByID            *string
-	UpdatedAt              time.Time
+	ID                     string    `json:"id"`
+	ManagersAnnounceToTeam *bool     `json:"managersAnnounceToTeam"`
+	UpdatedByID            *string   `json:"updatedById"`
+	UpdatedAt              time.Time `json:"updatedAt"`
 }
 
 type SystemCommunicationThread struct {
-	ID         string
-	Subject    *string
-	Status     *string
-	ContactID  *string
-	InquiryID  *string
-	AssignedTo *string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID         string    `json:"id"`
+	Subject    *string   `json:"subject"`
+	Status     *string   `json:"status"`
+	ContactID  *string   `json:"contactId"`
+	InquiryID  *string   `json:"inquiryId"`
+	AssignedTo *string   `json:"assignedTo"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 type SystemCompany struct {
-	ID             string
-	Singleton      bool
-	Data           json.RawMessage
-	CurrencyLocked bool
-	Revision       int64
-	UpdatedBy      string
-	UpdatedAt      time.Time
+	ID             string          `json:"id"`
+	Singleton      bool            `json:"singleton"`
+	Data           json.RawMessage `json:"data"`
+	CurrencyLocked bool            `json:"currencyLocked"`
+	Revision       int64           `json:"revision"`
+	UpdatedBy      string          `json:"updatedBy"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
 }
 
 type SystemCompanyAsset struct {
-	ID        string
-	AssetKey  string
-	Title     string
-	FileUrl   string
-	MimeType  *string
-	FileSize  *int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	AssetKey  string    `json:"assetKey"`
+	Title     string    `json:"title"`
+	FileUrl   string    `json:"fileUrl"`
+	MimeType  *string   `json:"mimeType"`
+	FileSize  *int64    `json:"fileSize"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemCompanyDocument struct {
-	ID             string
-	TitleEn        *string
-	TitleAr        *string
-	Category       *string
-	DocumentNumber *string
-	FileUrl        *string
-	FileSize       *int32
-	MimeType       *string
-	ValidFrom      *time.Time
-	ValidUntil     *time.Time
-	Notes          *string
-	UploadedByID   *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string     `json:"id"`
+	TitleEn        *string    `json:"titleEn"`
+	TitleAr        *string    `json:"titleAr"`
+	Category       *string    `json:"category"`
+	DocumentNumber *string    `json:"documentNumber"`
+	FileUrl        *string    `json:"fileUrl"`
+	FileSize       *int32     `json:"fileSize"`
+	MimeType       *string    `json:"mimeType"`
+	ValidFrom      *time.Time `json:"validFrom"`
+	ValidUntil     *time.Time `json:"validUntil"`
+	Notes          *string    `json:"notes"`
+	UploadedByID   *string    `json:"uploadedById"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
 }
 
 type SystemCompanySetting struct {
-	ID                           string
-	Singleton                    *int32
-	CompanyNameEn                *string
-	CompanyNameAr                *string
-	CrNumber                     *string
-	VatID                        *string
-	VatEnabled                   *bool
-	VatPercentage                pgtype.Numeric
-	VatCertificateUrl            *string
-	DefaultCurrency              *string
-	CurrencyDecimals             *int32
-	AddressEn                    *string
-	AddressAr                    *string
-	Phone                        *string
-	WhatsappPhone                *string
-	Email                        *string
-	Website                      *string
-	InstagramUrl                 *string
-	LinkedinUrl                  *string
-	YoutubeUrl                   *string
-	BankName                     *string
-	BankIban                     *string
-	BankAccountNumber            *string
-	BankSwift                    *string
-	TimeZone                     *string
-	LogoUrl                      *string
-	DarkLogoUrl                  *string
-	FullLogoUrl                  *string
-	DarkFullLogoUrl              *string
-	IconUrl                      *string
-	DarkIconUrl                  *string
-	DocumentHeaderUrl            *string
-	DocumentFooterUrl            *string
-	StampUrl                     *string
-	SignatureUrl                 *string
-	PaymentTermsDays             *int32
-	InvoicePrefix                *string
-	InvoiceNextNumber            *int32
-	ReceiptPrefix                *string
-	ReceiptNextNumber            *int32
-	CeoNameEn                    *string
-	CeoNameAr                    *string
-	CeoTitleEn                   *string
-	CeoTitleAr                   *string
-	CeoQuoteEn                   *string
-	CeoQuoteAr                   *string
-	MissionEn                    *string
-	MissionAr                    *string
-	VisionEn                     *string
-	VisionAr                     *string
-	AboutTextEn                  *string
-	AboutTextAr                  *string
-	TermsEn                      *string
-	TermsAr                      *string
-	RulesEn                      *string
-	RulesAr                      *string
-	UpdatedAt                    time.Time
-	DefaultDiscountLimitPercent  pgtype.Numeric
-	QuotationsAlwaysNeedApproval *bool
-	Theme                        []byte
-	SetupCompletedAt             *time.Time
-	PrimaryLanguage              *string
-	BusinessActivity             *string
-	TaglineEn                    *string
-	TaglineAr                    *string
-	FoundedYear                  *int32
-	City                         *string
-	Country                      *string
-	MapUrl                       *string
-	WebsiteDomain                *string
-	AdminDomain                  *string
+	ID                           string         `json:"id"`
+	Singleton                    *int32         `json:"singleton"`
+	CompanyNameEn                *string        `json:"companyNameEn"`
+	CompanyNameAr                *string        `json:"companyNameAr"`
+	CrNumber                     *string        `json:"crNumber"`
+	VatID                        *string        `json:"vatId"`
+	VatEnabled                   *bool          `json:"vatEnabled"`
+	VatPercentage                pgtype.Numeric `json:"vatPercentage"`
+	VatCertificateUrl            *string        `json:"vatCertificateUrl"`
+	DefaultCurrency              *string        `json:"defaultCurrency"`
+	CurrencyDecimals             *int32         `json:"currencyDecimals"`
+	AddressEn                    *string        `json:"addressEn"`
+	AddressAr                    *string        `json:"addressAr"`
+	Phone                        *string        `json:"phone"`
+	WhatsappPhone                *string        `json:"whatsappPhone"`
+	Email                        *string        `json:"email"`
+	Website                      *string        `json:"website"`
+	InstagramUrl                 *string        `json:"instagramUrl"`
+	LinkedinUrl                  *string        `json:"linkedinUrl"`
+	YoutubeUrl                   *string        `json:"youtubeUrl"`
+	BankName                     *string        `json:"bankName"`
+	BankIban                     *string        `json:"bankIban"`
+	BankAccountNumber            *string        `json:"bankAccountNumber"`
+	BankSwift                    *string        `json:"bankSwift"`
+	TimeZone                     *string        `json:"timeZone"`
+	LogoUrl                      *string        `json:"logoUrl"`
+	DarkLogoUrl                  *string        `json:"darkLogoUrl"`
+	FullLogoUrl                  *string        `json:"fullLogoUrl"`
+	DarkFullLogoUrl              *string        `json:"darkFullLogoUrl"`
+	IconUrl                      *string        `json:"iconUrl"`
+	DarkIconUrl                  *string        `json:"darkIconUrl"`
+	DocumentHeaderUrl            *string        `json:"documentHeaderUrl"`
+	DocumentFooterUrl            *string        `json:"documentFooterUrl"`
+	StampUrl                     *string        `json:"stampUrl"`
+	SignatureUrl                 *string        `json:"signatureUrl"`
+	PaymentTermsDays             *int32         `json:"paymentTermsDays"`
+	InvoicePrefix                *string        `json:"invoicePrefix"`
+	InvoiceNextNumber            *int32         `json:"invoiceNextNumber"`
+	ReceiptPrefix                *string        `json:"receiptPrefix"`
+	ReceiptNextNumber            *int32         `json:"receiptNextNumber"`
+	CeoNameEn                    *string        `json:"ceoNameEn"`
+	CeoNameAr                    *string        `json:"ceoNameAr"`
+	CeoTitleEn                   *string        `json:"ceoTitleEn"`
+	CeoTitleAr                   *string        `json:"ceoTitleAr"`
+	CeoQuoteEn                   *string        `json:"ceoQuoteEn"`
+	CeoQuoteAr                   *string        `json:"ceoQuoteAr"`
+	MissionEn                    *string        `json:"missionEn"`
+	MissionAr                    *string        `json:"missionAr"`
+	VisionEn                     *string        `json:"visionEn"`
+	VisionAr                     *string        `json:"visionAr"`
+	AboutTextEn                  *string        `json:"aboutTextEn"`
+	AboutTextAr                  *string        `json:"aboutTextAr"`
+	TermsEn                      *string        `json:"termsEn"`
+	TermsAr                      *string        `json:"termsAr"`
+	RulesEn                      *string        `json:"rulesEn"`
+	RulesAr                      *string        `json:"rulesAr"`
+	UpdatedAt                    time.Time      `json:"updatedAt"`
+	DefaultDiscountLimitPercent  pgtype.Numeric `json:"defaultDiscountLimitPercent"`
+	QuotationsAlwaysNeedApproval *bool          `json:"quotationsAlwaysNeedApproval"`
+	Theme                        []byte         `json:"theme"`
+	SetupCompletedAt             *time.Time     `json:"setupCompletedAt"`
+	PrimaryLanguage              *string        `json:"primaryLanguage"`
+	BusinessActivity             *string        `json:"businessActivity"`
+	TaglineEn                    *string        `json:"taglineEn"`
+	TaglineAr                    *string        `json:"taglineAr"`
+	FoundedYear                  *int32         `json:"foundedYear"`
+	City                         *string        `json:"city"`
+	Country                      *string        `json:"country"`
+	MapUrl                       *string        `json:"mapUrl"`
+	WebsiteDomain                *string        `json:"websiteDomain"`
+	AdminDomain                  *string        `json:"adminDomain"`
 }
 
 type SystemContract struct {
-	ID             string
-	ContractNumber *string
-	DealID         *string
-	ContactID      *string
-	TemplateID     *string
-	TitleEn        *string
-	TitleAr        *string
-	BodyHtml       *string
-	Status         *string
-	SignatureHash  *string
-	SignedAt       *time.Time
-	ValidFrom      *time.Time
-	ValidUntil     *time.Time
-	PdfStoragePath *string
-	Metadata       []byte
-	CreatedByID    *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string     `json:"id"`
+	ContractNumber *string    `json:"contractNumber"`
+	DealID         *string    `json:"dealId"`
+	ContactID      *string    `json:"contactId"`
+	TemplateID     *string    `json:"templateId"`
+	TitleEn        *string    `json:"titleEn"`
+	TitleAr        *string    `json:"titleAr"`
+	BodyHtml       *string    `json:"bodyHtml"`
+	Status         *string    `json:"status"`
+	SignatureHash  *string    `json:"signatureHash"`
+	SignedAt       *time.Time `json:"signedAt"`
+	ValidFrom      *time.Time `json:"validFrom"`
+	ValidUntil     *time.Time `json:"validUntil"`
+	PdfStoragePath *string    `json:"pdfStoragePath"`
+	Metadata       []byte     `json:"metadata"`
+	CreatedByID    *string    `json:"createdById"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
 }
 
 type SystemCourierAgency struct {
-	ID   string
-	Name *string
-	Kind *string
+	ID   string  `json:"id"`
+	Name *string `json:"name"`
+	Kind *string `json:"kind"`
 }
 
 type SystemDashboardLayout struct {
-	UserID string
+	UserID string `json:"userId"`
 }
 
 type SystemDebugToggle struct {
-	ID        string
-	Service   string
-	LogLevel  string
-	EnabledBy string
-	EnabledAt time.Time
-	ExpiresAt time.Time
+	ID        string    `json:"id"`
+	Service   string    `json:"service"`
+	LogLevel  string    `json:"logLevel"`
+	EnabledBy string    `json:"enabledBy"`
+	EnabledAt time.Time `json:"enabledAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 type SystemDocumentFx struct {
-	ID             string
-	DocumentType   *string
-	DocumentID     *string
-	BaseAmount     pgtype.Numeric
-	TargetAmount   pgtype.Numeric
-	RawRate        pgtype.Numeric
-	MarginPercent  pgtype.Numeric
-	EffectiveRate  pgtype.Numeric
-	RateSnapshotID *string
-	CreatedAt      time.Time
+	ID             string         `json:"id"`
+	DocumentType   *string        `json:"documentType"`
+	DocumentID     *string        `json:"documentId"`
+	BaseAmount     pgtype.Numeric `json:"baseAmount"`
+	TargetAmount   pgtype.Numeric `json:"targetAmount"`
+	RawRate        pgtype.Numeric `json:"rawRate"`
+	MarginPercent  pgtype.Numeric `json:"marginPercent"`
+	EffectiveRate  pgtype.Numeric `json:"effectiveRate"`
+	RateSnapshotID *string        `json:"rateSnapshotId"`
+	CreatedAt      time.Time      `json:"createdAt"`
 }
 
 type SystemDocumentSequence struct {
-	Kind       string
-	Prefix     string
-	NextNumber int64
+	Kind       string `json:"kind"`
+	Prefix     string `json:"prefix"`
+	NextNumber int64  `json:"nextNumber"`
 }
 
 type SystemDocumentTemplate struct {
-	ID        string
-	Slug      *string
-	NameEn    *string
-	NameAr    *string
-	Category  *string
-	BodyHtml  *string
-	BodyJson  []byte
-	Version   *int32
-	IsActive  *bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Slug      *string   `json:"slug"`
+	NameEn    *string   `json:"nameEn"`
+	NameAr    *string   `json:"nameAr"`
+	Category  *string   `json:"category"`
+	BodyHtml  *string   `json:"bodyHtml"`
+	BodyJson  []byte    `json:"bodyJson"`
+	Version   *int32    `json:"version"`
+	IsActive  *bool     `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemEmailJob struct {
-	ID             string
-	EventKey       *string
-	MomID          *string
-	CreatedByID    *string
-	Recipient      *string
-	Subject        *string
-	Html           *string
-	AttachmentName *string
-	Attachment     *string
-	Status         *string
-	Attempts       *int32
-	NextAttemptAt  *time.Time
-	ProviderID     *string
-	LastError      *string
-	AcceptedAt     *time.Time
-	CreatedAt      time.Time
+	ID             string     `json:"id"`
+	EventKey       *string    `json:"eventKey"`
+	MomID          *string    `json:"momId"`
+	CreatedByID    *string    `json:"createdById"`
+	Recipient      *string    `json:"recipient"`
+	Subject        *string    `json:"subject"`
+	Html           *string    `json:"html"`
+	AttachmentName *string    `json:"attachmentName"`
+	Attachment     *string    `json:"attachment"`
+	Status         *string    `json:"status"`
+	Attempts       *int32     `json:"attempts"`
+	NextAttemptAt  *time.Time `json:"nextAttemptAt"`
+	ProviderID     *string    `json:"providerId"`
+	LastError      *string    `json:"lastError"`
+	AcceptedAt     *time.Time `json:"acceptedAt"`
+	CreatedAt      time.Time  `json:"createdAt"`
 }
 
 type SystemEmploymentRecord struct {
-	ID                 string
-	EmployeeID         *string
-	ContractType       *string
-	BasicSalary        pgtype.Numeric
-	HousingAllowance   pgtype.Numeric
-	TransportAllowance pgtype.Numeric
-	OtherAllowances    pgtype.Numeric
-	PayrollSettings    []byte
-	EffectiveFrom      *time.Time
-	EffectiveTo        *time.Time
-	IsCurrent          *bool
-	CreatedAt          time.Time
+	ID                 string         `json:"id"`
+	EmployeeID         *string        `json:"employeeId"`
+	ContractType       *string        `json:"contractType"`
+	BasicSalary        pgtype.Numeric `json:"basicSalary"`
+	HousingAllowance   pgtype.Numeric `json:"housingAllowance"`
+	TransportAllowance pgtype.Numeric `json:"transportAllowance"`
+	OtherAllowances    pgtype.Numeric `json:"otherAllowances"`
+	PayrollSettings    []byte         `json:"payrollSettings"`
+	EffectiveFrom      *time.Time     `json:"effectiveFrom"`
+	EffectiveTo        *time.Time     `json:"effectiveTo"`
+	IsCurrent          *bool          `json:"isCurrent"`
+	CreatedAt          time.Time      `json:"createdAt"`
 }
 
 type SystemExchangeRateSnapshot struct {
-	ID             string
-	BaseCurrency   *string
-	QuoteCurrency  *string
-	Rate           pgtype.Numeric
-	EffectiveDate  *time.Time
-	FetchedAt      *time.Time
-	Provider       *string
-	SourceEvidence *string
-	CreatedAt      time.Time
+	ID             string         `json:"id"`
+	BaseCurrency   *string        `json:"baseCurrency"`
+	QuoteCurrency  *string        `json:"quoteCurrency"`
+	Rate           pgtype.Numeric `json:"rate"`
+	EffectiveDate  *time.Time     `json:"effectiveDate"`
+	FetchedAt      *time.Time     `json:"fetchedAt"`
+	Provider       *string        `json:"provider"`
+	SourceEvidence *string        `json:"sourceEvidence"`
+	CreatedAt      time.Time      `json:"createdAt"`
 }
 
 type SystemFaq struct {
-	ID          string
-	QuestionEn  *string
-	QuestionAr  *string
-	AnswerEn    *string
-	AnswerAr    *string
-	Category    *string
-	IsPublished *bool
-	SortOrder   *int32
-	CreatedAt   time.Time
-	IsSample    *bool
+	ID          string    `json:"id"`
+	QuestionEn  *string   `json:"questionEn"`
+	QuestionAr  *string   `json:"questionAr"`
+	AnswerEn    *string   `json:"answerEn"`
+	AnswerAr    *string   `json:"answerAr"`
+	Category    *string   `json:"category"`
+	IsPublished *bool     `json:"isPublished"`
+	SortOrder   *int32    `json:"sortOrder"`
+	CreatedAt   time.Time `json:"createdAt"`
+	IsSample    *bool     `json:"isSample"`
 }
 
 type SystemFeatureToggle struct {
-	ID          string
-	ModuleKey   *string
-	IsEnabled   *bool
-	NameEn      *string
-	NameAr      *string
-	Description *string
+	ID          string  `json:"id"`
+	ModuleKey   *string `json:"moduleKey"`
+	IsEnabled   *bool   `json:"isEnabled"`
+	NameEn      *string `json:"nameEn"`
+	NameAr      *string `json:"nameAr"`
+	Description *string `json:"description"`
 }
 
 type SystemFinalSettlement struct {
-	ID                    string
-	Reference             *string
-	EmployeeID            *string
-	HandoverID            *string
-	Reason                *string
-	LastWorkingDay        *time.Time
-	Status                *string
-	Currency              *string
-	TotalAdditions        pgtype.Numeric
-	TotalDeductions       pgtype.Numeric
-	NetAmount             pgtype.Numeric
-	EmployerContributions pgtype.Numeric
-	Calculation           []byte
+	ID                    string         `json:"id"`
+	Reference             *string        `json:"reference"`
+	EmployeeID            *string        `json:"employeeId"`
+	HandoverID            *string        `json:"handoverId"`
+	Reason                *string        `json:"reason"`
+	LastWorkingDay        *time.Time     `json:"lastWorkingDay"`
+	Status                *string        `json:"status"`
+	Currency              *string        `json:"currency"`
+	TotalAdditions        pgtype.Numeric `json:"totalAdditions"`
+	TotalDeductions       pgtype.Numeric `json:"totalDeductions"`
+	NetAmount             pgtype.Numeric `json:"netAmount"`
+	EmployerContributions pgtype.Numeric `json:"employerContributions"`
+	Calculation           []byte         `json:"calculation"`
 }
 
 type SystemFinalSettlementLine struct {
-	ID           string
-	SettlementID *string
-	Kind         *string
-	Category     *string
-	LabelEn      *string
-	LabelAr      *string
-	Amount       pgtype.Numeric
-	Source       *string
-	Details      []byte
-	DisplayOrder *int32
+	ID           string         `json:"id"`
+	SettlementID *string        `json:"settlementId"`
+	Kind         *string        `json:"kind"`
+	Category     *string        `json:"category"`
+	LabelEn      *string        `json:"labelEn"`
+	LabelAr      *string        `json:"labelAr"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Source       *string        `json:"source"`
+	Details      []byte         `json:"details"`
+	DisplayOrder *int32         `json:"displayOrder"`
 }
 
 type SystemGeneratedDocument struct {
-	ID               string
-	DocumentType     *string
-	SourceEntityType *string
-	SourceEntityID   *string
-	FileName         *string
-	StoragePath      *string
-	FileSize         *int32
-	Checksum         *string
-	GeneratedByID    *string
-	CreatedAt        time.Time
+	ID               string    `json:"id"`
+	DocumentType     *string   `json:"documentType"`
+	SourceEntityType *string   `json:"sourceEntityType"`
+	SourceEntityID   *string   `json:"sourceEntityId"`
+	FileName         *string   `json:"fileName"`
+	StoragePath      *string   `json:"storagePath"`
+	FileSize         *int32    `json:"fileSize"`
+	Checksum         *string   `json:"checksum"`
+	GeneratedByID    *string   `json:"generatedById"`
+	CreatedAt        time.Time `json:"createdAt"`
 }
 
 type SystemHeroBanner struct {
-	ID           string
-	TitleEn      *string
-	TitleAr      *string
-	SubtitleEn   *string
-	SubtitleAr   *string
-	MediaType    *string
-	MediaUrl     *string
-	PosterUrl    *string
-	DisplayOrder *int32
-	IsActive     *bool
-	CtaLabelEn   *string
-	CtaLabelAr   *string
-	CtaLink      *string
-	CreatedAt    time.Time
-	IsSample     *bool
+	ID           string    `json:"id"`
+	TitleEn      *string   `json:"titleEn"`
+	TitleAr      *string   `json:"titleAr"`
+	SubtitleEn   *string   `json:"subtitleEn"`
+	SubtitleAr   *string   `json:"subtitleAr"`
+	MediaType    *string   `json:"mediaType"`
+	MediaUrl     *string   `json:"mediaUrl"`
+	PosterUrl    *string   `json:"posterUrl"`
+	DisplayOrder *int32    `json:"displayOrder"`
+	IsActive     *bool     `json:"isActive"`
+	CtaLabelEn   *string   `json:"ctaLabelEn"`
+	CtaLabelAr   *string   `json:"ctaLabelAr"`
+	CtaLink      *string   `json:"ctaLink"`
+	CreatedAt    time.Time `json:"createdAt"`
+	IsSample     *bool     `json:"isSample"`
 }
 
 type SystemHrPolicy struct {
-	ID                  string
-	SalaryTiming        *string
-	PayDay              *int32
-	AttendanceCutoffDay *int32
-	WorkdayHours        pgtype.Numeric
-	WorkdayStart        *string
-	DailyRateBasis      *string
-	DeductionBase       *string
-	OvertimeBase        *string
-	OvertimeRate        pgtype.Numeric
-	OvertimeNightRate   pgtype.Numeric
-	OvertimeRestDayRate pgtype.Numeric
-	OvertimeHolidayRate pgtype.Numeric
-	LateGraceMinutes    *int32
-	DeductLateness      *bool
-	UnmarkedDays        *string
-	ProrateJoiners      *bool
-	CommissionInPayroll *bool
-	GratuityRules       []byte
+	ID                  string         `json:"id"`
+	SalaryTiming        *string        `json:"salaryTiming"`
+	PayDay              *int32         `json:"payDay"`
+	AttendanceCutoffDay *int32         `json:"attendanceCutoffDay"`
+	WorkdayHours        pgtype.Numeric `json:"workdayHours"`
+	WorkdayStart        *string        `json:"workdayStart"`
+	DailyRateBasis      *string        `json:"dailyRateBasis"`
+	DeductionBase       *string        `json:"deductionBase"`
+	OvertimeBase        *string        `json:"overtimeBase"`
+	OvertimeRate        pgtype.Numeric `json:"overtimeRate"`
+	OvertimeNightRate   pgtype.Numeric `json:"overtimeNightRate"`
+	OvertimeRestDayRate pgtype.Numeric `json:"overtimeRestDayRate"`
+	OvertimeHolidayRate pgtype.Numeric `json:"overtimeHolidayRate"`
+	LateGraceMinutes    *int32         `json:"lateGraceMinutes"`
+	DeductLateness      *bool          `json:"deductLateness"`
+	UnmarkedDays        *string        `json:"unmarkedDays"`
+	ProrateJoiners      *bool          `json:"prorateJoiners"`
+	CommissionInPayroll *bool          `json:"commissionInPayroll"`
+	GratuityRules       []byte         `json:"gratuityRules"`
 }
 
 type SystemInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type SystemInquiry struct {
-	ID                string
-	Name              *string
-	Email             *string
-	EmailNorm         *string
-	Phone             *string
-	PhoneE164         *string
-	CompanyName       *string
-	ServiceType       *string
-	BudgetRange       *string
-	Timeline          *string
-	Message           *string
-	Status            *string
-	Locale            *string
-	Source            *string
-	CustomerID        *string
-	Intent            *string
-	Reference         *string
-	SubmissionKey     *string
-	RequestHash       *string
-	ProjectReference  *string
-	Location          *string
-	AssignedToID      *string
-	Team              *string
-	WorkflowStatus    *string
-	CustomAssignments []byte
+	ID                string  `json:"id"`
+	Name              *string `json:"name"`
+	Email             *string `json:"email"`
+	EmailNorm         *string `json:"emailNorm"`
+	Phone             *string `json:"phone"`
+	PhoneE164         *string `json:"phoneE164"`
+	CompanyName       *string `json:"companyName"`
+	ServiceType       *string `json:"serviceType"`
+	BudgetRange       *string `json:"budgetRange"`
+	Timeline          *string `json:"timeline"`
+	Message           *string `json:"message"`
+	Status            *string `json:"status"`
+	Locale            *string `json:"locale"`
+	Source            *string `json:"source"`
+	CustomerID        *string `json:"customerId"`
+	Intent            *string `json:"intent"`
+	Reference         *string `json:"reference"`
+	SubmissionKey     *string `json:"submissionKey"`
+	RequestHash       *string `json:"requestHash"`
+	ProjectReference  *string `json:"projectReference"`
+	Location          *string `json:"location"`
+	AssignedToID      *string `json:"assignedToId"`
+	Team              *string `json:"team"`
+	WorkflowStatus    *string `json:"workflowStatus"`
+	CustomAssignments []byte  `json:"customAssignments"`
 }
 
 type SystemInquiryNote struct {
-	ID        string
-	InquiryID *string
-	AuthorID  *string
-	Body      *string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	InquiryID *string   `json:"inquiryId"`
+	AuthorID  *string   `json:"authorId"`
+	Body      *string   `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type SystemIntegrationSetting struct {
-	Provider       string
-	IsActive       bool
-	Credentials    *string
-	Config         json.RawMessage
-	SyncLeaseToken *string
-	SyncLeaseUntil *time.Time
-	HealthStatus   string
-	LastCheckedAt  *time.Time
-	LastError      *string
-	AccountName    *string
-	LastSyncedAt   *time.Time
-	UpdatedAt      time.Time
-	UpdatedBy      *string
-	UpdatedByID    *string
+	Provider       string          `json:"provider"`
+	IsActive       bool            `json:"isActive"`
+	Credentials    *string         `json:"credentials"`
+	Config         json.RawMessage `json:"config"`
+	SyncLeaseToken *string         `json:"syncLeaseToken"`
+	SyncLeaseUntil *time.Time      `json:"syncLeaseUntil"`
+	HealthStatus   string          `json:"healthStatus"`
+	LastCheckedAt  *time.Time      `json:"lastCheckedAt"`
+	LastError      *string         `json:"lastError"`
+	AccountName    *string         `json:"accountName"`
+	LastSyncedAt   *time.Time      `json:"lastSyncedAt"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
+	UpdatedBy      *string         `json:"updatedBy"`
+	UpdatedByID    *string         `json:"updatedById"`
 }
 
 type SystemLabelPrintJob struct {
-	ID             string
-	IdempotencyKey *string
-	RequestHash    *string
-	Template       []byte
-	Labels         []byte
-	Status         *string
-	OriginalJobID  *string
-	CreatedByID    *string
-	ConfirmedByID  *string
-	ConfirmedAt    *time.Time
-	CreatedAt      time.Time
+	ID             string     `json:"id"`
+	IdempotencyKey *string    `json:"idempotencyKey"`
+	RequestHash    *string    `json:"requestHash"`
+	Template       []byte     `json:"template"`
+	Labels         []byte     `json:"labels"`
+	Status         *string    `json:"status"`
+	OriginalJobID  *string    `json:"originalJobId"`
+	CreatedByID    *string    `json:"createdById"`
+	ConfirmedByID  *string    `json:"confirmedById"`
+	ConfirmedAt    *time.Time `json:"confirmedAt"`
+	CreatedAt      time.Time  `json:"createdAt"`
 }
 
 type SystemLegalMatter struct {
-	ID            string
-	Number        *string
-	Title         *string
-	Kind          *string
-	Status        *string
-	Counterparty  *string
-	Reference     *string
-	NextDate      *time.Time
-	AssigneeID    *string
-	AmountAtStake pgtype.Numeric
-	Description   *string
-	Outcome       *string
-	CreatedByID   *string
-	ClosedAt      *time.Time
-	RemindedFor   *time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            string         `json:"id"`
+	Number        *string        `json:"number"`
+	Title         *string        `json:"title"`
+	Kind          *string        `json:"kind"`
+	Status        *string        `json:"status"`
+	Counterparty  *string        `json:"counterparty"`
+	Reference     *string        `json:"reference"`
+	NextDate      *time.Time     `json:"nextDate"`
+	AssigneeID    *string        `json:"assigneeId"`
+	AmountAtStake pgtype.Numeric `json:"amountAtStake"`
+	Description   *string        `json:"description"`
+	Outcome       *string        `json:"outcome"`
+	CreatedByID   *string        `json:"createdById"`
+	ClosedAt      *time.Time     `json:"closedAt"`
+	RemindedFor   *time.Time     `json:"remindedFor"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
 }
 
 type SystemLegalMatterEvent struct {
-	ID       string
-	MatterID *string
-	Kind     *string
-	Body     *string
-	ByID     *string
-	At       *time.Time
+	ID       string     `json:"id"`
+	MatterID *string    `json:"matterId"`
+	Kind     *string    `json:"kind"`
+	Body     *string    `json:"body"`
+	ByID     *string    `json:"byId"`
+	At       *time.Time `json:"at"`
 }
 
 type SystemLetterTemplate struct {
-	ID            string
-	Key           *string
-	NameEn        *string
-	NameAr        *string
-	SubjectEn     *string
-	SubjectAr     *string
-	BodyEn        *string
-	BodyAr        *string
-	AboutEmployee *bool
-	IsActive      *bool
-	DisplayOrder  *int32
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            string    `json:"id"`
+	Key           *string   `json:"key"`
+	NameEn        *string   `json:"nameEn"`
+	NameAr        *string   `json:"nameAr"`
+	SubjectEn     *string   `json:"subjectEn"`
+	SubjectAr     *string   `json:"subjectAr"`
+	BodyEn        *string   `json:"bodyEn"`
+	BodyAr        *string   `json:"bodyAr"`
+	AboutEmployee *bool     `json:"aboutEmployee"`
+	IsActive      *bool     `json:"isActive"`
+	DisplayOrder  *int32    `json:"displayOrder"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 type SystemMediaContact struct {
-	ID        string
-	Name      *string
-	Outlet    *string
-	Role      *string
-	Beat      *string
-	Email     *string
-	Phone     *string
-	Notes     *string
-	IsActive  *bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Name      *string   `json:"name"`
+	Outlet    *string   `json:"outlet"`
+	Role      *string   `json:"role"`
+	Beat      *string   `json:"beat"`
+	Email     *string   `json:"email"`
+	Phone     *string   `json:"phone"`
+	Notes     *string   `json:"notes"`
+	IsActive  *bool     `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemMediaCoverage struct {
-	ID          string
-	Title       *string
-	Outlet      *string
-	Url         *string
-	PublishedOn *time.Time
-	Reach       *int32
-	Sentiment   *string
-	ArticleID   *string
-	Notes       *string
-	CreatedByID *string
-	CreatedAt   time.Time
+	ID          string     `json:"id"`
+	Title       *string    `json:"title"`
+	Outlet      *string    `json:"outlet"`
+	Url         *string    `json:"url"`
+	PublishedOn *time.Time `json:"publishedOn"`
+	Reach       *int32     `json:"reach"`
+	Sentiment   *string    `json:"sentiment"`
+	ArticleID   *string    `json:"articleId"`
+	Notes       *string    `json:"notes"`
+	CreatedByID *string    `json:"createdById"`
+	CreatedAt   time.Time  `json:"createdAt"`
 }
 
 type SystemMessageAttachment struct {
-	ID            string
-	MessageID     *string
-	Filename      *string
-	ContentType   *string
-	Size          *int32
-	StoragePath   *string
-	IsQuarantined *bool
-	CreatedAt     time.Time
+	ID            string    `json:"id"`
+	MessageID     *string   `json:"messageId"`
+	Filename      *string   `json:"filename"`
+	ContentType   *string   `json:"contentType"`
+	Size          *int32    `json:"size"`
+	StoragePath   *string   `json:"storagePath"`
+	IsQuarantined *bool     `json:"isQuarantined"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type SystemMinuteOfMeeting struct {
-	ID          string
-	MomNumber   *string
-	Title       *string
-	TitleAr     *string
-	MeetingDate *time.Time
-	StartTime   *string
-	EndTime     *string
-	Location    *string
-	DealID      *string
-	ClientID    *string
-	Attendees   []byte
+	ID          string     `json:"id"`
+	MomNumber   *string    `json:"momNumber"`
+	Title       *string    `json:"title"`
+	TitleAr     *string    `json:"titleAr"`
+	MeetingDate *time.Time `json:"meetingDate"`
+	StartTime   *string    `json:"startTime"`
+	EndTime     *string    `json:"endTime"`
+	Location    *string    `json:"location"`
+	DealID      *string    `json:"dealId"`
+	ClientID    *string    `json:"clientId"`
+	Attendees   []byte     `json:"attendees"`
 }
 
 type SystemModuleSetting struct {
-	ModuleKey string
-	Enabled   bool
-	UpdatedBy *string
-	UpdatedAt time.Time
+	ModuleKey string    `json:"moduleKey"`
+	Enabled   bool      `json:"enabled"`
+	UpdatedBy *string   `json:"updatedBy"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemNotification struct {
-	ID            string
-	UserID        *string
-	Title         *string
-	Message       *string
-	Type          *string
-	EntityType    *string
-	EntityID      *string
-	MessageKey    *string
-	MessageParams []byte
-	ActionUrl     *string
-	EventKey      *string
-	IsRead        *bool
-	HiddenAt      *time.Time
-	CreatedAt     time.Time
+	ID            string     `json:"id"`
+	UserID        *string    `json:"userId"`
+	Title         *string    `json:"title"`
+	Message       *string    `json:"message"`
+	Type          *string    `json:"type"`
+	EntityType    *string    `json:"entityType"`
+	EntityID      *string    `json:"entityId"`
+	MessageKey    *string    `json:"messageKey"`
+	MessageParams []byte     `json:"messageParams"`
+	ActionUrl     *string    `json:"actionUrl"`
+	EventKey      *string    `json:"eventKey"`
+	IsRead        *bool      `json:"isRead"`
+	HiddenAt      *time.Time `json:"hiddenAt"`
+	CreatedAt     time.Time  `json:"createdAt"`
 }
 
 type SystemNumberReservation struct {
-	Caller         string
-	IdempotencyKey string
-	Kind           string
-	DocumentDate   pgtype.Date
-	DocumentNumber string
-	CreatedAt      time.Time
+	Caller         string      `json:"caller"`
+	IdempotencyKey string      `json:"idempotencyKey"`
+	Kind           string      `json:"kind"`
+	DocumentDate   pgtype.Date `json:"documentDate"`
+	DocumentNumber string      `json:"documentNumber"`
+	CreatedAt      time.Time   `json:"createdAt"`
 }
 
 type SystemOfficialLetter struct {
-	ID                    string
-	Reference             *string
-	TemplateID            *string
-	EmployeeID            *string
-	RecipientName         *string
-	RecipientTitle        *string
-	RecipientOrganization *string
-	RecipientAddress      *string
-	SubjectEn             *string
-	SubjectAr             *string
-	BodyEn                *string
-	BodyAr                *string
-	LetterDate            *time.Time
-	Classification        *string
-	ShowSignature         *bool
-	ShowStamp             *bool
-	Status                *string
-	CreatedByID           *string
-	SignerID              *string
-	SignatureUrl          *string
-	SignedAt              *time.Time
-	VerificationCode      *string
-	DecisionNotes         *string
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	ID                    string     `json:"id"`
+	Reference             *string    `json:"reference"`
+	TemplateID            *string    `json:"templateId"`
+	EmployeeID            *string    `json:"employeeId"`
+	RecipientName         *string    `json:"recipientName"`
+	RecipientTitle        *string    `json:"recipientTitle"`
+	RecipientOrganization *string    `json:"recipientOrganization"`
+	RecipientAddress      *string    `json:"recipientAddress"`
+	SubjectEn             *string    `json:"subjectEn"`
+	SubjectAr             *string    `json:"subjectAr"`
+	BodyEn                *string    `json:"bodyEn"`
+	BodyAr                *string    `json:"bodyAr"`
+	LetterDate            *time.Time `json:"letterDate"`
+	Classification        *string    `json:"classification"`
+	ShowSignature         *bool      `json:"showSignature"`
+	ShowStamp             *bool      `json:"showStamp"`
+	Status                *string    `json:"status"`
+	CreatedByID           *string    `json:"createdById"`
+	SignerID              *string    `json:"signerId"`
+	SignatureUrl          *string    `json:"signatureUrl"`
+	SignedAt              *time.Time `json:"signedAt"`
+	VerificationCode      *string    `json:"verificationCode"`
+	DecisionNotes         *string    `json:"decisionNotes"`
+	CreatedAt             time.Time  `json:"createdAt"`
+	UpdatedAt             time.Time  `json:"updatedAt"`
 }
 
 type SystemOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type SystemPackageContent struct {
-	ID         string
-	PackageID  *string
-	ProductID  *string
-	VariantKey *string
-	BatchKey   *string
-	Quantity   pgtype.Numeric
+	ID         string         `json:"id"`
+	PackageID  *string        `json:"packageId"`
+	ProductID  *string        `json:"productId"`
+	VariantKey *string        `json:"variantKey"`
+	BatchKey   *string        `json:"batchKey"`
+	Quantity   pgtype.Numeric `json:"quantity"`
 }
 
 type SystemPayslip struct {
-	ID            string
-	PayrollItemID *string
-	EmployeeID    *string
-	Month         *int32
-	Year          *int32
-	StoragePath   *string
-	IssuedAt      *time.Time
+	ID            string     `json:"id"`
+	PayrollItemID *string    `json:"payrollItemId"`
+	EmployeeID    *string    `json:"employeeId"`
+	Month         *int32     `json:"month"`
+	Year          *int32     `json:"year"`
+	StoragePath   *string    `json:"storagePath"`
+	IssuedAt      *time.Time `json:"issuedAt"`
 }
 
 type SystemProfileChangeRequest struct {
-	ID            string
-	UserID        *string
-	RequestedByID *string
-	ManagerID     *string
-	Status        *string
-	OldValues     []byte
-	NewValues     []byte
-	ReviewedAt    *time.Time
-	ReviewNotes   *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            string     `json:"id"`
+	UserID        *string    `json:"userId"`
+	RequestedByID *string    `json:"requestedById"`
+	ManagerID     *string    `json:"managerId"`
+	Status        *string    `json:"status"`
+	OldValues     []byte     `json:"oldValues"`
+	NewValues     []byte     `json:"newValues"`
+	ReviewedAt    *time.Time `json:"reviewedAt"`
+	ReviewNotes   *string    `json:"reviewNotes"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 }
 
 type SystemProject struct {
-	ID           string
-	Code         *string
-	Name         *string
-	Description  *string
-	Status       *string
-	DepartmentID *string
-	OwnerID      *string
-	Color        *string
-	StartDate    *time.Time
-	DueDate      *time.Time
-	CreatedByID  *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           string     `json:"id"`
+	Code         *string    `json:"code"`
+	Name         *string    `json:"name"`
+	Description  *string    `json:"description"`
+	Status       *string    `json:"status"`
+	DepartmentID *string    `json:"departmentId"`
+	OwnerID      *string    `json:"ownerId"`
+	Color        *string    `json:"color"`
+	StartDate    *time.Time `json:"startDate"`
+	DueDate      *time.Time `json:"dueDate"`
+	CreatedByID  *string    `json:"createdById"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
 }
 
 type SystemPublicHoliday struct {
-	ID     string
-	Date   *time.Time
-	NameEn *string
-	NameAr *string
+	ID     string     `json:"id"`
+	Date   *time.Time `json:"date"`
+	NameEn *string    `json:"nameEn"`
+	NameAr *string    `json:"nameAr"`
 }
 
 type SystemReferenceSequence struct {
-	ID         string
-	Prefix     *string
-	Year       *int32
-	LastNumber *int32
-	UpdatedAt  time.Time
+	ID         string    `json:"id"`
+	Prefix     *string   `json:"prefix"`
+	Year       *int32    `json:"year"`
+	LastNumber *int32    `json:"lastNumber"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 type SystemReportSchedule struct {
-	ID         string
-	ReportKey  *string
-	Frequency  *string
-	Format     *string
-	Locale     *string
-	Compare    *bool
-	OwnerID    *string
-	IsActive   *bool
-	NextRunAt  *time.Time
-	LastSentAt *time.Time
-	LastError  *string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID         string     `json:"id"`
+	ReportKey  *string    `json:"reportKey"`
+	Frequency  *string    `json:"frequency"`
+	Format     *string    `json:"format"`
+	Locale     *string    `json:"locale"`
+	Compare    *bool      `json:"compare"`
+	OwnerID    *string    `json:"ownerId"`
+	IsActive   *bool      `json:"isActive"`
+	NextRunAt  *time.Time `json:"nextRunAt"`
+	LastSentAt *time.Time `json:"lastSentAt"`
+	LastError  *string    `json:"lastError"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
 type SystemRequestAssignment struct {
-	ID           string
-	InquiryID    *string
-	AssignedToID *string
-	AssignedByID *string
-	Team         *string
-	Reason       *string
-	Active       *bool
-	CreatedAt    time.Time
+	ID           string    `json:"id"`
+	InquiryID    *string   `json:"inquiryId"`
+	AssignedToID *string   `json:"assignedToId"`
+	AssignedByID *string   `json:"assignedById"`
+	Team         *string   `json:"team"`
+	Reason       *string   `json:"reason"`
+	Active       *bool     `json:"active"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type SystemRequestComment struct {
-	ID              string
-	InquiryID       *string
-	AuthorID        *string
-	Body            *string
-	IsClientVisible *bool
-	Channel         *string
-	Attachments     []byte
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID              string    `json:"id"`
+	InquiryID       *string   `json:"inquiryId"`
+	AuthorID        *string   `json:"authorId"`
+	Body            *string   `json:"body"`
+	IsClientVisible *bool     `json:"isClientVisible"`
+	Channel         *string   `json:"channel"`
+	Attachments     []byte    `json:"attachments"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
 type SystemRequestEvent struct {
-	ID        string
-	InquiryID *string
-	ActorID   *string
-	EventType *string
-	Details   []byte
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	InquiryID *string   `json:"inquiryId"`
+	ActorID   *string   `json:"actorId"`
+	EventType *string   `json:"eventType"`
+	Details   []byte    `json:"details"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type SystemRevalidationJob struct {
-	ID            string
-	EventKey      *string
-	Payload       []byte
-	Status        *string
-	Attempts      *int32
-	NextAttemptAt *time.Time
-	LastError     *string
-	DeliveredAt   *time.Time
-	CreatedAt     time.Time
+	ID            string     `json:"id"`
+	EventKey      *string    `json:"eventKey"`
+	Payload       []byte     `json:"payload"`
+	Status        *string    `json:"status"`
+	Attempts      *int32     `json:"attempts"`
+	NextAttemptAt *time.Time `json:"nextAttemptAt"`
+	LastError     *string    `json:"lastError"`
+	DeliveredAt   *time.Time `json:"deliveredAt"`
+	CreatedAt     time.Time  `json:"createdAt"`
 }
 
 type SystemReview struct {
-	ID             string
-	ClientID       *string
-	OriginalLocale *string
-	SubmissionKey  *string
-	RequestHash    *string
-	AuthorEn       *string
-	AuthorAr       *string
-	CompanyEn      *string
-	CompanyAr      *string
-	QuoteEn        *string
-	QuoteAr        *string
-	Rating         *int32
-	IsApproved     *bool
-	SortOrder      *int32
-	Year           *string
-	CreatedAt      time.Time
+	ID             string    `json:"id"`
+	ClientID       *string   `json:"clientId"`
+	OriginalLocale *string   `json:"originalLocale"`
+	SubmissionKey  *string   `json:"submissionKey"`
+	RequestHash    *string   `json:"requestHash"`
+	AuthorEn       *string   `json:"authorEn"`
+	AuthorAr       *string   `json:"authorAr"`
+	CompanyEn      *string   `json:"companyEn"`
+	CompanyAr      *string   `json:"companyAr"`
+	QuoteEn        *string   `json:"quoteEn"`
+	QuoteAr        *string   `json:"quoteAr"`
+	Rating         *int32    `json:"rating"`
+	IsApproved     *bool     `json:"isApproved"`
+	SortOrder      *int32    `json:"sortOrder"`
+	Year           *string   `json:"year"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 type SystemRouteSheet struct {
-	ID          string
-	Number      *string
-	Date        *time.Time
-	DriverID    *string
-	VehicleID   *string
-	Status      *string
-	Note        *string
-	CreatedByID *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          string     `json:"id"`
+	Number      *string    `json:"number"`
+	Date        *time.Time `json:"date"`
+	DriverID    *string    `json:"driverId"`
+	VehicleID   *string    `json:"vehicleId"`
+	Status      *string    `json:"status"`
+	Note        *string    `json:"note"`
+	CreatedByID *string    `json:"createdById"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 type SystemSerialGeneration struct {
-	ID             string
-	IdempotencyKey *string
-	RequestHash    *string
-	ProductID      *string
-	VariantKey     *string
-	BatchKey       *string
-	LocationID     *string
-	Quantity       *int32
-	CreatedByID    *string
-	CreatedAt      time.Time
+	ID             string    `json:"id"`
+	IdempotencyKey *string   `json:"idempotencyKey"`
+	RequestHash    *string   `json:"requestHash"`
+	ProductID      *string   `json:"productId"`
+	VariantKey     *string   `json:"variantKey"`
+	BatchKey       *string   `json:"batchKey"`
+	LocationID     *string   `json:"locationId"`
+	Quantity       *int32    `json:"quantity"`
+	CreatedByID    *string   `json:"createdById"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 type SystemService struct {
-	ID            string
-	Code          *string
-	NameEn        *string
-	NameAr        *string
-	Category      *string
-	DescriptionEn *string
-	DescriptionAr *string
-	Unit          *string
-	DefaultRate   pgtype.Numeric
-	IsActive      *bool
-	DisplayOrder  *int32
-	IsPublic      *bool
-	ImageUrl      *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	IsSample      *bool
+	ID            string         `json:"id"`
+	Code          *string        `json:"code"`
+	NameEn        *string        `json:"nameEn"`
+	NameAr        *string        `json:"nameAr"`
+	Category      *string        `json:"category"`
+	DescriptionEn *string        `json:"descriptionEn"`
+	DescriptionAr *string        `json:"descriptionAr"`
+	Unit          *string        `json:"unit"`
+	DefaultRate   pgtype.Numeric `json:"defaultRate"`
+	IsActive      *bool          `json:"isActive"`
+	DisplayOrder  *int32         `json:"displayOrder"`
+	IsPublic      *bool          `json:"isPublic"`
+	ImageUrl      *string        `json:"imageUrl"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
+	IsSample      *bool          `json:"isSample"`
 }
 
 type SystemServiceSetting struct {
-	ID             string
-	SlaUrgentHours *int32
-	SlaHighHours   *int32
-	SlaNormalHours *int32
-	UpdatedAt      time.Time
+	ID             string    `json:"id"`
+	SlaUrgentHours *int32    `json:"slaUrgentHours"`
+	SlaHighHours   *int32    `json:"slaHighHours"`
+	SlaNormalHours *int32    `json:"slaNormalHours"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 type SystemSignatureChange struct {
-	ID           string
-	UserID       *string
-	SignatureUrl *string
-	PreviousUrl  *string
-	Status       *string
-	ReviewedByID *string
-	ReviewNotes  *string
-	DecidedAt    *time.Time
-	CreatedAt    time.Time
+	ID           string     `json:"id"`
+	UserID       *string    `json:"userId"`
+	SignatureUrl *string    `json:"signatureUrl"`
+	PreviousUrl  *string    `json:"previousUrl"`
+	Status       *string    `json:"status"`
+	ReviewedByID *string    `json:"reviewedById"`
+	ReviewNotes  *string    `json:"reviewNotes"`
+	DecidedAt    *time.Time `json:"decidedAt"`
+	CreatedAt    time.Time  `json:"createdAt"`
 }
 
 type SystemSignaturePolicy struct {
-	DocumentType string
-	Mode         *string
-	UpdatedByID  *string
-	UpdatedAt    time.Time
+	DocumentType string    `json:"documentType"`
+	Mode         *string   `json:"mode"`
+	UpdatedByID  *string   `json:"updatedById"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type SystemSignatureRequest struct {
-	ID              string
-	DocumentType    *string
-	DocumentID      *string
-	TokenHash       *string
-	Status          *string
-	ExpiresAt       *time.Time
-	RecipientEmail  *string
-	RecipientPhone  *string
-	SignerName      *string
-	SignatureData   *string
-	SignedAt        *time.Time
-	SignedIp        *string
-	SignedUserAgent *string
-	ViewedAt        *time.Time
-	RevokedAt       *time.Time
-	CreatedByID     *string
-	CreatedAt       time.Time
+	ID              string     `json:"id"`
+	DocumentType    *string    `json:"documentType"`
+	DocumentID      *string    `json:"documentId"`
+	TokenHash       *string    `json:"tokenHash"`
+	Status          *string    `json:"status"`
+	ExpiresAt       *time.Time `json:"expiresAt"`
+	RecipientEmail  *string    `json:"recipientEmail"`
+	RecipientPhone  *string    `json:"recipientPhone"`
+	SignerName      *string    `json:"signerName"`
+	SignatureData   *string    `json:"signatureData"`
+	SignedAt        *time.Time `json:"signedAt"`
+	SignedIp        *string    `json:"signedIp"`
+	SignedUserAgent *string    `json:"signedUserAgent"`
+	ViewedAt        *time.Time `json:"viewedAt"`
+	RevokedAt       *time.Time `json:"revokedAt"`
+	CreatedByID     *string    `json:"createdById"`
+	CreatedAt       time.Time  `json:"createdAt"`
 }
 
 type SystemSiteSetting struct {
-	ID            bool
-	WebsiteDomain *string
-	AdminDomain   *string
-	Code          json.RawMessage
-	UpdatedAt     time.Time
-	UpdatedBy     *string
+	ID            bool            `json:"id"`
+	WebsiteDomain *string         `json:"websiteDomain"`
+	AdminDomain   *string         `json:"adminDomain"`
+	Code          json.RawMessage `json:"code"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	UpdatedBy     *string         `json:"updatedBy"`
 }
 
 type SystemStatistic struct {
-	ID          string
-	Value       *string
-	LabelEn     *string
-	LabelAr     *string
-	SubLabelEn  *string
-	SubLabelAr  *string
-	Icon        *string
-	SortOrder   *int32
-	Source      *string
-	Preset      *string
-	PresetParam *int32
-	RoundTo     *int32
-	Suffix      *string
-	IsSample    *bool
+	ID          string  `json:"id"`
+	Value       *string `json:"value"`
+	LabelEn     *string `json:"labelEn"`
+	LabelAr     *string `json:"labelAr"`
+	SubLabelEn  *string `json:"subLabelEn"`
+	SubLabelAr  *string `json:"subLabelAr"`
+	Icon        *string `json:"icon"`
+	SortOrder   *int32  `json:"sortOrder"`
+	Source      *string `json:"source"`
+	Preset      *string `json:"preset"`
+	PresetParam *int32  `json:"presetParam"`
+	RoundTo     *int32  `json:"roundTo"`
+	Suffix      *string `json:"suffix"`
+	IsSample    *bool   `json:"isSample"`
 }
 
 type SystemStudioEquipment struct {
-	ID            string
-	Category      *string
-	NameEn        *string
-	NameAr        *string
-	Brand         *string
-	DailyRateBhd  pgtype.Numeric
-	Quantity      *int32
-	Specification *string
-	DescriptionEn *string
-	DescriptionAr *string
-	ImageUrl      *string
-	DisplayOrder  *int32
-	CreatedAt     time.Time
+	ID            string         `json:"id"`
+	Category      *string        `json:"category"`
+	NameEn        *string        `json:"nameEn"`
+	NameAr        *string        `json:"nameAr"`
+	Brand         *string        `json:"brand"`
+	DailyRateBhd  pgtype.Numeric `json:"dailyRateBhd"`
+	Quantity      *int32         `json:"quantity"`
+	Specification *string        `json:"specification"`
+	DescriptionEn *string        `json:"descriptionEn"`
+	DescriptionAr *string        `json:"descriptionAr"`
+	ImageUrl      *string        `json:"imageUrl"`
+	DisplayOrder  *int32         `json:"displayOrder"`
+	CreatedAt     time.Time      `json:"createdAt"`
 }
 
 type SystemTag struct {
-	ID         string
-	Name       *string
-	NameAr     *string
-	Color      *string
-	EntityType *string
-	CreatedAt  time.Time
+	ID         string    `json:"id"`
+	Name       *string   `json:"name"`
+	NameAr     *string   `json:"nameAr"`
+	Color      *string   `json:"color"`
+	EntityType *string   `json:"entityType"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type SystemUploadObject struct {
-	ID        string
-	FileUrl   *string
-	OwnerID   *string
-	FileName  *string
-	FileSize  *int32
-	MimeType  *string
-	IsPublic  *bool
-	ClaimedAt *time.Time
-	ExpiresAt *time.Time
-	CreatedAt time.Time
+	ID        string     `json:"id"`
+	FileUrl   *string    `json:"fileUrl"`
+	OwnerID   *string    `json:"ownerId"`
+	FileName  *string    `json:"fileName"`
+	FileSize  *int32     `json:"fileSize"`
+	MimeType  *string    `json:"mimeType"`
+	IsPublic  *bool      `json:"isPublic"`
+	ClaimedAt *time.Time `json:"claimedAt"`
+	ExpiresAt *time.Time `json:"expiresAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type SystemVehicle struct {
-	ID        string
-	Plate     *string
-	Name      *string
-	Kind      *string
-	Notes     *string
-	IsActive  *bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Plate     *string   `json:"plate"`
+	Name      *string   `json:"name"`
+	Kind      *string   `json:"kind"`
+	Notes     *string   `json:"notes"`
+	IsActive  *bool     `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemWarehouse struct {
-	BranchID  *string
-	ID        string
-	Code      *string
-	NameEn    *string
-	NameAr    *string
-	Address   *string
-	IsActive  *bool
-	IsDefault *bool
-	SortOrder *int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	BranchID  *string   `json:"branchId"`
+	ID        string    `json:"id"`
+	Code      *string   `json:"code"`
+	NameEn    *string   `json:"nameEn"`
+	NameAr    *string   `json:"nameAr"`
+	Address   *string   `json:"address"`
+	IsActive  *bool     `json:"isActive"`
+	IsDefault *bool     `json:"isDefault"`
+	SortOrder *int32    `json:"sortOrder"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type SystemWishlistItem struct {
-	ID              string
-	CustomerID      *string
-	CatalogueItemID *string
-	CreatedAt       time.Time
+	ID              string    `json:"id"`
+	CustomerID      *string   `json:"customerId"`
+	CatalogueItemID *string   `json:"catalogueItemId"`
+	CreatedAt       time.Time `json:"createdAt"`
 }

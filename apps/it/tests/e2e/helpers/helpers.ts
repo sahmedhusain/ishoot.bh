@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, type Page } from "@playwright/test";
-import users from "../../../../../apps/admin/tests/fixtures/users.json";
+import users from "./fixtures/users.json";
 
 const root = path.resolve(__dirname, "../../../../..");
 
@@ -10,13 +10,13 @@ export const admin = users.admin;
 export const demo = {
   ...JSON.parse(
     fs.readFileSync(
-      path.join(root, "seeds/assets/demo/company.json"),
+      path.join(root, "seeds/assets/ishoot/company.json"),
       "utf8",
     ),
   ),
   theme: JSON.parse(
     fs.readFileSync(
-      path.join(root, "seeds/assets/demo/theme.json"),
+      path.join(root, "seeds/assets/ishoot/theme.json"),
       "utf8",
     ),
   ),
@@ -26,7 +26,7 @@ export const otherCompanyNames: string[] = fs
   .readdirSync(path.join(root, "seeds/assets"))
   .filter(
     (name) =>
-      name !== "demo" &&
+      name !== "ishoot" &&
       fs.existsSync(path.join(root, "seeds/assets", name, "company.json")),
   )
   .flatMap((name) => {

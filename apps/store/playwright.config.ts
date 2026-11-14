@@ -12,18 +12,19 @@ export const cronSecret = process.env.CRON_SECRET || "e2e-cron-secret";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testMatch: "architecture-ux.spec.ts",
   outputDir: "./tests/.results/playwright",
   fullyParallel: false,
   workers: 1,
   timeout: 90_000,
   expect: { timeout: 15_000 },
   use: {
-    baseURL: process.env.WEB_URL || "http://localhost:3000",
+    baseURL: process.env.STORE_URL || "http://localhost:3003",
     trace: "retain-on-failure",
   },
   projects: [
     {
-      name: "web",
+      name: "store",
       use: { ...devices["Desktop Chrome"] },
     },
   ],

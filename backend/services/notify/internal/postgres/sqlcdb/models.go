@@ -10,99 +10,99 @@ import (
 )
 
 type NotifyAttachment struct {
-	MessageID   string
-	Position    int32
-	Filename    string
-	ContentType string
-	Content     []byte
+	MessageID   string `json:"messageId"`
+	Position    int32  `json:"position"`
+	Filename    string `json:"filename"`
+	ContentType string `json:"contentType"`
+	Content     []byte `json:"content"`
 }
 
 type NotifyCategorySetting struct {
-	Realm    string
-	UserID   string
-	Category string
-	Muted    bool
-	Sound    bool
+	Realm    string `json:"realm"`
+	UserID   string `json:"userId"`
+	Category string `json:"category"`
+	Muted    bool   `json:"muted"`
+	Sound    bool   `json:"sound"`
 }
 
 type NotifyInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type NotifyMessage struct {
-	ID             string
-	Caller         string
-	IdempotencyKey string
-	Actor          *string
-	Channel        string
-	Recipient      string
-	Subject        *string
-	BodyText       *string
-	BodyHtml       *string
-	Status         string
-	Attempts       int32
-	Provider       *string
-	ProviderID     *string
-	LastError      *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	SentAt         *time.Time
+	ID             string     `json:"id"`
+	Caller         string     `json:"caller"`
+	IdempotencyKey string     `json:"idempotencyKey"`
+	Actor          *string    `json:"actor"`
+	Channel        string     `json:"channel"`
+	Recipient      string     `json:"recipient"`
+	Subject        *string    `json:"subject"`
+	BodyText       *string    `json:"bodyText"`
+	BodyHtml       *string    `json:"bodyHtml"`
+	Status         string     `json:"status"`
+	Attempts       int32      `json:"attempts"`
+	Provider       *string    `json:"provider"`
+	ProviderID     *string    `json:"providerId"`
+	LastError      *string    `json:"lastError"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
+	SentAt         *time.Time `json:"sentAt"`
 }
 
 type NotifyMute struct {
-	Realm      string
-	UserID     string
-	EntityType string
-	EntityID   string
-	Until      *time.Time
-	CreatedAt  time.Time
+	Realm      string     `json:"realm"`
+	UserID     string     `json:"userId"`
+	EntityType string     `json:"entityType"`
+	EntityID   string     `json:"entityId"`
+	Until      *time.Time `json:"until"`
+	CreatedAt  time.Time  `json:"createdAt"`
 }
 
 type NotifyNotification struct {
-	ID            string
-	Realm         string
-	Recipient     string
-	Category      string
-	Priority      string
-	Title         string
-	Body          string
-	MessageKey    *string
-	MessageParams json.RawMessage
-	ActionUrl     *string
-	EntityType    *string
-	EntityID      *string
-	Actor         *string
-	Caller        string
-	DedupeKey     *string
-	Silent        bool
-	DeliverAt     time.Time
-	ReadAt        *time.Time
-	ArchivedAt    *time.Time
-	CreatedAt     time.Time
+	ID            string          `json:"id"`
+	Realm         string          `json:"realm"`
+	Recipient     string          `json:"recipient"`
+	Category      string          `json:"category"`
+	Priority      string          `json:"priority"`
+	Title         string          `json:"title"`
+	Body          string          `json:"body"`
+	MessageKey    *string         `json:"messageKey"`
+	MessageParams json.RawMessage `json:"messageParams"`
+	ActionUrl     *string         `json:"actionUrl"`
+	EntityType    *string         `json:"entityType"`
+	EntityID      *string         `json:"entityId"`
+	Actor         *string         `json:"actor"`
+	Caller        string          `json:"caller"`
+	DedupeKey     *string         `json:"dedupeKey"`
+	Silent        bool            `json:"silent"`
+	DeliverAt     time.Time       `json:"deliverAt"`
+	ReadAt        *time.Time      `json:"readAt"`
+	ArchivedAt    *time.Time      `json:"archivedAt"`
+	CreatedAt     time.Time       `json:"createdAt"`
 }
 
 type NotifyOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type NotifyPreference struct {
-	Realm          string
-	UserID         string
-	MutedUntil     *time.Time
-	SoundEnabled   bool
-	Sound          string
-	Volume         int16
-	PopupsEnabled  bool
-	DesktopEnabled bool
-	UpdatedAt      time.Time
+	Realm          string     `json:"realm"`
+	UserID         string     `json:"userId"`
+	MutedUntil     *time.Time `json:"mutedUntil"`
+	SoundEnabled   bool       `json:"soundEnabled"`
+	Sound          string     `json:"sound"`
+	Volume         int16      `json:"volume"`
+	PopupsEnabled  bool       `json:"popupsEnabled"`
+	DesktopEnabled bool       `json:"desktopEnabled"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
 }

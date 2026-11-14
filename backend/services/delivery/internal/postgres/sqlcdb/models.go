@@ -12,143 +12,143 @@ import (
 )
 
 type DeliveryCodSettlement struct {
-	ID              string
-	SheetID         *string
-	DriverID        string
-	AmountCollected pgtype.Numeric
-	AmountSettled   pgtype.Numeric
-	Status          string
-	SettledAt       *time.Time
-	CreatedAt       time.Time
+	ID              string         `json:"id"`
+	SheetID         *string        `json:"sheetId"`
+	DriverID        string         `json:"driverId"`
+	AmountCollected pgtype.Numeric `json:"amountCollected"`
+	AmountSettled   pgtype.Numeric `json:"amountSettled"`
+	Status          string         `json:"status"`
+	SettledAt       *time.Time     `json:"settledAt"`
+	CreatedAt       time.Time      `json:"createdAt"`
 }
 
 type DeliveryCourierAgency struct {
-	ID          string
-	Name        string
-	ContactName *string
-	Email       *string
-	Phone       *string
-	ApiEndpoint *string
-	IsActive    bool
-	CreatedAt   time.Time
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	ContactName *string   `json:"contactName"`
+	Email       *string   `json:"email"`
+	Phone       *string   `json:"phone"`
+	ApiEndpoint *string   `json:"apiEndpoint"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type DeliveryDeliverySetting struct {
-	ID          string
-	Mode        string
-	SlaHours    int32
-	TimeZone    *string
-	SlotDays    int32
-	LeadMinutes int32
-	RequireSlot bool
-	UpdatedAt   time.Time
+	ID          string    `json:"id"`
+	Mode        string    `json:"mode"`
+	SlaHours    int32     `json:"slaHours"`
+	TimeZone    *string   `json:"timeZone"`
+	SlotDays    int32     `json:"slotDays"`
+	LeadMinutes int32     `json:"leadMinutes"`
+	RequireSlot bool      `json:"requireSlot"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type DeliveryDeliverySlot struct {
-	ID        string
-	ZoneID    *string
-	Weekday   int32
-	SlotStart string
-	SlotEnd   string
-	Capacity  *int32
-	IsActive  bool
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	ZoneID    *string   `json:"zoneId"`
+	Weekday   int32     `json:"weekday"`
+	SlotStart string    `json:"slotStart"`
+	SlotEnd   string    `json:"slotEnd"`
+	Capacity  *int32    `json:"capacity"`
+	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type DeliveryDeliveryZone struct {
-	ID        string
-	NameEn    string
-	NameAr    string
-	Areas     []string
-	Fee       pgtype.Numeric
-	MinOrder  pgtype.Numeric
-	FreeOver  pgtype.Numeric
-	IsActive  bool
-	SortOrder int32
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string         `json:"id"`
+	NameEn    string         `json:"nameEn"`
+	NameAr    string         `json:"nameAr"`
+	Areas     []string       `json:"areas"`
+	Fee       pgtype.Numeric `json:"fee"`
+	MinOrder  pgtype.Numeric `json:"minOrder"`
+	FreeOver  pgtype.Numeric `json:"freeOver"`
+	IsActive  bool           `json:"isActive"`
+	SortOrder int32          `json:"sortOrder"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 type DeliveryInbox struct {
-	Consumer  string
-	EventID   string
-	HandledAt time.Time
+	Consumer  string    `json:"consumer"`
+	EventID   string    `json:"eventId"`
+	HandledAt time.Time `json:"handledAt"`
 }
 
 type DeliveryOutbox struct {
-	ID          string
-	Subject     string
-	Payload     json.RawMessage
-	Headers     json.RawMessage
-	CreatedAt   time.Time
-	PublishedAt *time.Time
-	Attempts    int32
-	NextTryAt   time.Time
-	LastError   *string
+	ID          string          `json:"id"`
+	Subject     string          `json:"subject"`
+	Payload     json.RawMessage `json:"payload"`
+	Headers     json.RawMessage `json:"headers"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	PublishedAt *time.Time      `json:"publishedAt"`
+	Attempts    int32           `json:"attempts"`
+	NextTryAt   time.Time       `json:"nextTryAt"`
+	LastError   *string         `json:"lastError"`
 }
 
 type DeliveryRouteSheet struct {
-	ID        string
-	Number    string
-	DriverID  *string
-	VehicleID *string
-	Status    string
-	RunDate   pgtype.Date
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string      `json:"id"`
+	Number    string      `json:"number"`
+	DriverID  *string     `json:"driverId"`
+	VehicleID *string     `json:"vehicleId"`
+	Status    string      `json:"status"`
+	RunDate   pgtype.Date `json:"runDate"`
+	CreatedAt time.Time   `json:"createdAt"`
+	UpdatedAt time.Time   `json:"updatedAt"`
 }
 
 type DeliveryShipment struct {
-	ID             string
-	Number         string
-	OrderID        string
-	Status         string
-	Method         string
-	ZoneID         *string
-	SlotID         *string
-	SlotDate       *time.Time
-	SlotStart      *string
-	SlotEnd        *string
-	PromisedBy     time.Time
-	RecipientName  string
-	RecipientPhone string
-	Address        json.RawMessage
-	CodAmount      pgtype.Numeric
-	CodCollected   pgtype.Numeric
-	TrackingToken  string
-	Attempts       int32
-	FailureReason  *string
-	OutAt          *time.Time
-	DeliveredAt    *time.Time
-	DriverID       *string
-	VehicleID      *string
-	RouteSheetID   *string
-	RouteStop      *int32
-	ProofPhotoUrl  *string
-	ProofSignature *string
-	AgencyID       *string
-	TrackingNumber *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string          `json:"id"`
+	Number         string          `json:"number"`
+	OrderID        string          `json:"orderId"`
+	Status         string          `json:"status"`
+	Method         string          `json:"method"`
+	ZoneID         *string         `json:"zoneId"`
+	SlotID         *string         `json:"slotId"`
+	SlotDate       *time.Time      `json:"slotDate"`
+	SlotStart      *string         `json:"slotStart"`
+	SlotEnd        *string         `json:"slotEnd"`
+	PromisedBy     time.Time       `json:"promisedBy"`
+	RecipientName  string          `json:"recipientName"`
+	RecipientPhone string          `json:"recipientPhone"`
+	Address        json.RawMessage `json:"address"`
+	CodAmount      pgtype.Numeric  `json:"codAmount"`
+	CodCollected   pgtype.Numeric  `json:"codCollected"`
+	TrackingToken  string          `json:"trackingToken"`
+	Attempts       int32           `json:"attempts"`
+	FailureReason  *string         `json:"failureReason"`
+	OutAt          *time.Time      `json:"outAt"`
+	DeliveredAt    *time.Time      `json:"deliveredAt"`
+	DriverID       *string         `json:"driverId"`
+	VehicleID      *string         `json:"vehicleId"`
+	RouteSheetID   *string         `json:"routeSheetId"`
+	RouteStop      *int32          `json:"routeStop"`
+	ProofPhotoUrl  *string         `json:"proofPhotoUrl"`
+	ProofSignature *string         `json:"proofSignature"`
+	AgencyID       *string         `json:"agencyId"`
+	TrackingNumber *string         `json:"trackingNumber"`
+	CreatedAt      time.Time       `json:"createdAt"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
 }
 
 type DeliveryShipmentEvent struct {
-	ID         string
-	ShipmentID string
-	Status     string
-	Reason     *string
-	Note       *string
-	ByID       *string
-	At         time.Time
+	ID         string    `json:"id"`
+	ShipmentID string    `json:"shipmentId"`
+	Status     string    `json:"status"`
+	Reason     *string   `json:"reason"`
+	Note       *string   `json:"note"`
+	ByID       *string   `json:"byId"`
+	At         time.Time `json:"at"`
 }
 
 type DeliveryVehicle struct {
-	ID        string
-	Plate     string
-	Name      string
-	Kind      string
-	Notes     *string
-	IsActive  bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	Plate     string    `json:"plate"`
+	Name      string    `json:"name"`
+	Kind      string    `json:"kind"`
+	Notes     *string   `json:"notes"`
+	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

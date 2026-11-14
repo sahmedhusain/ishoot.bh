@@ -10,14 +10,14 @@ import (
 )
 
 type AuditEvent struct {
-	ID         string
-	Subject    string
-	Service    string
-	Entity     string
-	Verb       string
-	Actor      *string
-	OccurredAt time.Time
-	ReceivedAt time.Time
-	Payload    json.RawMessage
-	TraceID    *string
+	ID         string          `json:"id"`
+	Subject    string          `json:"subject"`
+	Service    string          `json:"service"`
+	Entity     string          `json:"entity"`
+	Verb       string          `json:"verb"`
+	Actor      *string         `json:"actor"`
+	OccurredAt time.Time       `json:"occurredAt"`
+	ReceivedAt time.Time       `json:"receivedAt"`
+	Payload    json.RawMessage `json:"payload"`
+	TraceID    *string         `json:"traceId"`
 }
