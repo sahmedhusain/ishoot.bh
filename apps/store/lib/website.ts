@@ -22,22 +22,24 @@ const previewCookie = cache(async (): Promise<boolean> => {
   return timingSafeEqual(Buffer.from(expected), Buffer.from(token));
 });
 export const isWebsitePreview = cache(async () => previewCookie());
-const getPublishedWebsite = unstable_cache(
-  async (): Promise<WebsiteSnapshot> => {
-    try {
-      const snap = await getContentSnapshot("main");
-      if (
-        snap?.published &&
-        typeof snap.published === "object" &&
-        Object.keys(snap.published).length > 0
-      ) {
-        return snap.published as unknown as WebsiteSnapshot;
-      }
-    } catch {}
-    return await getWebsiteSnapshot(false);
-  },
-  ["published-website"],
-  { revalidate: 60, tags: ["website"] },
+const getPublishedWebsite = cache(
+  unstable_cache(
+    async (): Promise<WebsiteSnapshot> => {
+      try {
+        const snap = await getContentSnapshot("main");
+        if (
+          snap?.published &&
+          typeof snap.published === "object" &&
+          Object.keys(snap.published).length > 0
+        ) {
+          return snap.published as unknown as WebsiteSnapshot;
+        }
+      } catch {}
+      return await getWebsiteSnapshot(false);
+    },
+    ["published-website"],
+    { revalidate: 60, tags: ["website"] },
+  ),
 );
 
 export const getWebsite = cache(async () => {

@@ -51,14 +51,14 @@ export const getSite = cache(async () => {
   return { company, website, config, info, enabled };
 });
 
-export async function siteTranslations(locale: string) {
+export const siteTranslations = cache(async (locale: string) => {
   const { info } = await getSite();
   return getWebsiteTranslations(
     locale as Locale,
     info.activity,
     deepMerge(siteCopyOverrides(info, locale), info.interfaceCopy?.[locale] as never),
   );
-}
+});
 
 export async function requireSiteLanguage(locale: string) {
   const { info } = await getSite();

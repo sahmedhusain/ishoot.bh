@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { randomUUID } from "node:crypto";
 import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
 import { SocialLink } from "../types";
@@ -26,30 +27,32 @@ function mapSocialLink(raw: any): SocialLink {
   };
 }
 
-export async function getSocialLinks(onlyActive = true): Promise<SocialLink[]> {
-  try {
-    const snap = await getContentSnapshot("main");
-    const draftList = Array.isArray(snap?.draft?.socialLinks)
-      ? snap.draft.socialLinks
-      : [];
-    const pubList = Array.isArray(snap?.published?.socialLinks)
-      ? snap.published.socialLinks
-      : [];
-    const raw = onlyActive
-      ? pubList.length > 0
-        ? pubList
-        : draftList
-      : draftList.length > 0
-        ? draftList
-        : pubList;
-    const mapped = raw.map(mapSocialLink);
-    const filtered = onlyActive ? mapped.filter((l) => l.is_active) : mapped;
-    return filtered.sort((a, b) => a.display_order - b.display_order);
-  } catch (e) {
-    console.error("Failed to fetch social links from CMS snapshot:", e);
-    return [];
-  }
-}
+export const getSocialLinks = cache(
+  async (onlyActive = true): Promise<SocialLink[]> => {
+    try {
+      const snap = await getContentSnapshot("main");
+      const draftList = Array.isArray(snap?.draft?.socialLinks)
+        ? snap.draft.socialLinks
+        : [];
+      const pubList = Array.isArray(snap?.published?.socialLinks)
+        ? snap.published.socialLinks
+        : [];
+      const raw = onlyActive
+        ? pubList.length > 0
+          ? pubList
+          : draftList
+        : draftList.length > 0
+          ? draftList
+          : pubList;
+      const mapped = raw.map(mapSocialLink);
+      const filtered = onlyActive ? mapped.filter((l) => l.is_active) : mapped;
+      return filtered.sort((a, b) => a.display_order - b.display_order);
+    } catch (e) {
+      console.error("Failed to fetch social links from CMS snapshot:", e);
+      return [];
+    }
+  },
+);
 
 export async function createSocialLink(data: {
   platform: string;

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSite, setSiteDomains, type Site } from "@platform/api-client";
 import { EMPTY_WEBSITE_CODE, type WebsiteCode } from "../website-config";
 
@@ -9,7 +10,7 @@ const cacheMs = () => {
 };
 let cached: { until: number; site: Promise<Site> } | undefined;
 
-export function getSiteSettings(): Promise<Site> {
+export const getSiteSettings = cache((): Promise<Site> => {
   const now = Date.now();
   if (!cached || now >= cached.until) {
     const pending = getSite();
@@ -19,11 +20,11 @@ export function getSiteSettings(): Promise<Site> {
     });
   }
   return cached.site;
-}
+});
 
-export async function getSiteCode(): Promise<WebsiteCode> {
+export const getSiteCode = cache(async (): Promise<WebsiteCode> => {
   return { ...EMPTY_WEBSITE_CODE, ...(await getSiteSettings()).code };
-}
+});
 
 export async function saveSiteDomains(
   input: { websiteDomain: string; adminDomain: string },

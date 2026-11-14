@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { serverMessages } from "@platform/locales";
 import { getContentSnapshot } from "@platform/api-client";
 import { getCompanySettings } from "./company-settings";
@@ -104,18 +105,18 @@ export async function getWebsiteEditor() {
   };
 }
 
-export async function getWebsiteSnapshot(
-  preview = false,
-): Promise<WebsiteSnapshot> {
-  const snap = await getContentSnapshot("main").catch(() => null);
-  if (!preview && snap?.published)
-    return snap.published as unknown as WebsiteSnapshot;
-  if (!preview || !snap)
-    throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
-  const rawDraft = snap.draft as Record<string, any> | undefined;
-  const draftConfig = rawDraft?.config ?? rawDraft;
-  return collectWebsiteDraft(validateWebsiteConfig(draftConfig));
-}
+export const getWebsiteSnapshot = cache(
+  async (preview = false): Promise<WebsiteSnapshot> => {
+    const snap = await getContentSnapshot("main").catch(() => null);
+    if (!preview && snap?.published)
+      return snap.published as unknown as WebsiteSnapshot;
+    if (!preview || !snap)
+      throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
+    const rawDraft = snap.draft as Record<string, any> | undefined;
+    const draftConfig = rawDraft?.config ?? rawDraft;
+    return collectWebsiteDraft(validateWebsiteConfig(draftConfig));
+  },
+);
 
 export const WEBSITE_SNAPSHOT_SECTIONS = [
   "config",

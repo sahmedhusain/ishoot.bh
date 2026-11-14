@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   getCompanyConfiguration,
 } from "@platform/api-client";
@@ -105,23 +106,25 @@ async function mapSettings(s: any): Promise<CompanySettings> {
   };
 }
 
-export async function getCompanySettings(): Promise<CompanySettings> {
-  try {
-    const settings = await getCompanyConfiguration();
-    return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
-  } catch (error) {
-    return mapSettings({
-      id: "unconfigured",
-      companyNameEn: "",
-      companyNameAr: "",
-      defaultCurrency: "USD" as SupportedCurrency,
-      currencyDecimals: 2,
-      vatPercentage: 0,
-      vatEnabled: false,
-      theme: {},
-      contentLanguages: ["en", "ar"],
-      primaryLanguage: "en",
-      updatedAt: new Date(),
-    });
-  }
-}
+export const getCompanySettings = cache(
+  async (): Promise<CompanySettings> => {
+    try {
+      const settings = await getCompanyConfiguration();
+      return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
+    } catch {
+      return mapSettings({
+        id: "unconfigured",
+        companyNameEn: "",
+        companyNameAr: "",
+        defaultCurrency: "USD" as SupportedCurrency,
+        currencyDecimals: 2,
+        vatPercentage: 0,
+        vatEnabled: false,
+        theme: {},
+        contentLanguages: ["en", "ar"],
+        primaryLanguage: "en",
+        updatedAt: new Date(),
+      });
+    }
+  },
+);
