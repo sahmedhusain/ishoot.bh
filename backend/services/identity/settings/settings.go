@@ -26,12 +26,12 @@ type Config struct {
 }
 type EnvBootstrap struct {
 	SuperAdminUsername	string	`env:"SUPER_ADMIN_USERNAME" envDefault:"BA0001"`
-	SuperAdminEmail		string	`env:"SUPER_ADMIN_EMAIL" envDefault:"admin@ishoot.bh"`
+	SuperAdminEmail		string	`env:"SUPER_ADMIN_EMAIL" envDefault:"admin@platform.local"`
 	SuperAdminPassword	string	`env:"SUPER_ADMIN_PASSWORD"`
 	SuperAdminPasswordHash	string	`env:"SUPER_ADMIN_PASSWORD_HASH"`
 	SuperAdminName		string	`env:"SUPER_ADMIN_NAME" envDefault:"Super Admin"`
 	ITAdminUsername		string	`env:"IT_ADMIN_USERNAME" envDefault:"BA0001"`
-	ITAdminEmail		string	`env:"IT_ADMIN_EMAIL" envDefault:"admin@ishoot.bh"`
+	ITAdminEmail		string	`env:"IT_ADMIN_EMAIL" envDefault:"admin@platform.local"`
 	ITAdminPassword		string	`env:"IT_ADMIN_PASSWORD"`
 	ITAdminPasswordHash	string	`env:"IT_ADMIN_PASSWORD_HASH"`
 }

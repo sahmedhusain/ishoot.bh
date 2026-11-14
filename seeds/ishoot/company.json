@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "ishoot",
+    "nameAr": "آي شوت"
+  },
+  "company": {
+    "companyNameEn": "ishoot Cinema Production S.P.C.",
+    "companyNameAr": "دار آي شوت للإنتاج السينمائي ذ.م.م",
+    "businessActivity": "media",
+    "country": "BH",
+    "city": "Manama",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-142859-1",
+    "vatId": "200019283700002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Office 402, Platinum Tower, Seef District, Manama, Kingdom of Bahrain",
+    "addressAr": "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
+    "phone": "+97317000000",
+    "whatsappPhone": "+97339000000",
+    "email": "hello@ishoot.bh",
+    "website": "https://ishoot.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH29NBOB00000012345678",
+    "bankAccountNumber": "0012345678",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "ISH",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Cinema Production & Creative Media Studio",
+    "taglineAr": "استوديو الإنتاج السينمائي والإعلام الإبداعي",
+    "aboutTextEn": "Premier cinematic media production house in the Kingdom of Bahrain, crafting narrative-driven brand films, commercials, and aerial cinematography.",
+    "aboutTextAr": "دار إنتاج سينمائي رائدة في مملكة البحرين، متخصصة في صناعة الأفلام الإعلانية الوثائقية والتصوير الجوي السينمائي.",
+    "ceoNameEn": "Ali Al-Arrayed",
+    "ceoNameAr": "علي العريض",
+    "ceoTitleEn": "Managing Director & Executive Producer",
+    "ceoTitleAr": "المدير العام والمنتج التنفيذي",
+    "foundedYear": 2018,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

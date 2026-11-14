@@ -1,0 +1,16 @@
+{
+  "primary": "#0F172A",
+  "accent": "#6366F1",
+  "radius": "md",
+  "defaultMode": "dark",
+  "fonts": {
+    "body": {
+      "kind": "google",
+      "family": "Plus Jakarta Sans"
+    },
+    "heading": {
+      "kind": "google",
+      "family": "Plus Jakarta Sans"
+    }
+  }
+}

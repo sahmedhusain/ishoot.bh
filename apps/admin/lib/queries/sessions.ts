@@ -46,7 +46,7 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
         return {
           id: access.subjectId,
           full_name: isSuper ? (process.env.SUPER_ADMIN_NAME || "Super Admin") : access.subjectId,
-          email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@ishoot.bh") : `${access.subjectId}@platform.local`,
+          email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@platform.local") : `${access.subjectId}@platform.local`,
           role: access.role as UserRole,
           permissions: access.permissions as any,
           is_active: true,
@@ -61,7 +61,7 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
       return {
         id: access.subjectId,
         full_name: isSuper ? (process.env.SUPER_ADMIN_NAME || "Super Admin") : access.subjectId,
-        email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@ishoot.bh") : `${access.subjectId}@platform.local`,
+        email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@platform.local") : `${access.subjectId}@platform.local`,
         role: access.role as UserRole,
         permissions: access.permissions as any,
         is_active: true,

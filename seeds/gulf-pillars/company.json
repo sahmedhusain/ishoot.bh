@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Gulf Pillars",
+    "nameAr": "أركان الخليج"
+  },
+  "company": {
+    "companyNameEn": "Gulf Pillars Contracting Co. W.L.L.",
+    "companyNameAr": "شركة أركان الخليج للمقاولات ذ.م.م",
+    "businessActivity": "construction",
+    "country": "BH",
+    "city": "Hidd",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-98412-1",
+    "vatId": "200009841200002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Building 312, Salman Industrial City, Hidd",
+    "addressAr": "مبنى 312، مدينة سلمان الصناعية، الحد",
+    "phone": "+97317674400",
+    "whatsappPhone": "+97339674400",
+    "email": "projects@gulfpillars.bh",
+    "website": "https://gulfpillars.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH91NBOB00000009841200",
+    "bankAccountNumber": "0009841200",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "GPC",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Civil Infrastructure, MEP & Turnkey Commercial Contracting",
+    "taglineAr": "البنية التحتية المدنية والأعمال الكهروميكانيكية والمقاولات",
+    "aboutTextEn": "Grade-A civil and MEP contractor executing industrial warehouses, commercial complexes, and municipal infrastructure across Bahrain.",
+    "aboutTextAr": "مقاول درجة أولى للأعمال المدنية والكهروميكانيكية لتنفيذ المستودعات الصناعية والمجمعات التجارية.",
+    "ceoNameEn": "Ebrahim Al-Doseri",
+    "ceoNameAr": "إبراهيم الدوسري",
+    "ceoTitleEn": "Managing Director",
+    "ceoTitleAr": "العضو المنتدب",
+    "foundedYear": 2011,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

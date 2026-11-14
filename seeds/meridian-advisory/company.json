@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Meridian Advisory",
+    "nameAr": "ميريديان للاستشارات"
+  },
+  "company": {
+    "companyNameEn": "Meridian Business Advisory S.P.C.",
+    "companyNameAr": "ميريديان لاستشارات الأعمال ذ.م.م",
+    "businessActivity": "services",
+    "country": "BH",
+    "city": "Diplomatic Area",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-141022-3",
+    "vatId": "200014102200002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Office 1204, United Tower, Diplomatic Area, Manama",
+    "addressAr": "مكتب 1204، البرج المتحد، المنطقة الدبلوماسية، المنامة",
+    "phone": "+97317530800",
+    "whatsappPhone": "+97339530800",
+    "email": "advisory@meridianbh.com",
+    "website": "https://meridianbh.com",
+    "bankName": "Standard Chartered Bahrain",
+    "bankIban": "BH55SCBL00000041022001",
+    "bankAccountNumber": "0041022001",
+    "bankSwift": "SCBLBHBX",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "MRD",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Financial Advisory, Governance & Strategy Consulting",
+    "taglineAr": "الاستشارات المالية والحوكمة وتطوير الاستراتيجيات",
+    "aboutTextEn": "Management and financial consultancy advising family conglomerates and growth-stage companies on restructuring, VAT compliance, and expansion.",
+    "aboutTextAr": "شركة استشارات إدارية ومالية تدعم المجموعات العائلية والشركات النامية في إعادة الهيكلة والامتثال الضريبي والتوسع.",
+    "ceoNameEn": "Khalid Al-Zayani",
+    "ceoNameAr": "خالد الزياني",
+    "ceoTitleEn": "Managing Partner",
+    "ceoTitleAr": "الشريك الإداري",
+    "foundedYear": 2017,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Al-Shifa Clinic",
+    "nameAr": "عيادة الشفاء"
+  },
+  "company": {
+    "companyNameEn": "Al-Shifa Specialist Polyclinic W.L.L.",
+    "companyNameAr": "مجمع الشفاء التخصصي الطبي ذ.م.م",
+    "businessActivity": "healthcare",
+    "country": "BH",
+    "city": "Zinj",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-122045-1",
+    "vatId": "200012204500002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Building 118, Al-Quds Avenue, Zinj, Manama",
+    "addressAr": "مبنى 118، شارع القدس، الزنج، المنامة",
+    "phone": "+97317256600",
+    "whatsappPhone": "+97339256600",
+    "email": "care@alshifaclinic.bh",
+    "website": "https://alshifaclinic.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH88NBOB00000022045001",
+    "bankAccountNumber": "0022045001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "SHF",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Multi-Specialty Outpatient Care & Diagnostics",
+    "taglineAr": "رعاية تخصصية شاملة وتشخيص مخبري دقيق",
+    "aboutTextEn": "NHRA-licensed outpatient medical center offering family medicine, dental, dermatology, and diagnostic laboratory services.",
+    "aboutTextAr": "مركز طبي تخصصي مرخص يقدم خدمات طب الأسرة والأسنان والجلدية والمختبرات التشخيصية.",
+    "ceoNameEn": "Dr. Hassan Al-Bahrani",
+    "ceoNameAr": "د. حسن البحراني",
+    "ceoTitleEn": "Medical Director",
+    "ceoTitleAr": "المدير الطبي",
+    "foundedYear": 2015,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

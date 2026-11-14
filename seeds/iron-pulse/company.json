@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Iron Pulse",
+    "nameAr": "نبض الحديد"
+  },
+  "company": {
+    "companyNameEn": "Iron Pulse Athletic Club W.L.L.",
+    "companyNameAr": "نادي نبض الحديد الرياضي ذ.م.م",
+    "businessActivity": "fitness",
+    "country": "BH",
+    "city": "Juffair",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-154820-1",
+    "vatId": "200015482000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Level 2, Oasis Sports Complex, Juffair, Manama",
+    "addressAr": "الطابق 2، مجمع الواحة الرياضي، الجفير، المنامة",
+    "phone": "+97317821100",
+    "whatsappPhone": "+97339821100",
+    "email": "members@ironpulse.bh",
+    "website": "https://ironpulse.bh",
+    "bankName": "Ahli United Bank (AUB)",
+    "bankIban": "BH45AUBB00000054820001",
+    "bankAccountNumber": "0054820001",
+    "bankSwift": "AUBBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "IRP",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Strength Conditioning, Recovery & Athletic Nutrition",
+    "taglineAr": "القوة البدنية والاستشفاء والتغذية الرياضية",
+    "aboutTextEn": "High-performance training facility offering coached strength classes, recovery cold plunges, and an athletic nutrition shop.",
+    "aboutTextAr": "نادي تدريب عالي الأداء يقدم حصص القوة البدنية والاستشفاء ومتجر المكملات الرياضية.",
+    "ceoNameEn": "Bader Al-Jalahma",
+    "ceoNameAr": "بدر الجلاهمة",
+    "ceoTitleEn": "Performance Director",
+    "ceoTitleAr": "مدير الأداء الرياضي",
+    "foundedYear": 2020,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

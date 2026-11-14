@@ -1,21 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Store Architecture & UX", () => {
-  test("renders live ishoot catalogue & 100% localized Arabic storefront", async ({ page }) => {
+  test("renders live catalogue & 100% localized Arabic storefront", async ({ page }) => {
     const enRes = await page.goto("/en", { waitUntil: "domcontentloaded" });
     expect(enRes?.status()).toBe(200);
 
     const enHtml = await page.content();
-    expect(enHtml).toMatch(/ishoot/i);
-    expect(enHtml).not.toMatch(/Northwind|نورثويند|mock-/i);
+    expect(enHtml).not.toMatch(/mock-/i);
     expect(await page.locator('[data-testid^="product-card-"]').count()).toBeGreaterThan(0);
 
     const arRes = await page.goto("/ar", { waitUntil: "domcontentloaded" });
     expect(arRes?.status()).toBe(200);
 
     const arText = await page.locator("body").innerText();
-    expect(arText).toContain("آي شوت");
-    expect(arText).not.toMatch(/Northwind|نورثويند|mock-/i);
+    expect(arText).not.toMatch(/mock-/i);
     expect(arText).not.toContain("Express Delivery");
     expect(arText).not.toContain("Best Store Deals");
     expect(arText).not.toContain("100% Authentic");

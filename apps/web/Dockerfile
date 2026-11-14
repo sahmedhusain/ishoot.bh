@@ -13,7 +13,6 @@ RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline --no-audit
 
 WORKDIR /app
 COPY package.json ./
-COPY seeds/assets ./seeds/assets
 COPY apps/web ./apps/web
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -39,8 +38,6 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 # outputFileTracingRoot is the repo root, so standalone nests the app one level down.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./seeds/assets
-COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./apps/web/seeds/assets
 
 USER nextjs
 

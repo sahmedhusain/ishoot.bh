@@ -1,6 +1,6 @@
 # Database Guide: Schema Architecture, Migrations & Seeding
 
-The platform relies on PostgreSQL 17 with 15+ isolated microservice schemas. Seed fixtures, activity presets, and brand assets reside under [`seeds/`](../seeds/).
+The platform relies on PostgreSQL 17 with 15 isolated microservice schemas. See [ERD.md](./ERD.md) for the complete entity-relationship diagrams (Mermaid) and column-level table reference. Standalone company seed packages reside under [`seeds/`](../seeds/).
 
 ---
 
@@ -67,31 +67,30 @@ Application queries connect through **PgBouncer** in transaction pooling mode on
 
 ---
 
-## 4. Seeding & Preset System
+## 4. Seeding & Clean Bootstrap System
 
-Pure SQL seeds and company brand assets reside in `seeds/`:
+By default, database initialization and container builds produce a **fresh, empty database** (`seeds/bootstrap/seed_bootstrap.sql`) ready for the IT Setup Wizard, with zero business or demo records. Optional standalone company seed packages live in `seeds/<company>/`:
 
 ```
 seeds/
-├── sql/
-│   ├── seed_ishoot.sql     # Full SQL seed for iShoot Cinema
-│   ├── seed_northwind.sql  # Full SQL seed for Northwind Studio
-│   ├── seed_bootstrap.sql  # Bootstrap seed for blank wizard setup
-│   └── presets/            # Activity presets (commerce, services, food, etc.)
-└── assets/
-    ├── ishoot/             # iShoot brand artwork, logos, fonts
-    └── demo/               # Northwind Studio brand artwork
+├── bootstrap/
+│   └── seed_bootstrap.sql  # Minimal clean installation (default)
+└── <company>/              # 25 standalone company seed packages
+    ├── company.json        # Company profile & businessActivity config
+    ├── theme.json          # Theme colors, radius & fonts
+    ├── seed.sql            # Standalone SQL seed for this company
+    └── assets/             # Company-owned logos, icons, banners & fonts
 ```
+
+Included packages cover all **23 core business activities**, 1 multi-business group (`zayed-group`), and 1 media production profile (`ishoot`, with store disabled), with varied `hasWeb` and `hasStore` configurations.
 
 ### Seeding Commands
 
 | Task | Command | Description |
 |---|---|---|
-| **Seed Default Demo** | `./run.sh db seed` | Loads iShoot Cinema demo data (`seeds/sql/seed_ishoot.sql`). |
-| **Seed Neutral Demo** | `./run.sh db seed demo` | Loads Northwind Studio demo data (`seeds/sql/seed_northwind.sql`). |
-| **Apply Activity Preset** | `./run.sh db preset commerce` | Overrides activity settings with `preset_commerce.sql`. |
-| **Clean Bootstrap** | `./run.sh db bootstrap` | Creates default roles, permissions, and initial admin without demo data. |
-| **Verify Seed Dates** | `node scripts/verify-seed-dates.js` | Asserts transaction dates span the past 6 months to 1 month ahead. |
+| **Clean Bootstrap (Default)** | `./run.sh db bootstrap` | Initializes a fresh empty database with default roles, permissions, sequences, and module toggles. |
+| **Seed a Company** | `./run.sh db seed <company>` | Loads `seeds/<company>/seed.sql` and uploads `seeds/<company>/assets/` to SeaweedFS S3 (e.g., `./run.sh db seed zayed-group`). |
+| **Verify Seed Dates** | `node scripts/verify-seed-dates.js` | Asserts seeded invoice dates span the past 6 months to 2 months ahead. |
 
 ---
 
@@ -122,7 +121,7 @@ seeds/
 ```bash
 ./run.sh db reset
 ```
-`db reset` drops all microservice schemas, re-runs Goose migrations, resets SeaweedFS S3 storage buckets, seeds demo data, and verifies seed date ranges.
+`db reset` drops all microservice schemas, re-runs Goose migrations, resets SeaweedFS S3 storage buckets, and initializes a clean empty database via `seeds/bootstrap/seed_bootstrap.sql` (pass `--seed <company>` or run `./run.sh db seed <company>` afterwards to load a seed company).
 
 ### Backup & Restore Commands
 ```bash

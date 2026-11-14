@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Marina Heights",
+    "nameAr": "مارينا هايتس"
+  },
+  "company": {
+    "companyNameEn": "Marina Heights Properties W.L.L.",
+    "companyNameAr": "مارينا هايتس العقارية ذ.م.م",
+    "businessActivity": "real_estate",
+    "country": "BH",
+    "city": "Amwaj Islands",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-129880-1",
+    "vatId": "200012988000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Villa 14, Lagoon Marina Promenade, Amwaj Islands",
+    "addressAr": "فيلا 14، ممشى لاغون مارينا، جزر أمواج",
+    "phone": "+97316012200",
+    "whatsappPhone": "+97338012200",
+    "email": "listings@marinaheights.bh",
+    "website": "https://marinaheights.bh",
+    "bankName": "Kuwait Finance House (KFH)",
+    "bankIban": "BH33KFHO00000029880001",
+    "bankAccountNumber": "0029880001",
+    "bankSwift": "KFHOBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "MHP",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Waterfront Residences, Commercial Towers & Asset Management",
+    "taglineAr": "المساكن البحرية والأبراج التجارية وإدارة الأملاك",
+    "aboutTextEn": "Licensed real estate brokerage and property management firm specializing in waterfront residential communities and Grade-A commercial leasing.",
+    "aboutTextAr": "شركة وساطة وإدارة عقارية مرخصة متخصصة في المجتمعات السكنية البحرية وتأجير المكاتب التجارية.",
+    "ceoNameEn": "Hessa Al-Khalifa",
+    "ceoNameAr": "حصة آل خليفة",
+    "ceoTitleEn": "Chief Executive Officer",
+    "ceoTitleAr": "الرئيسة التنفيذية",
+    "foundedYear": 2016,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

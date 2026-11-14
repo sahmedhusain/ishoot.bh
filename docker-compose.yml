@@ -35,11 +35,9 @@ x-files: &files
     S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
     S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
     FILES_CREATE_BUCKETS: "true"
-    FILES_SEED_ASSETS_DIR: /seeds/assets
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
-    - ./seeds/assets:/seeds/assets:ro
 
 x-itsm: &itsm
   <<: *service
@@ -1043,13 +1041,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
-      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
-      SEED_PRESET: ${SEED_PRESET:-}
       SERVICE_CALLER: web
     ports:
       - "127.0.0.1:3000:3000"
-    volumes:
-      - ./seeds/assets:/app/seeds/assets:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -1080,13 +1074,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
-      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
-      SEED_PRESET: ${SEED_PRESET:-}
       SERVICE_CALLER: admin
     ports:
       - "127.0.0.1:3001:3001"
-    volumes:
-      - ./seeds/assets:/app/seeds/assets:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -1118,13 +1108,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
-      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
-      SEED_PRESET: ${SEED_PRESET:-}
       SERVICE_CALLER: it
     ports:
       - "127.0.0.1:3002:3002"
-    volumes:
-      - ./seeds/assets:/app/seeds/assets:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -1156,13 +1142,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       ERASURE_HASH_KEY: ${ERASURE_HASH_KEY:-}
-      COMPANY_PROFILE: ${COMPANY_PROFILE:-ishoot}
-      SEED_PRESET: ${SEED_PRESET:-}
       SERVICE_CALLER: store
     ports:
       - "127.0.0.1:3003:3003"
-    volumes:
-      - ./seeds/assets:/app/seeds/assets:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

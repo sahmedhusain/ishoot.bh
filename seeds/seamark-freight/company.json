@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Seamark Freight",
+    "nameAr": "سيمارك للشحن"
+  },
+  "company": {
+    "companyNameEn": "Seamark Freight & Customs W.L.L.",
+    "companyNameAr": "سيمارك للشحن والتخليص الجمركي ذ.م.م",
+    "businessActivity": "logistics",
+    "country": "BH",
+    "city": "Khalifa Bin Salman Port",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-114320-1",
+    "vatId": "200011432000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Warehouse 14, KBSP Logistics Zone, Hidd",
+    "addressAr": "مستودع 14، المنطقة اللوجستية بميناء خليفة، الحد",
+    "phone": "+97317671190",
+    "whatsappPhone": "+97339671190",
+    "email": "ops@seamarkfreight.bh",
+    "website": "https://seamarkfreight.bh",
+    "bankName": "Standard Chartered Bahrain",
+    "bankIban": "BH30SCBL00000014320001",
+    "bankAccountNumber": "0014320001",
+    "bankSwift": "SCBLBHBX",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "SMF",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Sea-Air Freight Forwarding, Bonded Warehousing & Customs",
+    "taglineAr": "الشحن البحري والجوي والتخزين الجمركي والتخليص",
+    "aboutTextEn": "B2B freight forwarding and bonded warehousing operator handling customs clearance and GCC cross-border fleet distribution.",
+    "aboutTextAr": "شركة شحن وتخزين جمركي تدير التخليص الجمركي والتوزيع البري عبر دول الخليج.",
+    "ceoNameEn": "Adel Al-Shirawi",
+    "ceoNameAr": "عادل الشيراوي",
+    "ceoTitleEn": "Director of Operations",
+    "ceoTitleAr": "مدير العمليات",
+    "foundedYear": 2012,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

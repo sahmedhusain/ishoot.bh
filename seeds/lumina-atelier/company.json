@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Lumina Atelier",
+    "nameAr": "لومينا أتيليه"
+  },
+  "company": {
+    "companyNameEn": "Lumina Beauty Atelier W.L.L.",
+    "companyNameAr": "لومينا أتيليه للتجميل ذ.م.م",
+    "businessActivity": "beauty",
+    "country": "BH",
+    "city": "Riffa",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-161204-1",
+    "vatId": "200016120400002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Villa 88, Riffa Views Boulevard, Southern Governorate",
+    "addressAr": "فيلا 88، بوليفارد رفاع فيوز، المحافظة الجنوبية",
+    "phone": "+97317773400",
+    "whatsappPhone": "+97333773400",
+    "email": "concierge@luminaatelier.bh",
+    "website": "https://luminaatelier.bh",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankIban": "BH12BBKU00000061204001",
+    "bankAccountNumber": "0061204001",
+    "bankSwift": "BBKUBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "LMA",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Botanical Skincare Boutique & Luxury Salon",
+    "taglineAr": "بوتيك العناية بالبشرة النباتية وصالون فاخر",
+    "aboutTextEn": "Curated beauty atelier combining bespoke facial rituals, hair artistry, and an online botanical skincare apothecary.",
+    "aboutTextAr": "أتيليه تجميل يجمع بين جلسات العناية بالبشرة المخصصة ومتجر إلكتروني لمنتجات العناية النباتية.",
+    "ceoNameEn": "Dana Al-Sabah",
+    "ceoNameAr": "دانة الصباح",
+    "ceoTitleEn": "Creative Founder",
+    "ceoTitleAr": "المؤسسة والمديرة الإبداعية",
+    "foundedYear": 2021,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

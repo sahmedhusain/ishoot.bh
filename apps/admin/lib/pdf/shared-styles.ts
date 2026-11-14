@@ -23,14 +23,12 @@ const nearest = (files: { weight: number; url: string }[], weight: number) =>
     (a, b) => Math.abs(a.weight - weight) - Math.abs(b.weight - weight),
   )[0];
 
-function seedAssetRoots(): string[] {
+function bundledFontRoots(): string[] {
   return [
-    path.resolve(process.cwd(), "seeds/assets"),
-    path.resolve(process.cwd(), "../seeds/assets"),
-    path.resolve(process.cwd(), "../../seeds/assets"),
-    "/app/seeds/assets",
-    "/app/apps/admin/seeds/assets",
-    "/seeds/assets",
+    path.resolve(process.cwd(), "assets/fonts"),
+    path.resolve(process.cwd(), "apps/admin/assets/fonts"),
+    "/app/apps/admin/assets/fonts",
+    "/app/assets/fonts",
   ];
 }
 
@@ -41,27 +39,15 @@ function findBundledTtfPair(
     Boolean(family) && /roboto|inter|public sans|plus jakarta|dm sans/i.test(family!);
   const pairs: Array<[string, string]> = preferRoboto
     ? [
-        [
-          "ishoot/raw/roboto/Roboto-Regular.ttf",
-          "ishoot/raw/roboto/Roboto-Bold.ttf",
-        ],
-        [
-          "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.ttf",
-          "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.ttf",
-        ],
+        ["Roboto-Regular.ttf", "Roboto-Bold.ttf"],
+        ["IBMPlexSansArabic-Regular.ttf", "IBMPlexSansArabic-Bold.ttf"],
       ]
     : [
-        [
-          "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.ttf",
-          "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.ttf",
-        ],
-        [
-          "ishoot/raw/roboto/Roboto-Regular.ttf",
-          "ishoot/raw/roboto/Roboto-Bold.ttf",
-        ],
+        ["IBMPlexSansArabic-Regular.ttf", "IBMPlexSansArabic-Bold.ttf"],
+        ["Roboto-Regular.ttf", "Roboto-Bold.ttf"],
       ];
 
-  for (const root of seedAssetRoots()) {
+  for (const root of bundledFontRoots()) {
     for (const [regRel, boldRel] of pairs) {
       const reg = path.join(root, regRel);
       const bold = path.join(root, boldRel);
@@ -74,15 +60,9 @@ function findBundledTtfPair(
 }
 
 function findAnyLocalArabicTtf(): { regular: string; bold: string } | null {
-  for (const root of seedAssetRoots()) {
-    const reg = path.join(
-      root,
-      "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.ttf",
-    );
-    const bold = path.join(
-      root,
-      "ishoot/raw/ishoot brand english and arabic fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.ttf",
-    );
+  for (const root of bundledFontRoots()) {
+    const reg = path.join(root, "IBMPlexSansArabic-Regular.ttf");
+    const bold = path.join(root, "IBMPlexSansArabic-Bold.ttf");
     if (existsSync(reg) && existsSync(bold)) {
       return { regular: reg, bold };
     }

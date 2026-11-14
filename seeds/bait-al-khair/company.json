@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Bait Al-Khair",
+    "nameAr": "بيت الخير"
+  },
+  "company": {
+    "companyNameEn": "Bait Al-Khair Community Foundation",
+    "companyNameAr": "مؤسسة بيت الخير المجتمعية",
+    "businessActivity": "nonprofit",
+    "country": "BH",
+    "city": "Muharraq",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-NGO-4410",
+    "vatId": "200004410000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Heritage House 7, Shaikh Hamad Avenue, Muharraq",
+    "addressAr": "بيت التراث 7، شارع الشيخ حمد، المحرق",
+    "phone": "+97317324000",
+    "whatsappPhone": "+97333324000",
+    "email": "impact@baitalkhair.org.bh",
+    "website": "https://baitalkhair.org.bh",
+    "bankName": "Bahrain Islamic Bank (BisB)",
+    "bankIban": "BH66BIBB00000004410001",
+    "bankAccountNumber": "0004410001",
+    "bankSwift": "BIBBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "BAK",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Youth Scholarships, Family Relief & Community Grants",
+    "taglineAr": "منح الشباب الدراسية ودعم الأسر والمبادرات المجتمعية",
+    "aboutTextEn": "Registered community foundation funding university scholarships, vocational micro-grants, and neighborhood sustainability programs.",
+    "aboutTextAr": "مؤسسة مجتمعية مسجلة تدعم المنح الجامعية ومشاريع التمكين المهني والاستدامة المحلية.",
+    "ceoNameEn": "Shaikha Al-Kaabi",
+    "ceoNameAr": "شيخة الكعبي",
+    "ceoTitleEn": "Executive Director",
+    "ceoTitleAr": "المديرة التنفيذية",
+    "foundedYear": 2015,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

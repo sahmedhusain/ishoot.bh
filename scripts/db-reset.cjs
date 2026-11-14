@@ -1,7 +1,6 @@
-// Run: pnpm db:reset [--profile <name> | --demo <preset>] [--empty] [--yes]
-// Local development only: wipes the local service volumes, re-applies every service migration and fills it again.
-//   (default)  demo business data for COMPANY_PROFILE (or --profile, default "ishoot"), pure SQL seed
-//   --empty    no demo data: roles, permissions and SUPER_ADMIN only; the admin then shows the setup wizard
+// Run: pnpm db:reset [--company <slug>] [--empty] [--yes]
+// Local development only: wipes the local service volumes, re-applies every service migration,
+// and initializes an empty database by default (or seeds a selected company from seeds/<slug>/).
 // Refuses to run against anything but a database on this machine, or with NODE_ENV=production.
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
@@ -32,73 +31,55 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
-const explicitDemo = option("demo") || option("preset");
-const explicitProfile = option("profile");
-let demo = explicitDemo || (flag("empty") ? undefined : process.env.SEED_PRESET?.trim());
-let profile = explicitProfile || (flag("empty") ? undefined : process.env.COMPANY_PROFILE?.trim());
-
-if (profile === "all") {
-  demo = "all";
-  profile = "demo";
+function listAvailableCompanies() {
+  const seedsDir = path.join(root, "seeds");
+  if (!fs.existsSync(seedsDir)) return [];
+  return fs
+    .readdirSync(seedsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(seedsDir, entry.name, "seed.sql")))
+    .map((entry) => {
+      let label = entry.name;
+      let activity = "";
+      const companyJsonPath = path.join(seedsDir, entry.name, "company.json");
+      if (fs.existsSync(companyJsonPath)) {
+        try {
+          const parsed = JSON.parse(fs.readFileSync(companyJsonPath, "utf8"));
+          label = parsed.company?.companyNameEn || parsed.display?.nameEn || entry.name;
+          activity = parsed.company?.businessActivity || "";
+        } catch {}
+      }
+      return { slug: entry.name, label, activity };
+    })
+    .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
-async function selectProfileInteractive() {
-  if (flag("yes") || option("profile") || option("demo") || option("preset") || flag("empty") || !process.stdin.isTTY) return;
+let selectedCompany = option("company") || option("profile");
+
+async function selectCompanyInteractive(companies) {
+  if (flag("yes") || selectedCompany || flag("empty") || !process.stdin.isTTY) return;
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  console.log("\nSelect company profile or industry preset:");
-  console.log("  1) ishoot   — iShoot Cinema Production S.P.C. (Default)");
-  console.log("  2) demo     — Northwind Studio W.L.L. (All Modules)");
-  console.log("  3) media    — Media & Production Preset");
-  console.log("  4) products — Products & Inventory Preset");
-  console.log("  5) commerce — Store & Delivery Commerce Preset");
-  console.log("  6) services — Professional Services Preset");
-  console.log("  7) food     — Food & Hospitality Preset");
-  console.log("  8) agency   — Creative Agency Preset");
-  console.log("  9) empty    — Empty Database (IT Setup Wizard)");
+  console.log("\nSelect database initialization mode:");
+  console.log("  0) empty — Clean Empty Database (IT Setup Wizard) [Default]");
+  companies.forEach((c, idx) => {
+    const tag = c.activity ? ` [${c.activity}]` : "";
+    console.log(`  ${idx + 1}) ${c.slug} — ${c.label}${tag}`);
+  });
 
-  const choice = (await rl.question("\nEnter selection [1-9] (default 1): ")).trim();
+  const choice = (await rl.question(`\nEnter selection [0-${companies.length}] (default 0): `)).trim();
   rl.close();
 
-  switch (choice) {
-    case "2":
-      profile = "demo";
-      demo = "all";
-      break;
-    case "3":
-      demo = "media";
-      profile = "demo";
-      break;
-    case "4":
-      demo = "products";
-      profile = "demo";
-      break;
-    case "5":
-      demo = "commerce";
-      profile = "demo";
-      break;
-    case "6":
-      demo = "services";
-      profile = "demo";
-      break;
-    case "7":
-      demo = "food";
-      profile = "demo";
-      break;
-    case "8":
-      demo = "agency";
-      profile = "demo";
-      break;
-    case "9":
-      args.push("--empty");
-      demo = undefined;
-      profile = undefined;
-      break;
-    case "1":
-    default:
-      profile = "ishoot";
-      demo = undefined;
-      break;
+  if (!choice || choice === "0") {
+    selectedCompany = undefined;
+    return;
+  }
+  const num = Number(choice);
+  if (Number.isInteger(num) && num >= 1 && num <= companies.length) {
+    selectedCompany = companies[num - 1].slug;
+  } else if (companies.some((c) => c.slug === choice)) {
+    selectedCompany = choice;
+  } else {
+    throw new Error(`Invalid selection "${choice}".`);
   }
 }
 
@@ -124,57 +105,35 @@ async function confirm(target) {
 }
 
 async function main() {
-  await selectProfileInteractive();
+  const companies = listAvailableCompanies();
+  await selectCompanyInteractive(companies);
 
   if (flag("empty")) {
-    demo = undefined;
-    profile = undefined;
+    selectedCompany = undefined;
   }
 
-  if ((flag("demo") && (!option("demo") || option("demo").startsWith("--"))) || (flag("preset") && (!option("preset") || option("preset").startsWith("--")))) {
-    throw new Error("--demo/--preset needs a preset (e.g. media, products, commerce, services, food, agency, all)");
+  if (selectedCompany && !companies.some((c) => c.slug === selectedCompany)) {
+    throw new Error(`Unknown seed company "${selectedCompany}". Available: ${companies.map((c) => c.slug).join(", ")}`);
   }
-  if (demo && flag("profile") && option("profile") !== "all" && option("profile") !== "demo") {
-    throw new Error("Choose --demo/--preset or --profile; presets use the shared demo company.");
-  }
-  if (flag("empty") && explicitDemo) throw new Error("--empty cannot be combined with a demo preset.");
 
-  profile = demo ? (explicitProfile === "ishoot" ? "ishoot" : "demo") : profile || "ishoot";
-  const mode = flag("empty") ? "empty" : "full";
+  const mode = selectedCompany ? "seed" : "empty";
   const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
 
-  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, preset "${demo}"` : ""})`}`);
+  console.log(`Database: ${target}\nMode: ${mode}${selectedCompany ? ` (company "${selectedCompany}")` : " (clean empty database)"}`);
   await confirm(target);
-
-  if (mode === "empty") {
-    run("node", ["scripts/env-tool.cjs", "set", "COMPANY_PROFILE", "", "SEED_PRESET", ""]);
-    resetServiceData();
-    run(path.join(root, "run.sh"), ["db", "migrate"]);
-    run(path.join(root, "run.sh"), ["db", "bootstrap"]);
-    console.log("\nEmpty database ready. Sign in to the IT Console (IT_ADMIN_USERNAME / IT0001 from .env) to run the setup wizard.");
-    return;
-  }
-
-  const envProfile = profile || "ishoot";
-  const envPreset = demo || "";
-  run("node", ["scripts/env-tool.cjs", "set", "COMPANY_PROFILE", envProfile, "SEED_PRESET", envPreset]);
 
   resetServiceData();
   run(path.join(root, "run.sh"), ["db", "migrate"]);
 
-  const seedTarget = (profile === "demo" || profile === "northwind") ? "northwind" : "ishoot";
-  run(path.join(root, "run.sh"), ["db", "seed", seedTarget]);
-
-  if (demo && demo !== "ishoot") {
-    const presetFile = path.join(root, `seeds/sql/presets/preset_${demo}.sql`);
-    if (fs.existsSync(presetFile)) {
-      console.log(`Applying activity preset: ${demo}...`);
-      run(path.join(root, "run.sh"), ["db", "preset", demo]);
-    }
+  if (mode === "empty") {
+    run(path.join(root, "run.sh"), ["db", "bootstrap"]);
+    console.log("\nEmpty database ready. Sign in to the IT Console (IT_ADMIN_USERNAME / BA0001 from .env) to run the setup wizard.");
+    return;
   }
 
+  run(path.join(root, "run.sh"), ["db", "seed", selectedCompany]);
   run("node", ["scripts/verify-seed-dates.js"]);
-  console.log(`\nDemo service data ready for "${profile}".`);
+  console.log(`\nSeeded database ready for "${selectedCompany}".`);
 }
 
 main().catch((error) => {

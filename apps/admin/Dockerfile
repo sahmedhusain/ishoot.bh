@@ -13,7 +13,6 @@ RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline --no-audit
 
 WORKDIR /app
 COPY package.json ./
-COPY seeds/assets ./seeds/assets
 COPY apps/admin ./apps/admin
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -42,8 +41,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/ad
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/pdfkit ./apps/admin/node_modules/pdfkit
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/pdfkit ./node_modules/pdfkit
 COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/node_modules/@react-pdf ./apps/admin/node_modules/@react-pdf
-COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./seeds/assets
-COPY --from=builder --chown=nextjs:nodejs /app/seeds/assets ./apps/admin/seeds/assets
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/assets/fonts ./apps/admin/assets/fonts
 
 USER nextjs
 

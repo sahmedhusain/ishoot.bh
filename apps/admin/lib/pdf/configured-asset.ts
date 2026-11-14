@@ -1,51 +1,6 @@
-import fs from "fs";
-import path from "path";
 import sharp from "sharp";
 import { readFileBytes } from "@platform/api-client";
 import { detectFileType } from "@platform/contracts";
-
-function readLocalSeedAssetBuffer(url: string): Buffer | null {
-  try {
-    const parts = url.replace(/^\/api\/files\//, "").split("/");
-    if (parts.length < 2) return null;
-    const folder = parts[0];
-    const name = parts[1];
-    const cleanName = name.replace(/_[a-f0-9]{8,16}\.([a-z0-9]+)$/i, ".$1");
-    const aliases = [cleanName, name];
-
-    if (cleanName.includes("logo-light")) {
-      aliases.push("logo-text-light.png", "full-logo-light.png", "logo-light.png");
-    } else if (cleanName.includes("logo-dark")) {
-      aliases.push("logo-text-dark.png", "full-logo-dark.png", "logo-dark.png");
-    } else if (cleanName.includes("icon-light")) {
-      aliases.push("icon-light.png", "icon-dark.png");
-    } else if (cleanName.includes("icon-dark")) {
-      aliases.push("icon-dark.png", "icon-light.png");
-    }
-
-    const roots = [
-      path.resolve(process.cwd(), "../../seeds/assets"),
-      path.resolve(process.cwd(), "../seeds/assets"),
-      path.resolve(process.cwd(), "seeds/assets"),
-      "/app/seeds/assets",
-    ];
-
-    for (const root of roots) {
-      for (const alias of aliases) {
-        const candidates = [
-          path.join(root, "demo/assets", folder, alias),
-          path.join(root, "ishoot/assets", folder, alias),
-        ];
-        for (const p of candidates) {
-          if (fs.existsSync(p)) {
-            return fs.readFileSync(p);
-          }
-        }
-      }
-    }
-  } catch {}
-  return null;
-}
 
 async function printReady(buffer: Buffer): Promise<Buffer> {
   try {
@@ -89,13 +44,6 @@ export async function resolveConfiguredPdfAsset(
   if (/[?#\\\u0000]/.test(url)) return;
 
   try {
-    // 1. Direct local disk read (0ms, 100% reliable in dev and Docker, no socket errors)
-    const localBytes = readLocalSeedAssetBuffer(url);
-    if (localBytes) {
-      return await printReady(localBytes);
-    }
-
-    // 2. Fallback to API client remote fetch
     const bytes = await readFileBytes(url);
     if (!bytes) return;
     return await printReady(bytes);

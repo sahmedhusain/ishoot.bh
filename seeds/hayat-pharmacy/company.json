@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Al-Hayat Pharmacy",
+    "nameAr": "صيدلية الحياة"
+  },
+  "company": {
+    "companyNameEn": "Al-Hayat Pharmacy & Wellness W.L.L.",
+    "companyNameAr": "صيدلية الحياة والعافية ذ.م.م",
+    "businessActivity": "pharmacy",
+    "country": "BH",
+    "city": "Sanabis",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-131770-1",
+    "vatId": "200013177000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Shop 4, Dana Mall Medical Arcade, Sanabis",
+    "addressAr": "محل 4، رواق الدانة الطبي، السنابس",
+    "phone": "+97317558800",
+    "whatsappPhone": "+97339558800",
+    "email": "care@alhayatpharmacy.bh",
+    "website": "https://alhayatpharmacy.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH39NBOB00000031770001",
+    "bankAccountNumber": "0031770001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "HYP",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Clinical Pharmacy, Vitamins & Express Wellness Delivery",
+    "taglineAr": "صيدلية سريرية وفيتامينات وتوصيل سريع للعافية",
+    "aboutTextEn": "NHRA-licensed community pharmacy network offering prescription care, clinical dermocosmetics, and 60-minute express delivery.",
+    "aboutTextAr": "شبكة صيدليات مرخصة تقدم الرعاية الدوائية ومستحضرات العناية الطبية والتوصيل السريع.",
+    "ceoNameEn": "Dr. Zainab Al-Saffar",
+    "ceoNameAr": "د. زينب الصفار",
+    "ceoTitleEn": "Chief Pharmacist & Managing Director",
+    "ceoTitleAr": "كبيرة الصيادلة والمديرة العامة",
+    "foundedYear": 2016,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

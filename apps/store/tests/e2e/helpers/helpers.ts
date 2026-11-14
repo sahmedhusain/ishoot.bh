@@ -7,32 +7,34 @@ const root = path.resolve(__dirname, "../../../../..");
 
 export const admin = users.admin;
 
+const activeCompany = process.env.E2E_COMPANY || "zayed-group";
+
 export const demo = {
   ...JSON.parse(
     fs.readFileSync(
-      path.join(root, "seeds/assets/ishoot/company.json"),
+      path.join(root, "seeds", activeCompany, "company.json"),
       "utf8",
     ),
   ),
   theme: JSON.parse(
     fs.readFileSync(
-      path.join(root, "seeds/assets/ishoot/theme.json"),
+      path.join(root, "seeds", activeCompany, "theme.json"),
       "utf8",
     ),
   ),
 };
 
 export const otherCompanyNames: string[] = fs
-  .readdirSync(path.join(root, "seeds/assets"))
+  .readdirSync(path.join(root, "seeds"))
   .filter(
     (name) =>
-      name !== "ishoot" &&
-      fs.existsSync(path.join(root, "seeds/assets", name, "company.json")),
+      name !== activeCompany &&
+      fs.existsSync(path.join(root, "seeds", name, "company.json")),
   )
   .flatMap((name) => {
     const { display = {}, company = {} } = JSON.parse(
       fs.readFileSync(
-        path.join(root, "seeds/assets", name, "company.json"),
+        path.join(root, "seeds", name, "company.json"),
         "utf8",
       ),
     );

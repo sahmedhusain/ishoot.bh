@@ -84,14 +84,15 @@ show_system_banner() {
   if [ -n "${DATABASE_URL:-}" ] && pg_tool psql "$(plain_db_url)" -c "SELECT 1;" >/dev/null 2>&1; then
     db_stat="ONLINE"
   fi
-  profile_stat="${COMPANY_PROFILE:-empty}"
-  [ -z "$profile_stat" ] && profile_stat="empty (wizard)"
+  local seed_count=0
+  seed_count="$(find seeds -maxdepth 2 -name "seed.sql" 2>/dev/null | wc -l | tr -d ' ')"
+  profile_stat="${seed_count} seeds"
 
   echo "${CYAN}${BOLD}┌────────────────────────────────────────────────────────────────────────────┐${RESET}"
   echo "${CYAN}${BOLD}│                        🏢 PLATFORM CONTROL CLI                             │${RESET}"
   echo "${CYAN}${BOLD}│            Enterprise Microservices & Docker Engine v3.0                  │${RESET}"
   echo "${CYAN}${BOLD}├────────────────────────────────────────────────────────────────────────────┤${RESET}"
-  printf "${CYAN}${BOLD}│${RESET} ${BOLD}System:${RESET} Node: %-7s Go: %-8s Docker: %-6s DB: %-6s Profile: %-8s ${CYAN}${BOLD}│${RESET}\n" "$node_ver" "$go_ver" "$docker_stat" "$db_stat" "$profile_stat"
+  printf "${CYAN}${BOLD}│${RESET} ${BOLD}System:${RESET} Node: %-7s Go: %-8s Docker: %-6s DB: %-6s Seeds: %-9s ${CYAN}${BOLD}│${RESET}\n" "$node_ver" "$go_ver" "$docker_stat" "$db_stat" "$profile_stat"
   echo "${CYAN}${BOLD}└────────────────────────────────────────────────────────────────────────────┘${RESET}"
 }
 
@@ -182,9 +183,9 @@ menu_quickstart() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== 🚀 Quick Start & Environment Initialization ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Full Interactive Setup (--demo)   - All Modules & Demo Data"
-    echo "  ${GREEN}[2]${RESET} iShoot Production Setup (--ishoot) - iShoot Cinema Production Profile"
-    echo "  ${GREEN}[3]${RESET} Empty Setup (--empty)              - Clean DB for IT Setup Wizard"
+    echo "  ${GREEN}[1]${RESET} Empty Setup (--empty)              - Clean DB for IT Setup Wizard (Default)"
+    echo "  ${GREEN}[2]${RESET} Seeded Setup (--seed zayed-group)  - Full Multi-Business Suite"
+    echo "  ${GREEN}[3]${RESET} Seeded Setup (--seed ishoot)       - Media Production Studio (No Store)"
     echo "  ${GREEN}[4]${RESET} Media Preset (--media)             - Media Production Preset"
     echo "  ${GREEN}[5]${RESET} Products Preset (--products)       - Products & Inventory Preset"
     echo "  ${GREEN}[6]${RESET} Commerce Preset (--commerce)       - Online Store & Delivery Preset"
@@ -199,9 +200,9 @@ menu_quickstart() {
     printf "%sEnter choice [0-12]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
-      1) cmd_setup --demo; pause_prompt ;;
-      2) cmd_setup --ishoot; pause_prompt ;;
-      3) cmd_setup --empty; pause_prompt ;;
+      1) cmd_setup --empty; pause_prompt ;;
+      2) cmd_setup --seed zayed-group; pause_prompt ;;
+      3) cmd_setup --seed ishoot; pause_prompt ;;
       4) cmd_setup --media; pause_prompt ;;
       5) cmd_setup --products; pause_prompt ;;
       6) cmd_setup --commerce; pause_prompt ;;
@@ -375,10 +376,10 @@ menu_db() {
         ;;
       4) cmd_db reset; pause_prompt ;;
       5)
-        printf "Preset profile (demo|northwind|bootstrap|ishoot): "; read -r p_name
+        echo "Available seed companies:"
+        cmd_company list
+        printf "Enter company slug (or 'bootstrap' for empty): "; read -r p_name
         cmd_db seed "$p_name"
-        printf "Optional activity preset (all|media|products|commerce|services|food|agency, blank to skip): "; read -r a_name
-        if [ -n "$a_name" ]; then cmd_db preset "$a_name"; fi
         pause_prompt
         ;;
       6)
@@ -573,7 +574,7 @@ usage() {
 ${BOLD}Platform Management CLI: ./run.sh <command> [options]${RESET}
 
 ${BOLD}Getting Started & Quick Control${RESET}
-  setup [--demo|--ishoot|--empty] Install, prepare .env, spin up local services & build DB
+  setup [--empty|--seed <company>] Install, prepare .env, spin up local services & build DB
   doctor                           Check runtime binaries (Node, Go, Docker), .env, services & ports
   install                          Install npm dependencies & compile Go microservices
   upgrade                          Pull latest repository changes, migrate schemas & rebuild
@@ -620,8 +621,8 @@ ${BOLD}Database Engine & Migrations${RESET}
   db status                        Inspect schema migration state & table counts
   db new <service> <name>          Generate new SQL migration file for target service
   db generate                      Regenerate Go model code (sqlc) & frontend contract types
-  db seed [profile]                Seed database using specific profile (demo, northwind, bootstrap, ishoot)
-  db preset <name>                 Apply an activity preset on top of a seed (all, media, products, commerce, services, food, agency)
+  db seed <company>                Seed database using a company package in seeds/<company>/ (see ./run.sh company list)
+  db bootstrap                     Initialize minimal clean empty database (roles, permissions, admin only)
   db query "<SQL>"                 Execute direct SQL query on active database
   db psql                          Launch interactive psql terminal
   db backup [file]                 Dump database to backups/
@@ -656,7 +657,7 @@ cmd_install() {
 }
 
 cmd_setup() {
-  local mode="${1:---demo}"
+  local mode="${1:---empty}"
   have node || die "Node 22 or newer is needed."
   cmd_install
   if [ -f .env ]; then
@@ -676,22 +677,13 @@ cmd_setup() {
   fi
   if [ -n "${SUPER_ADMIN_PASSWORD:-}" ]; then
     case "$mode" in
-      --light | --ishoot)
-        node scripts/env-tool.cjs set COMPANY_PROFILE "ishoot" SEED_PRESET ""
-        YES=1 cmd_db reset --profile ishoot
+      --company)
+        local target_company="${2:-}"
+        [ -n "$target_company" ] || die "Usage: ./run.sh setup --company <slug>"
+        YES=1 cmd_db reset --company "$target_company"
         ;;
-      --empty)
-        node scripts/env-tool.cjs set COMPANY_PROFILE "" SEED_PRESET ""
+      --empty | *)
         YES=1 cmd_db reset --empty
-        ;;
-      --media | --products | --commerce | --services | --food | --agency | --all)
-        local p_mode="${mode#--}"
-        node scripts/env-tool.cjs set COMPANY_PROFILE "demo" SEED_PRESET "$p_mode"
-        YES=1 cmd_db reset --preset "$p_mode"
-        ;;
-      *)
-        node scripts/env-tool.cjs set COMPANY_PROFILE "demo" SEED_PRESET "all"
-        YES=1 cmd_db reset --preset all
         ;;
     esac
   fi
@@ -844,9 +836,8 @@ cmd_rebuild() {
       run compose up -d --wait
       step "Re-applying schema migrations"
       cmd_db migrate
-      load_env
-      step "Seeding database profile (${COMPANY_PROFILE:-ishoot})"
-      YES=1 cmd_db reset
+      step "Initializing fresh empty database (IT Setup Wizard)"
+      YES=1 cmd_db reset --empty
       ok "Full Platform Stack Rebuild Complete!"
       ;;
     apps | frontend)
@@ -989,35 +980,27 @@ SQL
       fi
       ;;
     seed)
-      local target_profile="${1:-${COMPANY_PROFILE:-ishoot}}"
-      local seed_file="seeds/sql/seed_ishoot.sql"
-      if [ "$target_profile" = "demo" ] || [ "$target_profile" = "northwind" ]; then
-        seed_file="seeds/sql/seed_northwind.sql"
-      elif [ "$target_profile" = "bootstrap" ]; then
-        seed_file="seeds/sql/seed_bootstrap.sql"
-      elif [ -f "seeds/sql/seed_${target_profile}.sql" ]; then
-        seed_file="seeds/sql/seed_${target_profile}.sql"
-      elif [ -f "seeds/seed.sql" ]; then
-        seed_file="seeds/seed.sql"
+      local target_company="${1:-}"
+      [ -n "$target_company" ] || die "Usage: ./run.sh db seed <company> (run './run.sh company list' to see available seeds)"
+      if [ "$target_company" = "bootstrap" ] || [ "$target_company" = "empty" ]; then
+        cmd_db bootstrap
+        return
       fi
-      step "Seeding database ($seed_file)"
+      local seed_file="seeds/${target_company}/seed.sql"
+      [ -f "$seed_file" ] || die "Unknown seed company \"$target_company\". Run './run.sh company list' to see available companies."
+      step "Seeding database from $seed_file"
       run_sql_script "$seed_file"
-      node scripts/env-tool.cjs set COMPANY_PROFILE "${target_profile}"
-      ok "Seeded database from $seed_file."
-      ;;
-    preset)
-      local preset="${1:-}"
-      [ -n "$preset" ] || die "Usage: ./run.sh db preset <name> (see seeds/sql/presets/)"
-      local preset_file="seeds/sql/presets/preset_${preset}.sql"
-      [ -f "$preset_file" ] || die "Unknown preset \"$preset\"; available: $(ls -1 seeds/sql/presets/preset_*.sql 2>/dev/null | sed -E 's#.*preset_(.*)\.sql#\1#' | paste -sd, - | sed 's/,/, /g')"
-      step "Applying activity preset ($preset_file)"
-      run_sql_script "$preset_file"
-      ok "Applied activity preset: $preset."
+      if [ -d "seeds/${target_company}/assets" ]; then
+        step "Uploading seed assets to object storage (SeaweedFS)"
+        load_env
+        local s3_ep="http://127.0.0.1:${S3_PORT:-8333}"
+        (cd backend && DATABASE_URL="$(plain_db_url)" S3_ENDPOINT="$s3_ep" S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" FILES_PUBLIC_BUCKET="${FILES_PUBLIC_BUCKET:-public-assets}" FILES_PRIVATE_BUCKET="${FILES_PRIVATE_BUCKET:-private-assets}" go run ./tools/storage-copy --from-dir "../seeds/${target_company}/assets") || warn "Could not upload assets to S3 (ensure SeaweedFS is running)."
+      fi
+      ok "Seeded database and assets for $target_company."
       ;;
     bootstrap)
       step "Bootstrapping minimal clean database"
-      run_sql_script "seeds/sql/seed_bootstrap.sql"
-      node scripts/env-tool.cjs set COMPANY_PROFILE "" SEED_PRESET ""
+      run_sql_script "seeds/bootstrap/seed_bootstrap.sql"
       ok "Database bootstrapped."
       ;;
     integrity | check) cmd_db status ;;
@@ -1241,7 +1224,11 @@ cmd_deploy() {
 
 cmd_company() {
   case "${1:-list}" in
-    list) ls -1 seeds/assets 2>/dev/null | grep -v '^\.' | grep -v README ;;
+    list)
+      for d in seeds/*/; do
+        [ -f "${d}seed.sql" ] && basename "$d"
+      done | sort
+      ;;
     *) die "company [list]" ;;
   esac
 }

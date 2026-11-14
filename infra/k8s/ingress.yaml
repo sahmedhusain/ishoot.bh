@@ -10,13 +10,13 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - ishoot.bh
-        - store.ishoot.bh
-        - admin.ishoot.bh
-        - it.ishoot.bh
+        - platform.local
+        - store.platform.local
+        - admin.platform.local
+        - it.platform.local
       secretName: platform-tls
   rules:
-    - host: ishoot.bh
+    - host: platform.local
       http:
         paths:
           - path: /
@@ -26,7 +26,7 @@ spec:
                 name: web
                 port:
                   number: 3000
-    - host: store.ishoot.bh
+    - host: store.platform.local
       http:
         paths:
           - path: /
@@ -36,7 +36,7 @@ spec:
                 name: store
                 port:
                   number: 3003
-    - host: admin.ishoot.bh
+    - host: admin.platform.local
       http:
         paths:
           - path: /
@@ -46,7 +46,7 @@ spec:
                 name: admin
                 port:
                   number: 3001
-    - host: it.ishoot.bh
+    - host: it.platform.local
       http:
         paths:
           - path: /

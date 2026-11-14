@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Rihla Voyages",
+    "nameAr": "رحلة للسياحة"
+  },
+  "company": {
+    "companyNameEn": "Rihla Voyages & Tours W.L.L.",
+    "companyNameAr": "رحلة للسفر والسياحة ذ.م.م",
+    "businessActivity": "travel",
+    "country": "BH",
+    "city": "Manama",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-138900-1",
+    "vatId": "200013890000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Ground Floor, Bab Al-Bahrain Plaza, Manama",
+    "addressAr": "الطابق الأرضي، ساحة باب البحرين، المنامة",
+    "phone": "+97317218800",
+    "whatsappPhone": "+97336218800",
+    "email": "concierge@rihlavoyages.bh",
+    "website": "https://rihlavoyages.bh",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankIban": "BH74BBKU00000038900001",
+    "bankAccountNumber": "0038900001",
+    "bankSwift": "BBKUBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "RHL",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Curated Cultural Journeys & Corporate Travel Management",
+    "taglineAr": "رحلات ثقافية مخصصة وإدارة سفر الشركات",
+    "aboutTextEn": "IATA-accredited travel agency designing bespoke cultural itineraries, group retreats, and corporate aviation bookings.",
+    "aboutTextAr": "وكالة سفر معتمدة من أياتا تصمم البرامج السياحية المخصصة ورحلات الأعمال وحجوزات الطيران.",
+    "ceoNameEn": "Layla Al-Hammadi",
+    "ceoNameAr": "ليلى الحمادي",
+    "ceoTitleEn": "Managing Director",
+    "ceoTitleAr": "المديرة العامة",
+    "foundedYear": 2017,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Dilmun Metalworks",
+    "nameAr": "دلمون للمعادن"
+  },
+  "company": {
+    "companyNameEn": "Dilmun Precision Metalworks W.L.L.",
+    "companyNameAr": "دلمون للأعمال المعدنية الدقيقة ذ.م.م",
+    "businessActivity": "manufacturing",
+    "country": "BH",
+    "city": "Askar",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-89210-1",
+    "vatId": "200008921000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Plant 19, Mazraa Industrial Park, Askar",
+    "addressAr": "مصنع 19، مجمع المزرعة الصناعي، عسكر",
+    "phone": "+97317830100",
+    "whatsappPhone": "+97339830100",
+    "email": "fabrication@dilmunmetal.bh",
+    "website": "https://dilmunmetal.bh",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankIban": "BH94BBKU00000008921001",
+    "bankAccountNumber": "0008921001",
+    "bankSwift": "BBKUBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "DMW",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "CNC Fabrication, Structural Steel & Aluminium Extrusion",
+    "taglineAr": "التشغيل الآلي CNC والصلب الإنشائي وسحب الألمنيوم",
+    "aboutTextEn": "ISO-9001 certified industrial fabrication plant producing custom CNC machined components, architectural aluminium louvers, and steel frames.",
+    "aboutTextAr": "مصنع معتمد وفق آيزو 9001 لإنتاج القطع المعدنية الدقيقة وهياكل الصلب والألمنيوم المعماري.",
+    "ceoNameEn": "Hussain Al-Maskati",
+    "ceoNameAr": "حسين المسقطي",
+    "ceoTitleEn": "Plant Director",
+    "ceoTitleAr": "مدير المصنع",
+    "foundedYear": 2009,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

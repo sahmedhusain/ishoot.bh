@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Zayed Group",
+    "nameAr": "مجموعة زايد"
+  },
+  "company": {
+    "companyNameEn": "Zayed Diversified Group W.L.L.",
+    "companyNameAr": "مجموعة زايد المتنوعة ذ.م.م",
+    "businessActivity": "all",
+    "country": "BH",
+    "city": "Manama",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-100001-1",
+    "vatId": "200010000100002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Zayed Tower, King Faisal Highway, Manama, Bahrain",
+    "addressAr": "برج زايد، شارع الملك فيصل، المنامة، البحرين",
+    "phone": "+97317100100",
+    "whatsappPhone": "+97339100100",
+    "email": "hello@zayedgroup.bh",
+    "website": "https://zayedgroup.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH10NBOB00000010000100",
+    "bankAccountNumber": "0010000100",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "ZDG",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Multi-Division Commerce, Services, Media & Enterprise Operations",
+    "taglineAr": "مجموعة متعددة الأنشطة في التجارة والخدمات والإعلام والعمليات",
+    "aboutTextEn": "Diversified Bahraini holding group operating retail storefronts, last-mile fleet logistics, media production, and enterprise advisory.",
+    "aboutTextAr": "مجموعة بحرينية متنوعة الأنشطة تدير المتاجر الإلكترونية والأسطول اللوجستي والإنتاج الإعلامي والاستشارات.",
+    "ceoNameEn": "Zayed Al-Khalifa",
+    "ceoNameAr": "زايد آل خليفة",
+    "ceoTitleEn": "Group Chief Executive Officer",
+    "ceoTitleAr": "الرئيس التنفيذي للمجموعة",
+    "foundedYear": 2010,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

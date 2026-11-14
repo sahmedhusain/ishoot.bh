@@ -1,0 +1,16 @@
+{
+  "primary": "#0F3D3E",
+  "accent": "#D97706",
+  "radius": "lg",
+  "defaultMode": "dark",
+  "fonts": {
+    "body": {
+      "kind": "google",
+      "family": "IBM Plex Sans Arabic"
+    },
+    "heading": {
+      "kind": "google",
+      "family": "IBM Plex Sans Arabic"
+    }
+  }
+}

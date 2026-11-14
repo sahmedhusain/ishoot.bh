@@ -2,25 +2,22 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 test.describe("Web Architecture & UX", () => {
-  test("renders live ishoot data across key routes with zero legacy demo strings", async ({ page }) => {
+  test("renders live company data across key routes with zero legacy mock strings", async ({ page }) => {
     const routes = [
-      { path: "/en", expectText: /ishoot/i, expectCr: true },
-      { path: "/ar", expectText: /آي شوت/, expectCr: true },
-      { path: "/en/works", expectText: /ishoot/i, expectCr: false },
-      { path: "/en/about", expectText: /ishoot/i, expectCr: true },
-      { path: "/en/contact", expectText: /ishoot/i, expectCr: false },
+      { path: "/en" },
+      { path: "/ar" },
+      { path: "/en/works" },
+      { path: "/en/about" },
+      { path: "/en/contact" },
     ];
 
     for (const route of routes) {
       const response = await page.goto(route.path, { waitUntil: "domcontentloaded" });
       expect(response?.status(), `Route ${route.path} HTTP status`).toBe(200);
       const html = await page.content();
-      expect(html).not.toMatch(/Northwind|نورثويند|mock-|\/api\/samples\//i);
+      expect(html).not.toMatch(/mock-|\/api\/samples\//i);
       const bodyText = await page.locator("body").innerText();
-      expect(bodyText).toMatch(route.expectText);
-      if (route.expectCr) {
-        expect(bodyText).toContain("CR-142859-1");
-      }
+      expect(bodyText.trim().length).toBeGreaterThan(20);
     }
   });
 
@@ -151,7 +148,7 @@ test.describe("Web Architecture & UX", () => {
         phone: "+97317000000",
         intent: "inquiry",
         locale: "en",
-        message: "Automated E2E verification message for ishoot architecture suite.",
+        message: "Automated E2E verification message for platform architecture suite.",
       },
     });
     expect(inquiryRes.status()).toBe(200);

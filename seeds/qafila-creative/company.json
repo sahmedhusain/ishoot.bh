@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Qafila Creative",
+    "nameAr": "قافلة الإبداعية"
+  },
+  "company": {
+    "companyNameEn": "Qafila Creative Agency S.P.C.",
+    "companyNameAr": "وكالة قافلة الإبداعية ذ.م.م",
+    "businessActivity": "agency",
+    "country": "BH",
+    "city": "Seef District",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-135902-2",
+    "vatId": "200013590200002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Floor 6, Era Business Centre, Seef District, Bahrain",
+    "addressAr": "الطابق 6، مركز إيرا للأعمال، ضاحية السيف، البحرين",
+    "phone": "+97317440900",
+    "whatsappPhone": "+97336440900",
+    "email": "hello@qafilacreative.bh",
+    "website": "https://qafilacreative.bh",
+    "bankName": "Al Salam Bank",
+    "bankIban": "BH72ALSAB00000035902001",
+    "bankAccountNumber": "0035902001",
+    "bankSwift": "ALSABHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "QFL",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Brand Identity, Campaigns & Digital Experience",
+    "taglineAr": "الهوية البصرية والحملات والتجربة الرقمية",
+    "aboutTextEn": "Independent brand and digital agency partnering with ambitious regional enterprises on strategy, design systems, and launch campaigns.",
+    "aboutTextAr": "وكالة مستقلة للعلامات التجارية والتجربة الرقمية تتعاون مع المؤسسات الطموحة في الاستراتيجية والتصميم والحملات.",
+    "ceoNameEn": "Noora Al-Mannai",
+    "ceoNameAr": "نورة المناعي",
+    "ceoTitleEn": "Founder & Creative Director",
+    "ceoTitleAr": "المؤسسة والمديرة الإبداعية",
+    "foundedYear": 2020,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

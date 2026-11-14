@@ -8,7 +8,7 @@ import {
 import { detectFileType } from "../../lib/contracts/src";
 
 const root = path.resolve(__dirname, "../../../../");
-const profilesDir = path.join(root, "seeds/assets");
+const profilesDir = path.join(root, "seeds");
 const profiles = fs
   .readdirSync(profilesDir)
   .filter((name) =>
@@ -41,8 +41,10 @@ const schemaFields = new Set([
   "taglineEn", "taglineAr", "foundedYear", "city", "country", "mapUrl"
 ]);
 
-test("the neutral demo profile exists", () => {
-  expect(profiles).toContain("demo");
+test("all 25 standalone company seed profiles exist", () => {
+  expect(profiles.length).toBe(25);
+  expect(profiles).toContain("zayed-group");
+  expect(profiles).toContain("ishoot");
 });
 
 describe.each(profiles)("company profile %s", (name) => {

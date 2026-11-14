@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Horizon Academy",
+    "nameAr": "أكاديمية الأفق"
+  },
+  "company": {
+    "companyNameEn": "Horizon Skills Academy W.L.L.",
+    "companyNameAr": "أكاديمية الأفق للمهارات ذ.م.م",
+    "businessActivity": "education",
+    "country": "BH",
+    "city": "Isa Town",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-146720-1",
+    "vatId": "200014672000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Campus Building 12, Educational Zone, Isa Town",
+    "addressAr": "مبنى الحرم 12، المنطقة التعليمية، مدينة عيسى",
+    "phone": "+97317689100",
+    "whatsappPhone": "+97336689100",
+    "email": "admissions@horizonacademy.bh",
+    "website": "https://horizonacademy.bh",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankIban": "BH28BBKU00000046720001",
+    "bankAccountNumber": "0046720001",
+    "bankSwift": "BBKUBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "HSA",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Executive Training, Technical Bootcamps & Certifications",
+    "taglineAr": "التدريب التنفيذي والمعسكرات التقنية والشهادات المهنية",
+    "aboutTextEn": "Accredited vocational and executive training institute empowering professionals with cloud engineering, finance, and leadership programs.",
+    "aboutTextAr": "معهد تدريب مهني وتنفيذي معتمد يمكّن الكفاءات في الحوسبة السحابية والمالية والقيادة.",
+    "ceoNameEn": "Dr. Fatima Al-Amer",
+    "ceoNameAr": "د. فاطمة العامر",
+    "ceoTitleEn": "Academic Director",
+    "ceoTitleAr": "المديرة الأكاديمية",
+    "foundedYear": 2018,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

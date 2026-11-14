@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Awal Supplies",
+    "nameAr": "أوال للتوريدات"
+  },
+  "company": {
+    "companyNameEn": "Awal Industrial Supplies W.L.L.",
+    "companyNameAr": "أوال للتوريدات الصناعية ذ.م.م",
+    "businessActivity": "products",
+    "country": "BH",
+    "city": "Sitra",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-109311-1",
+    "vatId": "200010931100002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Plot 44, Sitra Industrial Area, Kingdom of Bahrain",
+    "addressAr": "قسيمة 44، منطقة سترة الصناعية، مملكة البحرين",
+    "phone": "+97317731100",
+    "whatsappPhone": "+97339731100",
+    "email": "sales@awalsupplies.bh",
+    "website": "https://awalsupplies.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH18NBOB00000010931100",
+    "bankAccountNumber": "0010931100",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "AWL",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Industrial Hardware, Safety Gear & Workshop Equipment",
+    "taglineAr": "المعدات الصناعية وأدوات السلامة وتجهيزات الورش",
+    "aboutTextEn": "Trusted distributor of certified industrial tools, PPE safety gear, and warehouse hardware serving contractors and retail buyers across Bahrain.",
+    "aboutTextAr": "موزع معتمد للأدوات الصناعية ومعدات السلامة وتجهيزات المستودعات للمقاولين والأفراد في البحرين.",
+    "ceoNameEn": "Jasim Al-Kooheji",
+    "ceoNameAr": "جاسم الكوهجي",
+    "ceoTitleEn": "Chief Executive Officer",
+    "ceoTitleAr": "الرئيس التنفيذي",
+    "foundedYear": 2014,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

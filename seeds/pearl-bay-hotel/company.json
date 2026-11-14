@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Pearl Bay Hotel",
+    "nameAr": "فندق خليج اللؤلؤة"
+  },
+  "company": {
+    "companyNameEn": "Pearl Bay Boutique Hotel W.L.L.",
+    "companyNameAr": "فندق خليج اللؤلؤة البوتيكي ذ.م.م",
+    "businessActivity": "hotel",
+    "country": "BH",
+    "city": "Muharraq",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-144510-1",
+    "vatId": "200014451000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Corniche Road 18, Muharraq Waterfront, Bahrain",
+    "addressAr": "شارع الكورنيش 18، واجهة المحرق البحرية، البحرين",
+    "phone": "+97317349000",
+    "whatsappPhone": "+97339349000",
+    "email": "stay@pearlbayhotel.bh",
+    "website": "https://pearlbayhotel.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH53NBOB00000044510001",
+    "bankAccountNumber": "0044510001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "PBH",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Waterfront Suites, Rooftop Dining & Executive Retreats",
+    "taglineAr": "أجنحة بحرية ومطعم علوي وإقامات تنفيذية",
+    "aboutTextEn": "64-key waterfront boutique hotel blending traditional Muharraq architecture with modern executive hospitality and meeting venues.",
+    "aboutTextAr": "فندق بوتيكي يضم 64 جناحاً على واجهة المحرق يجمع بين العمارة التراثية والضيافة العصرية.",
+    "ceoNameEn": "Nasser Al-Nuaimi",
+    "ceoNameAr": "ناصر النعيمي",
+    "ceoTitleEn": "General Manager",
+    "ceoTitleAr": "المدير العام",
+    "foundedYear": 2019,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

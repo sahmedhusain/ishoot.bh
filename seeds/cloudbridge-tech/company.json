@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "CloudBridge",
+    "nameAr": "كلاود بريدج"
+  },
+  "company": {
+    "companyNameEn": "CloudBridge Systems W.L.L.",
+    "companyNameAr": "كلاود بريدج للأنظمة ذ.م.م",
+    "businessActivity": "it_software",
+    "country": "BH",
+    "city": "Seef District",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-160440-1",
+    "vatId": "200016044000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Floor 11, Seef Financial Tower, Manama",
+    "addressAr": "الطابق 11، برج السيف المالي، المنامة",
+    "phone": "+97317104400",
+    "whatsappPhone": "+97336104400",
+    "email": "hello@cloudbridge.bh",
+    "website": "https://cloudbridge.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH15NBOB00000060440001",
+    "bankAccountNumber": "0060440001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "CBG",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Cloud Infrastructure, Enterprise SaaS & Managed Security",
+    "taglineAr": "البنية السحابية والأنظمة المؤسسية والأمن السيبراني",
+    "aboutTextEn": "Bahraini software engineering and cloud MSP delivering Kubernetes platform engineering, SOC monitoring, and custom ERP integrations.",
+    "aboutTextAr": "شركة هندسة برمجيات وخدمات سحابية تقدم حلول كوبيرنيتس والمراقبة الأمنية وتكامل الأنظمة.",
+    "ceoNameEn": "Omar Al-Ansari",
+    "ceoNameAr": "عمر الأنصاري",
+    "ceoTitleEn": "Chief Technology Officer",
+    "ceoTitleAr": "الرئيس التقني",
+    "foundedYear": 2021,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Tawazun",
+    "nameAr": "توازن"
+  },
+  "company": {
+    "companyNameEn": "Tawazun Corporate Services W.L.L.",
+    "companyNameAr": "توازن للخدمات المؤسسية ذ.م.م",
+    "businessActivity": "other",
+    "country": "BH",
+    "city": "Sanabis",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-139550-1",
+    "vatId": "200013955000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Office 504, Al-Moayyed Tower, Sanabis, Manama",
+    "addressAr": "مكتب 504، برج المؤيد، السنابس، المنامة",
+    "phone": "+97317562200",
+    "whatsappPhone": "+97339562200",
+    "email": "desk@tawazun.bh",
+    "website": "https://tawazun.bh",
+    "bankName": "Ahli United Bank (AUB)",
+    "bankIban": "BH82AUBB00000039550001",
+    "bankAccountNumber": "0039550001",
+    "bankSwift": "AUBBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "TWZ",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Shared Corporate Operations, PRO & Facility Management",
+    "taglineAr": "العمليات المؤسسية المشتركة وإدارة المرافق والخدمات",
+    "aboutTextEn": "Corporate shared-services provider managing company formation, government PRO clearances, and multi-site office administration.",
+    "aboutTextAr": "مزود خدمات مؤسسية مشتركة لإدارة تأسيس الشركات والمعاملات الحكومية وتشغيل المكاتب.",
+    "ceoNameEn": "Faisal Al-Moayyed",
+    "ceoNameAr": "فيصل المؤيد",
+    "ceoTitleEn": "Managing Director",
+    "ceoTitleAr": "المدير العام",
+    "foundedYear": 2018,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

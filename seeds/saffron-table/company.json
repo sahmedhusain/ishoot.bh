@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Saffron Table",
+    "nameAr": "مائدة الزعفران"
+  },
+  "company": {
+    "companyNameEn": "Saffron Table Hospitality W.L.L.",
+    "companyNameAr": "مائدة الزعفران للضيافة ذ.م.م",
+    "businessActivity": "food",
+    "country": "BH",
+    "city": "Adliya",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-152410-1",
+    "vatId": "200015241000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Block 338, Road 3809, Adliya, Manama",
+    "addressAr": "مجمع 338، طريق 3809، العدلية، المنامة",
+    "phone": "+97317712200",
+    "whatsappPhone": "+97333712200",
+    "email": "orders@saffrontable.bh",
+    "website": "https://saffrontable.bh",
+    "bankName": "Ahli United Bank (AUB)",
+    "bankIban": "BH64AUBB00000052410001",
+    "bankAccountNumber": "0052410001",
+    "bankSwift": "AUBBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "SFT",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Artisanal Gulf Kitchen, Pantry & Event Catering",
+    "taglineAr": "مطبخ خليجي حرفي ومنتجات غذائية وضيافة مناسبات",
+    "aboutTextEn": "Contemporary Bahraini kitchen and gourmet pantry crafting daily fresh dishes, specialty spice blends, and corporate catering.",
+    "aboutTextAr": "مطبخ بحريني معاصر ومتجر منتجات غذائية يقدم أطباقاً طازجة يومياً وخلطات توابل فاخرة وضيافة للشركات.",
+    "ceoNameEn": "Mariam Al-Binali",
+    "ceoNameAr": "مريم البنعلي",
+    "ceoTitleEn": "Culinary Director & Partner",
+    "ceoTitleAr": "مديرة الطهي والشريكة المؤسسة",
+    "foundedYear": 2021,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

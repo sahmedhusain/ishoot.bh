@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Al-Mizan Law",
+    "nameAr": "الميزان للمحاماة"
+  },
+  "company": {
+    "companyNameEn": "Al-Mizan Advocates & Legal Consultants",
+    "companyNameAr": "مكتب الميزان للمحاماة والاستشارات القانونية",
+    "businessActivity": "law_firm",
+    "country": "BH",
+    "city": "Diplomatic Area",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-102940-1",
+    "vatId": "200010294000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Suite 1902, Al-Zamil Tower, Diplomatic Area, Manama",
+    "addressAr": "جناح 1902، برج الزامل، المنطقة الدبلوماسية، المنامة",
+    "phone": "+97317512300",
+    "whatsappPhone": "+97339512300",
+    "email": "counsel@almizanlaw.bh",
+    "website": "https://almizanlaw.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH21NBOB00000002940001",
+    "bankAccountNumber": "0002940001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "MZL",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Corporate Law, Arbitration & Commercial Litigation",
+    "taglineAr": "قانون الشركات والتحكيم التجاري والتقاضي",
+    "aboutTextEn": "Full-service Bahraini law firm representing financial institutions, family offices, and international investors in commercial arbitration.",
+    "aboutTextAr": "مكتب محاماة بحريني متكامل يمثل المؤسسات المالية والشركات في التحكيم التجاري والعقود.",
+    "ceoNameEn": "Adv. Mohammed Al-Arrayed",
+    "ceoNameAr": "المحامي محمد العريض",
+    "ceoTitleEn": "Senior Managing Partner",
+    "ceoTitleAr": "الشريك الإداري الأول",
+    "foundedYear": 2010,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Layali Events",
+    "nameAr": "ليالي للفعاليات"
+  },
+  "company": {
+    "companyNameEn": "Layali Events & Exhibitions W.L.L.",
+    "companyNameAr": "ليالي لتنظيم الفعاليات والمعارض ذ.م.م",
+    "businessActivity": "events",
+    "country": "BH",
+    "city": "Sakhir",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-149330-1",
+    "vatId": "200014933000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Pavilion 3, Exhibition Avenue, Sakhir",
+    "addressAr": "جناح 3، شارع المعارض، الصخير",
+    "phone": "+97317884400",
+    "whatsappPhone": "+97336884400",
+    "email": "events@layalibh.com",
+    "website": "https://layalibh.com",
+    "bankName": "Ahli United Bank (AUB)",
+    "bankIban": "BH19AUBB00000049330001",
+    "bankAccountNumber": "0049330001",
+    "bankSwift": "AUBBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "LYL",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Conferences, Cultural Festivals & Stage Engineering",
+    "taglineAr": "المؤتمرات والمهرجانات الثقافية وهندسة المسارح",
+    "aboutTextEn": "Turnkey event production partner delivering international summits, exhibition pavilions, and live concert staging.",
+    "aboutTextAr": "شريك متكامل لإنتاج الفعاليات والمؤتمرات الدولية وأجنحة المعارض وتجهيز المسارح.",
+    "ceoNameEn": "Reem Al-Mutawa",
+    "ceoNameAr": "ريم المطوع",
+    "ceoTitleEn": "Head of Production & Events",
+    "ceoTitleAr": "رئيسة الإنتاج والفعاليات",
+    "foundedYear": 2019,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

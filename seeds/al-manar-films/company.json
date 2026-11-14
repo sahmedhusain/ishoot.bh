@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Al-Manar Films",
+    "nameAr": "أفلام المنار"
+  },
+  "company": {
+    "companyNameEn": "Al-Manar Cinema & Media W.L.L.",
+    "companyNameAr": "المنار للسينما والإعلام ذ.م.م",
+    "businessActivity": "media",
+    "country": "BH",
+    "city": "Manama",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-118420-1",
+    "vatId": "200011842000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Suite 801, Harbour Gate, Bahrain Financial Harbour, Manama",
+    "addressAr": "جناح 801، بوابة المرفأ، مرفأ البحرين المالي، المنامة",
+    "phone": "+97317210400",
+    "whatsappPhone": "+97339210400",
+    "email": "studio@almanarfilms.bh",
+    "website": "https://almanarfilms.bh",
+    "bankName": "Bank of Bahrain and Kuwait (BBK)",
+    "bankIban": "BH41BBKU00000084201100",
+    "bankAccountNumber": "0084201100",
+    "bankSwift": "BBKUBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "AMF",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "Narrative Film Production & Commercial Cinematography",
+    "taglineAr": "إنتاج الأفلام السردية والتصوير السينمائي التجاري",
+    "aboutTextEn": "Full-service cinema production house delivering feature documentaries, brand films, and broadcast commercials across the Gulf.",
+    "aboutTextAr": "دار إنتاج سينمائي متكاملة تقدم الأفلام الوثائقية والأفلام الإعلانية والتجارية في منطقة الخليج.",
+    "ceoNameEn": "Tariq Al-Jowder",
+    "ceoNameAr": "طارق الجودر",
+    "ceoTitleEn": "Executive Producer & Managing Director",
+    "ceoTitleAr": "المنتج التنفيذي والمدير العام",
+    "foundedYear": 2019,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

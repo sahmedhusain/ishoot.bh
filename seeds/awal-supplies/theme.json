@@ -1,0 +1,16 @@
+{
+  "primary": "#1E3A8A",
+  "accent": "#F59E0B",
+  "radius": "sm",
+  "defaultMode": "light",
+  "fonts": {
+    "body": {
+      "kind": "google",
+      "family": "Inter"
+    },
+    "heading": {
+      "kind": "google",
+      "family": "Inter"
+    }
+  }
+}

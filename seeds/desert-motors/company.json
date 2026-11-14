@@ -1,0 +1,58 @@
+{
+  "display": {
+    "nameEn": "Desert Motors",
+    "nameAr": "محركات الصحراء"
+  },
+  "company": {
+    "companyNameEn": "Desert Motors & Service W.L.L.",
+    "companyNameAr": "محركات الصحراء للسيارات والخدمة ذ.م.م",
+    "businessActivity": "automotive",
+    "country": "BH",
+    "city": "Salmabad",
+    "contentLanguages": [
+      "ar",
+      "en"
+    ],
+    "primaryLanguage": "ar",
+    "crNumber": "CR-104590-1",
+    "vatId": "200010459000002",
+    "vatEnabled": true,
+    "vatPercentage": 10,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Showroom 9, Salmabad Automotive Avenue, Bahrain",
+    "addressAr": "معرض 9، شارع سلماباد للسيارات، البحرين",
+    "phone": "+97317875500",
+    "whatsappPhone": "+97339875500",
+    "email": "service@desertmotors.bh",
+    "website": "https://desertmotors.bh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH61NBOB00000010459001",
+    "bankAccountNumber": "0010459001",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "DMT",
+    "invoiceNextNumber": 120,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 120,
+    "taglineEn": "4x4 Performance Tuning, Diagnostics & Genuine Parts",
+    "taglineAr": "تعديل الدفع الرباعي والفحص الإلكتروني وقطع الغيار الأصلية",
+    "aboutTextEn": "Authorized 4x4 service center and spare parts distributor specializing in off-road suspension, ceramic detailing, and OEM parts.",
+    "aboutTextAr": "مركز خدمة معتمد لسيارات الدفع الرباعي وموزع قطع غيار أصلية وتجهيزات الرحلات.",
+    "ceoNameEn": "Salman Al-Ghatam",
+    "ceoNameAr": "سلمان الغتم",
+    "ceoTitleEn": "General Manager",
+    "ceoTitleAr": "المدير العام",
+    "foundedYear": 2013,
+    "defaultDiscountLimitPercent": 15,
+    "quotationsAlwaysNeedApproval": false
+  },
+  "assets": {
+    "logo": "brand/logo-dark.png",
+    "darkLogo": "brand/logo-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -15,7 +15,7 @@ provider "kubernetes" {
 
 locals {
   common_labels = {
-    "app.kubernetes.io/part-of"    = "ishoot-platform"
+    "app.kubernetes.io/part-of"    = "business-platform"
     "app.kubernetes.io/managed-by" = "terraform"
     "environment"                  = var.environment
   }

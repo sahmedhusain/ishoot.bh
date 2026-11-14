@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/ishoot-bh/web:latest
+          image: ghcr.io/platform/web:latest
           ports:
             - containerPort: 3000
           env:
@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
         - name: admin
-          image: ghcr.io/ishoot-bh/admin:latest
+          image: ghcr.io/platform/admin:latest
           ports:
             - containerPort: 3001
           env:
@@ -111,7 +111,7 @@ spec:
     spec:
       containers:
         - name: it
-          image: ghcr.io/ishoot-bh/it:latest
+          image: ghcr.io/platform/it:latest
           ports:
             - containerPort: 3002
           readinessProbe:
@@ -154,7 +154,7 @@ spec:
     spec:
       containers:
         - name: store
-          image: ghcr.io/ishoot-bh/store:latest
+          image: ghcr.io/platform/store:latest
           ports:
             - containerPort: 3003
           env:
@@ -200,7 +200,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: ghcr.io/ishoot-bh/gateway:latest
+          image: ghcr.io/platform/gateway:latest
           ports:
             - containerPort: 8080
           readinessProbe:

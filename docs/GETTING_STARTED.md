@@ -1,6 +1,6 @@
 # Getting Started Guide
 
-This guide takes you from a fresh repository clone to a fully operational system across all three frontend applications (`apps/web`, `apps/admin`, `apps/it`) and the 16 backend Go microservices.
+This guide takes you from a fresh repository clone to a fully operational system across all four frontend applications (`apps/web`, `apps/admin`, `apps/it`, `apps/store`) and the 16 backend Go microservices.
 
 ---
 
@@ -15,7 +15,7 @@ Before setting up the project, ensure your workstation has the following install
 
 ### Quick Start (Single Command)
 
-The fastest way to initialize dependencies, generate environment secrets, launch local Docker services, apply database migrations, and seed the demo data is:
+The fastest way to initialize dependencies, generate environment secrets, launch local Docker services, apply database migrations, and initialize a clean database is:
 
 ```bash
 ./run.sh setup
@@ -53,36 +53,25 @@ This launches PostgreSQL 17 (port 5432), Valkey (port 6379), NATS JetStream (por
 
 ---
 
-## 3. Setup Profiles & Installation Scenarios
+## 3. Setup Scenarios & Domain Configuration
 
-Choose one of three setup modes depending on your objective:
+All frontend domains default to `localhost` in `.env` (`WEB_DOMAIN`, `ADMIN_DOMAIN`, `IT_DOMAIN`, `STORE_DOMAIN`) until custom domains are configured.
 
 | Objective | Setup Mode | Command | Target URLs |
 |---|---|---|---|
-| **Explore full fictional demo business** | **Demo Company** | `./run.sh db reset` | Admin: `http://localhost:3001`<br/>Web: `http://localhost:3000`<br/>IT: `http://localhost:3002` |
-| **Configure for a specific brand profile** | **Custom Profile** | `./run.sh db reset --profile demo` | Custom profile branding & presets applied. |
-| **Clean install with Setup Wizard** | **Blank Install** | `./run.sh db reset --empty` | Admin opens interactive setup wizard at `http://localhost:3001/setup`. |
+| **Clean install with Setup Wizard (Default)** | **Empty Bootstrap** | `./run.sh db reset` | Admin: `http://localhost:3001/setup`<br/>IT: `http://localhost:3002`<br/>Web: `http://localhost:3000`<br/>Store: `http://localhost:3003` |
+| **Load a standalone company seed** | **Seeded Company** | `./run.sh db seed <company>` | Loads `seeds/<company>/seed.sql` and uploads `seeds/<company>/assets/` to SeaweedFS (e.g., `zayed-group`, `al-manar-films`, `ishoot`). |
 
 ---
 
 ## 4. Initial Sign-In Credentials
 
-When seeding demo data or bootstrapping a new installation, credentials default to:
+When bootstrapping a fresh installation, the initial Super Admin and IT Admin accounts are configured in `.env`:
 
-* **Super Admin Email**: Configured in `.env` (`SUPER_ADMIN_EMAIL`, default: `admin@example.com`)
-* **Super Admin Password**: Configured in `.env` (`SUPER_ADMIN_PASSWORD`, default: `Admin12345678!`)
+* **Super Admin Email**: Configured in `.env` (`SUPER_ADMIN_EMAIL`, default: `admin@platform.local`)
+* **Super Admin Password**: Configured in `.env` (`SUPER_ADMIN_PASSWORD`)
 
-### Fictional Demo Accounts (`seeds/demo-staff.json`)
-
-All demo accounts share `SUPER_ADMIN_PASSWORD`:
-
-| Department / Role | Email Address | Accessible Scope |
-|---|---|---|
-| **Finance Manager** | `finance@example.com` | Finance, Invoices, Expenses, Payroll |
-| **Sales Representative** | `sales@example.com` | CRM Contacts, Deals, Quotations |
-| **Operations Manager** | `operations@example.com` | Inventory, Warehouses, Logistics |
-| **HR Manager** | `hr@example.com` | Employees, Attendance, Leave, Settlements |
-| **IT Engineer** | `it@example.com` | IT Tickets, System Health, Operations |
+When a standalone company seed (`seeds/<company>/seed.sql`) is loaded, department staff accounts are created using the seeded company's domain (for example `layla-nasser@<company-domain>`).
 
 ---
 
@@ -90,10 +79,10 @@ All demo accounts share `SUPER_ADMIN_PASSWORD`:
 
 | Development Task | Command | Purpose |
 |---|---|---|
-| **Start all frontend apps** | `./run.sh dev` | Runs Web (3000), Admin (3001), and IT (3002) in parallel. |
-| **Start specific app** | `./run.sh dev admin` | Starts only the requested app (`web`, `admin`, `it`). |
+| **Start all frontend apps** | `./run.sh dev` | Runs Web (3000), Admin (3001), IT (3002), and Store (3003) in parallel. |
+| **Start specific app** | `./run.sh dev admin` | Starts only the requested app (`web`, `admin`, `it`, `store`). |
 | **Run Go microservices** | `./run.sh services up` | Starts all Go services in Compose containers. |
-| **Reset database & re-seed** | `./run.sh db reset` | Drops schemas, runs migrations, resets S3 storage, and re-seeds. |
+| **Reset database (empty)** | `./run.sh db reset` | Drops schemas, runs migrations, resets S3 storage, and runs clean bootstrap. |
 | **Apply pending migrations** | `./run.sh db migrate` | Runs pending Goose migrations across all microservice schemas. |
 | **Check code quality & CI** | `./run.sh check` | Executes linting, type-checking, contract validation, and unit tests. |
 | **Run full test suite** | `./run.sh test ci` | Executes unit tests, database checks, and Playwright E2E tests. |
