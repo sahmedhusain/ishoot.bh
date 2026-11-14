@@ -28,12 +28,14 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g := e.Group("/v1/finance", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 	g.GET("/invoices", h.listInvoices)
 	g.POST("/invoices", h.createInvoice)
+	g.POST("/invoices/from-quotation", h.createInvoiceFromQuotation)
 	g.GET("/invoices/:id", h.getInvoice)
 	g.PUT("/invoices/:id/status", h.updateInvoiceStatus)
 	g.DELETE("/invoices/:id", h.deleteInvoice)
 	g.GET("/payments", h.listPayments)
 	g.GET("/payments/:id", h.getPayment)
 	g.POST("/payments", h.recordPayment)
+	g.DELETE("/payments/:id", h.deletePayment)
 	g.GET("/expenses", h.listExpenses)
 	g.POST("/expenses", h.createExpense)
 	g.PUT("/expenses/:id/approve", h.approveExpense)
@@ -42,13 +44,41 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.PUT("/expense-categories/:id", h.updateExpenseCategory)
 	g.DELETE("/expense-categories/:id", h.deleteExpenseCategory)
 	g.GET("/settlements", h.listSettlements)
+	g.POST("/settlements", h.createSettlement)
+	g.GET("/catalog", h.listCatalogItems)
+	g.GET("/contacts-ref", h.listContactsRef)
+	g.GET("/quotations-ref", h.listQuotationsRef)
 }
 func (h *handler) listInvoices(c echo.Context) error {
-	invoices, err := h.svc.ListInvoices(c.Request().Context())
+	var contactID, quotationID *string
+	if cid := c.QueryParam("contactId"); cid != "" {
+		contactID = &cid
+	}
+	if qid := c.QueryParam("quotationId"); qid != "" {
+		quotationID = &qid
+	}
+	invoices, err := h.svc.ListInvoicesFiltered(c.Request().Context(), contactID, quotationID)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, invoices)
+}
+func (h *handler) createInvoiceFromQuotation(c echo.Context) error {
+	var in app.CreateInvoiceFromQuotationInput
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	created, err := h.svc.CreateInvoiceFromQuotation(c.Request().Context(), in)
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("quotation not found")
+		}
+		if errors.Is(err, app.ErrConflict) {
+			return problem.New(http.StatusBadRequest, "bad_request", "quotationId is required")
+		}
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
 }
 func (h *handler) getInvoice(c echo.Context) error {
 	inv, err := h.svc.GetInvoice(c.Request().Context(), c.Param("id"))
@@ -96,18 +126,21 @@ func (h *handler) deleteInvoice(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 func (h *handler) listPayments(c echo.Context) error {
-	var invoiceID *string
+	var invoiceID, contactID *string
 	if iid := c.QueryParam("invoiceId"); iid != "" {
 		invoiceID = &iid
 	}
-	payments, err := h.svc.ListPayments(c.Request().Context(), invoiceID)
+	if cid := c.QueryParam("contactId"); cid != "" {
+		contactID = &cid
+	}
+	payments, err := h.svc.ListPaymentsFiltered(c.Request().Context(), invoiceID, contactID)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, payments)
 }
 func (h *handler) getPayment(c echo.Context) error {
-	payment, err := h.svc.GetPayment(c.Request().Context(), c.Param("id"))
+	payment, err := h.svc.GetPaymentDetails(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		if errors.Is(err, app.ErrNotFound) {
 			return problem.NotFound("")
@@ -116,16 +149,26 @@ func (h *handler) getPayment(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, payment)
 }
+type recordPaymentInput struct {
+	sqlcdb.CreatePaymentParams
+	Allocations []app.AllocationInput `json:"allocations"`
+}
 func (h *handler) recordPayment(c echo.Context) error {
-	var in sqlcdb.CreatePaymentParams
+	var in recordPaymentInput
 	if err := c.Bind(&in); err != nil {
 		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 	}
-	payment, err := h.svc.RecordPayment(c.Request().Context(), in)
+	payment, err := h.svc.RecordPaymentWithAllocations(c.Request().Context(), in.CreatePaymentParams, in.Allocations)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, payment)
+}
+func (h *handler) deletePayment(c echo.Context) error {
+	if err := h.svc.DeletePayment(c.Request().Context(), c.Param("id")); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 func (h *handler) listExpenses(c echo.Context) error {
 	expenses, err := h.svc.ListExpenses(c.Request().Context())
@@ -201,4 +244,36 @@ func (h *handler) listSettlements(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, settlements)
+}
+func (h *handler) createSettlement(c echo.Context) error {
+	var in sqlcdb.CreateBankSettlementParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	created, err := h.svc.CreateBankSettlement(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+func (h *handler) listCatalogItems(c echo.Context) error {
+	items, err := h.svc.ListCatalogItems(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, items)
+}
+func (h *handler) listContactsRef(c echo.Context) error {
+	items, err := h.svc.ListContactsRef(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, items)
+}
+func (h *handler) listQuotationsRef(c echo.Context) error {
+	items, err := h.svc.ListQuotationsRef(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, items)
 }

@@ -142,3 +142,5 @@ export const setSiteCodeForIT = (token: string, code: SiteCode) =>
   unwrap(
     userClient<paths>(token).PUT("/v1/system/desk/site/code", { body: code }),
   );
+
+export * from "./system-catalog";

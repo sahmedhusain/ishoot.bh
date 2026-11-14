@@ -17,13 +17,20 @@ type Task = sqlcdb.WorkflowTask
 type CalendarEvent = sqlcdb.WorkflowCalendarEvent
 type Store struct {
 	pool	*pgxpool.Pool
+	tx	pgx.Tx
 	q	*sqlcdb.Queries
 }
 func New(pool *pgxpool.Pool) *Store	{ return &Store{pool: pool, q: sqlcdb.New(pool)} }
 func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return fn(&Store{q: s.q.WithTx(tx)}, tx)
+		return fn(&Store{pool: s.pool, tx: tx, q: s.q.WithTx(tx)}, tx)
 	})
+}
+func (s *Store) dbConn() sqlcdb.DBTX {
+	if s.tx != nil {
+		return s.tx
+	}
+	return s.pool
 }
 func (s *Store) GetApprovalRequestByID(ctx context.Context, id string) (ApprovalRequest, error) {
 	return s.q.GetApprovalRequestByID(ctx, id)

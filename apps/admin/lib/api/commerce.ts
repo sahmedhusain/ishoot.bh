@@ -197,12 +197,58 @@ export async function createCoupon(input: Partial<Coupon>, token?: string): Prom
   }, token);
 }
 
-export async function listOrders(token?: string): Promise<SalesOrder[]> {
-  return commFetch<SalesOrder[]>("/v1/commerce/orders", {}, token);
+export type OrderFilters = {
+  customerId?: string;
+  contactId?: string;
+  status?: string;
+};
+
+export type OrderRelations = {
+  orderId: string;
+  number: string;
+  customerId?: string | null;
+  contactId?: string | null;
+  warehouseId?: string | null;
+  warehouseName?: string;
+  invoiceId?: string | null;
+  shipmentId?: string | null;
+  shipmentStatus?: string | null;
+  trackingToken?: string | null;
+  status: string;
+  paymentStatus: string;
+};
+
+export type CommerceWarehouseRef = {
+  warehouseId: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  isActive: boolean;
+  isDefault: boolean;
+  updatedAt: string;
+};
+
+export async function listOrders(tokenOrFilters?: string | OrderFilters, token?: string): Promise<SalesOrder[]> {
+  const filters = typeof tokenOrFilters === "object" ? tokenOrFilters : undefined;
+  const auth = typeof tokenOrFilters === "string" ? tokenOrFilters : token;
+  const qs = new URLSearchParams();
+  if (filters?.customerId) qs.set("customerId", filters.customerId);
+  if (filters?.contactId) qs.set("contactId", filters.contactId);
+  if (filters?.status) qs.set("status", filters.status);
+  const s = qs.toString();
+  return commFetch<SalesOrder[]>(`/v1/commerce/orders${s ? `?${s}` : ""}`, {}, auth);
 }
 
 export async function getOrder(id: string, token?: string): Promise<SalesOrder> {
   return commFetch<SalesOrder>(`/v1/commerce/orders/${encodeURIComponent(id)}`, {}, token);
+}
+
+export async function getOrderRelations(id: string, token?: string): Promise<OrderRelations> {
+  return commFetch<OrderRelations>(`/v1/commerce/orders/${encodeURIComponent(id)}/relations`, {}, token);
+}
+
+export async function listCommerceWarehouses(token?: string): Promise<CommerceWarehouseRef[]> {
+  return commFetch<CommerceWarehouseRef[]>("/v1/commerce/warehouses", {}, token);
 }
 
 export async function placeOrder(

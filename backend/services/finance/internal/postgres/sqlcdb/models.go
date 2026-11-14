@@ -32,6 +32,9 @@ type FinanceBankSettlement struct {
 	Status           string         `json:"status"`
 	Notes            *string        `json:"notes"`
 	CreatedAt        time.Time      `json:"createdAt"`
+	PaymentID        *string        `json:"paymentId"`
+	SettlementDate   *time.Time     `json:"settlementDate"`
+	BankReference    *string        `json:"bankReference"`
 }
 
 type FinanceCashDrawer struct {
@@ -68,6 +71,21 @@ type FinanceCashierSession struct {
 	Revision       *int32         `json:"revision"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
+}
+
+type FinanceCatalogItemRef struct {
+	Kind      string         `json:"kind"`
+	ID        string         `json:"id"`
+	VariantID string         `json:"variantId"`
+	Sku       *string        `json:"sku"`
+	NameEn    string         `json:"nameEn"`
+	NameAr    string         `json:"nameAr"`
+	Unit      string         `json:"unit"`
+	UnitPrice pgtype.Numeric `json:"unitPrice"`
+	Currency  string         `json:"currency"`
+	TaxRate   pgtype.Numeric `json:"taxRate"`
+	IsActive  bool           `json:"isActive"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 type FinanceCommissionPayout struct {
@@ -112,6 +130,16 @@ type FinanceCommissionSnapshot struct {
 	CalculationDetails []byte         `json:"calculationDetails"`
 	EarnedAt           *time.Time     `json:"earnedAt"`
 	CreatedByID        *string        `json:"createdById"`
+}
+
+type FinanceContactRef struct {
+	ID        string    `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  *string   `json:"lastName"`
+	Company   *string   `json:"company"`
+	Email     *string   `json:"email"`
+	Phone     *string   `json:"phone"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type FinanceDocumentTax struct {
@@ -255,13 +283,22 @@ type FinanceInvoice struct {
 }
 
 type FinanceInvoiceItem struct {
-	ID          string         `json:"id"`
-	InvoiceID   string         `json:"invoiceId"`
-	Description string         `json:"description"`
-	Quantity    pgtype.Numeric `json:"quantity"`
-	UnitPrice   pgtype.Numeric `json:"unitPrice"`
-	Amount      pgtype.Numeric `json:"amount"`
-	SortOrder   int32          `json:"sortOrder"`
+	ID            string         `json:"id"`
+	InvoiceID     string         `json:"invoiceId"`
+	Description   string         `json:"description"`
+	Quantity      pgtype.Numeric `json:"quantity"`
+	UnitPrice     pgtype.Numeric `json:"unitPrice"`
+	Amount        pgtype.Numeric `json:"amount"`
+	SortOrder     int32          `json:"sortOrder"`
+	ItemKind      string         `json:"itemKind"`
+	ServiceID     *string        `json:"serviceId"`
+	ProductID     *string        `json:"productId"`
+	VariantID     *string        `json:"variantId"`
+	Sku           *string        `json:"sku"`
+	Unit          *string        `json:"unit"`
+	DescriptionEn string         `json:"descriptionEn"`
+	DescriptionAr string         `json:"descriptionAr"`
+	TaxRate       pgtype.Numeric `json:"taxRate"`
 }
 
 type FinanceInvoiceLineItem struct {
@@ -333,6 +370,7 @@ type FinancePayment struct {
 	SignedByID          *string        `json:"signedById"`
 	SignedAt            *time.Time     `json:"signedAt"`
 	SignerSignatureUrl  *string        `json:"signerSignatureUrl"`
+	BankSettlementID    *string        `json:"bankSettlementId"`
 }
 
 type FinancePaymentAllocation struct {
@@ -395,10 +433,26 @@ type FinancePaymentMethodConfig struct {
 }
 
 type FinancePaymentWebhookEvent struct {
-	Gateway    *string    `json:"gateway"`
-	EventID    *string    `json:"eventId"`
+	Gateway    string     `json:"gateway"`
+	EventID    string     `json:"eventId"`
 	AttemptID  *string    `json:"attemptId"`
 	ReceivedAt *time.Time `json:"receivedAt"`
+}
+
+type FinanceQuotationRef struct {
+	ID              string          `json:"id"`
+	QuotationNumber string          `json:"quotationNumber"`
+	DealID          *string         `json:"dealId"`
+	ContactID       *string         `json:"contactId"`
+	Currency        string          `json:"currency"`
+	Subtotal        pgtype.Numeric  `json:"subtotal"`
+	Discount        pgtype.Numeric  `json:"discount"`
+	VatRate         pgtype.Numeric  `json:"vatRate"`
+	VatAmount       pgtype.Numeric  `json:"vatAmount"`
+	Total           pgtype.Numeric  `json:"total"`
+	Status          string          `json:"status"`
+	Items           json.RawMessage `json:"items"`
+	UpdatedAt       time.Time       `json:"updatedAt"`
 }
 
 type FinanceRecurringExpense struct {

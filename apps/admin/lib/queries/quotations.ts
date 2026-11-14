@@ -49,10 +49,18 @@ export async function createQuotation(
     termsAr?: string | null;
     salesOwnerId?: string | null;
     lineItems: {
+      itemKind?: "service" | "product" | "custom";
+      serviceId?: string | null;
+      productId?: string | null;
+      variantId?: string | null;
+      sku?: string | null;
+      unit?: string | null;
       descriptionEn: string;
       descriptionAr?: string | null;
       quantity: number;
       unitPrice: number;
+      taxRate?: number;
+      sortOrder?: number;
     }[];
   },
   actorId: string,
@@ -65,23 +73,30 @@ export async function createQuotation(
   const { vatEnabled, vatPercentage } = await companyVat();
   const otherTaxes = await companyTaxes("quotation");
   const itemsWithTotals = data.lineItems.map((item, idx) => ({
+    itemKind:
+      item.itemKind ||
+      (item.serviceId ? "service" : item.productId ? "product" : "custom"),
+    serviceId: item.serviceId || null,
+    productId: item.productId || null,
+    variantId: item.variantId || null,
+    sku: item.sku || null,
+    unit: item.unit || null,
     descriptionEn: item.descriptionEn,
     descriptionAr: item.descriptionAr || null,
     quantity: Number(item.quantity),
     unitPrice: Number(item.unitPrice),
+    taxRate: Number(item.taxRate ?? 0),
     lineTotal: lineTotal(
       Number(item.quantity),
       Number(item.unitPrice),
       currency,
     ),
-    orderIndex: idx,
+    orderIndex: item.sortOrder ?? idx,
   }));
   const {
     subtotal,
     discountAmount,
     vatAmount,
-    taxes,
-    otherTaxAmount,
     totalAmount,
   } = calculateInvoiceTotals(
     itemsWithTotals.map((item) => ({
@@ -98,79 +113,39 @@ export async function createQuotation(
     otherTaxes,
   );
 
-  const quotation = await db.$transaction(async (tx) => {
-    await assertCompanyCurrency(currency, tx);
-    const q = await tx.quotation.create({
-      data: {
-        quotationNumber,
-        revision: 1,
-        clientId: data.clientId || null,
-        dealId: data.dealId || null,
-        inquiryId: data.inquiryId || null,
-        issueDate: data.issueDate || new Date(),
-        validUntilDate: data.validUntilDate,
-        currency,
-        language: data.language || "ar",
-        subtotal,
-        discountType: data.discountType || "none",
-        discountValue: data.discountValue || 0,
-        discountAmount,
-        vatEnabled,
-        vatPercentage,
-        vatAmount,
-        otherTaxAmount,
-        taxes: { create: documentTaxRows(otherTaxes, taxes) },
-        totalAmount,
-        rawRate: null,
-        fxMarginPercent: 0,
-        effectiveRate: null,
-        status: "draft",
-        termsEn: data.termsEn || null,
-        termsAr: data.termsAr || null,
-        createdById: actorId,
-        salesOwnerId: await resolveSalesOwner(data.salesOwnerId, actorId),
-        lineItems: {
-          create: itemsWithTotals,
-        },
-      },
-      include: {
-        lineItems: { orderBy: { orderIndex: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        client: true,
-        createdBy: { select: { id: true, fullName: true, email: true } },
-      },
-    });
-
-    return q;
+  const created = await createSalesQuotation({
+    quotationNumber,
+    contactId: data.clientId || null,
+    dealId: data.dealId || null,
+    status: "draft",
+    subtotal,
+    discount: discountAmount,
+    vatRate: vatEnabled ? vatPercentage : 0,
+    vatAmount,
+    total: totalAmount,
+    currency,
+    validUntil: data.validUntilDate,
+    terms: data.termsEn || null,
+    notes: data.termsAr || null,
+    items: itemsWithTotals.map((item) => ({
+      itemKind: item.itemKind,
+      serviceId: item.serviceId,
+      productId: item.productId,
+      variantId: item.variantId,
+      sku: item.sku,
+      unit: item.unit,
+      description: item.descriptionEn,
+      descriptionEn: item.descriptionEn,
+      descriptionAr: item.descriptionAr,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      taxRate: item.taxRate,
+      amount: item.lineTotal,
+      sortOrder: item.orderIndex,
+    })),
   });
 
-  return {
-    ...quotation,
-    subtotal: Number(quotation.subtotal),
-    discountValue: Number(quotation.discountValue),
-    discountAmount: Number(quotation.discountAmount),
-    vatPercentage: Number(quotation.vatPercentage),
-    vatAmount: Number(quotation.vatAmount),
-    otherTaxAmount: Number(quotation.otherTaxAmount ?? 0),
-    taxes: mapDocumentTaxLines(quotation.taxes),
-    totalAmount: Number(quotation.totalAmount),
-    rawRate: quotation.rawRate ? Number(quotation.rawRate) : null,
-    fxMarginPercent: Number(quotation.fxMarginPercent),
-    effectiveRate: quotation.effectiveRate
-      ? Number(quotation.effectiveRate)
-      : null,
-    issueDate: quotation.issueDate.toISOString(),
-    validUntilDate: quotation.validUntilDate.toISOString(),
-    createdAt: quotation.createdAt.toISOString(),
-    updatedAt: quotation.updatedAt.toISOString(),
-    lineItems: quotation.lineItems.map((li) => ({
-      ...li,
-      quantity: Number(li.quantity),
-      unitPrice: Number(li.unitPrice),
-      lineTotal: Number(li.lineTotal),
-    })),
-  };
+  return mapApiQuotationToQuotation(created);
 }
 
 export async function updateQuotation(
@@ -570,117 +545,80 @@ export async function convertQuotationToInvoice(
 ): Promise<{ invoiceId: string; invoiceNumber: string; isExisting: boolean }> {
   await assertActorNotOnLeave(actorId);
 
-  return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${quotationId} FOR UPDATE`;
-    const quotation = await db.quotation.findUnique({
-      where: { id: quotationId },
-      include: {
-        lineItems: { orderBy: { orderIndex: "asc" } },
-        taxes: { orderBy: { displayOrder: "asc" } },
-      },
-    });
-    if (!quotation) throw new Error(serverMessages.quotationNotFound);
+  const quotation = await getQuotationById(quotationId);
+  if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
-    if (quotation.invoiceId) {
-      const existingInv = await db.invoice.findUnique({
-        where: { id: quotation.invoiceId },
-        select: { id: true, invoiceNumber: true },
-      });
-      if (existingInv)
-        return {
-          invoiceId: existingInv.id,
-          invoiceNumber: existingInv.invoiceNumber,
-          isExisting: true,
-        };
-    }
-    if (quotation.status !== "accepted") {
-      throw new Error(
-        formatMessage(serverTemplates.onlyAcceptedQuotationsCanBeConvertedTo, {
-          0: quotation.status,
-        }),
-      );
-    }
+  const {
+    listInvoices,
+    createInvoiceFromQuotation,
+  } = await import("../api/finance");
 
-    const company = await getCompanyConfiguration().catch(() => null);
-    const issueDate = new Date();
-    const dueDate = new Date(issueDate);
-    dueDate.setDate(dueDate.getDate() + ((company as any)?.paymentTermsDays ?? 30));
-    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
-
-    await assertCompanyCurrency(quotation.currency);
-    const inv = await db.invoice.create({
-      data: {
-        invoiceNumber,
-        clientId: quotation.clientId,
-        dealId: quotation.dealId,
-        issueDate,
-        dueDate,
-        subtotal: quotation.subtotal,
-        discountType: quotation.discountType,
-        discountValue: quotation.discountValue,
-        discountAmount: quotation.discountAmount,
-        vatEnabled: quotation.vatEnabled,
-        vatPercentage: quotation.vatPercentage,
-        vatAmount: quotation.vatAmount,
-        otherTaxAmount: quotation.otherTaxAmount,
-        taxes: {
-          create: (quotation.taxes ?? []).map(
-            ({
-              taxRateId,
-              code,
-              nameEn,
-              nameAr,
-              ratePercent,
-              registrationNumber,
-              amount,
-              displayOrder,
-            }) => ({
-              taxRateId,
-              code,
-              nameEn,
-              nameAr,
-              ratePercent,
-              registrationNumber,
-              amount,
-              displayOrder,
-            }),
-          ),
-        },
-        totalAmount: quotation.totalAmount,
-        currency: quotation.currency,
-        language: quotation.language,
-        notesEn: quotation.termsEn,
-        notesAr: quotation.termsAr,
-        status: "draft",
-        approvalStatus: "draft",
-        createdById: actorId,
-        salesOwnerId: quotation.salesOwnerId ?? actorId,
-        lineItems: {
-          create: quotation.lineItems.map((li, idx) => ({
-            descriptionEn: li.descriptionEn,
-            descriptionAr: li.descriptionAr,
-            quantity: li.quantity,
-            unitPrice: li.unitPrice,
-            lineTotal: lineTotal(
-              Number(li.quantity),
-              Number(li.unitPrice),
-              quotation.currency,
-            ),
-            displayOrder: idx + 1,
-          })),
-        },
-      },
-    });
-    await db.quotation.update({
-      where: { id: quotationId },
-      data: { invoiceId: inv.id, status: "converted" },
-    });
+  const existingList = await listInvoices({ quotationId }).catch(() => []);
+  if (Array.isArray(existingList) && existingList.length > 0) {
     return {
-      invoiceId: inv.id,
-      invoiceNumber: inv.invoiceNumber,
-      isExisting: false,
+      invoiceId: existingList[0].id,
+      invoiceNumber: existingList[0].invoiceNumber,
+      isExisting: true,
     };
+  }
+
+  if (quotation.status !== "accepted") {
+    throw new Error(
+      formatMessage(serverTemplates.onlyAcceptedQuotationsCanBeConvertedTo, {
+        0: quotation.status,
+      }),
+    );
+  }
+
+  const company = await getCompanyConfiguration().catch(() => null);
+  const issueDate = new Date();
+  const dueDate = new Date(issueDate);
+  dueDate.setDate(dueDate.getDate() + ((company as any)?.paymentTermsDays ?? 30));
+  const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
+
+  await assertCompanyCurrency(quotation.currency);
+  const created = await createInvoiceFromQuotation({
+    quotationId,
+    invoiceNumber,
+    issueDate: issueDate.toISOString().slice(0, 10),
+    dueDate: dueDate.toISOString().slice(0, 10),
+    notes: quotation.termsAr || quotation.termsEn || null,
+    terms: quotation.termsEn || null,
+    quotationNumber: quotation.quotationNumber,
+    dealId: quotation.dealId || null,
+    contactId: quotation.clientId || null,
+    currency: quotation.currency,
+    subtotal: Number(quotation.subtotal),
+    discount: Number(quotation.discountAmount || 0),
+    vatRate: Number(quotation.vatPercentage || 0),
+    vatAmount: Number(quotation.vatAmount || 0),
+    total: Number(quotation.totalAmount),
+    items: (quotation.lineItems || []).map((li: any, idx: number) => ({
+      id: li.id || `qi-${idx + 1}`,
+      itemKind: li.itemKind || (li.serviceId ? "service" : li.productId ? "product" : "custom"),
+      serviceId: li.serviceId || null,
+      productId: li.productId || null,
+      variantId: li.variantId || null,
+      sku: li.sku || null,
+      unit: li.unit || null,
+      description: li.descriptionEn || "",
+      descriptionEn: li.descriptionEn || "",
+      descriptionAr: li.descriptionAr || "",
+      quantity: Number(li.quantity || 1),
+      unitPrice: Number(li.unitPrice || 0),
+      taxRate: Number(li.taxRate || 0),
+      amount: Number(li.lineTotal || 0),
+      sortOrder: Number(li.orderIndex || idx),
+    })),
   });
+
+  await updateSalesQuotationStatus(quotationId, "converted").catch(() => null);
+
+  return {
+    invoiceId: created.id,
+    invoiceNumber: created.invoiceNumber,
+    isExisting: false,
+  };
 }
 
 export function isQuotationExpired(
@@ -809,11 +747,17 @@ async function mapApiQuotationToQuotation(q: any): Promise<Quotation> {
     lineItems: items.map((li: any, idx: number) => ({
       id: li.id || li.ID || `qi-${idx + 1}`,
       quotationId: q.id || q.ID,
-      serviceId: null,
-      descriptionEn: li.description || li.Description || "",
-      descriptionAr: li.description || li.Description || null,
+      itemKind: li.itemKind || li.ItemKind || "custom",
+      serviceId: li.serviceId || li.ServiceID || null,
+      productId: li.productId || li.ProductID || null,
+      variantId: li.variantId || li.VariantID || null,
+      sku: li.sku || li.Sku || null,
+      unit: li.unit || li.Unit || null,
+      descriptionEn: li.descriptionEn || li.DescriptionEn || li.description || li.Description || "",
+      descriptionAr: li.descriptionAr || li.DescriptionAr || li.description || li.Description || null,
       quantity: Number(li.quantity || li.Quantity || 1),
       unitPrice: Number(li.unitPrice || li.UnitPrice || 0),
+      taxRate: Number(li.taxRate || li.TaxRate || 0),
       lineTotal: Number(li.amount || li.Amount || li.lineTotal || 0),
       orderIndex: Number(li.sortOrder || li.SortOrder || idx + 1),
     })),

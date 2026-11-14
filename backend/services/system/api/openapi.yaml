@@ -611,6 +611,80 @@ paths:
             },
         },
     }
+  /v1/system/services:
+    get:
+      operationId: listServices
+      summary: List catalog services and price list
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: List of services
+    post:
+      operationId: createService
+      summary: Create catalog service
+      security: [{ serviceToken: [] }]
+      responses:
+        "201":
+          description: Created service
+  /v1/system/services/{id}:
+    get:
+      operationId: getService
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Service }
+    put:
+      operationId: updateService
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Updated service }
+    delete:
+      operationId: deleteService
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted service }
+  /v1/system/projects:
+    get:
+      operationId: listProjects
+      summary: List projects
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: List of projects
+    post:
+      operationId: createProject
+      summary: Create project
+      security: [{ serviceToken: [] }]
+      responses:
+        "201":
+          description: Created project
+  /v1/system/projects/{id}:
+    get:
+      operationId: getProject
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Project }
+    put:
+      operationId: updateProject
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Updated project }
+    delete:
+      operationId: deleteProject
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted project }
 
 components:
   securitySchemes:

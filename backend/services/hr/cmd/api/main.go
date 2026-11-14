@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go/jetstream"
 	"github.com/prometheus/client_golang/prometheus"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
@@ -98,11 +99,38 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if err != nil {
 		return err
 	}
+	consumerDone, err := startIdentityConsumer(ctx, cfg, logger, svc)
+	if err != nil {
+		return err
+	}
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("hr service starting")
 	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 	<-relayDone
+	<-consumerDone
 	return runErr
+}
+func startIdentityConsumer(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName+"-consumer", logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		handle := func(ctx context.Context, msg jetstream.Msg) error {
+			return svc.HandleIdentityUserEvent(ctx, natsx.EventID(msg), msg.Subject(), msg.Data())
+		}
+		if err := client.Consume(ctx, app.IdentityEventsConsumer, []string{app.SubjectIdentityUsers}, handle, logger.Logger); err != nil {
+			logger.Error("hr identity events consumer stopped", "error", err)
+		}
+	}()
+	return done, nil
 }
 func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, registry prometheus.Registerer) (<-chan struct{}, error) {
 	done := make(chan struct{})

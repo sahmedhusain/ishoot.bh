@@ -161,3 +161,204 @@ export const processPayrollRun = (id: string, approvedBy: string, token?: string
     method: "PUT",
     body: JSON.stringify({ approvedBy }),
   }, token);
+
+export type EmployeeCredential = {
+  id: string;
+  employeeId: string;
+  kind: string;
+  visaType?: string | null;
+  label: string;
+  number?: string | null;
+  issuingCountry?: string | null;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  sponsor?: string | null;
+  costAmount?: number | null;
+  costCurrency?: string | null;
+  costFrequency?: string | null;
+  costTermMonths?: number | null;
+  paidBy?: string | null;
+  fileUrl?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type EmployeeHandover = {
+  id: string;
+  reference: string;
+  employeeId: string;
+  employeeName?: string;
+  kind: string;
+  leaveRequestId?: string | null;
+  effectiveDate?: string | null;
+  returnDate?: string | null;
+  reason?: string | null;
+  status: string;
+  casesMode?: string | null;
+  delegateUserId?: string | null;
+  delegateName?: string;
+};
+
+export type EmployeeRecurringPay = {
+  id: string;
+  employeeId: string;
+  kind: string;
+  category: string;
+  label: string;
+  amount: number;
+  startMonth?: string | null;
+  endMonth?: string | null;
+  isActive: boolean;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type LeaveBalance = {
+  id: string;
+  employeeId: string;
+  leaveTypeId?: string | null;
+  leaveType: string;
+  year: number;
+  entitledDays: number;
+  usedDays: number;
+  remainingDays: number;
+  updatedAt: string;
+};
+
+export type EmployeePayItem = {
+  id: string;
+  payrollRunId: string;
+  employeeId: string;
+  periodMonth: number;
+  periodYear: number;
+  runStatus: string;
+  currency: string;
+  basicSalary: string;
+  allowances: string;
+  deductions: string;
+  netSalary: string;
+  status: string;
+  paymentStatus?: string | null;
+  paidAt?: string | null;
+};
+
+export type EmployeeRelations = Employee & {
+  userId?: string | null;
+  managerId?: string | null;
+  nationality?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  cprNumber?: string | null;
+  cprExpiryDate?: string | null;
+  passportNumber?: string | null;
+  passportCountry?: string | null;
+  passportExpiryDate?: string | null;
+  credentials?: EmployeeCredential[];
+  handovers?: EmployeeHandover[];
+  recurringPay?: EmployeeRecurringPay[];
+  leaveBalances?: LeaveBalance[];
+  payItems?: EmployeePayItem[];
+};
+
+export type HRIdentityUserRef = {
+  subjectId: string;
+  realm: string;
+  displayName: string;
+  email: string;
+  status: string;
+  employeeId?: string | null;
+  updatedAt: string;
+};
+
+export const getEmployeeRelations = (id: string, token?: string) =>
+  hrFetch<EmployeeRelations>(`/v1/hr/employees/${encodeURIComponent(id)}/relations`, {}, token);
+
+export const updateEmployeeLinks = (
+  id: string,
+  patch: { userId?: string; managerId?: string; departmentId?: string; status?: string; jobTitleEn?: string; jobTitleAr?: string; phone?: string },
+  token?: string,
+) =>
+  hrFetch<{ employeeId: string; userId?: string | null; managerId?: string | null }>(
+    `/v1/hr/employees/${encodeURIComponent(id)}/links`,
+    { method: "PUT", body: JSON.stringify(patch) },
+    token,
+  );
+
+export const listEmployeePayItems = (id: string, token?: string) =>
+  hrFetch<EmployeePayItem[]>(`/v1/hr/employees/${encodeURIComponent(id)}/pay-items`, {}, token);
+
+export const listEmployeeCredentials = (employeeId?: string, token?: string) =>
+  hrFetch<EmployeeCredential[]>(
+    `/v1/hr/credentials${employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : ""}`,
+    {},
+    token,
+  );
+
+export const saveEmployeeCredential = (input: Partial<EmployeeCredential>, token?: string) =>
+  hrFetch<EmployeeCredential>(
+    input.id ? `/v1/hr/credentials/${encodeURIComponent(input.id)}` : "/v1/hr/credentials",
+    { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const deleteEmployeeCredential = (id: string, token?: string) =>
+  hrFetch<void>(`/v1/hr/credentials/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listEmployeeHandovers = (filters?: { employeeId?: string; delegateUserId?: string }, token?: string) => {
+  const qs = new URLSearchParams();
+  if (filters?.employeeId) qs.set("employeeId", filters.employeeId);
+  if (filters?.delegateUserId) qs.set("delegateUserId", filters.delegateUserId);
+  const s = qs.toString();
+  return hrFetch<EmployeeHandover[]>(`/v1/hr/handovers${s ? `?${s}` : ""}`, {}, token);
+};
+
+export const saveEmployeeHandover = (input: Partial<EmployeeHandover>, token?: string) =>
+  hrFetch<EmployeeHandover>(
+    input.id ? `/v1/hr/handovers/${encodeURIComponent(input.id)}` : "/v1/hr/handovers",
+    { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const listEmployeeRecurringPay = (employeeId?: string, token?: string) =>
+  hrFetch<EmployeeRecurringPay[]>(
+    `/v1/hr/recurring-pay${employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : ""}`,
+    {},
+    token,
+  );
+
+export const saveEmployeeRecurringPay = (input: Partial<EmployeeRecurringPay>, token?: string) =>
+  hrFetch<EmployeeRecurringPay>(
+    input.id ? `/v1/hr/recurring-pay/${encodeURIComponent(input.id)}` : "/v1/hr/recurring-pay",
+    { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const deleteEmployeeRecurringPay = (id: string, token?: string) =>
+  hrFetch<void>(`/v1/hr/recurring-pay/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listLeaveBalances = (filters?: { employeeId?: string; year?: number }, token?: string) => {
+  const qs = new URLSearchParams();
+  if (filters?.employeeId) qs.set("employeeId", filters.employeeId);
+  if (filters?.year) qs.set("year", String(filters.year));
+  const s = qs.toString();
+  return hrFetch<LeaveBalance[]>(`/v1/hr/leave-balances${s ? `?${s}` : ""}`, {}, token);
+};
+
+export const saveLeaveBalance = (input: Partial<LeaveBalance>, token?: string) =>
+  hrFetch<LeaveBalance>("/v1/hr/leave-balances", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const listAttendanceEntries = (filters?: { employeeId?: string; date?: string }, token?: string) => {
+  const qs = new URLSearchParams();
+  if (filters?.employeeId) qs.set("employeeId", filters.employeeId);
+  if (filters?.date) qs.set("date", filters.date);
+  const s = qs.toString();
+  return hrFetch<any[]>(`/v1/hr/attendance${s ? `?${s}` : ""}`, {}, token);
+};
+
+export const recordAttendanceEntry = (input: { id?: string; employeeId: string; entryDate?: string; status?: string; notes?: string }, token?: string) =>
+  hrFetch<any>("/v1/hr/attendance", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const listHRUsers = (realm?: string, token?: string) =>
+  hrFetch<HRIdentityUserRef[]>(`/v1/hr/users${realm ? `?realm=${encodeURIComponent(realm)}` : ""}`, {}, token);

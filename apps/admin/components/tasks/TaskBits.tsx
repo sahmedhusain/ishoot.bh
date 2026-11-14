@@ -43,6 +43,18 @@ function taskLinkHref(type: string, id: string) {
       return ROUTES.procurement.order(id);
     case "contact":
       return ROUTES.crm.customer(id);
+    case "mom":
+      return `/dashboard/moms/${encodeURIComponent(id)}`;
+    case "employee":
+      return `/dashboard/hr/employees/${encodeURIComponent(id)}`;
+    case "letter":
+      return ROUTES.letters.detail(id);
+    case "asset":
+      return ROUTES.assets.detail(id);
+    case "contract":
+      return ROUTES.legal.matters;
+    case "document":
+      return ROUTES.archive;
     default:
       return null;
   }

@@ -6,6 +6,7 @@ import {
 } from "../constants/delivery";
 import {
   listShipments as listShipmentsApi,
+  listShipmentsEnriched,
   getShipment as getShipmentApi,
   trackShipment as trackApiShipment,
   listShipmentEvents as listApiShipmentEvents,
@@ -34,15 +35,53 @@ export async function listShipments(
   filters: ShipmentFilters = {},
   now = new Date(),
 ) {
-  const rows = await listShipmentsApi();
-  const filtered = (rows || []).filter(s => {
+  const enriched = await listShipmentsEnriched({
+    driverId: filters.driverId,
+    status: filters.status,
+  }).catch(() => null);
+  const rows: any[] = enriched
+    ? enriched.map((s) => ({
+        id: s.id,
+        number: s.number,
+        orderId: s.orderId,
+        orderNumber: s.orderNumber || s.orderId,
+        status: s.status,
+        method: s.method,
+        zoneId: s.zoneId ?? null,
+        zoneNameEn: s.zoneNameEn || "",
+        zoneNameAr: s.zoneNameAr || "",
+        slotDate: s.slotDate ?? null,
+        slotStart: s.slotStart ?? null,
+        slotEnd: s.slotEnd ?? null,
+        promisedBy: s.promisedBy,
+        recipientName: s.recipientName,
+        recipientPhone: s.recipientPhone,
+        address: s.address || {},
+        driverId: s.driverId ?? null,
+        driverNameEn: s.driverNameEn || "",
+        driverNameAr: s.driverNameAr || "",
+        vehiclePlate: s.vehiclePlate ?? null,
+        codAmount: String(s.codAmount ?? 0),
+      }))
+    : await listShipmentsApi();
+
+  const filtered = (rows || []).filter((s) => {
     if (filters.status && s.status !== filters.status) return false;
     if (filters.zoneId && s.zoneId !== filters.zoneId) return false;
     if (filters.driverId && s.driverId !== filters.driverId) return false;
-    if (filters.late && (s.status !== "pending" && s.status !== "assigned" && s.status !== "failed" || new Date(s.promisedBy) >= now)) return false;
+    if (
+      filters.late &&
+      ((s.status !== "pending" && s.status !== "assigned" && s.status !== "failed") ||
+        new Date(s.promisedBy) >= now)
+    )
+      return false;
     if (filters.q) {
       const q = filters.q.toLowerCase();
-      const match = s.number.toLowerCase().includes(q) || s.recipientName.toLowerCase().includes(q) || s.recipientPhone.toLowerCase().includes(q);
+      const match =
+        String(s.number || "").toLowerCase().includes(q) ||
+        String(s.orderNumber || "").toLowerCase().includes(q) ||
+        String(s.recipientName || "").toLowerCase().includes(q) ||
+        String(s.recipientPhone || "").toLowerCase().includes(q);
       if (!match) return false;
     }
     return true;
@@ -53,28 +92,41 @@ export async function listShipments(
     total: filtered.length,
     page,
     pageSize: PAGE,
-    rows: items.map((s) => ({
-      id: s.id,
-      number: s.number,
-      order_number: s.orderId,
-      status: s.status,
-      method: s.method,
-      recipient: s.recipientName,
-      phone: s.recipientPhone,
-      area: "Unknown",
-      zone_en: "",
-      zone_ar: "",
-      slot: s.slotDate ? {
-        date: s.slotDate.slice(0, 10),
-        start: s.slotStart ?? "",
-        end: s.slotEnd ?? "",
-      } : null,
-      promised_by: s.promisedBy,
-      late: (s.status === "pending" || s.status === "assigned" || s.status === "failed") && new Date(s.promisedBy) < now,
-      cod_amount: Number(s.codAmount),
-      driver_en: "",
-      driver_ar: "",
-    })),
+    rows: items.map((s) => {
+      const addr = (s.address || {}) as Record<string, unknown>;
+      const area =
+        (typeof addr.area === "string" && addr.area) ||
+        (typeof addr.city === "string" && addr.city) ||
+        "Unknown";
+      return {
+        id: s.id,
+        number: s.number,
+        order_number: s.orderNumber || s.orderId,
+        status: s.status,
+        method: s.method,
+        recipient: s.recipientName,
+        phone: s.recipientPhone,
+        area,
+        zone_en: s.zoneNameEn || "",
+        zone_ar: s.zoneNameAr || "",
+        slot: s.slotDate
+          ? {
+              date: String(s.slotDate).slice(0, 10),
+              start: s.slotStart ?? "",
+              end: s.slotEnd ?? "",
+            }
+          : null,
+        promised_by: s.promisedBy,
+        late:
+          (s.status === "pending" || s.status === "assigned" || s.status === "failed") &&
+          new Date(s.promisedBy) < now,
+        cod_amount: Number(s.codAmount ?? 0),
+        driver_id: s.driverId ?? undefined,
+        driver_en: s.driverNameEn || "",
+        driver_ar: s.driverNameAr || "",
+        vehicle_plate: s.vehiclePlate ?? undefined,
+      };
+    }),
   };
 }
 

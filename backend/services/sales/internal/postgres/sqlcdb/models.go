@@ -33,6 +33,21 @@ type SalesCampaign struct {
 	CreatedByID *string        `json:"createdById"`
 }
 
+type SalesCatalogItemRef struct {
+	Kind      string         `json:"kind"`
+	ID        string         `json:"id"`
+	VariantID string         `json:"variantId"`
+	Sku       *string        `json:"sku"`
+	NameEn    string         `json:"nameEn"`
+	NameAr    string         `json:"nameAr"`
+	Unit      string         `json:"unit"`
+	UnitPrice pgtype.Numeric `json:"unitPrice"`
+	Currency  string         `json:"currency"`
+	TaxRate   pgtype.Numeric `json:"taxRate"`
+	IsActive  bool           `json:"isActive"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+}
+
 type SalesContact struct {
 	ID          string    `json:"id"`
 	FirstName   string    `json:"firstName"`
@@ -126,6 +141,7 @@ type SalesDeal struct {
 	Notes             *string        `json:"notes"`
 	CreatedAt         time.Time      `json:"createdAt"`
 	UpdatedAt         time.Time      `json:"updatedAt"`
+	PipelineStageID   *string        `json:"pipelineStageId"`
 }
 
 type SalesDealPipelineStage struct {
@@ -229,13 +245,22 @@ type SalesQuotation struct {
 }
 
 type SalesQuotationItem struct {
-	ID          string         `json:"id"`
-	QuotationID string         `json:"quotationId"`
-	Description string         `json:"description"`
-	Quantity    pgtype.Numeric `json:"quantity"`
-	UnitPrice   pgtype.Numeric `json:"unitPrice"`
-	Amount      pgtype.Numeric `json:"amount"`
-	SortOrder   int32          `json:"sortOrder"`
+	ID            string         `json:"id"`
+	QuotationID   string         `json:"quotationId"`
+	Description   string         `json:"description"`
+	Quantity      pgtype.Numeric `json:"quantity"`
+	UnitPrice     pgtype.Numeric `json:"unitPrice"`
+	Amount        pgtype.Numeric `json:"amount"`
+	SortOrder     int32          `json:"sortOrder"`
+	ItemKind      string         `json:"itemKind"`
+	ServiceID     *string        `json:"serviceId"`
+	ProductID     *string        `json:"productId"`
+	VariantID     *string        `json:"variantId"`
+	Sku           *string        `json:"sku"`
+	Unit          *string        `json:"unit"`
+	DescriptionEn string         `json:"descriptionEn"`
+	DescriptionAr string         `json:"descriptionAr"`
+	TaxRate       pgtype.Numeric `json:"taxRate"`
 }
 
 type SalesQuotationLineItem struct {

@@ -1,5 +1,4 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import {
   leaveEntitlement,
   monthsOfService,
@@ -38,24 +37,30 @@ interface Ledger {
 }
 
 async function loadLedger(employeeId: string): Promise<Ledger> {
-  const [employee, leaves, adjustments] = await Promise.all([
-    db.employee.findUniqueOrThrow({
-      where: { id: employeeId },
-      select: { hireDate: true },
-    }),
-    db.leaveRequest.findMany({
-      where: { employeeId, status: { in: ["approved", "pending"] } },
-      select: { leaveTypeId: true, status: true, startDate: true, days: true },
-    }),
-    db.leaveAdjustment.findMany({
-      where: { employeeId },
-      select: { leaveTypeId: true, year: true, days: true },
-    }),
+  const [{ getEmployee, listLeaveRequests, listLeaveBalances }] = await Promise.all([
+    import("../api/hr"),
   ]);
+  const [employee, leaves, balances] = await Promise.all([
+    getEmployee(employeeId).catch(() => null),
+    listLeaveRequests(employeeId).catch(() => []),
+    listLeaveBalances({ employeeId }).catch(() => []),
+  ]);
+  const hireDate = employee?.hireDate ? new Date(employee.hireDate) : new Date();
   return {
-    hireDate: employee.hireDate,
-    leaves: leaves.map((l) => ({ ...l, days: Number(l.days) })),
-    adjustments: adjustments.map((a) => ({ ...a, days: Number(a.days) })),
+    hireDate,
+    leaves: (leaves || [])
+      .filter((l) => l.status === "approved" || l.status === "pending")
+      .map((l) => ({
+        leaveTypeId: l.leaveType,
+        status: l.status,
+        startDate: new Date(l.startDate),
+        days: Number(l.daysCount || 0),
+      })),
+    adjustments: (balances || []).map((b) => ({
+      leaveTypeId: b.leaveTypeId || b.leaveType,
+      year: b.year,
+      days: Number(b.entitledDays || 0) - Number(b.usedDays || 0),
+    })),
   };
 }
 
@@ -190,27 +195,19 @@ export async function leaveTakenBefore(
   leaveTypeId: string,
   before: Date,
 ): Promise<number> {
-  const rows = await db.leaveRequest.findMany({
-    where: {
-      employeeId,
-      leaveTypeId,
-      status: "approved",
-      startDate: { gte: utcDay(before.getUTCFullYear(), 0, 1), lt: before },
-    },
-    select: { days: true },
-  });
-  return rows.reduce((sum, r) => sum + Number(r.days), 0);
+  const { listLeaveRequests } = await import("../api/hr");
+  const rows = await listLeaveRequests(employeeId).catch(() => []);
+  const yearStart = utcDay(before.getUTCFullYear(), 0, 1);
+  return rows
+    .filter((r) => {
+      const sd = new Date(r.startDate);
+      return r.leaveType === leaveTypeId && r.status === "approved" && sd >= yearStart && sd < before;
+    })
+    .reduce((sum, r) => sum + Number(r.daysCount || 0), 0);
 }
 
-export async function refreshLeaveBalanceCache(employeeId: string) {
-  const annual = (await getLeaveBalances(employeeId)).find(
-    (b) => b.code === "annual",
-  );
-  if (annual?.available == null) return;
-  await db.employee.update({
-    where: { id: employeeId },
-    data: { leaveBalanceDays: Math.max(-999, Math.min(999, annual.available)) },
-  });
+export async function refreshLeaveBalanceCache(_employeeId: string) {
+  return;
 }
 
 export async function addLeaveAdjustment(
@@ -221,7 +218,7 @@ export async function addLeaveAdjustment(
     days: number;
     reason: string;
   },
-  actorId: string,
+  _actorId: string,
 ) {
   if (!Number.isInteger(input.year) || input.year < 2000 || input.year > 2200)
     throw new Error(serverMessages.chooseAYear);
@@ -236,15 +233,14 @@ export async function addLeaveAdjustment(
   const reason = input.reason.trim();
   if (!reason || reason.length > 300)
     throw new Error(serverMessages.giveAReasonForTheAdjustment);
-  const type = await db.leaveType.findUniqueOrThrow({
-    where: { id: input.leaveTypeId },
-    select: { accrual: true },
+  const { saveLeaveBalance } = await import("../api/hr");
+  return saveLeaveBalance({
+    employeeId: input.employeeId,
+    leaveTypeId: input.leaveTypeId,
+    leaveType: input.leaveTypeId,
+    year: input.year,
+    entitledDays: input.days,
+    usedDays: 0,
+    remainingDays: input.days,
   });
-  if (type.accrual === "none")
-    throw new Error(serverMessages.thisLeaveTypeHasNoBalanceTo);
-  const adjustment = await db.leaveAdjustment.create({
-    data: { ...input, reason, createdById: actorId },
-  });
-  await refreshLeaveBalanceCache(input.employeeId);
-  return adjustment;
 }

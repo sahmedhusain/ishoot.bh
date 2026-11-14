@@ -86,8 +86,8 @@ type SystemAnnouncement struct {
 }
 
 type SystemAnnouncementReceipt struct {
-	AnnouncementID *string    `json:"announcementId"`
-	UserID         *string    `json:"userId"`
+	AnnouncementID string     `json:"announcementId"`
+	UserID         string     `json:"userId"`
 	ReadAt         *time.Time `json:"readAt"`
 	AcknowledgedAt *time.Time `json:"acknowledgedAt"`
 	HiddenAt       *time.Time `json:"hiddenAt"`

@@ -38,11 +38,14 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.POST("/routes", h.createRouteSheet)
 	g.PUT("/routes/:id/status", h.updateRouteSheetStatus)
 	g.GET("/shipments", h.listShipments)
+	g.GET("/shipments/enriched", h.listShipmentsEnriched)
 	g.POST("/shipments", h.createShipment)
 	g.GET("/shipments/:id", h.getShipment)
 	g.POST("/shipments/:id/assign", h.assignShipmentDriver)
 	g.POST("/shipments/:id/proof", h.recordProofOfDelivery)
 	g.GET("/shipments/:id/events", h.listShipmentEvents)
+	g.GET("/drivers-ref", h.listDriverRefs)
+	g.GET("/orders-ref", h.listOrderRefs)
 	e.GET("/v1/delivery/track/:token", h.trackShipment)
 }
 func (h *handler) getDeliverySettings(c echo.Context) error {

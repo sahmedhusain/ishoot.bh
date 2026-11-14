@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go/jetstream"
 	"github.com/prometheus/client_golang/prometheus"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
@@ -98,11 +99,39 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if err != nil {
 		return err
 	}
+	syncDone, err := startDomainSyncConsumer(ctx, cfg, logger, svc)
+	if err != nil {
+		return err
+	}
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("finance service starting")
 	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 	<-relayDone
+	<-syncDone
 	return runErr
+}
+func startDomainSyncConsumer(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName+"-domain-sync", logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	handle := func(ctx context.Context, msg jetstream.Msg) error {
+		return svc.HandleDomainEvent(ctx, natsx.EventID(msg), msg.Subject(), msg.Data())
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		subjects := []string{"sales.>", "system.service.>", "inventory.product.>"}
+		if err := client.Consume(ctx, app.DomainSyncConsumer, subjects, handle, logger.Logger); err != nil {
+			logger.Error("finance domain sync consumer stopped", "error", err)
+		}
+	}()
+	return done, nil
 }
 func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, registry prometheus.Registerer) (<-chan struct{}, error) {
 	done := make(chan struct{})

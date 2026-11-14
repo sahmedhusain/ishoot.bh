@@ -231,6 +231,349 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/PayrollRun" }
 
+  /v1/hr/employees/{id}/relations:
+    get:
+      tags: [employees]
+      operationId: getEmployeeRelations
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employee with credentials, handovers, recurring pay, balances, and pay items
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/employees/{id}/links:
+    put:
+      tags: [employees]
+      operationId: updateEmployeeLinks
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated employee relational links
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/employees/{id}/pay-items:
+    get:
+      tags: [payroll]
+      operationId: listEmployeePayItems
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employee payroll items
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /v1/hr/credentials:
+    get:
+      tags: [employees]
+      operationId: listCredentials
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employee credentials
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [employees]
+      operationId: createCredential
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created credential
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/credentials/{id}:
+    put:
+      tags: [employees]
+      operationId: updateCredential
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated credential
+          content:
+            application/json:
+              schema: { type: object }
+    delete:
+      tags: [employees]
+      operationId: deleteCredential
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/hr/handovers:
+    get:
+      tags: [employees]
+      operationId: listHandovers
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: delegateUserId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employee handovers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [employees]
+      operationId: createHandover
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created handover
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/handovers/{id}:
+    put:
+      tags: [employees]
+      operationId: updateHandover
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated handover
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/recurring-pay:
+    get:
+      tags: [payroll]
+      operationId: listRecurringPay
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Recurring pay items
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [payroll]
+      operationId: createRecurringPay
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created recurring pay
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/recurring-pay/{id}:
+    put:
+      tags: [payroll]
+      operationId: updateRecurringPay
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated recurring pay
+          content:
+            application/json:
+              schema: { type: object }
+    delete:
+      tags: [payroll]
+      operationId: deleteRecurringPay
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/hr/leave-balances:
+    get:
+      tags: [leave]
+      operationId: listLeaveBalances
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: year
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Leave balances
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [leave]
+      operationId: saveLeaveBalance
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Saved leave balance
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/attendance:
+    get:
+      tags: [attendance]
+      operationId: listAttendance
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Attendance entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [attendance]
+      operationId: recordAttendance
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Recorded attendance entry
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/hr/users:
+    get:
+      tags: [employees]
+      operationId: listIdentityUsers
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: realm
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Identity user references synced via events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
 components:
   securitySchemes:
     staffToken:

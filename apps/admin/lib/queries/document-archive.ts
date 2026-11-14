@@ -1,5 +1,3 @@
-import { Database } from "@platform/database/decimal";
-import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import type { PermissionResource } from "../constants/permissions";
 import {
@@ -11,6 +9,9 @@ import {
   type ArchiveGroup,
   type ArchiveKind,
 } from "../constants/archive";
+import { getAllAttachments } from "./attachments";
+import { getCompanyDocuments } from "./company-documents";
+import { listContracts } from "../api/workflow";
 
 export * from "../constants/archive";
 
@@ -60,101 +61,6 @@ export function archiveKindsFor(
   );
 }
 
-type Row = {
-  source: string;
-  id: string;
-  file_name: string;
-  file_url: string;
-  mime_type: string | null;
-  file_size: number | null;
-  kind: string;
-  owner_id: string | null;
-  owner_en: string | null;
-  owner_ar: string | null;
-  uploaded_by: string | null;
-  created_at: Date;
-  expires_on: Date | null;
-};
-
-const employeeName = Database.sql`concat_ws(' ', e."firstNameEn", e."lastNameEn")`;
-const employeeNameAr = Database.sql`concat_ws(' ', e."firstNameAr", e."lastNameAr")`;
-
-const documents = Database.sql`
-  SELECT 'attachment' AS source, a.id, a."fileName" AS file_name, a."fileUrl" AS file_url, a."mimeType" AS mime_type, a."fileSize" AS file_size,
-    a."entityType" AS kind, a."entityId" AS owner_id,
-    COALESCE(NULLIF(c."companyName", ''), NULLIF(concat_ws(' ', c."firstName", c."lastName"), ''), i."invoiceNumber", q."quotationNumber", d.title, p."receiptNumber",
-      x."descriptionEn", cl."claimNumber", NULLIF(${employeeName}, ''), cd."titleEn", su."fullName") AS owner_en,
-    COALESCE(NULLIF(c."companyNameAr", ''), NULLIF(c."companyName", ''), NULLIF(concat_ws(' ', c."firstName", c."lastName"), ''), i."invoiceNumber", q."quotationNumber", d.title, p."receiptNumber",
-      NULLIF(x."descriptionAr", ''), x."descriptionEn", cl."claimNumber", NULLIF(${employeeNameAr}, ''), NULLIF(cd."titleAr", ''), cd."titleEn", su."fullName") AS owner_ar,
-    u."fullName" AS uploaded_by, a."createdAt" AS created_at, cd."validUntil"::timestamp AS expires_on
-  FROM "Attachment" a
-  LEFT JOIN "User" u ON u.id = a."uploadedById"
-  LEFT JOIN "CrmContact" c ON c.id = a."entityId" AND a."entityType" IN ('contact', 'customer_vault')
-  LEFT JOIN "Invoice" i ON i.id = a."entityId" AND a."entityType" = 'invoice'
-  LEFT JOIN "Quotation" q ON q.id = a."entityId" AND a."entityType" = 'quotation'
-  LEFT JOIN "CrmDeal" d ON d.id = a."entityId" AND a."entityType" = 'deal'
-  LEFT JOIN "Payment" p ON p.id = a."entityId" AND a."entityType" = 'payment'
-  LEFT JOIN "Expense" x ON x.id = a."entityId" AND a."entityType" = 'expense'
-  LEFT JOIN "ExpenseClaim" cl ON cl.id = a."entityId" AND a."entityType" = 'expense_claim'
-  LEFT JOIN "Employee" e ON e.id = a."entityId" AND a."entityType" = 'employee'
-  LEFT JOIN "CompanyDocument" cd ON cd."fileUrl" = a."fileUrl" AND a."entityType" = 'company_document'
-  LEFT JOIN "User" su ON su.id = a."entityId" AND a."entityType" = 'user_signature'
-  WHERE a."entityType" <> 'cms_asset'
-UNION ALL
-  SELECT 'company_document', cd.id, cd."titleEn", cd."fileUrl", cd."mimeType", cd."fileSize", 'company_document', cd.id,
-    COALESCE(cd."documentNumber", cd."titleEn"), COALESCE(cd."documentNumber", NULLIF(cd."titleAr", ''), cd."titleEn"),
-    u."fullName", cd."createdAt", cd."validUntil"::timestamp
-  FROM "CompanyDocument" cd LEFT JOIN "User" u ON u.id = cd."uploadedById"
-  WHERE NOT EXISTS (SELECT 1 FROM "Attachment" a WHERE a."fileUrl" = cd."fileUrl")
-UNION ALL
-  SELECT 'employee_credential', ec.id, concat_ws(' · ', ec.kind, ec.number), ec."fileUrl", NULL, NULL, 'employee_credential', ec."employeeId",
-    ${employeeName}, ${employeeNameAr}, NULL, ec."createdAt", ec."expiryDate"
-  FROM "EmployeeCredential" ec JOIN "Employee" e ON e.id = ec."employeeId"
-  WHERE ec."fileUrl" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "Attachment" a WHERE a."fileUrl" = ec."fileUrl")
-UNION ALL
-  SELECT 'leave_evidence', lr.id, lt."nameEn", lr."attachmentUrl", NULL, NULL, 'leave_evidence', lr."employeeId",
-    ${employeeName}, ${employeeNameAr}, NULL, lr."createdAt", NULL
-  FROM "LeaveRequest" lr JOIN "Employee" e ON e.id = lr."employeeId" JOIN "LeaveType" lt ON lt.id = lr."leaveTypeId"
-  WHERE lr."attachmentUrl" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "Attachment" a WHERE a."fileUrl" = lr."attachmentUrl")
-UNION ALL
-  SELECT 'expense', x.id, x."descriptionEn", x."receiptUrl", NULL, NULL, 'expense', x.id,
-    x."descriptionEn", COALESCE(NULLIF(x."descriptionAr", ''), x."descriptionEn"), NULL, x."createdAt", NULL
-  FROM "Expense" x
-  WHERE x."receiptUrl" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "Attachment" a WHERE a."fileUrl" = x."receiptUrl")
-UNION ALL
-  SELECT 'expense_claim', cl.id, cl."claimNumber", cl."receiptUrl", NULL, NULL, 'expense_claim', cl.id,
-    cl."claimNumber", cl."claimNumber", u."fullName", cl."createdAt", NULL
-  FROM "ExpenseClaim" cl LEFT JOIN "User" u ON u.id = cl."claimantId"
-  WHERE NOT EXISTS (SELECT 1 FROM "Attachment" a WHERE a."fileUrl" = cl."receiptUrl")
-UNION ALL
-  SELECT 'tax_certificate', t.id, t."nameEn", t."certificateUrl", NULL, NULL, 'tax_certificate', t.code,
-    t."nameEn", t."nameAr", NULL, t."updatedAt", t."certificateValidUntil"
-  FROM "TaxRate" t
-  WHERE t."certificateUrl" IS NOT NULL
-UNION ALL
-  SELECT 'vat_certificate', s.id, 'VAT', s."vatCertificateUrl", NULL, NULL, 'vat_certificate', 'vat', 'VAT', 'VAT', NULL, s."updatedAt", NULL
-  FROM "CompanySetting" s
-  WHERE s."vatCertificateUrl" IS NOT NULL AND s."vatCertificateUrl" <> ''
-UNION ALL
-  SELECT 'salary_document', sd.id, sd.kind, '/api/hr/documents/' || sd.id || '/pdf', 'application/pdf', NULL, 'salary_document', sd."employeeId",
-    ${employeeName}, ${employeeNameAr}, NULL, COALESCE(sd."issuedAt", sd."createdAt"), NULL
-  FROM "SalaryDocument" sd JOIN "Employee" e ON e.id = sd."employeeId"
-  WHERE sd.status = 'issued'
-UNION ALL
-  SELECT 'asset_handover', h.id, h.reference, '/api/assets/handovers/' || h.id || '/pdf', 'application/pdf', NULL, 'asset_handover', h.id,
-    concat_ws(' · ', h.reference, ast.name, ${employeeName}), concat_ws(' · ', h.reference, ast.name, ${employeeNameAr}), u."fullName", COALESCE(h."decidedAt", h."createdAt"), NULL
-  FROM "AssetHandover" h JOIN "Asset" ast ON ast.id = h."assetId" JOIN "Employee" e ON e.id = h."employeeId" LEFT JOIN "User" u ON u.id = h."createdById"
-  WHERE h.status = 'completed'
-UNION ALL
-  SELECT 'official_letter', l.id, l.reference, '/api/letters/' || l.id || '/pdf', 'application/pdf', NULL, 'official_letter', l.id,
-    l."subjectEn", l."subjectAr", NULL, COALESCE(l."signedAt", l."createdAt"), NULL
-  FROM "OfficialLetter" l WHERE l.status = 'approved'
-UNION ALL
-  SELECT 'final_settlement', f.id, f.reference, '/api/hr/settlements/' || f.id || '/pdf', 'application/pdf', NULL, 'final_settlement', f.id,
-    ${employeeName}, ${employeeNameAr}, NULL, COALESCE(f."approvedAt", f."createdAt"), NULL
-  FROM "FinalSettlement" f JOIN "Employee" e ON e.id = f."employeeId" WHERE f.status IN ('approved', 'paid')
-`;
-
 export type ArchiveDocument = {
   id: string;
   source: string;
@@ -173,7 +79,7 @@ export type ArchiveDocument = {
   deletable: boolean;
 };
 
-function ownerLink(kind: string, ownerId: string | null): string | undefined {
+function ownerLink(kind: string, ownerId: string | null | undefined): string | undefined {
   if (!ownerId || ownerId === "pending" || ownerId === "general-vault")
     return undefined;
   switch (kind) {
@@ -214,61 +120,102 @@ function ownerLink(kind: string, ownerId: string | null): string | undefined {
   }
 }
 
-function mapRow(r: Row): ArchiveDocument {
-  const kind = (r.kind in ARCHIVE_KINDS ? r.kind : "general") as ArchiveKind;
-  const fileUrl = r.file_url || "";
-  return {
-    id: `${r.source}:${r.id}`,
-    source: r.source,
-    kind,
-    group: ARCHIVE_KINDS[kind].group,
-    file_name: r.file_name || (fileUrl ? fileUrl.split("/").pop() || "" : ""),
-    file_url: fileUrl,
-    mime_type: r.mime_type ?? undefined,
-    file_size: r.file_size ?? undefined,
-    owner_en: r.owner_en ?? undefined,
-    owner_ar: r.owner_ar ?? undefined,
-    owner_link: ownerLink(kind, r.owner_id),
-    uploaded_by: r.uploaded_by ?? undefined,
-    created_at: r.created_at
-      ? (typeof r.created_at === "string" ? r.created_at : r.created_at.toISOString())
-      : new Date().toISOString(),
-    expires_on: (r as any).expires_on
-      ? (typeof (r as any).expires_on === "string" ? (r as any).expires_on.slice(0, 10) : (r as any).expires_on.toISOString().slice(0, 10))
-      : undefined,
-    deletable: r.source === "attachment",
-  };
+async function collectAllArchiveDocs(kinds: ArchiveKind[]): Promise<ArchiveDocument[]> {
+  const allowed = new Set<string>(kinds);
+  const [attachments, companyDocs, contracts] = await Promise.all([
+    getAllAttachments().catch(() => []),
+    getCompanyDocuments().catch(() => []),
+    listContracts().catch(() => []),
+  ]);
+
+  const docs: ArchiveDocument[] = [];
+
+  for (const att of attachments) {
+    const kind = (att.entity_type in ARCHIVE_KINDS ? att.entity_type : "general") as ArchiveKind;
+    if (!allowed.has(kind)) continue;
+    docs.push({
+      id: `attachment:${att.id}`,
+      source: "attachment",
+      kind,
+      group: ARCHIVE_KINDS[kind].group,
+      file_name: att.file_name,
+      file_url: att.file_url,
+      mime_type: att.mime_type,
+      file_size: att.file_size,
+      owner_en: att.entity_label,
+      owner_ar: att.entity_label,
+      owner_link: att.entity_link ?? ownerLink(kind, att.entity_id),
+      uploaded_by: att.uploaded_by,
+      created_at: att.created_at,
+      deletable: true,
+    });
+  }
+
+  if (allowed.has("company_document")) {
+    for (const cd of companyDocs) {
+      docs.push({
+        id: `company_document:${cd.id}`,
+        source: "company_document",
+        kind: "company_document",
+        group: ARCHIVE_KINDS.company_document.group,
+        file_name: cd.title_en,
+        file_url: cd.file_url,
+        mime_type: cd.mime_type,
+        file_size: cd.file_size,
+        owner_en: cd.title_en,
+        owner_ar: cd.title_ar ?? cd.title_en,
+        owner_link: ROUTES.company.documents,
+        uploaded_by: cd.uploaded_by_id,
+        created_at: cd.created_at,
+        expires_on: cd.valid_until,
+        deletable: false,
+      });
+    }
+  }
+
+  for (const c of contracts) {
+    if (!c.fileUrl || !allowed.has("general")) continue;
+    docs.push({
+      id: `contract:${c.id}`,
+      source: "contract",
+      kind: "general",
+      group: ARCHIVE_KINDS.general.group,
+      file_name: `${c.contractNumber} · ${c.title}`,
+      file_url: c.fileUrl,
+      owner_en: c.title,
+      owner_ar: c.title,
+      owner_link: c.dealId ? ROUTES.crm.deal(c.dealId) : c.clientId ? ROUTES.crm.customer(c.clientId) : undefined,
+      created_at: c.createdAt,
+      expires_on: c.endDate?.slice(0, 10),
+      deletable: false,
+    });
+  }
+
+  return docs;
 }
 
-function conditions(f: ArchiveFilters, kinds: ArchiveKind[]) {
-  const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
-  const groupKinds =
-    f.group === "all"
-      ? kinds
-      : kinds.filter((k) => ARCHIVE_KINDS[k].group === f.group);
-  const visible =
-    f.kind === "all" ? groupKinds : groupKinds.filter((k) => k === f.kind);
-  const soon = new Date(Date.now() + ARCHIVE_EXPIRING_DAYS * 86_400_000);
-  const today = new Date(new Date().toISOString().slice(0, 10));
-  return Database.sql`
-    WHERE doc.kind = ANY(${visible.length ? visible : ["__none__"]}::text[])
-      AND (${f.q} = '' OR doc.file_name ILIKE ${pattern} OR doc.file_url ILIKE ${pattern} OR doc.owner_en ILIKE ${pattern} OR doc.owner_ar ILIKE ${pattern} OR doc.uploaded_by ILIKE ${pattern})
-      AND (${f.from} = '' OR doc.created_at >= ${f.from || "1970-01-01"}::date)
-      AND (${f.to} = '' OR doc.created_at < (${f.to || "1970-01-01"}::date + 1))
-      AND (${f.expiry} = 'all'
-        OR (${f.expiry} = 'expired' AND doc.expires_on < ${today})
-        OR (${f.expiry} = 'expiring' AND doc.expires_on >= ${today} AND doc.expires_on <= ${soon})
-        OR (${f.expiry} = 'valid' AND doc.expires_on > ${soon})
-        OR (${f.expiry} = 'none' AND doc.expires_on IS NULL))`;
-}
+function applyArchiveFilters(docs: ArchiveDocument[], f: ArchiveFilters, kinds: ArchiveKind[]): ArchiveDocument[] {
+  const groupKinds = f.group === "all" ? kinds : kinds.filter((k) => ARCHIVE_KINDS[k].group === f.group);
+  const visible = new Set<string>(f.kind === "all" ? groupKinds : groupKinds.filter((k) => k === f.kind));
+  const q = f.q.toLowerCase();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const soonStr = new Date(Date.now() + ARCHIVE_EXPIRING_DAYS * 86_400_000).toISOString().slice(0, 10);
 
-const ORDER: Record<string, Database.Sql> = {
-  newest: Database.sql`doc.created_at DESC, doc.id DESC`,
-  oldest: Database.sql`doc.created_at ASC, doc.id ASC`,
-  name: Database.sql`lower(doc.file_name) ASC, doc.id ASC`,
-  expiry: Database.sql`doc.expires_on ASC NULLS LAST, doc.created_at DESC, doc.id DESC`,
-  largest: Database.sql`doc.file_size DESC NULLS LAST, doc.created_at DESC, doc.id DESC`,
-};
+  return docs.filter((d) => {
+    if (!visible.has(d.kind)) return false;
+    if (q && ![d.file_name, d.file_url, d.owner_en, d.owner_ar, d.uploaded_by].filter(Boolean).some((s) => String(s).toLowerCase().includes(q))) {
+      return false;
+    }
+    const createdDay = d.created_at.slice(0, 10);
+    if (f.from && createdDay < f.from) return false;
+    if (f.to && createdDay > f.to) return false;
+    if (f.expiry === "expired" && (!d.expires_on || d.expires_on >= todayStr)) return false;
+    if (f.expiry === "expiring" && (!d.expires_on || d.expires_on < todayStr || d.expires_on > soonStr)) return false;
+    if (f.expiry === "valid" && (!d.expires_on || d.expires_on <= soonStr)) return false;
+    if (f.expiry === "none" && d.expires_on) return false;
+    return true;
+  });
+}
 
 export async function getDocumentArchivePage(
   input: Record<string, string | string[] | undefined>,
@@ -276,35 +223,39 @@ export async function getDocumentArchivePage(
   pageSize = 50,
 ) {
   const f = archiveParameters(input);
-  const where = conditions(f, kinds);
-  const [countRows, groupRows, expiryRows] = await Promise.all([
-    db.$queryRaw<Array<{ count: bigint }>>(
-      Database.sql`SELECT count(*) AS count FROM (${documents}) doc ${where}`,
-    ),
-    db.$queryRaw<Array<{ kind: string; count: bigint }>>(
-      Database.sql`SELECT doc.kind, count(*) AS count FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[]) GROUP BY doc.kind`,
-    ),
-    db.$queryRaw<Array<{ expired: bigint; expiring: bigint }>>(Database.sql`
-      SELECT count(*) FILTER (WHERE doc.expires_on < current_date) AS expired,
-             count(*) FILTER (WHERE doc.expires_on >= current_date AND doc.expires_on <= current_date + ${ARCHIVE_EXPIRING_DAYS}::int) AS expiring
-      FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[])`),
-  ]);
-  const total = Number(countRows[0]?.count ?? 0);
+  const allDocs = await collectAllArchiveDocs(kinds);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const soonStr = new Date(Date.now() + ARCHIVE_EXPIRING_DAYS * 86_400_000).toISOString().slice(0, 10);
+
+  const byKind: Record<string, number> = {};
+  const byGroup = Object.fromEntries(ARCHIVE_GROUPS.map((g) => [g, 0])) as Record<ArchiveGroup, number>;
+  let expired = 0;
+  let expiring = 0;
+
+  for (const d of allDocs) {
+    byKind[d.kind] = (byKind[d.kind] ?? 0) + 1;
+    byGroup[d.group] = (byGroup[d.group] ?? 0) + 1;
+    if (d.expires_on) {
+      if (d.expires_on < todayStr) expired++;
+      else if (d.expires_on <= soonStr) expiring++;
+    }
+  }
+
+  const filtered = applyArchiveFilters(allDocs, f, kinds);
+  filtered.sort((a, b) => {
+    if (f.sort === "oldest") return a.created_at.localeCompare(b.created_at);
+    if (f.sort === "name") return a.file_name.toLowerCase().localeCompare(b.file_name.toLowerCase());
+    if (f.sort === "expiry") return (a.expires_on ?? "9999").localeCompare(b.expires_on ?? "9999");
+    if (f.sort === "largest") return (b.file_size ?? 0) - (a.file_size ?? 0);
+    return b.created_at.localeCompare(a.created_at);
+  });
+
+  const total = filtered.length;
   const page = Math.min(f.page, Math.max(1, Math.ceil(total / pageSize)));
-  const rows = await db.$queryRaw<Row[]>(
-    Database.sql`SELECT * FROM (${documents}) doc ${where} ORDER BY ${ORDER[f.sort] ?? ORDER.newest} LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
-  );
-  const byKind = Object.fromEntries(
-    groupRows.map((r) => [r.kind, Number(r.count)]),
-  );
-  const byGroup = Object.fromEntries(
-    ARCHIVE_GROUPS.map((g) => [g, 0]),
-  ) as Record<ArchiveGroup, number>;
-  for (const [kind, n] of Object.entries(byKind))
-    if (kind in ARCHIVE_KINDS)
-      byGroup[ARCHIVE_KINDS[kind as ArchiveKind].group] += n;
+  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+
   return {
-    items: rows.map(mapRow),
+    items,
     total,
     page,
     pageSize,
@@ -312,8 +263,8 @@ export async function getDocumentArchivePage(
     counts: {
       byKind,
       byGroup,
-      expired: Number(expiryRows[0]?.expired ?? 0),
-      expiring: Number(expiryRows[0]?.expiring ?? 0),
+      expired,
+      expiring,
     },
   };
 }
@@ -325,8 +276,9 @@ export async function getDocumentArchiveExportBatch(
   batchSize: number,
 ) {
   const f = archiveParameters(input);
-  const rows = await db.$queryRaw<Row[]>(
-    Database.sql`SELECT * FROM (${documents}) doc ${conditions(f, kinds)} AND (doc.source || ':' || doc.id) > ${after || ""} ORDER BY (doc.source || ':' || doc.id) ASC LIMIT ${Math.min(500, batchSize)}`,
-  );
-  return rows.map(mapRow);
+  const allDocs = await collectAllArchiveDocs(kinds);
+  return applyArchiveFilters(allDocs, f, kinds)
+    .filter((d) => !after || d.id > after)
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .slice(0, Math.min(500, batchSize));
 }

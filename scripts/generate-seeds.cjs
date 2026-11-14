@@ -6,17 +6,75 @@ const { COMPANIES } = require("./seed-companies.cjs");
 const { buildRichModuleSql } = require("./seed-rich-modules.cjs");
 
 const root = path.resolve(__dirname, "..");
+const schemaMeta = require("./schema-meta.json");
 const templateSqlPath = path.join(root, "seeds/zayed-group/seed.sql");
 const templateSql = fs.readFileSync(templateSqlPath, "utf8");
 
-// Extract static TRUNCATE block and static identity roles/permissions/scopes
-const truncateMatch = templateSql.match(/TRUNCATE TABLE[\s\S]*?CASCADE;/);
+// Extract static identity roles/permissions/scopes (preserving IT roles/permissions)
 const identityMatch = templateSql.match(/-- IDENTITY\n[\s\S]*?(?=\nINSERT INTO identity\.account)/);
-if (!truncateMatch || !identityMatch) {
-  throw new Error("Could not extract TRUNCATE or identity roles block from template SQL.");
+if (!identityMatch) {
+  throw new Error("Could not extract identity roles block from template SQL.");
 }
-const truncateBlock = truncateMatch[0];
 const identityRolesBlock = identityMatch[0].trimEnd();
+
+// Complete list of company-scoped operational, transactional, and projection tables to TRUNCATE cleanly
+// before loading any standalone company seed (filtered dynamically against schema-meta.json).
+const TRUNCATE_TABLES = [
+  "realtime.status_window", "realtime.status",
+  "files.entity_attachment", "files.upload_object",
+  "workflow.signature_request", "workflow.calendar_event", "workflow.mom_action_item", "workflow.mom_attendee",
+  "workflow.task", "workflow.approval_decision", "workflow.approval_request", "workflow.minute_of_meeting",
+  "workflow.official_letter", "workflow.letter_template", "workflow.contract", "workflow.directory_ref",
+  "delivery.cod_settlement", "delivery.shipment_event", "delivery.shipment", "delivery.route_sheet",
+  "delivery.courier_agency", "delivery.vehicle", "delivery.delivery_slot", "delivery.delivery_zone",
+  "delivery.delivery_settings", "delivery.order_ref", "delivery.driver_ref",
+  "commerce.retail_closing", "commerce.retail_shift", "commerce.retail_register",
+  "commerce.sales_order_event", "commerce.sales_order_line", "commerce.sales_order",
+  "commerce.delivery_slot", "commerce.delivery_zone", "commerce.delivery_settings",
+  "commerce.store_region", "commerce.customer_segment", "commerce.store_settings",
+  "commerce.coupon", "commerce.customer_address", "commerce.customer", "commerce.warehouse_ref",
+  "inventory.stock_allocation_line", "inventory.stock_allocation",
+  "inventory.stock_count_line", "inventory.stock_count", "inventory.stock_serial", "inventory.stock_batch",
+  "inventory.goods_receipt_line", "inventory.goods_receipt",
+  "inventory.rfq_quote", "inventory.rfq_line", "inventory.rfq",
+  "inventory.purchase_requisition_line", "inventory.purchase_requisition",
+  "inventory.purchase_order_line", "inventory.purchase_order",
+  "inventory.product_packaging_unit", "inventory.product_variant", "inventory.stock_movement",
+  "inventory.stock_level", "inventory.stock_item", "inventory.product", "inventory.stock_location",
+  "inventory.warehouse", "inventory.product_category",
+  "finance.commission_payout", "finance.commission_rule",
+  "finance.supplier_payment", "finance.supplier_bill_line", "finance.supplier_bill",
+  "finance.journal_line", "finance.journal_entry", "finance.recurring_expense", "finance.bank_settlement",
+  "finance.payment_method_config", "finance.tax_rate", "finance.payment_allocation", "finance.payment",
+  "finance.invoice_line_item", "finance.invoice_item", "finance.invoice",
+  "finance.expense_claim", "finance.expense", "finance.expense_category",
+  "finance.quotation_ref", "finance.contact_ref", "finance.catalog_item_ref",
+  "sales.campaign", "sales.deal_pipeline_stage", "sales.inquiry",
+  "sales.quotation_line_item", "sales.quotation_item", "sales.quotation",
+  "sales.crm_deal", "sales.deal", "sales.crm_contact", "sales.contact", "sales.catalog_item_ref",
+  "hr.employee_handover_case", "hr.employee_handover", "hr.employee_recurring_pay",
+  "hr.employee_gosi_record", "hr.employee_credential", "hr.salary_document", "hr.shift_type",
+  "hr.benefit_plan", "hr.leave_balance", "hr.leave_request", "hr.leave_type",
+  "hr.payroll_item", "hr.payroll_run", "hr.attendance_entry", "hr.employee", "hr.department", "hr.identity_user_ref",
+  "cms.social_content_plan", "cms.social_metric", "cms.social_post", "cms.social_link",
+  "cms.portfolio_item", "cms.portfolio_category", "cms.content_snapshot", "cms.statistic",
+  "cms.review", "cms.faq", "cms.article", "cms.page",
+  "itsm.support_program_rule", "itsm.support_program", "itsm.asset_handover", "itsm.asset", "itsm.asset_category",
+  "itsm.task_comment", "itsm.task",
+  "itsm.ticket_attachment", "itsm.ticket_comment", "itsm.ticket_event", "itsm.ticket",
+  "itsm.sla_policy", "itsm.staff_ref",
+  "notify.attachment", "notify.message", "notify.category_setting", "notify.preference", "notify.notification",
+  "identity.branch_grant", "identity.user", "identity.branch",
+  "system.announcement_receipt", "system.announcement", "system.hr_policy",
+  "system.legal_matter_event", "system.legal_matter", "system.media_coverage", "system.media_contact",
+  "system.canned_reply", "system.client_logo", "system.contract", "system.project",
+  "system.studio_equipment", "system.exchange_rate_snapshot", "system.accounting_period",
+  "system.accounting_account", "system.communication_settings", "system.service_settings", "system.company_setting",
+  "system.service", "system.public_holiday", "system.backup_record", "system.site_setting",
+  "system.company_asset", "system.company",
+].filter((t) => Boolean(schemaMeta[t]));
+
+const truncateBlock = `TRUNCATE TABLE\n    ${TRUNCATE_TABLES.join(",\n    ")}\nCASCADE;`;
 
 const DEFAULT_PASSWORD_HASH =
   "$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU";
@@ -378,7 +436,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
   lines.push(identityRolesBlock);
   for (const s of STAFF_ROSTER) {
     const email = `${s.id}@${domainHost}`;
-    lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at) VALUES ('staff', ${sqlQ(s.id)}, ${sqlQ(email)}, ${sqlQ(s.username)}, ${sqlQ(DEFAULT_PASSWORD_HASH)}, ${sqlQ([s.role])}, true, false, NULL, now(), now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
+    lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at) VALUES ('staff', ${sqlQ(s.id)}, ${sqlQ(email)}, ${sqlQ(s.username)}, ${sqlQ(DEFAULT_PASSWORD_HASH)}, ${sqlQ([s.role])}, true, false, ${sqlQ(s.reportTo)}, now(), now()) ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, reporting_to = EXCLUDED.reporting_to, updated_at = now();`);
     lines.push(`INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', ${sqlQ(s.id)}, '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
   }
   lines.push(`INSERT INTO identity.branch (id, code, name, time_zone, business_day_start, is_active, revision, created_at, updated_at) VALUES ('br-hq', 'HQ-01', ${sqlQ(`${company.shortEn} ${company.city} HQ`)}, 'Asia/Bahrain', 8, true, 1, now(), now()) ON CONFLICT (id) DO NOTHING;`);
@@ -392,7 +450,9 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     const lastEn = restEn.join(" ") || firstEn;
     const [firstAr, ...restAr] = s.nameAr.split(" ");
     const lastAr = restAr.join(" ") || firstAr;
-    lines.push(`INSERT INTO hr.employee (id, user_id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, created_at, updated_at) VALUES (${sqlQ(s.id)}, ${sqlQ(s.id)}, ${sqlQ(s.username)}, ${sqlQ(firstEn)}, ${sqlQ(lastEn)}, ${sqlQ(firstAr)}, ${sqlQ(lastAr)}, ${sqlQ(`${s.id}@${domainHost}`)}, ${sqlQ(s.titleEn)}, ${sqlQ(s.titleAr)}, ${sqlQ(s.dept)}, '2023-01-15', 'active', ${s.salary.toFixed(3)}, now(), now()) ON CONFLICT (id) DO NOTHING;`);
+    const housingAllow = Number((s.salary * 0.1).toFixed(3));
+    const transportAllow = Number((s.salary * 0.05).toFixed(3));
+    lines.push(`INSERT INTO hr.employee (id, user_id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, job_title_en, job_title_ar, department_id, reporting_to, manager_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, leave_balance_days, created_at, updated_at) VALUES (${sqlQ(s.id)}, ${sqlQ(s.id)}, ${sqlQ(s.username)}, ${sqlQ(firstEn)}, ${sqlQ(lastEn)}, ${sqlQ(firstAr)}, ${sqlQ(lastAr)}, ${sqlQ(`${s.id}@${domainHost}`)}, ${sqlQ(s.titleEn)}, ${sqlQ(s.titleAr)}, ${sqlQ(s.dept)}, ${sqlQ(s.reportTo)}, ${sqlQ(s.reportTo)}, '2023-01-15', 'active', ${s.salary.toFixed(3)}, ${housingAllow.toFixed(3)}, ${transportAllow.toFixed(3)}, 27, now(), now()) ON CONFLICT (id) DO NOTHING;`);
   }
 
   lines.push(``);
@@ -403,6 +463,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     domainHost,
     staffRoster: STAFF_ROSTER,
     customers: CUSTOMERS,
+    filesList,
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
   }));
 

@@ -30,6 +30,7 @@ To manage environment variables locally:
 | `API_URL` | Applications | Yes | Server-side URL for the Go API Gateway (default: `http://127.0.0.1:8080`). |
 | `ADMIN_SERVICE_KEY` | Admin App | Yes | Service signing key for Admin application calls to gateway. |
 | `WEB_SERVICE_KEY` | Web App | Yes | Service signing key for Web application calls to gateway. |
+| `STORE_SERVICE_KEY` | Store App | Yes | Service signing key for Storefront application calls to gateway. |
 | `IT_SERVICE_KEY` | IT App | Yes | Service signing key for IT dashboard calls to gateway. |
 | `S3_ENDPOINT` | Files Service | Yes | S3-compatible object storage endpoint (default: `http://seaweedfs:8333`). |
 | `S3_ACCESS_KEY_ID` | Files Service | Yes | Storage access key credential. |
@@ -49,9 +50,10 @@ When executing `./run.sh services up`, the local Docker Compose stack exposes th
 
 | Component / Service | Address / URL | Internal Container Port | Description |
 |---|---|---|---|
-| **Web Application** | `http://localhost:3000` | 3000 | Public store & website |
+| **Web Application** | `http://localhost:3000` | 3000 | Public marketing & services website |
 | **Admin Application** | `http://localhost:3001` | 3001 | Enterprise business system |
 | **IT Dashboard** | `http://localhost:3002` | 3002 | Infrastructure & operations desk |
+| **Store Application** | `http://localhost:3003` | 3003 | Customer e-commerce storefront |
 | **API Gateway** | `http://localhost:8080` | 8080 | Single public entry point |
 | **PostgreSQL 17** | `127.0.0.1:5432` | 5432 | Service database cluster |
 | **Valkey / Redis** | `127.0.0.1:6379` | 6379 | Rate limits & presence cache |

@@ -175,6 +175,37 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/SalesOrder" }
 
+  /v1/commerce/orders/{id}/relations:
+    get:
+      tags: [orders]
+      operationId: getOrderRelations
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order cross-service relations
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/commerce/warehouses:
+    get:
+      tags: [orders]
+      operationId: listWarehouseRefs
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: Synced warehouse references
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
   /v1/commerce/orders/{id}/pay:
     post:
       tags: [orders]

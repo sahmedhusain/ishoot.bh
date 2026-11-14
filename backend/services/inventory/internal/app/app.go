@@ -5,6 +5,7 @@ import (
 	"time"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/inventory/internal/postgres"
 	"platform.local/backend/services/inventory/internal/postgres/sqlcdb"
@@ -16,7 +17,40 @@ var (
 const (
 	EventStockAdjusted	= "inventory.stock.adjusted"
 	EventTransferComplete	= "inventory.transfer.completed"
+	EventProductUpserted	= "inventory.product.upserted"
 )
+
+func numericFloat(n pgtype.Numeric) float64 {
+	f, err := n.Float64Value()
+	if err != nil || !f.Valid {
+		return 0
+	}
+	return f.Float64
+}
+
+func productEventPayload(p postgres.Product) map[string]any {
+	price := numericFloat(p.SellingPrice)
+	if price == 0 {
+		price = numericFloat(p.Price)
+	}
+	unit := "unit"
+	if p.Unit != nil && *p.Unit != "" {
+		unit = *p.Unit
+	}
+	return map[string]any{
+		"kind":      "product",
+		"id":        p.ID,
+		"variantId": "",
+		"sku":       p.Sku,
+		"nameEn":    p.NameEn,
+		"nameAr":    p.NameAr,
+		"unit":      unit,
+		"unitPrice": price,
+		"currency":  p.Currency,
+		"taxRate":   numericFloat(p.TaxRate),
+		"isActive":  p.IsActive,
+	}
+}
 type Service struct {
 	store	*postgres.Store
 	now	func() time.Time
@@ -52,10 +86,48 @@ func (s *Service) CreateWarehouse(ctx context.Context, in sqlcdb.CreateWarehouse
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateWarehouse(ctx, in)
+	var created postgres.Warehouse
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateWarehouse(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventWarehouseUpserted,
+			Payload: map[string]any{
+				"id":        created.ID,
+				"code":      created.Code,
+				"nameEn":    created.NameEn,
+				"nameAr":    created.NameAr,
+				"isActive":  created.IsActive,
+				"isDefault": created.IsDefault,
+			},
+		})
+	})
+	return created, err
 }
 func (s *Service) UpdateWarehouse(ctx context.Context, in sqlcdb.UpdateWarehouseParams) (postgres.Warehouse, error) {
-	return s.store.UpdateWarehouse(ctx, in)
+	var updated postgres.Warehouse
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateWarehouse(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventWarehouseUpserted,
+			Payload: map[string]any{
+				"id":        updated.ID,
+				"code":      updated.Code,
+				"nameEn":    updated.NameEn,
+				"nameAr":    updated.NameAr,
+				"isActive":  updated.IsActive,
+				"isDefault": updated.IsDefault,
+			},
+		})
+	})
+	return updated, err
 }
 func (s *Service) ListLocations(ctx context.Context, warehouseID string) ([]postgres.Location, error) {
 	return s.store.ListLocationsByWarehouse(ctx, warehouseID)
@@ -92,10 +164,34 @@ func (s *Service) CreateProduct(ctx context.Context, in sqlcdb.CreateProductPara
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateProduct(ctx, in)
+	var created postgres.Product
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateProduct(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventProductUpserted,
+			Payload: productEventPayload(created),
+		})
+	})
+	return created, err
 }
 func (s *Service) UpdateProduct(ctx context.Context, in sqlcdb.UpdateProductParams) (postgres.Product, error) {
-	return s.store.UpdateProduct(ctx, in)
+	var updated postgres.Product
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateProduct(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventProductUpserted,
+			Payload: productEventPayload(updated),
+		})
+	})
+	return updated, err
 }
 func (s *Service) ListVariants(ctx context.Context, productID string) ([]postgres.Variant, error) {
 	return s.store.ListVariantsByProduct(ctx, productID)
@@ -104,7 +200,35 @@ func (s *Service) CreateVariant(ctx context.Context, in sqlcdb.CreateProductVari
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateProductVariant(ctx, in)
+	var created postgres.Variant
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateProductVariant(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		price := numericFloat(created.SellingPrice)
+		if price == 0 {
+			price = numericFloat(created.Price)
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventProductUpserted,
+			Payload: map[string]any{
+				"kind":      "product",
+				"id":        created.ProductID,
+				"variantId": created.ID,
+				"sku":       created.Sku,
+				"nameEn":    created.NameEn,
+				"nameAr":    created.NameAr,
+				"unit":      "unit",
+				"unitPrice": price,
+				"currency":  "BHD",
+				"taxRate":   0.0,
+				"isActive":  created.IsActive,
+			},
+		})
+	})
+	return created, err
 }
 func (s *Service) ListStockLevels(ctx context.Context, productID string) ([]postgres.StockLevel, error) {
 	return s.store.ListStockLevelsByProduct(ctx, productID)

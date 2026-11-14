@@ -1,21 +1,50 @@
 # Build artifacts must never come from the host: `COPY . .` runs after `npm ci`
 # and would otherwise overwrite fresh installs and ship stale bundles.
 **/node_modules
+**/.pnpm-store
 **/.next
 **/.next-*
 **/.turbo
 **/dist
+**/out
 **/coverage
+**/*.tsbuildinfo
 backend/bin
 
+# Secrets & local runtime credentials (never bake into image layers)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+.local
+*.pem
+*.key
+
+# VCS, IDE, AI tooling & docs
 .git
 .github
 .idea
-.local
-backups
-seeds/*
-!seeds/assets
+.vscode
+.artifacts
+.agents
+.claude
 graphify-out
+docs
+infra
+**/.terraform
+.DS_Store
+
+# Tests, backups, seeds & local outputs
+playwright-report
+test-results
+.playwright-cli
+**/.results
+backups
+seeds
 tmp
 *.dump
+*.tmp
+*.bak
 *.log
+*.ai

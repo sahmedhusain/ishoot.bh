@@ -117,10 +117,12 @@ func (s *Service) CreateShipment(ctx context.Context, in sqlcdb.CreateShipmentPa
 	}
 	var created postgres.Shipment
 	err := s.change(ctx, EventShipmentDispatched, map[string]any{
-		"shipment_id":	in.ID,
-		"number":	in.Number,
-		"order_id":	in.OrderID,
-		"promised_by":	in.PromisedBy.Format(time.RFC3339),
+		"shipment_id":    in.ID,
+		"number":         in.Number,
+		"order_id":       in.OrderID,
+		"status":         in.Status,
+		"tracking_token": in.TrackingToken,
+		"promised_by":    in.PromisedBy.Format(time.RFC3339),
 	}, func(st *postgres.Store) error {
 		var sErr error
 		created, sErr = st.CreateShipment(ctx, in)
@@ -138,43 +140,58 @@ func (s *Service) CreateShipment(ctx context.Context, in sqlcdb.CreateShipmentPa
 }
 func (s *Service) AssignShipmentDriver(ctx context.Context, in sqlcdb.AssignShipmentDriverParams) (postgres.Shipment, error) {
 	var updated postgres.Shipment
-	err := s.change(ctx, EventShipmentDispatched, map[string]any{
-		"shipment_id":	in.ID,
-		"driver_id":	in.DriverID,
-		"status":	"assigned",
-	}, func(st *postgres.Store) error {
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		var uErr error
 		updated, uErr = st.AssignShipmentDriver(ctx, in)
 		if uErr != nil {
 			return uErr
 		}
-		_, evErr := st.CreateShipmentEvent(ctx, sqlcdb.CreateShipmentEventParams{
-			ID:		uuid.NewString(),
-			ShipmentID:	in.ID,
-			Status:		"assigned",
+		if _, evErr := st.CreateShipmentEvent(ctx, sqlcdb.CreateShipmentEventParams{
+			ID:         uuid.NewString(),
+			ShipmentID: in.ID,
+			Status:     "assigned",
+		}); evErr != nil {
+			return evErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventShipmentDispatched,
+			Payload: map[string]any{
+				"shipment_id":    in.ID,
+				"order_id":       updated.OrderID,
+				"driver_id":      in.DriverID,
+				"tracking_token": updated.TrackingToken,
+				"status":         "assigned",
+			},
 		})
-		return evErr
 	})
 	return updated, err
 }
 func (s *Service) RecordProofOfDelivery(ctx context.Context, in sqlcdb.RecordProofOfDeliveryParams) (postgres.Shipment, error) {
 	var updated postgres.Shipment
-	err := s.change(ctx, EventShipmentDelivered, map[string]any{
-		"shipment_id":		in.ID,
-		"cod_collected":	in.CodCollected,
-		"delivered_at":		s.now().Format(time.RFC3339),
-	}, func(st *postgres.Store) error {
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		var uErr error
 		updated, uErr = st.RecordProofOfDelivery(ctx, in)
 		if uErr != nil {
 			return uErr
 		}
-		_, evErr := st.CreateShipmentEvent(ctx, sqlcdb.CreateShipmentEventParams{
-			ID:		uuid.NewString(),
-			ShipmentID:	in.ID,
-			Status:		"delivered",
+		if _, evErr := st.CreateShipmentEvent(ctx, sqlcdb.CreateShipmentEventParams{
+			ID:         uuid.NewString(),
+			ShipmentID: in.ID,
+			Status:     "delivered",
+		}); evErr != nil {
+			return evErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventShipmentDelivered,
+			Payload: map[string]any{
+				"shipment_id":    in.ID,
+				"order_id":       updated.OrderID,
+				"tracking_token": updated.TrackingToken,
+				"status":         "delivered",
+				"cod_collected":  in.CodCollected,
+				"delivered_at":   s.now().Format(time.RFC3339),
+			},
 		})
-		return evErr
 	})
 	return updated, err
 }

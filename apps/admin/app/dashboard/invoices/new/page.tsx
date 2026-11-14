@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ROUTES } from "../../../../constants/routes";
 import { requirePagePermission } from "../../../../lib/auth";
-import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, listSalesPeople } from "@platform/database";
+import { getCRMContactById, getAllServices, getCatalogPriceListItems, getAcceptedQuotationsUninvoiced, getQuotationById, listSalesPeople } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -19,10 +19,11 @@ export default async function NewInvoicePage({
   await requirePagePermission("contacts", "read");
   const params = await searchParams;
 
-  const [acceptedQuotations, company, services, salesPeople] = await Promise.all([
+  const [acceptedQuotations, company, services, catalogItems, salesPeople] = await Promise.all([
     getAcceptedQuotationsUninvoiced(),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
+    getCatalogPriceListItems().catch(() => []),
     listSalesPeople(),
   ]);
 
@@ -47,6 +48,7 @@ export default async function NewInvoicePage({
       initialContacts={contacts}
       company={company}
       services={services}
+      catalogItems={catalogItems}
       preselectedClientId={effectiveClientId}
       acceptedQuotations={acceptedQuotations}
       preselectedQuotation={preselectedQuotation}

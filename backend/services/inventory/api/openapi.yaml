@@ -202,6 +202,74 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/StockCount" }
 
+  /v1/inventory/purchase-orders:
+    get:
+      tags: [counts]
+      operationId: listPurchaseOrders
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of purchase orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [counts]
+      operationId: createPurchaseOrder
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created purchase order
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/inventory/purchase-orders/{id}:
+    get:
+      tags: [counts]
+      operationId: getPurchaseOrder
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Purchase order details with lines
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/inventory/purchase-orders/{id}/receive:
+    post:
+      tags: [counts]
+      operationId: receivePurchaseOrder
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created goods receipt
+          content:
+            application/json:
+              schema: { type: object }
+
 components:
   securitySchemes:
     staffToken:

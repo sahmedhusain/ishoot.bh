@@ -40,20 +40,20 @@ flowchart TB
 | Schema | Primary Tables | Owning Service | Description |
 |---|---|---|---|
 | `identity` | `account`, `mfa_recovery_code`, `session_family`, `outbox` | `identity` | Staff, Customer, IT accounts, sessions, and MFA keys. |
-| `system` | `company`, `module_setting`, `integration_setting`, `site_setting` | `system` | Global company branding, module toggles, and integration credentials. |
-| `files` | `upload_object`, `outbox` | `files` | Public/private file upload metadata and storage pointers. |
+| `system` | `company`, `service`, `project`, `module_setting`, `integration_setting`, `site_setting` | `system` | Global company branding, live service catalog, projects, module toggles, and integration credentials. |
+| `files` | `upload_object`, `entity_attachment`, `outbox` | `files` | Public/private file upload metadata, polymorphic entity attachments (`entity_type`, `entity_id`, `document_id`), and storage pointers. |
 | `notify` | `message`, `attachment`, `notification`, `preference`, `outbox` | `notify` | Outbound messaging queues and user notification inboxes. |
 | `realtime` | `status`, `status_window` | `realtime` | User presence statuses, connection state, and calendar windows. |
 | `audit` | `event` | `audit` | Append-only security audit trail for all published system events. |
-| `itsm` | `ticket`, `ticket_event`, `ticket_comment`, `sla_policy` | `itsm` | Support tickets, SLA tracking, comments, and attachments. |
+| `itsm` | `ticket`, `ticket_event`, `ticket_comment`, `asset`, `asset_handover`, `sla_policy`, `staff_ref` | `itsm` | Support tickets, SLA tracking, IT assets & handovers, comments, attachments, and NATS-synced `staff_ref` projections. |
 | `cms` | `page`, `article`, `review`, `faq`, `statistic`, `snapshot`, `outbox` | `cms` | Block-based website pages, articles, reviews, and snapshots. |
-| `sales` | `contact`, `deal`, `inquiry`, `quotation`, `campaign`, `outbox` | `sales` | CRM contacts, deal pipelines, quotations, and marketing campaigns. |
-| `finance` | `invoice`, `invoice_line`, `payment`, `expense`, `settlement`, `outbox` | `finance` | Invoices, payments, expense claims, and bank settlements. |
-| `workflow` | `approval_request`, `signature`, `official_letter`, `task`, `outbox` | `workflow` | Multi-step approvals, client digital signatures, and tasks. |
-| `hr` | `department`, `employee`, `leave_request`, `attendance`, `payroll_run` | `hr` | Departments, employee records, leave, attendance, and payroll. |
-| `inventory` | `warehouse`, `location`, `product`, `variant`, `stock_level`, `movement` | `inventory` | Multi-warehouse inventory, stock ledger, variants, and counts. |
-| `commerce` | `customer`, `customer_address`, `store_setting`, `order`, `register` | `commerce` | Customers, sales orders, store configuration, and POS shifts. |
-| `delivery` | `zone`, `slot`, `vehicle`, `route_sheet`, `shipment`, `cod_settlement` | `delivery` | Delivery zones, fleet vehicles, route sheets, and shipments. |
+| `sales` | `contact`, `deal`, `inquiry`, `quotation`, `campaign`, `service_catalog_ref`, `finance_invoice_ref`, `outbox` | `sales` | CRM contacts, deal pipelines, quotations, campaigns, and live service/finance projections. |
+| `finance` | `invoice`, `invoice_line`, `payment`, `expense`, `settlement`, `sales_quotation_ref`, `sales_deal_ref`, `outbox` | `finance` | Invoices, payments, expense claims, bank settlements, and sales projections. |
+| `workflow` | `minute_of_meeting`, `mom_attendee`, `mom_action_item`, `contract`, `approval_request`, `signature_request`, `official_letter`, `task`, `directory_ref`, `outbox` | `workflow` | Meetings (MoMs), contracts, multi-step approvals, digital client signatures, official letters, tasks, and `directory_ref` projections. |
+| `hr` | `department`, `employee`, `leave_request`, `leave_balance`, `attendance_entry`, `payroll_run`, `identity_user_ref` | `hr` | Departments, employee hierarchies (`reporting_to`, `manager_id`), leave balances, attendance, payroll, and Identity sync. |
+| `inventory` | `warehouse`, `location`, `product`, `product_variant`, `stock_level`, `stock_movement`, `purchase_order`, `rfq` | `inventory` | Multi-warehouse inventory, stock ledger, procurement RFQs & POs, variants, and counts. |
+| `commerce` | `customer`, `customer_address`, `store_settings`, `sales_order`, `warehouse_ref`, `identity_user_ref`, `retail_register` | `commerce` | Store customers, sales orders, coupons, POS shifts, and inventory warehouse projections. |
+| `delivery` | `delivery_zone`, `delivery_slot`, `vehicle`, `route_sheet`, `shipment`, `cod_settlement`, `order_ref`, `driver_ref` | `delivery` | Delivery zones, fleet vehicles, route sheets, shipments, and commerce/HR driver & order projections. |
 
 ---
 
@@ -91,6 +91,8 @@ Included packages cover all **23 core business activities**, 1 multi-business gr
 | **Clean Bootstrap (Default)** | `./run.sh db bootstrap` | Initializes a fresh empty database with default roles, permissions, sequences, and module toggles. |
 | **Seed a Company** | `./run.sh db seed <company>` | Loads `seeds/<company>/seed.sql` and uploads `seeds/<company>/assets/` to SeaweedFS S3 (e.g., `./run.sh db seed zayed-group`). |
 | **Verify Seed Dates** | `node scripts/verify-seed-dates.js` | Asserts seeded invoice dates span the past 6 months to 2 months ahead. |
+| **Regenerate ERD & Schema Metadata** | `node scripts/generate-erd-and-meta.cjs` | Introspects live PostgreSQL 17 schemas (`320` tables, `170` FKs) and updates [ERD.md](./ERD.md) and `scripts/schema-meta.json`. |
+| **Regenerate Company Seed Packages** | `node scripts/generate-seeds.cjs` | Rebuilds all 25 standalone company seed SQL bundles (`seed.sql` + 15 per-service `.sql` files). |
 
 ---
 

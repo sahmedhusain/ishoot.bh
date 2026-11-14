@@ -52,6 +52,8 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/campaigns/:id", h.getCampaign)
 	g.PUT("/campaigns/:id", h.updateCampaign)
 	g.DELETE("/campaigns/:id", h.deleteCampaign)
+	g.GET("/pipeline-stages", h.listPipelineStages)
+	g.GET("/catalog", h.listCatalogItems)
 }
 func (h *handler) listContacts(c echo.Context) error {
 	contacts, err := h.svc.ListContacts(c.Request().Context())
@@ -228,11 +230,32 @@ func (h *handler) deleteInquiry(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 func (h *handler) listQuotations(c echo.Context) error {
-	quotations, err := h.svc.ListQuotations(c.Request().Context())
+	var contactID, dealID *string
+	if cid := c.QueryParam("contactId"); cid != "" {
+		contactID = &cid
+	}
+	if did := c.QueryParam("dealId"); did != "" {
+		dealID = &did
+	}
+	quotations, err := h.svc.ListQuotationsFiltered(c.Request().Context(), contactID, dealID)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, quotations)
+}
+func (h *handler) listPipelineStages(c echo.Context) error {
+	stages, err := h.svc.ListDealPipelineStages(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, stages)
+}
+func (h *handler) listCatalogItems(c echo.Context) error {
+	items, err := h.svc.ListCatalogItems(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, items)
 }
 func (h *handler) getQuotation(c echo.Context) error {
 	quotation, err := h.svc.GetQuotation(c.Request().Context(), c.Param("id"))

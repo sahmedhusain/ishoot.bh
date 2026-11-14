@@ -1,6 +1,8 @@
+import { apiTimeoutMs, apiUrl } from "./config";
 import { apiError } from "./errors";
 import type { components, paths } from "./generated/system";
 import { serviceClient, unwrap, unwrapEmpty, userClient } from "./http";
+import { serviceToken } from "./service-token";
 
 export type ModuleState = components["schemas"]["Module"];
 export type DeskIntegration = components["schemas"]["DeskIntegration"];
@@ -142,3 +144,35 @@ export const setSiteCodeForIT = (token: string, code: SiteCode) =>
   unwrap(
     userClient<paths>(token).PUT("/v1/system/desk/site/code", { body: code }),
   );
+
+export type SystemServiceItem = {
+  id: string;
+  code?: string | null;
+  nameEn?: string | null;
+  nameAr?: string | null;
+  category?: string | null;
+  descriptionEn?: string | null;
+  descriptionAr?: string | null;
+  unit?: string | null;
+  defaultRate?: number | string | null;
+  isActive?: boolean | null;
+  displayOrder?: number | null;
+  isPublic?: boolean | null;
+  imageUrl?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export async function listServicesCatalog(
+  activeOnly = false,
+): Promise<SystemServiceItem[]> {
+  const token = await serviceToken();
+  const qs = activeOnly ? "?active=true" : "";
+  const res = await fetch(`${apiUrl()}/v1/system/services${qs}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) throw await apiError(res);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}

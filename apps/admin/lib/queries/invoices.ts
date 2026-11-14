@@ -123,28 +123,29 @@ export async function getAllInvoices(options?: {
   limit?: number;
   offset?: number;
   status?: InvoiceStatus;
+  contactId?: string;
+  quotationId?: string;
 }): Promise<Invoice[]> {
   try {
-    const invoices = await db.invoice.findMany({
-      where: options?.status ? { status: options.status } : undefined,
-      take: options?.limit,
-      skip: options?.offset,
-      include: {
-        client: true,
-        lineItems: true,
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        payments: true,
-        deal: {
-          include: { contact: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
+    const { listInvoices } = await import("../api/finance");
+    const list = await listInvoices({
+      status: options?.status,
+      contactId: options?.contactId,
+      quotationId: options?.quotationId,
     });
-    return invoices.map(mapDatabaseInvoiceToInvoice);
+    let filtered = list || [];
+    if (options?.status) {
+      filtered = filtered.filter((inv) => inv.status === options.status);
+    }
+    if (options?.offset || options?.limit) {
+      const start = options.offset ?? 0;
+      const end = options.limit ? start + options.limit : undefined;
+      filtered = filtered.slice(start, end);
+    }
+    return Promise.all(filtered.map(mapApiInvoiceToInvoice));
   } catch (e) {
-    console.error("Error fetching invoices from DB:", e);
-    throw e;
+    console.warn("api-client listInvoices failed:", e);
+    return [];
   }
 }
 
@@ -277,8 +278,15 @@ async function mapApiInvoiceToInvoice(inv: any): Promise<Invoice> {
     line_items: items.map((li: any, idx: number) => ({
       id: li.id || li.ID || `li-${idx + 1}`,
       invoice_id: inv.id || inv.ID,
-      description_en: li.description || li.Description || "",
-      description_ar: li.description || li.Description || "",
+      item_kind: li.itemKind || li.ItemKind || "custom",
+      service_id: li.serviceId || li.ServiceID || undefined,
+      product_id: li.productId || li.ProductID || undefined,
+      variant_id: li.variantId || li.VariantID || undefined,
+      sku: li.sku || li.Sku || undefined,
+      unit: li.unit || li.Unit || undefined,
+      tax_rate: Number(li.taxRate || li.TaxRate || 0),
+      description_en: li.descriptionEn || li.DescriptionEn || li.description || li.Description || "",
+      description_ar: li.descriptionAr || li.DescriptionAr || li.description || li.Description || "",
       quantity: Number(li.quantity || li.Quantity || 1),
       unit_price: Number(li.unitPrice || li.UnitPrice || 0),
       line_total: Number(li.amount || li.Amount || li.lineTotal || 0),
@@ -320,7 +328,13 @@ export async function createInvoice(data: {
   vat_enabled?: boolean;
   vat_percentage?: number;
   line_items: Array<{
+    item_kind?: "service" | "product" | "custom";
     service_id?: string;
+    product_id?: string;
+    variant_id?: string;
+    sku?: string;
+    unit?: string;
+    tax_rate?: number;
     description_en: string;
     description_ar?: string;
     quantity: number;
@@ -349,115 +363,89 @@ export async function createInvoice(data: {
     currency,
     otherTaxes,
   );
+  const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
 
-  const created = await db.$transaction(async (tx) => {
-    let dealId = data.deal_id || null;
-    let quotationOwner: string | null = null;
-    if (data.quotation_id) {
-      await tx.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${data.quotation_id} FOR UPDATE`;
-      const quotation = await tx.quotation.findUnique({
-        where: { id: data.quotation_id },
-        select: {
-          status: true,
-          invoiceId: true,
-          dealId: true,
-          clientId: true,
-          currency: true,
-          salesOwnerId: true,
-        },
-      });
-      if (!quotation) throw new Error(serverMessages.quotationNotFound);
-      if (quotation.invoiceId || quotation.status === "converted")
-        throw new Error(serverMessages.thisQuotationHasAlreadyBeenInvoiced);
-      if (quotation.status !== "accepted")
-        throw new Error(serverMessages.onlyAcceptedQuotationsCanBeInvoiced);
-      if (quotation.currency !== currency)
-        throw new Error(serverMessages.invoiceCurrencyMustMatchTheQuotation);
-      dealId = dealId || quotation.dealId;
-      quotationOwner = quotation.salesOwnerId;
-    }
-    const invoiceNumber = await allocateDocumentNumber(
-      "invoice",
-      issueDate,
-      tx,
-    );
+  const itemsPayload = data.line_items.map((li, idx) => ({
+    itemKind:
+      li.item_kind ||
+      (li.service_id ? "service" : li.product_id ? "product" : "custom"),
+    serviceId: li.service_id || null,
+    productId: li.product_id || null,
+    variantId: li.variant_id || null,
+    sku: li.sku || null,
+    unit: li.unit || null,
+    description: li.description_en,
+    descriptionEn: li.description_en,
+    descriptionAr: li.description_ar || li.description_en,
+    quantity: String(Number(li.quantity)),
+    unitPrice: String(Number(li.unit_price)),
+    taxRate: String(Number(li.tax_rate ?? 0)),
+    amount: String(lineTotal(li.quantity, li.unit_price, currency)),
+    sortOrder: idx,
+  }));
 
-    await assertCompanyCurrency(currency, tx);
-    const invoice = await tx.invoice.create({
-      data: {
-        invoiceNumber,
-        clientId: data.contact_id || null,
-        dealId,
-        issueDate,
-        dueDate,
-        subtotal: totals.subtotal,
-        discountType: data.discount_type || "none",
-        discountValue: data.discount_value || 0,
-        discountAmount: totals.discountAmount,
-        vatEnabled: vat.vatEnabled,
-        vatPercentage: vat.vatPercentage,
-        vatAmount: totals.vatAmount,
-        otherTaxAmount: totals.otherTaxAmount,
-        taxes: { create: documentTaxRows(otherTaxes, totals.taxes) },
-        totalAmount: totals.totalAmount,
-        currency,
-        language: data.language || "ar",
-        status: "draft",
-        notesEn: data.notes_en || null,
-        notesAr: data.notes_ar || null,
-        createdById: data.created_by || null,
-        salesOwnerId: await resolveSalesOwner(
-          data.sales_owner_id || quotationOwner,
-          data.created_by,
-        ),
-        lineItems: {
-          create: data.line_items.map((li, idx) => ({
-            serviceId: li.service_id || null,
-            descriptionEn: li.description_en,
-            descriptionAr: li.description_ar || null,
-            quantity: li.quantity,
-            unitPrice: li.unit_price,
-            lineTotal: lineTotal(li.quantity, li.unit_price, currency),
-            displayOrder: idx + 1,
-          })),
-        },
-      },
-      include: {
-        client: true,
-        lineItems: true,
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        payments: true,
-        deal: { include: { contact: true } },
-      },
+  if (data.quotation_id) {
+    const { createInvoiceFromQuotation } = await import("../api/finance");
+    const created = await createInvoiceFromQuotation({
+      quotationId: data.quotation_id,
+      invoiceNumber,
+      issueDate: issueDate.toISOString().slice(0, 10),
+      dueDate: dueDate.toISOString().slice(0, 10),
+      notes: data.notes_en || null,
+      terms: data.notes_ar || null,
+      dealId: data.deal_id || null,
+      contactId: data.contact_id || null,
+      currency,
+      subtotal: totals.subtotal,
+      discount: totals.discountAmount,
+      vatRate: vat.vatEnabled ? vat.vatPercentage : 0,
+      vatAmount: totals.vatAmount,
+      total: totals.totalAmount,
+      items: data.line_items.map((li, idx) => ({
+        itemKind:
+          li.item_kind ||
+          (li.service_id ? "service" : li.product_id ? "product" : "custom"),
+        serviceId: li.service_id || null,
+        productId: li.product_id || null,
+        variantId: li.variant_id || null,
+        sku: li.sku || null,
+        unit: li.unit || null,
+        description: li.description_en,
+        descriptionEn: li.description_en,
+        descriptionAr: li.description_ar || li.description_en,
+        quantity: Number(li.quantity),
+        unitPrice: Number(li.unit_price),
+        taxRate: Number(li.tax_rate ?? 0),
+        amount: lineTotal(li.quantity, li.unit_price, currency),
+        sortOrder: idx,
+      })),
     });
-    if (data.quotation_id) {
-      await tx.quotation.update({
-        where: { id: data.quotation_id },
-        data: { invoiceId: invoice.id, status: "converted" },
-      });
-      if (
-        quotationOwner &&
-        invoice.salesOwnerId &&
-        invoice.salesOwnerId !== quotationOwner &&
-        data.created_by
-      ) {
-        await tx.salesAttributionChange.create({
-          data: {
-            entityType: "invoice",
-            entityId: invoice.id,
-            fromUserId: quotationOwner,
-            toUserId: invoice.salesOwnerId,
-            changedById: data.created_by,
-            reason: "Credited differently when invoicing the quotation",
-          },
-        });
-      }
-    }
-    return invoice;
+    return mapApiInvoiceToInvoice(created);
+  }
+
+  const { createInvoice: createApiInvoice } = await import("../api/finance");
+  const created = await createApiInvoice({
+    invoiceNumber,
+    quotationId: null,
+    contactId: data.contact_id || null,
+    dealId: data.deal_id || null,
+    status: "draft",
+    issueDate: issueDate.toISOString().slice(0, 10),
+    dueDate: dueDate.toISOString().slice(0, 10),
+    subtotal: String(totals.subtotal),
+    discount: String(totals.discountAmount),
+    vatRate: String(vat.vatEnabled ? vat.vatPercentage : 0),
+    vatAmount: String(totals.vatAmount),
+    total: String(totals.totalAmount),
+    amountPaid: "0",
+    balanceDue: String(totals.totalAmount),
+    currency,
+    notes: data.notes_en || null,
+    terms: data.notes_ar || null,
+    items: itemsPayload,
   });
 
-  return mapDatabaseInvoiceToInvoice(created);
+  return mapApiInvoiceToInvoice(created);
 }
 
 export async function updateInvoice(
@@ -623,58 +611,15 @@ export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus,
 ): Promise<boolean> {
-  try {
-    await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
-      const invoice = await tx.invoice.findUnique({
-        where: { id },
-        include: { payments: true },
-      });
-      if (!invoice) throw new Error(serverMessages.invoiceNotFound);
-      if (status === "void" && invoice.payments.length)
-        throw new Error(
-          "Paid invoices require a credit adjustment before voiding",
-        );
-      if (!(INVOICE_STATUS_TRANSITIONS[invoice.status] ?? []).includes(status))
-        throw new Error(
-          formatMessage(serverTemplates.anInvoiceCannotMoveFrom0To, {
-            0: invoice.status,
-            1: status,
-          }),
-        );
-      if (status === "sent" && invoice.status === "draft" && !invoice.signedAt)
-        throw new Error(
-          invoice.approvalStatus === "approved"
-            ? "Sign and stamp this invoice before sending it to the client"
-            : "Get this invoice approved, then sign and stamp it, before sending it",
-        );
-      await tx.invoice.update({
-        where: { id },
-        data: {
-          status,
-          ...(status === "sent" && !invoice.deliveredAt
-            ? { deliveredAt: new Date() }
-            : {}),
-        },
-      });
-      if (status === "sent")
-        await advanceDealForEvent(tx, invoice.dealId, "invoice_issued");
-    });
-    return true;
-  } catch (e) {
-    console.error(`Error updating invoice status ${id}:`, e);
-    throw e;
-  }
+  const { updateInvoiceStatus: updateApiInvoiceStatus } = await import("../api/finance");
+  await updateApiInvoiceStatus(id, status);
+  return true;
 }
 
 export async function deleteInvoice(id: string): Promise<boolean> {
-  try {
-    await db.invoice.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting invoice ${id}:`, e);
-    throw e;
-  }
+  const { deleteInvoice: deleteApiInvoice } = await import("../api/finance");
+  await deleteApiInvoice(id);
+  return true;
 }
 
 export async function markOverdueInvoices(

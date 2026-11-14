@@ -92,5 +92,5 @@ When a standalone company seed (`seeds/<company>/seed.sql`) is loaded, departmen
 ## 6. Architecture & Codebase Guidelines
 
 1. **Brand Neutrality**: Company logos, colors, fonts, and addresses reside in `seeds/assets/` or the database, never hardcoded in application components.
-2. **Localization**: Display strings must be added to locale files (`apps/{admin,web,it}/locales`), never inline in JSX.
+2. **Localization**: Display strings must be added to locale files (`apps/{admin,web,it,store}/locales`), never inline in JSX.
 3. **Database Rules**: Microservice schema changes require Goose SQL migrations under `backend/services/<service>/migrations/`.

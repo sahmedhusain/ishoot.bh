@@ -1,6 +1,7 @@
 import type { components, paths } from "./generated/itsm";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
+import { buildQuery, serviceFetch } from "./service-fetch";
 
 export type Ticket = components["schemas"]["Ticket"];
 export type TicketDetail = components["schemas"]["TicketDetail"];
@@ -66,4 +67,80 @@ export const transitionMyTicket = (
         transition,
       },
     }),
+  );
+
+export type TicketEntityLinks = {
+  ticketId: string;
+  employeeId?: string | null;
+  departmentId?: string | null;
+  projectId?: string | null;
+  assetId?: string | null;
+  documentId?: string | null;
+  assetRef?: string | null;
+};
+
+export type ITAsset = {
+  id: string;
+  assetTag: string;
+  categoryId?: string | null;
+  categoryName?: string;
+  name: string;
+  brand?: string | null;
+  model?: string | null;
+  serialNumber?: string | null;
+  purchaseDate?: string | null;
+  purchaseCost?: number | null;
+  currency?: string | null;
+  supplier?: string | null;
+  invoiceReference?: string | null;
+  warrantyUntil?: string | null;
+  condition: string;
+  status: string;
+  specs?: Record<string, unknown>;
+};
+
+export type ITAssetHandover = {
+  id: string;
+  reference: string;
+  assetId: string;
+  assetTag?: string;
+  assetName?: string;
+  employeeId: string;
+  employeeName?: string;
+  kind: string;
+  status: string;
+  handoverDate?: string | null;
+  condition?: string | null;
+};
+
+export const getTicketEntityLinks = (id: string, token?: string) =>
+  serviceFetch<TicketEntityLinks>(`/v1/itsm/requests/tickets/${encodeURIComponent(id)}/links`, {}, token);
+
+export const updateTicketEntityLinks = (id: string, links: Partial<TicketEntityLinks>, token?: string) =>
+  serviceFetch<TicketEntityLinks>(`/v1/itsm/requests/tickets/${encodeURIComponent(id)}/links`, {
+    method: "PUT",
+    body: JSON.stringify(links),
+  }, token);
+
+export const listITAssets = (filters?: { status?: string; categoryId?: string }, token?: string) =>
+  serviceFetch<ITAsset[]>(`/v1/itsm/requests/assets${buildQuery(filters)}`, {}, token);
+
+export const saveITAsset = (input: Partial<ITAsset>, token?: string) =>
+  serviceFetch<ITAsset>(
+    input.id ? `/v1/itsm/requests/assets/${encodeURIComponent(input.id)}` : "/v1/itsm/requests/assets",
+    { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const deleteITAsset = (id: string, token?: string) =>
+  serviceFetch<void>(`/v1/itsm/requests/assets/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listITAssetHandovers = (filters?: { assetId?: string; employeeId?: string }, token?: string) =>
+  serviceFetch<ITAssetHandover[]>(`/v1/itsm/requests/asset-handovers${buildQuery(filters)}`, {}, token);
+
+export const saveITAssetHandover = (input: Partial<ITAssetHandover>, token?: string) =>
+  serviceFetch<ITAssetHandover>(
+    input.id ? `/v1/itsm/requests/asset-handovers/${encodeURIComponent(input.id)}` : "/v1/itsm/requests/asset-handovers",
+    { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
+    token,
   );

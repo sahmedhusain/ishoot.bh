@@ -5520,8 +5520,32 @@
             "element": {
               "kind": "object",
               "fields": {
+                "item_kind": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "service_id": {
                   "kind": "string",
+                  "optional": true
+                },
+                "product_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variant_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "unit": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "tax_rate": {
+                  "kind": "number",
                   "optional": true
                 },
                 "description_en": {
@@ -5648,8 +5672,32 @@
             "element": {
               "kind": "object",
               "fields": {
+                "item_kind": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "service_id": {
                   "kind": "string",
+                  "optional": true
+                },
+                "product_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variant_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "unit": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "tax_rate": {
+                  "kind": "number",
                   "optional": true
                 },
                 "description_en": {
@@ -7491,11 +7539,39 @@
             "kind": "string",
             "optional": true
           },
+          "projectId": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "teamId": {
+            "kind": "string",
+            "optional": true
+          },
+          "organizerId": {
+            "kind": "string",
+            "optional": true
+          },
           "attendees": {
             "kind": "array",
             "element": {
               "kind": "object",
               "fields": {
+                "attendeeType": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "employeeId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "contactId": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "name": {
                   "kind": "string",
                   "optional": false
@@ -7550,6 +7626,14 @@
             "element": {
               "kind": "object",
               "fields": {
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "taskId": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "task": {
                   "kind": "string",
                   "optional": false
@@ -7557,6 +7641,18 @@
                 "assignee": {
                   "kind": "string",
                   "optional": false
+                },
+                "assigneeEmployeeId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "assigneeUserId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "departmentId": {
+                  "kind": "string",
+                  "optional": true
                 },
                 "dueDate": {
                   "kind": "string",
@@ -7646,11 +7742,39 @@
             "kind": "string",
             "optional": true
           },
+          "projectId": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "teamId": {
+            "kind": "string",
+            "optional": true
+          },
+          "organizerId": {
+            "kind": "string",
+            "optional": true
+          },
           "attendees": {
             "kind": "array",
             "element": {
               "kind": "object",
               "fields": {
+                "attendeeType": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "employeeId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "contactId": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "name": {
                   "kind": "string",
                   "optional": false
@@ -7705,6 +7829,14 @@
             "element": {
               "kind": "object",
               "fields": {
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "taskId": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "task": {
                   "kind": "string",
                   "optional": false
@@ -7712,6 +7844,18 @@
                 "assignee": {
                   "kind": "string",
                   "optional": false
+                },
+                "assigneeEmployeeId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "assigneeUserId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "departmentId": {
+                  "kind": "string",
+                  "optional": true
                 },
                 "dueDate": {
                   "kind": "string",
@@ -10281,6 +10425,10 @@
             "element": {
               "kind": "object",
               "fields": {
+                "itemKind": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "serviceId": {
                   "kind": "union",
                   "variants": [
@@ -10292,6 +10440,62 @@
                       "value": null
                     }
                   ],
+                  "optional": true
+                },
+                "productId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "unit": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "taxRate": {
+                  "kind": "number",
                   "optional": true
                 },
                 "descriptionEn": {
@@ -10415,6 +10619,10 @@
             "element": {
               "kind": "object",
               "fields": {
+                "itemKind": {
+                  "kind": "string",
+                  "optional": true
+                },
                 "serviceId": {
                   "kind": "union",
                   "variants": [
@@ -10426,6 +10634,62 @@
                       "value": null
                     }
                   ],
+                  "optional": true
+                },
+                "productId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "unit": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "taxRate": {
+                  "kind": "number",
                   "optional": true
                 },
                 "descriptionEn": {

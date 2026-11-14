@@ -208,3 +208,41 @@ export async function recordProofOfDelivery(
 export async function trackShipment(token: string): Promise<Shipment> {
   return delivFetch<Shipment>(`/v1/delivery/track/${encodeURIComponent(token)}`);
 }
+
+export type EnrichedShipment = Shipment & {
+  orderNumber?: string;
+  customerId?: string | null;
+  zoneNameEn?: string;
+  zoneNameAr?: string;
+  driverNameEn?: string;
+  driverNameAr?: string;
+  driverPhone?: string | null;
+  vehiclePlate?: string | null;
+};
+
+export type DriverRef = {
+  employeeId: string;
+  userId?: string | null;
+  nameEn: string;
+  nameAr: string;
+  phone?: string | null;
+  departmentId?: string | null;
+  status: string;
+  updatedAt: string;
+};
+
+export async function listShipmentsEnriched(
+  filters?: { orderId?: string; driverId?: string; status?: string },
+  token?: string,
+): Promise<EnrichedShipment[]> {
+  const qs = new URLSearchParams();
+  if (filters?.orderId) qs.set("orderId", filters.orderId);
+  if (filters?.driverId) qs.set("driverId", filters.driverId);
+  if (filters?.status) qs.set("status", filters.status);
+  const s = qs.toString();
+  return delivFetch<EnrichedShipment[]>(`/v1/delivery/shipments/enriched${s ? `?${s}` : ""}`, {}, token);
+}
+
+export async function listDeliveryDriversRef(token?: string): Promise<DriverRef[]> {
+  return delivFetch<DriverRef[]>("/v1/delivery/drivers-ref", {}, token);
+}

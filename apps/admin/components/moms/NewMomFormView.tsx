@@ -99,6 +99,9 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
     setActionItems(next);
   };
 
+  const [projectId, setProjectId] = React.useState("");
+  const [departmentId, setDepartmentId] = React.useState("");
+
   const removeActionItem = (index: number) => {
     setActionItems(actionItems.filter((_, i) => i !== index));
   };
@@ -142,6 +145,8 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         location,
         clientId: clientId || undefined,
         dealId: dealId || undefined,
+        projectId: projectId || undefined,
+        departmentId: departmentId || undefined,
         attendees: validAttendees,
         agenda,
         discussionPoints: validPoints,
@@ -269,6 +274,16 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <div className="space-y-1.5">
             <label className="text-ink-muted font-medium">{t.newMomForm.linkedDeal}</label>
             <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-ink-muted font-medium">Project</label>
+            <EntityLookup domain="projects" value={projectId} onChange={setProjectId} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-ink-muted font-medium">Department</label>
+            <EntityLookup domain="departments" value={departmentId} onChange={setDepartmentId} />
           </div>
 
           <label className="block space-y-1.5">

@@ -65,7 +65,7 @@ export async function saveEmployeeCredentialAction(
         details: {
           employeeId,
           kind: saved.kind,
-          expiryDate: saved.expiryDate?.toISOString().slice(0, 10) ?? null,
+          expiryDate: saved.expiryDate ? String(saved.expiryDate).slice(0, 10) : null,
         },
       });
       return saved;

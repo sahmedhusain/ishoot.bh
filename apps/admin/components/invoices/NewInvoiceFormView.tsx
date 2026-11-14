@@ -46,10 +46,13 @@ import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
 import { PageHeader } from "../layout/PageHeader";
 
+import type { CatalogPriceListItem } from "../../lib/queries/services";
+
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
   services?: ServiceItem[];
+  catalogItems?: CatalogPriceListItem[];
   preselectedClientId?: string;
   acceptedQuotations?: Quotation[];
   preselectedQuotation?: Quotation | null;
@@ -62,6 +65,7 @@ export function NewInvoiceFormView({
   initialContacts,
   company,
   services = [],
+  catalogItems,
   salesPeople = [],
   currentUserId,
   preselectedClientId,
@@ -69,6 +73,21 @@ export function NewInvoiceFormView({
   preselectedQuotation,
   dealId,
 }: NewInvoiceFormViewProps) {
+  const catalogOptions: CatalogPriceListItem[] = React.useMemo(() => {
+    if (catalogItems && catalogItems.length > 0) return catalogItems;
+    return services.map((s) => ({
+      kind: "service" as const,
+      id: s.id,
+      sku: s.code,
+      nameEn: s.name_en,
+      nameAr: s.name_ar,
+      category: s.category,
+      unit: s.unit || "day",
+      unitPrice: Number(s.default_rate) || 0,
+      taxRate: 0,
+      currency: "BHD",
+    }));
+  }, [catalogItems, services]);
   const companyCurrency = useCompanyCurrency();
   const router = useRouter();
   const confirmAction = useConfirmation();
@@ -165,7 +184,13 @@ export function NewInvoiceFormView({
       if (q.lineItems && q.lineItems.length > 0) {
         setLineItems(
           q.lineItems.map((li: any) => ({
+            item_kind: li.itemKind || undefined,
             service_id: li.serviceId || undefined,
+            product_id: li.productId || undefined,
+            variant_id: li.variantId || undefined,
+            sku: li.sku || undefined,
+            unit: li.unit || undefined,
+            tax_rate: li.taxRate !== undefined ? Number(li.taxRate) : undefined,
             description_en: li.descriptionEn || "Service",
             description_ar: li.descriptionAr || "",
             quantity: Number(li.quantity) || 1,
@@ -303,7 +328,15 @@ export function NewInvoiceFormView({
         vat_percentage: vatPercentage,
         sales_owner_id: salesOwnerId || undefined,
         line_items: lineItems.map((li) => ({
+          item_kind:
+            li.item_kind ||
+            (li.service_id ? "service" : li.product_id ? "product" : "custom"),
           service_id: li.service_id || undefined,
+          product_id: li.product_id || undefined,
+          variant_id: li.variant_id || undefined,
+          sku: li.sku || undefined,
+          unit: li.unit || undefined,
+          tax_rate: li.tax_rate !== undefined ? Number(li.tax_rate) : undefined,
           description_en: li.description_en || "Service",
           description_ar: li.description_ar || undefined,
           quantity: Number(li.quantity),
@@ -512,37 +545,57 @@ export function NewInvoiceFormView({
                 key={index}
                 className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-4 rounded-xl bg-surface-raised dark:bg-white/[0.02] border border-outline-variant/80 dark:border-white/10 items-end"
               >
-                {services.length > 0 && (
+                {catalogOptions.length > 0 && (
                   <label className="sm:col-span-12 md:col-span-3 space-y-1">
                     <span className="text-[11px] font-medium text-ink-muted">
                       {t.invoiceForm.presetService}
                     </span>
                     <Select
-                      value={item.service_id || ""}
+                      value={
+                        item.service_id
+                          ? `service:${item.service_id}`
+                          : item.product_id
+                            ? `product:${item.product_id}`
+                            : ""
+                      }
                       onChange={(e) => {
-                        const sId = e.target.value;
-                        const s = services.find((srv) => srv.id === sId);
-                        if (s) {
+                        const rawKey = e.target.value;
+                        const picked = catalogOptions.find(
+                          (c) => `${c.kind}:${c.id}` === rawKey || c.id === rawKey,
+                        );
+                        if (picked) {
                           const next = [...lineItems];
-                          const price = Number(s.default_rate) || 0;
+                          const price = Number(picked.unitPrice) || 0;
                           next[index] = {
                             ...next[index],
-                            service_id: s.id,
-                            description_en: s.name_en,
-                            description_ar: s.name_ar,
+                            item_kind: picked.kind,
+                            service_id: picked.kind === "service" ? picked.id : undefined,
+                            product_id: picked.kind === "product" ? picked.id : undefined,
+                            sku: picked.sku,
+                            unit: picked.unit,
+                            tax_rate: Number(picked.taxRate ?? 0),
+                            description_en: picked.nameEn,
+                            description_ar: picked.nameAr || "",
                             unit_price: price,
                             line_total: (Number(next[index].quantity) || 1) * price,
                           };
                           setLineItems(next);
                         } else {
-                          updateLineItem(index, "service_id", undefined);
+                          const next = [...lineItems];
+                          next[index] = {
+                            ...next[index],
+                            item_kind: "custom",
+                            service_id: undefined,
+                            product_id: undefined,
+                          };
+                          setLineItems(next);
                         }
                       }}
                     >
                       <option value="">{t.invoiceForm.customItemNone}</option>
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.code || s.name_en} - {s.name_en}
+                      {catalogOptions.map((c) => (
+                        <option key={`${c.kind}:${c.id}`} value={`${c.kind}:${c.id}`}>
+                          [{c.kind === "product" ? "Product" : "Service"}] {c.sku || c.nameEn} - {c.nameEn}
                         </option>
                       ))}
                     </Select>
@@ -550,7 +603,7 @@ export function NewInvoiceFormView({
                 )}
 
                 <label
-                  className={`space-y-1 ${services.length > 0
+                  className={`space-y-1 ${catalogOptions.length > 0
                     ? "sm:col-span-12 md:col-span-4"
                     : "sm:col-span-12 md:col-span-6"
                     }`}
@@ -569,7 +622,7 @@ export function NewInvoiceFormView({
                 </label>
 
                 <label
-                  className={`space-y-1 ${services.length > 0
+                  className={`space-y-1 ${catalogOptions.length > 0
                     ? "sm:col-span-12 md:col-span-3"
                     : "sm:col-span-12 md:col-span-4"
                     }`}

@@ -38,6 +38,8 @@
     "check:web": "npm --prefix apps/web run check:website && npm --prefix apps/web run check:website-http",
     "gen:openapi": "(cd backend && go run ./tools/generate-openapi) > docs/api/combined-openapi.yaml",
     "gen:contracts": "npx -y tsx scripts/gen-contracts.ts",
+    "gen:erd": "node scripts/generate-erd-and-meta.cjs",
+    "gen:seeds": "node scripts/generate-seeds.cjs",
     "check:isolation": "npx -y tsx scripts/check-isolation.ts",
     "check:health": "./scripts/check-health.sh",
     "audit:all": "./scripts/audit-all.sh"

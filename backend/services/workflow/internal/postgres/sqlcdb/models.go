@@ -45,6 +45,17 @@ type WorkflowCalendarEvent struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+type WorkflowDirectoryRef struct {
+	Kind      string          `json:"kind"`
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
+	NameAr    *string         `json:"nameAr"`
+	Email     *string         `json:"email"`
+	ParentID  *string         `json:"parentId"`
+	Metadata  json.RawMessage `json:"metadata"`
+	UpdatedAt time.Time       `json:"updatedAt"`
+}
+
 type WorkflowInbox struct {
 	Consumer  string    `json:"consumer"`
 	EventID   string    `json:"eventId"`
@@ -60,15 +71,62 @@ type WorkflowLetterTemplate struct {
 }
 
 type WorkflowMinuteOfMeeting struct {
-	ID          string      `json:"id"`
-	MomNumber   string      `json:"momNumber"`
-	Title       string      `json:"title"`
-	MeetingDate pgtype.Date `json:"meetingDate"`
-	Attendees   []string    `json:"attendees"`
-	Discussion  string      `json:"discussion"`
-	ActionItems *string     `json:"actionItems"`
-	Status      string      `json:"status"`
-	CreatedAt   time.Time   `json:"createdAt"`
+	ID             string          `json:"id"`
+	MomNumber      string          `json:"momNumber"`
+	Title          string          `json:"title"`
+	MeetingDate    pgtype.Date     `json:"meetingDate"`
+	Attendees      []string        `json:"attendees"`
+	Discussion     string          `json:"discussion"`
+	ActionItems    *string         `json:"actionItems"`
+	Status         string          `json:"status"`
+	CreatedAt      time.Time       `json:"createdAt"`
+	TitleAr        *string         `json:"titleAr"`
+	StartTime      *string         `json:"startTime"`
+	EndTime        *string         `json:"endTime"`
+	Location       *string         `json:"location"`
+	ClientID       *string         `json:"clientId"`
+	DealID         *string         `json:"dealId"`
+	ProjectID      *string         `json:"projectId"`
+	DepartmentID   *string         `json:"departmentId"`
+	TeamID         *string         `json:"teamId"`
+	OrganizerID    *string         `json:"organizerId"`
+	CreatedByID    *string         `json:"createdById"`
+	ApprovedByID   *string         `json:"approvedById"`
+	Agenda         string          `json:"agenda"`
+	Decisions      json.RawMessage `json:"decisions"`
+	Notes          *string         `json:"notes"`
+	SignatureUrl   *string         `json:"signatureUrl"`
+	PdfStoragePath *string         `json:"pdfStoragePath"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
+}
+
+type WorkflowMomActionItem struct {
+	ID                 string     `json:"id"`
+	MomID              string     `json:"momId"`
+	TaskID             *string    `json:"taskId"`
+	Title              string     `json:"title"`
+	Description        *string    `json:"description"`
+	AssigneeEmployeeID *string    `json:"assigneeEmployeeId"`
+	AssigneeUserID     *string    `json:"assigneeUserId"`
+	DepartmentID       *string    `json:"departmentId"`
+	DueDate            *time.Time `json:"dueDate"`
+	Status             string     `json:"status"`
+	CreatedAt          time.Time  `json:"createdAt"`
+}
+
+type WorkflowMomAttendee struct {
+	ID           string    `json:"id"`
+	MomID        string    `json:"momId"`
+	AttendeeType string    `json:"attendeeType"`
+	EmployeeID   *string   `json:"employeeId"`
+	UserID       *string   `json:"userId"`
+	ContactID    *string   `json:"contactId"`
+	DepartmentID *string   `json:"departmentId"`
+	DisplayName  string    `json:"displayName"`
+	Email        *string   `json:"email"`
+	RoleTitle    *string   `json:"roleTitle"`
+	Attended     bool      `json:"attended"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type WorkflowOfficialLetter struct {
@@ -121,4 +179,10 @@ type WorkflowTask struct {
 	RelatedEntityID   *string    `json:"relatedEntityId"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
+	ProjectID         *string    `json:"projectId"`
+	DepartmentID      *string    `json:"departmentId"`
+	MomID             *string    `json:"momId"`
+	ClientID          *string    `json:"clientId"`
+	DealID            *string    `json:"dealId"`
+	CreatedByID       *string    `json:"createdById"`
 }

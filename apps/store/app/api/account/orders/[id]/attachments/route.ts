@@ -1,6 +1,7 @@
 import { isWebsitePreview } from "../../../../../../lib/website";
 import { NextRequest, NextResponse } from "next/server";
-import { consumeAbuseLimit } from "@platform/database";
+import { createEntityAttachment } from "@platform/api-client";
+import { consumeAbuseLimit, customerOrder } from "@platform/database";
 import {
   accountsEnabled,
   currentCustomer,
@@ -34,6 +35,9 @@ export async function POST(
   const { id } = await params;
   if (!id)
     return NextResponse.json({ error: "unavailable" }, { status: 404 });
+  const order = await customerOrder(customer.id, id);
+  if (!order)
+    return NextResponse.json({ error: "unavailable" }, { status: 404 });
   try {
     await consumeAbuseLimit("customer-order-upload", customer.id, 10, 3600);
   } catch (error) {
@@ -41,5 +45,21 @@ export async function POST(
   }
   const file = await storePrivateUpload(req, "customer");
   if (file instanceof Response) return file;
-  return NextResponse.json({ success: true }, { status: 201 });
+  try {
+    const attachment = await createEntityAttachment({
+      fileUrl: file.fileUrl,
+      fileName: file.fileName,
+      fileSize: file.fileSize,
+      mimeType: file.mimeType,
+      entityType: "order",
+      entityId: id,
+      relationKind: "order_attachment",
+      clientId: customer.id,
+      uploadedById: customer.id,
+    });
+    return NextResponse.json({ success: true, id: attachment.id }, { status: 201 });
+  } catch {
+    await discardPrivateUpload(file.fileUrl);
+    return NextResponse.json({ error: "generic" }, { status: 503 });
+  }
 }

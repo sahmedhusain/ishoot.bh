@@ -2,6 +2,7 @@ import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
 import { normalizeApiRecord } from "./normalize";
+import { buildQuery } from "./service-fetch";
 
 export type Contact = {
   id: string;
@@ -75,11 +76,51 @@ export type Quotation = {
 export type QuotationItem = {
   id: string;
   quotationId: string;
+  itemKind?: string;
+  serviceId?: string | null;
+  productId?: string | null;
+  variantId?: string | null;
+  sku?: string | null;
+  unit?: string | null;
   description: string;
+  descriptionEn?: string | null;
+  descriptionAr?: string | null;
   quantity: string;
   unitPrice: string;
+  taxRate?: string;
   amount: string;
   sortOrder: number;
+};
+
+export type PipelineStage = {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  sortOrder: number;
+  probability: number;
+  isClosed?: boolean;
+  isWon?: boolean;
+};
+
+export type SalesCatalogItemRef = {
+  kind: string;
+  id: string;
+  variantId?: string | null;
+  sku?: string | null;
+  nameEn: string;
+  nameAr?: string | null;
+  category?: string | null;
+  unit?: string | null;
+  unitPrice: string | number;
+  currency?: string;
+  taxRate?: string | number;
+  isActive: boolean;
+};
+
+export type QuotationFilters = {
+  contactId?: string;
+  dealId?: string;
 };
 
 export type QuotationWithItems = Quotation & {
@@ -188,8 +229,14 @@ export const updateInquiryStatus = (id: string, status: string, token?: string) 
 export const deleteInquiry = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/inquiries/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
-export const listQuotations = (token?: string) =>
-  salesFetch<Quotation[]>("/v1/sales/quotations", {}, token);
+export const listQuotations = (
+  tokenOrFilters?: string | QuotationFilters,
+  token?: string,
+) => {
+  const filters = typeof tokenOrFilters === "object" ? tokenOrFilters : undefined;
+  const auth = typeof tokenOrFilters === "string" ? tokenOrFilters : token;
+  return salesFetch<Quotation[]>(`/v1/sales/quotations${buildQuery(filters)}`, {}, auth);
+};
 
 export const getQuotation = (id: string, token?: string) =>
   salesFetch<QuotationWithItems>(`/v1/sales/quotations/${encodeURIComponent(id)}`, {}, token);
@@ -218,15 +265,42 @@ export const createQuotation = (input: any, token?: string) => {
     currency: input.currency || "USD",
     validUntil,
     items: (input.items || input.lineItems || []).map((item: any, idx: number) => ({
-      description: item.description || item.descriptionEn || item.description_en || "",
+      itemKind:
+        item.itemKind ||
+        (item.serviceId ? "service" : item.productId ? "product" : "custom"),
+      serviceId: item.serviceId || item.service_id || null,
+      productId: item.productId || item.product_id || null,
+      variantId: item.variantId || item.variant_id || null,
+      sku: item.sku || null,
+      unit: item.unit || null,
+      description:
+        item.description ||
+        item.descriptionEn ||
+        item.description_en ||
+        item.descriptionAr ||
+        "",
+      descriptionEn: item.descriptionEn || item.description_en || item.description || null,
+      descriptionAr: item.descriptionAr || item.description_ar || null,
       quantity: Number(item.quantity ?? 1),
       unitPrice: Number(item.unitPrice ?? item.unit_price ?? 0),
-      amount: Number(item.amount ?? item.lineTotal ?? item.line_total ?? (Number(item.quantity ?? 1) * Number(item.unitPrice ?? item.unit_price ?? 0))),
+      taxRate: Number(item.taxRate ?? item.vatRate ?? 0),
+      amount: Number(
+        item.amount ??
+          item.lineTotal ??
+          item.line_total ??
+          Number(item.quantity ?? 1) * Number(item.unitPrice ?? item.unit_price ?? 0),
+      ),
       sortOrder: item.sortOrder ?? item.orderIndex ?? idx,
     })),
   };
   return salesFetch<QuotationWithItems>("/v1/sales/quotations", { method: "POST", body: JSON.stringify(payload) }, token);
 };
+
+export const listPipelineStages = (token?: string) =>
+  salesFetch<PipelineStage[]>("/v1/sales/pipeline-stages", {}, token);
+
+export const listSalesCatalog = (kind?: string, token?: string) =>
+  salesFetch<SalesCatalogItemRef[]>(`/v1/sales/catalog${buildQuery({ kind })}`, {}, token);
 
 export const updateQuotationStatus = (id: string, status: string, token?: string) =>
   salesFetch<Quotation>(`/v1/sales/quotations/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify({ status }) }, token);

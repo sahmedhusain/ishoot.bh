@@ -168,7 +168,13 @@ export async function createInvoiceAction(data: {
   created_by?: string;
   sales_owner_id?: string;
   line_items: {
+    item_kind?: "service" | "product" | "custom";
     service_id?: string;
+    product_id?: string;
+    variant_id?: string;
+    sku?: string;
+    unit?: string;
+    tax_rate?: number;
     description_en: string;
     description_ar?: string;
     quantity: number;

@@ -1,6 +1,10 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import { PAY_LINE_CATEGORIES } from "../constants/hr";
+import {
+  listEmployeeRecurringPay,
+  saveEmployeeRecurringPay,
+  deleteEmployeeRecurringPay,
+} from "../api/hr";
 
 export interface RecurringPayInput {
   kind: "addition" | "deduction";
@@ -22,17 +26,14 @@ const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 export async function listRecurringPay(
   employeeId: string,
 ): Promise<RecurringPayRecord[]> {
-  const rows = await db.employeeRecurringPay.findMany({
-    where: { employeeId },
-    orderBy: [{ kind: "asc" }, { createdAt: "asc" }],
-  });
+  const rows = await listEmployeeRecurringPay(employeeId).catch(() => []);
   return rows.map((r) => ({
     id: r.id,
     kind: r.kind as "addition" | "deduction",
     category: r.category,
     label: r.label,
     amount: Number(r.amount),
-    start_month: r.startMonth,
+    start_month: r.startMonth || "",
     end_month: r.endMonth ?? undefined,
     is_active: r.isActive,
     note: r.note ?? undefined,
@@ -62,7 +63,9 @@ export async function saveRecurringPay(
   const end = input.end_month?.trim() || null;
   if (end && (!MONTH.test(end) || end < input.start_month))
     throw new Error(serverMessages.theLastMonthCannotBeBefore);
-  const data = {
+  return saveEmployeeRecurringPay({
+    id,
+    employeeId,
     kind: input.kind,
     category: input.category,
     label,
@@ -71,25 +74,10 @@ export async function saveRecurringPay(
     endMonth: end,
     isActive: !!input.is_active,
     note: input.note?.trim().slice(0, 300) || null,
-  };
-  if (id) {
-    const existing = await db.employeeRecurringPay.findUnique({
-      where: { id },
-      select: { employeeId: true },
-    });
-    if (!existing || existing.employeeId !== employeeId)
-      throw new Error(serverMessages.recurringItemNotFound);
-    return db.employeeRecurringPay.update({ where: { id }, data });
-  }
-  return db.employeeRecurringPay.create({ data: { ...data, employeeId } });
+  });
 }
 
 export async function deleteRecurringPay(id: string) {
-  const existing = await db.employeeRecurringPay.findUnique({
-    where: { id },
-    select: { employeeId: true },
-  });
-  if (!existing) throw new Error(serverMessages.recurringItemNotFound);
-  await db.employeeRecurringPay.delete({ where: { id } });
-  return existing.employeeId;
+  await deleteEmployeeRecurringPay(id);
+  return id;
 }

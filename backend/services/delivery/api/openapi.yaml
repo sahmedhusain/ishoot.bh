@@ -158,6 +158,48 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Shipment" }
 
+  /v1/delivery/shipments/enriched:
+    get:
+      tags: [shipments]
+      operationId: listShipmentsEnriched
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: Enriched shipments with zone, driver, and order details
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /v1/delivery/drivers-ref:
+    get:
+      tags: [shipments]
+      operationId: listDriverRefs
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: Synced HR driver directory
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /v1/delivery/orders-ref:
+    get:
+      tags: [shipments]
+      operationId: listOrderRefs
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: Synced commerce order references
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
   /v1/delivery/shipments/{id}/assign:
     post:
       tags: [shipments]

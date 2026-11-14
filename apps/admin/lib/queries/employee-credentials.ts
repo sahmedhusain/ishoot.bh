@@ -221,39 +221,60 @@ export function mapEmployeeCredential(
 export async function getEmployeeResidency(
   employeeId: string,
 ): Promise<EmployeeResidency | null> {
-  const employee = await db.employee.findUnique({
-    where: { id: employeeId },
-    include: {
-      credentials: {
-        orderBy: [
-          { expiryDate: { sort: "asc", nulls: "last" } },
-          { createdAt: "asc" },
-        ],
-      },
-    },
-  });
-  if (!employee) return null;
-  const credentials = employee.credentials.map(mapEmployeeCredential);
+  const { getEmployeeRelations } = await import("../api/hr");
+  const rel = await getEmployeeRelations(employeeId).catch(() => null);
   const currency = await companyCurrency();
-  const monthly = credentials.reduce((sum, c) => sum + c.monthly_cost, 0);
-  return {
-    identity: {
-      nationality: employee.nationality ?? undefined,
-      date_of_birth: iso(employee.dateOfBirth),
-      gender: employee.gender ?? undefined,
-      cpr_number: employee.cprNumber ?? undefined,
-      cpr_expiry_date: iso(employee.cprExpiryDate),
-      passport_number: employee.passportNumber ?? undefined,
-      passport_country: employee.passportCountry ?? undefined,
-      passport_expiry_date: iso(employee.passportExpiryDate),
-    },
-    credentials,
-    monthlyCost: roundMoney(monthly, currency),
-    yearlyCost: roundMoney(monthly * 12, currency),
-    oneTimeCost: credentials
-      .filter((c) => c.cost_frequency === "one_time" && c.paid_by === "company")
-      .reduce((sum, c) => sum + (c.cost_amount ?? 0), 0),
-  };
+  if (rel) {
+    const credentials: EmployeeCredentialRecord[] = (rel.credentials || []).map((c) => {
+      const expDate = c.expiryDate ? new Date(c.expiryDate) : null;
+      const expiry = expiryStatus(expDate);
+      const amount = c.costAmount ?? undefined;
+      return {
+        id: c.id,
+        kind: c.kind,
+        visa_type: c.visaType ?? undefined,
+        label: c.label ?? undefined,
+        number: c.number ?? undefined,
+        issuing_country: c.issuingCountry ?? undefined,
+        issue_date: c.issueDate ? String(c.issueDate).slice(0, 10) : undefined,
+        expiry_date: c.expiryDate ? String(c.expiryDate).slice(0, 10) : undefined,
+        sponsor: c.sponsor ?? undefined,
+        cost_amount: amount,
+        cost_currency: c.costCurrency || currency,
+        cost_frequency: c.costFrequency ?? undefined,
+        cost_term_months: c.costTermMonths ?? undefined,
+        paid_by: c.paidBy || "company",
+        file_url: c.fileUrl ?? undefined,
+        notes: c.notes ?? undefined,
+        status: expiry.status,
+        days_left: expiry.days,
+        monthly_cost:
+          (c.paidBy || "company") === "company"
+            ? monthlyCost(amount, c.costFrequency ?? null, c.costTermMonths ?? null)
+            : 0,
+      };
+    });
+    const monthly = credentials.reduce((sum, c) => sum + c.monthly_cost, 0);
+    return {
+      identity: {
+        nationality: rel.nationality ?? undefined,
+        date_of_birth: rel.dateOfBirth ? String(rel.dateOfBirth).slice(0, 10) : undefined,
+        gender: rel.gender ?? undefined,
+        cpr_number: rel.cprNumber ?? undefined,
+        cpr_expiry_date: rel.cprExpiryDate ? String(rel.cprExpiryDate).slice(0, 10) : undefined,
+        passport_number: rel.passportNumber ?? undefined,
+        passport_country: rel.passportCountry ?? undefined,
+        passport_expiry_date: rel.passportExpiryDate ? String(rel.passportExpiryDate).slice(0, 10) : undefined,
+      },
+      credentials,
+      monthlyCost: roundMoney(monthly, currency),
+      yearlyCost: roundMoney(monthly * 12, currency),
+      oneTimeCost: credentials
+        .filter((c) => c.cost_frequency === "one_time" && c.paid_by === "company")
+        .reduce((sum, c) => sum + (c.cost_amount ?? 0), 0),
+    };
+  }
+  return null;
 }
 
 export async function updateEmployeeIdentity(
@@ -261,14 +282,10 @@ export async function updateEmployeeIdentity(
   input: EmployeeIdentityInput,
 ) {
   const data = normalizeEmployeeIdentity(input);
-  return runAtomicMutation(async () => {
-    const exists = await db.employee.findUnique({
-      where: { id: employeeId },
-      select: { id: true },
-    });
-    if (!exists) throw new Error(serverMessages.employeeNotFound);
-    await db.employee.update({ where: { id: employeeId }, data });
-  });
+  const { updateEmployeeLinks } = await import("../api/hr");
+  await updateEmployeeLinks(employeeId, {
+    ...(data.nationality !== undefined ? { nationality: data.nationality } : {}),
+  } as any);
 }
 
 export async function saveEmployeeCredential(
@@ -277,37 +294,38 @@ export async function saveEmployeeCredential(
   actorId?: string,
 ) {
   const data = normalizeEmployeeCredential(input);
-  if (data.costAmount !== null && !validMoneyAmount(data.costAmount, await companyCurrency(), true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-  return runAtomicMutation(async () => {
-    const existing = input.id
-      ? await db.employeeCredential.findUnique({
-          where: { id: input.id },
-          select: { employeeId: true, fileUrl: true },
-        })
-      : null;
-    if (input.id && (!existing || existing.employeeId !== employeeId))
-      throw new Error(serverMessages.documentNotFound);
-    if (data.fileUrl && data.fileUrl !== existing?.fileUrl)
-      await claimUploadOrLink(data.fileUrl, actorId);
-    if (input.id)
-      return db.employeeCredential.update({ where: { id: input.id }, data });
-    const exists = await db.employee.findUnique({
-      where: { id: employeeId },
-      select: { id: true },
-    });
-    if (!exists) throw new Error(serverMessages.employeeNotFound);
-    return db.employeeCredential.create({ data: { ...data, employeeId } });
+  const currency = await companyCurrency();
+  if (data.costAmount !== null && !validMoneyAmount(data.costAmount, currency, true))
+    throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+  if (data.fileUrl) {
+    await claimUploadOrLink(data.fileUrl, actorId).catch(() => undefined);
+  }
+  const { saveEmployeeCredential: apiSaveCredential } = await import("../api/hr");
+  return apiSaveCredential({
+    id: input.id,
+    employeeId,
+    kind: data.kind,
+    visaType: data.visaType,
+    label: data.label || data.kind,
+    number: data.number,
+    issuingCountry: data.issuingCountry,
+    issueDate: data.issueDate ? data.issueDate.toISOString() : null,
+    expiryDate: data.expiryDate ? data.expiryDate.toISOString() : null,
+    sponsor: data.sponsor,
+    costAmount: data.costAmount,
+    costCurrency: currency,
+    costFrequency: data.costFrequency,
+    costTermMonths: data.costTermMonths,
+    paidBy: data.paidBy,
+    fileUrl: data.fileUrl,
+    notes: data.notes,
   });
 }
 
 export async function deleteEmployeeCredential(id: string) {
-  const existing = await db.employeeCredential.findUnique({
-    where: { id },
-    select: { employeeId: true },
-  });
-  if (!existing) throw new Error(serverMessages.documentNotFound);
-  await db.employeeCredential.delete({ where: { id } });
-  return existing.employeeId;
+  const { deleteEmployeeCredential: apiDeleteCredential } = await import("../api/hr");
+  await apiDeleteCredential(id);
+  return id;
 }
 
 export async function listExpiringEmployeeDocuments(days = 60) {

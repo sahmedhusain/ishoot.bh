@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
+import {
+  getContentSnapshot,
+  listServicesCatalog,
+  saveContentDraft,
+} from "@platform/api-client";
 import { ServiceCategory, ServiceItem } from "../types";
 
 export interface StoredServiceRecord extends ServiceItem {
@@ -64,6 +68,20 @@ function serializeService(s: StoredServiceRecord) {
 }
 
 async function readSnapshotServices(includeInactive = true): Promise<StoredServiceRecord[]> {
+  try {
+    const live = await listServicesCatalog(!includeInactive).catch(() => []);
+    if (Array.isArray(live) && live.length > 0) {
+      const mapped = live.map(mapService);
+      const filtered = includeInactive ? mapped : mapped.filter((s) => s.is_active);
+      return filtered.sort(
+        (a, b) =>
+          a.display_order - b.display_order || a.name_en.localeCompare(b.name_en),
+      );
+    }
+  } catch (e) {
+    console.warn("Live system/services catalog fallback to CMS snapshot:", e);
+  }
+
   try {
     const snap = await getContentSnapshot("main");
     const draftList = Array.isArray(snap?.draft?.services)

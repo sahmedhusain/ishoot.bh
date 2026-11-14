@@ -247,6 +247,219 @@ paths:
       responses:
         "204": { description: Updated }
         default: { $ref: "#/components/responses/Problem" }
+
+  /v1/itsm/desk/tickets/{id}/links:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    get:
+      tags: [desk]
+      operationId: getTicketLinks
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Entity links for ticket
+          content:
+            application/json:
+              schema: { type: object }
+    put:
+      tags: [desk]
+      operationId: updateTicketLinks
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated ticket entity links
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/itsm/desk/assets:
+    get:
+      tags: [desk]
+      operationId: listDeskAssets
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: IT assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [desk]
+      operationId: createDeskAsset
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created asset
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/itsm/desk/assets/{id}:
+    put:
+      tags: [desk]
+      operationId: updateDeskAsset
+      security: [{ userToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated asset
+          content:
+            application/json:
+              schema: { type: object }
+    delete:
+      tags: [desk]
+      operationId: deleteDeskAsset
+      security: [{ userToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/itsm/desk/asset-handovers:
+    get:
+      tags: [desk]
+      operationId: listDeskAssetHandovers
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Asset handovers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [desk]
+      operationId: createDeskAssetHandover
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created asset handover
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/itsm/desk/asset-handovers/{id}:
+    put:
+      tags: [desk]
+      operationId: updateDeskAssetHandover
+      security: [{ userToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Updated asset handover
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/itsm/desk/staff-ref:
+    get:
+      tags: [desk]
+      operationId: listITSMStaffRef
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Synced HR staff directory
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /v1/itsm/requests/assets:
+    get:
+      tags: [requests]
+      operationId: listRequestAssets
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: IT assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [requests]
+      operationId: createRequestAsset
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created asset
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/itsm/requests/asset-handovers:
+    get:
+      tags: [requests]
+      operationId: listRequestAssetHandovers
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: Asset handovers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+    post:
+      tags: [requests]
+      operationId: createRequestAssetHandover
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created asset handover
+          content:
+            application/json:
+              schema: { type: object }
 components:
   securitySchemes:
     serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }

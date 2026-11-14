@@ -33,6 +33,10 @@ export async function createMomAction(data: {
   location?: string;
   dealId?: string;
   clientId?: string;
+  projectId?: string;
+  departmentId?: string;
+  teamId?: string;
+  organizerId?: string;
   attendees: MomAttendee[];
   agenda: string;
   discussionPoints: MomDiscussionPoint[];
@@ -82,6 +86,10 @@ export async function updateMomAction(
     location?: string;
     dealId?: string;
     clientId?: string;
+    projectId?: string;
+    departmentId?: string;
+    teamId?: string;
+    organizerId?: string;
     attendees: MomAttendee[];
     agenda: string;
     discussionPoints: MomDiscussionPoint[];

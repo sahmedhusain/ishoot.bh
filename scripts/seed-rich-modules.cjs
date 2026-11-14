@@ -64,6 +64,7 @@ function buildRichModuleSql({
   domainHost,
   staffRoster,
   customers,
+  filesList = [],
   defaultPasswordHash,
 }) {
   const lines = [];
@@ -371,8 +372,15 @@ function buildRichModuleSql({
     );
   }
 
-  // Services
+  // Services & Catalog Product List (hoisted so Sales/Finance catalog projections & Inventory share exact items)
   const svcList = company.services.length ? company.services : [primarySvc];
+  const prodList = company.products.length
+    ? company.products
+    : [
+        { sku: `${pfx}-SUP-01`, en: `${company.shortEn} Operational Kit`, ar: `حقيبة تشغيل ${company.shortAr}`, cat: "Operations", cost: 45, price: 85 },
+        { sku: `${pfx}-SUP-02`, en: `${company.shortEn} Branded Package`, ar: `باقة ${company.shortAr} المعتمدة`, cat: "Operations", cost: 80, price: 140 },
+        { sku: `${pfx}-SUP-03`, en: `${company.shortEn} Enterprise Hardware`, ar: `أجهزة ${company.shortAr} للمؤسسات`, cat: "Hardware", cost: 160, price: 280 },
+      ];
   svcList.forEach((sv, idx) => {
     lines.push(
       ins(
@@ -425,26 +433,28 @@ function buildRichModuleSql({
     );
   }
 
-  // Projects (6) & Contracts (6)
-  for (let i = 1; i <= 6; i++) {
+  // Projects (8) & Contracts (8)
+  const projectDepts = ["d-ops", "d-sales", "d-mkt", "d-fin"];
+  for (let i = 1; i <= 8; i++) {
     const cust = customers[(i - 1) % customers.length];
     const svc = svcList[(i - 1) % svcList.length];
+    const owner = staffRoster[(i + 2) % staffRoster.length];
     lines.push(
       ins(
         "system.project",
         {
           id: `prj-${String(i).padStart(3, "0")}`,
-          code: `${pfx}-PRJ-2026-0${i}`,
+          code: `${pfx}-PRJ-2026-${String(i).padStart(2, "0")}`,
           name: `${cust.nameEn} — ${svc.en}`,
           description: `End-to-end delivery for ${cust.nameEn} managed by ${company.shortEn}.`,
-          status: i <= 2 ? "completed" : i <= 5 ? "active" : "planned",
-          department_id: "d-ops",
-          owner_id: "tariq-saleh",
+          status: i <= 3 ? "completed" : i <= 6 ? "active" : "planned",
+          department_id: projectDepts[(i - 1) % projectDepts.length],
+          owner_id: owner.id,
           color: company.theme.primary,
-          start_date: dateAgo(45 - i * 5),
-          due_date: dateAhead(15 + i * 7),
+          start_date: dateAgo(55 - i * 5),
+          due_date: dateAhead(10 + i * 7),
           created_by_id: "karim-fawzi",
-          created_at: ago(45 - i * 5),
+          created_at: ago(55 - i * 5),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
@@ -455,18 +465,18 @@ function buildRichModuleSql({
         "system.contract",
         {
           id: `ctr-${String(i).padStart(3, "0")}`,
-          contract_number: `${pfx}-CTR-2026-0${i}`,
+          contract_number: `${pfx}-CTR-2026-${String(i).padStart(2, "0")}`,
           deal_id: `deal-${i}`,
-          contact_id: `cnt-${i}`,
+          contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
           title_en: `Master Service Agreement — ${cust.nameEn}`,
           title_ar: `اتفاقية تقديم خدمات رئيسية — ${cust.nameAr}`,
           body_html: `<p>Agreement between ${company.nameEn} and ${cust.nameEn} for ${svc.en}.</p>`,
-          status: i <= 4 ? "signed" : "pending_signature",
-          signed_at: i <= 4 ? ago(30 - i * 4) : null,
+          status: i <= 6 ? "signed" : "pending_signature",
+          signed_at: i <= 6 ? ago(35 - i * 4) : null,
           valid_from: dateAgo(60),
           valid_until: dateAhead(305),
           created_by_id: "omar-haddad",
-          created_at: ago(35 - i * 4),
+          created_at: ago(40 - i * 4),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
@@ -970,28 +980,127 @@ function buildRichModuleSql({
     );
   });
 
-  // 12 Deals + 10 Inquiries + 10 Quotations (with 20 line items) + 6 Campaigns
-  for (let i = 1; i <= 12; i++) {
+  const suppliers = [
+    { id: "cnt-9", firstEn: "Khalid", lastEn: "Al-Doseri", email: "sales@gulfequipment.bh", phone: "+97317410099", companyEn: "Gulf Equipment Suppliers W.L.L.", companyAr: "شركة الخليج لتوريد المعدات ذ.م.م", city: "Salmabad" },
+    { id: "cnt-10", firstEn: "Mariam", lastEn: "Al-Binali", email: "dispatch@manamalogistics.bh", phone: "+97317420088", companyEn: "Manama Industrial Logistics Co.", companyAr: "شركة المنامة للخدمات اللوجستية الصناعية", city: "Hidd" },
+  ];
+  for (const sup of suppliers) {
+    lines.push(
+      ins(
+        "sales.contact",
+        {
+          id: sup.id,
+          first_name: sup.firstEn,
+          last_name: sup.lastEn,
+          email: sup.email,
+          phone: sup.phone,
+          company: sup.companyEn,
+          contact_type: "supplier",
+          status: "active",
+          created_at: ago(75),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "sales.crm_contact",
+        {
+          id: sup.id,
+          first_name: sup.firstEn,
+          last_name: sup.lastEn,
+          email: sup.email,
+          email_norm: sup.email.toLowerCase(),
+          phone: sup.phone,
+          phone_e164: sup.phone,
+          company_name: sup.companyEn,
+          company_name_ar: sup.companyAr,
+          contact_type: "supplier",
+          client_kind: "company",
+          preferred_language: "en",
+          payment_terms_days: 30,
+          address_country: "BH",
+          address_city: sup.city,
+          created_at: ago(75),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  // Sales Catalog Projection (Services & Products for Quotation line-item dropdowns)
+  svcList.forEach((sv, idx) => {
+    lines.push(
+      ins(
+        "sales.catalog_item_ref",
+        {
+          kind: "service",
+          id: `svc-${idx + 1}`,
+          variant_id: "",
+          sku: sv.code || `${pfx}-SVC-${idx + 1}`,
+          name_en: sv.en,
+          name_ar: sv.ar,
+          unit: sv.unit || "engagement",
+          unit_price: sv.rate,
+          currency: cur,
+          tax_rate: 10.0,
+          is_active: true,
+          updated_at: now,
+        },
+        "ON CONFLICT (kind, id, variant_id) DO NOTHING",
+      ),
+    );
+  });
+  prodList.forEach((p, idx) => {
+    lines.push(
+      ins(
+        "sales.catalog_item_ref",
+        {
+          kind: "product",
+          id: `prod-${idx + 1}`,
+          variant_id: "",
+          sku: p.sku,
+          name_en: p.en,
+          name_ar: p.ar,
+          unit: "unit",
+          unit_price: p.price,
+          currency: cur,
+          tax_rate: 10.0,
+          is_active: true,
+          updated_at: now,
+        },
+        "ON CONFLICT (kind, id, variant_id) DO NOTHING",
+      ),
+    );
+  });
+
+  // 18 Deals + 14 Inquiries + 14 Quotations (28 line items) + 8 Campaigns
+  for (let i = 1; i <= 18; i++) {
     const cust = customers[(i - 1) % customers.length];
     const svc = svcList[(i - 1) % svcList.length];
-    const stage = i <= 6 ? "stg-won" : i <= 9 ? "stg-prop" : i <= 11 ? "stg-neg" : "stg-new";
+    const svc2 = svcList[i % svcList.length];
+    const stage = i <= 8 ? "stg-won" : i <= 12 ? "stg-prop" : i <= 16 ? "stg-neg" : "stg-new";
     const val = svc.rate * ((i % 4) + 1);
     const dealId = `deal-${i}`;
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
     lines.push(
       ins(
         "sales.deal",
         {
           id: dealId,
           title: `${cust.nameEn} — ${svc.en}`,
-          contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
+          contact_id: contactId,
           stage,
+          pipeline_stage_id: stage,
           value: val,
           currency: cur,
-          probability: i <= 6 ? 100 : i <= 9 ? 50 : 80,
-          expected_close_date: dateAhead(i * 4),
-          status: i <= 6 ? "won" : "open",
+          probability: i <= 8 ? 100 : i <= 12 ? 50 : 80,
+          expected_close_date: dateAhead(i * 3),
+          status: i <= 8 ? "won" : "open",
           assigned_to: "sami-khoury",
-          created_at: ago(50 - i * 3),
+          created_at: ago(Math.max(2, 62 - i * 3)),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
@@ -1002,44 +1111,46 @@ function buildRichModuleSql({
         "sales.crm_deal",
         {
           id: dealId,
-          contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
+          contact_id: contactId,
           title: `${cust.nameEn} — ${svc.en}`,
           deal_stage: stage,
           deal_value: val,
           currency: cur,
-          probability: i <= 6 ? 100 : 50,
-          expected_close_date: dateAhead(i * 4),
+          probability: i <= 8 ? 100 : 50,
+          expected_close_date: dateAhead(i * 3),
           assigned_to: "sami-khoury",
-          created_at: ago(50 - i * 3),
+          created_at: ago(Math.max(2, 62 - i * 3)),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    if (i <= 10) {
+    if (i <= 14) {
+      const inqId = `inq-${i}`;
       lines.push(
         ins(
           "sales.inquiry",
           {
-            id: `inq-${i}`,
+            id: inqId,
             inquiry_type: "proposal",
             subject: `Request for Proposal: ${svc.en}`,
             message: `Hello ${company.shortEn}, we would like a formal quotation for ${svc.en} for our ${cust.city} branch.`,
-            status: i <= 6 ? "converted" : i <= 8 ? "in_review" : "new",
-            priority: i <= 3 ? "high" : "normal",
+            status: i <= 8 ? "converted" : i <= 11 ? "in_review" : "new",
+            priority: i <= 4 ? "high" : "normal",
             requester_name: cust.nameEn,
             requester_email: cust.email,
             requester_phone: cust.phone,
             assignee_id: "sami-khoury",
             deal_id: dealId,
-            created_at: ago(55 - i * 4),
+            created_at: ago(Math.max(2, 65 - i * 4)),
             updated_at: now,
           },
           "ON CONFLICT (id) DO NOTHING",
         ),
       );
       const qId = `qt-${String(i).padStart(3, "0")}`;
-      const sub = val;
+      const item2Rate = Number((svc2.rate * 0.5).toFixed(3));
+      const sub = Number((val + item2Rate).toFixed(3));
       const vat = Number((sub * 0.1).toFixed(3));
       const tot = Number((sub + vat).toFixed(3));
       lines.push(
@@ -1049,8 +1160,11 @@ function buildRichModuleSql({
             id: qId,
             quotation_number: `${pfx}-QT-2026-${200 + i}`,
             deal_id: dealId,
-            contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
-            status: i <= 6 ? "accepted" : "sent",
+            contact_id: contactId,
+            client_id: contactId,
+            inquiry_id: inqId,
+            invoice_id: `inv-${String(i).padStart(3, "0")}`,
+            status: i <= 8 ? "accepted" : "sent",
             subtotal: sub,
             vat_rate: 10.0,
             vat_amount: vat,
@@ -1058,14 +1172,14 @@ function buildRichModuleSql({
             total_amount: tot,
             currency: cur,
             valid_until: ahead(30),
-            issue_date: dateAgo(45 - i * 3),
+            issue_date: dateAgo(Math.max(2, 58 - i * 3)),
             valid_until_date: dateAhead(30),
             vat_enabled: true,
             vat_percentage: 10.0,
-            language: "en",
+            language: i % 3 === 0 ? "ar" : "en",
             created_by_id: "sami-khoury",
             sales_owner_id: "sami-khoury",
-            created_at: ago(45 - i * 3),
+            created_at: ago(Math.max(2, 58 - i * 3)),
             updated_at: now,
           },
           "ON CONFLICT (id) DO NOTHING",
@@ -1078,10 +1192,25 @@ function buildRichModuleSql({
             id: `qti-${i}-1`,
             quotation_id: qId,
             description: svc.en,
-            quantity: 1,
-            unit_price: sub,
-            amount: sub,
+            quantity: (i % 4) + 1,
+            unit_price: svc.rate,
+            amount: val,
             sort_order: 1,
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+      lines.push(
+        ins(
+          "sales.quotation_item",
+          {
+            id: `qti-${i}-2`,
+            quotation_id: qId,
+            description: `${svc2.en} — Advisory & Mobilization`,
+            quantity: 1,
+            unit_price: item2Rate,
+            amount: item2Rate,
+            sort_order: 2,
           },
           "ON CONFLICT (id) DO NOTHING",
         ),
@@ -1094,37 +1223,63 @@ function buildRichModuleSql({
             quotation_id: qId,
             description_en: svc.en,
             description_ar: svc.ar,
-            quantity: 1,
-            unit_price: sub,
-            line_total: sub,
+            quantity: (i % 4) + 1,
+            unit_price: svc.rate,
+            line_total: val,
             order_index: 1,
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+      lines.push(
+        ins(
+          "sales.quotation_line_item",
+          {
+            id: `qtli-${i}-2`,
+            quotation_id: qId,
+            description_en: `${svc2.en} — Advisory & Mobilization`,
+            description_ar: `${svc2.ar} — الاستشارة والتجهيز`,
+            quantity: 1,
+            unit_price: item2Rate,
+            line_total: item2Rate,
+            order_index: 2,
           },
           "ON CONFLICT (id) DO NOTHING",
         ),
       );
     }
   }
-  for (let i = 1; i <= 6; i++) {
+  const campaignTitles = [
+    "Q3 Enterprise Outreach",
+    "Flagship Service Launch",
+    "Ramadan & Eid Partner Drive",
+    "GCC Expansion Roadshow",
+    "Annual Retainer Renewal",
+    "Q4 Growth Acceleration",
+    "Sector VIP Roundtable",
+    "Year-End Procurement Brief",
+  ];
+  for (let i = 1; i <= 8; i++) {
     lines.push(
       ins(
         "sales.campaign",
         {
           id: `cmp-${i}`,
-          name: `${company.shortEn} ${["Q3 Outreach", "Enterprise Launch", "Ramadan & Eid Special", "GCC Partner Drive", "Annual Renewal", "Q4 Growth"][i - 1]}`,
+          name: `${company.shortEn} ${campaignTitles[i - 1]}`,
           subject: `Partner with ${company.shortEn} for ${svcList[(i - 1) % svcList.length].en}`,
           body: `Explore ${company.shortEn}'s enterprise capabilities and dedicated local support.`,
-          status: i <= 4 ? "sent" : "draft",
-          sent_at: i <= 4 ? ago(i * 14) : null,
-          code: `${pfx}-CMP-0${i}`,
+          status: i <= 5 ? "sent" : "draft",
+          sent_at: i <= 5 ? ago(i * 12) : null,
+          code: `${pfx}-CMP-${String(i).padStart(2, "0")}`,
           channel: i % 2 === 0 ? "email" : "linkedin",
-          start_date: dateAgo(i * 15),
+          start_date: dateAgo(i * 14),
           end_date: dateAhead(30),
           budget: 800 * i,
           spend: 450 * i,
-          utm_campaign: `${company.slug}_q${((i - 1) % 4) + 1}`,
+          utm_campaign: `${company.slug}_c${i}`,
           owner_id: "hana-yousef",
           created_by_id: "hana-yousef",
-          created_at: ago(i * 15),
+          created_at: ago(i * 14),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
@@ -1194,25 +1349,142 @@ function buildRichModuleSql({
     );
   });
 
-  // 18 Invoices spanning past 150 days -> +15 days + line items + payments + allocations
-  for (let i = 1; i <= 18; i++) {
+  // Finance Cross-Service Projections: Catalog Items, Contacts & Quotations (for Invoicing Pickers)
+  svcList.forEach((sv, idx) => {
+    lines.push(
+      ins(
+        "finance.catalog_item_ref",
+        {
+          kind: "service",
+          id: `svc-${idx + 1}`,
+          variant_id: "",
+          sku: sv.code || `${pfx}-SVC-${idx + 1}`,
+          name_en: sv.en,
+          name_ar: sv.ar,
+          unit: sv.unit || "engagement",
+          unit_price: sv.rate,
+          currency: cur,
+          tax_rate: 10.0,
+          is_active: true,
+          updated_at: now,
+        },
+        "ON CONFLICT (kind, id, variant_id) DO NOTHING",
+      ),
+    );
+  });
+  prodList.forEach((p, idx) => {
+    lines.push(
+      ins(
+        "finance.catalog_item_ref",
+        {
+          kind: "product",
+          id: `prod-${idx + 1}`,
+          variant_id: "",
+          sku: p.sku,
+          name_en: p.en,
+          name_ar: p.ar,
+          unit: "unit",
+          unit_price: p.price,
+          currency: cur,
+          tax_rate: 10.0,
+          is_active: true,
+          updated_at: now,
+        },
+        "ON CONFLICT (kind, id, variant_id) DO NOTHING",
+      ),
+    );
+  });
+  customers.forEach((c, idx) => {
+    const [cfEn, ...clEn] = c.nameEn.split(" ");
+    lines.push(
+      ins(
+        "finance.contact_ref",
+        {
+          id: `cnt-${idx + 1}`,
+          first_name: cfEn,
+          last_name: clEn.join(" ") || "Group",
+          company: c.nameEn,
+          email: c.email,
+          phone: c.phone,
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
+  for (const sup of suppliers) {
+    lines.push(
+      ins(
+        "finance.contact_ref",
+        {
+          id: sup.id,
+          first_name: sup.firstEn,
+          last_name: sup.lastEn,
+          company: sup.companyEn,
+          email: sup.email,
+          phone: sup.phone,
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+  for (let i = 1; i <= 14; i++) {
+    const svc = svcList[(i - 1) % svcList.length];
+    const svc2 = svcList[i % svcList.length];
+    const val = svc.rate * ((i % 4) + 1);
+    const item2Rate = Number((svc2.rate * 0.5).toFixed(3));
+    const sub = Number((val + item2Rate).toFixed(3));
+    const vat = Number((sub * 0.1).toFixed(3));
+    const tot = Number((sub + vat).toFixed(3));
+    lines.push(
+      ins(
+        "finance.quotation_ref",
+        {
+          id: `qt-${String(i).padStart(3, "0")}`,
+          quotation_number: `${pfx}-QT-2026-${200 + i}`,
+          deal_id: `deal-${i}`,
+          contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
+          currency: cur,
+          subtotal: sub,
+          discount: 0,
+          vat_rate: 10.0,
+          vat_amount: vat,
+          total: tot,
+          status: i <= 8 ? "accepted" : "sent",
+          items: [
+            { description: svc.en, quantity: (i % 4) + 1, unitPrice: svc.rate, amount: val },
+            { description: `${svc2.en} — Advisory & Mobilization`, quantity: 1, unitPrice: item2Rate, amount: item2Rate },
+          ],
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  // 24 Invoices spanning past 161 days -> 1 day + line items + payments + allocations
+  for (let i = 1; i <= 24; i++) {
     const cust = customers[(i - 1) % customers.length];
     const svc = svcList[(i - 1) % svcList.length];
+    const svc2 = svcList[i % svcList.length];
     const invId = `inv-${String(i).padStart(3, "0")}`;
     const invNum = `${pfx}-2026-${100 + i}`;
-    const daysBack = Math.max(1, 160 - i * 9);
+    const daysBack = Math.max(1, 168 - i * 7);
     const qty1 = (i % 3) + 1;
     const qty2 = 1;
     const line1 = Number((svc.rate * qty1).toFixed(3));
-    const line2 = Number((svc.rate * 0.4).toFixed(3));
+    const line2 = Number((svc2.rate * 0.4).toFixed(3));
     const sub = Number((line1 + line2).toFixed(3));
     const vat = Number((sub * 0.1).toFixed(3));
     const tot = Number((sub + vat).toFixed(3));
-    const isPaid = i <= 13;
-    const paid = isPaid ? tot : i === 14 ? Number((tot * 0.5).toFixed(3)) : 0;
+    const isPaid = i <= 18;
+    const paid = isPaid ? tot : i <= 20 ? Number((tot * 0.5).toFixed(3)) : 0;
     const bal = Number((tot - paid).toFixed(3));
-    const status = isPaid ? "paid" : i === 14 ? "partially_paid" : "sent";
+    const status = isPaid ? "paid" : i <= 20 ? "partially_paid" : "sent";
     const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const dealRefId = `deal-${((i - 1) % 18) + 1}`;
+    const qtRefId = i <= 14 ? `qt-${String(i).padStart(3, "0")}` : null;
 
     lines.push(
       ins(
@@ -1220,9 +1492,10 @@ function buildRichModuleSql({
         {
           id: invId,
           invoice_number: invNum,
-          quotation_id: i <= 10 ? `qt-${String(i).padStart(3, "0")}` : null,
+          quotation_id: qtRefId,
           contact_id: contactId,
-          deal_id: i <= 12 ? `deal-${i}` : null,
+          client_id: contactId,
+          deal_id: dealRefId,
           status,
           issue_date: dateAgo(daysBack),
           due_date: dateAgo(Math.max(0, daysBack - 30)),
@@ -1267,7 +1540,7 @@ function buildRichModuleSql({
         {
           id: `invi-${i}-2`,
           invoice_id: invId,
-          description: `${svc.en} — Setup & Support`,
+          description: `${svc2.en} — Setup & Support`,
           quantity: qty2,
           unit_price: line2,
           amount: line2,
@@ -1289,6 +1562,23 @@ function buildRichModuleSql({
           unit_price: svc.rate,
           line_total: line1,
           display_order: 1,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "finance.invoice_line_item",
+        {
+          id: `invli-${i}-2`,
+          invoice_id: invId,
+          service_id: `svc-${(i % svcList.length) + 1}`,
+          description_en: `${svc2.en} — Setup & Support`,
+          description_ar: `${svc2.ar} — التجهيز والدعم`,
+          quantity: qty2,
+          unit_price: line2,
+          line_total: line2,
+          display_order: 2,
         },
         "ON CONFLICT (id) DO NOTHING",
       ),
@@ -1380,6 +1670,10 @@ function buildRichModuleSql({
           expense_date: dateAgo(i * 5),
           reason: `Client meeting & field logistics reimbursement (#${i})`,
           category_id: expCats[(i - 1) % expCats.length].id,
+          deal_id: `deal-${i}`,
+          invoice_id: `inv-${String(i).padStart(3, "0")}`,
+          calendar_event_id: `cal-${String(i).padStart(3, "0")}`,
+          expense_id: `exp-${String(i).padStart(3, "0")}`,
           status: i <= 5 ? "paid" : "pending",
           paid_at: i <= 5 ? ago(i * 3) : null,
           paid_by_id: i <= 5 ? "faisal-mansour" : null,
@@ -1474,6 +1768,96 @@ function buildRichModuleSql({
     );
   }
 
+  // Commission Rules & Payouts + Supplier Bills & Payments
+  for (const cr of [
+    { id: "crule-std", code: "STD-5", name: "Standard Sales Commission (5%)", rate: 5.0 },
+    { id: "crule-ent", code: "ENT-75", name: "Enterprise Retainer Bonus (7.5%)", rate: 7.5 },
+    { id: "crule-ren", code: "REN-3", name: "Annual Contract Renewal (3%)", rate: 3.0 },
+  ]) {
+    lines.push(
+      ins(
+        "finance.commission_rule",
+        { id: cr.id, code: cr.code, name: cr.name, rate: cr.rate, effective_from: "2026-01-01", version: 1, is_active: true, created_at: ago(180) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+  [7, 8, 9, 10].forEach((m, idx) => {
+    const owner = idx % 2 === 0 ? "sami-khoury" : "hana-yousef";
+    const basis = Number((primarySvc.rate * (3 + idx)).toFixed(3));
+    const rate = idx % 2 === 0 ? 5.0 : 3.0;
+    const amt = Number(((basis * rate) / 100).toFixed(3));
+    lines.push(
+      ins(
+        "finance.commission_payout",
+        {
+          id: `cpay-2026-${m}`,
+          user_id: owner,
+          period_month: `2026-${String(m).padStart(2, "0")}`,
+          basis_amount: basis,
+          rate_percent: rate,
+          amount: amt,
+          currency: cur,
+          expense_id: `exp-${String(idx + 1).padStart(3, "0")}`,
+          payroll_item_id: `pi-prun-2026-${String(m).padStart(2, "0")}-${owner}`,
+          recorded_by_id: "layla-nasser",
+          created_at: ago((11 - m) * 28),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
+  for (let i = 1; i <= 4; i++) {
+    const p = prodList[(i - 1) % prodList.length];
+    const sub = Number((p.cost * 8).toFixed(3));
+    const vat = Number((sub * 0.1).toFixed(3));
+    const tot = Number((sub + vat).toFixed(3));
+    const billId = `sbill-${String(i).padStart(3, "0")}`;
+    lines.push(
+      ins(
+        "finance.supplier_bill",
+        {
+          id: billId,
+          number: `${pfx}-BILL-2026-0${i}`,
+          supplier_ref: `SUP-INV-${400 + i}`,
+          supplier_id: `cnt-${9 + (i % 2)}`,
+          purchase_order_id: i <= 3 ? `po-00${i}` : null,
+          bill_date: dateAgo(28 - i * 5),
+          due_date: dateAhead(i * 5),
+          status: i <= 2 ? "paid" : "approved",
+          subtotal: sub,
+          vat_amount: vat,
+          total: tot,
+          amount_paid: i <= 2 ? tot : 0,
+          expense_id: `exp-${String(i).padStart(3, "0")}`,
+          note: `Supplier invoice for ${p.en}`,
+          created_by_id: "faisal-mansour",
+          approved_by_id: "layla-nasser",
+          approved_at: ago(26 - i * 5),
+          created_at: ago(28 - i * 5),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "finance.supplier_bill_line",
+        { id: `sbl-${i}-1`, bill_id: billId, order_line_id: i <= 3 ? `pol-00${i}-1` : null, description: p.en, quantity: 8, unit_price: p.cost, sort_order: 1 },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    if (i <= 2) {
+      lines.push(
+        ins(
+          "finance.supplier_payment",
+          { id: `spay-${i}`, bill_id: billId, amount: tot, paid_on: dateAgo(20 - i * 5), method: "bank_transfer", reference: `WIRE-${pfx}-${700 + i}`, created_by_id: "faisal-mansour", created_at: ago(20 - i * 5) },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    }
+  }
+
   // ── 6. HR & PAYROLL ─────────────────────────────────────────────────────────
   lines.push(``);
   lines.push(`-- HR: DEPARTMENTS, EMPLOYEES, ATTENDANCE, LEAVES & PAYROLL RUNS`);
@@ -1526,9 +1910,96 @@ function buildRichModuleSql({
     );
   }
 
-  // Attendance entries (past 4 days x 9 staff = 36 entries) + Leave Requests (9) + Payroll Runs (3 x 9 = 27 items)
+  // Identity projection + Leave Balances + Recurring Pay + Attendance (12d x 9 = 108) + Leave Requests (18) + Handovers + Payroll (4 x 9 = 36)
   for (const s of staffRoster) {
     const sIdx = staffRoster.indexOf(s);
+    lines.push(
+      ins(
+        "hr.identity_user_ref",
+        {
+          subject_id: s.id,
+          realm: "staff",
+          display_name: s.nameEn,
+          email: `${s.id}@${domainHost}`,
+          status: "active",
+          employee_id: s.id,
+          updated_at: now,
+        },
+        "ON CONFLICT (subject_id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.leave_balance",
+        {
+          id: `lb-${s.id}-ann-2026`,
+          employee_id: s.id,
+          leave_type_id: "lt-annual",
+          leave_type: "annual",
+          year: 2026,
+          entitled_days: 30,
+          used_days: sIdx < 6 && sIdx % 3 !== 0 ? 3 : 0,
+          remaining_days: sIdx < 6 && sIdx % 3 !== 0 ? 27 : 30,
+          updated_at: now,
+        },
+        "ON CONFLICT DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.leave_balance",
+        {
+          id: `lb-${s.id}-sck-2026`,
+          employee_id: s.id,
+          leave_type_id: "lt-sick",
+          leave_type: "sick",
+          year: 2026,
+          entitled_days: 15,
+          used_days: sIdx < 6 && sIdx % 3 === 0 ? 3 : 0,
+          remaining_days: sIdx < 6 && sIdx % 3 === 0 ? 12 : 15,
+          updated_at: now,
+        },
+        "ON CONFLICT DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.employee_recurring_pay",
+        {
+          id: `recpay-${s.id}-housing`,
+          employee_id: s.id,
+          kind: "allowance",
+          category: "housing",
+          label: "Housing Allowance",
+          amount: Number((s.salary * 0.1).toFixed(3)),
+          start_month: "2026-01",
+          is_active: true,
+          note: "Standard employment contract housing allowance",
+          created_at: now,
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.employee_recurring_pay",
+        {
+          id: `recpay-${s.id}-transport`,
+          employee_id: s.id,
+          kind: "allowance",
+          category: "transport",
+          label: "Transport Allowance",
+          amount: Number((s.salary * 0.05).toFixed(3)),
+          start_month: "2026-01",
+          is_active: true,
+          note: "Standard mobility & transport allowance",
+          created_at: now,
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
     lines.push(
       ins(
         "hr.employee_gosi_record",
@@ -1560,7 +2031,7 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    for (let d = 1; d <= 4; d++) {
+    for (let d = 1; d <= 12; d++) {
       lines.push(
         ins(
           "hr.attendance_entry",
@@ -1572,8 +2043,8 @@ function buildRichModuleSql({
             check_in: sqlRaw(`date_trunc('day', now() - interval '${d} days') + interval '8 hours 2 minutes'`),
             check_out: sqlRaw(`date_trunc('day', now() - interval '${d} days') + interval '16 hours 15 minutes'`),
             status: "present",
-            late_minutes: d === 2 && sIdx % 3 === 0 ? 10 : 0,
-            overtime_minutes: d === 1 && sIdx % 2 === 0 ? 45 : 0,
+            late_minutes: d % 4 === 0 && sIdx % 3 === 0 ? 10 : 0,
+            overtime_minutes: d % 3 === 1 && sIdx % 2 === 0 ? 45 : 0,
             shift_type_id: "shf-morning",
             source: "biometric",
             recorded_by_id: "karim-fawzi",
@@ -1608,9 +2079,92 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
+    lines.push(
+      ins(
+        "hr.leave_request",
+        {
+          id: `lr2-${s.id}`,
+          employee_id: s.id,
+          leave_type: "annual",
+          leave_type_id: "lt-annual",
+          start_date: dateAgo(90 + sIdx * 3),
+          end_date: dateAgo(89 + sIdx * 3),
+          days_count: 2,
+          days: 2,
+          full_day: true,
+          status: "approved",
+          reason: "Mid-year planned leave",
+          approved_by: s.reportTo || "omar-haddad",
+          approved_by_id: s.reportTo || "omar-haddad",
+          approved_at: ago(92 + sIdx * 3),
+          created_at: ago(95 + sIdx * 3),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
   }
 
-  for (const m of [8, 9, 10]) {
+  for (let i = 1; i <= 3; i++) {
+    const s = staffRoster[i + 3];
+    const delegate = staffRoster[i + 1];
+    const hoId = `ho-00${i}`;
+    lines.push(
+      ins(
+        "hr.employee_handover",
+        {
+          id: hoId,
+          reference: `${pfx}-HO-2026-0${i}`,
+          employee_id: s.id,
+          kind: "leave",
+          leave_request_id: `lr-${s.id}`,
+          effective_date: dateAgo(25 - (i + 3) * 2),
+          return_date: dateAgo(22 - (i + 3) * 2),
+          reason: "Scheduled duty coverage during approved leave",
+          status: i <= 2 ? "completed" : "active",
+          cases_mode: "selected",
+          delegate_user_id: delegate.id,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.employee_handover_case",
+        {
+          id: `hoc-${i}-1`,
+          handover_id: hoId,
+          case_type: "project",
+          case_id: `prj-00${i}`,
+          label: `Active Project #0${i} Oversight`,
+          to_user_id: delegate.id,
+          status: "reassigned",
+          reassigned_at: ago(25),
+          created_at: ago(25),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.employee_handover_case",
+        {
+          id: `hoc-${i}-2`,
+          handover_id: hoId,
+          case_type: "deal",
+          case_id: `deal-${i}`,
+          label: `Commercial Deal #${i} Follow-up`,
+          to_user_id: delegate.id,
+          status: "reassigned",
+          reassigned_at: ago(25),
+          created_at: ago(25),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  for (const m of [7, 8, 9, 10]) {
     const runId = `prun-2026-${String(m).padStart(2, "0")}`;
     const totalBasic = staffRoster.reduce((acc, s) => acc + s.salary, 0);
     const totalGross = Number((totalBasic * 1.15).toFixed(3));
@@ -1727,13 +2281,6 @@ function buildRichModuleSql({
     );
   }
 
-  const prodList = company.products.length
-    ? company.products
-    : [
-        { sku: `${pfx}-SUP-01`, en: `${company.shortEn} Operational Kit`, ar: `حقيبة تشغيل ${company.shortAr}`, cat: "Operations", cost: 45, price: 85 },
-        { sku: `${pfx}-SUP-02`, en: `${company.shortEn} Branded Package`, ar: `باقة ${company.shortAr} المعتمدة`, cat: "Operations", cost: 80, price: 140 },
-        { sku: `${pfx}-SUP-03`, en: `${company.shortEn} Enterprise Hardware`, ar: `أجهزة ${company.shortAr} للمؤسسات`, cat: "Hardware", cost: 160, price: 280 },
-      ];
   const pCats = [...new Set(prodList.map((p) => p.cat))];
   pCats.forEach((cat, idx) => {
     lines.push(
@@ -1909,6 +2456,158 @@ function buildRichModuleSql({
     );
   }
 
+  // Stock Items, Purchase Requisitions, RFQs & Quotes, Goods Receipts, Stock Counts & Inter-Warehouse Allocations
+  prodList.forEach((p, idx) => {
+    lines.push(
+      ins(
+        "inventory.stock_item",
+        {
+          id: `sit-${idx + 1}`,
+          product_id: `prod-${idx + 1}`,
+          variant_key: "STD",
+          average_cost: p.cost,
+          reorder_point: 10,
+          reorder_quantity: 20,
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
+  for (let i = 1; i <= 3; i++) {
+    const p = prodList[(i - 1) % prodList.length];
+    const reqId = `preq-00${i}`;
+    lines.push(
+      ins(
+        "inventory.purchase_requisition",
+        {
+          id: reqId,
+          number: `${pfx}-PRQ-2026-0${i}`,
+          requested_by_id: "tariq-saleh",
+          department_id: "d-ops",
+          status: i <= 2 ? "converted" : "approved",
+          needed_by: dateAhead(10 + i * 3),
+          note: `Replenishment request for ${p.en}`,
+          estimated_total: Number((p.cost * 12).toFixed(3)),
+          created_at: ago(38 - i * 5),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.purchase_requisition_line",
+        {
+          id: `prql-00${i}-1`,
+          requisition_id: reqId,
+          product_id: `prod-${((i - 1) % prodList.length) + 1}`,
+          variant_key: "STD",
+          description: p.en,
+          quantity: 12,
+          estimated_unit_cost: p.cost,
+          sort_order: 1,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    const rfqId = `rfq-00${i}`;
+    lines.push(
+      ins(
+        "inventory.rfq",
+        {
+          id: rfqId,
+          number: `${pfx}-RFQ-2026-0${i}`,
+          requisition_id: reqId,
+          title: `Vendor Quote Solicitation: ${p.en}`,
+          status: i <= 2 ? "awarded" : "sent",
+          due_date: dateAhead(7),
+          note: "Requested dual vendor comparison quotes",
+          created_by_id: "karim-fawzi",
+          created_at: ago(34 - i * 5),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.rfq_line",
+        {
+          id: `rfql-00${i}-1`,
+          rfq_id: rfqId,
+          product_id: `prod-${((i - 1) % prodList.length) + 1}`,
+          variant_key: "STD",
+          description: p.en,
+          quantity: 12,
+          sort_order: 1,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.rfq_quote",
+        { id: `rfqq-${i}-a`, rfq_id: rfqId, line_id: `rfql-00${i}-1`, supplier_id: "cnt-9", unit_price: p.cost, lead_time_days: 5, note: "Primary vendor offer", selected: true, created_at: ago(32 - i * 5) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.rfq_quote",
+        { id: `rfqq-${i}-b`, rfq_id: rfqId, line_id: `rfql-00${i}-1`, supplier_id: "cnt-10", unit_price: Number((p.cost * 1.06).toFixed(3)), lead_time_days: 7, note: "Secondary vendor quote", selected: false, created_at: ago(32 - i * 5) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+  for (let i = 1; i <= 2; i++) {
+    const grId = `grn-00${i}`;
+    lines.push(
+      ins(
+        "inventory.goods_receipt",
+        { id: grId, number: `${pfx}-GRN-2026-0${i}`, purchase_order_id: `po-00${i}`, location_id: "loc-a1", received_by_id: "tariq-saleh", received_at: ago(18 - i * 4), note: "Inspected & checked into primary warehouse", created_at: ago(18 - i * 4) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.goods_receipt_line",
+        { id: `grnl-00${i}-1`, receipt_id: grId, order_line_id: `pol-00${i}-1`, quantity: 10, rejected_quantity: 0, batch_number: `${pfx}-B26-${100 + i - 1}` },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    const scId = `scnt-00${i}`;
+    const p = prodList[(i - 1) % prodList.length];
+    lines.push(
+      ins(
+        "inventory.stock_count",
+        { id: scId, count_number: `${pfx}-CNT-2026-0${i}`, number: `${pfx}-CNT-2026-0${i}`, warehouse_id: i === 1 ? "wh-main" : "wh-hub", scope: "cycle", status: i === 1 ? "approved" : "submitted", notes: "Monthly physical cycle count", counted_by_id: "tariq-saleh", approved_by_id: i === 1 ? "karim-fawzi" : null, counted_at: ago(10 - i * 3), approved_at: i === 1 ? ago(8) : null, created_by_id: "karim-fawzi", created_at: ago(12 - i * 3), updated_at: now },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.stock_count_line",
+        { id: `scntl-00${i}-1`, count_id: scId, product_id: `prod-${i}`, variant_id: `var-${i}`, variant_key: "STD", location_id: i === 1 ? "loc-a1" : "loc-b1", system_quantity: 30 + (i - 1) * 12, counted_quantity: 30 + (i - 1) * 12, variance: 0, expected: 30 + (i - 1) * 12, counted: 30 + (i - 1) * 12, notes: `Verified ${p.sku}` },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.stock_allocation",
+        { id: `salloc-00${i}`, number: `${pfx}-TRF-2026-0${i}`, kind: "transfer", source_location_id: "loc-a1", destination_location_id: "loc-b1", status: i === 1 ? "received" : "dispatched", revision: 1, created_by_id: "tariq-saleh", approved_by_id: "karim-fawzi", created_at: ago(7 - i), updated_at: now },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "inventory.stock_allocation_line",
+        { id: `sallocl-00${i}-1`, allocation_id: `salloc-00${i}`, product_id: `prod-${i}`, variant_key: "STD", requested: 5, dispatched: 5, received: i === 1 ? 5 : 0, rejected: 0, unit_snapshot: { code: "unit", name: "Unit", factor: 1 } },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
   // ── 8. COMMERCE & DELIVERY ──────────────────────────────────────────────────
   lines.push(``);
   lines.push(`-- COMMERCE & DELIVERY`);
@@ -1966,6 +2665,27 @@ function buildRichModuleSql({
     );
   });
 
+  // Cross-Service Warehouse & Customer Segment Projections for Commerce
+  for (const wh of [
+    { id: "wh-main", code: "WH-01", en: `${company.shortEn} Main Warehouse`, ar: `${company.shortAr} المستودع الرئيسي`, def: true },
+    { id: "wh-hub", code: "WH-02", en: `${company.shortEn} Muharraq Hub`, ar: `${company.shortAr} مستودع المحرق`, def: false },
+  ]) {
+    lines.push(
+      ins(
+        "commerce.warehouse_ref",
+        { warehouse_id: wh.id, code: wh.code, name_en: wh.en, name_ar: wh.ar, is_active: true, is_default: wh.def, updated_at: now },
+        "ON CONFLICT (warehouse_id) DO NOTHING",
+      ),
+    );
+  }
+  for (const seg of [
+    { id: "seg-vip", name: "Enterprise VIP" },
+    { id: "seg-corp", name: "Corporate Accounts" },
+    { id: "seg-retail", name: "Direct Online" },
+  ]) {
+    lines.push(ins("commerce.customer_segment", seg, "ON CONFLICT (id) DO NOTHING"));
+  }
+
   if (company.hasStore) {
     lines.push(
       ins(
@@ -1995,10 +2715,12 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 16; i++) {
       const cust = customers[(i - 1) % customers.length];
       const p = prodList[(i - 1) % prodList.length];
       const ordId = `ord-${String(i).padStart(3, "0")}`;
+      const invRefId = `inv-${String(i).padStart(3, "0")}`;
+      const shpRefId = i <= 10 ? `shp-${String(i).padStart(3, "0")}` : null;
       const sub = p.price;
       const vat = Number((sub * 0.1).toFixed(3));
       const tot = Number((sub + vat + 2).toFixed(3));
@@ -2009,11 +2731,12 @@ function buildRichModuleSql({
             id: ordId,
             number: `${pfx}-ORD-${1000 + i}`,
             customer_id: cust.id,
+            contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
             email: cust.email,
             name: cust.nameEn,
             phone: cust.phone,
             channel: i % 3 === 0 ? "pos" : "storefront",
-            status: i <= 6 ? "delivered" : i <= 8 ? "shipped" : "processing",
+            status: i <= 8 ? "delivered" : i <= 12 ? "shipped" : "processing",
             payment_status: "paid",
             payment_method: i % 2 === 0 ? "card" : "benefitpay",
             fulfilment: "delivery",
@@ -2024,7 +2747,12 @@ function buildRichModuleSql({
             amount_paid: tot,
             currency: cur,
             locale: i % 2 === 0 ? "en" : "ar",
-            warehouse_id: "wh-main",
+            warehouse_id: i % 4 === 0 ? "wh-hub" : "wh-main",
+            invoice_id: invRefId,
+            shipment_id: shpRefId,
+            shipment_status: shpRefId ? (i <= 5 ? "delivered" : "out_for_delivery") : null,
+            tracking_token: shpRefId ? `trk-${pfx.toLowerCase()}-${500 + i}` : null,
+            created_by_id: "noor-hamdan",
             placed_at: ago(i * 2),
             updated_at: now,
           },
@@ -2052,7 +2780,7 @@ function buildRichModuleSql({
       lines.push(
         ins(
           "commerce.sales_order_event",
-          { id: `orde-${i}-1`, order_id: ordId, kind: "placed", status: "placed", note: "Order confirmed", by_id: "noor-hamdan", created_at: ago(i * 2) },
+          { id: `orde-${i}-1`, order_id: ordId, kind: "placed", status: "placed", note: "Order confirmed & linked to invoice", by_id: "noor-hamdan", created_at: ago(i * 2) },
           "ON CONFLICT (id) DO NOTHING",
         ),
       );
@@ -2060,6 +2788,65 @@ function buildRichModuleSql({
   }
 
   if (hasLogistics) {
+    // Delivery Cross-Service Driver & Order Projections + Slots + Route Sheets + Shipments + COD Settlements
+    for (const drvId of ["tariq-saleh", "noor-hamdan", "karim-fawzi"]) {
+      const drv = staffRoster.find((x) => x.id === drvId);
+      if (drv) {
+        lines.push(
+          ins(
+            "delivery.driver_ref",
+            {
+              employee_id: drv.id,
+              user_id: drv.id,
+              name_en: drv.nameEn,
+              name_ar: drv.nameAr,
+              phone: `+9733900${1000 + staffRoster.indexOf(drv)}`,
+              department_id: drv.dept,
+              status: "active",
+              updated_at: now,
+            },
+            "ON CONFLICT (employee_id) DO NOTHING",
+          ),
+        );
+      }
+    }
+    const orderRefCount = company.hasStore ? 16 : 10;
+    for (let i = 1; i <= orderRefCount; i++) {
+      const cust = customers[(i - 1) % customers.length];
+      const p = prodList[(i - 1) % prodList.length];
+      lines.push(
+        ins(
+          "delivery.order_ref",
+          {
+            order_id: `ord-${String(i).padStart(3, "0")}`,
+            order_number: `${pfx}-ORD-${1000 + i}`,
+            customer_id: cust.id,
+            contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
+            recipient_name: cust.nameEn,
+            recipient_phone: cust.phone,
+            status: i <= 6 ? "delivered" : "shipped",
+            total: Number((p.price * 1.1 + 2).toFixed(3)),
+            currency: cur,
+            updated_at: now,
+          },
+          "ON CONFLICT (order_id) DO NOTHING",
+        ),
+      );
+    }
+    zones.forEach((z, zIdx) => {
+      for (const slot of [
+        { s: "09:00", e: "13:00", k: "am" },
+        { s: "14:00", e: "18:00", k: "pm" },
+      ]) {
+        lines.push(
+          ins(
+            "delivery.delivery_slot",
+            { id: `dslot-${z.id}-${slot.k}`, zone_id: z.id, weekday: (zIdx % 5) + 1, slot_start: slot.s, slot_end: slot.e, capacity: 12, is_active: true, created_at: now },
+            "ON CONFLICT (id) DO NOTHING",
+          ),
+        );
+      }
+    });
     lines.push(
       ins(
         "delivery.courier_agency",
@@ -2076,14 +2863,50 @@ function buildRichModuleSql({
     );
     lines.push(
       ins(
-        "delivery.route_sheet",
-        { id: "rs-001", number: `${pfx}-RS-001`, driver_id: "tariq-saleh", vehicle_id: "veh-01", status: "completed", run_date: dateAgo(1), created_at: ago(1), updated_at: now },
+        "delivery.vehicle",
+        { id: "veh-02", plate: "BH-44108", name: `${company.shortEn} Van 02`, kind: "van", is_active: true, created_at: now, updated_at: now },
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    for (let i = 1; i <= 5; i++) {
+    for (let r = 1; r <= 3; r++) {
+      lines.push(
+        ins(
+          "delivery.route_sheet",
+          {
+            id: `rs-00${r}`,
+            number: `${pfx}-RS-00${r}`,
+            driver_id: r % 2 === 1 ? "tariq-saleh" : "noor-hamdan",
+            vehicle_id: r % 2 === 1 ? "veh-01" : "veh-02",
+            status: r <= 2 ? "completed" : "in_progress",
+            run_date: dateAgo(4 - r),
+            created_at: ago(4 - r),
+            updated_at: now,
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+      lines.push(
+        ins(
+          "delivery.cod_settlement",
+          {
+            id: `cods-00${r}`,
+            sheet_id: `rs-00${r}`,
+            driver_id: r % 2 === 1 ? "tariq-saleh" : "noor-hamdan",
+            amount_collected: Number((125 * r).toFixed(3)),
+            amount_settled: r <= 2 ? Number((125 * r).toFixed(3)) : 0,
+            status: r <= 2 ? "settled" : "pending",
+            settled_at: r <= 2 ? ago(3 - r) : null,
+            created_at: ago(4 - r),
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    }
+    for (let i = 1; i <= 10; i++) {
       const cust = customers[(i - 1) % customers.length];
-      const shpId = `shp-00${i}`;
+      const shpId = `shp-${String(i).padStart(3, "0")}`;
+      const z = zones[(i - 1) % zones.length];
+      const rsIdx = ((i - 1) % 3) + 1;
       lines.push(
         ins(
           "delivery.shipment",
@@ -2091,16 +2914,22 @@ function buildRichModuleSql({
             id: shpId,
             number: `${pfx}-SHP-${500 + i}`,
             order_id: `ord-${String(i).padStart(3, "0")}`,
-            status: i <= 3 ? "delivered" : "out_for_delivery",
+            status: i <= 5 ? "delivered" : "out_for_delivery",
             method: "fleet",
-            zone_id: zones[(i - 1) % zones.length].id,
+            zone_id: z.id,
+            slot_id: `dslot-${z.id}-${i % 2 === 0 ? "pm" : "am"}`,
+            slot_date: dateAgo(Math.max(0, 5 - i)),
+            slot_start: i % 2 === 0 ? "14:00" : "09:00",
+            slot_end: i % 2 === 0 ? "18:00" : "13:00",
             promised_by: ahead(1),
             recipient_name: cust.nameEn,
             recipient_phone: cust.phone,
             address: { line1: "Building 120, Road 28", city: cust.city, country: "BH" },
             tracking_token: `trk-${pfx.toLowerCase()}-${500 + i}`,
-            vehicle_id: "veh-01",
-            route_sheet_id: "rs-001",
+            driver_id: rsIdx % 2 === 1 ? "tariq-saleh" : "noor-hamdan",
+            vehicle_id: rsIdx % 2 === 1 ? "veh-01" : "veh-02",
+            route_sheet_id: `rs-00${rsIdx}`,
+            route_stop: i,
             created_at: ago(i),
             updated_at: now,
           },
@@ -2110,16 +2939,35 @@ function buildRichModuleSql({
       lines.push(
         ins(
           "delivery.shipment_event",
-          { id: `shpe-${i}`, shipment_id: shpId, status: i <= 3 ? "delivered" : "dispatched", note: "Handled by fleet dispatch", by_id: "tariq-saleh", at: ago(i) },
+          { id: `shpe-${i}`, shipment_id: shpId, status: i <= 5 ? "delivered" : "dispatched", note: "Handled by fleet dispatch", by_id: "tariq-saleh", at: ago(i) },
           "ON CONFLICT (id) DO NOTHING",
         ),
       );
     }
   }
 
-  // ── 9. ITSM, WORKFLOW, NOTIFY, REALTIME, AUDIT ──────────────────────────────
+  // ── 9. ITSM, WORKFLOW, FILES, NOTIFY, REALTIME, AUDIT ───────────────────────
   lines.push(``);
-  lines.push(`-- ITSM, WORKFLOW, NOTIFY, REALTIME & AUDIT`);
+  lines.push(`-- ITSM, WORKFLOW, FILES, NOTIFY, REALTIME & AUDIT`);
+  for (const s of staffRoster) {
+    lines.push(
+      ins(
+        "itsm.staff_ref",
+        {
+          employee_id: s.id,
+          user_id: s.id,
+          employee_number: s.username,
+          name_en: s.nameEn,
+          name_ar: s.nameAr,
+          email: `${s.id}@${domainHost}`,
+          department_id: s.dept,
+          status: "active",
+          updated_at: now,
+        },
+        "ON CONFLICT (employee_id) DO NOTHING",
+      ),
+    );
+  }
   for (const sl of [
     { p: "critical", r: 30, res: 240 },
     { p: "high", r: 120, res: 1440 },
@@ -2164,7 +3012,44 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
+    lines.push(
+      ins(
+        "itsm.asset_handover",
+        {
+          id: `iastho-${String(i).padStart(2, "0")}`,
+          reference: `${pfx}-ITHO-2026-0${i}`,
+          asset_id: assetId,
+          employee_id: s.id,
+          kind: "issue",
+          status: "completed",
+          handover_date: ago(160 - i * 8),
+          condition: "good",
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  const ticketTitles = [
+    "VPN Profile Renewal",
+    "ERP Role Adjustment",
+    "Printer Calibration",
+    "Email DKIM Check",
+    "Workstation Backup",
+    "POS Terminal Sync",
+    "SSL Certificate Check",
+    "New Staff Onboarding",
+    "Warehouse Scanner Pairing",
+    "Biometric Timeclock Sync",
+    "Firewall Policy Audit",
+    "Project Folder Permissions",
+  ];
+  for (let i = 1; i <= 12; i++) {
+    const s = staffRoster[(i - 1) % staffRoster.length];
     const tId = u(`ticket:${i}`);
+    const assetRefIdx = ((i - 1) % 8) + 1;
+    const assetId = `itast-${String(assetRefIdx).padStart(2, "0")}`;
+    const prjId = `prj-${String(((i - 1) % 8) + 1).padStart(3, "0")}`;
     lines.push(
       ins(
         "itsm.ticket",
@@ -2176,12 +3061,18 @@ function buildRichModuleSql({
           requester_email: `${s.id}@${domainHost}`,
           category: i % 2 === 0 ? "access" : "hardware",
           subcategory: i % 2 === 0 ? "permissions" : "workstation",
-          priority: i <= 2 ? "high" : "normal",
-          status: i <= 5 ? "resolved" : "open",
-          title: `${["VPN Profile Renewal", "ERP Role Adjustment", "Printer Calibration", "Email DKIM Check", "Workstation Backup", "POS Terminal Sync", "SSL Certificate Check", "New Staff Onboarding"][i - 1]}`,
-          description: `Operational IT support request submitted by ${s.nameEn}.`,
+          priority: i <= 3 ? "high" : "normal",
+          status: i <= 7 ? "resolved" : "open",
+          title: ticketTitles[i - 1],
+          description: `Operational IT support request submitted by ${s.nameEn} for ${prjId}.`,
+          asset_ref: `${pfx}-IT-0${assetRefIdx}`,
           assignee_id: "it-eng-001",
           assignee_name: "IT Engineer",
+          employee_id: s.id,
+          department_id: s.dept,
+          project_id: prjId,
+          asset_id: assetId,
+          document_id: `inv-${String(((i - 1) % 12) + 1).padStart(3, "0")}`,
           respond_by: ahead(1),
           resolve_by: ahead(3),
           created_at: ago(i * 3),
@@ -2206,20 +3097,38 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
+    lines.push(
+      ins(
+        "itsm.ticket_event",
+        {
+          id: u(`tkt-evt:${i}`),
+          ticket_id: tId,
+          actor_realm: "it",
+          actor_id: "it-eng-001",
+          kind: i <= 7 ? "resolved" : "assigned",
+          from_status: "open",
+          to_status: i <= 7 ? "resolved" : "in_progress",
+          detail: { message: i <= 7 ? "Resolution verified with requester" : "Assigned to IT operations queue" },
+          created_at: ago(i * 2),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
   }
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 12; i++) {
     const s = staffRoster[(i - 1) % staffRoster.length];
+    const itaskId = `itask-${i}`;
     lines.push(
       ins(
         "itsm.task",
         {
-          id: `itask-${i}`,
+          id: itaskId,
           number: `${pfx}-TSK-${100 + i}`,
           title: `${company.shortEn} Operational Milestone #${i}`,
           description: `Tracked deliverable for ${svcList[(i - 1) % svcList.length].en}.`,
-          project_id: `prj-${String(((i - 1) % 6) + 1).padStart(3, "0")}`,
-          status: i <= 5 ? "done" : i <= 8 ? "in_progress" : "todo",
+          project_id: `prj-${String(((i - 1) % 8) + 1).padStart(3, "0")}`,
+          status: i <= 6 ? "done" : i <= 9 ? "in_progress" : "todo",
           priority: i <= 3 ? "high" : "medium",
           assignee_id: s.id,
           department_id: s.dept,
@@ -2234,21 +3143,204 @@ function buildRichModuleSql({
     );
     lines.push(
       ins(
+        "itsm.task_comment",
+        {
+          id: `itaskc-${i}`,
+          task_id: itaskId,
+          author_id: s.id,
+          body: `Milestone #${i} checklist synchronized with departmental SLA schedule.`,
+          created_at: ago(i),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  // Workflow Directory Projections (Departments, Employees, Contacts, Deals, Projects)
+  for (const d of depts) {
+    lines.push(
+      ins(
+        "workflow.directory_ref",
+        { kind: "department", id: d.id, name: d.en, name_ar: d.ar, updated_at: now },
+        "ON CONFLICT (kind, id) DO NOTHING",
+      ),
+    );
+  }
+  for (const s of staffRoster) {
+    lines.push(
+      ins(
+        "workflow.directory_ref",
+        { kind: "employee", id: s.id, name: s.nameEn, name_ar: s.nameAr, email: `${s.id}@${domainHost}`, parent_id: s.dept, metadata: { titleEn: s.titleEn, role: s.role }, updated_at: now },
+        "ON CONFLICT (kind, id) DO NOTHING",
+      ),
+    );
+  }
+  customers.forEach((c, idx) => {
+    lines.push(
+      ins(
+        "workflow.directory_ref",
+        { kind: "contact", id: `cnt-${idx + 1}`, name: c.nameEn, name_ar: c.nameAr, email: c.email, metadata: { phone: c.phone, city: c.city }, updated_at: now },
+        "ON CONFLICT (kind, id) DO NOTHING",
+      ),
+    );
+  });
+  for (let i = 1; i <= 18; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const svc = svcList[(i - 1) % svcList.length];
+    lines.push(
+      ins(
+        "workflow.directory_ref",
+        { kind: "deal", id: `deal-${i}`, name: `${cust.nameEn} — ${svc.en}`, parent_id: `cnt-${((i - 1) % customers.length) + 1}`, metadata: { status: i <= 8 ? "won" : "open" }, updated_at: now },
+        "ON CONFLICT (kind, id) DO NOTHING",
+      ),
+    );
+  }
+  for (let i = 1; i <= 8; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const svc = svcList[(i - 1) % svcList.length];
+    lines.push(
+      ins(
+        "workflow.directory_ref",
+        { kind: "project", id: `prj-${String(i).padStart(3, "0")}`, name: `${cust.nameEn} — ${svc.en}`, parent_id: projectDepts[(i - 1) % projectDepts.length], updated_at: now },
+        "ON CONFLICT (kind, id) DO NOTHING",
+      ),
+    );
+  }
+
+  // Workflow Minutes of Meeting (8) + Attendees (24) + Action Items (16) -> Linked Tasks (16) & Calendar (14)
+  for (let i = 1; i <= 8; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const svc = svcList[(i - 1) % svcList.length];
+    const momId = `mom-${String(i).padStart(3, "0")}`;
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const prjId = `prj-${String(i).padStart(3, "0")}`;
+    const dealId = `deal-${i}`;
+    const deptId = projectDepts[(i - 1) % projectDepts.length];
+    const org = staffRoster[i % staffRoster.length];
+    lines.push(
+      ins(
+        "workflow.minute_of_meeting",
+        {
+          id: momId,
+          mom_number: `${pfx}-MOM-2026-${String(i).padStart(2, "0")}`,
+          title: `${cust.nameEn} — ${svc.en} Alignment`,
+          title_ar: `${cust.nameAr} — اجتماع تنسيق ${svc.ar}`,
+          meeting_date: dateAgo(32 - i * 3),
+          start_time: "10:00",
+          end_time: "11:15",
+          location: `${company.city} HQ — Boardroom ${i % 2 === 0 ? "B" : "A"}`,
+          attendees: [org.nameEn, "Omar Haddad", cust.nameEn],
+          discussion: `Reviewed milestones, commercial scope, and delivery SLAs for ${svc.en} with ${cust.nameEn}.`,
+          action_items: `Finalize deliverable schedule; confirm quotation ${pfx}-QT-2026-${200 + i} and milestone sign-off.`,
+          agenda: `1. Progress review\n2. Budget & invoicing alignment\n3. Next-phase action items`,
+          decisions: [{ title: "Proceed with phase execution", owner: org.id }],
+          notes: `Approved during bi-weekly client & operations review.`,
+          status: i <= 6 ? "approved" : "draft",
+          client_id: contactId,
+          deal_id: dealId,
+          project_id: prjId,
+          department_id: deptId,
+          organizer_id: org.id,
+          created_by_id: org.id,
+          approved_by_id: i <= 6 ? "omar-haddad" : null,
+          signature_url: "/api/files/brand/signature.png",
+          created_at: ago(32 - i * 3),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  for (let i = 1; i <= 16; i++) {
+    const s = staffRoster[(i - 1) % staffRoster.length];
+    const momIdx = ((i - 1) % 8) + 1;
+    const momId = `mom-${String(momIdx).padStart(3, "0")}`;
+    const contactId = `cnt-${((momIdx - 1) % customers.length) + 1}`;
+    const dealId = `deal-${momIdx}`;
+    const prjId = `prj-${String(momIdx).padStart(3, "0")}`;
+    const invId = `inv-${String(i).padStart(3, "0")}`;
+    const tskId = `tsk-${String(i).padStart(3, "0")}`;
+    lines.push(
+      ins(
         "workflow.task",
         {
-          id: `tsk-${String(i).padStart(3, "0")}`,
-          title: `${company.shortEn} Review & Sign-Off #${i}`,
-          description: `Departmental review task assigned to ${s.nameEn}.`,
+          id: tskId,
+          title: `${company.shortEn} Action & Sign-Off #${i}`,
+          description: `Deliverable linked to ${momId} & ${prjId}, assigned to ${s.nameEn}.`,
           assigned_to: s.id,
           due_date: ahead(i * 2),
-          status: i <= 5 ? "completed" : "in_progress",
-          priority: i <= 3 ? "high" : "medium",
+          status: i <= 8 ? "completed" : "in_progress",
+          priority: i <= 4 ? "high" : "medium",
+          related_entity_type: i % 2 === 0 ? "invoice" : "mom",
+          related_entity_id: i % 2 === 0 ? invId : momId,
+          project_id: prjId,
+          department_id: s.dept,
+          mom_id: momId,
+          client_id: contactId,
+          deal_id: dealId,
+          employee_id: s.id,
+          created_by_id: "karim-fawzi",
+          document_id: invId,
           created_at: ago(i),
           updated_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
+    lines.push(
+      ins(
+        "workflow.mom_action_item",
+        {
+          id: `moma-${String(i).padStart(3, "0")}`,
+          mom_id: momId,
+          task_id: tskId,
+          title: `Execute action item #${i} from ${momId}`,
+          description: `Follow-up coordinated between ${s.nameEn} and client account lead.`,
+          assignee_employee_id: s.id,
+          assignee_user_id: s.id,
+          department_id: s.dept,
+          due_date: dateAhead(i * 2),
+          status: i <= 8 ? "completed" : "open",
+          created_at: ago(i),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  for (let i = 1; i <= 8; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const momId = `mom-${String(i).padStart(3, "0")}`;
+    const org = staffRoster[i % staffRoster.length];
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const deptId = projectDepts[(i - 1) % projectDepts.length];
+    lines.push(
+      ins(
+        "workflow.mom_attendee",
+        { id: `momatt-${i}-1`, mom_id: momId, attendee_type: "employee", employee_id: "omar-haddad", user_id: "omar-haddad", department_id: "d-exec", display_name: "Omar Haddad", email: `omar-haddad@${domainHost}`, role_title: "Managing Partner", attended: true, created_at: ago(30 - i * 3) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "workflow.mom_attendee",
+        { id: `momatt-${i}-2`, mom_id: momId, attendee_type: "employee", employee_id: org.id, user_id: org.id, department_id: org.dept, display_name: org.nameEn, email: `${org.id}@${domainHost}`, role_title: org.titleEn, attended: true, created_at: ago(30 - i * 3) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "workflow.mom_attendee",
+        { id: `momatt-${i}-3`, mom_id: momId, attendee_type: "client", contact_id: contactId, display_name: cust.nameEn, email: cust.email, role_title: "Client Representative", attended: true, created_at: ago(30 - i * 3) },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  for (let i = 1; i <= 14; i++) {
+    const s = staffRoster[(i - 1) % staffRoster.length];
+    const momIdx = ((i - 1) % 8) + 1;
     lines.push(
       ins(
         "workflow.calendar_event",
@@ -2262,6 +3354,13 @@ function buildRichModuleSql({
           location: `${company.city} HQ`,
           organizer_id: s.id,
           event_type: i % 2 === 0 ? "meeting" : "milestone",
+          client_id: `cnt-${((momIdx - 1) % customers.length) + 1}`,
+          deal_id: `deal-${momIdx}`,
+          project_id: `prj-${String(momIdx).padStart(3, "0")}`,
+          department_id: s.dept,
+          employee_id: s.id,
+          mom_id: `mom-${String(momIdx).padStart(3, "0")}`,
+          document_id: `inv-${String(i).padStart(3, "0")}`,
           created_at: now,
         },
         "ON CONFLICT (id) DO NOTHING",
@@ -2269,17 +3368,146 @@ function buildRichModuleSql({
     );
   }
 
-  for (let i = 1; i <= 6; i++) {
+  // Workflow Contracts, Templates, Signature Requests & Official Letters (all cross-linked!)
+  for (let i = 1; i <= 8; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const svc = svcList[(i - 1) % svcList.length];
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const deptId = projectDepts[(i - 1) % projectDepts.length];
+    lines.push(
+      ins(
+        "workflow.contract",
+        {
+          id: `wctr-${String(i).padStart(3, "0")}`,
+          contract_number: `${pfx}-WCTR-2026-${String(i).padStart(2, "0")}`,
+          title: `Master Service Contract — ${cust.nameEn}`,
+          title_ar: `عقد خدمات رئيسي — ${cust.nameAr}`,
+          contract_type: i % 3 === 0 ? "retainer" : "service_agreement",
+          contact_id: contactId,
+          deal_id: `deal-${i}`,
+          project_id: `prj-${String(i).padStart(3, "0")}`,
+          quotation_id: `qt-${String(i).padStart(3, "0")}`,
+          invoice_id: `inv-${String(i).padStart(3, "0")}`,
+          employee_id: "sami-khoury",
+          department_id: deptId,
+          document_id: `inv-${String(i).padStart(3, "0")}`,
+          file_url: `/api/files/media/banners/banner-0${(i % 3) + 1}.png`,
+          status: i <= 6 ? "active" : "pending_signature",
+          start_date: dateAgo(60),
+          end_date: dateAhead(305),
+          value: Number((svc.rate * 4).toFixed(3)),
+          currency: cur,
+          notes: `Bilingual service contract covering ${svc.en} under Kingdom of Bahrain law.`,
+          created_by_id: "omar-haddad",
+          signed_by_id: i <= 6 ? "omar-haddad" : null,
+          created_at: ago(45 - i * 4),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  const letterTemplates = [
+    { id: "ltmp-01", en: "Client Onboarding Welcome Letter", ar: "خطاب ترحيب وتأهيل عميل", body: "Dear {{recipient}}, Welcome to {{company}}. Our dedicated team is pleased to commence work on {{project}}." },
+    { id: "ltmp-02", en: "Executive Employment Verification", ar: "شهادة تعريف بالراتب والعمل", body: "To Whom It May Concern: This certifies that {{recipient}} is employed full-time with {{company}} in Bahrain." },
+    { id: "ltmp-03", en: "Project Milestone Acceptance Certificate", ar: "شهادة استلام وقبول مرحلة المشروع", body: "This certificate confirms satisfactory completion and client acceptance of {{project}} milestones." },
+    { id: "ltmp-04", en: "Account Standing & Clearance Notice", ar: "إشعار مخالصة مالية وإدارية", body: "Please accept this formal notice confirming settled balances for {{recipient}} under contract {{contract}}." },
+  ];
+  letterTemplates.forEach((lt, idx) => {
+    lines.push(
+      ins(
+        "workflow.letter_template",
+        { id: lt.id, name_en: lt.en, name_ar: lt.ar, template_body: lt.body, sort_order: idx + 1 },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
+
+  for (let i = 1; i <= 8; i++) {
+    const cust = customers[(i - 1) % customers.length];
+    const s = staffRoster[(i - 1) % staffRoster.length];
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const prjId = `prj-${String(i).padStart(3, "0")}`;
+    const dealId = `deal-${i}`;
+    const sreqId = `sreq-${String(i).padStart(3, "0")}`;
+    lines.push(
+      ins(
+        "workflow.signature_request",
+        {
+          id: sreqId,
+          title: `Authorisation & Sign-Off: ${cust.nameEn} (${pfx}-DOC-0${i})`,
+          document_type: i % 2 === 0 ? "contract" : "official_letter",
+          document_id: i % 2 === 0 ? `wctr-${String(i).padStart(3, "0")}` : `olet-${String(i).padStart(3, "0")}`,
+          requested_from: cust.email,
+          status: i <= 5 ? "signed" : "pending",
+          signature_url: i <= 5 ? "/api/files/brand/signature.png" : null,
+          signed_at: i <= 5 ? ago(15 - i * 2) : null,
+          expires_at: ahead(30),
+          client_id: contactId,
+          deal_id: dealId,
+          project_id: prjId,
+          employee_id: s.id,
+          department_id: s.dept,
+          created_by_id: "omar-haddad",
+          file_url: "/api/files/brand/signature.png",
+          created_at: ago(20 - i * 2),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "workflow.official_letter",
+        {
+          id: `olet-${String(i).padStart(3, "0")}`,
+          letter_number: `${pfx}-LTR-2026-0${i}`,
+          template_id: letterTemplates[(i - 1) % letterTemplates.length].id,
+          recipient_name: cust.nameEn,
+          recipient_title: "Authorized Signatory",
+          subject: `${letterTemplates[(i - 1) % letterTemplates.length].en} — ${cust.nameEn}`,
+          body: `Formal correspondence issued by ${company.nameEn} referencing ${prjId} and ${dealId}.`,
+          status: i <= 6 ? "issued" : "draft",
+          issued_at: i <= 6 ? ago(18 - i * 2) : null,
+          client_id: contactId,
+          deal_id: dealId,
+          project_id: prjId,
+          employee_id: s.id,
+          department_id: s.dept,
+          document_id: `wctr-${String(i).padStart(3, "0")}`,
+          created_by_id: "omar-haddad",
+          signed_by_id: i <= 6 ? "omar-haddad" : null,
+          signature_request_id: sreqId,
+          file_url: "/api/files/brand/stamp.png",
+          created_at: ago(20 - i * 2),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  for (let i = 1; i <= 8; i++) {
     const reqId = `apr-${i}`;
+    const contactId = `cnt-${((i - 1) % customers.length) + 1}`;
+    const entityId = i % 2 === 0 ? `exp-${String(i).padStart(3, "0")}` : `inv-${String(i).padStart(3, "0")}`;
     lines.push(
       ins(
         "workflow.approval_request",
         {
           id: reqId,
           kind: i % 2 === 0 ? "expense" : "invoice",
-          entity_id: i % 2 === 0 ? `exp-${String(i).padStart(3, "0")}` : `inv-${String(i).padStart(3, "0")}`,
+          entity_type: i % 2 === 0 ? "expense" : "invoice",
+          entity_id: entityId,
+          document_id: entityId,
+          client_id: contactId,
+          deal_id: `deal-${i}`,
+          project_id: `prj-${String(i).padStart(3, "0")}`,
+          department_id: i % 2 === 0 ? "d-fin" : "d-sales",
+          employee_id: "faisal-mansour",
           requester_id: "faisal-mansour",
-          status: i <= 4 ? "approved" : "pending",
+          status: i <= 5 ? "approved" : "pending",
           priority: "normal",
           reason: "Standard monthly authorization workflow",
           created_at: ago(i * 2),
@@ -2288,7 +3516,7 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    if (i <= 4) {
+    if (i <= 5) {
       lines.push(
         ins(
           "workflow.approval_decision",
@@ -2304,6 +3532,52 @@ function buildRichModuleSql({
         ),
       );
     }
+  }
+
+  // Files Entity Attachments (linking real uploaded assets to invoices, contracts, MoMs, letters & tickets)
+  if (filesList.length > 0) {
+    const uploadUuidOf = (fileUrl) => {
+      const h = crypto.createHash("md5").update(`${company.slug}:${fileUrl}`).digest("hex");
+      return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
+    };
+    const attachmentTargets = [
+      { id: "attl-inv-1", entity_type: "invoice", entity_id: "inv-001", doc_type: "invoice", rel: "supporting", title: "Signed Tax Invoice", client_id: "cnt-1", emp: "layla-nasser", prj: "prj-001" },
+      { id: "attl-qt-1", entity_type: "quotation", entity_id: "qt-001", doc_type: "quotation", rel: "supporting", title: "Client Proposal Brief", client_id: "cnt-1", emp: "sami-khoury", prj: "prj-001" },
+      { id: "attl-ctr-1", entity_type: "contract", entity_id: "wctr-001", doc_type: "contract", rel: "signed_copy", title: "Executed MSA Copy", client_id: "cnt-1", emp: "omar-haddad", prj: "prj-001" },
+      { id: "attl-mom-1", entity_type: "mom", entity_id: "mom-001", doc_type: "mom", rel: "minutes_pack", title: "Signed Meeting Minutes", client_id: "cnt-1", emp: "karim-fawzi", prj: "prj-001" },
+      { id: "attl-ltr-1", entity_type: "official_letter", entity_id: "olet-001", doc_type: "official_letter", rel: "stamped_pdf", title: "Official Company Stamp Copy", client_id: "cnt-1", emp: "omar-haddad", prj: "prj-001" },
+      { id: "attl-tkt-1", entity_type: "ticket", entity_id: u("ticket:1"), doc_type: "ticket", rel: "diagnostic", title: "IT Configuration Snapshot", client_id: null, emp: "omar-haddad", prj: "prj-001" },
+      { id: "attl-prj-1", entity_type: "project", entity_id: "prj-002", doc_type: "project", rel: "deliverable", title: "Project Overview Deck", client_id: "cnt-2", emp: "tariq-saleh", prj: "prj-002" },
+      { id: "attl-emp-1", entity_type: "employee", entity_id: "tariq-saleh", doc_type: "employee", rel: "credential", title: "Staff Onboarding Pack", client_id: null, emp: "tariq-saleh", prj: null },
+    ];
+    attachmentTargets.forEach((at, idx) => {
+      const f = filesList[idx % filesList.length];
+      lines.push(
+        ins(
+          "files.entity_attachment",
+          {
+            id: at.id,
+            file_id: uploadUuidOf(f.fileUrl),
+            file_url: f.fileUrl,
+            file_name: f.fileName,
+            file_size: f.size,
+            mime_type: f.mime,
+            entity_type: at.entity_type,
+            entity_id: at.entity_id,
+            document_id: at.entity_id,
+            document_type: at.doc_type,
+            relation_kind: at.rel,
+            title: at.title,
+            client_id: at.client_id,
+            employee_id: at.emp,
+            project_id: at.prj,
+            uploaded_by_id: at.emp || "omar-haddad",
+            created_at: ago(idx + 1),
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    });
   }
 
   for (const s of staffRoster) {

@@ -1,6 +1,8 @@
 import type { components, paths } from "./generated/files";
+import { apiTimeoutMs, apiUrl } from "./config";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
+import { serviceToken } from "./service-token";
 
 export type FileRecord = components["schemas"]["File"];
 
@@ -122,3 +124,38 @@ export async function deleteFile(fileUrl: string): Promise<void> {
 
 const isStream = (body: BodyInit) =>
   typeof ReadableStream !== "undefined" && body instanceof ReadableStream;
+
+export type EntityAttachment = {
+  id: string;
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  entityType: string;
+  entityId: string;
+  relationKind?: string;
+  createdAt: string;
+};
+
+export async function createEntityAttachment(input: {
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  entityType: string;
+  entityId: string;
+  relationKind?: string;
+}): Promise<EntityAttachment> {
+  const token = await serviceToken();
+  const res = await fetch(`${apiUrl()}/v1/files/attachments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}

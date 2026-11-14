@@ -34,7 +34,7 @@ export async function saveTaskAction(input: TaskInput) {
       action: input.id ? "update" : "create",
       entity_type: "task",
       entity_id: task.id,
-      details: { number: task.number },
+      details: { number: (task as any).number ?? task.id },
     });
     refresh(task.id);
     return { success: true, id: task.id };

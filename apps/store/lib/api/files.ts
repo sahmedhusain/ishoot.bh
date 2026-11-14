@@ -1,6 +1,8 @@
 import type { components, paths } from "./generated/files";
+import { apiTimeoutMs, apiUrl } from "./config";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
+import { serviceToken } from "./service-token";
 
 export type FileRecord = components["schemas"]["File"];
 
@@ -122,3 +124,75 @@ export async function deleteFile(fileUrl: string): Promise<void> {
 
 const isStream = (body: BodyInit) =>
   typeof ReadableStream !== "undefined" && body instanceof ReadableStream;
+
+export type EntityAttachment = {
+  id: string;
+  fileId?: string | null;
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  entityType: string;
+  entityId: string;
+  documentId?: string | null;
+  documentType?: string | null;
+  relationKind?: string;
+  title?: string | null;
+  clientId?: string | null;
+  employeeId?: string | null;
+  projectId?: string | null;
+  uploadedById?: string | null;
+  createdAt: string;
+};
+
+export async function listEntityAttachments(params: {
+  entityType?: string;
+  entityId?: string;
+  documentId?: string;
+  clientId?: string;
+  limit?: number;
+} = {}): Promise<EntityAttachment[]> {
+  const sp = new URLSearchParams();
+  if (params.entityType) sp.set("entityType", params.entityType);
+  if (params.entityId) sp.set("entityId", params.entityId);
+  if (params.documentId) sp.set("documentId", params.documentId);
+  if (params.clientId) sp.set("clientId", params.clientId);
+  if (params.limit) sp.set("limit", String(params.limit));
+  const token = await serviceToken();
+  const res = await fetch(`${apiUrl()}/v1/files/attachments?${sp.toString()}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) throw await apiError(res);
+  const body = (await res.json()) as { items?: EntityAttachment[] };
+  return Array.isArray(body?.items) ? body.items : [];
+}
+
+export async function createEntityAttachment(input: {
+  fileId?: string | null;
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  entityType: string;
+  entityId: string;
+  documentId?: string | null;
+  documentType?: string | null;
+  relationKind?: string;
+  title?: string | null;
+  clientId?: string | null;
+  uploadedById?: string | null;
+}): Promise<EntityAttachment> {
+  const token = await serviceToken();
+  const res = await fetch(`${apiUrl()}/v1/files/attachments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}

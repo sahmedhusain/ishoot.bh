@@ -312,112 +312,65 @@ export async function createPayment(paymentData: {
     )
   )
     throw new Error(serverMessages.invalidPaymentMethod);
-  const createdId = await db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${paymentData.invoice_id} FOR UPDATE`;
-    const payable = await tx.invoice.findUnique({
-      where: { id: paymentData.invoice_id },
-      include: { payments: true },
-    });
-    if (
-      !payable ||
-      !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status)
-    )
-      throw new Error(
-        payable?.status === "draft"
-          ? "Mark the invoice as sent before recording payments"
-          : "Invoice is not payable",
-      );
-    await assertCompanyCurrency(payable.currency, tx);
-    if (!validMoneyAmount(paymentData.amount, payable.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    if (paymentData.currency && paymentData.currency !== payable.currency)
-      throw new Error(serverMessages.paymentCurrencyMustMatchInvoice);
-    const paid = sumMoney(
-      payable.payments.map((p) => p.amount),
-      payable.currency,
+  const { getInvoice, recordPayment } = await import("../api/finance");
+  const payable = await getInvoice(paymentData.invoice_id);
+  if (
+    !payable ||
+    !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status)
+  ) {
+    throw new Error(
+      payable?.status === "draft"
+        ? "Mark the invoice as sent before recording payments"
+        : "Invoice is not payable",
     );
-    if (
-      toMinorUnits(paid + paymentData.amount, payable.currency) >
-      toMinorUnits(Number(payable.totalAmount), payable.currency)
-    )
-      throw new Error(serverMessages.paymentExceedsOutstandingBalance);
-    const paymentDate = paymentData.payment_date
-      ? new Date(paymentData.payment_date)
-      : new Date();
-    const receiptNumber = await allocateDocumentNumber(
-      "receipt",
-      paymentDate,
-      tx,
-    );
+  }
+  await assertCompanyCurrency(payable.currency);
+  if (!validMoneyAmount(paymentData.amount, payable.currency)) {
+    throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+  }
+  if (paymentData.currency && paymentData.currency !== payable.currency) {
+    throw new Error(serverMessages.paymentCurrencyMustMatchInvoice);
+  }
+  const balanceDue = Number(payable.balanceDue ?? payable.total ?? 0);
+  if (
+    toMinorUnits(paymentData.amount, payable.currency) >
+    toMinorUnits(balanceDue + 0.0001, payable.currency)
+  ) {
+    throw new Error(serverMessages.paymentExceedsOutstandingBalance);
+  }
 
-    const payment = await tx.payment.create({
-      data: {
+  const paymentDate = paymentData.payment_date
+    ? new Date(paymentData.payment_date)
+    : new Date();
+  const paymentNumber = await allocateDocumentNumber("receipt", paymentDate);
+  const roundedAmount = roundMoney(paymentData.amount, payable.currency);
+
+  const created = await recordPayment({
+    paymentNumber,
+    invoiceId: paymentData.invoice_id,
+    contactId: payable.contactId || null,
+    amount: String(roundedAmount),
+    currency: payable.currency,
+    paymentMethod: paymentData.payment_method || "bank_transfer",
+    paymentDate: paymentDate.toISOString(),
+    reference: paymentData.reference_number || null,
+    notes: paymentData.notes || null,
+    allocations: [
+      {
         invoiceId: paymentData.invoice_id,
-        receiptNumber,
-        paymentDate,
-        amount: roundMoney(paymentData.amount, payable.currency),
+        allocatedAmount: String(roundedAmount),
         currency: payable.currency,
-        paymentMethod: paymentData.payment_method || "bank_transfer",
-        referenceNumber: paymentData.reference_number || null,
-        notes: paymentData.notes || null,
-        notificationSent: paymentData.notification_sent || false,
-        notificationChannel: paymentData.notification_channel || null,
-        createdById: paymentData.created_by || null,
       },
-    });
-
-    if (
-      paymentData.proof_attachments &&
-      paymentData.proof_attachments.length > 0
-    ) {
-      for (const att of paymentData.proof_attachments) {
-        const upload = await claimUploadOrLink(att.fileUrl,
-          paymentData.created_by,
-        );
-        await tx.attachment.create({
-          data: {
-            fileName: att.fileName,
-            fileUrl: att.fileUrl,
-            fileSize: upload.fileSize,
-            mimeType: upload.mimeType,
-            entityType: "payment",
-            entityId: payment.id,
-            uploadedById: paymentData.created_by || null,
-          },
-        });
-      }
-    }
-
-    await reconcileInvoicePaymentStatus(tx, paymentData.invoice_id);
-
-    return payment.id;
+    ],
   });
 
-  const result = await getPaymentById(createdId);
-  if (!result) {
-    throw new Error(serverMessages.failedToRetrieveCreatedPaymentRecord);
-  }
-  return result;
+  return mapApiPaymentToPayment(created);
 }
 
 export async function deletePayment(id: string): Promise<boolean> {
-  try {
-    await db.$transaction(async (tx) => {
-      const payment = await tx.payment.findUnique({
-        where: { id },
-        select: { invoiceId: true },
-      });
-
-      if (!payment) throw new Error(serverMessages.paymentNotFound);
-      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
-      await tx.payment.delete({ where: { id } });
-
-      await reconcileInvoicePaymentStatus(tx, payment.invoiceId);
-    });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting payment ${id}:`, e);
-    throw e;
-  }
+  const { deletePayment: deleteApiPayment } = await import("../api/finance");
+  await deleteApiPayment(id);
+  return true;
 }
 
 async function reconcileInvoicePaymentStatus(

@@ -32,8 +32,8 @@ flowchart TB
 
 | Layer | Execution Command | Required Infrastructure | Primary Coverage Scope |
 |---|---|---|---|
-| **Unit Tests** | `./run.sh test unit` | None | Theme engine, profile presets, CMS block validation, pricing, coupons, delivery slots, GOSI calculators. |
-| **Static Checks** | `./run.sh test checks` | None | Brand neutrality, copy parity, permission definitions, upload storage rules, server action schema integrity. |
+| **Unit Tests** | `./run.sh test unit` | None | Vitest suites across all 4 apps (`admin`, `it`, `web`, `store`) plus Go service unit tests. |
+| **Static Checks** | `./run.sh test checks` | None | Format, ESLint, TypeScript type-check across all 4 apps (`admin`, `it`, `web`, `store`), locale parity, and isolation rules. |
 | **Database Checks** | `./run.sh test db` | 2 `_test` Databases | 35+ business rule suites executing against isolated PostgreSQL transactions (finance, payroll, GOSI, approvals). |
 | **End-to-End** | `./run.sh test e2e` | Postgres + Chromium | Complete browser journeys: setup wizard, admin dashboard, order fulfillment, customer checkout, IT desk. |
 

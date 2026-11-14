@@ -2,12 +2,24 @@
 
 import * as React from "react";
 import { Button, Input, Select, Textarea } from "@platform/ui";
-import { TASK_PRIORITIES, TASK_STATUSES } from "@platform/database/constants/tasks";
+import { TASK_LINK_TYPES, TASK_PRIORITIES, TASK_STATUSES } from "@platform/database/constants/tasks";
 import type { TaskChoices, TaskInput } from "@platform/database";
 import { saveTaskAction } from "../../app/actions/tasks";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { EntityLookup } from "../shared/EntityLookup";
 import { Field } from "../setup/LanguageFields";
+
+const LINK_TYPE_LOOKUP_DOMAIN: Record<string, string | undefined> = {
+  contact: "contacts",
+  deal: "deals",
+  order: "orders",
+  request: "tickets",
+  employee: "employees",
+  contract: "contracts",
+  letter: "letters",
+  asset: "assets",
+};
 
 export function TaskForm({ initial, choices, canAssign, selfId, onSaved, onCancel }: { initial: TaskInput; choices: TaskChoices; canAssign: boolean; selfId: string; onSaved: (id: string) => void; onCancel: () => void }) {
   const { t, locale } = useAdminLocale();
@@ -72,6 +84,44 @@ export function TaskForm({ initial, choices, canAssign, selfId, onSaved, onCance
         )}
       </Field>
       <Field label={copy.startDate}>{(id) => <Input id={id} type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="rounded-lg" />}</Field>
+      <Field label="Linked Record">
+        {(id) => (
+          <Select
+            id={id}
+            name="taskLinkType"
+            value={form.linkType ?? ""}
+            onChange={(e) => setForm({ ...form, linkType: e.target.value || undefined, linkId: undefined })}
+            className="rounded-lg"
+          >
+            <option value="">—</option>
+            {TASK_LINK_TYPES.map((lt) => (
+              <option key={lt} value={lt}>
+                {(t.tasks.links as Record<string, string>)[lt] ?? lt}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
+      {form.linkType ? (
+        <Field label={t.entityLookup.selectRecord}>
+          {() =>
+            LINK_TYPE_LOOKUP_DOMAIN[form.linkType!] ? (
+              <EntityLookup
+                domain={LINK_TYPE_LOOKUP_DOMAIN[form.linkType!]!}
+                value={form.linkId ?? ""}
+                onChange={(nextId) => setForm({ ...form, linkId: nextId || undefined })}
+              />
+            ) : (
+              <Input
+                value={form.linkId ?? ""}
+                onChange={(e) => setForm({ ...form, linkId: e.target.value || undefined })}
+                placeholder="Record ID"
+                className="rounded-lg"
+              />
+            )
+          }
+        </Field>
+      ) : null}
       {error && <p role="alert" className="sm:col-span-2 text-sm text-rose-600">{error}</p>}
       <div className="sm:col-span-2 flex gap-2">
         <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy || !form.title.trim()} onClick={() => void save()} data-testid="task-save">{copy.save}</Button>

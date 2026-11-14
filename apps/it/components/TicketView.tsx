@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatMessage } from "@platform/locales";
 import { ArrowLeft, ArrowRight, Lock, Paperclip, Send, UserPlus, X } from "lucide-react";
-import type { TicketDetail } from "@platform/api-client";
+import type { TicketDetail, TicketLinks } from "@platform/api-client";
 import { ticketCategory, transitionsFrom } from "@platform/contracts";
 import { commentAction, transitionAction, uploadAttachmentAction, type AttachmentInput, type Outcome } from "../app/actions";
 import { useCopy } from "./CopyProvider";
@@ -15,8 +15,20 @@ import { OverdueBadge, RemindedBadge, StatusBadge } from "./ticket-ui";
 const MAX_TICKET_ATTACHMENTS = 10;
 const MAX_TICKET_ATTACHMENT_SIZE_MB = 10;
 
+export interface StaffOption {
+  id: string;
+  name: string;
+  email?: string;
+  employeeId?: string;
+  employeeNumber?: string;
+  departmentId?: string;
+  source: "it" | "staff" | "hr";
+}
+
 interface TicketViewProps {
   detail: TicketDetail;
+  links?: TicketLinks | null;
+  staffOptions?: StaffOption[];
   canEdit: boolean;
   canAssign: boolean;
   isAssignee: boolean;
@@ -24,6 +36,8 @@ interface TicketViewProps {
 
 export function TicketView({
   detail,
+  links,
+  staffOptions = [],
   canEdit,
   canAssign,
   isAssignee,
@@ -130,12 +144,28 @@ export function TicketView({
 
   const ticketAttachments = attachments.filter((a) => !a.commentId);
 
+  const staffById = React.useMemo(
+    () => new Map(staffOptions.map((s) => [s.id, s] as [string, StaffOption])),
+    [staffOptions],
+  );
+  const linkedEmployee = React.useMemo(() => {
+    if (!links?.employeeId) return undefined;
+    return (
+      staffOptions.find((s) => s.employeeId === links.employeeId) ||
+      staffById.get(links.employeeId)
+    );
+  }, [links?.employeeId, staffById, staffOptions]);
+
   const facts: [string, React.ReactNode][] = [
     [
       t.requester,
-      <bdi key="r" dir="auto">
-        {ticket.requesterName}
-      </bdi>,
+      <Link
+        key="r"
+        href={`/staff-accounts`}
+        className="underline decoration-dotted hover:text-sky-700 dark:hover:text-sky-300"
+      >
+        <bdi dir="auto">{ticket.requesterName}</bdi>
+      </Link>,
     ],
     [
       copy.login.email,
@@ -149,9 +179,17 @@ export function TicketView({
     [
       t.assignee,
       ticket.assigneeName ? (
-        <bdi key="a" dir="auto">
-          {ticket.assigneeName}
-        </bdi>
+        <Link
+          key="a"
+          href={
+            ticket.assigneeId && staffById.get(ticket.assigneeId)?.source === "it"
+              ? "/it-accounts"
+              : "/staff-accounts"
+          }
+          className="underline decoration-dotted hover:text-sky-700 dark:hover:text-sky-300"
+        >
+          <bdi dir="auto">{ticket.assigneeName}</bdi>
+        </Link>
       ) : (
         t.unassigned
       ),
@@ -172,14 +210,64 @@ export function TicketView({
       date(ticket.remindedAt),
     ]);
   }
-  if (ticket.assetRef) {
+  if (ticket.assetRef || links?.assetId || links?.assetRef) {
     facts.push([
       t.assetRef,
       <bdi key="asset" dir="ltr">
-        {ticket.assetRef}
+        {links?.assetRef || ticket.assetRef || links?.assetId}
       </bdi>,
     ]);
   }
+  if (links?.employeeId) {
+    facts.push([
+      "Employee",
+      <Link
+        key="emp-link"
+        href="/staff-accounts"
+        className="underline decoration-dotted hover:text-sky-700 dark:hover:text-sky-300"
+      >
+        <bdi dir="auto">
+          {linkedEmployee
+            ? `${linkedEmployee.name}${linkedEmployee.employeeNumber ? ` (${linkedEmployee.employeeNumber})` : ""}`
+            : links.employeeId}
+        </bdi>
+      </Link>,
+    ]);
+  }
+  if (links?.departmentId) {
+    facts.push([
+      "Department ID",
+      <bdi key="dept" dir="ltr">
+        {links.departmentId}
+      </bdi>,
+    ]);
+  }
+  if (links?.projectId) {
+    facts.push([
+      "Project ID",
+      <bdi key="proj" dir="ltr">
+        {links.projectId}
+      </bdi>,
+    ]);
+  }
+  if (links?.documentId) {
+    facts.push([
+      "Document ID",
+      <bdi key="doc" dir="ltr">
+        {links.documentId}
+      </bdi>,
+    ]);
+  }
+  facts.push([
+    copy.nav.audit,
+    <Link
+      key="audit"
+      href={`/audit?targetId=${encodeURIComponent(ticket.id)}`}
+      className="underline decoration-dotted hover:text-sky-700 dark:hover:text-sky-300"
+    >
+      #{number(ticket.number)} Audit Trail
+    </Link>,
+  ]);
 
   return (
     <div inert={busy} aria-busy={busy} className="space-y-4">
@@ -257,14 +345,40 @@ export function TicketView({
               <label className="text-[10px] uppercase font-bold text-ink-muted block mb-0.5">
                 {t.staffIdOrEmail}
               </label>
-              <input
-                type="text"
-                required
-                value={targetAssigneeId}
-                onChange={(e) => setTargetAssigneeId(e.target.value)}
-                placeholder={t.assigneeIdPlaceholder}
-                className="it-field-sunken w-full text-xs font-mono"
-              />
+              {staffOptions.length > 0 ? (
+                <select
+                  required
+                  value={targetAssigneeId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setTargetAssigneeId(selectedId);
+                    const match = staffById.get(selectedId);
+                    if (match) {
+                      setTargetAssigneeName(match.name || match.email || selectedId);
+                    }
+                  }}
+                  className="it-field-sunken w-full text-xs font-mono"
+                >
+                  <option value="">-- Select Staff / IT Operator --</option>
+                  {staffOptions.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                      {s.email ? ` (${s.email})` : ""}
+                      {s.employeeNumber ? ` [${s.employeeNumber}]` : ""}
+                      {` · ${s.source.toUpperCase()}`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  required
+                  value={targetAssigneeId}
+                  onChange={(e) => setTargetAssigneeId(e.target.value)}
+                  placeholder={t.assigneeIdPlaceholder}
+                  className="it-field-sunken w-full text-xs font-mono"
+                />
+              )}
             </div>
             <div>
               <label className="text-[10px] uppercase font-bold text-ink-muted block mb-0.5">

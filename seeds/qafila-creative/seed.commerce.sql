@@ -24,5 +24,10 @@ INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_o
 INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES ('dz-muharraq', 'Muharraq Governorate', 'محافظة المحرق', 2.5, 5, 40, false, 2, now(), now()) ON CONFLICT (id) DO NOTHING;
 INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES ('dz-northern', 'Northern Governorate', 'المحافظة الشمالية', 2.5, 5, 40, false, 3, now(), now()) ON CONFLICT (id) DO NOTHING;
 INSERT INTO commerce.delivery_zone (id, name_en, name_ar, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES ('dz-southern', 'Southern Governorate', 'المحافظة الجنوبية', 3, 5, 40, false, 4, now(), now()) ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.warehouse_ref (warehouse_id, code, name_en, name_ar, is_active, is_default, updated_at) VALUES ('wh-main', 'WH-01', 'Qafila Creative Main Warehouse', 'قافلة الإبداعية المستودع الرئيسي', true, true, now()) ON CONFLICT (warehouse_id) DO NOTHING;
+INSERT INTO commerce.warehouse_ref (warehouse_id, code, name_en, name_ar, is_active, is_default, updated_at) VALUES ('wh-hub', 'WH-02', 'Qafila Creative Muharraq Hub', 'قافلة الإبداعية مستودع المحرق', true, false, now()) ON CONFLICT (warehouse_id) DO NOTHING;
+INSERT INTO commerce.customer_segment (id, name) VALUES ('seg-vip', 'Enterprise VIP') ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_segment (id, name) VALUES ('seg-corp', 'Corporate Accounts') ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_segment (id, name) VALUES ('seg-retail', 'Direct Online') ON CONFLICT (id) DO NOTHING;
 
 COMMIT;

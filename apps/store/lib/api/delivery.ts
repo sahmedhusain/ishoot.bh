@@ -266,3 +266,55 @@ export async function trackShipment(token: string): Promise<Shipment> {
   return res.json();
 }
 
+export type EnrichedShipment = {
+  id: string;
+  number: string;
+  orderId: string;
+  orderNumber?: string;
+  customerId?: string | null;
+  status: string;
+  method: string;
+  zoneId?: string | null;
+  zoneNameEn?: string;
+  zoneNameAr?: string;
+  slotDate?: string | null;
+  slotStart?: string | null;
+  slotEnd?: string | null;
+  promisedBy: string;
+  recipientName: string;
+  recipientPhone: string;
+  address?: Record<string, unknown> | null;
+  trackingToken: string;
+  trackingNumber?: string | null;
+  driverId?: string | null;
+  driverNameEn?: string;
+  driverNameAr?: string;
+  driverPhone?: string | null;
+  vehicleId?: string | null;
+  vehiclePlate?: string | null;
+  codAmount: number;
+  codCollected: number;
+  deliveredAt?: string | null;
+  createdAt: string;
+};
+
+export async function listShipmentsEnriched(
+  params: { orderId?: string; driverId?: string; status?: string } = {},
+  token?: string,
+): Promise<EnrichedShipment[]> {
+  const sp = new URLSearchParams();
+  if (params.orderId) sp.set("orderId", params.orderId);
+  if (params.driverId) sp.set("driverId", params.driverId);
+  if (params.status) sp.set("status", params.status);
+  const qs = sp.toString();
+  const res = await fetch(
+    `${apiUrl()}/v1/delivery/shipments/enriched${qs ? `?${qs}` : ""}`,
+    {
+      headers: await headers(token),
+      signal: AbortSignal.timeout(apiTimeoutMs()),
+    },
+  );
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+

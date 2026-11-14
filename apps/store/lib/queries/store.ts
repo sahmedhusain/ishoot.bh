@@ -30,6 +30,7 @@ import {
   getProduct,
   listVariants,
   listStockLevels,
+  listWarehouses,
 } from "../api/inventory";
 import { listShipments as listApiShipments } from "../api/delivery";
 import { allocateDocumentNumber } from "../finance/numbering";
@@ -50,7 +51,21 @@ import {
   type OrderStatus,
 } from "../constants/store";
 
-const ensureDefaultWarehouse = async (_client?: any) => ({ id: "default" });
+const ensureDefaultWarehouse = async (_client?: any) => {
+  try {
+    const warehouses = await listWarehouses();
+    const active = (warehouses || []).filter((w) => w.isActive);
+    const preferred =
+      active.find((w) => w.isDefault) ||
+      warehouses.find((w) => w.isDefault) ||
+      active[0] ||
+      warehouses[0];
+    if (preferred?.id) return preferred;
+  } catch (err) {
+    console.warn("ensureDefaultWarehouse listWarehouses fallback:", err);
+  }
+  return { id: "default" };
+};
 export type MovementInput = any;
 
 import { createPayment } from "./payments";

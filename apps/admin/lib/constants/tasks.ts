@@ -37,6 +37,12 @@ export const TASK_LINK_TYPES = [
   "shipment",
   "purchase_order",
   "contact",
+  "mom",
+  "employee",
+  "contract",
+  "letter",
+  "asset",
+  "document",
 ] as const;
 export type TaskLinkType = (typeof TASK_LINK_TYPES)[number];
 

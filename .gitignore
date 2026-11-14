@@ -4,89 +4,82 @@
 **/.env
 **/.env.*
 !.env.example
-
-# ---> Build & Dependencies
-node_modules/
-.next/
-*/.next/
-apps/*/.next/
-.turbo/
-*/.turbo/
-*.tsbuildinfo
-dist/
-apps/admin/prisma/generated/
-
-# ---> OS & System
-.DS_Store
-.DS_Store?
-**/.DS_Store
-*.DS_Store
-._*
-.AppleDouble
-.LSOverride
-Thumbs.db
-desktop.ini
-*.log
-graphify-out/
-.agents/
-apps/*/.next-verify/
-
-.next-website-test/
-
-# Isolated verification builds
-.next-audit/
-
-# Vercel Deployment Cache
-.vercel/
-
-# IDE & Editor Settings
-.idea/
-.vscode/
-.claude/
-skills-lock.json
-
-# Raw design source files kept next to a company profile (never committed)
-seeds/assets/*/raw/
-*.ai
-
-# End-to-end test runs
-tests/e2e/.uploads/
-tests/e2e/.results/
-playwright-report/
-test-results/
-.playwright-cli/
-apps/*/.next-e2e*/
-tests/.results/
-apps/*/.results/
-**/.results/
-
-# Database dumps from ./run.sh db backup
-backups/
-!apps/it/app/(desk)/backups/
-!apps/it/app/(desk)/backups/**
-.next-material-check/
+**/.env.example
 .local/
+*.pem
+*.key
 
-# Retained local Supabase runtime data after removing its tracked configuration.
-supabase/.temp/
-supabase/.branches/
-
-# Agent task and handoff tracking files
-CLAUDE_*.md
-GEMINI_*.md
-GEMINI_*.json
-
-apps/admin/next-env.d.ts
-apps/it/next-env.d.ts
-apps/web/next-env.d.ts
+# ---> Dependencies & Lockfiles
+node_modules/
+.pnpm-store/
+# Track only app lockfiles used by Docker & CI; ignore generated root/contract lockfiles
 *package-lock.json
 !apps/admin/package-lock.json
 !apps/it/package-lock.json
 !apps/store/package-lock.json
 !apps/web/package-lock.json
-apps/it/next-env.d.ts
-apps/admin/next-env.d.ts
-apps/it/next-env.d.ts
-apps/admin/next-env.d.ts
+
+# ---> Build Outputs & Caches
+.next/
+.next-*/
+**/.next/
+**/.next-*/
+.turbo/
+*/.turbo/
+*.tsbuildinfo
+dist/
+out/
+coverage/
+*.lcov
+*.out
+
+# ---> Testing & E2E Outputs
+tests/e2e/.uploads/
+playwright-report/
+test-results/
+.playwright-cli/
+**/.results/
+
+# ---> Infrastructure & Local State (Terraform / Vercel)
+.vercel/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# ---> Database Dumps, Temp & Logs
+/backups/
+/tmp/
+*.dump
+*.tmp
+*.bak
+*.log
+
+# ---> Raw Design Source Assets (kept beside seeds, never committed)
+seeds/*/assets/raw/
+*.ai
+
+# ---> AI Assistants, Artifacts & Tooling
+.artifacts/
+.agents/
+.claude/
+graphify-out/
+skills-lock.json
+CLAUDE_*.md
+GEMINI_*.md
+GEMINI_*.json
+# Local VS Code Mermaid / Copilot extension instructions
 .github/copilot-instructions.md
 .github/instructions/mermaid.instructions.md
+
+# ---> IDE & OS
+.idea/
+.vscode/
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini

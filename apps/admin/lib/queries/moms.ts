@@ -48,60 +48,37 @@ export async function getMinutesOfMeetings(filters?: {
   status?: string;
   clientId?: string;
   dealId?: string;
+  projectId?: string;
+  departmentId?: string;
+  teamId?: string;
   search?: string;
 }): Promise<MinuteOfMeetingItem[]> {
   try {
     const { listMOMs } = await import("../api/workflow");
-    const apiMoms = await listMOMs().catch(() => null);
-    if (apiMoms && apiMoms.length > 0) {
-      let mapped = apiMoms.map(mapApiMomToItem);
-      if (filters?.status) mapped = mapped.filter((m) => m.status === filters.status);
-      if (filters?.search) {
-        const s = filters.search.toLowerCase();
-        mapped = mapped.filter(
-          (m) =>
-            m.title.toLowerCase().includes(s) ||
-            m.mom_number.toLowerCase().includes(s) ||
-            (m.agenda && m.agenda.toLowerCase().includes(s)),
-        );
-      }
-      return mapped;
+    const apiMoms = await listMOMs({
+      status: filters?.status,
+      clientId: filters?.clientId,
+      dealId: filters?.dealId,
+      projectId: filters?.projectId,
+      departmentId: filters?.departmentId,
+      teamId: filters?.teamId,
+    });
+    let mapped = (apiMoms || []).map(mapApiMomToItem);
+    if (filters?.status) mapped = mapped.filter((m) => m.status === filters.status);
+    if (filters?.search) {
+      const s = filters.search.toLowerCase();
+      mapped = mapped.filter(
+        (m) =>
+          m.title.toLowerCase().includes(s) ||
+          (m.title_ar && m.title_ar.toLowerCase().includes(s)) ||
+          m.mom_number.toLowerCase().includes(s) ||
+          (m.agenda && m.agenda.toLowerCase().includes(s)),
+      );
     }
+    return mapped;
   } catch (e) {
     console.warn("api-client listMOMs failed:", e);
-  }
-
-  try {
-    const where: any = {};
-    if (filters?.status) where.status = filters.status;
-    if (filters?.clientId) where.clientId = filters.clientId;
-    if (filters?.dealId) where.dealId = filters.dealId;
-    if (filters?.search) {
-      where.OR = [
-        { momNumber: { contains: filters.search, mode: "insensitive" } },
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { titleAr: { contains: filters.search, mode: "insensitive" } },
-        { agenda: { contains: filters.search, mode: "insensitive" } },
-      ];
-    }
-
-    const moms = await db.minuteOfMeeting.findMany({
-      where,
-      include: {
-        deal: { select: { title: true } },
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        createdBy: { select: { fullName: true } },
-        approvedBy: { select: { fullName: true } },
-      },
-      orderBy: { meetingDate: "desc" },
-    });
-
-    return moms.map(mapDatabaseMom);
-  } catch (error) {
-    console.error("Error fetching Minutes of Meetings:", error);
-    throw error;
+    return [];
   }
 }
 
@@ -205,6 +182,104 @@ export async function getNextMomNumber(
   return `${prefix}${String(row?.next ?? 1).padStart(3, "0")}`;
 }
 
+function mapMomPayload(data: {
+  title?: string;
+  titleAr?: string;
+  meetingDate?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  dealId?: string;
+  clientId?: string;
+  projectId?: string;
+  departmentId?: string;
+  teamId?: string;
+  organizerId?: string;
+  attendees?: MomAttendee[];
+  agenda?: string;
+  discussionPoints?: MomDiscussionPoint[];
+  actionItems?: MomActionItem[];
+  decisions?: string[];
+  notes?: string;
+  status?: string;
+  createdById?: string;
+  approvedById?: string;
+  signatureUrl?: string;
+  pdfStoragePath?: string;
+}) {
+  const discussionText =
+    data.discussionPoints !== undefined
+      ? JSON.stringify(data.discussionPoints || [])
+      : undefined;
+  const attendeeNames = data.attendees
+    ?.map((a) => a.name.trim())
+    .filter(Boolean);
+  const attendeeRecords = data.attendees
+    ?.filter((a) => a.name.trim() !== "")
+    .map((a) => ({
+      attendeeType:
+        a.attendeeType ||
+        (a.employeeId ? "employee" : a.contactId ? "client" : "external"),
+      employeeId: a.employeeId || null,
+      contactId: a.contactId || null,
+      displayName: a.name.trim(),
+      email: a.email || null,
+      roleTitle: a.role || null,
+      attended: Boolean(a.attended),
+    }));
+  const actionItemRecords = data.actionItems
+    ?.filter((item) => item.task.trim() !== "")
+    .map((item) => ({
+      id: item.id || undefined,
+      taskId: item.taskId || null,
+      title: item.task.trim(),
+      description: item.assignee ? `Assignee: ${item.assignee}` : null,
+      assigneeEmployeeId: item.assigneeEmployeeId || null,
+      assigneeUserId: item.assigneeUserId || null,
+      departmentId: item.departmentId || data.departmentId || null,
+      dueDate: item.dueDate
+        ? item.dueDate.includes("T")
+          ? item.dueDate
+          : `${item.dueDate}T00:00:00Z`
+        : null,
+      status: item.status || "pending",
+      createTask: true,
+    }));
+
+  return {
+    title: data.title,
+    titleAr: data.titleAr || null,
+    meetingDate: data.meetingDate
+      ? data.meetingDate.slice(0, 10)
+      : undefined,
+    startTime: data.startTime || null,
+    endTime: data.endTime || null,
+    location: data.location || null,
+    dealId: data.dealId || null,
+    clientId: data.clientId || null,
+    projectId: data.projectId || null,
+    departmentId: data.departmentId || null,
+    teamId: data.teamId || null,
+    organizerId: data.organizerId || null,
+    createdById: data.createdById || null,
+    approvedById: data.approvedById || null,
+    attendees: attendeeNames ?? [],
+    agenda: data.agenda ?? "",
+    discussion: discussionText ?? "",
+    actionItems:
+      data.actionItems !== undefined
+        ? JSON.stringify(data.actionItems)
+        : null,
+    decisions: data.decisions ?? [],
+    notes: data.notes || null,
+    status: data.status || "draft",
+    signatureUrl: data.signatureUrl || null,
+    pdfStoragePath: data.pdfStoragePath || null,
+    attendeeRecords: attendeeRecords ?? [],
+    actionItemRecords: actionItemRecords ?? [],
+  };
+}
+
 export async function createMinuteOfMeeting(data: {
   title: string;
   titleAr?: string;
@@ -214,6 +289,10 @@ export async function createMinuteOfMeeting(data: {
   location?: string;
   dealId?: string;
   clientId?: string;
+  projectId?: string;
+  departmentId?: string;
+  teamId?: string;
+  organizerId?: string;
   attendees: MomAttendee[];
   agenda: string;
   discussionPoints: MomDiscussionPoint[];
@@ -224,41 +303,17 @@ export async function createMinuteOfMeeting(data: {
   createdById?: string;
   signatureUrl?: string;
 }): Promise<MinuteOfMeetingItem> {
-  const created = await db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
-    const momNumber = await getNextMomNumber(tx);
-    return tx.minuteOfMeeting.create({
-      data: {
-        momNumber,
-        title: data.title,
-        titleAr: data.titleAr || null,
-        meetingDate: new Date(data.meetingDate),
-        startTime: data.startTime || null,
-        endTime: data.endTime || null,
-        location: data.location || null,
-        dealId: data.dealId || null,
-        clientId: data.clientId || null,
-        attendees: (data.attendees || []) as any,
-        agenda: data.agenda,
-        discussionPoints: (data.discussionPoints || []) as any,
-        actionItems: (data.actionItems || []) as any,
-        decisions: (data.decisions || []) as any,
-        notes: data.notes || null,
-        status: data.status || "draft",
-        createdById: data.createdById || null,
-        signatureUrl: data.signatureUrl || null,
-      },
-      include: {
-        deal: { select: { title: true } },
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        createdBy: { select: { fullName: true } },
-        approvedBy: { select: { fullName: true } },
-      },
-    });
+  const { createMOM } = await import("../api/workflow");
+  const payload = mapMomPayload({
+    ...data,
+    meetingDate: data.meetingDate || new Date().toISOString().slice(0, 10),
+    status: data.status || "draft",
   });
-  return mapDatabaseMom(created);
+  const created = await createMOM({
+    ...payload,
+    momNumber: `MOM-${Date.now()}`,
+  });
+  return mapApiMomToItem(created);
 }
 
 export async function updateMinuteOfMeeting(
@@ -272,6 +327,10 @@ export async function updateMinuteOfMeeting(
     location?: string;
     dealId?: string;
     clientId?: string;
+    projectId?: string;
+    departmentId?: string;
+    teamId?: string;
+    organizerId?: string;
     attendees: MomAttendee[];
     agenda: string;
     discussionPoints: MomDiscussionPoint[];
@@ -284,71 +343,49 @@ export async function updateMinuteOfMeeting(
     pdfStoragePath?: string;
   }>,
 ): Promise<MinuteOfMeetingItem | null> {
-  try {
-    const updateData: any = {};
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.titleAr !== undefined) updateData.titleAr = data.titleAr;
-    if (data.meetingDate !== undefined)
-      updateData.meetingDate = new Date(data.meetingDate);
-    if (data.startTime !== undefined) updateData.startTime = data.startTime;
-    if (data.endTime !== undefined) updateData.endTime = data.endTime;
-    if (data.location !== undefined) updateData.location = data.location;
-    if (data.dealId !== undefined) updateData.dealId = data.dealId;
-    if (data.clientId !== undefined) updateData.clientId = data.clientId;
-    if (data.attendees !== undefined)
-      updateData.attendees = data.attendees as any;
-    if (data.agenda !== undefined) updateData.agenda = data.agenda;
-    if (data.discussionPoints !== undefined)
-      updateData.discussionPoints = data.discussionPoints as any;
-    if (data.actionItems !== undefined)
-      updateData.actionItems = data.actionItems as any;
-    if (data.decisions !== undefined)
-      updateData.decisions = data.decisions as any;
-    if (data.notes !== undefined) updateData.notes = data.notes;
-    if (data.status !== undefined) updateData.status = data.status;
-    if (data.approvedById !== undefined)
-      updateData.approvedById = data.approvedById;
-    if (data.signatureUrl !== undefined)
-      updateData.signatureUrl = data.signatureUrl;
-    if (data.pdfStoragePath !== undefined)
-      updateData.pdfStoragePath = data.pdfStoragePath;
-
-    const updated = await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "MinuteOfMeeting" WHERE id = ${id} FOR UPDATE`;
-      const current = await tx.minuteOfMeeting.findUnique({
-        where: { id },
-        select: { status: true },
-      });
-      if (!current || ["approved", "shared"].includes(current.status))
-        throw new Error(serverMessages.signedMeetingsCannotBeEdited);
-      return tx.minuteOfMeeting.update({
-        where: { id },
-        data: updateData,
-        include: {
-          deal: { select: { title: true } },
-          client: {
-            select: { firstName: true, lastName: true, companyName: true },
-          },
-          createdBy: { select: { fullName: true } },
-          approvedBy: { select: { fullName: true } },
-        },
-      });
-    });
-    return mapDatabaseMom(updated);
-  } catch (error) {
-    console.error(`Error updating MOM ${id}:`, error);
-    throw error;
+  const { getMOM, updateMOM } = await import("../api/workflow");
+  const existing = await getMOM(id).catch(() => null);
+  if (!existing) throw new Error(serverMessages.signedMeetingsCannotBeEdited);
+  if (["approved", "shared"].includes(existing.status) && !data.approvedById) {
+    throw new Error(serverMessages.signedMeetingsCannotBeEdited);
   }
+  const current = mapApiMomToItem(existing);
+  const payload = mapMomPayload({
+    title: data.title ?? current.title,
+    titleAr: data.titleAr !== undefined ? data.titleAr : current.title_ar,
+    meetingDate: data.meetingDate ?? current.meeting_date,
+    startTime: data.startTime !== undefined ? data.startTime : current.start_time,
+    endTime: data.endTime !== undefined ? data.endTime : current.end_time,
+    location: data.location !== undefined ? data.location : current.location,
+    dealId: data.dealId !== undefined ? data.dealId : current.deal_id,
+    clientId: data.clientId !== undefined ? data.clientId : current.client_id,
+    projectId: data.projectId !== undefined ? data.projectId : current.project_id,
+    departmentId: data.departmentId !== undefined ? data.departmentId : current.department_id,
+    teamId: data.teamId !== undefined ? data.teamId : current.team_id,
+    organizerId: data.organizerId !== undefined ? data.organizerId : current.organizer_id,
+    attendees: data.attendees ?? current.attendees,
+    agenda: data.agenda ?? current.agenda,
+    discussionPoints: data.discussionPoints ?? current.discussion_points,
+    actionItems: data.actionItems ?? current.action_items,
+    decisions: data.decisions ?? current.decisions,
+    notes: data.notes !== undefined ? data.notes : current.notes,
+    status: data.status ?? current.status,
+    approvedById: data.approvedById ?? current.approved_by_id,
+    signatureUrl: data.signatureUrl !== undefined ? data.signatureUrl : current.signature_url,
+    pdfStoragePath: data.pdfStoragePath !== undefined ? data.pdfStoragePath : current.pdf_storage_path,
+  });
+  const updated = await updateMOM(id, {
+    ...payload,
+    replaceRelations:
+      data.attendees !== undefined || data.actionItems !== undefined,
+  });
+  return updated ? mapApiMomToItem(updated) : null;
 }
 
 export async function deleteMinuteOfMeeting(id: string): Promise<boolean> {
-  try {
-    await db.minuteOfMeeting.delete({ where: { id } });
-    return true;
-  } catch (error) {
-    console.error(`Error deleting MOM ${id}:`, error);
-    throw error;
-  }
+  const { deleteMOM } = await import("../api/workflow");
+  await deleteMOM(id);
+  return true;
 }
 
 export async function approveAndSignMom(

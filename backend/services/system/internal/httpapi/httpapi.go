@@ -71,6 +71,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	services.PUT("/integrations/:provider/status", h.updateIntegrationStatus, caller(opts.IntegrationWriters))
 	services.GET("/site", h.site, caller(opts.ReadCallers))
 	services.PUT("/site/domains", h.setDomainsForService, caller(opts.DomainWriters))
+	h.catalogRoutes(services)
 	desk := e.Group("/v1/system/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	desk.GET("/modules", h.modules, authz.Require(catalog.ITAccess, "modules", "read"))
 	desk.PUT("/modules/:key", h.setModuleForIT, authz.Require(catalog.ITAccess, "modules", "edit"))

@@ -114,11 +114,16 @@ func (s *Service) PlaceOrder(ctx context.Context, in sqlcdb.CreateOrderParams, l
 	}
 	var created postgres.SalesOrder
 	err := s.change(ctx, EventOrderPlaced, map[string]any{
-		"order_id":	in.ID,
-		"order_number":	in.Number,
-		"total":	in.Total,
-		"currency":	in.Currency,
-		"placed_at":	s.now().Format(time.RFC3339),
+		"order_id":        in.ID,
+		"order_number":    in.Number,
+		"customer_id":     in.CustomerID,
+		"contact_id":      in.ContactID,
+		"recipient_name":  in.Name,
+		"recipient_phone": in.Phone,
+		"status":          in.Status,
+		"total":           in.Total,
+		"currency":        in.Currency,
+		"placed_at":       s.now().Format(time.RFC3339),
 	}, func(st *postgres.Store) error {
 		var oErr error
 		created, oErr = st.CreateOrder(ctx, in)

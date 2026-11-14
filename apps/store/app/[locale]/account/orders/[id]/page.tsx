@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { listEntityAttachments } from "@platform/api-client";
 import { customerOrder, formatDocumentPhone, paymentLinkToken } from "@platform/database";
 import type { OrderAddress } from "@platform/database/queries/store";
 import { accountsEnabled, currentCustomer } from "../../../../../lib/customer";
@@ -35,7 +36,9 @@ export default async function CustomerOrderPage({
   const [site, t, files] = await Promise.all([
     getSite(),
     siteTranslations(locale),
-    Promise.resolve([]) as Promise<{ id: string; fileName: string }[]>,
+    listEntityAttachments({ entityType: "order", entityId: id })
+      .then((rows) => rows.map((r) => ({ id: r.id, fileName: r.fileName || "attachment" })))
+      .catch(() => [] as { id: string; fileName: string }[]),
   ]);
   const ar = locale === "ar";
   const money = (value: { toString(): string }) =>

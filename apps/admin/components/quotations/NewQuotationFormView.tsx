@@ -29,8 +29,15 @@ import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
 import { PageHeader } from "../layout/PageHeader";
 
+import type { CatalogPriceListItem } from "../../lib/queries/services";
+
 interface LineItemDraft {
+  itemKind?: "service" | "product" | "custom";
   serviceId?: string | null;
+  productId?: string | null;
+  sku?: string | null;
+  unit?: string | null;
+  taxRate?: number;
   descriptionEn: string;
   descriptionAr: string;
   quantity: number;
@@ -41,6 +48,7 @@ interface NewQuotationFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
   services?: ServiceItem[];
+  catalogItems?: CatalogPriceListItem[];
   preselectedClientId?: string;
   dealId?: string;
   inquiryId?: string;
@@ -54,6 +62,7 @@ export function NewQuotationFormView({
   initialContacts,
   company,
   services = [],
+  catalogItems,
   preselectedClientId,
   dealId,
   inquiryId,
@@ -62,6 +71,21 @@ export function NewQuotationFormView({
   salesPeople = [],
   currentUserId,
 }: NewQuotationFormViewProps) {
+  const catalogOptions: CatalogPriceListItem[] = React.useMemo(() => {
+    if (catalogItems && catalogItems.length > 0) return catalogItems;
+    return services.map((s) => ({
+      kind: "service" as const,
+      id: s.id,
+      sku: s.code,
+      nameEn: s.name_en,
+      nameAr: s.name_ar,
+      category: s.category,
+      unit: s.unit || "day",
+      unitPrice: Number(s.default_rate) || 0,
+      taxRate: 0,
+      currency: "BHD",
+    }));
+  }, [catalogItems, services]);
   const router = useRouter();
   const { isArabic, t, locale } = useAdminLocale();
   const qfT = t.quotationForm;
@@ -134,19 +158,35 @@ export function NewQuotationFormView({
     );
   };
 
-  const handleSelectService = (index: number, serviceId: string) => {
-    const s = services.find((serv) => serv.id === serviceId);
-    if (!s) return;
+  const handleSelectCatalogItem = (index: number, compositeKey: string) => {
+    if (!compositeKey) {
+      setLineItems((prev) =>
+        prev.map((item, idx) =>
+          idx === index
+            ? { ...item, itemKind: "custom", serviceId: null, productId: null, sku: null }
+            : item,
+        ),
+      );
+      return;
+    }
+    const picked = catalogOptions.find(
+      (c) => `${c.kind}:${c.id}` === compositeKey || c.id === compositeKey,
+    );
+    if (!picked) return;
     setLineItems((prev) =>
       prev.map((item, idx) => {
         if (idx !== index) return item;
         return {
           ...item,
-          serviceId: s.id,
-          descriptionEn: s.name_en,
-          descriptionAr: s.name_ar,
-
-          unitPrice: Number(s.default_rate) || 0,
+          itemKind: picked.kind,
+          serviceId: picked.kind === "service" ? picked.id : null,
+          productId: picked.kind === "product" ? picked.id : null,
+          sku: picked.sku || null,
+          unit: picked.unit || null,
+          taxRate: Number(picked.taxRate ?? 0),
+          descriptionEn: picked.nameEn,
+          descriptionAr: picked.nameAr || "",
+          unitPrice: Number(picked.unitPrice) || 0,
         };
       }),
     );
@@ -214,7 +254,12 @@ export function NewQuotationFormView({
         termsAr,
         salesOwnerId: salesOwnerId || null,
         lineItems: lineItems.map((li, idx) => ({
+          itemKind: li.itemKind || (li.serviceId ? "service" : li.productId ? "product" : "custom"),
           serviceId: li.serviceId || null,
+          productId: li.productId || null,
+          sku: li.sku || null,
+          unit: li.unit || null,
+          taxRate: Number(li.taxRate ?? 0),
           descriptionEn: li.descriptionEn,
           descriptionAr: li.descriptionAr || null,
           quantity: Number(li.quantity),
@@ -339,20 +384,28 @@ export function NewQuotationFormView({
                     )}
                   </div>
 
-                  {services.length > 0 && (
+                  {catalogOptions.length > 0 && (
                     <label>
                       <span className="block text-xs font-medium text-ink-muted mb-1">
                         {t.newQuotationForm.prePopulateFromServiceCatalog}
                       </span>
                       <Select
-                        value={item.serviceId || ""}
-                        onChange={(e) => handleSelectService(index, e.target.value)}
+                        value={
+                          item.serviceId
+                            ? `service:${item.serviceId}`
+                            : item.productId
+                              ? `product:${item.productId}`
+                              : ""
+                        }
+                        onChange={(e) => handleSelectCatalogItem(index, e.target.value)}
                         className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised px-3 py-1.5 text-ink"
                       >
                         <option value="">{t.newQuotationForm.customItem}</option>
-                        {services.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name_en} / {s.name_ar}
+                        {catalogOptions.map((c) => (
+                          <option key={`${c.kind}:${c.id}`} value={`${c.kind}:${c.id}`}>
+                            [{c.kind === "product" ? "Product" : "Service"}] {c.sku ? `${c.sku} · ` : ""}
+                            {c.nameEn}
+                            {c.nameAr ? ` / ${c.nameAr}` : ""} ({Number(c.unitPrice).toFixed(3)})
                           </option>
                         ))}
                       </Select>

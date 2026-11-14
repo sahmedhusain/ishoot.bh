@@ -1,6 +1,7 @@
 import type { components, paths } from "./generated/files";
 import { apiError } from "./errors";
 import { serviceClient, unwrap } from "./http";
+import { buildQuery, serviceFetch } from "./service-fetch";
 
 export type FileRecord = components["schemas"]["File"];
 
@@ -122,3 +123,49 @@ export async function deleteFile(fileUrl: string): Promise<void> {
 
 const isStream = (body: BodyInit) =>
   typeof ReadableStream !== "undefined" && body instanceof ReadableStream;
+
+export type EntityAttachment = {
+  id: string;
+  fileId?: string | null;
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  entityType: string;
+  entityId: string;
+  documentId?: string | null;
+  clientId?: string | null;
+  employeeId?: string | null;
+  projectId?: string | null;
+  uploadedById?: string | null;
+  category?: string | null;
+  notes?: string | null;
+  createdAt: string;
+};
+
+export type AttachmentFilters = {
+  entityType?: string;
+  entityId?: string;
+  documentId?: string;
+  clientId?: string;
+  employeeId?: string;
+  projectId?: string;
+};
+
+export const listEntityAttachments = (
+  filters?: AttachmentFilters,
+  token?: string,
+): Promise<EntityAttachment[]> =>
+  serviceFetch<EntityAttachment[]>(`/v1/files/attachments${buildQuery(filters)}`, {}, token);
+
+export const createEntityAttachment = (
+  input: Partial<EntityAttachment>,
+  token?: string,
+): Promise<EntityAttachment> =>
+  serviceFetch<EntityAttachment>("/v1/files/attachments", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+
+export const deleteEntityAttachment = (id: string, token?: string): Promise<void> =>
+  serviceFetch<void>(`/v1/files/attachments/${encodeURIComponent(id)}`, { method: "DELETE" }, token);

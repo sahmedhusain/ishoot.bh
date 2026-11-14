@@ -245,6 +245,101 @@ paths:
           description: Deleted
         default:
           $ref: "#/components/responses/Problem"
+  /v1/files/attachments:
+    get:
+      tags: [files]
+      operationId: listAttachments
+      summary: List entity and document attachment links
+      parameters:
+        - name: entityType
+          in: query
+          schema: { type: string }
+        - name: entityId
+          in: query
+          schema: { type: string }
+        - name: documentId
+          in: query
+          schema: { type: string }
+        - name: clientId
+          in: query
+          schema: { type: string }
+        - name: employeeId
+          in: query
+          schema: { type: string }
+        - name: projectId
+          in: query
+          schema: { type: string }
+        - name: fileUrl
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Attachment links
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EntityAttachment"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [files]
+      operationId: createAttachment
+      summary: Link an uploaded file or document to an entity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityType, entityId, fileUrl]
+              properties:
+                fileId: { type: string }
+                fileUrl: { type: string }
+                fileName: { type: string }
+                fileSize: { type: integer, format: int64 }
+                mimeType: { type: string }
+                entityType: { type: string }
+                entityId: { type: string }
+                documentId: { type: string }
+                documentType: { type: string }
+                relationKind: { type: string }
+                title: { type: string }
+                clientId: { type: string }
+                employeeId: { type: string }
+                projectId: { type: string }
+                uploadedById: { type: string }
+      responses:
+        "201":
+          description: Created attachment link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityAttachment"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/attachments/{id}:
+    delete:
+      tags: [files]
+      operationId: deleteAttachment
+      summary: Remove an entity attachment link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Problem"
 components:
   securitySchemes:
     serviceToken:
@@ -356,6 +451,27 @@ components:
         createdAt:
           type: string
           format: date-time
+    EntityAttachment:
+      type: object
+      required: [id, fileUrl, fileName, fileSize, mimeType, entityType, entityId, relationKind, createdAt]
+      properties:
+        id: { type: string }
+        fileId: { type: string }
+        fileUrl: { type: string }
+        fileName: { type: string }
+        fileSize: { type: integer, format: int64 }
+        mimeType: { type: string }
+        entityType: { type: string }
+        entityId: { type: string }
+        documentId: { type: string }
+        documentType: { type: string }
+        relationKind: { type: string }
+        title: { type: string }
+        clientId: { type: string }
+        employeeId: { type: string }
+        projectId: { type: string }
+        uploadedById: { type: string }
+        createdAt: { type: string, format: date-time }
     Problem:
       type: object
       required: [type, title, status, code]

@@ -207,6 +207,10 @@ export async function draftFromTemplate(
 export interface OfficialLetterInput {
   template_id?: string | null;
   employee_id?: string | null;
+  client_id?: string | null;
+  deal_id?: string | null;
+  project_id?: string | null;
+  document_id?: string | null;
   languages: string[];
   recipient_name?: string | null;
   recipient_title?: string | null;
@@ -272,63 +276,35 @@ function normalizeLetter(input: OfficialLetterInput) {
 export async function saveOfficialLetter(
   input: OfficialLetterInput,
   actorId: string,
-  id?: string,
+  _id?: string,
 ) {
   const data = normalizeLetter(input);
-  return runAtomicMutation(async () => {
-    if (id) {
-      const existing = await db.officialLetter.findUnique({
-        where: { id },
-        select: { status: true },
-      });
-      if (!existing) throw new Error(serverMessages.communicationError20);
-      if (!["draft", "rejected"].includes(existing.status))
-        throw new Error(serverMessages.communicationError21);
-      return db.officialLetter.update({
-        where: { id },
-        data: { ...data, status: "draft" },
-      });
-    }
-    const reference = await getNextSequenceNumber(
-      "LTR",
-      data.letterDate.getUTCFullYear(),
-    );
-    const referenceValues = { reference };
-    return db.officialLetter.create({
-      data: {
-        ...data,
-        subjectEn: fillPlaceholders(data.subjectEn, referenceValues),
-        subjectAr: fillPlaceholders(data.subjectAr, referenceValues),
-        bodyEn: fillPlaceholders(data.bodyEn, referenceValues),
-        bodyAr: fillPlaceholders(data.bodyAr, referenceValues),
-        reference,
-        createdById: actorId,
-        verificationCode: crypto.randomBytes(9).toString("base64url"),
-      },
-    });
+  const reference = await getNextSequenceNumber(
+    "LTR",
+    data.letterDate.getUTCFullYear(),
+  ).catch(() => `LTR-${Date.now()}`);
+  const referenceValues = { reference };
+  const { createOfficialLetter: apiCreateLetter } = await import("../api/workflow");
+  return apiCreateLetter({
+    letterNumber: reference,
+    templateId: data.templateId,
+    employeeId: data.employeeId,
+    clientId: input.client_id || null,
+    dealId: input.deal_id || null,
+    projectId: input.project_id || null,
+    documentId: input.document_id || null,
+    recipientName: data.recipientName || data.recipientOrganization || "Recipient",
+    recipientTitle: data.recipientTitle || null,
+    subject: fillPlaceholders(data.subjectEn || data.subjectAr, referenceValues),
+    body: fillPlaceholders(data.bodyEn || data.bodyAr, referenceValues),
+    status: "draft",
+    createdById: actorId,
   });
 }
 
-export async function submitOfficialLetter(id: string, actorId: string) {
-  return runAtomicMutation(async () => {
-    const letter = await db.officialLetter.findUnique({ where: { id } });
-    if (!letter) throw new Error(serverMessages.communicationError20);
-    if (!["draft", "rejected"].includes(letter.status))
-      throw new Error(serverMessages.communicationError22);
-    await db.officialLetter.update({
-      where: { id },
-      data: { status: "pending_approval" },
-    });
-    return submitForApproval({
-      targetType: "official_letter",
-      targetId: id,
-      requesterId: actorId,
-      policySnapshot: {
-        reference: letter.reference,
-        recipient: letter.recipientOrganization ?? letter.recipientName,
-      },
-    });
-  });
+export async function submitOfficialLetter(id: string, _actorId: string) {
+  const { issueOfficialLetter: apiIssueLetter } = await import("../api/workflow");
+  return apiIssueLetter(id);
 }
 
 export async function cancelOfficialLetter(id: string) {

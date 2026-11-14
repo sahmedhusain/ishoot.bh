@@ -1,6 +1,6 @@
 # Localization & Internationalization (i18n)
 
-The platform features full Arabic (`/ar`) and English (`/en`) localization across all three Next.js applications (`apps/admin`, `apps/web`, `apps/it`), PDF document renderers, and email templates.
+The platform features full Arabic (`/ar`) and English (`/en`) localization across all four Next.js applications (`apps/admin`, `apps/web`, `apps/it`, `apps/store`), PDF document renderers, and email templates.
 
 ---
 
@@ -14,6 +14,7 @@ flowchart TB
         AdminLocales["apps/admin/locales/{en,ar}.json"]
         WebLocales["apps/web/locales/{en,ar}.json"]
         ITLocales["apps/it/locales/{en,ar}.json"]
+        StoreLocales["apps/store/locales/{en,ar}.json"]
     end
 
     subgraph Formatting["Formatting & Helpers"]
@@ -24,15 +25,18 @@ flowchart TB
 
     subgraph Consumers["Render Targets"]
         AdminApp["Admin Dashboard UI"]
-        WebApp["Web Storefront UI"]
+        WebApp["Web App UI"]
+        StoreApp["Storefront App UI"]
         PDFDocs["@react-pdf Documents"]
     end
 
     AdminLocales --> FormatMsg
     WebLocales --> FormatMsg
     ITLocales --> FormatMsg
+    StoreLocales --> FormatMsg
     FormatMsg --> AdminApp
     FormatMsg --> WebApp
+    FormatMsg --> StoreApp
     BilingualText --> PDFDocs
     PhoneFormat --> AdminApp
 ```
@@ -46,6 +50,7 @@ flowchart TB
 | **Admin App** | `apps/admin/locales/{en,ar}.json` | `admin`, `shared.common`, `shared.ui`, `admin.serverErrors` |
 | **Web App** | `apps/web/locales/{en,ar}.json` | `common`, `website-activities`, `shared.common`, `shared.ui` |
 | **IT Dashboard** | `apps/it/locales/{en,ar}.json` | `it`, `shared.common`, `shared.ui`, `serverErrors` |
+| **Store App** | `apps/store/locales/{en,ar}.json` | `store`, `checkout`, `account`, `shared.common` |
 
 ---
 

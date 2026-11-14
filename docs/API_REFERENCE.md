@@ -1,6 +1,16 @@
 # Platform API & Contract Reference
 
-Complete API reference covering Go backend microservice OpenAPI specifications, Next.js route handlers, and typed server actions across `apps/web`, `apps/admin`, and `apps/it`.
+Complete API reference covering Go backend microservice OpenAPI specifications, Next.js route handlers, and typed server actions across `apps/web`, `apps/admin`, `apps/it`, and `apps/store`.
+
+### Key Relational & Cross-Service Endpoints
+- `files`: `/v1/files/attachments`, `/v1/files/attachments/{id}` (polymorphic `(entity_type, entity_id)` + optional `document_id`)
+- `system`: `/v1/system/services`, `/v1/system/services/{id}`, `/v1/system/projects`, `/v1/system/projects/{id}`
+- `sales`: `/v1/sales/catalog`, `/v1/sales/pipeline-stages`, `/v1/sales/quotations`
+- `finance`: `/v1/finance/invoices/from-quotation`, `/v1/finance/catalog`, `/v1/finance/contacts-ref`, `/v1/finance/quotations-ref`
+- `workflow`: `/v1/workflow/directory`, `/v1/workflow/contracts`, `/v1/workflow/contracts/{id}`, `/v1/workflow/moms`, `/v1/workflow/letters`
+- `hr`: `/v1/hr/employees/{id}/relations`, `/v1/hr/employees/{id}/links`, `/v1/hr/leave-balances`, `/v1/hr/users`
+- `itsm`: `/v1/itsm/desk/tickets/{id}/links`, `/v1/itsm/desk/staff-ref`, `/v1/itsm/requests/tickets/{id}/links`
+- `commerce` & `delivery`: `/v1/commerce/store/warehouses`, `/v1/commerce/admin/orders/{id}/relations`, `/v1/delivery/shipments/enriched`, `/v1/delivery/drivers-ref`, `/v1/delivery/orders-ref`
 
 ---
 

@@ -275,6 +275,59 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/BankSettlement" }
+    post:
+      tags: [settlements]
+      operationId: createSettlement
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "201":
+          description: Created bank settlement
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankSettlement" }
+
+  /v1/finance/invoices/from-quotation:
+    post:
+      tags: [invoices]
+      operationId: createInvoiceFromQuotation
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "201":
+          description: Invoice converted from quotation
+
+  /v1/finance/payments/{id}:
+    delete:
+      tags: [payments]
+      operationId: deletePayment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted payment }
+
+  /v1/finance/catalog:
+    get:
+      tags: [invoices]
+      operationId: listFinanceCatalogItems
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: Sellable services and inventory products price list }
+
+  /v1/finance/contacts-ref:
+    get:
+      tags: [invoices]
+      operationId: listFinanceContactsRef
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: Replicated client contacts }
+
+  /v1/finance/quotations-ref:
+    get:
+      tags: [invoices]
+      operationId: listFinanceQuotationsRef
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: Replicated quotations }
 
 components:
   securitySchemes:

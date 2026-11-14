@@ -441,6 +441,72 @@ export async function listAssets(filters: AssetFilters = {}) {
   }
 
   try {
+    const [{ listITAssets, listITAssetHandovers }, { listEmployees }] = await Promise.all([
+      import("../api/itsm"),
+      import("../api/hr"),
+    ]);
+    const [itAssets, itHandovers, employees] = await Promise.all([
+      listITAssets().catch(() => []),
+      listITAssetHandovers().catch(() => []),
+      listEmployees().catch(() => []),
+    ]);
+    if (itAssets && itAssets.length > 0) {
+      const empMap = new Map<string, any>(
+        (employees || []).map((e: any) => [e.id, e] as [string, any]),
+      );
+      const activeHandoverByAsset = new Map<string, any>();
+      for (const h of itHandovers || []) {
+        if (!activeHandoverByAsset.has(h.assetId)) activeHandoverByAsset.set(h.assetId, h);
+      }
+      let items: AssetRecord[] = itAssets.map((a) => {
+        const h = activeHandoverByAsset.get(a.id);
+        const emp = h?.employeeId ? empMap.get(h.employeeId) : undefined;
+        return {
+          id: a.id,
+          asset_tag: a.assetTag || a.id,
+          name: a.name,
+          brand: a.brand || undefined,
+          model: a.model || undefined,
+          serial_number: a.serialNumber || undefined,
+          purchase_date: a.purchaseDate ? a.purchaseDate.slice(0, 10) : undefined,
+          purchase_cost: a.purchaseCost ?? undefined,
+          currency: a.currency || accountingCurrency,
+          supplier: a.supplier || undefined,
+          invoice_reference: a.invoiceReference || undefined,
+          warranty_until: a.warrantyUntil ? a.warrantyUntil.slice(0, 10) : undefined,
+          condition: (a.condition || "good") as AssetCondition,
+          status: a.status || "available",
+          specs: (a.specs as Record<string, string>) || {},
+          category: {
+            id: a.categoryId || "general",
+            code: a.categoryId || "general",
+            name_en: a.categoryName || "IT & Production Asset",
+            name_ar: a.categoryName || "أصول ومعدات",
+            spec_fields: [],
+            checklist: [],
+          },
+          holder:
+            a.status === "assigned" && h?.employeeId
+              ? {
+                  id: h.employeeId,
+                  employee_number: emp?.employeeNumber || "",
+                  name_en: h.employeeName || (emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : h.employeeId),
+                  name_ar: h.employeeName || (emp ? `${emp.firstNameAr || emp.firstNameEn} ${emp.lastNameAr || emp.lastNameEn}`.trim() : h.employeeId),
+                }
+              : undefined,
+          created_at: new Date().toISOString(),
+        };
+      });
+      const counts: Record<string, number> = {};
+      for (const a of items) counts[a.status] = (counts[a.status] ?? 0) + 1;
+      const totalValue = items.reduce((sum, a) => sum + (a.purchase_cost ?? 0), 0);
+      return { items, counts, totalValue };
+    }
+  } catch (err) {
+    console.warn("listAssets itsm API fallback:", err);
+  }
+
+  try {
     const { listProducts, listCategories } = await import("../api/inventory");
     const [prods, cats] = await Promise.all([
       listProducts().catch(() => []),
@@ -578,6 +644,98 @@ export async function getAsset(id: string) {
     }
   } catch (err) {
     console.warn("getAsset db fallback:", err);
+  }
+
+  try {
+    const [{ listITAssets, listITAssetHandovers }, { listEmployees }, accountingCurrency] = await Promise.all([
+      import("../api/itsm"),
+      import("../api/hr"),
+      getAccountingCurrency(),
+    ]);
+    const [itAssets, itHandovers, employees] = await Promise.all([
+      listITAssets().catch(() => []),
+      listITAssetHandovers().catch(() => []),
+      listEmployees().catch(() => []),
+    ]);
+    const foundAsset = (itAssets || []).find((a) => a.id === id || a.assetTag === id);
+    if (foundAsset) {
+      const empMap = new Map<string, any>(
+        (employees || []).map((e: any) => [e.id, e] as [string, any]),
+      );
+      const assetHandovers = (itHandovers || []).filter((h) => h.assetId === foundAsset.id);
+      const latestHandover = assetHandovers[0];
+      const holderEmp = latestHandover?.employeeId ? empMap.get(latestHandover.employeeId) : undefined;
+      const mapped: AssetRecord = {
+        id: foundAsset.id,
+        asset_tag: foundAsset.assetTag || foundAsset.id,
+        name: foundAsset.name,
+        brand: foundAsset.brand || undefined,
+        model: foundAsset.model || undefined,
+        serial_number: foundAsset.serialNumber || undefined,
+        purchase_date: foundAsset.purchaseDate ? foundAsset.purchaseDate.slice(0, 10) : undefined,
+        purchase_cost: foundAsset.purchaseCost ?? undefined,
+        currency: foundAsset.currency || accountingCurrency,
+        supplier: foundAsset.supplier || undefined,
+        invoice_reference: foundAsset.invoiceReference || undefined,
+        warranty_until: foundAsset.warrantyUntil ? foundAsset.warrantyUntil.slice(0, 10) : undefined,
+        condition: (foundAsset.condition || "good") as AssetCondition,
+        status: foundAsset.status || "available",
+        specs: (foundAsset.specs as Record<string, string>) || {},
+        category: {
+          id: foundAsset.categoryId || "general",
+          code: foundAsset.categoryId || "general",
+          name_en: foundAsset.categoryName || "IT & Production Asset",
+          name_ar: foundAsset.categoryName || "أصول ومعدات",
+          spec_fields: [],
+          checklist: [],
+        },
+        holder:
+          foundAsset.status === "assigned" && latestHandover?.employeeId
+            ? {
+                id: latestHandover.employeeId,
+                employee_number: holderEmp?.employeeNumber || "",
+                name_en:
+                  latestHandover.employeeName ||
+                  (holderEmp
+                    ? `${holderEmp.firstNameEn} ${holderEmp.lastNameEn}`.trim()
+                    : latestHandover.employeeId),
+                name_ar:
+                  latestHandover.employeeName ||
+                  (holderEmp
+                    ? `${holderEmp.firstNameAr || holderEmp.firstNameEn} ${holderEmp.lastNameAr || holderEmp.lastNameEn}`.trim()
+                    : latestHandover.employeeId),
+              }
+            : undefined,
+        created_at: new Date().toISOString(),
+      };
+      return {
+        asset: mapped,
+        handovers: assetHandovers.map((h) => {
+          const emp = h.employeeId ? empMap.get(h.employeeId) : undefined;
+          return {
+            id: h.id,
+            reference: h.reference,
+            kind: h.kind,
+            status: h.status,
+            handover_date: (h.handoverDate || "").slice(0, 10),
+            condition: h.condition,
+            employee: {
+              name_en:
+                h.employeeName ||
+                (emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : h.employeeId),
+              name_ar:
+                h.employeeName ||
+                (emp
+                  ? `${emp.firstNameAr || emp.firstNameEn} ${emp.lastNameAr || emp.lastNameEn}`.trim()
+                  : h.employeeId),
+            },
+            damage_charge: (h as { damageCharge?: number | null }).damageCharge ?? undefined,
+          };
+        }),
+      };
+    }
+  } catch (err) {
+    console.warn("getAsset itsm API fallback:", err);
   }
 
   try {
@@ -1225,30 +1383,65 @@ export type AssetHandoverDetail = NonNullable<
 >;
 
 export async function getEmployeeAssets(employeeId: string) {
-  const [held, pending] = await Promise.all([
-    db.asset.findMany({
-      where: { holderEmployeeId: employeeId },
-      include: assetInclude,
-      orderBy: { assetTag: "asc" },
-    }),
-    db.assetHandover.findMany({
-      where: {
-        employeeId,
-        status: { in: ["awaiting_employee", "pending_approval"] },
-      },
-      include: { asset: { select: { assetTag: true, name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
+  const { listITAssets, listITAssetHandovers } = await import("../api/itsm");
+  const accountingCurrency = await getAccountingCurrency();
+  const [itAssets, handovers] = await Promise.all([
+    listITAssets().catch(() => []),
+    listITAssetHandovers({ employeeId }).catch(() => []),
   ]);
+  const assetMap = new Map<string, (typeof itAssets)[number]>(
+    (itAssets || []).map((a) => [a.id, a] as [string, (typeof itAssets)[number]]),
+  );
+  const pending = (handovers || [])
+    .filter((h) => ["awaiting_employee", "pending_approval", "open"].includes(h.status))
+    .map((h) => {
+      const a = assetMap.get(h.assetId);
+      return {
+        id: h.id,
+        reference: h.reference,
+        kind: h.kind,
+        status: h.status,
+        asset: `${h.assetTag || a?.assetTag || h.assetId} · ${h.assetName || a?.name || ""}`.trim(),
+      };
+    });
+
+  const heldIds = new Set(
+    (handovers || [])
+      .filter((h) => h.kind === "issue" && ["completed", "signed", "approved"].includes(h.status))
+      .map((h) => h.assetId),
+  );
+  const held: AssetRecord[] = itAssets
+    .filter((a) => heldIds.has(a.id) && a.status === "assigned")
+    .map((a) => ({
+      id: a.id,
+      asset_tag: a.assetTag || a.id,
+      name: a.name,
+      brand: a.brand || undefined,
+      model: a.model || undefined,
+      serial_number: a.serialNumber || undefined,
+      purchase_date: a.purchaseDate ? a.purchaseDate.slice(0, 10) : undefined,
+      purchase_cost: a.purchaseCost ?? undefined,
+      currency: a.currency || accountingCurrency,
+      supplier: a.supplier || undefined,
+      invoice_reference: a.invoiceReference || undefined,
+      warranty_until: a.warrantyUntil ? a.warrantyUntil.slice(0, 10) : undefined,
+      condition: (a.condition || "good") as AssetCondition,
+      status: a.status,
+      specs: (a.specs as Record<string, string>) || {},
+      category: {
+        id: a.categoryId || "general",
+        code: a.categoryId || "general",
+        name_en: a.categoryName || "IT & Production Asset",
+        name_ar: a.categoryName || "أصول ومعدات",
+        spec_fields: [],
+        checklist: [],
+      },
+      created_at: new Date().toISOString(),
+    }));
+
   return {
-    held: held.map(mapAsset),
-    pending: pending.map((h) => ({
-      id: h.id,
-      reference: h.reference,
-      kind: h.kind,
-      status: h.status,
-      asset: `${h.asset.assetTag} · ${h.asset.name}`,
-    })),
-    value: held.reduce((sum, a) => sum + Number(a.purchaseCost ?? 0), 0),
+    held,
+    pending,
+    value: held.reduce((sum, a) => sum + Number(a.purchase_cost ?? 0), 0),
   };
 }

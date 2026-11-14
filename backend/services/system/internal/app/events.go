@@ -34,6 +34,10 @@ type DomainsChanged struct {
 type SiteCodeChanged struct {
 	ChangedBy string `json:"changedBy"`
 }
+func (s *Service) changeInTx(ctx context.Context, tx pgx.Tx, subject string, payload any) error {
+	return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{Subject: subject, Payload: payload})
+}
+
 func (s *Service) change(ctx context.Context, subject string, payload any, write func(*postgres.Store) error) error {
 	return s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		if err := write(st); err != nil {

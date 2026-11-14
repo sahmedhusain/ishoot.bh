@@ -226,6 +226,94 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CalendarEvent" }
 
+  /v1/workflow/moms:
+    get:
+      tags: [moms]
+      operationId: listMOMs
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: List of Minutes of Meeting }
+    post:
+      tags: [moms]
+      operationId: createMOM
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "201": { description: Created Minutes of Meeting with attendees and action items }
+
+  /v1/workflow/moms/{id}:
+    get:
+      tags: [moms]
+      operationId: getMOM
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Detailed Minutes of Meeting }
+    put:
+      tags: [moms]
+      operationId: updateMOM
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Updated Minutes of Meeting }
+    delete:
+      tags: [moms]
+      operationId: deleteMOM
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted Minutes of Meeting }
+
+  /v1/workflow/directory:
+    get:
+      tags: [moms]
+      operationId: listWorkflowDirectory
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: "Replicated clients, deals, projects, employees, and departments" }
+
+  /v1/workflow/contracts:
+    get:
+      tags: [moms]
+      operationId: listContracts
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: List of contracts }
+    post:
+      tags: [moms]
+      operationId: createContract
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "201": { description: Created contract }
+
+  /v1/workflow/contracts/{id}:
+    get:
+      tags: [moms]
+      operationId: getContract
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Contract details }
+    put:
+      tags: [moms]
+      operationId: updateContract
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Updated contract }
+    delete:
+      tags: [moms]
+      operationId: deleteContract
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted contract }
+
 components:
   securitySchemes:
     staffToken:

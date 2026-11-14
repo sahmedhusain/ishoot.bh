@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go/jetstream"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
@@ -167,6 +168,17 @@ func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *p
 			defer broker.Close()
 			_ = relay.Run(ctx)
 		}()
+		consumerDone := make(chan struct{})
+		go func() {
+			defer close(consumerDone)
+			handle := func(ctx context.Context, msg jetstream.Msg) error {
+				return svc.HandleHREmployeeEvent(ctx, natsx.EventID(msg), msg.Data())
+			}
+			if cErr := broker.Consume(ctx, app.HREventsConsumer, []string{app.SubjectHREmployees}, handle, logger.Logger); cErr != nil {
+				logger.Error("itsm hr consumer stopped", "error", cErr)
+			}
+		}()
+		_ = consumerDone
 	} else {
 		logger.Warn("NATS_URL is not set: events stay in itsm.outbox until a relay publishes them")
 		close(relayDone)

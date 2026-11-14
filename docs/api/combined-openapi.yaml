@@ -44,12 +44,12 @@ tags:
     description: orders
   - name: Delivery
     description: Delivery micro-service endpoints
+  - name: shipments
+    description: shipments
   - name: routes
     description: routes
   - name: settings
     description: settings
-  - name: shipments
-    description: shipments
   - name: vehicles
     description: vehicles
   - name: zones
@@ -62,10 +62,10 @@ tags:
     description: uploads
   - name: Finance
     description: Finance micro-service endpoints
-  - name: expenses
-    description: expenses
   - name: invoices
     description: invoices
+  - name: expenses
+    description: expenses
   - name: payments
     description: payments
   - name: settlements
@@ -74,14 +74,16 @@ tags:
     description: Gateway micro-service endpoints
   - name: HR
     description: HR micro-service endpoints
-  - name: departments
-    description: departments
+  - name: attendance
+    description: attendance
   - name: employees
     description: employees
-  - name: leave
-    description: leave
+  - name: departments
+    description: departments
   - name: payroll
     description: payroll
+  - name: leave
+    description: leave
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
@@ -112,14 +114,14 @@ tags:
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
+  - name: quotations
+    description: quotations
   - name: contacts
     description: contacts
   - name: deals
     description: deals
   - name: inquiries
     description: inquiries
-  - name: quotations
-    description: quotations
   - name: System
     description: System micro-service endpoints
   - name: Workflow
@@ -128,6 +130,8 @@ tags:
     description: approvals
   - name: calendar
     description: calendar
+  - name: moms
+    description: moms
   - name: signatures
     description: signatures
   - name: tasks
@@ -1256,6 +1260,31 @@ paths:
         - Commerce
         - Web
         - Admin
+  /v1/commerce/orders/{id}/relations:
+    get:
+      description: get operation for /v1/commerce/orders/{id}/relations
+      operationId: getOrderRelations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Order cross-service relations
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - orders
+        - Commerce
+        - Web
+        - Admin
   /v1/commerce/orders/{id}/status:
     put:
       description: put operation for /v1/commerce/orders/{id}/status
@@ -1286,6 +1315,67 @@ paths:
         - orders
         - Commerce
         - Web
+        - Admin
+  /v1/commerce/warehouses:
+    get:
+      description: get operation for /v1/commerce/warehouses
+      operationId: listWarehouseRefs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Synced warehouse references
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - orders
+        - Commerce
+        - Web
+        - Admin
+  /v1/delivery/drivers-ref:
+    get:
+      description: get operation for /v1/delivery/drivers-ref
+      operationId: listDriverRefs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Synced HR driver directory
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - shipments
+        - Delivery
+        - Admin
+  /v1/delivery/orders-ref:
+    get:
+      description: get operation for /v1/delivery/orders-ref
+      operationId: listOrderRefs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Synced commerce order references
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - shipments
+        - Delivery
         - Admin
   /v1/delivery/routes:
     get:
@@ -1475,6 +1565,26 @@ paths:
         - shipments
         - Delivery
         - Admin
+  /v1/delivery/shipments/enriched:
+    get:
+      description: get operation for /v1/delivery/shipments/enriched
+      operationId: listShipmentsEnriched
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Enriched shipments with zone, driver, and order details
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - shipments
+        - Delivery
+        - Admin
   /v1/delivery/vehicles:
     get:
       description: get operation for /v1/delivery/vehicles
@@ -1561,6 +1671,141 @@ paths:
         - zones
         - Delivery
         - Admin
+  /v1/files/attachments:
+    get:
+      description: List entity and document attachment links
+      operationId: listAttachments
+      parameters:
+        - in: query
+          name: entityType
+          schema:
+            type: string
+        - in: query
+          name: entityId
+          schema:
+            type: string
+        - in: query
+          name: documentId
+          schema:
+            type: string
+        - in: query
+          name: clientId
+          schema:
+            type: string
+        - in: query
+          name: employeeId
+          schema:
+            type: string
+        - in: query
+          name: projectId
+          schema:
+            type: string
+        - in: query
+          name: fileUrl
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  items:
+                    items:
+                      $ref: '#/components/schemas/EntityAttachment'
+                    type: array
+                type: object
+          description: Attachment links
+        default:
+          $ref: '#/components/responses/Problem'
+      summary: List entity and document attachment links
+      tags:
+        - files
+        - Files
+        - Web
+    post:
+      description: Link an uploaded file or document to an entity
+      operationId: createAttachment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                clientId:
+                  type: string
+                documentId:
+                  type: string
+                documentType:
+                  type: string
+                employeeId:
+                  type: string
+                entityId:
+                  type: string
+                entityType:
+                  type: string
+                fileId:
+                  type: string
+                fileName:
+                  type: string
+                fileSize:
+                  format: int64
+                  type: integer
+                fileUrl:
+                  type: string
+                mimeType:
+                  type: string
+                projectId:
+                  type: string
+                relationKind:
+                  type: string
+                title:
+                  type: string
+                uploadedById:
+                  type: string
+              required:
+                - entityType
+                - entityId
+                - fileUrl
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityAttachment'
+          description: Created attachment link
+        default:
+          $ref: '#/components/responses/Problem'
+      summary: Link an uploaded file or document to an entity
+      tags:
+        - files
+        - Files
+        - Web
+  /v1/files/attachments/{id}:
+    delete:
+      description: Remove an entity attachment link
+      operationId: deleteAttachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: '#/components/responses/Problem'
+      summary: Remove an entity attachment link
+      tags:
+        - files
+        - Files
+        - Web
   /v1/files/content:
     delete:
       description: Delete a file and its record
@@ -1825,6 +2070,34 @@ paths:
         - uploads
         - Files
         - Web
+  /v1/finance/catalog:
+    get:
+      description: get operation for /v1/finance/catalog
+      operationId: listFinanceCatalogItems
+      responses:
+        "200":
+          description: Sellable services and inventory products price list
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - invoices
+        - Finance
+        - Admin
+  /v1/finance/contacts-ref:
+    get:
+      description: get operation for /v1/finance/contacts-ref
+      operationId: listFinanceContactsRef
+      responses:
+        "200":
+          description: Replicated client contacts
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - invoices
+        - Finance
+        - Admin
   /v1/finance/expense-categories:
     get:
       description: get operation for /v1/finance/expense-categories
@@ -2146,6 +2419,20 @@ paths:
         - invoices
         - Finance
         - Admin
+  /v1/finance/invoices/from-quotation:
+    post:
+      description: post operation for /v1/finance/invoices/from-quotation
+      operationId: createInvoiceFromQuotation
+      responses:
+        "201":
+          description: Invoice converted from quotation
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - invoices
+        - Finance
+        - Admin
   /v1/finance/payments:
     get:
       description: get operation for /v1/finance/payments
@@ -2195,6 +2482,40 @@ paths:
         - payments
         - Finance
         - Admin
+  /v1/finance/payments/{id}:
+    delete:
+      description: delete operation for /v1/finance/payments/{id}
+      operationId: deletePayment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted payment
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payments
+        - Finance
+        - Admin
+  /v1/finance/quotations-ref:
+    get:
+      description: get operation for /v1/finance/quotations-ref
+      operationId: listFinanceQuotationsRef
+      responses:
+        "200":
+          description: Replicated quotations
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - invoices
+        - Finance
+        - Admin
   /v1/finance/settlements:
     get:
       description: get operation for /v1/finance/settlements
@@ -2214,6 +2535,170 @@ paths:
       tags:
         - settlements
         - Finance
+        - Admin
+    post:
+      description: post operation for /v1/finance/settlements
+      operationId: createSettlement
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankSettlement'
+          description: Created bank settlement
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - settlements
+        - Finance
+        - Admin
+  /v1/hr/attendance:
+    get:
+      description: get operation for /v1/hr/attendance
+      operationId: listAttendance
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Attendance entries
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - attendance
+        - HR
+        - Admin
+    post:
+      description: post operation for /v1/hr/attendance
+      operationId: recordAttendance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Recorded attendance entry
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - attendance
+        - HR
+        - Admin
+  /v1/hr/credentials:
+    get:
+      description: get operation for /v1/hr/credentials
+      operationId: listCredentials
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Employee credentials
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+    post:
+      description: post operation for /v1/hr/credentials
+      operationId: createCredential
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created credential
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+  /v1/hr/credentials/{id}:
+    delete:
+      description: delete operation for /v1/hr/credentials/{id}
+      operationId: deleteCredential
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+    put:
+      description: put operation for /v1/hr/credentials/{id}
+      operationId: updateCredential
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated credential
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
         - Admin
   /v1/hr/departments:
     get:
@@ -2344,6 +2829,36 @@ paths:
         - employees
         - HR
         - Admin
+  /v1/hr/employees/{id}/links:
+    put:
+      description: put operation for /v1/hr/employees/{id}/links
+      operationId: updateEmployeeLinks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated employee relational links
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
   /v1/hr/employees/{id}/offboard:
     post:
       description: post operation for /v1/hr/employees/{id}/offboard
@@ -2361,6 +2876,140 @@ paths:
               schema:
                 $ref: '#/components/schemas/Employee'
           description: Offboarded employee
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+  /v1/hr/employees/{id}/pay-items:
+    get:
+      description: get operation for /v1/hr/employees/{id}/pay-items
+      operationId: listEmployeePayItems
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Employee payroll items
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payroll
+        - HR
+        - Admin
+  /v1/hr/employees/{id}/relations:
+    get:
+      description: get operation for /v1/hr/employees/{id}/relations
+      operationId: getEmployeeRelations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Employee with credentials, handovers, recurring pay, balances, and pay items
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+  /v1/hr/handovers:
+    get:
+      description: get operation for /v1/hr/handovers
+      operationId: listHandovers
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: delegateUserId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Employee handovers
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+    post:
+      description: post operation for /v1/hr/handovers
+      operationId: createHandover
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created handover
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
+        - HR
+        - Admin
+  /v1/hr/handovers/{id}:
+    put:
+      description: put operation for /v1/hr/handovers/{id}
+      operationId: updateHandover
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated handover
       security:
         - staffToken: []
         - serviceToken: []
@@ -2410,6 +3059,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/LeaveRequest'
           description: Created leave request
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - leave
+        - HR
+        - Admin
+  /v1/hr/leave-balances:
+    get:
+      description: get operation for /v1/hr/leave-balances
+      operationId: listLeaveBalances
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: year
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Leave balances
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - leave
+        - HR
+        - Admin
+    post:
+      description: post operation for /v1/hr/leave-balances
+      operationId: saveLeaveBalance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Saved leave balance
       security:
         - staffToken: []
         - serviceToken: []
@@ -2528,6 +3231,130 @@ paths:
         - serviceToken: []
       tags:
         - payroll
+        - HR
+        - Admin
+  /v1/hr/recurring-pay:
+    get:
+      description: get operation for /v1/hr/recurring-pay
+      operationId: listRecurringPay
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Recurring pay items
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payroll
+        - HR
+        - Admin
+    post:
+      description: post operation for /v1/hr/recurring-pay
+      operationId: createRecurringPay
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created recurring pay
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payroll
+        - HR
+        - Admin
+  /v1/hr/recurring-pay/{id}:
+    delete:
+      description: delete operation for /v1/hr/recurring-pay/{id}
+      operationId: deleteRecurringPay
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payroll
+        - HR
+        - Admin
+    put:
+      description: put operation for /v1/hr/recurring-pay/{id}
+      operationId: updateRecurringPay
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated recurring pay
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - payroll
+        - HR
+        - Admin
+  /v1/hr/users:
+    get:
+      description: get operation for /v1/hr/users
+      operationId: listIdentityUsers
+      parameters:
+        - in: query
+          name: realm
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Identity user references synced via events
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - employees
         - HR
         - Admin
   /v1/identity/{realm}/accounts/{id}:
@@ -4415,6 +5242,103 @@ paths:
         - products
         - Inventory
         - Admin
+  /v1/inventory/purchase-orders:
+    get:
+      description: get operation for /v1/inventory/purchase-orders
+      operationId: listPurchaseOrders
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: List of purchase orders
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - counts
+        - Inventory
+        - Admin
+    post:
+      description: post operation for /v1/inventory/purchase-orders
+      operationId: createPurchaseOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created purchase order
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - counts
+        - Inventory
+        - Admin
+  /v1/inventory/purchase-orders/{id}:
+    get:
+      description: get operation for /v1/inventory/purchase-orders/{id}
+      operationId: getPurchaseOrder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Purchase order details with lines
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - counts
+        - Inventory
+        - Admin
+  /v1/inventory/purchase-orders/{id}/receive:
+    post:
+      description: post operation for /v1/inventory/purchase-orders/{id}/receive
+      operationId: receivePurchaseOrder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created goods receipt
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - counts
+        - Inventory
+        - Admin
   /v1/inventory/stock/adjust:
     post:
       description: post operation for /v1/inventory/stock/adjust
@@ -4537,6 +5461,171 @@ paths:
         - warehouses
         - Inventory
         - Admin
+  /v1/itsm/desk/asset-handovers:
+    get:
+      description: get operation for /v1/itsm/desk/asset-handovers
+      operationId: listDeskAssetHandovers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Asset handovers
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+    post:
+      description: post operation for /v1/itsm/desk/asset-handovers
+      operationId: createDeskAssetHandover
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created asset handover
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+  /v1/itsm/desk/asset-handovers/{id}:
+    put:
+      description: put operation for /v1/itsm/desk/asset-handovers/{id}
+      operationId: updateDeskAssetHandover
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated asset handover
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+  /v1/itsm/desk/assets:
+    get:
+      description: get operation for /v1/itsm/desk/assets
+      operationId: listDeskAssets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: IT assets
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+    post:
+      description: post operation for /v1/itsm/desk/assets
+      operationId: createDeskAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created asset
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+  /v1/itsm/desk/assets/{id}:
+    delete:
+      description: delete operation for /v1/itsm/desk/assets/{id}
+      operationId: deleteDeskAsset
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+    put:
+      description: put operation for /v1/itsm/desk/assets/{id}
+      operationId: updateDeskAsset
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated asset
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
   /v1/itsm/desk/sla:
     get:
       description: Needs `ticket_settings:read`.
@@ -4597,6 +5686,26 @@ paths:
           description: Updated
         default:
           $ref: '#/components/responses/Problem'
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+  /v1/itsm/desk/staff-ref:
+    get:
+      description: get operation for /v1/itsm/desk/staff-ref
+      operationId: listITSMStaffRef
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Synced HR staff directory
       security:
         - userToken: []
       tags:
@@ -4745,6 +5854,53 @@ paths:
         - ITSM
         - Admin
         - IT
+  /v1/itsm/desk/tickets/{id}/links:
+    get:
+      description: get operation for /v1/itsm/desk/tickets/{id}/links
+      operationId: getTicketLinks
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Entity links for ticket
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    put:
+      description: put operation for /v1/itsm/desk/tickets/{id}/links
+      operationId: updateTicketLinks
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Updated ticket entity links
+      security:
+        - userToken: []
+      tags:
+        - desk
+        - ITSM
+        - Admin
+        - IT
   /v1/itsm/desk/tickets/{id}/transitions:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -4788,6 +5944,88 @@ paths:
         - ITSM
         - Admin
         - IT
+  /v1/itsm/requests/asset-handovers:
+    get:
+      description: get operation for /v1/itsm/requests/asset-handovers
+      operationId: listRequestAssetHandovers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Asset handovers
+      security:
+        - serviceToken: []
+      tags:
+        - requests
+        - ITSM
+        - Admin
+    post:
+      description: post operation for /v1/itsm/requests/asset-handovers
+      operationId: createRequestAssetHandover
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created asset handover
+      security:
+        - serviceToken: []
+      tags:
+        - requests
+        - ITSM
+        - Admin
+  /v1/itsm/requests/assets:
+    get:
+      description: get operation for /v1/itsm/requests/assets
+      operationId: listRequestAssets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: IT assets
+      security:
+        - serviceToken: []
+      tags:
+        - requests
+        - ITSM
+        - Admin
+    post:
+      description: post operation for /v1/itsm/requests/assets
+      operationId: createRequestAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Created asset
+      security:
+        - serviceToken: []
+      tags:
+        - requests
+        - ITSM
+        - Admin
   /v1/itsm/requests/tickets:
     get:
       description: get operation for /v1/itsm/requests/tickets
@@ -5989,6 +7227,20 @@ paths:
         - Realtime
         - Admin
         - IT
+  /v1/sales/catalog:
+    get:
+      description: get operation for /v1/sales/catalog
+      operationId: listSalesCatalogItems
+      responses:
+        "200":
+          description: Sellable services and inventory products price list
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - quotations
+        - Sales
+        - Admin
   /v1/sales/contacts:
     get:
       description: get operation for /v1/sales/contacts
@@ -6380,6 +7632,20 @@ paths:
         - serviceToken: []
       tags:
         - inquiries
+        - Sales
+        - Admin
+  /v1/sales/pipeline-stages:
+    get:
+      description: get operation for /v1/sales/pipeline-stages
+      operationId: listPipelineStages
+      responses:
+        "200":
+          description: List of pipeline stages
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - deals
         - Sales
         - Admin
   /v1/sales/quotations:
@@ -7093,6 +8359,88 @@ paths:
         - System
         - Admin
         - IT
+  /v1/system/projects:
+    get:
+      description: List projects
+      operationId: listProjects
+      responses:
+        "200":
+          description: List of projects
+      security:
+        - serviceToken: []
+      summary: List projects
+      tags:
+        - System
+        - Admin
+        - IT
+    post:
+      description: Create project
+      operationId: createProject
+      responses:
+        "201":
+          description: Created project
+      security:
+        - serviceToken: []
+      summary: Create project
+      tags:
+        - System
+        - Admin
+        - IT
+  /v1/system/projects/{id}:
+    delete:
+      description: delete operation for /v1/system/projects/{id}
+      operationId: deleteProject
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted project
+      security:
+        - serviceToken: []
+      tags:
+        - System
+        - Admin
+        - IT
+    get:
+      description: get operation for /v1/system/projects/{id}
+      operationId: getProject
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project
+      security:
+        - serviceToken: []
+      tags:
+        - System
+        - Admin
+        - IT
+    put:
+      description: put operation for /v1/system/projects/{id}
+      operationId: updateProject
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated project
+      security:
+        - serviceToken: []
+      tags:
+        - System
+        - Admin
+        - IT
   /v1/system/sequences/{kind}/reservations:
     post:
       description: Idempotently reserve an invoice or receipt number
@@ -7124,6 +8472,88 @@ paths:
       security:
         - serviceToken: []
       summary: Idempotently reserve an invoice or receipt number
+      tags:
+        - System
+        - Admin
+        - IT
+  /v1/system/services:
+    get:
+      description: List catalog services and price list
+      operationId: listServices
+      responses:
+        "200":
+          description: List of services
+      security:
+        - serviceToken: []
+      summary: List catalog services and price list
+      tags:
+        - System
+        - Admin
+        - IT
+    post:
+      description: Create catalog service
+      operationId: createService
+      responses:
+        "201":
+          description: Created service
+      security:
+        - serviceToken: []
+      summary: Create catalog service
+      tags:
+        - System
+        - Admin
+        - IT
+  /v1/system/services/{id}:
+    delete:
+      description: delete operation for /v1/system/services/{id}
+      operationId: deleteService
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted service
+      security:
+        - serviceToken: []
+      tags:
+        - System
+        - Admin
+        - IT
+    get:
+      description: get operation for /v1/system/services/{id}
+      operationId: getService
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service
+      security:
+        - serviceToken: []
+      tags:
+        - System
+        - Admin
+        - IT
+    put:
+      description: put operation for /v1/system/services/{id}
+      operationId: updateService
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated service
+      security:
+        - serviceToken: []
       tags:
         - System
         - Admin
@@ -7391,6 +8821,190 @@ paths:
         - serviceToken: []
       tags:
         - calendar
+        - Workflow
+        - Admin
+  /v1/workflow/contracts:
+    get:
+      description: get operation for /v1/workflow/contracts
+      operationId: listContracts
+      responses:
+        "200":
+          description: List of contracts
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    post:
+      description: post operation for /v1/workflow/contracts
+      operationId: createContract
+      responses:
+        "201":
+          description: Created contract
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+  /v1/workflow/contracts/{id}:
+    delete:
+      description: delete operation for /v1/workflow/contracts/{id}
+      operationId: deleteContract
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted contract
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    get:
+      description: get operation for /v1/workflow/contracts/{id}
+      operationId: getContract
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Contract details
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    put:
+      description: put operation for /v1/workflow/contracts/{id}
+      operationId: updateContract
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated contract
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+  /v1/workflow/directory:
+    get:
+      description: get operation for /v1/workflow/directory
+      operationId: listWorkflowDirectory
+      responses:
+        "200":
+          description: Replicated clients, deals, projects, employees, and departments
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+  /v1/workflow/moms:
+    get:
+      description: get operation for /v1/workflow/moms
+      operationId: listMOMs
+      responses:
+        "200":
+          description: List of Minutes of Meeting
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    post:
+      description: post operation for /v1/workflow/moms
+      operationId: createMOM
+      responses:
+        "201":
+          description: Created Minutes of Meeting with attendees and action items
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+  /v1/workflow/moms/{id}:
+    delete:
+      description: delete operation for /v1/workflow/moms/{id}
+      operationId: deleteMOM
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted Minutes of Meeting
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    get:
+      description: get operation for /v1/workflow/moms/{id}
+      operationId: getMOM
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detailed Minutes of Meeting
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
+        - Workflow
+        - Admin
+    put:
+      description: put operation for /v1/workflow/moms/{id}
+      operationId: updateMOM
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated Minutes of Meeting
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - moms
         - Workflow
         - Admin
   /v1/workflow/signatures:
@@ -9883,6 +11497,55 @@ components:
         - basicSalary
         - createdAt
         - updatedAt
+      type: object
+    EntityAttachment:
+      properties:
+        clientId:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        documentId:
+          type: string
+        documentType:
+          type: string
+        employeeId:
+          type: string
+        entityId:
+          type: string
+        entityType:
+          type: string
+        fileId:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          format: int64
+          type: integer
+        fileUrl:
+          type: string
+        id:
+          type: string
+        mimeType:
+          type: string
+        projectId:
+          type: string
+        relationKind:
+          type: string
+        title:
+          type: string
+        uploadedById:
+          type: string
+      required:
+        - id
+        - fileUrl
+        - fileName
+        - fileSize
+        - mimeType
+        - entityType
+        - entityId
+        - relationKind
+        - createdAt
       type: object
     Expense:
       properties:

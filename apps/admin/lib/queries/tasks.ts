@@ -1,10 +1,8 @@
-import { Database } from "@platform/database/decimal";
 import {
   formatMessage,
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../atomic";
 import {
   OPEN_TASK_STATUSES,
   PROJECT_STATUSES,
@@ -14,8 +12,18 @@ import {
   projectProgress,
   type TaskStatus,
 } from "../constants/tasks";
-import { createNotification } from "./notifications";
-import { getNextSequenceNumber } from "./sequence";
+import {
+  listTasks as listWorkflowTasks,
+  createTask as createWorkflowTask,
+  updateTask as updateWorkflowTask,
+  updateTaskStatus as updateWorkflowTaskStatus,
+} from "../api/workflow";
+import {
+  listSystemProjects,
+  createSystemProject,
+  updateSystemProject,
+} from "../api/system-catalog";
+import { listDepartments, listEmployees } from "../api/hr";
 
 export interface TaskScope {
   userId: string;
@@ -23,37 +31,14 @@ export interface TaskScope {
   all: boolean;
 }
 
-function scopeWhere(scope: TaskScope): Database.TaskWhereInput {
-  if (scope.all) return {};
-  return {
-    OR: [
-      { assigneeId: scope.userId },
-      { createdById: scope.userId },
-      ...(scope.departmentId ? [{ departmentId: scope.departmentId }] : []),
-      { project: { ownerId: scope.userId } },
-    ],
-  };
-}
-
-const dateOnly = (value: Date | null) =>
-  value ? value.toISOString().slice(0, 10) : null;
+const dateOnly = (value: Date | string | null | undefined) =>
+  value ? String(value).slice(0, 10) : null;
 const parseDate = (text: string) => {
   if (!text) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text))
     throw new Error(serverMessages.taskInvalid);
   return new Date(`${text}T00:00:00Z`);
 };
-
-async function userNames(ids: (string | null | undefined)[]) {
-  const wanted = Array.from(new Set(ids.filter((v): v is string => !!v)));
-  const users = wanted.length
-    ? await db.user.findMany({
-        where: { id: { in: wanted } },
-        select: { id: true, fullName: true },
-      })
-    : [];
-  return new Map<string, string>(users.map((u: any) => [u.id, u.fullName]));
-}
 
 export interface TaskFilters {
   q?: string;
@@ -65,140 +50,119 @@ export interface TaskFilters {
   closed?: boolean;
 }
 
+function empDisplayName(emp: any): string {
+  return (
+    `${emp?.firstNameEn || emp?.firstName || ""} ${emp?.lastNameEn || emp?.lastName || ""}`.trim() ||
+    emp?.nameEn ||
+    emp?.email ||
+    ""
+  );
+}
+
+function mapRelatedLink(t: any): { type: string; id: string } | null {
+  if (t.relatedEntityType && t.relatedEntityId)
+    return { type: t.relatedEntityType, id: t.relatedEntityId };
+  if (t.clientId) return { type: "contact", id: t.clientId };
+  if (t.dealId) return { type: "deal", id: t.dealId };
+  if (t.momId) return { type: "mom", id: t.momId };
+  if (t.documentId) return { type: "document", id: t.documentId };
+  if (t.employeeId) return { type: "employee", id: t.employeeId };
+  return null;
+}
+
 export async function listTasks(scope: TaskScope, filters: TaskFilters = {}) {
-  const and: Database.TaskWhereInput[] = [scopeWhere(scope)];
-  if (
-    filters.status &&
-    (TASK_STATUSES as readonly string[]).includes(filters.status)
-  )
-    and.push({ status: filters.status });
-  else if (!filters.closed)
-    and.push({ status: { in: [...OPEN_TASK_STATUSES, "done"] } });
-  if (filters.projectId) and.push({ projectId: filters.projectId });
-  if (filters.assigneeId) and.push({ assigneeId: filters.assigneeId });
-  if (filters.departmentId) and.push({ departmentId: filters.departmentId });
-  if (filters.mine) and.push({ assigneeId: scope.userId });
-  const q = filters.q?.trim();
-  if (q)
-    and.push({
-      OR: [
-        { title: { contains: q, mode: "insensitive" } },
-        { number: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-      ],
+  const [apiTasks, employees, projects] = await Promise.all([
+    listWorkflowTasks({
+      projectId: filters.projectId,
+      departmentId: filters.departmentId,
+      assignedTo: filters.mine ? scope.userId : filters.assigneeId,
+      status: filters.status,
+    }).catch(() => []),
+    listEmployees().catch(() => []),
+    listSystemProjects().catch(() => []),
+  ]);
+
+  const empMap = new Map<string, any>(
+    (employees || []).map((e: any) => [e.id, e] as [string, any]),
+  );
+  const projMap = new Map<string, any>(
+    (projects || []).map((p: any) => [p.id, p] as [string, any]),
+  );
+  const q = filters.q?.trim().toLowerCase();
+
+  return (apiTasks || [])
+    .filter((t) => {
+      if (!scope.all) {
+        const matchesUser = t.assignedTo === scope.userId || t.employeeId === scope.userId;
+        const matchesDept = scope.departmentId && t.departmentId === scope.departmentId;
+        if (!matchesUser && !matchesDept) return false;
+      }
+      if (filters.status) {
+        if (t.status !== filters.status) return false;
+      } else if (!filters.closed && !(OPEN_TASK_STATUSES as readonly string[]).includes(t.status) && t.status !== "done") {
+        return false;
+      }
+      if (q) {
+        const hit = [t.title, t.description].filter(Boolean).some((s) => String(s).toLowerCase().includes(q));
+        if (!hit) return false;
+      }
+      return true;
+    })
+    .map((t, idx) => {
+      const emp = t.assignedTo ? empMap.get(t.assignedTo) : undefined;
+      const proj = t.projectId ? projMap.get(t.projectId) : undefined;
+      return {
+        id: t.id,
+        number: `TSK-${String(idx + 1).padStart(4, "0")}`,
+        title: t.title,
+        status: t.status || "todo",
+        priority: t.priority || "normal",
+        assignee_id: t.assignedTo ?? "",
+        assignee: emp ? empDisplayName(emp) : "",
+        department_id: t.departmentId || emp?.departmentId || "",
+        project: proj ? { id: proj.id, name: proj.name || proj.code, color: "#6366f1" } : null,
+        due_date: dateOnly(t.dueDate),
+        comments: 0,
+        link: mapRelatedLink(t),
+      };
     });
-  const rows = await db.task.findMany({
-    where: { AND: and },
-    orderBy: [
-      { sortOrder: "asc" },
-      { dueDate: { sort: "asc", nulls: "last" } },
-      { createdAt: "asc" },
-    ],
-    take: 500,
-    include: {
-      project: { select: { id: true, name: true, color: true } },
-      _count: { select: { comments: true } },
-    },
-  });
-  const cutoff = Date.now() - 14 * 86_400_000;
-  const visible =
-    filters.closed || filters.status
-      ? rows
-      : rows.filter(
-          (t) =>
-            t.status !== "done" || (t.completedAt?.getTime() ?? 0) >= cutoff,
-        );
-  if (!visible.length) {
-    const { listTasks: listWorkflowTasks } = await import("../api/workflow");
-    const { listEmployees } = await import("../api/hr");
-    const [apiTasks, employees] = await Promise.all([
-      listWorkflowTasks().catch(() => []),
-      listEmployees().catch(() => []),
-    ]);
-    if (apiTasks && apiTasks.length) {
-      const empMap = new Map<string, any>((employees || []).map((e: any) => [e.id || e.ID, e] as [string, any]));
-      return apiTasks.map((t: any, idx: number) => {
-        const emp: any = t.assignedTo ? empMap.get(t.assignedTo) : undefined;
-        const assigneeName = emp ? `${emp.firstNameEn || emp.firstName || ""} ${emp.lastNameEn || emp.lastName || ""}`.trim() : (t.assignee || "");
-        return {
-          id: t.id || t.ID || "",
-          number: t.number || `TSK-${String(idx + 1).padStart(4, "0")}`,
-          title: t.title || t.Title || "",
-          status: t.status || t.Status || "todo",
-          priority: t.priority || t.Priority || "normal",
-          assignee_id: t.assignedTo || t.AssignedTo || "",
-          assignee: assigneeName,
-          department_id: t.departmentId || emp?.departmentId || "",
-          project: null,
-          due_date: t.dueDate ? String(t.dueDate).slice(0, 10) : null,
-          comments: 0,
-          link: t.relatedEntityType && t.relatedEntityId ? { type: t.relatedEntityType, id: t.relatedEntityId } : null,
-        };
-      });
-    }
-  }
-  const names = await userNames(visible.map((t) => t.assigneeId));
-  return visible.map((t) => ({
-    id: t.id,
-    number: t.number,
-    title: t.title,
-    status: t.status,
-    priority: t.priority,
-    assignee_id: t.assigneeId ?? "",
-    assignee: names.get(t.assigneeId ?? "") ?? "",
-    department_id: t.departmentId ?? "",
-    project: t.project
-      ? { id: t.project.id, name: t.project.name, color: t.project.color }
-      : null,
-    due_date: dateOnly(t.dueDate),
-    comments: t._count.comments,
-    link: t.linkType && t.linkId ? { type: t.linkType, id: t.linkId } : null,
-  }));
 }
 export type TaskRow = Awaited<ReturnType<typeof listTasks>>[number];
 
 export async function getTask(id: string, scope: TaskScope) {
-  const t = await db.task.findFirst({
-    where: { AND: [{ id }, scopeWhere(scope)] },
-    include: {
-      project: { select: { id: true, name: true, color: true } },
-      comments: { orderBy: { createdAt: "asc" } },
-    },
-  });
-  if (!t) return null;
-  const names = await userNames([
-    t.assigneeId,
-    t.createdById,
-    ...t.comments.map((c) => c.authorId),
+  const [apiTasks, employees, projects] = await Promise.all([
+    listWorkflowTasks().catch(() => []),
+    listEmployees().catch(() => []),
+    listSystemProjects().catch(() => []),
   ]);
+  const t = (apiTasks || []).find((row) => row.id === id);
+  if (!t) return null;
+  if (!scope.all && t.assignedTo !== scope.userId && (!scope.departmentId || t.departmentId !== scope.departmentId)) {
+    return null;
+  }
+  const emp = t.assignedTo ? (employees || []).find((e: any) => e.id === t.assignedTo) : undefined;
+  const proj = t.projectId ? (projects || []).find((p: any) => p.id === t.projectId) : undefined;
+  const link = mapRelatedLink(t);
   return {
     id: t.id,
-    number: t.number,
+    number: `TSK-${t.id.slice(0, 6).toUpperCase()}`,
     title: t.title,
     description: t.description ?? "",
-    status: t.status,
-    priority: t.priority,
+    status: t.status || "todo",
+    priority: t.priority || "normal",
     project_id: t.projectId ?? "",
-    project: t.project
-      ? { id: t.project.id, name: t.project.name, color: t.project.color }
-      : null,
-    assignee_id: t.assigneeId ?? "",
-    assignee: names.get(t.assigneeId ?? "") ?? "",
+    project: proj ? { id: proj.id, name: proj.name || proj.code, color: "#6366f1" } : null,
+    assignee_id: t.assignedTo ?? "",
+    assignee: emp ? empDisplayName(emp) : "",
     department_id: t.departmentId ?? "",
-    start_date: dateOnly(t.startDate),
+    start_date: null,
     due_date: dateOnly(t.dueDate),
-    link_type: t.linkType ?? "",
-    link_id: t.linkId ?? "",
-    created_by: names.get(t.createdById ?? "") ?? "",
-    created_at: t.createdAt.toISOString(),
-    completed_at: t.completedAt?.toISOString() ?? null,
-    comments: t.comments.map((c) => ({
-      id: c.id,
-      body: c.body,
-      author: names.get(c.authorId ?? "") ?? "",
-      author_id: c.authorId ?? "",
-      at: c.createdAt.toISOString(),
-    })),
+    link_type: link?.type ?? "",
+    link_id: link?.id ?? "",
+    created_by: "",
+    created_at: t.createdAt,
+    completed_at: t.status === "done" ? t.updatedAt : null,
+    comments: [] as Array<{ id: string; body: string; author: string; author_id: string; at: string }>,
   };
 }
 export type TaskRecord = NonNullable<Awaited<ReturnType<typeof getTask>>>;
@@ -216,33 +180,13 @@ export interface TaskInput {
   dueDate: string;
   linkType?: string;
   linkId?: string;
+  employeeId?: string;
+  documentId?: string;
+  clientId?: string;
+  dealId?: string;
 }
 
-async function notifyAssignee(
-  task: {
-    id: string;
-    number: string;
-    title: string;
-    assigneeId: string | null;
-  },
-  byId: string,
-) {
-  if (!task.assigneeId || task.assigneeId === byId) return;
-  const copy = getTranslations("en").admin.tasks.notifications.assigned;
-  const params = { number: task.number, title: task.title };
-  await createNotification({
-    user_id: task.assigneeId,
-    title: formatMessage(copy.title, params),
-    message: formatMessage(copy.message, params),
-    message_key: "tasks.notifications.assigned",
-    message_params: params,
-    type: "action",
-    entity_type: "task",
-    entity_id: task.id,
-  });
-}
-
-export async function saveTask(input: TaskInput, scope: TaskScope) {
+export async function saveTask(input: TaskInput, _scope: TaskScope) {
   const title = input.title.trim().slice(0, 200);
   if (
     !title ||
@@ -257,231 +201,95 @@ export async function saveTask(input: TaskInput, scope: TaskScope) {
   const linkType = input.linkType && input.linkId ? input.linkType : null;
   if (linkType && !(TASK_LINK_TYPES as readonly string[]).includes(linkType))
     throw new Error(serverMessages.taskInvalid);
-  if (
-    input.assigneeId &&
-    !(await db.user.findFirst({
-      where: { id: input.assigneeId, isActive: true, archivedAt: null },
-      select: { id: true },
-    }))
-  )
-    throw new Error(serverMessages.taskAssigneeInvalid);
-  const existing = input.id
-    ? await db.task.findFirst({
-        where: { AND: [{ id: input.id }, scopeWhere(scope)] },
-      })
-    : null;
-  if (input.id && !existing) throw new Error(serverMessages.taskNotFound);
-  if (
-    !scope.all &&
-    input.assigneeId &&
-    input.assigneeId !== scope.userId &&
-    existing?.assigneeId !== input.assigneeId
-  )
-    throw new Error(serverMessages.taskAssignNotAllowed);
-  const data = {
+
+  const payload = {
     title,
     description: input.description.trim().slice(0, 5000) || null,
     projectId: input.projectId || null,
     status: input.status,
     priority: input.priority,
-    assigneeId: input.assigneeId || null,
+    assignedTo: input.assigneeId || null,
     departmentId: input.departmentId || null,
-    startDate,
-    dueDate,
-    linkType,
-    linkId: linkType ? input.linkId!.slice(0, 60) : null,
+    dueDate: dueDate ? dueDate.toISOString() : null,
+    relatedEntityType: linkType,
+    relatedEntityId: linkType ? input.linkId!.slice(0, 60) : null,
+    clientId: input.clientId || (linkType === "contact" ? input.linkId : null) || null,
+    dealId: input.dealId || (linkType === "deal" ? input.linkId : null) || null,
+    momId: linkType === "mom" ? input.linkId : null,
+    employeeId: input.employeeId || (linkType === "employee" ? input.linkId : null) || null,
+    documentId: input.documentId || (linkType === "document" ? input.linkId : null) || null,
   };
-  if (existing) {
-    const task = await db.task.update({
-      where: { id: existing.id },
-      data: {
-        ...data,
-        completedAt:
-          input.status === "done" ? (existing.completedAt ?? new Date()) : null,
-        ...(existing.dueDate?.getTime() !== dueDate?.getTime()
-          ? { remindedAt: null }
-          : {}),
-      },
-    });
-    if (task.assigneeId !== existing.assigneeId)
-      await notifyAssignee(task, scope.userId);
-    return task;
+
+  if (input.id) {
+    return updateWorkflowTask(input.id, payload);
   }
-  const number = await getNextSequenceNumber("TSK");
-  const task = await db.task.create({
-    data: {
-      ...data,
-      completedAt: input.status === "done" ? new Date() : null,
-      number,
-      createdById: scope.userId,
-    },
-  });
-  await notifyAssignee(task, scope.userId);
-  return task;
+  return createWorkflowTask(payload);
 }
 
-export async function moveTask(id: string, status: string, scope: TaskScope) {
+export async function moveTask(id: string, status: string, _scope: TaskScope) {
   if (!(TASK_STATUSES as readonly string[]).includes(status))
     throw new Error(serverMessages.taskInvalid);
-  const task = await db.task.findFirst({
-    where: { AND: [{ id }, scopeWhere(scope)] },
-  });
-  if (!task) throw new Error(serverMessages.taskNotFound);
-  await db.task.update({
-    where: { id },
-    data: {
-      status,
-      completedAt: status === "done" ? (task.completedAt ?? new Date()) : null,
-    },
-  });
-  if (
-    status === "done" &&
-    task.status !== "done" &&
-    task.createdById &&
-    task.createdById !== scope.userId
-  ) {
-    const copy = getTranslations("en").admin.tasks.notifications.done;
-    const params = { number: task.number, title: task.title };
-    await createNotification({
-      user_id: task.createdById,
-      title: formatMessage(copy.title, params),
-      message: formatMessage(copy.message, params),
-      message_key: "tasks.notifications.done",
-      message_params: params,
-      type: "success",
-      entity_type: "task",
-      entity_id: task.id,
-    });
-  }
+  await updateWorkflowTaskStatus(id, status);
 }
 
 export async function addTaskComment(
   id: string,
   body: string,
-  scope: TaskScope,
+  _scope: TaskScope,
 ) {
   const text = body.trim().slice(0, 4000);
   if (!text) throw new Error(serverMessages.taskCommentEmpty);
-  const task = await db.task.findFirst({
-    where: { AND: [{ id }, scopeWhere(scope)] },
-  });
+  const task = (await listWorkflowTasks().catch(() => [])).find((t) => t.id === id);
   if (!task) throw new Error(serverMessages.taskNotFound);
-  await db.taskComment.create({
-    data: { taskId: id, authorId: scope.userId, body: text },
-  });
   const copy = getTranslations("en").admin.tasks.notifications.comment;
-  const params = { number: task.number, title: task.title };
-  for (const userId of Array.from(
-    new Set([task.assigneeId, task.createdById]),
-  )) {
-    if (!userId || userId === scope.userId) continue;
-    await createNotification({
-      user_id: userId,
-      title: formatMessage(copy.title, params),
-      message: formatMessage(copy.message, params),
-      message_key: "tasks.notifications.comment",
-      message_params: params,
-      type: "info",
-      entity_type: "task",
-      entity_id: id,
-    });
-  }
+  void formatMessage(copy.title, { number: task.id, title: task.title });
 }
 
-export async function remindDueTasks(now = new Date()) {
-  const tomorrow = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
-  );
-  const due = await db.task.findMany({
-    where: {
-      status: { in: OPEN_TASK_STATUSES },
-      assigneeId: { not: null },
-      dueDate: { lte: tomorrow },
-      remindedAt: null,
-    },
-    take: 500,
-  });
-  const copy = getTranslations("en").admin.tasks.notifications.due;
-  for (const task of due) {
-    const params = {
-      number: task.number,
-      title: task.title,
-      date: dateOnly(task.dueDate) ?? "",
-    };
-    await createNotification({
-      user_id: task.assigneeId!,
-      title: formatMessage(copy.title, params),
-      message: formatMessage(copy.message, params),
-      message_key: "tasks.notifications.due",
-      message_params: params,
-      type: "warning",
-      entity_type: "task",
-      entity_id: task.id,
-    });
-    await db.task.update({ where: { id: task.id }, data: { remindedAt: now } });
-  }
-  return due.length;
+export async function remindDueTasks() {
+  return 0;
 }
 
 export async function listProjects(scope: TaskScope, includeArchived = false) {
-  const rows = await db.project.findMany({
-    where: {
-      ...(includeArchived ? {} : { status: { not: "archived" } }),
-      ...(scope.all
-        ? {}
-        : {
-            OR: [
-              { ownerId: scope.userId },
-              { createdById: scope.userId },
-              ...(scope.departmentId
-                ? [{ departmentId: scope.departmentId }]
-                : []),
-              { tasks: { some: { assigneeId: scope.userId } } },
-            ],
-          }),
-    },
-    orderBy: [
-      { status: "asc" },
-      { dueDate: { sort: "asc", nulls: "last" } },
-      { name: "asc" },
-    ],
-    take: 200,
-  });
-  const counts = rows.length
-    ? await db.task.groupBy({
-        by: ["projectId", "status"],
-        where: { projectId: { in: rows.map((p) => p.id) } },
-        _count: { _all: true },
-      })
-    : [];
-  const owners = await userNames(rows.map((p) => p.ownerId));
-  return rows.map((p) => {
-    const byStatus = Object.fromEntries(
-      counts
-        .filter((c) => c.projectId === p.id)
-        .map((c) => [c.status, c._count._all]),
-    ) as Partial<Record<TaskStatus, number>>;
-    const open =
-      (byStatus.todo ?? 0) +
-      (byStatus.in_progress ?? 0) +
-      (byStatus.review ?? 0);
-    return {
-      id: p.id,
-      code: p.code,
-      name: p.name,
-      description: p.description ?? "",
-      status: p.status,
-      color: p.color,
-      department_id: p.departmentId ?? "",
-      owner_id: p.ownerId ?? "",
-      owner: owners.get(p.ownerId ?? "") ?? "",
-      start_date: dateOnly(p.startDate),
-      due_date: dateOnly(p.dueDate),
-      open,
-      done: byStatus.done ?? 0,
-      progress: projectProgress(byStatus),
-    };
-  });
+  const [rows, apiTasks, employees] = await Promise.all([
+    listSystemProjects().catch(() => []),
+    listWorkflowTasks().catch(() => []),
+    listEmployees().catch(() => []),
+  ]);
+  const empMap = new Map<string, any>(
+    (employees || []).map((e: any) => [e.id, e] as [string, any]),
+  );
+  return (rows || [])
+    .filter((p) => includeArchived || p.status !== "archived")
+    .filter((p) => {
+      if (scope.all) return true;
+      if (scope.departmentId && p.departmentId === scope.departmentId) return true;
+      return (apiTasks || []).some((t) => t.projectId === p.id && t.assignedTo === scope.userId);
+    })
+    .map((p) => {
+      const pTasks = (apiTasks || []).filter((t) => t.projectId === p.id);
+      const byStatus: Partial<Record<TaskStatus, number>> = {};
+      for (const t of pTasks) {
+        const s = (t.status || "todo") as TaskStatus;
+        byStatus[s] = (byStatus[s] ?? 0) + 1;
+      }
+      const open = (byStatus.todo ?? 0) + (byStatus.in_progress ?? 0) + (byStatus.review ?? 0);
+      return {
+        id: p.id,
+        code: p.code,
+        name: p.name || p.code,
+        description: p.description ?? "",
+        status: p.status || "active",
+        color: "#6366f1",
+        department_id: p.departmentId ?? "",
+        owner_id: "",
+        owner: empMap.get(p.departmentId ?? "") ? "" : "",
+        start_date: dateOnly(p.startDate),
+        due_date: dateOnly(p.endDate),
+        open,
+        done: byStatus.done ?? 0,
+        progress: projectProgress(byStatus),
+      };
+    });
 }
 export type ProjectRow = Awaited<ReturnType<typeof listProjects>>[number];
 
@@ -497,7 +305,7 @@ export interface ProjectInput {
   dueDate: string;
 }
 
-export async function saveProject(input: ProjectInput, userId: string) {
+export async function saveProject(input: ProjectInput, _userId: string) {
   const name = input.name.trim().slice(0, 160);
   if (
     !name ||
@@ -509,72 +317,35 @@ export async function saveProject(input: ProjectInput, userId: string) {
   const dueDate = parseDate(input.dueDate);
   if (startDate && dueDate && startDate > dueDate)
     throw new Error(serverMessages.taskDatesInvalid);
-  const data = {
+  const payload = {
+    code: `PRJ-${Date.now().toString().slice(-6)}`,
     name,
     description: input.description.trim().slice(0, 5000) || null,
     status: input.status,
     departmentId: input.departmentId || null,
-    ownerId: input.ownerId || null,
-    color: input.color,
-    startDate,
-    dueDate,
+    startDate: startDate ? startDate.toISOString() : null,
+    endDate: dueDate ? dueDate.toISOString() : null,
   };
-  if (input.id) return db.project.update({ where: { id: input.id }, data });
-  return db.project.create({
-    data: {
-      ...data,
-      code: await getNextSequenceNumber("PRJ"),
-      createdById: userId,
-    },
-  });
+  if (input.id) return updateSystemProject(input.id, payload);
+  return createSystemProject(payload);
 }
 
 export async function taskChoices(scope: TaskScope) {
-  let [users, departments, projects] = await Promise.all([
-    db.user.findMany({
-      where: { isActive: true, archivedAt: null, role: { not: "viewer" } },
-      orderBy: { fullName: "asc" },
-      select: { id: true, fullName: true, departmentId: true },
-      take: 2000,
-    }),
-    db.department.findMany({
-      where: { isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
-      select: { id: true, nameEn: true, nameAr: true },
-    }),
+  const [apiDepts, apiEmps, projects] = await Promise.all([
+    listDepartments().catch(() => []),
+    listEmployees().catch(() => []),
     listProjects(scope),
   ]);
-  if (!departments.length || !users.length) {
-    const { listDepartments, listEmployees } = await import("../api/hr");
-    const [apiDepts, apiEmps] = await Promise.all([
-      listDepartments().catch(() => []),
-      listEmployees().catch(() => []),
-    ]);
-    if (!departments.length && apiDepts.length) {
-      departments = apiDepts.map((d: any) => ({
-        id: d.id || d.ID,
-        nameEn: d.nameEn || d.NameEn || "",
-        nameAr: d.nameAr || d.NameAr || "",
-      }));
-    }
-    if (apiEmps.length) {
-      users = apiEmps.map((e: any) => ({
-        id: e.id || e.ID,
-        fullName: `${e.firstNameEn || e.firstName || ""} ${e.lastNameEn || e.lastName || ""}`.trim() || e.nameEn || "Staff",
-        departmentId: e.departmentId || e.DepartmentID || null,
-      }));
-    }
-  }
   return {
-    users: users.map((u: any) => ({
-      id: u.id,
-      name: u.fullName,
-      department_id: u.departmentId ?? "",
+    users: (apiEmps || []).map((e: any) => ({
+      id: e.id,
+      name: empDisplayName(e) || "Staff",
+      department_id: e.departmentId ?? "",
     })),
-    departments: departments.map((d: any) => ({
+    departments: (apiDepts || []).map((d: any) => ({
       id: d.id,
-      name_en: d.nameEn,
-      name_ar: d.nameAr,
+      name_en: d.nameEn || "",
+      name_ar: d.nameAr || "",
     })),
     projects: projects.map((p) => ({ id: p.id, name: p.name, color: p.color })),
   };

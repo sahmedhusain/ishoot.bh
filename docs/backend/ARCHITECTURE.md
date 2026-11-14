@@ -1,7 +1,7 @@
 # Backend Architecture & System Principles
 
 ```
-Browser ─▶ apps/web · apps/admin · apps/it   (Next.js 16: App Router, Server Actions, API Client)
+Browser ─▶ apps/web · apps/admin · apps/it · apps/store   (Next.js 16: App Router, Server Actions, API Client)
                 │ Server-Side Proxy: Ed25519 JWT + X-Request-ID
                 ▼
             gateway ── Routing · JWKS Token Validation · Rate Limiting (Valkey) · Tracing

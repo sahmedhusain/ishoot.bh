@@ -9752,7 +9752,13 @@
         "request": "الطلب الوارد",
         "shipment": "الشحنة",
         "purchase_order": "أمر الشراء",
-        "contact": "جهة الاتصال"
+        "contact": "جهة الاتصال",
+        "mom": "محضر اجتماع",
+        "employee": "موظف",
+        "contract": "عقد",
+        "letter": "خطاب رسمي",
+        "asset": "أصل",
+        "document": "مستند"
       },
       "notifications": {
         "assigned": {

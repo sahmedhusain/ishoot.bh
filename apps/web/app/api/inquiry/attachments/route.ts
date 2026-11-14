@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createEntityAttachment } from "@platform/api-client";
 import { consumeAbuseLimit } from "@platform/database";
 import { inquiryFromUploadToken } from "@platform/database/services/inquiry-upload-token";
 import { sameOrigin, signInSecret, jsonError } from "../../../../lib/submissions";
@@ -38,5 +39,19 @@ export async function POST(req: NextRequest) {
   }
   const file = await storePrivateUpload(req, "inquiry");
   if (file instanceof Response) return file;
-  return NextResponse.json({ success: true }, { status: 201 });
+  try {
+    const attachment = await createEntityAttachment({
+      fileUrl: file.fileUrl,
+      fileName: file.fileName,
+      fileSize: file.fileSize,
+      mimeType: file.mimeType,
+      entityType: "inquiry",
+      entityId: id,
+      relationKind: "inquiry_attachment",
+    });
+    return NextResponse.json({ success: true, id: attachment.id }, { status: 201 });
+  } catch {
+    await discardPrivateUpload(file.fileUrl);
+    return NextResponse.json({ error: "generic" }, { status: 503 });
+  }
 }

@@ -25,6 +25,8 @@ import {
   deleteDeal,
   listInquiries,
   listQuotations,
+  listContracts,
+  listEntityAttachments,
 } from "@platform/api-client";
 import {
   listInvoices,
@@ -280,9 +282,25 @@ export async function getCustomerDossier(
             return filtered;
           }).catch(() => []),
 
-      Promise.resolve([]),
+      listContracts({ clientId: id })
+        .then((list) =>
+          (list || []).filter((c) =>
+            search
+              ? [c.contractNumber, c.title, c.status]
+                  .filter(Boolean)
+                  .some((s) => String(s).toLowerCase().includes(search.toLowerCase()))
+              : true,
+          ),
+        )
+        .catch(() => []),
 
-      Promise.resolve([]),
+      listEntityAttachments({ clientId: id })
+        .then((list) =>
+          (list || []).filter((a) =>
+            search ? a.fileName.toLowerCase().includes(search.toLowerCase()) : true,
+          ),
+        )
+        .catch(() => []),
 
       access?.audit === false
         ? Promise.resolve([])
@@ -294,8 +312,8 @@ export async function getCustomerDossier(
       deals: { total: dealsRaw.length, page: 1 },
       invoices: { total: invoicesRaw.length, page: 1 },
       payments: { total: paymentsRaw.length, page: 1 },
-      contracts: { total: 0, page: 1 },
-      attachments: { total: 0, page: 1 },
+      contracts: { total: contractsRaw.length, page: 1 },
+      attachments: { total: attachmentsRaw.length, page: 1 },
       activities: { total: activitiesRaw.length, page: 1 },
     };
 
@@ -425,8 +443,27 @@ export async function getCustomerDossier(
         notification_sent: false,
         created_at: p.createdAt,
       })),
-      contracts: [],
-      attachments: [],
+      contracts: contractsRaw.map((c: any) => ({
+        id: c.id,
+        contract_number: c.contractNumber,
+        title: c.title,
+        status: c.status,
+        value: c.value != null ? Number(c.value) : undefined,
+        currency: c.currency || accountingCurrency,
+        start_date: c.startDate || undefined,
+        end_date: c.endDate || undefined,
+        file_url: c.fileUrl || undefined,
+        created_at: c.createdAt,
+      })),
+      attachments: attachmentsRaw.map((att: any) => ({
+        id: att.id,
+        file_name: att.fileName,
+        file_url: att.fileUrl,
+        entity_type: att.entityType,
+        entity_id: att.entityId,
+        document_type: att.documentType || undefined,
+        created_at: att.createdAt,
+      })),
       activities: activitiesRaw.map((act: any) => ({
         id: act.id,
         user_id: act.userId,

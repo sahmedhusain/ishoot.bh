@@ -242,3 +242,94 @@ export async function createStockCount(input: Partial<StockCount>, token?: strin
     body: JSON.stringify(input),
   }, token);
 }
+
+export type PurchaseOrderLine = {
+  id: string;
+  purchaseOrderId: string;
+  productId: string;
+  variantKey?: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  receivedQuantity: number;
+  rejectedQuantity: number;
+  billedQuantity: number;
+  sortOrder: number;
+};
+
+export type PurchaseOrder = {
+  id: string;
+  number: string;
+  supplierId?: string | null;
+  supplierName?: string | null;
+  documentId?: string | null;
+  status: string;
+  orderDate?: string | null;
+  expectedDate?: string | null;
+  warehouseId?: string | null;
+  warehouseName?: string;
+  note?: string | null;
+  terms?: string | null;
+  subtotal: number;
+  vatAmount: number;
+  total: number;
+  createdAt: string;
+  updatedAt: string;
+  lines?: PurchaseOrderLine[];
+};
+
+export type GoodsReceipt = {
+  id: string;
+  number: string;
+  purchaseOrderId: string;
+  locationId?: string | null;
+  receivedById?: string | null;
+  receivedAt: string;
+  note?: string | null;
+};
+
+export async function listPurchaseOrders(
+  filters?: { status?: string; supplierId?: string; warehouseId?: string },
+  token?: string,
+): Promise<PurchaseOrder[]> {
+  const qs = new URLSearchParams();
+  if (filters?.status) qs.set("status", filters.status);
+  if (filters?.supplierId) qs.set("supplierId", filters.supplierId);
+  if (filters?.warehouseId) qs.set("warehouseId", filters.warehouseId);
+  const s = qs.toString();
+  return invFetch<PurchaseOrder[]>(`/v1/inventory/purchase-orders${s ? `?${s}` : ""}`, {}, token);
+}
+
+export async function getPurchaseOrder(id: string, token?: string): Promise<PurchaseOrder> {
+  return invFetch<PurchaseOrder>(`/v1/inventory/purchase-orders/${encodeURIComponent(id)}`, {}, token);
+}
+
+export async function createPurchaseOrder(input: Partial<PurchaseOrder>, token?: string): Promise<PurchaseOrder> {
+  return invFetch<PurchaseOrder>("/v1/inventory/purchase-orders", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function receivePurchaseOrder(
+  id: string,
+  input: {
+    locationId?: string;
+    receivedById?: string;
+    note?: string;
+    lines: Array<{
+      orderLineId?: string;
+      productId?: string;
+      quantity: number;
+      rejectedQuantity?: number;
+      rejectReason?: string;
+      batchNumber?: string;
+    }>;
+  },
+  token?: string,
+): Promise<GoodsReceipt> {
+  return invFetch<GoodsReceipt>(`/v1/inventory/purchase-orders/${encodeURIComponent(id)}/receive`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}

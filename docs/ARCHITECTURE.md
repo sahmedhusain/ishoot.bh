@@ -6,16 +6,17 @@ This document provides a comprehensive, advanced overview of the platform's syst
 
 ## 1. System Architecture & High-Level Data Flow
 
-The platform combines three independent Next.js 16 frontend applications with a decoupled, event-driven Go microservices backend. An **API Gateway** acts as the single public entry point, routing requests to **16 Domain-Scoped Go Microservices**. Microservices do not share databases; instead, each service owns its dedicated PostgreSQL schema and communicates asynchronously via **NATS JetStream** using the **Transactional Outbox Pattern**.
+The platform combines four independent Next.js 16 frontend applications with a decoupled, event-driven Go microservices backend. An **API Gateway** acts as the single public entry point, routing requests to **16 Domain-Scoped Go Microservices**. Microservices do not share databases; instead, each service owns its dedicated PostgreSQL schema and communicates asynchronously via **NATS JetStream** using the **Transactional Outbox Pattern** and local Event Mesh projection tables (`*_ref`) for cross-service relational integrity.
 
 ```mermaid
 flowchart TB
     %% Frontend Layer
     subgraph Clients["Frontend Clients (Next.js 16)"]
         direction LR
-        Web["Web App\n(Public Store / Customer)"]:::app
-        Admin["Admin App\n(Enterprise Business OS)"]:::app
-        IT["IT Dashboard\n(Operations & Infrastructure)"]:::app
+        Web["Web App (:3000)\n(Public Website)"]:::app
+        Admin["Admin App (:3001)\n(Enterprise Business OS)"]:::app
+        IT["IT Dashboard (:3002)\n(Operations & Infrastructure)"]:::app
+        Store["Store App (:3003)\n(E-Commerce Storefront)"]:::app
     end
 
     %% Gateway Layer

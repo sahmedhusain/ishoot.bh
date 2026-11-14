@@ -42,6 +42,9 @@ func Register(g *echo.Group, svc *app.Service, jsonBodyLimit int64) {
 	g.GET("/content", h.read)
 	g.PUT("/content", h.store)
 	g.DELETE("/content", h.delete)
+	g.GET("/attachments", h.listAttachments)
+	g.POST("/attachments", h.createAttachment)
+	g.DELETE("/attachments/:id", h.deleteAttachment)
 }
 type File struct {
 	ID		string		`json:"id"`

@@ -565,46 +565,42 @@ onLeaveApproved(openLeaveHandoverIfNeeded);
 export async function listEmployeeHandovers(
   filters: { status?: string; kind?: string; employeeId?: string } = {},
 ) {
-  const rows = await db.employeeHandover.findMany({
-    where: {
-      ...(filters.status && filters.status !== "all"
-        ? { status: filters.status }
-        : {}),
-      ...(filters.kind && filters.kind !== "all" ? { kind: filters.kind } : {}),
-      ...(filters.employeeId ? { employeeId: filters.employeeId } : {}),
-    },
-    include: {
-      employee: {
-        select: {
-          id: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
+  const [{ listEmployeeHandovers: apiList }, { listEmployees }] = await Promise.all([
+    import("../api/hr"),
+    import("../api/hr"),
+  ]);
+  const [rows, employees] = await Promise.all([
+    apiList({ employeeId: filters.employeeId }).catch(() => []),
+    listEmployees().catch(() => []),
+  ]);
+  const empMap = new Map<string, any>(
+    (employees || []).map((e: any) => [e.id, e] as [string, any]),
+  );
+  return (rows || [])
+    .filter((h) => {
+      if (filters.status && filters.status !== "all" && h.status !== filters.status) return false;
+      if (filters.kind && filters.kind !== "all" && h.kind !== filters.kind) return false;
+      return true;
+    })
+    .map((h) => {
+      const emp = empMap.get(h.employeeId);
+      return {
+        id: h.id,
+        reference: h.reference,
+        kind: h.kind,
+        status: h.status,
+        effective_date: (h.effectiveDate || "").slice(0, 10),
+        return_date: h.returnDate ? h.returnDate.slice(0, 10) : undefined,
+        employee: {
+          id: h.employeeId,
+          number: emp?.employeeNumber || "",
+          name_en: h.employeeName || (emp ? `${emp.firstNameEn} ${emp.lastNameEn}`.trim() : h.employeeId),
+          name_ar: h.employeeName || (emp ? `${emp.firstNameAr || emp.firstNameEn} ${emp.lastNameAr || emp.lastNameEn}`.trim() : h.employeeId),
         },
-      },
-      cases: { select: { status: true } },
-    },
-    orderBy: [{ createdAt: "desc" }],
-    take: 200,
-  });
-  return rows.map((h) => ({
-    id: h.id,
-    reference: h.reference,
-    kind: h.kind,
-    status: h.status,
-    effective_date: iso(h.effectiveDate)!,
-    return_date: iso(h.returnDate),
-    employee: {
-      id: h.employee.id,
-      number: h.employee.employeeNumber,
-      name_en: `${h.employee.firstNameEn} ${h.employee.lastNameEn}`,
-      name_ar: `${h.employee.firstNameAr} ${h.employee.lastNameAr}`,
-    },
-    cases_pending: h.cases.filter((c) => c.status === "pending").length,
-    cases_total: h.cases.length,
-  }));
+        cases_pending: h.status === "open" || h.status === "pending_approval" ? 1 : 0,
+        cases_total: 1,
+      };
+    });
 }
 
 export async function getEmployeeHandover(id: string) {

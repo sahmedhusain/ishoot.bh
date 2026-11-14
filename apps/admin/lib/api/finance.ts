@@ -2,6 +2,7 @@ import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
 import { normalizeApiRecord } from "./normalize";
+import { buildQuery } from "./service-fetch";
 
 export type Invoice = {
   id: string;
@@ -29,15 +30,83 @@ export type Invoice = {
 export type InvoiceItem = {
   id: string;
   invoiceId: string;
+  itemKind?: string;
+  serviceId?: string | null;
+  productId?: string | null;
+  variantId?: string | null;
+  sku?: string | null;
+  unit?: string | null;
   description: string;
+  descriptionEn?: string | null;
+  descriptionAr?: string | null;
   quantity: string;
   unitPrice: string;
+  taxRate?: string;
   amount: string;
-  sortOrder: number;
+  sortOrder?: number;
+};
+
+export type PaymentAllocation = {
+  id: string;
+  paymentId: string;
+  invoiceId: string;
+  allocatedAmount: string | number;
+  currency?: string;
+  createdAt?: string;
+};
+
+export type FinanceCatalogItemRef = {
+  kind: string;
+  id: string;
+  variantId?: string | null;
+  sku?: string | null;
+  nameEn: string;
+  nameAr?: string | null;
+  category?: string | null;
+  unit?: string | null;
+  unitPrice: string | number;
+  currency?: string;
+  taxRate?: string | number;
+  isActive: boolean;
+};
+
+export type FinanceContactRef = {
+  id: string;
+  firstName: string;
+  lastName?: string | null;
+  company?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  contactType?: string;
+  status?: string;
+};
+
+export type FinanceQuotationRef = {
+  id: string;
+  quotationNumber: string;
+  dealId?: string | null;
+  contactId?: string | null;
+  status: string;
+  subtotal: string | number;
+  discount: string | number;
+  vatRate: string | number;
+  vatAmount: string | number;
+  total: string | number;
+  currency: string;
+  items: InvoiceItem[];
+};
+
+export type InvoiceFilters = {
+  contactId?: string;
+  quotationId?: string;
+  dealId?: string;
+  status?: string;
 };
 
 export type InvoiceWithItems = Invoice & {
   items: InvoiceItem[];
+  payments?: Payment[];
+  allocations?: PaymentAllocation[];
 };
 
 export type Payment = {
@@ -129,8 +198,14 @@ async function financeFetch<T>(
   return normalizeApiRecord(body) as T;
 }
 
-export const listInvoices = (token?: string) =>
-  financeFetch<Invoice[]>("/v1/finance/invoices", {}, token);
+export const listInvoices = (
+  tokenOrFilters?: string | InvoiceFilters,
+  token?: string,
+) => {
+  const filters = typeof tokenOrFilters === "object" ? tokenOrFilters : undefined;
+  const auth = typeof tokenOrFilters === "string" ? tokenOrFilters : token;
+  return financeFetch<Invoice[]>(`/v1/finance/invoices${buildQuery(filters)}`, {}, auth);
+};
 
 export const getInvoice = (id: string, token?: string) =>
   financeFetch<InvoiceWithItems>(
@@ -142,6 +217,13 @@ export const getInvoice = (id: string, token?: string) =>
 export const createInvoice = (input: any, token?: string) =>
   financeFetch<InvoiceWithItems>(
     "/v1/finance/invoices",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const createInvoiceFromQuotation = (input: any, token?: string) =>
+  financeFetch<InvoiceWithItems>(
+    "/v1/finance/invoices/from-quotation",
     { method: "POST", body: JSON.stringify(input) },
     token,
   );
@@ -202,9 +284,37 @@ export const listExpenseCategories = (token?: string) =>
 
 export const listSettlements = (token?: string) =>
   financeFetch<BankSettlement[]>("/v1/finance/settlements", {}, token);
+
+export const createSettlement = (input: any, token?: string) =>
+  financeFetch<BankSettlement>(
+    "/v1/finance/settlements",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
+
 export const getPayment = (id: string, token?: string) =>
-  financeFetch<Payment>(
+  financeFetch<Payment & { allocations?: PaymentAllocation[] }>(
     `/v1/finance/payments/${encodeURIComponent(id)}`,
     {},
     token,
   );
+
+export const deletePayment = (id: string, token?: string) =>
+  financeFetch<void>(
+    `/v1/finance/payments/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+    token,
+  );
+
+export const listFinanceCatalog = (kind?: string, token?: string) =>
+  financeFetch<FinanceCatalogItemRef[]>(
+    `/v1/finance/catalog${buildQuery({ kind })}`,
+    {},
+    token,
+  );
+
+export const listFinanceContactsRef = (token?: string) =>
+  financeFetch<FinanceContactRef[]>("/v1/finance/contacts-ref", {}, token);
+
+export const listFinanceQuotationsRef = (token?: string) =>
+  financeFetch<FinanceQuotationRef[]>("/v1/finance/quotations-ref", {}, token);

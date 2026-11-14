@@ -69,6 +69,7 @@ run_sql_script() {
 compose() { docker compose --env-file .env "$@"; }
 
 SERVICES_LIST=(audit cms commerce delivery files finance hr identity inventory itsm notify realtime sales system workflow gateway)
+STATEFUL_SERVICES_LIST=(audit cms commerce delivery files finance hr identity inventory itsm notify realtime sales system workflow)
 
 pause_prompt() {
   printf '\n%sPress [Enter] to return to the menu...%s' "$DIM" "$RESET"
@@ -478,7 +479,7 @@ menu_tests() {
       5) cmd_test coverage; pause_prompt ;;
       6) cmd_test race; pause_prompt ;;
       7)
-        for app in apps/admin apps/it apps/web; do npm --prefix "$app" run format || true; done
+        for app in apps/admin apps/it apps/web apps/store; do npm --prefix "$app" run format || true; done
         pause_prompt
         ;;
       0) return ;;
@@ -936,13 +937,23 @@ cmd_db() {
       ;;
     migrate)
       step "Applying Goose DB migrations across all 15 stateful service schemas"
-      local svc
-      for svc in "${SERVICES_LIST[@]}"; do
+      local svc upper pass_var pass dsn
+      for svc in "${STATEFUL_SERVICES_LIST[@]}"; do
         step "Migrating schema: $svc"
-        if [ -x "backend/bin/$svc" ]; then
-          (cd backend && SERVICE_NAME="$svc" ./bin/"$svc" migrate) || (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
+        upper="$(printf '%s' "$svc" | tr '[:lower:]' '[:upper:]')"
+        pass_var="${upper}_DB_PASSWORD"
+        pass="${!pass_var:-}"
+        if [ -n "$pass" ]; then
+          dsn="postgres://svc_${svc}:${pass}@127.0.0.1:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-platform_db}?sslmode=disable"
+          if [ -x "backend/bin/$svc" ]; then
+            (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" DATABASE_URL="$dsn" DATABASE_DIRECT_URL="$dsn" ./bin/"$svc" migrate) || (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" DATABASE_URL="$dsn" DATABASE_DIRECT_URL="$dsn" go run "./services/$svc/cmd/api" migrate)
+          else
+            (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" DATABASE_URL="$dsn" DATABASE_DIRECT_URL="$dsn" go run "./services/$svc/cmd/api" migrate)
+          fi
+        elif [ -x "backend/bin/$svc" ]; then
+          (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" ./bin/"$svc" migrate) || (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" go run "./services/$svc/cmd/api" migrate)
         else
-          (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
+          (cd backend && SERVICE_NAME="$svc" APP_ENV="${APP_ENV:-development}" go run "./services/$svc/cmd/api" migrate)
         fi
       done
       ok "All 15 stateful service schemas migrated successfully."
@@ -950,7 +961,7 @@ cmd_db() {
     status)
       step "Checking PostgreSQL microservice schema table counts"
       local schema_in
-      schema_in="$(printf "'%s'," "${SERVICES_LIST[@]}" | sed 's/,$//')"
+      schema_in="$(printf "'%s'," "${STATEFUL_SERVICES_LIST[@]}" | sed 's/,$//')"
       pg_tool psql "$(plain_db_url)" -c "SELECT nspname AS schema_name, count(*) AS table_count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND nspname IN ($schema_in) GROUP BY nspname ORDER BY nspname;"
       ;;
     query)
@@ -1144,12 +1155,13 @@ cmd_test() {
     it) npm --prefix apps/it test ;;
     web) npm --prefix apps/web test ;;
     store) npm --prefix apps/store test ;;
-    backend) (cd backend && make test) ;;
+    backend) (cd backend && TESTCONTAINERS_RYUK_DISABLED="${TESTCONTAINERS_RYUK_DISABLED:-true}" go test -race -p 1 ./...) ;;
     coverage)
       step "Running Frontend Coverage"
       npm --prefix apps/admin test -- --coverage || true
       npm --prefix apps/it test -- --coverage || true
       npm --prefix apps/web test -- --coverage || true
+      npm --prefix apps/store test -- --coverage || true
       if [ -d backend ] && have go; then
         step "Running Backend Go Coverage"
         (cd backend && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out)
@@ -1158,15 +1170,18 @@ cmd_test() {
     race)
       if [ -d backend ] && have go; then
         step "Running Go Race Detector"
-        (cd backend && go test -race ./...)
+        (cd backend && TESTCONTAINERS_RYUK_DISABLED="${TESTCONTAINERS_RYUK_DISABLED:-true}" go test -race -p 1 ./...)
       fi
       ;;
     e2e)
       (cd apps/admin && npx playwright test "$@")
       (cd apps/it && npx playwright test "$@")
       (cd apps/web && npx playwright test "$@")
+      if [ -f apps/store/playwright.config.ts ]; then
+        (cd apps/store && npx playwright test "$@")
+      fi
       ;;
-    *) die "test [all|admin|it|web|backend|coverage|race|e2e]" ;;
+    *) die "test [all|admin|it|web|store|backend|coverage|race|e2e]" ;;
   esac
 }
 
@@ -1303,17 +1318,17 @@ else
     kill-ports) node scripts/kill-ports.cjs ;;
     clean) node scripts/clean-builds.cjs ;;
     format)
-      for app in apps/admin apps/it apps/web; do
+      for app in apps/admin apps/it apps/web apps/store; do
         npm --prefix "$app" run format || true
       done
       ;;
     lint)
-      for app in apps/admin apps/it apps/web; do
+      for app in apps/admin apps/it apps/web apps/store; do
         npm --prefix "$app" run lint || true
       done
       ;;
     types | type-check)
-      for app in apps/admin apps/it apps/web backend/contracts; do
+      for app in apps/admin apps/it apps/web apps/store backend/contracts; do
         if [ -f "$app/package.json" ]; then
           npm --prefix "$app" run type-check
         fi
@@ -1324,7 +1339,14 @@ else
     worker | workers) cmd_worker "$@" ;;
     cron) cmd_cron "$@" ;;
     deploy) cmd_deploy "$@" ;;
-    docs) npm run gen:openapi ;;
+    docs)
+      npm run gen:openapi
+      npm run gen:contracts
+      if [ -d backend ] && have go; then
+        (cd backend && go run ./tools/config-doc ../docs/backend/CONFIG.md)
+      fi
+      node scripts/generate-erd-and-meta.cjs 2>/dev/null || warn "Skipped ERD/schema-meta regeneration (database offline)."
+      ;;
     company) cmd_company "$@" ;;
     audit) cmd_audit "$@" ;;
     urls) cmd_urls ;;

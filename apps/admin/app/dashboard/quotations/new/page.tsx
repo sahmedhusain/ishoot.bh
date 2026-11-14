@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { discountDecision, listSalesPeople } from "@platform/database";
-import { getCRMContactById, getAllServices } from "@platform/database";
+import { getCRMContactById, getAllServices, getCatalogPriceListItems } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewQuotationFormView } from "../../../../components/quotations/NewQuotationFormView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -18,12 +18,13 @@ export default async function NewQuotationPage({
   await requirePagePermission("contacts", "read");
   const params = await searchParams;
 
-  const [contacts, company, services, discountPolicy, salesPeople] = await Promise.all([
+  const [contacts, company, services, catalogItems, discountPolicy, salesPeople] = await Promise.all([
     params?.clientId
       ? getCRMContactById(params.clientId).then((c) => (c ? [c] : []))
       : Promise.resolve([]),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
+    getCatalogPriceListItems().catch(() => []),
     discountDecision(actor.id, 100, 0),
     listSalesPeople(),
   ]);
@@ -33,6 +34,7 @@ export default async function NewQuotationPage({
       initialContacts={contacts}
       company={company}
       services={services}
+      catalogItems={catalogItems}
       preselectedClientId={params?.clientId}
       dealId={params?.dealId}
       inquiryId={params?.inquiryId}

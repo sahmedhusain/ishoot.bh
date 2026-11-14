@@ -31,11 +31,17 @@ export async function createQuotationAction(data: {
   termsAr?: string | null;
   salesOwnerId?: string | null;
   lineItems: Array<{
+    itemKind?: "service" | "product" | "custom";
     serviceId?: string | null;
+    productId?: string | null;
+    variantId?: string | null;
+    sku?: string | null;
+    unit?: string | null;
     descriptionEn: string;
     descriptionAr?: string | null;
     quantity: number;
     unitPrice: number;
+    taxRate?: number;
     sortOrder?: number;
   }>;
 }) {
@@ -101,11 +107,17 @@ export async function updateQuotationAction(
     termsEn?: string | null;
     termsAr?: string | null;
     lineItems?: Array<{
+      itemKind?: "service" | "product" | "custom";
       serviceId?: string | null;
+      productId?: string | null;
+      variantId?: string | null;
+      sku?: string | null;
+      unit?: string | null;
       descriptionEn: string;
       descriptionAr?: string | null;
       quantity: number;
       unitPrice: number;
+      taxRate?: number;
       sortOrder?: number;
     }>;
   },

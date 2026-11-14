@@ -24,6 +24,7 @@ import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { ApprovalDecisionPanel } from "../approvals/ApprovalDecisionPanel";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";
+import { EntityLookup } from "../shared/EntityLookup";
 import { PageHeader } from "../layout/PageHeader";
 type Templates = Awaited<ReturnType<typeof listLetterTemplates>>;
 export function LetterWorkspace({
@@ -141,6 +142,25 @@ export function LetterWorkspace({
                 ))}
               </Select>
             </label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <span className="block text-sm font-medium mb-1">{t.tasks.links.contact}</span>
+              <EntityLookup
+                domain="contacts"
+                value={form.client_id ?? ""}
+                onChange={(client_id) => patch({ client_id: client_id || undefined })}
+              />
+            </div>
+            <div>
+              <span className="block text-sm font-medium mb-1">{t.tasks.links.deal}</span>
+              <EntityLookup
+                domain="deals"
+                clientId={form.client_id || undefined}
+                value={form.deal_id ?? ""}
+                onChange={(deal_id) => patch({ deal_id: deal_id || undefined })}
+              />
+            </div>
           </div>
           <label className="block">
             {c.purpose}

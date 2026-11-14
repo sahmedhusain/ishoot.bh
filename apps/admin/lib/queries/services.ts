@@ -1,123 +1,100 @@
-import { randomUUID } from "node:crypto";
-import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
-import { ServiceCategory, ServiceItem } from "../types";
+import { serverMessages } from "@platform/locales";
+import { getContentSnapshot } from "@platform/api-client";
+import {
+  listSystemServices,
+  getSystemService,
+  createSystemService,
+  updateSystemService,
+  deleteSystemService,
+  type SystemServiceCatalogItem,
+} from "../api/system-catalog";
+import { listProducts } from "../api/inventory";
+import { ServiceItem, ServiceCategory } from "../types";
 
-export interface StoredServiceRecord extends ServiceItem {
-  is_public?: boolean;
-  image_url?: string | null;
-}
-
-function mapService(raw: any): StoredServiceRecord {
-  const now = new Date().toISOString();
-  return {
-    id: String(raw?.id ?? ""),
-    code: raw?.code || undefined,
-    name_en: raw?.name_en ?? raw?.nameEn ?? "",
-    name_ar: raw?.name_ar ?? raw?.nameAr ?? "",
-    category: (raw?.category as ServiceCategory) || "production",
-    description_en: (raw?.description_en ?? raw?.descriptionEn) || undefined,
-    description_ar: (raw?.description_ar ?? raw?.descriptionAr) || undefined,
-    unit: raw?.unit ?? "project",
-    default_rate: Number(raw?.default_rate ?? raw?.defaultRate ?? 0),
-    is_active: raw?.is_active ?? raw?.isActive ?? true,
-    is_public: raw?.is_public ?? raw?.isPublic ?? true,
-    image_url: (raw?.image_url ?? raw?.imageUrl) || null,
-    display_order: Number(raw?.display_order ?? raw?.displayOrder ?? 0),
-    created_at:
-      typeof raw?.created_at === "string"
-        ? raw.created_at
-        : typeof raw?.createdAt === "string"
-          ? raw.createdAt
-          : now,
-    updated_at:
-      typeof raw?.updated_at === "string"
-        ? raw.updated_at
-        : typeof raw?.updatedAt === "string"
-          ? raw.updatedAt
-          : now,
-  };
-}
-
-function serializeService(s: StoredServiceRecord) {
+function mapSystemServiceToItem(
+  s: SystemServiceCatalogItem,
+  idx: number,
+): ServiceItem {
   return {
     id: s.id,
-    code: s.code,
-    name_en: s.name_en,
-    name_ar: s.name_ar,
-    nameEn: s.name_en,
-    nameAr: s.name_ar,
-    category: s.category,
-    description_en: s.description_en,
-    description_ar: s.description_ar,
-    descriptionEn: s.description_en ?? null,
-    descriptionAr: s.description_ar ?? null,
-    image_url: s.image_url ?? null,
-    imageUrl: s.image_url ?? null,
-    unit: s.unit,
-    default_rate: s.default_rate,
-    is_active: s.is_active,
-    is_public: s.is_public ?? true,
-    display_order: s.display_order,
-    created_at: s.created_at,
-    updated_at: s.updated_at,
+    code: s.code || undefined,
+    name_en: s.nameEn || "",
+    name_ar: s.nameAr || s.nameEn || "",
+    category: (s.category as ServiceCategory) || "production",
+    description_en: s.descriptionEn || undefined,
+    description_ar: s.descriptionAr || undefined,
+    unit: s.unit || "day",
+    default_rate: Number(s.defaultRate ?? 0),
+    is_active: s.isActive !== false,
+    display_order: Number(s.sortOrder ?? idx),
+    created_at: s.createdAt,
+    updated_at: s.updatedAt,
   };
 }
 
-async function readSnapshotServices(includeInactive = true): Promise<StoredServiceRecord[]> {
-  try {
-    const snap = await getContentSnapshot("main");
-    const draftList = Array.isArray(snap?.draft?.services)
-      ? snap.draft.services
-      : [];
-    const pubList = Array.isArray(snap?.published?.services)
-      ? snap.published.services
-      : [];
-    const raw = draftList.length > 0 ? draftList : pubList;
-    const mapped = raw.map(mapService);
-    const filtered = includeInactive ? mapped : mapped.filter((s) => s.is_active);
-    return filtered.sort(
-      (a, b) =>
-        a.display_order - b.display_order || a.name_en.localeCompare(b.name_en),
-    );
-  } catch (e) {
-    console.error("Failed to fetch services from CMS snapshot:", e);
-    return [];
-  }
+function mapCmsService(s: any, idx: number): ServiceItem {
+  return {
+    id: s.id || `svc-${idx + 1}`,
+    code: s.code || undefined,
+    name_en: s.name_en || s.nameEn || s.title || "",
+    name_ar: s.name_ar || s.nameAr || s.name_en || "",
+    category: (s.category || "production") as ServiceCategory,
+    description_en: s.description_en || s.descriptionEn || "",
+    description_ar: s.description_ar || s.descriptionAr || "",
+    unit: s.unit || "day",
+    default_rate: Number(s.default_rate ?? s.defaultRate ?? 0),
+    is_active: s.is_active !== false && s.isActive !== false,
+    display_order: Number(s.display_order ?? idx),
+  };
 }
 
 export async function getAllServices(options?: {
   includeInactive?: boolean;
   isActive?: boolean;
-  category?: string;
-  search?: string;
+  category?: ServiceCategory;
 }): Promise<ServiceItem[]> {
-  const includeInactive =
-    options?.isActive !== undefined
-      ? !options.isActive
-      : (options?.includeInactive ?? true);
-  let items = await readSnapshotServices(includeInactive);
+  let mapped: ServiceItem[] = [];
+  try {
+    const apiServices = await listSystemServices();
+    if (Array.isArray(apiServices) && apiServices.length > 0) {
+      mapped = apiServices.map(mapSystemServiceToItem);
+    }
+  } catch (e) {
+    console.warn("listSystemServices failed, trying CMS snapshot fallback:", e);
+  }
+
+  if (mapped.length === 0) {
+    try {
+      const snap = await getContentSnapshot("main").catch(() => null);
+      const raw: any[] = Array.isArray((snap as any)?.services)
+        ? (snap as any).services
+        : [];
+      mapped = raw.map(mapCmsService);
+    } catch {
+      mapped = [];
+    }
+  }
+
   if (options?.isActive !== undefined) {
-    items = items.filter((s) => s.is_active === options.isActive);
+    mapped = mapped.filter((s) => s.is_active === options.isActive);
+  } else if (options?.includeInactive === false) {
+    mapped = mapped.filter((s) => s.is_active);
   }
-  if (options?.category && options.category !== "all") {
-    items = items.filter((s) => s.category === options.category);
+  if (options?.category) {
+    mapped = mapped.filter((s) => s.category === options.category);
   }
-  if (options?.search?.trim()) {
-    const q = options.search.trim().toLowerCase();
-    items = items.filter(
-      (s) =>
-        s.name_en.toLowerCase().includes(q) ||
-        s.name_ar.toLowerCase().includes(q) ||
-        (s.code ?? "").toLowerCase().includes(q) ||
-        (s.description_en ?? "").toLowerCase().includes(q),
-    );
-  }
-  return items;
+
+  return mapped;
 }
 
 export async function getServiceById(id: string): Promise<ServiceItem | null> {
-  const list = await readSnapshotServices(true);
-  return list.find((s) => s.id === id) ?? null;
+  try {
+    const item = await getSystemService(id);
+    if (item?.id) return mapSystemServiceToItem(item, 0);
+  } catch {
+  }
+  const all = await getAllServices({ includeInactive: true });
+  return all.find((s) => s.id === id) || null;
 }
 
 export async function createService(data: {
@@ -130,84 +107,113 @@ export async function createService(data: {
   unit?: string;
   default_rate: number;
   is_active?: boolean;
-  is_public?: boolean;
-  image_url?: string | null;
   display_order?: number;
 }): Promise<ServiceItem> {
-  const snap = await getContentSnapshot("main").catch(() => null);
-  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
-  const list = Array.isArray(currentDraft.services)
-    ? [...currentDraft.services].map(mapService)
-    : [];
-
-  const now = new Date().toISOString();
-  const created = mapService({
-    id: randomUUID(),
-    code: data.code?.trim() || undefined,
-    name_en: data.name_en,
-    name_ar: data.name_ar,
+  const code =
+    (data.code || "").trim() ||
+    `SRV-${Math.floor(1000 + Math.random() * 9000)}`;
+  const created = await createSystemService({
+    code,
+    nameEn: data.name_en,
+    nameAr: data.name_ar || data.name_en,
     category: data.category || "production",
-    description_en: data.description_en || undefined,
-    description_ar: data.description_ar || undefined,
-    unit: data.unit || "project",
-    default_rate: data.default_rate,
-    is_active: data.is_active ?? true,
-    is_public: data.is_public ?? true,
-    image_url: data.image_url ?? null,
-    display_order: data.display_order ?? list.length,
-    created_at: now,
-    updated_at: now,
+    descriptionEn: data.description_en || "",
+    descriptionAr: data.description_ar || "",
+    unit: data.unit || "day",
+    defaultRate: String(Number(data.default_rate || 0)),
+    isActive: data.is_active !== false,
+    isPublic: true,
+    sortOrder: data.display_order ?? 0,
   });
-
-  await saveContentDraft("", "main", {
-    ...currentDraft,
-    services: [...list, created].map(serializeService),
-  });
-  return created;
+  return mapSystemServiceToItem(created, 0);
 }
 
 export async function updateService(
   id: string,
-  data: Partial<
-    Omit<StoredServiceRecord, "id" | "created_at" | "updated_at">
-  >,
+  data: Partial<{
+    code: string;
+    name_en: string;
+    name_ar: string;
+    category: ServiceCategory;
+    description_en: string;
+    description_ar: string;
+    unit: string;
+    default_rate: number;
+    is_active: boolean;
+    display_order: number;
+  }>,
 ): Promise<ServiceItem> {
-  const snap = await getContentSnapshot("main").catch(() => null);
-  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
-  const list = Array.isArray(currentDraft.services)
-    ? [...currentDraft.services].map(mapService)
-    : [];
-
-  const idx = list.findIndex((s) => s.id === id);
-  if (idx === -1) throw new Error("Service not found");
-
-  const updated = mapService({
-    ...list[idx],
-    ...data,
-    updated_at: new Date().toISOString(),
+  const existing = await getServiceById(id);
+  if (!existing) {
+    throw new Error("Service not found");
+  }
+  const updated = await updateSystemService(id, {
+    code: data.code ?? existing.code ?? id,
+    nameEn: data.name_en ?? existing.name_en,
+    nameAr: data.name_ar ?? existing.name_ar,
+    category: data.category ?? existing.category,
+    descriptionEn: data.description_en ?? existing.description_en ?? "",
+    descriptionAr: data.description_ar ?? existing.description_ar ?? "",
+    unit: data.unit ?? existing.unit ?? "day",
+    defaultRate: String(Number(data.default_rate ?? existing.default_rate ?? 0)),
+    isActive: data.is_active ?? existing.is_active,
+    isPublic: true,
+    sortOrder: data.display_order ?? existing.display_order ?? 0,
   });
-  list[idx] = updated;
-
-  await saveContentDraft("", "main", {
-    ...currentDraft,
-    services: list.map(serializeService),
-  });
-  return updated;
+  return mapSystemServiceToItem(updated, 0);
 }
 
 export async function deleteService(id: string): Promise<boolean> {
-  const snap = await getContentSnapshot("main").catch(() => null);
-  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
-  const list = Array.isArray(currentDraft.services)
-    ? [...currentDraft.services].map(mapService)
-    : [];
-
-  const next = list.filter((s) => s.id !== id);
-  if (next.length === list.length) return false;
-
-  await saveContentDraft("", "main", {
-    ...currentDraft,
-    services: next.map(serializeService),
-  });
+  await deleteSystemService(id);
   return true;
+}
+
+export type CatalogPriceListItem = {
+  kind: "service" | "product";
+  id: string;
+  sku?: string;
+  nameEn: string;
+  nameAr?: string;
+  category?: string;
+  unit: string;
+  unitPrice: number;
+  taxRate: number;
+  currency: string;
+};
+
+/** Unified active price list combining studio services and inventory products. */
+export async function getCatalogPriceListItems(): Promise<CatalogPriceListItem[]> {
+  const [services, products] = await Promise.all([
+    getAllServices({ isActive: true }).catch(() => []),
+    listProducts().catch(() => []),
+  ]);
+
+  const serviceItems: CatalogPriceListItem[] = services.map((s) => ({
+    kind: "service" as const,
+    id: s.id,
+    sku: s.code,
+    nameEn: s.name_en,
+    nameAr: s.name_ar,
+    category: s.category,
+    unit: s.unit || "day",
+    unitPrice: Number(s.default_rate || 0),
+    taxRate: 0,
+    currency: "BHD",
+  }));
+
+  const productItems: CatalogPriceListItem[] = (products || [])
+    .filter((p) => p.isActive !== false)
+    .map((p) => ({
+      kind: "product",
+      id: p.id,
+      sku: p.sku,
+      nameEn: p.nameEn,
+      nameAr: p.nameAr,
+      unit: "unit",
+      unitPrice: Number(p.sellingPrice || 0),
+      taxRate: Number(p.taxRate || 0),
+      currency: p.currency || "BHD",
+    }));
+
+  return [...serviceItems, ...productItems];
 }

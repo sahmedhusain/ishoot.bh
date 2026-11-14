@@ -42,10 +42,12 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/orders", h.listOrders)
 	g.POST("/orders", h.placeOrder)
 	g.GET("/orders/:id", h.getOrder)
+	g.GET("/orders/:id/relations", h.getOrderRelations)
 	g.POST("/orders/:id/pay", h.recordOrderPayment)
 	g.PUT("/orders/:id/status", h.updateOrderStatus)
 	g.GET("/orders/:id/lines", h.listOrderLines)
 	g.GET("/orders/:id/events", h.listOrderEvents)
+	g.GET("/warehouses", h.listWarehouseRefs)
 	g.GET("/retail/registers", h.listRetailRegisters)
 	g.POST("/retail/registers", h.createRetailRegister)
 	g.GET("/retail/shifts", h.listRetailShifts)
@@ -61,6 +63,8 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	storeGroup.GET("/orders", h.listOrders)
 	storeGroup.POST("/orders", h.placeOrder)
 	storeGroup.GET("/orders/:id", h.getOrder)
+	storeGroup.GET("/orders/:id/relations", h.getOrderRelations)
+	storeGroup.GET("/warehouses", h.listWarehouseRefs)
 	storeGroup.POST("/orders/:id/pay", h.recordOrderPayment)
 	storeGroup.GET("/orders/:id/lines", h.listOrderLines)
 	storeGroup.GET("/orders/:id/events", h.listOrderEvents)
@@ -75,6 +79,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	accountGroup.POST("/customers/:id/addresses", h.createCustomerAddress)
 	accountGroup.GET("/orders", h.listOrders)
 	accountGroup.GET("/orders/:id", h.getOrder)
+	accountGroup.GET("/orders/:id/relations", h.getOrderRelations)
 	accountGroup.GET("/orders/:id/lines", h.listOrderLines)
 	accountGroup.GET("/orders/:id/events", h.listOrderEvents)
 
@@ -82,6 +87,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	adminOrdersGroup.GET("", h.listOrders)
 	adminOrdersGroup.POST("", h.placeOrder)
 	adminOrdersGroup.GET("/:id", h.getOrder)
+	adminOrdersGroup.GET("/:id/relations", h.getOrderRelations)
 	adminOrdersGroup.POST("/:id/pay", h.recordOrderPayment)
 	adminOrdersGroup.PUT("/:id/status", h.updateOrderStatus)
 	adminOrdersGroup.GET("/:id/lines", h.listOrderLines)
@@ -181,7 +187,7 @@ func (h *handler) createCoupon(c echo.Context) error {
 	return c.JSON(http.StatusCreated, res)
 }
 func (h *handler) listOrders(c echo.Context) error {
-	orders, err := h.svc.ListOrders(c.Request().Context())
+	orders, err := h.svc.ListOrdersFiltered(c.Request().Context(), c.QueryParam("customerId"), c.QueryParam("contactId"), c.QueryParam("status"))
 	if err != nil {
 		return err
 	}

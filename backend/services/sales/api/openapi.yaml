@@ -365,6 +365,22 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Quotation" }
 
+  /v1/sales/pipeline-stages:
+    get:
+      tags: [deals]
+      operationId: listPipelineStages
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: List of pipeline stages }
+
+  /v1/sales/catalog:
+    get:
+      tags: [quotations]
+      operationId: listSalesCatalogItems
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200": { description: Sellable services and inventory products price list }
+
 components:
   securitySchemes:
     staffToken:

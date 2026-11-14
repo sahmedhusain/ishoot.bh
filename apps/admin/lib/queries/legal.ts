@@ -252,53 +252,47 @@ export async function remindLegalDates(now = new Date()) {
 }
 
 export async function licenceRegister() {
-  const rows = await db.companyDocument.findMany({
-    where: { validUntil: { not: null } },
-    orderBy: { validUntil: "asc" },
-    take: 200,
-    select: {
-      id: true,
-      titleEn: true,
-      titleAr: true,
-      category: true,
-      documentNumber: true,
-      validUntil: true,
-    },
-  });
-  return rows.map((d) => ({
-    id: d.id,
-    title_en: d.titleEn,
-    title_ar: d.titleAr ?? d.titleEn,
-    category: d.category,
-    number: d.documentNumber ?? "",
-    valid_until: dateOnly(d.validUntil),
-  }));
+  const { getCompanyDocuments } = await import("./company-documents");
+  const docs = await getCompanyDocuments().catch(() => []);
+  return docs
+    .filter((d) => Boolean(d.valid_until))
+    .sort((a, b) => (a.valid_until || "").localeCompare(b.valid_until || ""))
+    .map((d) => ({
+      id: d.id,
+      title_en: d.title_en,
+      title_ar: d.title_ar ?? d.title_en,
+      category: d.category,
+      number: d.document_number ?? "",
+      valid_until: d.valid_until ?? null,
+    }));
 }
 
 export async function contractRegister() {
-  const rows = await db.contract.findMany({
-    orderBy: [
-      { validUntil: { sort: "asc", nulls: "last" } },
-      { createdAt: "desc" },
-    ],
-    take: 200,
-    include: {
-      contact: {
-        select: { firstName: true, lastName: true, companyName: true },
-      },
-    },
-  });
-  return rows.map((c) => ({
+  const [{ listContracts }, { listContacts }] = await Promise.all([
+    import("../api/workflow"),
+    import("../api/sales"),
+  ]);
+  const [contracts, contacts] = await Promise.all([
+    listContracts().catch(() => []),
+    listContacts().catch(() => []),
+  ]);
+  const contactMap = new Map<string, string>(
+    (contacts || []).map(
+      (c: any) =>
+        [
+          c.id,
+          c.company || [c.firstName, c.lastName].filter(Boolean).join(" ") || c.id,
+        ] as [string, string],
+    ),
+  );
+  return (contracts || []).map((c) => ({
     id: c.id,
     number: c.contractNumber,
-    title_en: c.titleEn,
-    title_ar: c.titleAr ?? c.titleEn,
+    title_en: c.title,
+    title_ar: c.title,
     status: c.status,
-    party: c.contact
-      ? c.contact.companyName ||
-        [c.contact.firstName, c.contact.lastName].filter(Boolean).join(" ")
-      : "",
+    party: c.clientId ? contactMap.get(c.clientId) || c.clientId : "",
     deal_id: c.dealId ?? "",
-    valid_until: dateOnly(c.validUntil),
+    valid_until: c.endDate ? c.endDate.slice(0, 10) : null,
   }));
 }

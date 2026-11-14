@@ -26,24 +26,33 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	})
 	auth := authn.Require(opts.Verifier, authn.RealmService)
 	g := e.Group("/v1/workflow", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
-	g.GET("/approvals", h.listApprovals)
-	g.POST("/approvals", h.createApprovalRequest)
+	g.GET("/approvals", h.listApprovalsRelational)
+	g.POST("/approvals", h.createApprovalRelational)
 	g.GET("/approvals/:id", h.getApprovalRequest)
 	g.POST("/approvals/:id/decide", h.decideApproval)
-	g.GET("/signatures", h.listSignatures)
-	g.POST("/signatures", h.createSignatureRequest)
+	g.GET("/signatures", h.listSignaturesRelational)
+	g.POST("/signatures", h.createSignatureRelational)
 	g.POST("/signatures/:id/sign", h.recordSignature)
 	g.GET("/tasks", h.listTasks)
 	g.POST("/tasks", h.createTask)
+	g.PUT("/tasks/:id", h.updateTask)
 	g.PUT("/tasks/:id/status", h.updateTaskStatus)
-	g.GET("/calendar", h.listCalendarEvents)
-	g.POST("/calendar", h.createCalendarEvent)
+	g.DELETE("/tasks/:id", h.deleteTask)
+	g.GET("/calendar", h.listCalendarRelational)
+	g.POST("/calendar", h.createCalendarRelational)
 	g.GET("/moms", h.listMOMs)
 	g.POST("/moms", h.createMOM)
 	g.GET("/moms/:id", h.getMOM)
 	g.PUT("/moms/:id", h.updateMOM)
-	g.GET("/letters", h.listOfficialLetters)
-	g.POST("/letters", h.createOfficialLetter)
+	g.DELETE("/moms/:id", h.deleteMOM)
+	g.GET("/directory", h.listDirectory)
+	g.GET("/contracts", h.listContracts)
+	g.POST("/contracts", h.saveContract)
+	g.GET("/contracts/:id", h.getContract)
+	g.PUT("/contracts/:id", h.saveContract)
+	g.DELETE("/contracts/:id", h.deleteContract)
+	g.GET("/letters", h.listLettersRelational)
+	g.POST("/letters", h.createLetterRelational)
 	g.GET("/letters/:id", h.getOfficialLetter)
 	g.POST("/letters/:id/issue", h.issueOfficialLetter)
 	g.GET("/letter-templates", h.listLetterTemplates)
@@ -137,12 +146,44 @@ func (h *handler) recordSignature(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, sig)
 }
+func optionalParam(c echo.Context, key string) *string {
+	if v := c.QueryParam(key); v != "" {
+		return &v
+	}
+	return nil
+}
 func (h *handler) listTasks(c echo.Context) error {
-	tasks, err := h.svc.ListTasks(c.Request().Context())
+	tasks, err := h.svc.ListTasksFiltered(c.Request().Context(), sqlcdb.ListTasksFilteredParams{
+		ProjectID:    optionalParam(c, "projectId"),
+		DepartmentID: optionalParam(c, "departmentId"),
+		MomID:        optionalParam(c, "momId"),
+		ClientID:     optionalParam(c, "clientId"),
+		DealID:       optionalParam(c, "dealId"),
+		AssignedTo:   optionalParam(c, "assignedTo"),
+		Status:       optionalParam(c, "status"),
+	})
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, tasks)
+}
+func (h *handler) updateTask(c echo.Context) error {
+	var in sqlcdb.UpdateTaskParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	in.ID = c.Param("id")
+	updated, err := h.svc.UpdateTask(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+func (h *handler) deleteTask(c echo.Context) error {
+	if err := h.svc.DeleteTask(c.Request().Context(), c.Param("id")); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 func (h *handler) createTask(c echo.Context) error {
 	var in sqlcdb.CreateTaskParams
@@ -197,14 +238,21 @@ func (h *handler) createCalendarEvent(c echo.Context) error {
 	return c.JSON(http.StatusCreated, created)
 }
 func (h *handler) listMOMs(c echo.Context) error {
-	moms, err := h.svc.ListMOMs(c.Request().Context())
+	moms, err := h.svc.ListMOMsFiltered(c.Request().Context(), sqlcdb.ListMOMsFilteredParams{
+		ClientID:     optionalParam(c, "clientId"),
+		DealID:       optionalParam(c, "dealId"),
+		ProjectID:    optionalParam(c, "projectId"),
+		DepartmentID: optionalParam(c, "departmentId"),
+		TeamID:       optionalParam(c, "teamId"),
+		Status:       optionalParam(c, "status"),
+	})
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, moms)
 }
 func (h *handler) getMOM(c echo.Context) error {
-	mom, err := h.svc.GetMOM(c.Request().Context(), c.Param("id"))
+	mom, err := h.svc.GetMOMDetails(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		if errors.Is(err, app.ErrNotFound) {
 			return problem.NotFound("")
@@ -214,30 +262,43 @@ func (h *handler) getMOM(c echo.Context) error {
 	return c.JSON(http.StatusOK, mom)
 }
 func (h *handler) createMOM(c echo.Context) error {
-	var in sqlcdb.CreateMOMParams
+	var in app.CreateMOMInput
 	if err := c.Bind(&in); err != nil {
 		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 	}
-	if in.Status == "" {
-		in.Status = "draft"
-	}
-	created, err := h.svc.CreateMOM(c.Request().Context(), in)
+	created, err := h.svc.CreateMOMWithRelations(c.Request().Context(), in)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, created)
 }
 func (h *handler) updateMOM(c echo.Context) error {
-	var in sqlcdb.UpdateMOMParams
+	var in app.UpdateMOMInput
 	if err := c.Bind(&in); err != nil {
 		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 	}
 	in.ID = c.Param("id")
-	updated, err := h.svc.UpdateMOM(c.Request().Context(), in)
+	updated, err := h.svc.UpdateMOMWithRelations(c.Request().Context(), in)
 	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, updated)
+}
+func (h *handler) deleteMOM(c echo.Context) error {
+	if err := h.svc.DeleteMOM(c.Request().Context(), c.Param("id")); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+func (h *handler) listDirectory(c echo.Context) error {
+	items, err := h.svc.ListDirectoryRefs(c.Request().Context(), optionalParam(c, "kind"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, items)
 }
 func (h *handler) listOfficialLetters(c echo.Context) error {
 	letters, err := h.svc.ListOfficialLetters(c.Request().Context())

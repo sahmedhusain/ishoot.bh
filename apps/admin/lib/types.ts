@@ -382,6 +382,9 @@ export interface Inquiry {
 }
 
 export interface MomAttendee {
+  attendeeType?: "employee" | "contact" | "external";
+  employeeId?: string;
+  contactId?: string;
   name: string;
   role: string;
   email?: string;
@@ -396,8 +399,13 @@ export interface MomDiscussionPoint {
 }
 
 export interface MomActionItem {
+  id?: string;
+  taskId?: string;
   task: string;
   assignee: string;
+  assigneeEmployeeId?: string;
+  assigneeUserId?: string;
+  departmentId?: string;
   dueDate?: string;
   status: "pending" | "in_progress" | "completed";
 }
@@ -415,6 +423,10 @@ export interface MinuteOfMeetingItem {
   deal_title?: string;
   client_id?: string;
   client_name?: string;
+  project_id?: string;
+  department_id?: string;
+  team_id?: string;
+  organizer_id?: string;
   attendees: MomAttendee[];
   agenda: string;
   discussion_points: MomDiscussionPoint[];
@@ -627,7 +639,13 @@ export interface ServiceItem {
 export interface InvoiceLineItem {
   id?: string;
   invoice_id?: string;
+  item_kind?: "service" | "product" | "custom";
   service_id?: string;
+  product_id?: string;
+  variant_id?: string;
+  sku?: string;
+  unit?: string;
+  tax_rate?: number;
   service?: ServiceItem;
   description_en: string;
   description_ar?: string;

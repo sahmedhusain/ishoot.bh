@@ -55,10 +55,34 @@ func (s *Service) CreateContact(ctx context.Context, in sqlcdb.CreateContactPara
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateContact(ctx, in)
+	var created postgres.Contact
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateContact(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventContactUpserted,
+			Payload: contactPayload(created),
+		})
+	})
+	return created, err
 }
 func (s *Service) UpdateContact(ctx context.Context, in sqlcdb.UpdateContactParams) (postgres.Contact, error) {
-	return s.store.UpdateContact(ctx, in)
+	var updated postgres.Contact
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateContact(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventContactUpserted,
+			Payload: contactPayload(updated),
+		})
+	})
+	return updated, err
 }
 func (s *Service) DeleteContact(ctx context.Context, id string) error {
 	return s.store.DeleteContact(ctx, id)
@@ -83,10 +107,34 @@ func (s *Service) CreateDeal(ctx context.Context, in sqlcdb.CreateDealParams) (p
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateDeal(ctx, in)
+	var created postgres.Deal
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateDeal(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventDealUpserted,
+			Payload: dealPayload(created),
+		})
+	})
+	return created, err
 }
 func (s *Service) UpdateDeal(ctx context.Context, in sqlcdb.UpdateDealParams) (postgres.Deal, error) {
-	return s.store.UpdateDeal(ctx, in)
+	var updated postgres.Deal
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateDeal(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventDealUpserted,
+			Payload: dealPayload(updated),
+		})
+	})
+	return updated, err
 }
 func (s *Service) UpdateDealStage(ctx context.Context, id string, stage string, status string) (postgres.Deal, error) {
 	var updated postgres.Deal
@@ -175,42 +223,82 @@ func (s *Service) CreateQuotation(ctx context.Context, q sqlcdb.CreateQuotationP
 			return err
 		}
 		out.Quotation = created
-		for _, item := range items {
+		for idx, item := range items {
 			if item.ID == "" {
 				item.ID = uuid.NewString()
 			}
 			item.QuotationID = created.ID
+			if item.ItemKind == "" {
+				switch {
+				case item.ServiceID != nil && *item.ServiceID != "":
+					item.ItemKind = "service"
+				case item.ProductID != nil && *item.ProductID != "":
+					item.ItemKind = "product"
+				default:
+					item.ItemKind = "custom"
+				}
+			}
+			if item.DescriptionEn == "" {
+				item.DescriptionEn = item.Description
+			}
+			if item.Description == "" {
+				item.Description = item.DescriptionEn
+			}
+			if item.SortOrder == 0 {
+				item.SortOrder = int32(idx)
+			}
 			inserted, err := st.InsertQuotationItem(ctx, item)
 			if err != nil {
 				return err
 			}
 			out.Items = append(out.Items, inserted)
 		}
-		return nil
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventQuotationUpserted,
+			Payload: quotationPayload(out.Quotation, out.Items),
+		})
 	})
 	return out, err
 }
 func (s *Service) UpdateQuotationStatus(ctx context.Context, id string, status string) (postgres.Quotation, error) {
 	var updated postgres.Quotation
-	var eventSubject string
-	switch status {
-	case "issued":
-		eventSubject = EventQuotationIssued
-	case "accepted":
-		eventSubject = EventQuotationAccepted
-	}
-	if eventSubject != "" {
-		err := s.change(ctx, eventSubject, map[string]string{"quotationId": id, "status": status}, func(st *postgres.Store) error {
-			var txErr error
-			updated, txErr = st.UpdateQuotationStatus(ctx, sqlcdb.UpdateQuotationStatusParams{ID: id, Status: status})
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateQuotationStatus(ctx, sqlcdb.UpdateQuotationStatusParams{ID: id, Status: status})
+		if txErr != nil {
 			return txErr
-		})
-		return updated, err
-	}
-	return s.store.UpdateQuotationStatus(ctx, sqlcdb.UpdateQuotationStatusParams{ID: id, Status: status})
+		}
+		items, txErr := st.ListQuotationItems(ctx, id)
+		if txErr != nil {
+			return txErr
+		}
+		if err := outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventQuotationUpserted,
+			Payload: quotationPayload(updated, items),
+		}); err != nil {
+			return err
+		}
+		var eventSubject string
+		switch status {
+		case "issued":
+			eventSubject = EventQuotationIssued
+		case "accepted":
+			eventSubject = EventQuotationAccepted
+		}
+		if eventSubject != "" {
+			return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+				Subject: eventSubject,
+				Payload: map[string]string{"quotationId": id, "status": status},
+			})
+		}
+		return nil
+	})
+	return updated, err
 }
 func (s *Service) DeleteQuotation(ctx context.Context, id string) error {
-	return s.store.DeleteQuotation(ctx, id)
+	return s.change(ctx, EventQuotationDeleted, map[string]string{"quotationId": id}, func(st *postgres.Store) error {
+		return st.DeleteQuotation(ctx, id)
+	})
 }
 func (s *Service) GetCampaign(ctx context.Context, id string) (postgres.Campaign, error) {
 	c, err := s.store.GetCampaignByID(ctx, id)

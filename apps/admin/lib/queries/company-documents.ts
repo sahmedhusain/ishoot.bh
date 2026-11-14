@@ -1,47 +1,57 @@
-import { db, runAtomicMutation } from "../atomic";
+import {
+  listEntityAttachments,
+  createEntityAttachment,
+  deleteEntityAttachment,
+} from "@platform/api-client";
 import { claimUploadOrLink } from "../services/uploads";
 import { CompanyDocument, DocumentCategory } from "../types";
 
-export function mapCompanyDocument(doc: any): CompanyDocument {
+type DocMeta = {
+  title_en?: string;
+  title_ar?: string;
+  document_number?: string;
+  valid_from?: string;
+  valid_until?: string;
+  notes?: string;
+};
+
+function parseMeta(raw: string | null | undefined): DocMeta {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === "object" && parsed ? parsed : { notes: raw };
+  } catch {
+    return { notes: raw };
+  }
+}
+
+export function mapCompanyDocument(att: any): CompanyDocument {
+  const meta = parseMeta(att.notes);
   return {
-    id: doc.id,
-    title_en: doc.titleEn,
-    title_ar: doc.titleAr || undefined,
-    category: (doc.category as DocumentCategory) || "company_profile",
-    document_number: doc.documentNumber || undefined,
-    file_url: doc.fileUrl,
-    file_size: doc.fileSize || undefined,
-    mime_type: doc.mimeType || undefined,
-    valid_from: doc.validFrom
-      ? doc.validFrom.toISOString().split("T")[0]
-      : undefined,
-    valid_until: doc.validUntil
-      ? doc.validUntil.toISOString().split("T")[0]
-      : undefined,
-    notes: doc.notes || undefined,
-    uploaded_by_id: doc.uploadedById || undefined,
-    created_at: doc.createdAt.toISOString(),
-    updated_at: doc.updatedAt.toISOString(),
+    id: att.id,
+    title_en: meta.title_en || att.fileName,
+    title_ar: meta.title_ar || undefined,
+    category: (att.category as DocumentCategory) || "company_profile",
+    document_number: meta.document_number || undefined,
+    file_url: att.fileUrl,
+    file_size: att.sizeBytes || undefined,
+    mime_type: att.mimeType || undefined,
+    valid_from: meta.valid_from || undefined,
+    valid_until: meta.valid_until || undefined,
+    notes: meta.notes || undefined,
+    uploaded_by_id: att.uploadedById || undefined,
+    created_at: att.createdAt || new Date().toISOString(),
+    updated_at: att.createdAt || new Date().toISOString(),
   };
 }
 
 export async function getCompanyDocuments(
   category?: string,
 ): Promise<CompanyDocument[]> {
-  try {
-    const where: any = {};
-    if (category) {
-      where.category = category;
-    }
-    const docs = await db.companyDocument.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
-    return docs.map(mapCompanyDocument);
-  } catch (e) {
-    console.error("Error fetching company documents:", e);
-    throw e;
-  }
+  const docs = await listEntityAttachments({ entityType: "company_document" }).catch(() => []);
+  return docs
+    .filter((d) => !category || d.category === category)
+    .map(mapCompanyDocument);
 }
 
 export async function createCompanyDocument(data: {
@@ -57,35 +67,32 @@ export async function createCompanyDocument(data: {
   notes?: string;
   uploaded_by_id?: string;
 }): Promise<CompanyDocument> {
-  return runAtomicMutation(async () => {
-    const upload = await claimUploadOrLink(data.file_url,
-      data.uploaded_by_id,
-    );
-    const created = await db.companyDocument.create({
-      data: {
-        titleEn: data.title_en,
-        titleAr: data.title_ar || null,
-        category: data.category,
-        documentNumber: data.document_number || null,
-        fileUrl: data.file_url,
-        fileSize: upload.fileSize,
-        mimeType: upload.mimeType,
-        validFrom: data.valid_from ? new Date(data.valid_from) : null,
-        validUntil: data.valid_until ? new Date(data.valid_until) : null,
-        notes: data.notes || null,
-        uploadedById: data.uploaded_by_id || null,
-      },
-    });
-    return mapCompanyDocument(created);
+  const upload = await claimUploadOrLink(data.file_url, data.uploaded_by_id).catch(() => ({
+    fileSize: data.file_size ?? 0,
+    mimeType: data.mime_type ?? "application/octet-stream",
+  }));
+  const created = await createEntityAttachment({
+    fileName: data.title_en,
+    fileUrl: data.file_url,
+    sizeBytes: upload.fileSize || data.file_size || 0,
+    mimeType: upload.mimeType || data.mime_type || "application/octet-stream",
+    entityType: "company_document",
+    entityId: "company",
+    category: data.category,
+    notes: JSON.stringify({
+      title_en: data.title_en,
+      title_ar: data.title_ar || undefined,
+      document_number: data.document_number || undefined,
+      valid_from: data.valid_from || undefined,
+      valid_until: data.valid_until || undefined,
+      notes: data.notes || undefined,
+    } satisfies DocMeta),
+    uploadedById: data.uploaded_by_id,
   });
+  return mapCompanyDocument(created);
 }
 
 export async function deleteCompanyDocument(id: string): Promise<boolean> {
-  try {
-    await db.companyDocument.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting company document ${id}:`, e);
-    throw e;
-  }
+  await deleteEntityAttachment(id);
+  return true;
 }

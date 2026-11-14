@@ -38,7 +38,9 @@ func (s *Service) change(ctx context.Context, subject string, payload any, write
 }
 type InvoiceWithItems struct {
 	postgres.Invoice
-	Items	[]postgres.InvoiceItem	`json:"items"`
+	Items       []postgres.InvoiceItem       `json:"items"`
+	Payments    []postgres.Payment           `json:"payments,omitempty"`
+	Allocations []postgres.PaymentAllocation `json:"allocations,omitempty"`
 }
 func (s *Service) GetInvoice(ctx context.Context, id string) (InvoiceWithItems, error) {
 	inv, err := s.store.GetInvoiceByID(ctx, id)
@@ -52,7 +54,15 @@ func (s *Service) GetInvoice(ctx context.Context, id string) (InvoiceWithItems, 
 	if err != nil {
 		return InvoiceWithItems{}, err
 	}
-	return InvoiceWithItems{Invoice: inv, Items: items}, nil
+	payments, err := s.store.ListPaymentsByInvoice(ctx, &inv.ID)
+	if err != nil {
+		return InvoiceWithItems{}, err
+	}
+	allocs, err := s.store.ListPaymentAllocationsByInvoice(ctx, inv.ID)
+	if err != nil {
+		return InvoiceWithItems{}, err
+	}
+	return InvoiceWithItems{Invoice: inv, Items: items, Payments: payments, Allocations: allocs}, nil
 }
 func (s *Service) ListInvoices(ctx context.Context) ([]postgres.Invoice, error) {
 	return s.store.ListInvoices(ctx)
@@ -68,18 +78,27 @@ func (s *Service) CreateInvoice(ctx context.Context, inv sqlcdb.CreateInvoicePar
 			return err
 		}
 		out.Invoice = created
-		for _, item := range items {
-			if item.ID == "" {
-				item.ID = uuid.NewString()
-			}
+		for idx, item := range items {
 			item.InvoiceID = created.ID
+			defaultInvoiceItemFields(&item, idx)
 			inserted, err := st.InsertInvoiceItem(ctx, item)
 			if err != nil {
 				return err
 			}
 			out.Items = append(out.Items, inserted)
 		}
-		return nil
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventInvoiceCreated,
+			Payload: map[string]any{
+				"invoiceId":     created.ID,
+				"invoiceNumber": created.InvoiceNumber,
+				"quotationId":   created.QuotationID,
+				"contactId":     created.ContactID,
+				"dealId":        created.DealID,
+				"status":        created.Status,
+				"total":         numericToFloat(created.Total),
+			},
+		})
 	})
 	return out, err
 }
@@ -96,7 +115,9 @@ func (s *Service) UpdateInvoiceStatus(ctx context.Context, id string, status str
 	return s.store.UpdateInvoiceStatus(ctx, sqlcdb.UpdateInvoiceStatusParams{ID: id, Status: status})
 }
 func (s *Service) DeleteInvoice(ctx context.Context, id string) error {
-	return s.store.DeleteInvoice(ctx, id)
+	return s.change(ctx, EventInvoiceDeleted, map[string]string{"invoiceId": id}, func(st *postgres.Store) error {
+		return st.DeleteInvoice(ctx, id)
+	})
 }
 func (s *Service) GetPayment(ctx context.Context, id string) (postgres.Payment, error) {
 	p, err := s.store.GetPaymentByID(ctx, id)
@@ -115,29 +136,37 @@ func (s *Service) ListPayments(ctx context.Context, invoiceID *string) ([]postgr
 	return s.store.ListPayments(ctx)
 }
 func (s *Service) RecordPayment(ctx context.Context, in sqlcdb.CreatePaymentParams) (postgres.Payment, error) {
-	if in.ID == "" {
-		in.ID = uuid.NewString()
-	}
-	var created postgres.Payment
-	err := s.change(ctx, EventPaymentRecorded, map[string]any{
-		"paymentId":		in.ID,
-		"paymentNumber":	in.PaymentNumber,
-		"invoiceId":		in.InvoiceID,
-	}, func(st *postgres.Store) error {
-		var txErr error
-		created, txErr = st.CreatePayment(ctx, in)
-		if txErr != nil {
-			return txErr
-		}
-		if in.InvoiceID != nil && *in.InvoiceID != "" {
-			_, txErr = st.RecordPaymentOnInvoice(ctx, *in.InvoiceID, in.Amount)
-		}
-		return txErr
-	})
-	return created, err
+	res, err := s.RecordPaymentWithAllocations(ctx, in, nil)
+	return res.Payment, err
 }
 func (s *Service) DeletePayment(ctx context.Context, id string) error {
-	return s.store.DeletePayment(ctx, id)
+	return s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		p, err := st.GetPaymentByID(ctx, id)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return err
+		}
+		allocs, err := st.ListPaymentAllocationsByPayment(ctx, id)
+		if err != nil {
+			return err
+		}
+		if err := st.DeletePaymentAllocationsByPayment(ctx, id); err != nil {
+			return err
+		}
+		if err := st.DeletePayment(ctx, id); err != nil {
+			return err
+		}
+		seen := map[string]bool{}
+		for _, a := range allocs {
+			if a.InvoiceID != nil && *a.InvoiceID != "" && !seen[*a.InvoiceID] {
+				seen[*a.InvoiceID] = true
+				_, _ = st.RecalculateInvoicePayments(ctx, *a.InvoiceID)
+			}
+		}
+		if p.InvoiceID != nil && *p.InvoiceID != "" && !seen[*p.InvoiceID] {
+			_, _ = st.RecalculateInvoicePayments(ctx, *p.InvoiceID)
+		}
+		return nil
+	})
 }
 func (s *Service) ListExpenseCategories(ctx context.Context) ([]postgres.ExpenseCategory, error) {
 	return s.store.ListExpenseCategories(ctx)
@@ -199,5 +228,18 @@ func (s *Service) CreateBankSettlement(ctx context.Context, in sqlcdb.CreateBank
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateBankSettlement(ctx, in)
+	var created postgres.BankSettlement
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateBankSettlement(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		if created.PaymentID != nil && *created.PaymentID != "" {
+			sid := created.ID
+			_, _ = st.LinkPaymentToSettlement(ctx, *created.PaymentID, &sid)
+		}
+		return nil
+	})
+	return created, err
 }

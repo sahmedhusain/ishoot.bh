@@ -1,6 +1,7 @@
 
 
 import type { components, paths } from "./generated/itsm";
+import { apiTimeoutMs, apiUrl } from "./config";
 import { apiError } from "./errors";
 import { unwrap, unwrapEmpty, userClient } from "./http";
 
@@ -74,3 +75,76 @@ export const updateSLA = (
       body: minutes,
     }),
   );
+
+export type TicketLinks = {
+  ticketId: string;
+  employeeId?: string | null;
+  departmentId?: string | null;
+  projectId?: string | null;
+  assetId?: string | null;
+  documentId?: string | null;
+  assetRef?: string | null;
+};
+
+export type StaffRef = {
+  employeeId: string;
+  userId?: string | null;
+  employeeNumber: string;
+  nameEn: string;
+  nameAr: string;
+  email: string;
+  departmentId?: string | null;
+  status: string;
+  updatedAt: string;
+};
+
+export async function getTicketLinks(
+  token: string,
+  id: string,
+): Promise<TicketLinks | null> {
+  const res = await fetch(
+    `${apiUrl()}/v1/itsm/desk/tickets/${encodeURIComponent(id)}/links`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(apiTimeoutMs()),
+    },
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+
+export async function updateTicketLinks(
+  token: string,
+  id: string,
+  body: Omit<Partial<TicketLinks>, "ticketId">,
+): Promise<TicketLinks> {
+  const res = await fetch(
+    `${apiUrl()}/v1/itsm/desk/tickets/${encodeURIComponent(id)}/links`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(apiTimeoutMs()),
+    },
+  );
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+
+export async function listStaffRef(
+  token: string,
+  status = "",
+): Promise<StaffRef[]> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+  const res = await fetch(`${apiUrl()}/v1/itsm/desk/staff-ref${qs}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (res.status === 404) return [];
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}

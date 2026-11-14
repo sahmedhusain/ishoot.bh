@@ -182,12 +182,11 @@ func (s *Service) GetMOM(ctx context.Context, id string) (postgres.MinuteOfMeeti
 	return mom, nil
 }
 func (s *Service) CreateMOM(ctx context.Context, in sqlcdb.CreateMOMParams) (postgres.MinuteOfMeeting, error) {
-	if in.ID == "" {
-		in.ID = uuid.NewString()
-	}
+	normalizeMOMCreateDefaults(&in)
 	return s.store.CreateMOM(ctx, in)
 }
 func (s *Service) UpdateMOM(ctx context.Context, in sqlcdb.UpdateMOMParams) (postgres.MinuteOfMeeting, error) {
+	normalizeMOMUpdateDefaults(&in)
 	return s.store.UpdateMOM(ctx, in)
 }
 func (s *Service) GetTask(ctx context.Context, id string) (postgres.Task, error) {

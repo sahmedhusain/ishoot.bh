@@ -77,7 +77,21 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
               {item(a.fields.serial, asset.serial_number, true)}
               {item(a.fields.condition, a.conditions[asset.condition as keyof typeof a.conditions])}
               {item(a.fields.location, asset.location)}
-              {item(a.fields.holder, asset.holder ? (isAr ? asset.holder.name_ar : asset.holder.name_en) : null)}
+              <div>
+                <dt className="text-[11px] text-ink-muted mb-0.5">{a.fields.holder}</dt>
+                <dd className="text-sm font-medium text-ink">
+                  {asset.holder ? (
+                    <Link
+                      href={`/dashboard/hr/employees/${encodeURIComponent(asset.holder.id)}`}
+                      className="text-accent hover:underline"
+                    >
+                      {isAr ? asset.holder.name_ar : asset.holder.name_en}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
               {item(a.fields.purchaseDate, asset.purchase_date ? formatDate(asset.purchase_date, locale) : null)}
               {item(a.fields.purchaseCost, asset.purchase_cost !== undefined ? formatCurrencyValue(asset.purchase_cost, asset.currency, isAr) : null)}
               {item(a.fields.supplier, asset.supplier)}

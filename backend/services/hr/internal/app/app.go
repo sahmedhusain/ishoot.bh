@@ -2,6 +2,7 @@ package app
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -15,10 +16,26 @@ var (
 )
 const (
 	EventEmployeeCreated		= "hr.employee.created"
+	EventEmployeeUpserted		= "hr.employee.upserted"
+	EventDepartmentUpserted		= "hr.department.upserted"
 	EventLeaveApproved		= "hr.leave.approved"
 	EventPayrollProcessed		= "hr.payroll.processed"
 	EventOffboardingComplete	= "hr.offboarding.completed"
 )
+
+func employeePayload(e postgres.Employee) map[string]any {
+	name := strings.TrimSpace(e.FirstNameEn + " " + e.LastNameEn)
+	nameAr := strings.TrimSpace(e.FirstNameAr + " " + e.LastNameAr)
+	return map[string]any{
+		"kind":         "employee",
+		"employeeId":   e.ID,
+		"id":           e.ID,
+		"name":         name,
+		"nameAr":       nameAr,
+		"email":        e.Email,
+		"departmentId": e.DepartmentID,
+	}
+}
 type Service struct {
 	store	*postgres.Store
 	now	func() time.Time
@@ -54,10 +71,46 @@ func (s *Service) CreateDepartment(ctx context.Context, in sqlcdb.CreateDepartme
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
-	return s.store.CreateDepartment(ctx, in)
+	var created postgres.Department
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		created, txErr = st.CreateDepartment(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventDepartmentUpserted,
+			Payload: map[string]any{
+				"kind":     "department",
+				"id":       created.ID,
+				"name":     created.NameEn,
+				"nameAr":   created.NameAr,
+				"parentId": created.ParentID,
+			},
+		})
+	})
+	return created, err
 }
 func (s *Service) UpdateDepartment(ctx context.Context, in sqlcdb.UpdateDepartmentParams) (postgres.Department, error) {
-	return s.store.UpdateDepartment(ctx, in)
+	var updated postgres.Department
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateDepartment(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventDepartmentUpserted,
+			Payload: map[string]any{
+				"kind":     "department",
+				"id":       updated.ID,
+				"name":     updated.NameEn,
+				"nameAr":   updated.NameAr,
+				"parentId": updated.ParentID,
+			},
+		})
+	})
+	return updated, err
 }
 func (s *Service) DeleteDepartment(ctx context.Context, id string) error {
 	return s.store.DeleteDepartment(ctx, id)
@@ -80,18 +133,33 @@ func (s *Service) CreateEmployee(ctx context.Context, in sqlcdb.CreateEmployeePa
 		in.ID = uuid.NewString()
 	}
 	var created postgres.Employee
-	err := s.change(ctx, EventEmployeeCreated, map[string]string{
-		"employeeId":	in.ID,
-		"email":	in.Email,
-	}, func(st *postgres.Store) error {
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		var txErr error
 		created, txErr = st.CreateEmployee(ctx, in)
-		return txErr
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventEmployeeCreated,
+			Payload: employeePayload(created),
+		})
 	})
 	return created, err
 }
 func (s *Service) UpdateEmployee(ctx context.Context, in sqlcdb.UpdateEmployeeParams) (postgres.Employee, error) {
-	return s.store.UpdateEmployee(ctx, in)
+	var updated postgres.Employee
+	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
+		var txErr error
+		updated, txErr = st.UpdateEmployee(ctx, in)
+		if txErr != nil {
+			return txErr
+		}
+		return outbox.Enqueue(ctx, tx, postgres.Schema, outbox.Event{
+			Subject: EventEmployeeUpserted,
+			Payload: employeePayload(updated),
+		})
+	})
+	return updated, err
 }
 func (s *Service) OffboardEmployee(ctx context.Context, id string) (postgres.Employee, error) {
 	var updated postgres.Employee

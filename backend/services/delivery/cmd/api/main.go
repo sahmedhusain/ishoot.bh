@@ -112,12 +112,40 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if err != nil {
 		return err
 	}
+	meshDone, err := startMeshConsumer(ctx, cfg, logger, svc)
+	if err != nil {
+		return err
+	}
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("delivery service starting")
 	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 	<-relayDone
 	<-consumerDone
+	<-meshDone
 	return runErr
+}
+func startMeshConsumer(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName+"-mesh-consumer", logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		handle := func(ctx context.Context, msg jetstream.Msg) error {
+			return svc.HandleMeshEvent(ctx, natsx.EventID(msg), msg.Subject(), msg.Data())
+		}
+		subjects := []string{"commerce.order.>", "hr.employee.>"}
+		if err := client.Consume(ctx, app.DeliveryMeshConsumer, subjects, handle, logger.Logger); err != nil {
+			logger.Error("delivery mesh consumer stopped", "error", err)
+		}
+	}()
+	return done, nil
 }
 func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, registry prometheus.Registerer) (<-chan struct{}, error) {
 	done := make(chan struct{})

@@ -9752,7 +9752,13 @@
         "request": "Request",
         "shipment": "Shipment",
         "purchase_order": "Purchase order",
-        "contact": "Contact"
+        "contact": "Contact",
+        "mom": "Meeting minutes (MoM)",
+        "employee": "Employee",
+        "contract": "Contract",
+        "letter": "Official letter",
+        "asset": "Asset",
+        "document": "Document"
       },
       "notifications": {
         "assigned": {

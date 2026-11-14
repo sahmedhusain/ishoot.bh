@@ -1,3 +1,9 @@
+import {
+  listEmployees,
+  listEmployeePayItems,
+  listEntityAttachments,
+  listEmployeeCredentials,
+} from "@platform/api-client";
 import { getHrPolicy } from "@platform/database";
 import { EmployeeAttachments } from "../../../../../components/hr/EmployeeAttachments";
 import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocumentsView";
@@ -67,15 +73,43 @@ export default async function EmployeeDetailPage({
         ? listAccountChangeRequests(linkedUserId)
         : Promise.resolve([]),
       getStaffRoles().then((items) => items.map((r) => ({ id: r.id, nameEn: r.nameEn, nameAr: r.nameAr, name: r.nameEn }))),
-      Promise.resolve([] as Array<{ id: string; fullName: string }>),
+      listEmployees()
+        .then((list) =>
+          (list || [])
+            .filter((m) => m.id !== id)
+            .map((m) => ({
+              id: m.id,
+              fullName:
+                `${m.firstNameEn || ""} ${m.lastNameEn || ""}`.trim() ||
+                m.firstNameAr ||
+                m.employeeNumber ||
+                m.id,
+            })),
+        )
+        .catch(() => [] as Array<{ id: string; fullName: string }>),
     ]);
   const year = new Date().getUTCFullYear();
-  const [balances, payItems, recurringPay] = await Promise.all([
+  const [balances, payItems, recurringPay, rawAttachments, credentialRows] = await Promise.all([
     getLeaveBalances(id, year),
-    Promise.resolve([] as any[]),
+    canViewPay ? listEmployeePayItems(id).catch(() => []) : Promise.resolve([]),
     canViewPay ? listRecurringPay(id) : Promise.resolve([]),
+    listEntityAttachments({ entityType: "employee", entityId: id }).catch(() => []),
+    listEmployeeCredentials(id).catch(() => []),
   ]);
-  const attachments: { id: string; fileName: string; fileUrl: string }[] = [];
+  const attachments: { id: string; fileName: string; fileUrl: string }[] = [
+    ...rawAttachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      fileUrl: a.fileUrl,
+    })),
+    ...credentialRows
+      .filter((c) => c.fileUrl)
+      .map((c) => ({
+        id: `cred-${c.id}`,
+        fileName: `${c.kind}: ${c.label}`,
+        fileUrl: c.fileUrl as string,
+      })),
+  ];
   const canManage = await canManageSalaryDocuments(actor);
   const documents: any[] = [];
   const [availableMonths, decidableIds] = canManage
@@ -160,11 +194,11 @@ export default async function EmployeeDetailPage({
         <EmployeePayHistory
           rows={payItems.map((p) => ({
             id: p.id,
-            month: p.payrollRun.month,
-            year: p.payrollRun.year,
+            month: p.periodMonth,
+            year: p.periodYear,
             netSalary: Number(p.netSalary),
             paymentStatus: p.paymentStatus,
-            runStatus: p.payrollRun.status,
+            runStatus: p.runStatus,
           }))}
         />
       )}
