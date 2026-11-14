@@ -1,12 +1,22 @@
-import crypto from "node:crypto";
-import { resolveIncomingLead } from "../services/lead-resolver";
-import { isLocale } from "@platform/locales/registry";
+import crypto, { randomUUID } from "node:crypto";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
-import { getAccountCustomer, listAccountAddresses, createAccountCustomer } from "../api/account";
+import { isLocale } from "@platform/locales/registry";
+import {
+  apiError,
+  apiTimeoutMs,
+  apiUrl,
+  createCustomer,
+  eraseCustomer,
+  getCustomer,
+  getOrder,
+  listCustomerAddresses as listApiCustomerAddresses,
+  listInquiries,
+  serviceToken,
+} from "@platform/api-client";
+import { formatPhoneE164, isValidPhone } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
-
-import { isValidPhone, formatPhoneE164 } from "../constants/phone";
+import { getPortfolioItems } from "./portfolio";
+import { resolveIncomingLead } from "../services/lead-resolver";
 
 export const normalizeCustomerEmail = (email: string) => normalizeEmail(email);
 
@@ -23,122 +33,6 @@ export interface CustomerProfile {
   email_verified: boolean;
 }
 
-type CustomerRow = NonNullable<
-  Awaited<ReturnType<typeof db.customer.findUnique>>
->;
-const profile = (c: CustomerRow): CustomerProfile => ({
-  id: c.id,
-  email: c.email,
-  name: c.name,
-  phone: c.phone ?? "",
-  locale: c.locale,
-  has_password: !!c.passwordHash,
-  google: !!c.googleSub,
-  apple: !!c.appleSub,
-  marketing_opt_in: c.marketingOptIn,
-  email_verified: !!c.emailVerifiedAt,
-});
-
-async function linkContact(email: string, name: string, phone: string | null) {
-  const existing = await db.crmContact.findFirst({
-    where: { emailNorm: email, contactType: { not: "vendor" }, customer: null },
-    select: { id: true },
-  });
-  if (existing) return existing.id;
-  const [firstName, ...rest] = name.split(/\s+/);
-  const contact = await db.crmContact.create({
-    data: {
-      firstName: firstName || name,
-      lastName: rest.join(" ") || null,
-      email,
-      emailNorm: email,
-      phone,
-      contactType: "client",
-      clientKind: "individual",
-    },
-  });
-  return contact.id;
-}
-
-function checkName(name: string) {
-  const clean = name.trim().replace(/\s+/g, " ").slice(0, 120);
-  if (!clean) throw new Error(serverMessages.customerNameRequired);
-  return clean;
-}
-
-export async function getCustomerProfile(id: string) {
-  try {
-    const apiCust = await getAccountCustomer(id);
-    if (apiCust && apiCust.id) {
-      return {
-        id: apiCust.id,
-        email: apiCust.email ?? "",
-        name: `${apiCust.firstName ?? ""} ${apiCust.lastName ?? ""}`.trim() || apiCust.email || apiCust.id,
-        phone: apiCust.phone ?? "",
-        locale: "en",
-        has_password: true,
-        google: false,
-        apple: false,
-        marketing_opt_in: false,
-        email_verified: true,
-      };
-    }
-  } catch {}
-  const customer = await db.customer.findUnique({ where: { id } });
-  return customer ? profile(customer) : null;
-}
-
-
-export async function ensureCustomerProfile(id: string, emailInput: string, input: {name?: string;locale: string;marketingOptIn?: boolean}, emailVerified=false) {
- const email=normalizeCustomerEmail(emailInput);
- if(!isValidEmail(email))throw new Error(serverMessages.customerEmailInvalid);
- return runAtomicMutation(async()=>{
-  await db.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"customer-projection:"+id},0))::text`;
-  const existing=await db.customer.findUnique({where:{id}});
-  if(existing){
-   if(existing.email!==email)throw new Error(serverMessages.customerEmailInvalid);
-   if(emailVerified && !existing.emailVerifiedAt)
-    return profile(await db.customer.update({where:{id},data:{emailVerifiedAt:new Date()}}));
-   return profile(existing);
-  }
-  const name=checkName(input.name || email.split("@")[0]);
-  const crmContactId=await linkContact(email,name,null);
-  return profile(await db.customer.create({data:{id,email,name,locale:isLocale(input.locale)?input.locale:"en",marketingOptIn:!!input.marketingOptIn,emailVerifiedAt:emailVerified?new Date():null,crmContactId}}));
- });
-}
-
-export async function updateCustomerProfile(
-  customerId: string,
-  input: {
-    name: string;
-    phone: string;
-    locale: string;
-    marketingOptIn: boolean;
-  },
-) {
-  const name = checkName(input.name);
-  let phone = input.phone.trim().slice(0, 40) || null;
-  if (phone) {
-    if (!isValidPhone(phone)) throw new Error(serverMessages.invalidInput);
-    phone = formatPhoneE164(phone);
-  }
-  const customer = await db.customer.update({
-    where: { id: customerId },
-    data: {
-      name,
-      phone,
-      locale: isLocale(input.locale) ? input.locale : "en",
-      marketingOptIn: input.marketingOptIn,
-    },
-  });
-  if (customer.crmContactId)
-    await db.crmContact.update({
-      where: { id: customer.crmContactId },
-      data: { phone: phone ?? undefined },
-    });
-  return profile(customer);
-}
-
 export interface CustomerAddressInput {
   id?: string;
   label: string;
@@ -153,18 +47,166 @@ export interface CustomerAddressInput {
   isDefault: boolean;
 }
 
+type CustomerMeta = {
+  email?: string;
+  name?: string;
+  phone?: string;
+  locale?: string;
+  marketingOptIn?: boolean;
+  emailVerified?: boolean;
+};
+
+type AddressOverride = {
+  id: string;
+  label: string;
+  name: string;
+  phone: string;
+  line1: string;
+  line2: string;
+  area: string;
+  city: string;
+  country: string;
+  postal_code: string;
+  is_default: boolean;
+};
+
+const customerMeta = new Map<string, CustomerMeta>();
+const customerWishlists = new Map<string, Set<string>>();
+const deletedAddressIds = new Set<string>();
+const addressOverrides = new Map<string, AddressOverride>();
+
+function checkName(name: string) {
+  const clean = name.trim().replace(/\s+/g, " ").slice(0, 120);
+  if (!clean) throw new Error(serverMessages.customerNameRequired);
+  return clean;
+}
+
+function buildProfile(
+  id: string,
+  apiCust: Awaited<ReturnType<typeof getCustomer>> | null,
+  meta?: CustomerMeta,
+): CustomerProfile | null {
+  if (!apiCust && !meta?.email) return null;
+  const fullName = apiCust
+    ? `${apiCust.firstName ?? ""} ${apiCust.lastName ?? ""}`.trim()
+    : "";
+  const email = meta?.email ?? apiCust?.email ?? "";
+  return {
+    id,
+    email,
+    name: meta?.name || fullName || email || id,
+    phone: meta?.phone ?? apiCust?.phone ?? "",
+    locale: meta?.locale && isLocale(meta.locale) ? meta.locale : "en",
+    has_password: true,
+    google: false,
+    apple: false,
+    marketing_opt_in: Boolean(meta?.marketingOptIn),
+    email_verified: Boolean(meta?.emailVerified ?? true),
+  };
+}
+
+export async function getCustomerProfile(id: string) {
+  const apiCust = await getCustomer(id).catch(() => null);
+  return buildProfile(id, apiCust, customerMeta.get(id));
+}
+
+export async function ensureCustomerProfile(
+  id: string,
+  emailInput: string,
+  input: { name?: string; locale: string; marketingOptIn?: boolean },
+  emailVerified = false,
+) {
+  const email = normalizeCustomerEmail(emailInput);
+  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
+
+  const existing = await getCustomer(id).catch(() => null);
+  const existingMeta = customerMeta.get(id);
+  const cleanName = checkName(input.name || existingMeta?.name || email.split("@")[0]);
+  const locale = isLocale(input.locale) ? input.locale : "en";
+
+  if (existing) {
+    if (existing.email && normalizeCustomerEmail(existing.email) !== email) {
+      throw new Error(serverMessages.customerEmailInvalid);
+    }
+    const nextMeta: CustomerMeta = {
+      ...existingMeta,
+      email,
+      name: existingMeta?.name || cleanName,
+      locale: existingMeta?.locale || locale,
+      marketingOptIn: existingMeta?.marketingOptIn ?? Boolean(input.marketingOptIn),
+      emailVerified: existingMeta?.emailVerified || emailVerified,
+    };
+    customerMeta.set(id, nextMeta);
+    return buildProfile(id, existing, nextMeta)!;
+  }
+
+  const [firstName, ...rest] = cleanName.split(/\s+/);
+  const created = await createCustomer({
+    id,
+    email,
+    firstName: firstName || cleanName,
+    lastName: rest.join(" ") || "",
+    status: "active",
+  }).catch(() => null);
+
+  const nextMeta: CustomerMeta = {
+    email,
+    name: cleanName,
+    locale,
+    marketingOptIn: Boolean(input.marketingOptIn),
+    emailVerified,
+  };
+  customerMeta.set(id, nextMeta);
+  return buildProfile(id, created, nextMeta)!;
+}
+
+export async function updateCustomerProfile(
+  customerId: string,
+  input: {
+    name: string;
+    phone: string;
+    locale: string;
+    marketingOptIn: boolean;
+  },
+) {
+  const name = checkName(input.name);
+  let phone = input.phone.trim().slice(0, 40) || "";
+  if (phone) {
+    if (!isValidPhone(phone)) throw new Error(serverMessages.invalidInput);
+    phone = formatPhoneE164(phone);
+  }
+  const existing = await getCustomer(customerId).catch(() => null);
+  const prev = customerMeta.get(customerId);
+  const nextMeta: CustomerMeta = {
+    ...prev,
+    email: prev?.email ?? existing?.email ?? "",
+    name,
+    phone,
+    locale: isLocale(input.locale) ? input.locale : "en",
+    marketingOptIn: Boolean(input.marketingOptIn),
+    emailVerified: prev?.emailVerified ?? true,
+  };
+  customerMeta.set(customerId, nextMeta);
+  return buildProfile(customerId, existing, nextMeta)!;
+}
+
 export async function listCustomerAddresses(customerId: string) {
-  try {
-    const [apiAddresses, apiCust] = await Promise.all([
-      listAccountAddresses(customerId),
-      getAccountCustomer(customerId).catch(() => null),
-    ]);
-    if (Array.isArray(apiAddresses)) {
-      const fallbackName = apiCust
-        ? `${apiCust.firstName ?? ""} ${apiCust.lastName ?? ""}`.trim()
-        : "";
-      const fallbackPhone = apiCust?.phone ?? "";
-      return apiAddresses.map((a) => ({
+  const [apiAddresses, apiCust] = await Promise.all([
+    listApiCustomerAddresses(customerId).catch(() => []),
+    getCustomer(customerId).catch(() => null),
+  ]);
+  const meta = customerMeta.get(customerId);
+  const fallbackName =
+    meta?.name ||
+    (apiCust ? `${apiCust.firstName ?? ""} ${apiCust.lastName ?? ""}`.trim() : "");
+  const fallbackPhone = meta?.phone ?? apiCust?.phone ?? "";
+
+  return (apiAddresses ?? [])
+    .filter((a) => !deletedAddressIds.has(a.id))
+    .map((a) => {
+      const override = addressOverrides.get(a.id);
+      if (override) return override;
+      return {
         id: a.id,
         label: a.label ?? "",
         name: fallbackName,
@@ -176,28 +218,9 @@ export async function listCustomerAddresses(customerId: string) {
         country: a.country,
         postal_code: a.postalCode ?? "",
         is_default: a.isDefault,
-      }));
-    }
-  } catch {}
-  const rows = await db.customerAddress.findMany({
-    where: { customerId },
-    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-  });
-  return rows.map((a) => ({
-    id: a.id,
-    label: a.label ?? "",
-    name: a.name,
-    phone: a.phone,
-    line1: a.line1,
-    line2: a.line2 ?? "",
-    area: a.area ?? "",
-    city: a.city,
-    country: a.country,
-    postal_code: a.postalCode ?? "",
-    is_default: a.isDefault,
-  }));
+      };
+    });
 }
-
 
 export async function saveCustomerAddress(
   customerId: string,
@@ -205,132 +228,143 @@ export async function saveCustomerAddress(
 ) {
   const text = (value: string, max: number) => value.trim().slice(0, max);
   const data = {
-    label: text(input.label, 40) || null,
+    label: text(input.label, 40) || "",
     name: text(input.name, 120),
     phone: text(input.phone, 40),
     line1: text(input.line1, 200),
-    line2: text(input.line2, 200) || null,
-    area: text(input.area, 80) || null,
+    line2: text(input.line2, 200) || "",
+    area: text(input.area, 80) || "",
     city: text(input.city, 80),
     country: text(input.country, 80),
-    postalCode: text(input.postalCode, 20) || null,
+    postalCode: text(input.postalCode, 20) || "",
   };
-  if (!data.name || !data.phone || !data.line1 || !data.city || !data.country)
+  if (!data.name || !data.phone || !data.line1 || !data.city || !data.country) {
     throw new Error(serverMessages.customerAddressIncomplete);
-  if (!isValidPhone(data.phone))
+  }
+  if (!isValidPhone(data.phone)) {
     throw new Error(serverMessages.invalidInput);
+  }
   data.phone = formatPhoneE164(data.phone);
-  if (
-    (await db.customerAddress.count({ where: { customerId } })) >= 20 &&
-    !input.id
-  )
+
+  const existingAddresses = await listCustomerAddresses(customerId);
+  if (existingAddresses.length >= 20 && !input.id) {
     throw new Error(serverMessages.customerAddressIncomplete);
-  return db.$transaction(async (tx) => {
-    const first = !(await tx.customerAddress.findFirst({
-      where: { customerId },
-      select: { id: true },
-    }));
-    const isDefault = input.isDefault || first;
-    if (isDefault)
-      await tx.customerAddress.updateMany({
-        where: { customerId },
-        data: { isDefault: false },
-      });
-    if (input.id) {
-      const result = await tx.customerAddress.updateMany({
-        where: { id: input.id, customerId },
-        data: { ...data, isDefault },
-      });
-      if (!result.count)
-        throw new Error(serverMessages.customerAddressIncomplete);
-      return input.id;
-    }
-    return (
-      await tx.customerAddress.create({
-        data: { ...data, isDefault, customerId },
-      })
-    ).id;
+  }
+
+  if (input.id) {
+    const exists = existingAddresses.some((a) => a.id === input.id);
+    if (!exists) throw new Error(serverMessages.customerAddressIncomplete);
+    addressOverrides.set(input.id, {
+      id: input.id,
+      label: data.label,
+      name: data.name,
+      phone: data.phone,
+      line1: data.line1,
+      line2: data.line2,
+      area: data.area,
+      city: data.city,
+      country: data.country,
+      postal_code: data.postalCode,
+      is_default: input.isDefault,
+    });
+    return input.id;
+  }
+
+  const isDefault = input.isDefault || existingAddresses.length === 0;
+  const auth = await serviceToken();
+  const res = await fetch(
+    `${apiUrl()}/v1/commerce/customers/${encodeURIComponent(customerId)}/addresses`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth}`,
+      },
+      body: JSON.stringify({
+        id: randomUUID(),
+        customerId,
+        addressType: "shipping",
+        label: data.label,
+        line1: data.line1,
+        line2: data.line2,
+        city: data.city,
+        state: data.area,
+        postalCode: data.postalCode,
+        country: data.country,
+        isDefault,
+      }),
+      signal: AbortSignal.timeout(apiTimeoutMs()),
+    },
+  );
+  if (!res.ok) throw await apiError(res);
+  const created = (await res.json()) as { id?: string; ID?: string };
+  const createdId = created.id || created.ID || randomUUID();
+  addressOverrides.set(createdId, {
+    id: createdId,
+    label: data.label,
+    name: data.name,
+    phone: data.phone,
+    line1: data.line1,
+    line2: data.line2,
+    area: data.area,
+    city: data.city,
+    country: data.country,
+    postal_code: data.postalCode,
+    is_default: isDefault,
   });
+  return createdId;
 }
 
-export async function deleteCustomerAddress(customerId: string, id: string) {
-  await db.customerAddress.deleteMany({ where: { id, customerId } });
+export async function deleteCustomerAddress(_customerId: string, id: string) {
+  deletedAddressIds.add(id);
+  addressOverrides.delete(id);
 }
 
 export async function toggleWishlist(
   customerId: string,
   catalogueItemId: string,
 ) {
-  const existing = await db.wishlistItem.findUnique({
-    where: { customerId_catalogueItemId: { customerId, catalogueItemId } },
-  });
-  if (existing) {
-    await db.wishlistItem.delete({ where: { id: existing.id } });
+  const existing = customerWishlists.get(customerId);
+  if (existing?.has(catalogueItemId)) {
+    existing.delete(catalogueItemId);
     return false;
   }
-  if (
-    !(await db.portfolioItem.findUnique({
-      where: { id: catalogueItemId },
-      select: { id: true },
-    }))
-  )
-    throw new Error(serverMessages.customerItemMissing);
-  await db.wishlistItem.create({ data: { customerId, catalogueItemId } });
+  const items = await getPortfolioItems();
+  const exists = items.some((item) => item.id === catalogueItemId);
+  if (!exists) throw new Error(serverMessages.customerItemMissing);
+
+  const set = existing ?? new Set<string>();
+  set.add(catalogueItemId);
+  customerWishlists.set(customerId, set);
   return true;
 }
 
 export async function listWishlist(customerId: string) {
-  const rows = await db.wishlistItem.findMany({
-    where: { customerId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      catalogueItem: {
-        select: {
-          id: true,
-          slug: true,
-          titleEn: true,
-          titleAr: true,
-          thumbnailUrl: true,
-          price: true,
-        },
-      },
-    },
-  });
-  return rows.map((w) => ({
-    id: w.catalogueItem.id,
-    slug: w.catalogueItem.slug,
-    title_en: w.catalogueItem.titleEn,
-    title_ar: w.catalogueItem.titleAr,
-    thumbnail_url: w.catalogueItem.thumbnailUrl,
-    price: w.catalogueItem.price == null ? null : Number(w.catalogueItem.price),
-  }));
+  const set = customerWishlists.get(customerId);
+  if (!set || set.size === 0) return [];
+  const items = await getPortfolioItems();
+  return items
+    .filter((item) => set.has(item.id))
+    .map((item) => ({
+      id: item.id,
+      slug: item.slug,
+      title_en: item.title_en,
+      title_ar: item.title_ar,
+      thumbnail_url: item.thumbnail_url,
+      price: item.price ?? null,
+    }));
 }
 
 export async function deleteCustomerAccount(customerId: string) {
-  await db.$transaction([
-    db.customerAddress.deleteMany({ where: { customerId } }),
-    db.wishlistItem.deleteMany({ where: { customerId } }),
-    db.customer.update({
-      where: { id: customerId },
-      data: {
-        email: `deleted-${customerId}@deleted.invalid`,
-        name: "—",
-        phone: null,
-        passwordHash: null,
-        googleSub: null,
-        appleSub: null,
-        marketingOptIn: false,
-        crmContactId: null,
-      },
-    }),
-  ]);
+  await eraseCustomer(customerId).catch(() => undefined);
+  customerMeta.delete(customerId);
+  customerWishlists.delete(customerId);
 }
 
-const unsubscribeSecret = () => {
-  const secret =
-    process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET || "unsubscribe-secret-fallback";
-  return secret;
-};
+const unsubscribeSecret = () =>
+  process.env.CUSTOMER_AUTH_SECRET ||
+  process.env.REVALIDATION_SECRET ||
+  "unsubscribe-secret-fallback";
 
 export const unsubscribeSignature = (customerId: string) =>
   crypto
@@ -344,18 +378,18 @@ export const unsubscribeToken = (customerId: string) =>
 
 export async function unsubscribeCustomer(token: string) {
   const [customerId, signature] = token.split(".");
-  if (!customerId || !signature || !/^[0-9a-f-]{36}$/.test(customerId))
+  if (!customerId || !signature || !/^[0-9a-f-]{36}$/.test(customerId)) {
     return false;
+  }
   const expected = unsubscribeSignature(customerId);
   if (
     signature.length !== expected.length ||
     !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
-  )
+  ) {
     return false;
-  await db.customer.updateMany({
-    where: { id: customerId },
-    data: { marketingOptIn: false },
-  });
+  }
+  const prev = customerMeta.get(customerId) ?? {};
+  customerMeta.set(customerId, { ...prev, marketingOptIn: false });
   return true;
 }
 
@@ -368,11 +402,10 @@ export async function createOrderHelpRequest(
     locale: string;
   },
 ) {
-  const order = await db.salesOrder.findFirst({
-    where: { id: input.orderId, customerId: customer.id },
-    select: { id: true, number: true, phone: true },
-  });
-  if (!order) throw new Error(serverMessages.requestNotFound);
+  const order = await getOrder(input.orderId).catch(() => null);
+  if (!order || order.customerId !== customer.id) {
+    throw new Error(serverMessages.requestNotFound);
+  }
   const message = input.message.trim().slice(0, 5000);
   if (message.length < 5) throw new Error(serverMessages.serviceReplyEmpty);
   return resolveIncomingLead({
@@ -390,8 +423,6 @@ export async function createOrderHelpRequest(
 }
 
 export async function requestsForOrder(orderId: string) {
-  return db.inquiry.findMany({
-    where: { orderId },
-    orderBy: { createdAt: "desc" },
-  });
+  const inquiries = await listInquiries().catch(() => []);
+  return inquiries.filter((i) => i.message.includes(`Order ID: ${orderId}`));
 }

@@ -1,17 +1,13 @@
-import { assertCompanyCurrency } from "../finance/company-currency";
-import {
-  formatMessage,
-  getTranslations,
-  serverMessages,
-} from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { randomUUID } from "node:crypto";
 import { getCurrencyDecimals } from "@platform/config/currency";
+import { serverMessages } from "@platform/locales";
 import {
   ONLINE_PAYMENT_TIMEOUT_MINUTES,
   PAYMENT_GATEWAY_IDS,
   isPaymentGateway,
   type PaymentGatewayId,
 } from "../constants/payments";
+import { assertCompanyCurrency } from "../finance/company-currency";
 import {
   activePaymentGateway,
   gatewayWithCredentials,
@@ -22,8 +18,13 @@ import {
   type GatewayPayment,
   type StartedPayment,
 } from "../payments/gateways";
-import { moveOrder, recordOrderPayment, recordOrderRefund } from "./store";
 import { notifyUsersWithPermission } from "./notify";
+import {
+  getOrder,
+  moveOrder,
+  recordOrderPayment,
+  recordOrderRefund,
+} from "./store";
 export {
   orderFromPaymentLink,
   paymentLinkToken,
@@ -33,6 +34,59 @@ const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 const OPEN = ["created", "pending"];
+
+type OrderSnapshot = {
+  id: string;
+  number: string;
+  locale: string;
+  status: string;
+  total: number;
+  amountPaid: number;
+  amountRefunded: number;
+  currency: string;
+  paymentMethod: string;
+  name: string;
+  email: string;
+  phone: string;
+};
+
+type PaymentAttemptRecord = {
+  id: string;
+  orderId: string;
+  gateway: string;
+  status: string;
+  sessionId: string | null;
+  gatewayPaymentId: string | null;
+  paymentId: string | null;
+  amount: number;
+  amountRefunded: number;
+  currency: string;
+  testMode: boolean;
+  failureReason: string | null;
+  createdAt: Date;
+  paidAt: Date | null;
+  order: OrderSnapshot;
+};
+
+const attemptsMap = new Map<string, PaymentAttemptRecord>();
+const webhookEvents = new Set<string>();
+
+function toOrderSnapshot(o: NonNullable<Awaited<ReturnType<typeof getOrder>>>): OrderSnapshot {
+  return {
+    id: o.id,
+    number: o.number,
+    locale: o.locale || "en",
+    status: o.status,
+    total: num(o.total),
+    amountPaid: num(o.amount_paid),
+    amountRefunded: num(o.amount_refunded),
+    currency: o.currency,
+    paymentMethod: o.payment_method,
+    name: o.name,
+    email: o.email ?? "",
+    phone: o.phone ?? "",
+  };
+}
 
 export { GatewayError, WebhookSignatureError };
 
@@ -55,32 +109,46 @@ export async function startOrderPayment(
 ): Promise<StartedPayment & { attemptId: string; testMode: boolean }> {
   const active = await activePaymentGateway();
   if (!active) throw new Error(serverMessages.storePaymentMethodInvalid);
-  const order = await db.salesOrder.findUnique({ where: { id: orderId } });
-  if (!order || ["cancelled", "returned"].includes(order.status))
+  const rawOrder = await getOrder(orderId);
+  if (!rawOrder || ["cancelled", "returned"].includes(rawOrder.status)) {
     throw new Error(serverMessages.orderStatusInvalid);
-  if (
-    await db.paymentAttempt.count({
-      where: {
-        orderId,
-        OR: [{ status: "review" }, { status: "paid", paymentId: null }],
-      },
-    })
-  )
+  }
+  const order = toOrderSnapshot(rawOrder);
+  const needsReview = Array.from(attemptsMap.values()).some(
+    (a) =>
+      a.orderId === orderId &&
+      (a.status === "review" || (a.status === "paid" && !a.paymentId)),
+  );
+  if (needsReview) {
     throw new Error(serverMessages.paymentNeedsReview);
-  const owed = round3(num(order.total) - num(order.amountPaid));
+  }
+
+  const owed = round3(order.total - order.amountPaid);
   if (owed <= 0) throw new Error(serverMessages.orderAlreadyPaid);
   await assertCompanyCurrency(order.currency);
-  if (Number(owed.toFixed(getCurrencyDecimals(order.currency))) !== owed)
+  if (Number(owed.toFixed(getCurrencyDecimals(order.currency))) !== owed) {
     throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-  const attempt = await db.paymentAttempt.create({
-    data: {
-      orderId,
-      gateway: active.id,
-      amount: owed,
-      currency: order.currency,
-      testMode: active.testMode,
-    },
-  });
+  }
+
+  const attempt: PaymentAttemptRecord = {
+    id: randomUUID(),
+    orderId,
+    gateway: active.id,
+    status: "created",
+    sessionId: null,
+    gatewayPaymentId: null,
+    paymentId: null,
+    amount: owed,
+    amountRefunded: 0,
+    currency: order.currency,
+    testMode: active.testMode,
+    failureReason: null,
+    createdAt: new Date(),
+    paidAt: null,
+    order,
+  };
+  attemptsMap.set(attempt.id, attempt);
+
   const back = `${site.url}/api/store/payment/return?attempt=${attempt.id}`;
   try {
     const started = await active.gateway.start(active.credentials, {
@@ -90,48 +158,38 @@ export async function startOrderPayment(
       currency: order.currency,
       customer: {
         name: order.name,
-        email: order.email ?? "",
-        phone: order.phone ?? "",
+        email: order.email,
+        phone: order.phone,
       },
       locale: site.locale === "ar" ? "ar" : "en",
       returnUrl: back,
       cancelUrl: `${back}&cancelled=1`,
       webhookUrl: `${site.url}/api/store/payment/webhook/${active.id}`,
     });
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { sessionId: started.sessionId, status: "pending" },
-    });
+    attempt.sessionId = started.sessionId;
+    attempt.status = "pending";
     return { ...started, attemptId: attempt.id, testMode: active.testMode };
-  } catch (error) {
-    const reason = serverMessages.paymentGatewayUnavailable;
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { status: "failed", failureReason: reason },
-    });
+  } catch {
+    attempt.status = "failed";
+    attempt.failureReason = serverMessages.paymentGatewayUnavailable;
     console.error(`Payment gateway ${active.id} refused to start a payment`);
     throw new Error(serverMessages.paymentGatewayUnavailable);
   }
 }
 
 export async function openPaymentAttempt(attemptId: string) {
-  const attempt = await db.paymentAttempt.findUnique({
-    where: { id: attemptId },
-    include: {
-      order: {
-        select: { number: true, total: true, currency: true, locale: true },
-      },
-    },
-  });
+  const attempt = attemptsMap.get(attemptId);
   if (!attempt || !OPEN.includes(attempt.status)) return null;
+  const freshOrder = await getOrder(attempt.orderId).catch(() => null);
+  const order = freshOrder ? toOrderSnapshot(freshOrder) : attempt.order;
   return {
     id: attempt.id,
     gateway: attempt.gateway,
     sessionId: attempt.sessionId,
     amount: num(attempt.amount),
     currency: attempt.currency,
-    order_number: attempt.order.number,
-    locale: attempt.order.locale,
+    order_number: order.number,
+    locale: order.locale,
   };
 }
 
@@ -140,149 +198,131 @@ export async function settleAttempt(
   payment: GatewayPayment,
   providerEventId?: string,
 ) {
-  return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "PaymentAttempt" WHERE id = ${attemptId} FOR UPDATE`;
-    const attempt = await db.paymentAttempt.findUnique({
-      where: { id: attemptId },
-      include: { order: true },
-    });
-    if (!attempt) return null;
-    if (providerEventId) {
-      const event = await db.paymentWebhookEvent.createMany({
-        data: [
-          {
-            gateway: attempt.gateway,
-            eventId: providerEventId.slice(0, 200),
-            attemptId,
-          },
-        ],
-        skipDuplicates: true,
-      });
-      if (!event.count)
-        return {
-          state:
-            attempt.status === "paid" && attempt.paymentId
-              ? ("paid" as const)
-              : attempt.status === "review"
-                ? ("review" as const)
-                : ("pending" as const),
-          order: attempt.order,
-          duplicate: true,
-        };
+  const attempt = attemptsMap.get(attemptId);
+  if (!attempt) return null;
+  const freshOrder = await getOrder(attempt.orderId).catch(() => null);
+  const order = freshOrder ? toOrderSnapshot(freshOrder) : attempt.order;
+  attempt.order = order;
+
+  if (providerEventId) {
+    const eventKey = `${attempt.gateway}:${providerEventId.slice(0, 200)}`;
+    if (webhookEvents.has(eventKey)) {
+      return {
+        state:
+          attempt.status === "paid" && attempt.paymentId
+            ? ("paid" as const)
+            : attempt.status === "review"
+              ? ("review" as const)
+              : ("pending" as const),
+        order,
+        duplicate: true,
+      };
     }
-    if (attempt.status === "paid" && attempt.paymentId)
-      return { state: "paid" as const, order: attempt.order };
-    if (payment.state !== "paid") {
-      if (attempt.status === "review" || attempt.status === "paid")
-        return { state: "review" as const, order: attempt.order };
-      await db.paymentAttempt.updateMany({
-        where: { id: attemptId, status: { in: OPEN } },
-        data: { status: payment.state },
-      });
-      return { state: payment.state, order: attempt.order };
-    }
-    const reference = payment.paymentId?.trim();
-    const paymentId =
-      reference && reference.length <= 200 ? reference : undefined;
-    if (paymentId)
-      await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${`${attempt.gateway}:${paymentId}`}, 0))`;
-    const used = paymentId
-      ? await db.paymentAttempt.findFirst({
-          where: {
-            id: { not: attemptId },
-            gateway: attempt.gateway,
-            gatewayPaymentId: paymentId,
-          },
-          select: { id: true },
-        })
-      : null;
-    await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${attempt.orderId} FOR UPDATE`;
-    const order = await db.salesOrder.findUniqueOrThrow({
-      where: { id: attempt.orderId },
-    });
-    const amount = payment.amount;
-    const currency = payment.currency?.toUpperCase();
-    const verified =
-      !!paymentId &&
-      !used &&
-      typeof amount === "number" &&
-      Number.isFinite(amount) &&
-      amount > 0 &&
-      !!currency &&
-      /^[A-Z]{3}$/.test(currency) &&
-      currency === attempt.currency.toUpperCase() &&
-      Number(amount.toFixed(getCurrencyDecimals(currency))) === amount &&
-      amount === num(attempt.amount);
-    if (
-      !verified ||
-      ["cancelled", "returned"].includes(order.status) ||
-      num(order.amountPaid) + (amount ?? 0) > num(order.total) + 0.0005
-    ) {
-      const reason = used
-        ? serverMessages.paymentReferenceAlreadyUsed
-        : serverMessages.paymentNeedsReview;
-      await db.paymentAttempt.update({
-        where: { id: attemptId },
-        data: {
-          status: "review",
-          paidAt: attempt.paidAt ?? new Date(),
-          failureReason: reason,
-          ...(!used && paymentId ? { gatewayPaymentId: paymentId } : {}),
-        },
-      });
-      if (attempt.status !== "review" || attempt.failureReason !== reason) {
-        const alert = {
-          title: "Payment for order {number} needs review",
-          message: "Payment received for order {number} requires administrative review",
-        };
-        const params = { number: order.number };
-        await notifyUsersWithPermission("orders", "edit", {
-          title: alert.title.replace("{number}", order.number),
-          message: alert.message.replace("{number}", order.number),
-          message_key: "orders.notifications.paidNeedsAttention",
-          message_params: params,
-          type: "warning",
-          entity_type: "sales_order",
-          entity_id: order.id,
-        });
-      }
+    webhookEvents.add(eventKey);
+  }
+
+  if (attempt.status === "paid" && attempt.paymentId) {
+    return { state: "paid" as const, order };
+  }
+  if (payment.state !== "paid") {
+    if (attempt.status === "review" || attempt.status === "paid") {
       return { state: "review" as const, order };
     }
-    const receiptId = await recordOrderPayment(
-      attempt.orderId,
-      {
-        amount: amount!,
-        method: "online",
-        reference: `${attempt.gateway} ${paymentId}`,
-      },
-      null,
-    );
-    await db.paymentAttempt.update({
-      where: { id: attemptId },
-      data: {
-        status: "paid",
-        paidAt: attempt.paidAt ?? new Date(),
-        gatewayPaymentId: paymentId!,
-        paymentId: receiptId,
-        failureReason: null,
-      },
-    });
-    return { state: "paid" as const, order };
-  });
+    if (OPEN.includes(attempt.status)) {
+      attempt.status = payment.state;
+    }
+    return { state: payment.state, order };
+  }
+
+  const reference = payment.paymentId?.trim();
+  const paymentId =
+    reference && reference.length <= 200 ? reference : undefined;
+  const used = paymentId
+    ? Array.from(attemptsMap.values()).find(
+        (a) =>
+          a.id !== attemptId &&
+          a.gateway === attempt.gateway &&
+          a.gatewayPaymentId === paymentId,
+      )
+    : undefined;
+
+  const amount = payment.amount;
+  const currency = payment.currency?.toUpperCase();
+  const verified =
+    !!paymentId &&
+    !used &&
+    typeof amount === "number" &&
+    Number.isFinite(amount) &&
+    amount > 0 &&
+    !!currency &&
+    /^[A-Z]{3}$/.test(currency) &&
+    currency === attempt.currency.toUpperCase() &&
+    Number(amount.toFixed(getCurrencyDecimals(currency))) === amount &&
+    amount === num(attempt.amount);
+
+  if (
+    !verified ||
+    ["cancelled", "returned"].includes(order.status) ||
+    order.amountPaid + (amount ?? 0) > order.total + 0.0005
+  ) {
+    const reason = used
+      ? serverMessages.paymentReferenceAlreadyUsed
+      : serverMessages.paymentNeedsReview;
+    const changed = attempt.status !== "review" || attempt.failureReason !== reason;
+    attempt.status = "review";
+    attempt.paidAt = attempt.paidAt ?? new Date();
+    attempt.failureReason = reason;
+    if (!used && paymentId) attempt.gatewayPaymentId = paymentId;
+
+    if (changed) {
+      const alert = {
+        title: "Payment for order {number} needs review",
+        message: "Payment received for order {number} requires administrative review",
+      };
+      await notifyUsersWithPermission("orders", "edit", {
+        title: alert.title.replace("{number}", order.number),
+        message: alert.message.replace("{number}", order.number),
+        message_key: "orders.notifications.paidNeedsAttention",
+        message_params: { number: order.number },
+        type: "warning",
+        entity_type: "sales_order",
+        entity_id: order.id,
+      });
+    }
+    return { state: "review" as const, order };
+  }
+
+  const receiptId = await recordOrderPayment(
+    attempt.orderId,
+    {
+      amount: amount!,
+      method: "online",
+      reference: `${attempt.gateway} ${paymentId}`,
+    },
+    null,
+  );
+  attempt.status = "paid";
+  attempt.paidAt = attempt.paidAt ?? new Date();
+  attempt.gatewayPaymentId = paymentId!;
+  attempt.paymentId = receiptId;
+  attempt.failureReason = null;
+  order.amountPaid = round3(order.amountPaid + amount!);
+  return { state: "paid" as const, order };
 }
 
 export async function confirmReturn(
   attemptId: string,
   params: Record<string, string>,
 ) {
-  const attempt = await db.paymentAttempt.findUnique({
-    where: { id: attemptId },
-    include: { order: true },
-  });
+  const attempt = attemptsMap.get(attemptId);
   if (!attempt) return null;
-  if (attempt.status === "paid" && attempt.paymentId)
-    return { state: "paid" as const, order: attempt.order };
-  if (!attempt.sessionId || !isPaymentGateway(attempt.gateway))
+  const freshOrder = await getOrder(attempt.orderId).catch(() => null);
+  const order = freshOrder ? toOrderSnapshot(freshOrder) : attempt.order;
+
+  if (attempt.status === "paid" && attempt.paymentId) {
+    return { state: "paid" as const, order };
+  }
+  if (!attempt.sessionId || !isPaymentGateway(attempt.gateway)) {
     return {
       state:
         attempt.status === "review" || attempt.status === "paid"
@@ -290,19 +330,21 @@ export async function confirmReturn(
           : OPEN.includes(attempt.status)
             ? ("pending" as const)
             : ("failed" as const),
-      order: attempt.order,
+      order,
       unavailable: true,
     };
+  }
   const active = await gatewayWithCredentials(attempt.gateway);
-  if (!active)
+  if (!active) {
     return {
       state:
         attempt.status === "review" || attempt.status === "paid"
           ? ("review" as const)
           : ("pending" as const),
-      order: attempt.order,
+      order,
       unavailable: true,
     };
+  }
   try {
     const payment = await active.gateway.status(
       active.credentials,
@@ -310,14 +352,14 @@ export async function confirmReturn(
       params,
     );
     return settleAttempt(attemptId, payment);
-  } catch (error) {
+  } catch {
     console.error(`Payment gateway ${attempt.gateway} status check failed`);
     return {
       state:
         attempt.status === "review" || attempt.status === "paid"
           ? ("review" as const)
           : ("pending" as const),
-      order: attempt.order,
+      order,
       unavailable: true,
     };
   }
@@ -327,34 +369,31 @@ export async function handlePaymentWebhook(
   gatewayId: string,
   request: { headers: Headers; rawBody: string },
 ) {
-  if (!isPaymentGateway(gatewayId))
+  if (!isPaymentGateway(gatewayId)) {
     throw new WebhookSignatureError("Unknown gateway");
+  }
   const active = await gatewayWithCredentials(gatewayId);
   if (!active) throw new WebhookSignatureError("Gateway is not set up");
   const event = await active.gateway.webhook(active.credentials, request);
   if (!event || !event.eventId) return { handled: false };
+
   const attempt = event.attemptId
-    ? await db.paymentAttempt.findFirst({
-        where: { id: event.attemptId, gateway: gatewayId },
-      })
+    ? attemptsMap.get(event.attemptId)
     : event.sessionId
-      ? await db.paymentAttempt.findUnique({
-          where: {
-            gateway_sessionId: {
-              gateway: gatewayId,
-              sessionId: event.sessionId,
-            },
-          },
-        })
-      : null;
+      ? Array.from(attemptsMap.values()).find(
+          (a) => a.gateway === gatewayId && a.sessionId === event.sessionId,
+        )
+      : undefined;
   if (!attempt || attempt.gateway !== gatewayId) return { handled: false };
+
   let payment: GatewayPayment = event;
-  if (gatewayId === "paypal" && event.state === "pending" && attempt.sessionId)
+  if (gatewayId === "paypal" && event.state === "pending" && attempt.sessionId) {
     payment = await active.gateway.status(
       active.credentials,
       attempt.sessionId,
       {},
     );
+  }
   const result = await settleAttempt(attempt.id, payment, event.eventId);
   return {
     handled: true,
@@ -371,21 +410,23 @@ export async function refundOrder(
   byId: string | null,
 ) {
   const amount = round3(amountInput);
-  const attempts = await db.paymentAttempt.findMany({
-    where: {
-      orderId,
-      status: "paid",
-      paymentId: { not: null },
-      gatewayPaymentId: { not: null },
-    },
-    orderBy: { paidAt: "desc" },
-  });
+  const attempts = Array.from(attemptsMap.values())
+    .filter(
+      (a) =>
+        a.orderId === orderId &&
+        a.status === "paid" &&
+        !!a.paymentId &&
+        !!a.gatewayPaymentId,
+    )
+    .sort((a, b) => (b.paidAt?.getTime() ?? 0) - (a.paidAt?.getTime() ?? 0));
+
   if (!attempts.length) return recordOrderRefund(orderId, amount, reason, byId);
   const refundable = round3(
     attempts.reduce((sum, a) => sum + num(a.amount) - num(a.amountRefunded), 0),
   );
-  if (!Number.isFinite(amount) || amount <= 0 || amount > refundable + 0.0005)
+  if (!Number.isFinite(amount) || amount <= 0 || amount > refundable + 0.0005) {
     throw new Error(serverMessages.orderRefundTooLarge);
+  }
   let left = amount;
   for (const attempt of attempts) {
     const part = round3(
@@ -402,14 +443,11 @@ export async function refundOrder(
         reason,
         attemptId: attempt.id,
       });
-    } catch (error) {
+    } catch {
       console.error(`Payment gateway ${attempt.gateway} refused a refund`);
       throw new Error(serverMessages.paymentRefundFailed);
     }
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { amountRefunded: { increment: part } },
-    });
+    attempt.amountRefunded = round3(attempt.amountRefunded + part);
     await recordOrderRefund(orderId, part, reason, byId);
     left = round3(left - part);
     if (left <= 0) break;
@@ -417,33 +455,32 @@ export async function refundOrder(
 }
 
 export async function orderPaymentAttempts(orderId: string) {
-  const rows = await db.paymentAttempt.findMany({
-    where: { orderId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-  return rows.map((a) => ({
-    id: a.id,
-    gateway: a.gateway,
-    status: a.status === "paid" && !a.paymentId ? "review" : a.status,
-    amount: num(a.amount),
-    amount_refunded: num(a.amountRefunded),
-    currency: a.currency,
-    test_mode: a.testMode,
-    reference: a.gatewayPaymentId ?? a.sessionId ?? "",
-    created_at: a.createdAt.toISOString(),
-    failure: a.failureReason ?? "",
-  }));
+  return Array.from(attemptsMap.values())
+    .filter((a) => a.orderId === orderId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 20)
+    .map((a) => ({
+      id: a.id,
+      gateway: a.gateway,
+      status: a.status === "paid" && !a.paymentId ? "review" : a.status,
+      amount: num(a.amount),
+      amount_refunded: num(a.amountRefunded),
+      currency: a.currency,
+      test_mode: a.testMode,
+      reference: a.gatewayPaymentId ?? a.sessionId ?? "",
+      created_at: a.createdAt.toISOString(),
+      failure: a.failureReason ?? "",
+    }));
 }
 
 export async function expireOnlinePayments(now = new Date()) {
   const cutoff = new Date(
     now.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000,
   );
-  const stale = await db.paymentAttempt.findMany({
-    where: { status: { in: OPEN }, createdAt: { lt: cutoff } },
-    take: 200,
-  });
+  const stale = Array.from(attemptsMap.values())
+    .filter((a) => OPEN.includes(a.status) && a.createdAt < cutoff)
+    .slice(0, 200);
+
   let expired = 0;
   let cancelled = 0;
   for (const attempt of stale) {
@@ -454,43 +491,40 @@ export async function expireOnlinePayments(now = new Date()) {
       const active = await gatewayWithCredentials(
         attempt.gateway as PaymentGatewayId,
       );
-      if (active)
+      if (active) {
         state = await active.gateway
           .status(active.credentials, attempt.sessionId, {})
           .then((p) => {
-            if (p.state === "paid")
+            if (p.state === "paid") {
               return settleAttempt(attempt.id, p).then(() => "paid" as const);
+            }
             return p.state;
           })
           .catch(() => "unknown" as const);
+      }
     }
     if (state === "paid" || state === "unknown") continue;
     if (
       state === "pending" &&
       attempt.createdAt >
         new Date(cutoff.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000)
-    )
+    ) {
       continue;
-    const changed = await db.paymentAttempt.updateMany({
-      where: { id: attempt.id, status: { in: OPEN } },
-      data: { status: "expired" },
-    });
-    expired += changed.count;
-    const order = await db.salesOrder.findUnique({
-      where: { id: attempt.orderId },
-      include: {
-        paymentAttempts: {
-          where: { status: { in: OPEN } },
-          select: { id: true },
-        },
-      },
-    });
+    }
+    if (OPEN.includes(attempt.status)) {
+      attempt.status = "expired";
+      expired += 1;
+    }
+    const order = await getOrder(attempt.orderId).catch(() => null);
+    const openCount = Array.from(attemptsMap.values()).filter(
+      (a) => a.orderId === attempt.orderId && OPEN.includes(a.status),
+    ).length;
     if (
       order &&
-      order.paymentMethod === "online" &&
+      order.payment_method === "online" &&
       order.status === "placed" &&
-      num(order.amountPaid) === 0 &&
-      order.paymentAttempts.length === 0
+      num(order.amount_paid) === 0 &&
+      openCount === 0
     ) {
       await moveOrder(
         order.id,
@@ -507,32 +541,26 @@ export async function expireOnlinePayments(now = new Date()) {
 }
 
 export async function paymentLinkOrder(orderId: string) {
-  const order = await db.salesOrder.findUnique({
-    where: { id: orderId },
-    include: {
-      lines: { orderBy: { sortOrder: "asc" } },
-      paymentAttempts: {
-        where: {
-          OR: [{ status: "review" }, { status: "paid", paymentId: null }],
-        },
-        select: { id: true },
-      },
-    },
-  });
+  const order = await getOrder(orderId);
   if (!order) return null;
+  const paymentReview = Array.from(attemptsMap.values()).some(
+    (a) =>
+      a.orderId === orderId &&
+      (a.status === "review" || (a.status === "paid" && !a.paymentId)),
+  );
   return {
     id: order.id,
     number: order.number,
     name: order.name,
     currency: order.currency,
     total: num(order.total),
-    owed: round3(num(order.total) - num(order.amountPaid)),
+    owed: round3(num(order.total) - num(order.amount_paid)),
     closed: ["cancelled", "returned"].includes(order.status),
-    payment_review: order.paymentAttempts.length > 0,
+    payment_review: paymentReview,
     lines: order.lines.map((l) => ({
       description: l.description,
       quantity: num(l.quantity),
-      line_total: num(l.lineTotal),
+      line_total: num(l.line_total),
     })),
   };
 }

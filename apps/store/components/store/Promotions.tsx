@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "@platform/locales";
-import { db } from "@platform/database";
+import { listCoupons } from "@platform/database/queries/store";
 import { couponProblem } from "@platform/database/constants/store";
 import { promotionVisible } from "@platform/database/constants/website-promotions";
 import { getSite } from "../../lib/site";
@@ -21,11 +21,10 @@ export async function Promotions({
     promotionVisible(promo, placement, category),
   );
   if (!promos.length) return null;
-  const coupons = await db.coupon.findMany({
-    where: {
-      code: { in: promos.map((promo) => promo.couponCode).filter(Boolean) },
-    },
-  });
+  const codes = new Set(promos.map((promo) => promo.couponCode).filter(Boolean));
+  const coupons = codes.size > 0
+    ? (await listCoupons()).filter((coupon) => codes.has(coupon.code))
+    : [];
   const ar = locale === "ar";
   const shown = promos.filter(
     (promo) =>
@@ -33,7 +32,17 @@ export async function Promotions({
       coupons.some(
         (coupon) =>
           coupon.code === promo.couponCode &&
-          couponProblem({ ...coupon, minOrder: null }, 0) === null,
+          couponProblem(
+            {
+              isActive: coupon.is_active,
+              startsAt: coupon.starts_at ? new Date(coupon.starts_at) : null,
+              endsAt: coupon.ends_at ? new Date(`${coupon.ends_at}T23:59:59.999Z`) : null,
+              maxUses: coupon.max_uses,
+              usedCount: coupon.used_count,
+              minOrder: null,
+            },
+            0,
+          ) === null,
       ),
   );
   if (!shown.length) return null;

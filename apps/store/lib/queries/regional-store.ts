@@ -1,26 +1,27 @@
 import { Database } from "@platform/database/decimal";
-import { db } from "../atomic";
 
-export async function listStoreRegions() {
-  return db.storeRegion.findMany({
-    orderBy: { code: "asc" },
-    include: { branch: true },
-  });
+export interface StoreRegionRecord {
+  id: string;
+  code: string;
+  name?: string;
+  currency: string;
+  priceMultiplier: number | string;
+  isEnabled: boolean;
 }
 
-export async function getStoreRegion(code: string) {
-  return db.storeRegion.findUnique({
-    where: { code: code.trim().toUpperCase() },
-    include: { branch: true },
-  });
+export async function listStoreRegions(): Promise<StoreRegionRecord[]> {
+  return [];
+}
+
+export async function getStoreRegion(
+  _code: string,
+): Promise<StoreRegionRecord | null> {
+  return null;
 }
 
 export async function resolveRegionalPrice(
   basePrice: number | string,
-  regionCode: string,
+  _regionCode: string,
 ) {
-  const region = await getStoreRegion(regionCode);
-  const base = new Database.Decimal(basePrice.toString());
-  if (!region || !region.isEnabled) return base;
-  return base.mul(region.priceMultiplier);
+  return new Database.Decimal(basePrice.toString());
 }

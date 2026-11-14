@@ -5,7 +5,6 @@ import {
   normalizeTheme,
   type BrandTheme,
 } from "../constants/theme";
-import { db } from "../atomic";
 import {
   normalizeLanguages,
   normalizePrimaryLanguage,
@@ -120,7 +119,7 @@ export async function getCompanySettings(): Promise<CompanySettings> {
       vatPercentage: 0,
       vatEnabled: false,
       theme: {},
-      contentLanguages: ["en"],
+      contentLanguages: ["en", "ar"],
       primaryLanguage: "en",
       updatedAt: new Date(),
     });

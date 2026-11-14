@@ -1,32 +1,53 @@
-import { db } from "../atomic";
+import { randomUUID } from "node:crypto";
+import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
 import { SocialLink } from "../types";
 
-function mapSocialLink(s: any): SocialLink {
+function mapSocialLink(raw: any): SocialLink {
+  const now = new Date().toISOString();
   return {
-    id: s.id,
-    platform: s.platform,
-    url: s.url,
-    icon: s.icon || undefined,
-    is_active: s.isActive,
-    display_order: s.displayOrder,
-    created_at: s.createdAt.toISOString(),
-    updated_at: s.updatedAt.toISOString(),
+    id: String(raw?.id ?? ""),
+    platform: String(raw?.platform ?? ""),
+    url: String(raw?.url ?? ""),
+    icon: raw?.icon || undefined,
+    is_active: raw?.is_active ?? raw?.isActive ?? true,
+    display_order: Number(raw?.display_order ?? raw?.sortOrder ?? 0),
+    created_at:
+      typeof raw?.created_at === "string"
+        ? raw.created_at
+        : typeof raw?.createdAt === "string"
+          ? raw.createdAt
+          : now,
+    updated_at:
+      typeof raw?.updated_at === "string"
+        ? raw.updated_at
+        : typeof raw?.updatedAt === "string"
+          ? raw.updatedAt
+          : now,
   };
 }
 
 export async function getSocialLinks(onlyActive = true): Promise<SocialLink[]> {
   try {
-    const links = await db.socialLink.findMany({
-      where: onlyActive ? { isActive: true } : undefined,
-      orderBy: { displayOrder: "asc" },
-    });
-    return (links || []).map(mapSocialLink);
+    const snap = await getContentSnapshot("main");
+    const draftList = Array.isArray(snap?.draft?.socialLinks)
+      ? snap.draft.socialLinks
+      : [];
+    const pubList = Array.isArray(snap?.published?.socialLinks)
+      ? snap.published.socialLinks
+      : [];
+    const raw = onlyActive
+      ? pubList.length > 0
+        ? pubList
+        : draftList
+      : draftList.length > 0
+        ? draftList
+        : pubList;
+    const mapped = raw.map(mapSocialLink);
+    const filtered = onlyActive ? mapped.filter((l) => l.is_active) : mapped;
+    return filtered.sort((a, b) => a.display_order - b.display_order);
   } catch (e) {
-    console.error(
-      "Error fetching social links from DB:",
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
+    console.error("Failed to fetch social links from CMS snapshot:", e);
+    return [];
   }
 }
 
@@ -37,54 +58,71 @@ export async function createSocialLink(data: {
   is_active?: boolean;
   display_order?: number;
 }): Promise<SocialLink> {
-  const created = await db.socialLink.create({
-    data: {
-      platform: data.platform,
-      url: data.url,
-      icon: data.icon,
-      isActive: data.is_active ?? true,
-      displayOrder: data.display_order ?? 0,
-    },
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.socialLinks)
+    ? [...currentDraft.socialLinks].map(mapSocialLink)
+    : [];
+
+  const now = new Date().toISOString();
+  const created = mapSocialLink({
+    id: randomUUID(),
+    platform: data.platform,
+    url: data.url,
+    icon: data.icon || undefined,
+    is_active: data.is_active ?? true,
+    display_order: data.display_order ?? list.length,
+    created_at: now,
+    updated_at: now,
   });
-  return mapSocialLink(created);
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    socialLinks: [...list, created],
+  });
+  return created;
 }
 
 export async function updateSocialLink(
   id: string,
   data: Partial<Omit<SocialLink, "id" | "created_at" | "updated_at">>,
 ): Promise<SocialLink | null> {
-  try {
-    const updateData: any = {};
-    if (data.platform !== undefined) updateData.platform = data.platform;
-    if (data.url !== undefined) updateData.url = data.url;
-    if (data.icon !== undefined) updateData.icon = data.icon;
-    if (data.is_active !== undefined) updateData.isActive = data.is_active;
-    if (data.display_order !== undefined)
-      updateData.displayOrder = data.display_order;
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.socialLinks)
+    ? [...currentDraft.socialLinks].map(mapSocialLink)
+    : [];
 
-    const updated = await db.socialLink.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapSocialLink(updated);
-  } catch (e) {
-    console.error(
-      `Error updating social link ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const idx = list.findIndex((l) => l.id === id);
+  if (idx === -1) return null;
+
+  const updated = mapSocialLink({
+    ...list[idx],
+    ...data,
+    updated_at: new Date().toISOString(),
+  });
+  list[idx] = updated;
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    socialLinks: list,
+  });
+  return updated;
 }
 
 export async function deleteSocialLink(id: string): Promise<boolean> {
-  try {
-    await db.socialLink.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(
-      `Error deleting social link ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.socialLinks)
+    ? [...currentDraft.socialLinks].map(mapSocialLink)
+    : [];
+
+  const next = list.filter((l) => l.id !== id);
+  if (next.length === list.length) return false;
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    socialLinks: next,
+  });
+  return true;
 }

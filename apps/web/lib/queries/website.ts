@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
+import { getContentSnapshot } from "@platform/api-client";
 import { getCompanySettings } from "./company-settings";
-import { db, runAtomicMutation } from "../atomic";
 import {
   defaultWebsiteConfig,
   validateWebsiteConfig,
@@ -14,86 +14,107 @@ import { getFaqs } from "./faqs";
 import { getStatistics } from "./stats";
 import { listCmsPages } from "./cms-pages";
 import { getPublishedArticles } from "./cms-articles";
+import { getAllServices } from "./services";
+import { getSocialLinks } from "./social-links";
 
 export async function getPublicServices(): Promise<PublicService[]> {
-  return db.service.findMany({
-    where: { isActive: true, isPublic: true },
-    orderBy: [{ displayOrder: "asc" }, { nameEn: "asc" }],
-    select: {
-      id: true,
-      nameEn: true,
-      nameAr: true,
-      descriptionEn: true,
-      descriptionAr: true,
-      imageUrl: true,
-    },
-  });
+  const all = await getAllServices({ includeInactive: false });
+  return all
+    .filter((s: any) => s.is_public !== false)
+    .map((s: any) => ({
+      id: s.id,
+      nameEn: s.name_en ?? s.nameEn ?? "",
+      nameAr: s.name_ar ?? s.nameAr ?? "",
+      descriptionEn: (s.description_en ?? s.descriptionEn) || null,
+      descriptionAr: (s.description_ar ?? s.descriptionAr) || null,
+      imageUrl: (s.image_url ?? s.imageUrl) || null,
+    }));
 }
-export async function collectWebsiteDraft(config: WebsiteConfig) {
-  await listCmsPages().catch(() => undefined);
-  return runAtomicMutation(async () => {
-    const [
-      banners,
-      portfolio,
-      clients,
-      faqs,
-      stats,
-      services,
-      pages,
-      articles,
-      branding,
-      categories,
-    ] = await Promise.all([
-      getActiveBanners(),
-      getPortfolioItems(),
-      getActiveClientLogos(),
-      getFaqs(false),
-      getStatistics(),
-      getPublicServices(),
-      listCmsPages(),
-      getPublishedArticles(),
-      getCompanySettings(),
-      getPortfolioCategories(),
-    ]);
-    return {
-      config: validateWebsiteConfig(config),
-      brandTheme: branding.theme as typeof branding.theme | undefined,
-      brandAssets: { logo_url: branding.logo_url, dark_logo_url: branding.dark_logo_url, icon_url: branding.icon_url, dark_icon_url: branding.dark_icon_url } as Pick<typeof branding, "logo_url" | "dark_logo_url" | "icon_url" | "dark_icon_url"> | undefined,
-      banners,
-      portfolio,
-      categories: categories as typeof categories | undefined,
-      clients,
-      faqs,
-      stats,
-      services,
-      pages,
-      articles,
-    };
-  });
-}
-export type WebsiteSnapshot = Awaited<ReturnType<typeof collectWebsiteDraft>>;
-export async function getWebsiteEditor() {
-  const existing = await db.websiteContent.findUnique({
-    where: { id: "main" },
-  });
-  if (existing) return existing;
 
-  return db.websiteContent.upsert({
-    where: { id: "main" },
-    update: {},
-    create: {
-      id: "main",
-      draft: JSON.parse(JSON.stringify(defaultWebsiteConfig)),
-    },
-  });
+export async function collectWebsiteDraft(config: WebsiteConfig) {
+  const [
+    banners,
+    portfolio,
+    clients,
+    faqs,
+    stats,
+    services,
+    pages,
+    articles,
+    branding,
+    categories,
+    socialLinks,
+  ] = await Promise.all([
+    getActiveBanners(),
+    getPortfolioItems(),
+    getActiveClientLogos(),
+    getFaqs(false),
+    getStatistics(),
+    getPublicServices(),
+    listCmsPages(),
+    getPublishedArticles(),
+    getCompanySettings(),
+    getPortfolioCategories(),
+    getSocialLinks(true),
+  ]);
+
+  return {
+    config: validateWebsiteConfig(config),
+    brandTheme: branding.theme as typeof branding.theme | undefined,
+    brandAssets: {
+      logo_url: branding.logo_url,
+      dark_logo_url: branding.dark_logo_url,
+      icon_url: branding.icon_url,
+      dark_icon_url: branding.dark_icon_url,
+    } as
+      | Pick<
+          typeof branding,
+          "logo_url" | "dark_logo_url" | "icon_url" | "dark_icon_url"
+        >
+      | undefined,
+    banners,
+    portfolio,
+    categories: categories as typeof categories | undefined,
+    clients,
+    faqs,
+    stats,
+    services,
+    pages,
+    articles,
+    socialLinks,
+  };
 }
+
+export type WebsiteSnapshot = Awaited<ReturnType<typeof collectWebsiteDraft>>;
+
+export async function getWebsiteEditor() {
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const rawDraft = snap?.draft as Record<string, any> | undefined;
+  const draftConfig =
+    rawDraft?.config ??
+    (rawDraft?.sections ? rawDraft : JSON.parse(JSON.stringify(defaultWebsiteConfig)));
+  return {
+    id: snap?.id ?? "main",
+    draft: draftConfig,
+    published: snap?.published ?? null,
+    previous: (snap as any)?.previous ?? null,
+    revision: snap?.revision ?? 1,
+    publishedAt: snap?.publishedAt ? new Date(snap.publishedAt) : null,
+    updatedAt: snap?.updatedAt ? new Date(snap.updatedAt) : new Date(),
+  };
+}
+
 export async function getWebsiteSnapshot(
   preview = false,
 ): Promise<WebsiteSnapshot> {
-  const content = await db.websiteContent.findUnique({ where: { id: "main" } }).catch(() => null);
-  if (!preview && content?.published)
-    return content.published as unknown as WebsiteSnapshot;
-  return collectWebsiteDraft(validateWebsiteConfig(content?.draft || defaultWebsiteConfig));
+  const snap = await getContentSnapshot("main").catch(() => null);
+  if (!preview && snap?.published)
+    return snap.published as unknown as WebsiteSnapshot;
+  if (!preview || !snap)
+    throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
+  const rawDraft = snap.draft as Record<string, any> | undefined;
+  const draftConfig = rawDraft?.config ?? rawDraft;
+  return collectWebsiteDraft(validateWebsiteConfig(draftConfig));
 }
 
 export const WEBSITE_SNAPSHOT_SECTIONS = [

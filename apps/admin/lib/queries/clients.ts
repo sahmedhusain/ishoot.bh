@@ -1,47 +1,60 @@
-import { db } from "../atomic";
+import { randomUUID } from "node:crypto";
+import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
 import { ClientLogo } from "../types";
 
-function mapClient(l: any): ClientLogo {
+function mapClient(raw: any): ClientLogo {
   return {
-    id: l.id,
-    client_name: l.name,
-    logo_svg_url: l.logoUrl,
-    website_url: l.websiteUrl || undefined,
-    display_order: l.displayOrder,
-    is_active: l.isActive,
-    created_at: new Date().toISOString(),
+    id: String(raw?.id ?? ""),
+    client_name: raw?.client_name ?? raw?.clientName ?? "",
+    logo_svg_url: raw?.logo_svg_url ?? raw?.logoSvgUrl ?? "",
+    website_url: (raw?.website_url ?? raw?.websiteUrl) || undefined,
+    display_order: Number(raw?.display_order ?? raw?.displayOrder ?? 0),
+    is_active: raw?.is_active ?? raw?.isActive ?? true,
+    created_at:
+      typeof raw?.created_at === "string"
+        ? raw.created_at
+        : typeof raw?.createdAt === "string"
+          ? raw.createdAt
+          : new Date().toISOString(),
   };
 }
 
-export async function getActiveClientLogos(): Promise<ClientLogo[]> {
+async function readSnapshotClients(onlyActive: boolean): Promise<ClientLogo[]> {
   try {
-    const logos = await db.clientLogo.findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-    });
-    return logos.map(mapClient);
-  } catch (e) {
-    console.error(
-      "Error fetching active client logos from DB:",
-      e instanceof Error ? e.message : e,
+    const snap = await getContentSnapshot("main");
+    const draftClients = Array.isArray(snap?.draft?.clients)
+      ? snap.draft.clients
+      : [];
+    const pubClients = Array.isArray(snap?.published?.clients)
+      ? snap.published.clients
+      : [];
+    const rawList = onlyActive
+      ? pubClients.length > 0
+        ? pubClients
+        : draftClients
+      : draftClients.length > 0
+        ? draftClients
+        : pubClients;
+
+    const list = rawList.map(mapClient);
+    const filtered = onlyActive ? list.filter((c) => c.is_active) : list;
+    return filtered.sort(
+      (a, b) =>
+        a.display_order - b.display_order ||
+        a.client_name.localeCompare(b.client_name),
     );
-    throw e;
+  } catch (e) {
+    console.error("Failed to fetch clients from CMS snapshot:", e);
+    return [];
   }
 }
 
+export async function getActiveClientLogos(): Promise<ClientLogo[]> {
+  return readSnapshotClients(true);
+}
+
 export async function getAllClientLogos(): Promise<ClientLogo[]> {
-  try {
-    const logos = await db.clientLogo.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
-    return logos.map(mapClient);
-  } catch (e) {
-    console.error(
-      "Error fetching all client logos from DB:",
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  return readSnapshotClients(false);
 }
 
 export async function createClientLogo(data: {
@@ -51,55 +64,68 @@ export async function createClientLogo(data: {
   display_order?: number;
   is_active?: boolean;
 }): Promise<ClientLogo> {
-  const created = await db.clientLogo.create({
-    data: {
-      name: data.client_name,
-      logoUrl: data.logo_svg_url,
-      websiteUrl: data.website_url || null,
-      displayOrder: data.display_order ?? 0,
-      isActive: data.is_active ?? true,
-    },
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.clients)
+    ? [...currentDraft.clients].map(mapClient)
+    : [];
+
+  const created = mapClient({
+    id: randomUUID(),
+    client_name: data.client_name,
+    logo_svg_url: data.logo_svg_url,
+    website_url: data.website_url || undefined,
+    display_order: data.display_order ?? list.length,
+    is_active: data.is_active ?? true,
+    created_at: new Date().toISOString(),
   });
-  return mapClient(created);
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    clients: [...list, created],
+  });
+  return created;
 }
 
 export async function updateClientLogo(
   id: string,
-  data: Partial<ClientLogo>,
+  data: Partial<Omit<ClientLogo, "id" | "created_at">>,
 ): Promise<ClientLogo | null> {
-  try {
-    const updateData: any = {};
-    if (data.client_name !== undefined) updateData.name = data.client_name;
-    if (data.logo_svg_url !== undefined) updateData.logoUrl = data.logo_svg_url;
-    if (data.website_url !== undefined)
-      updateData.websiteUrl = data.website_url;
-    if (data.display_order !== undefined)
-      updateData.displayOrder = data.display_order;
-    if (data.is_active !== undefined) updateData.isActive = data.is_active;
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.clients)
+    ? [...currentDraft.clients].map(mapClient)
+    : [];
 
-    const updated = await db.clientLogo.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapClient(updated);
-  } catch (e) {
-    console.error(
-      `Error updating client logo ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const idx = list.findIndex((c) => c.id === id);
+  if (idx === -1) return null;
+
+  const updated = mapClient({
+    ...list[idx],
+    ...data,
+  });
+  list[idx] = updated;
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    clients: list,
+  });
+  return updated;
 }
 
 export async function deleteClientLogo(id: string): Promise<boolean> {
-  try {
-    await db.clientLogo.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(
-      `Error deleting client logo ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.clients)
+    ? [...currentDraft.clients].map(mapClient)
+    : [];
+
+  const next = list.filter((c) => c.id !== id);
+  if (next.length === list.length) return false;
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    clients: next,
+  });
+  return true;
 }

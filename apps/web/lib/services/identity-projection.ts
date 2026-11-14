@@ -1,5 +1,5 @@
 import { verifyIdentityCaller } from "@platform/api-client";
-import { db } from "../atomic";
+import { getCustomer } from "../api/commerce";
 import { deleteCustomerAccount } from "../queries/customers";
 
 type CustomerProjection = {
@@ -8,6 +8,8 @@ type CustomerProjection = {
   version: number;
   deleted: boolean;
 };
+
+const projectionReceipts = new Map<string, bigint>();
 
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -28,32 +30,19 @@ function customerProjection(value: unknown): CustomerProjection | null {
   return value as CustomerProjection;
 }
 
-async function receipt(id: string): Promise<bigint> {
-  const row = (await db.$queryRaw`SELECT version FROM public."IdentityProjectionReceipt" WHERE id=${id}`) as Array<{ version: bigint }>;
-  return row[0]?.version ?? BigInt(0);
-}
-
-async function received(id: string, version: bigint) {
-  await db.$executeRaw`INSERT INTO public."IdentityProjectionReceipt"(id,version) VALUES (${id},${version}) ON CONFLICT(id) DO UPDATE SET version=EXCLUDED.version`;
-}
-
-async function lock(id: string) {
-  await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`identity-projection:${id}`},0))`;
-}
-
 export async function applyCustomerIdentityProjection(input: CustomerProjection) {
   const id = `customer:${input.subjectId}`;
   const version = BigInt(input.version);
-  await lock(id);
-  if ((await receipt(id)) >= version) return;
-  const existing = await db.customer.findUnique({
-    where: { id: input.subjectId },
-    select: { id: true },
-  });
+  const previous = projectionReceipts.get(id) ?? BigInt(0);
+  if (previous >= version) return;
+
+  const existing = await getCustomer(input.subjectId).catch(() => null);
   if (existing) {
-    await deleteCustomerAccount(input.subjectId);
+    await deleteCustomerAccount(input.subjectId).catch(() => undefined);
+  } else {
+    await deleteCustomerAccount(input.subjectId).catch(() => undefined);
   }
-  await received(id, version);
+  projectionReceipts.set(id, version);
 }
 
 export async function identityProjectionResponse(

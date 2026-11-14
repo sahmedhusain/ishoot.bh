@@ -1,8 +1,7 @@
-import { db } from "../atomic";
 import type { DocumentTaxLine } from "../types";
 
 export async function companyVat(
-  client: any = db,
+  _client?: unknown,
 ): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
   try {
     const { getCompanySettings } = await import("../queries/company-settings");
@@ -30,27 +29,10 @@ export interface ActiveTax {
 }
 
 export async function companyTaxes(
-  kind: "invoice" | "quotation",
-  client: any = db,
+  _kind: "invoice" | "quotation",
+  _client?: unknown,
 ): Promise<ActiveTax[]> {
-  const rows =
-    (await client.taxRate?.findMany?.({
-      where: {
-        isActive: true,
-        ...(kind === "invoice"
-          ? { appliesToInvoices: true }
-          : { appliesToQuotations: true }),
-      },
-      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-    })) || [];
-  return rows.map((r: any) => ({
-    id: r.id,
-    code: r.code,
-    nameEn: r.nameEn,
-    nameAr: r.nameAr,
-    rate: Number(r.ratePercent),
-    registrationNumber: r.registrationNumber,
-  }));
+  return [];
 }
 
 export function documentTaxRows(

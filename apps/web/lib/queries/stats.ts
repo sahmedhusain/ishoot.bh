@@ -1,19 +1,21 @@
-import { listStatistics } from "@platform/api-client";
+import { randomUUID } from "node:crypto";
+import { serverMessages } from "@platform/locales";
 import {
-  serverTemplates,
-  formatMessage,
-  serverMessages,
-} from "@platform/locales";
-
-import { db } from "../atomic";
+  deleteStatistic as deleteStatisticApi,
+  getContentSnapshot,
+  listDeals,
+  listEmployees,
+  listInvoices,
+  listReviews,
+  listStatistics,
+  upsertStatistic,
+} from "@platform/api-client";
 import {
   STATISTIC_PRESETS,
   type StatisticPreset,
 } from "../constants/statistics";
 
 export { STATISTIC_PRESETS, type StatisticPreset };
-
-const ISSUED_INVOICE_STATUSES = ["sent", "partially_paid", "paid", "overdue"];
 
 export type StatisticInput = {
   value: string;
@@ -31,7 +33,14 @@ export type StatisticInput = {
 };
 
 type StatisticSettings = {
+  id: string;
   value: string;
+  labelEn: string;
+  labelAr: string;
+  subLabelEn: string | null;
+  subLabelAr: string | null;
+  icon: string | null;
+  sortOrder: number;
   source: string;
   preset: string | null;
   presetParam: number | null;
@@ -41,52 +50,49 @@ type StatisticSettings = {
 
 export function validateStatisticInput<T extends Partial<StatisticInput>>(
   data: T,
-  now = new Date(),
-): T {
-  const source = data.source ?? "manual";
-  if (source !== "manual" && source !== "preset")
-    throw new Error(serverMessages.chooseManualOrComputedForTheValue);
-  if (data.suffix != null && data.suffix.length > 10)
-    throw new Error(serverMessages.theSuffixCanBeAtMost10);
-  if (
-    data.roundTo != null &&
-    (!Number.isInteger(data.roundTo) ||
-      data.roundTo < 1 ||
-      data.roundTo > 1_000_000)
-  )
-    throw new Error(serverMessages.roundToMustBeAWholeNumber);
+) {
+  const source =
+    data.source === "preset"
+      ? "preset"
+      : data.source === "manual" || data.source === undefined
+        ? "manual"
+        : (() => {
+            throw new Error(serverMessages.chooseManualOrComputedForTheValue);
+          })();
+  const preset = data.preset ?? null;
   if (source === "manual") {
-    if (!data.value?.trim() || data.value.length > 20)
-      throw new Error(serverMessages.enterAValueOfUpTo20);
     return {
       ...data,
-      source,
+      source: "manual" as const,
       preset: null,
       presetParam: null,
       roundTo: null,
       suffix: null,
-    } as T;
+    };
   }
-  if (!data.preset || !STATISTIC_PRESETS.includes(data.preset))
+  if (!preset || !(STATISTIC_PRESETS as readonly string[]).includes(preset))
     throw new Error(serverMessages.chooseWhatToCount);
-  if (data.preset === "years_in_business") {
-    const year = data.presetParam;
-    if (
-      year == null ||
-      !Number.isInteger(year) ||
-      year < 1900 ||
-      year > now.getFullYear()
-    )
+  if (preset === "years_in_business") {
+    const year = Number(data.presetParam);
+    if (!Number.isInteger(year) || year < 1900 || year > 2100)
       throw new Error(serverMessages.enterTheFoundingYear);
   }
+  if (
+    data.roundTo != null &&
+    (!Number.isInteger(data.roundTo) || data.roundTo < 1 || data.roundTo > 1000)
+  )
+    throw new Error(serverMessages.roundToMustBeAWholeNumber);
+  if (data.suffix && data.suffix.length > 10)
+    throw new Error(serverMessages.theSuffixCanBeAtMost10);
   return {
     ...data,
-    source,
+    source: "preset" as const,
+    preset,
     value: data.value ?? "",
     presetParam: data.preset === "years_in_business" ? data.presetParam : null,
     roundTo: data.roundTo ?? null,
     suffix: data.suffix?.trim() || null,
-  } as T;
+  };
 }
 
 async function countPreset(
@@ -95,33 +101,40 @@ async function countPreset(
   now: Date,
 ): Promise<number> {
   switch (preset) {
-    case "projects_delivered":
-      return db.crmDeal.count({ where: { dealStage: "closed_won" } });
-    case "clients_served": {
-      const clients = await db.invoice.findMany({
-        where: {
-          clientId: { not: null },
-          status: { in: ISSUED_INVOICE_STATUSES },
-        },
-        distinct: ["clientId"],
-        select: { clientId: true },
-      });
-      return clients.length;
+    case "projects_delivered": {
+      const deals = await listDeals().catch(() => []);
+      return deals.filter((d: any) => (d.dealStage ?? d.stage) === "closed_won").length;
     }
-    case "team_members":
-      return db.employee.count({ where: { status: "active" } });
-    case "portfolio_projects":
-      return db.portfolioItem.count();
-    case "five_star_reviews":
-      return db.review.count({ where: { isApproved: true, rating: 5 } });
+    case "clients_served": {
+      const invoices = await listInvoices().catch(() => []);
+      return new Set(
+        invoices
+          .filter(
+            (i: any) =>
+              (i.clientId ?? i.contactId) &&
+              i.status !== "cancelled" &&
+              i.status !== "void",
+          )
+          .map((i: any) => String(i.clientId ?? i.contactId)),
+      ).size;
+    }
+    case "team_members": {
+      const staff = await listEmployees().catch(() => []);
+      return staff.filter((e) => e.status === "active").length;
+    }
+    case "portfolio_projects": {
+      const snap = await getContentSnapshot("main").catch(() => null);
+      const items = snap?.published?.portfolio ?? snap?.draft?.portfolio;
+      return Array.isArray(items) ? items.length : 0;
+    }
+    case "five_star_reviews": {
+      const reviews = await listReviews(false).catch(() => []);
+      return reviews.filter((r) => r.isApproved && r.rating === 5).length;
+    }
     case "years_in_business":
-      return presetParam == null
-        ? 0
-        : Math.max(0, now.getFullYear() - presetParam);
+      return presetParam ? Math.max(0, now.getUTCFullYear() - presetParam) : 0;
     default:
-      throw new Error(
-        formatMessage(serverTemplates.unknownStatisticPreset0, { 0: preset }),
-      );
+      return 0;
   }
 }
 
@@ -138,8 +151,10 @@ export async function computeStatisticValue(
 export async function getStatistics() {
   try {
     const items = await listStatistics();
-    if (items && items.length > 0) {
-      return items.map((row) => ({
+    return items
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((row) => ({
         id: row.id,
         value: row.metricValue,
         storedValue: row.metricValue,
@@ -150,61 +165,130 @@ export async function getStatistics() {
         icon: row.icon ?? null,
         sortOrder: row.sortOrder,
         source: "manual",
-        preset: null,
+        preset: null as StatisticPreset | null,
       }));
-    }
-  } catch {
-  }
-  try {
-    const rows = await db.statistic.findMany({
-      orderBy: { sortOrder: "asc" },
-    });
-    const now = new Date();
-    return await Promise.all(
-      rows.map(async (row) => ({
-        ...row,
-        storedValue: row.value,
-        value: await computeStatisticValue(row, now),
-      })),
-    );
   } catch (e) {
-    console.error(
-      "Error fetching statistics from DB:",
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
+    console.error("Failed to fetch statistics from CMS API:", e);
+    return [];
   }
 }
 
 export async function createStatistic(data: StatisticInput) {
-  return await db.statistic.create({ data: validateStatisticInput(data) });
+  const valid = validateStatisticInput(data);
+  const metricValue =
+    valid.source === "preset"
+      ? await computeStatisticValue({
+          id: "",
+          value: valid.value,
+          labelEn: data.labelEn,
+          labelAr: data.labelAr,
+          subLabelEn: data.subLabelEn ?? null,
+          subLabelAr: data.subLabelAr ?? null,
+          icon: data.icon ?? null,
+          sortOrder: data.sortOrder ?? 0,
+          source: valid.source,
+          preset: valid.preset,
+          presetParam: valid.presetParam ?? null,
+          roundTo: valid.roundTo ?? null,
+          suffix: valid.suffix ?? null,
+        })
+      : valid.value;
+
+  const saved = await upsertStatistic("", {
+    id: randomUUID(),
+    metricValue,
+    labelEn: data.labelEn,
+    labelAr: data.labelAr,
+    subLabelEn: data.subLabelEn ?? null,
+    subLabelAr: data.subLabelAr ?? null,
+    icon: data.icon ?? null,
+    sortOrder: data.sortOrder ?? 0,
+  });
+  return {
+    id: saved.id,
+    value: saved.metricValue,
+    storedValue: saved.metricValue,
+    labelEn: saved.labelEn,
+    labelAr: saved.labelAr,
+    subLabelEn: saved.subLabelEn ?? null,
+    subLabelAr: saved.subLabelAr ?? null,
+    icon: saved.icon ?? null,
+    sortOrder: saved.sortOrder,
+    source: valid.source,
+    preset: valid.preset,
+  };
 }
 
 export async function updateStatistic(
   id: string,
   data: Partial<StatisticInput>,
 ) {
-  const existing = await db.statistic.findUniqueOrThrow({ where: { id } });
-  const merged = validateStatisticInput({
-    value: existing.value,
-    source: existing.source as StatisticInput["source"],
-    preset: existing.preset as StatisticPreset | null,
-    presetParam: existing.presetParam,
-    roundTo: existing.roundTo,
-    suffix: existing.suffix,
-    ...data,
-  });
-  return await db.statistic.update({
-    where: { id },
-    data: { ...data, ...pickSettings(merged) },
-  });
-}
+  const all = await listStatistics();
+  const existing = all.find((s) => s.id === id);
+  if (!existing)
+    throw new Error((serverMessages as any).notFound ?? "Statistic not found");
 
-function pickSettings(data: Partial<StatisticInput>) {
-  const { value, source, preset, presetParam, roundTo, suffix } = data;
-  return { value, source, preset, presetParam, roundTo, suffix };
+  const valid = validateStatisticInput({
+    value: data.value ?? existing.metricValue,
+    labelEn: data.labelEn ?? existing.labelEn,
+    labelAr: data.labelAr ?? existing.labelAr,
+    subLabelEn: data.subLabelEn ?? existing.subLabelEn ?? undefined,
+    subLabelAr: data.subLabelAr ?? existing.subLabelAr ?? undefined,
+    icon: data.icon ?? existing.icon ?? undefined,
+    sortOrder: data.sortOrder ?? existing.sortOrder,
+    source: data.source ?? "manual",
+    preset: data.preset,
+    presetParam: data.presetParam,
+    roundTo: data.roundTo,
+    suffix: data.suffix,
+  });
+
+  const metricValue =
+    valid.source === "preset"
+      ? await computeStatisticValue({
+          id,
+          value: valid.value,
+          labelEn: valid.labelEn ?? existing.labelEn,
+          labelAr: valid.labelAr ?? existing.labelAr,
+          subLabelEn: valid.subLabelEn ?? existing.subLabelEn ?? null,
+          subLabelAr: valid.subLabelAr ?? existing.subLabelAr ?? null,
+          icon: valid.icon ?? existing.icon ?? null,
+          sortOrder: valid.sortOrder ?? existing.sortOrder,
+          source: valid.source,
+          preset: valid.preset,
+          presetParam: valid.presetParam ?? null,
+          roundTo: valid.roundTo ?? null,
+          suffix: valid.suffix ?? null,
+        })
+      : (valid.value ?? existing.metricValue);
+
+  const saved = await upsertStatistic("", {
+    id,
+    metricValue,
+    labelEn: valid.labelEn ?? existing.labelEn,
+    labelAr: valid.labelAr ?? existing.labelAr,
+    subLabelEn: valid.subLabelEn ?? existing.subLabelEn ?? null,
+    subLabelAr: valid.subLabelAr ?? existing.subLabelAr ?? null,
+    icon: valid.icon ?? existing.icon ?? null,
+    sortOrder: valid.sortOrder ?? existing.sortOrder,
+  });
+
+  return {
+    id: saved.id,
+    value: saved.metricValue,
+    storedValue: saved.metricValue,
+    labelEn: saved.labelEn,
+    labelAr: saved.labelAr,
+    subLabelEn: saved.subLabelEn ?? null,
+    subLabelAr: saved.subLabelAr ?? null,
+    icon: saved.icon ?? null,
+    sortOrder: saved.sortOrder,
+    source: valid.source,
+    preset: valid.preset,
+  };
 }
 
 export async function deleteStatistic(id: string) {
-  return await db.statistic.delete({ where: { id } });
+  await deleteStatisticApi("", id);
+  return { id };
 }

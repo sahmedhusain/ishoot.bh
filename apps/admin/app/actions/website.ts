@@ -1,18 +1,25 @@
 "use server";
-import { lookupFile } from "@platform/api-client";
+import {
+  getContentSnapshot,
+  lookupFile,
+  publishContentSnapshot,
+  saveContentDraft,
+} from "@platform/api-client";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@platform/database";
+import {
+  collectWebsiteDraft,
+  createActivityLog,
+  getWebsiteEditor,
+  measureOperation,
+  requireFeatureEnabled,
+  runAtomicMutation,
+  updateService,
+} from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 import { createHmac } from "node:crypto";
 import {
-  requireFeatureEnabled,
-  runAtomicMutation,
-  collectWebsiteDraft,
-  getWebsiteEditor,
-  createActivityLog,
-} from "@platform/database";
-import {
+  defaultWebsiteConfig,
   validateWebsiteConfig,
   safeWebsiteUrl,
   type WebsiteArticles,
@@ -33,8 +40,23 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
     for (const document of config.documents ?? []) {
       if (!document.url.startsWith("/")) continue;
       const upload = await lookupFile(document.url);
-      if (!upload?.isPublic || !upload.claimedAt || upload.mimeType !== "application/pdf") throw new Error(serverMessages.invalidUploadedFile);
+      if (
+        !upload?.isPublic ||
+        !upload.claimedAt ||
+        upload.mimeType !== "application/pdf"
+      )
+        throw new Error(serverMessages.invalidUploadedFile);
     }
+
+    const snap = await getContentSnapshot("main").catch(() => null);
+    if (snap && snap.revision !== revision)
+      throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
+
+    const saved = await saveContentDraft("", "main", {
+      ...(snap?.draft ?? {}),
+      config,
+    });
+
     await runAtomicMutation(async () => {
       await createActivityLog({
         user_id: user.id,
@@ -45,9 +67,10 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
       });
     });
     revalidatePath(ROUTES.cms.website);
-    return { revision: revision + 1 };
+    return { revision: saved.revision };
   });
 }
+
 export async function publishWebsiteAction(revision: number) {
   return measureOperation("action:publishWebsiteAction", async () => {
     const user = await requirePermission("settings", "write");
@@ -56,9 +79,15 @@ export async function publishWebsiteAction(revision: number) {
     const content = await getWebsiteEditor();
     if (content.revision !== revision)
       throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
+    const snap = await getContentSnapshot("main").catch(() => null);
     const snapshot = await collectWebsiteDraft(
       validateWebsiteConfig(content.draft),
     );
+    await saveContentDraft("", "main", {
+      ...(snap?.draft ?? {}),
+      ...snapshot,
+    });
+    const published = await publishContentSnapshot("", "main");
     const paths = await publicSitePaths();
     await runAtomicMutation(async () => {
       await createActivityLog({
@@ -71,14 +100,27 @@ export async function publishWebsiteAction(revision: number) {
     });
     revalidatePath(ROUTES.cms.website);
     await revalidatePublicSite([], paths);
-    return { revision: revision + 1 };
+    return { revision: published.revision };
   });
 }
+
 export async function restoreWebsiteAction(revision: number) {
   return measureOperation("action:restoreWebsiteAction", async () => {
     const user = await requirePermission("settings", "write");
     await requireFeatureEnabled("cms");
     validateActionArguments("restoreWebsiteAction", { revision });
+    const snap = await getContentSnapshot("main").catch(() => null);
+    if (snap && snap.revision !== revision)
+      throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
+    if (snap?.published) {
+      const pubConfig = validateWebsiteConfig(
+        (snap.published as Record<string, any>).config ?? snap.published,
+      );
+      await saveContentDraft("", "main", {
+        ...(snap.draft ?? {}),
+        config: pubConfig,
+      });
+    }
     const paths = await publicSitePaths();
     await runAtomicMutation(async () => {
       await createActivityLog({
@@ -93,6 +135,7 @@ export async function restoreWebsiteAction(revision: number) {
     await revalidatePublicSite([], paths);
   });
 }
+
 export async function previewWebsiteAction(locale: string, path?: string) {
   return measureOperation("action:previewWebsiteAction", async () => {
     await requirePermission("settings", "read");
@@ -113,6 +156,7 @@ export async function previewWebsiteAction(locale: string, path?: string) {
     return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}${target}`;
   });
 }
+
 export async function updateWebsiteServiceAction(
   id: string,
   isPublic: boolean,
@@ -133,6 +177,12 @@ export async function updateWebsiteServiceAction(
       (imageUrl && !safeWebsiteUrl(imageUrl))
     )
       throw new Error(serverMessages.invalidServiceImageUrl);
+
+    await updateService(id, {
+      is_public: isPublic,
+      image_url: imageUrl || null,
+    } as Record<string, any>);
+
     await runAtomicMutation(async () => {
       await createActivityLog({
         user_id: user.id,
@@ -152,6 +202,21 @@ async function updateWebsiteDraft(
   operation: string,
   details: Record<string, unknown> = {},
 ) {
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const currentConfig =
+    currentDraft.config ??
+    (currentDraft.sections ? currentDraft : defaultWebsiteConfig);
+  const nextConfig = validateWebsiteConfig({
+    ...currentConfig,
+    ...patch,
+  });
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    config: nextConfig,
+  });
+
   await runAtomicMutation(async () => {
     await createActivityLog({
       user_id: userId,

@@ -1,27 +1,34 @@
-import { isValidEmail } from "../constants/validation";
+import { randomUUID } from "node:crypto";
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
-import { COVERAGE_SENTIMENTS } from "../constants/outreach";
+import {
+  getContentSnapshot,
+  listArticles,
+  saveContentDraft,
+} from "@platform/api-client";
+import { isValidEmail } from "../constants/validation";
+import { safeWebsiteUrl } from "../website-config";
 
-export async function listMediaContacts() {
-  const rows = await db.mediaContact.findMany({
-    orderBy: [{ isActive: "desc" }, { outlet: "asc" }, { name: "asc" }],
-  });
-  return rows.map((c) => ({
-    id: c.id,
-    name: c.name,
-    outlet: c.outlet,
-    role: c.role ?? "",
-    beat: c.beat ?? "",
-    email: c.email ?? "",
-    phone: c.phone ?? "",
-    notes: c.notes ?? "",
-    is_active: c.isActive,
-  }));
+const COVERAGE_SENTIMENTS = ["positive", "neutral", "negative"] as const;
+export type CoverageSentiment = (typeof COVERAGE_SENTIMENTS)[number];
+
+export function isCoverageSentiment(val: unknown): val is CoverageSentiment {
+  return (
+    typeof val === "string" &&
+    (COVERAGE_SENTIMENTS as readonly string[]).includes(val)
+  );
 }
-export type MediaContactRecord = Awaited<
-  ReturnType<typeof listMediaContacts>
->[number];
+
+export interface MediaContactRecord {
+  id: string;
+  name: string;
+  outlet: string;
+  role: string;
+  beat: string;
+  email: string;
+  phone: string;
+  notes: string;
+  is_active: boolean;
+}
 
 export interface MediaContactInput {
   id?: string;
@@ -35,57 +42,19 @@ export interface MediaContactInput {
   isActive: boolean;
 }
 
-export async function saveMediaContact(input: MediaContactInput) {
-  const name = input.name.trim().slice(0, 120);
-  const outlet = input.outlet.trim().slice(0, 120);
-  if (!name || !outlet) throw new Error(serverMessages.mediaContactInvalid);
-  const email = input.email.trim().toLowerCase();
-  if (email && !isValidEmail(email))
-    throw new Error(serverMessages.customerEmailInvalid);
-  const data = {
-    name,
-    outlet,
-    role: input.role.trim().slice(0, 80) || null,
-    beat: input.beat.trim().slice(0, 80) || null,
-    email: email || null,
-    phone: input.phone.trim().slice(0, 40) || null,
-    notes: input.notes.trim().slice(0, 2000) || null,
-    isActive: input.isActive,
-  };
-  return input.id
-    ? db.mediaContact.update({ where: { id: input.id }, data })
-    : db.mediaContact.create({ data });
+export interface CoverageRecord {
+  id: string;
+  title: string;
+  outlet: string;
+  url: string;
+  published_on: string;
+  reach: number | null;
+  sentiment: CoverageSentiment;
+  article_id: string;
+  article_en: string;
+  article_ar: string;
+  notes: string;
 }
-
-export async function listCoverage() {
-  const rows = await db.mediaCoverage.findMany({
-    orderBy: { publishedOn: "desc" },
-    take: 300,
-  });
-  const articles = await db.cmsArticle.findMany({
-    where: {
-      id: { in: rows.map((r) => r.articleId).filter((v): v is string => !!v) },
-    },
-    select: { id: true, titleEn: true, titleAr: true },
-  });
-  return rows.map((r) => {
-    const article = articles.find((a) => a.id === r.articleId);
-    return {
-      id: r.id,
-      title: r.title,
-      outlet: r.outlet,
-      url: r.url ?? "",
-      published_on: r.publishedOn.toISOString().slice(0, 10),
-      reach: r.reach,
-      sentiment: r.sentiment,
-      article_id: r.articleId ?? "",
-      article_en: article?.titleEn ?? "",
-      article_ar: article?.titleAr ?? "",
-      notes: r.notes ?? "",
-    };
-  });
-}
-export type CoverageRecord = Awaited<ReturnType<typeof listCoverage>>[number];
 
 export interface CoverageInput {
   id?: string;
@@ -99,43 +68,199 @@ export interface CoverageInput {
   notes: string;
 }
 
+function mapMediaContact(raw: any): MediaContactRecord {
+  return {
+    id: String(raw?.id ?? ""),
+    name: String(raw?.name ?? ""),
+    outlet: String(raw?.outlet ?? ""),
+    role: String(raw?.role ?? ""),
+    beat: String(raw?.beat ?? ""),
+    email: String(raw?.email ?? ""),
+    phone: String(raw?.phone ?? ""),
+    notes: String(raw?.notes ?? ""),
+    is_active: raw?.is_active ?? raw?.isActive ?? true,
+  };
+}
+
+export async function listMediaContacts(): Promise<MediaContactRecord[]> {
+  try {
+    const snap = await getContentSnapshot("main");
+    const list = Array.isArray(snap?.draft?.pressContacts)
+      ? snap.draft.pressContacts
+      : [];
+    return list
+      .map(mapMediaContact)
+      .sort((a: MediaContactRecord, b: MediaContactRecord) =>
+        a.name.localeCompare(b.name),
+      );
+  } catch (e) {
+    console.error("Failed to list media contacts:", e);
+    return [];
+  }
+}
+
+export async function saveMediaContact(input: MediaContactInput) {
+  const name = input.name.trim().slice(0, 120);
+  if (!name)
+    throw new Error(
+      (serverMessages as any).mediaContactInvalid ?? serverMessages.invalidInput,
+    );
+  const email = input.email.trim().toLowerCase();
+  if (email && !isValidEmail(email))
+    throw new Error(serverMessages.customerEmailInvalid);
+
+  const snap = await getContentSnapshot("main").catch(() => null);
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.pressContacts)
+    ? [...currentDraft.pressContacts].map(mapMediaContact)
+    : [];
+
+  const record: MediaContactRecord = {
+    id: input.id || randomUUID(),
+    name,
+    outlet: input.outlet.trim().slice(0, 120),
+    role: input.role.trim().slice(0, 80),
+    beat: input.beat.trim().slice(0, 80),
+    email,
+    phone: input.phone.trim().slice(0, 40),
+    notes: input.notes.trim().slice(0, 2000),
+    is_active: input.isActive,
+  };
+
+  const idx = input.id ? list.findIndex((c) => c.id === input.id) : -1;
+  if (idx !== -1) list[idx] = record;
+  else list.push(record);
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    pressContacts: list,
+  });
+  return record;
+}
+
+function mapCoverage(
+  raw: any,
+  articleMap: Map<string, { titleEn: string; titleAr: string }>,
+): CoverageRecord {
+  const articleId = String(raw?.article_id ?? raw?.articleId ?? "");
+  const article = articleId ? articleMap.get(articleId) : undefined;
+  return {
+    id: String(raw?.id ?? ""),
+    title: String(raw?.title ?? ""),
+    outlet: String(raw?.outlet ?? ""),
+    url: String(raw?.url ?? ""),
+    published_on: String(raw?.published_on ?? raw?.publishedOn ?? "").slice(
+      0,
+      10,
+    ),
+    reach:
+      raw?.reach === null || raw?.reach === undefined || raw?.reach === ""
+        ? null
+        : Number(raw.reach),
+    sentiment: isCoverageSentiment(raw?.sentiment)
+      ? raw.sentiment
+      : "neutral",
+    article_id: articleId,
+    article_en: article?.titleEn ?? raw?.article_en ?? "",
+    article_ar: article?.titleAr ?? raw?.article_ar ?? "",
+    notes: String(raw?.notes ?? ""),
+  };
+}
+
+export async function listCoverage(): Promise<CoverageRecord[]> {
+  try {
+    const [snap, articles] = await Promise.all([
+      getContentSnapshot("main").catch(() => null),
+      listArticles(true).catch(() => []),
+    ]);
+    const articleMap = new Map<string, { titleEn: string; titleAr: string }>(
+      articles.map((a: any): [string, { titleEn: string; titleAr: string }] => [
+        String(a.id),
+        { titleEn: String(a.titleEn ?? ""), titleAr: String(a.titleAr ?? "") },
+      ]),
+    );
+    const list = Array.isArray(snap?.draft?.pressCoverage)
+      ? snap.draft.pressCoverage
+      : [];
+    return list
+      .map((r: any) => mapCoverage(r, articleMap))
+      .sort((a: CoverageRecord, b: CoverageRecord) =>
+        b.published_on.localeCompare(a.published_on),
+      );
+  } catch (e) {
+    console.error("Failed to list coverage:", e);
+    return [];
+  }
+}
+
 export async function saveCoverage(input: CoverageInput, userId: string) {
   const title = input.title.trim().slice(0, 300);
   const outlet = input.outlet.trim().slice(0, 120);
-  if (
-    !title ||
-    !outlet ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(input.publishedOn) ||
-    !(COVERAGE_SENTIMENTS as readonly string[]).includes(input.sentiment)
-  )
-    throw new Error(serverMessages.coverageInvalid);
+  const coverageInvalidMsg =
+    (serverMessages as any).coverageInvalid ?? serverMessages.invalidInput;
+  if (!title || !outlet) throw new Error(coverageInvalidMsg);
+  if (!isCoverageSentiment(input.sentiment))
+    throw new Error(coverageInvalidMsg);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.publishedOn))
+    throw new Error(coverageInvalidMsg);
   const url = input.url.trim();
-  if (url && !/^https?:\/\/\S+$/.test(url))
-    throw new Error(serverMessages.coverageInvalid);
-  const reach = input.reach.trim() ? Number(input.reach) : null;
-  if (reach !== null && (!Number.isInteger(reach) || reach < 0))
-    throw new Error(serverMessages.coverageInvalid);
-  const data = {
+  if (url && !safeWebsiteUrl(url))
+    throw new Error(
+      (serverMessages as any).invalidWebsiteUrl ?? serverMessages.invalidMediaUrl,
+    );
+  const reachRaw = input.reach.trim();
+  const reach = reachRaw ? Number(reachRaw) : null;
+  if (
+    reach !== null &&
+    (!Number.isInteger(reach) || reach < 0 || reach > 1_000_000_000)
+  )
+    throw new Error(coverageInvalidMsg);
+
+  const [snap, articles] = await Promise.all([
+    getContentSnapshot("main").catch(() => null),
+    listArticles(true).catch(() => []),
+  ]);
+  const articleMap = new Map<string, { titleEn: string; titleAr: string }>(
+    articles.map((a: any): [string, { titleEn: string; titleAr: string }] => [
+      String(a.id),
+      { titleEn: String(a.titleEn ?? ""), titleAr: String(a.titleAr ?? "") },
+    ]),
+  );
+  const currentDraft = (snap?.draft as Record<string, any>) ?? {};
+  const list = Array.isArray(currentDraft.pressCoverage)
+    ? [...currentDraft.pressCoverage]
+    : [];
+
+  const entry = {
+    id: input.id || randomUUID(),
     title,
     outlet,
-    url: url || null,
-    publishedOn: new Date(`${input.publishedOn}T00:00:00Z`),
+    url,
+    published_on: input.publishedOn,
     reach,
     sentiment: input.sentiment,
-    articleId: input.articleId || null,
-    notes: input.notes.trim().slice(0, 2000) || null,
+    article_id: input.articleId || "",
+    notes: input.notes.trim().slice(0, 2000),
+    created_by_id: userId,
   };
-  return input.id
-    ? db.mediaCoverage.update({ where: { id: input.id }, data })
-    : db.mediaCoverage.create({ data: { ...data, createdById: userId } });
+
+  const idx = input.id ? list.findIndex((c: any) => c.id === input.id) : -1;
+  if (idx !== -1) list[idx] = entry;
+  else list.push(entry);
+
+  await saveContentDraft("", "main", {
+    ...currentDraft,
+    pressCoverage: list,
+  });
+  return mapCoverage(entry, articleMap);
 }
 
 export async function coverageSummary(days = 90, now = new Date()) {
-  const since = new Date(now.getTime() - days * 86_400_000);
-  const rows = await db.mediaCoverage.findMany({
-    where: { publishedOn: { gte: since } },
-    select: { reach: true, sentiment: true },
-  });
+  const since = new Date(now.getTime() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const all = await listCoverage();
+  const rows = all.filter((r) => r.published_on >= since);
   return {
     pieces: rows.length,
     reach: rows.reduce((sum, r) => sum + (r.reach ?? 0), 0),
@@ -147,41 +272,28 @@ export async function coverageSummary(days = 90, now = new Date()) {
 
 export async function listPressReleases(onlyPublished = false) {
   const now = new Date();
-  const rows = await db.cmsArticle.findMany({
-    where: {
-      category: "press_release",
-      ...(onlyPublished
-        ? {
-            status: "published",
-            OR: [{ publishAt: null }, { publishAt: { lte: now } }],
-          }
-        : {}),
-    },
-    orderBy: [
-      { publishAt: { sort: "desc", nulls: "last" } },
-      { createdAt: "desc" },
-    ],
-    take: 100,
-    select: {
-      id: true,
-      slug: true,
-      titleEn: true,
-      titleAr: true,
-      excerptEn: true,
-      excerptAr: true,
-      status: true,
-      publishAt: true,
-      createdAt: true,
-    },
-  });
-  return rows.map((a) => ({
-    id: a.id,
-    slug: a.slug,
-    title_en: a.titleEn,
-    title_ar: a.titleAr,
-    excerpt_en: a.excerptEn ?? "",
-    excerpt_ar: a.excerptAr ?? "",
-    status: a.status,
-    date: (a.publishAt ?? a.createdAt).toISOString(),
-  }));
+  const articles = await listArticles(!onlyPublished).catch(() => []);
+  return articles
+    .filter((a) => a.category === "press_release")
+    .filter(
+      (a) =>
+        !onlyPublished ||
+        (a.status === "published" &&
+          (!a.publishAt || new Date(a.publishAt) <= now)),
+    )
+    .sort((a, b) =>
+      String(b.publishAt ?? b.createdAt).localeCompare(
+        String(a.publishAt ?? a.createdAt),
+      ),
+    )
+    .map((a) => ({
+      id: a.id,
+      slug: a.slug,
+      title_en: a.titleEn,
+      title_ar: a.titleAr,
+      excerpt_en: a.excerptEn ?? "",
+      excerpt_ar: a.excerptAr ?? "",
+      status: a.status,
+      date: new Date(a.publishAt ?? a.createdAt).toISOString(),
+    }));
 }

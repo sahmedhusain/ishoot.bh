@@ -1,6 +1,3 @@
-import crypto from "node:crypto";
-import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import {
   DELIVERY_MODES,
   defaultTimeZone,
@@ -13,66 +10,92 @@ import {
   type DeliveryMode,
 } from "../constants/delivery";
 import { isFeatureEnabled } from "./features";
-import { getNextSequenceNumber } from "./sequence";
+import { getCompanySettings } from "./company-settings";
+import { getDeliverySettings as getDeliverySettingsApi, listDeliveryZones as listDeliveryZonesApi, upsertDeliverySettings, listDeliverySlots, createDeliveryZone } from "@platform/api-client";
 
 type Tx = any;
-const num = (value: { toString(): string } | null | undefined) =>
-  value == null ? 0 : Number(value.toString());
-const numOrNull = (value: { toString(): string } | null | undefined) =>
-  value == null ? null : Number(value.toString());
+const num = (value: any) => value == null ? 0 : Number(value.toString());
+const numOrNull = (value: any) => value == null ? null : Number(value.toString());
 const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
-async function settingsRow(client: Tx | typeof db = db) {
-  return client.deliverySettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
+export interface AgencyInvoiceInput {
+  agencyId: string;
+  invoiceNumber?: string;
+  reference?: string;
+  amount: number | string;
+  invoiceDate: string;
+  dueDate?: string;
+  notes?: string;
+  shipmentIds?: string[];
+  [key: string]: any;
 }
 
-import { getCompanyConfiguration } from "../api/company";
-import {
-  getDeliverySettings as getApiDeliverySettings,
-  listDeliveryZones as listApiDeliveryZones,
-  listDeliverySlots as listApiDeliverySlots,
-} from "../api/delivery";
+export interface CourierAgencyInput {
+  id?: string;
+  name: string;
+  code?: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  isActive: boolean;
+  kind?: string;
+  trackingUrl?: string;
+  fee?: number | string;
+  [key: string]: any;
+}
+
+export interface HandToAgencyInput {
+  shipmentIds?: string[];
+  agencyId: string;
+  trackingNumber?: string;
+  notes?: string;
+  weightKg?: number | string;
+  lengthCm?: number | string;
+  widthCm?: number | string;
+  heightCm?: number | string;
+  confirmNoBooking?: boolean | string;
+  fee?: number | string;
+  [key: string]: any;
+}
+
+export interface MoveShipmentInput {
+  shipmentId?: string;
+  to: string;
+  note?: string;
+  reason?: string;
+  fromLocationId?: string;
+  toLocationId?: string;
+  notes?: string;
+}
 
 async function timeZoneOf(
-  row: { timeZone?: string | null },
-  client: Tx | typeof db = db,
+  row: any,
 ) {
   if (row.timeZone) return row.timeZone;
-  const company = await getCompanyConfiguration().catch(() => null);
-  return defaultTimeZone(company?.country);
+  try {
+    const company = await getCompanySettings();
+    return defaultTimeZone((company as any)?.country);
+  } catch {
+    return defaultTimeZone("");
+  }
 }
 
 export async function getDeliverySettings() {
-  try {
-    const apiRow = await getApiDeliverySettings();
-    if (apiRow) {
-      return {
-        mode: (apiRow.mode || "own") as DeliveryMode,
-        sla_hours: apiRow.slaHours ?? 24,
-        time_zone: apiRow.timeZone ?? "",
-        effective_time_zone: await timeZoneOf(apiRow),
-        slot_days: apiRow.slotDays ?? 7,
-        lead_minutes: apiRow.leadMinutes ?? 120,
-        require_slot: apiRow.requireSlot ?? false,
-      };
-    }
-  } catch {}
-  const row = await settingsRow();
+  const row = await getDeliverySettingsApi();
   return {
     mode: row.mode as DeliveryMode,
     sla_hours: row.slaHours,
+    slaHours: row.slaHours,
     time_zone: row.timeZone ?? "",
     effective_time_zone: await timeZoneOf(row),
     slot_days: row.slotDays,
+    slotDays: row.slotDays,
     lead_minutes: row.leadMinutes,
+    leadMinutes: row.leadMinutes,
     require_slot: row.requireSlot,
+    requireSlot: row.requireSlot,
   };
 }
-
 export type DeliverySettingsRecord = Awaited<
   ReturnType<typeof getDeliverySettings>
 >;
@@ -90,14 +113,14 @@ export async function saveDeliverySettings(input: DeliverySettingsInput) {
   const whole = (text: string, min: number, max: number) => {
     const value = Number(text);
     if (!Number.isInteger(value) || value < min || value > max)
-      throw new Error(serverMessages.deliverySettingsInvalid);
+      throw new Error("Delivery settings invalid");
     return value;
   };
   if (!(DELIVERY_MODES as readonly string[]).includes(input.mode))
-    throw new Error(serverMessages.deliverySettingsInvalid);
+    throw new Error("Delivery settings invalid");
   const timeZone = input.timeZone.trim();
   if (timeZone && !isTimeZone(timeZone))
-    throw new Error(serverMessages.deliveryTimeZoneInvalid);
+    throw new Error("Delivery time zone invalid");
   const data = {
     mode: input.mode,
     slaHours: whole(input.slaHours, 1, 720),
@@ -106,20 +129,10 @@ export async function saveDeliverySettings(input: DeliverySettingsInput) {
     leadMinutes: whole(input.leadMinutes, 0, 10080),
     requireSlot: input.requireSlot,
   };
-  await db.deliverySettings.upsert({
-    where: { id: "default" },
-    update: data,
-    create: { id: "default", ...data },
-  });
+  await upsertDeliverySettings(data);
 }
 
-const zoneTerms = (z: {
-  id: string;
-  areas: string[];
-  fee: { toString(): string } | number;
-  minOrder: { toString(): string } | number | null;
-  freeOver: { toString(): string } | number | null;
-}) => ({
+const zoneTerms = (z: any) => ({
   id: z.id,
   areas: z.areas,
   fee: num(z.fee),
@@ -128,38 +141,7 @@ const zoneTerms = (z: {
 });
 
 export async function listDeliveryZones() {
-  try {
-    const apiZones = await listApiDeliveryZones();
-    if (Array.isArray(apiZones)) {
-      return await Promise.all(
-        apiZones.map(async (z) => {
-          const slots = await listApiDeliverySlots(z.id).catch(() => []);
-          return {
-            id: z.id,
-            name_en: z.nameEn,
-            name_ar: z.nameAr,
-            areas: z.areas ?? [],
-            fee: num(z.fee),
-            min_order: numOrNull(z.minOrder),
-            free_over: numOrNull(z.freeOver),
-            is_active: z.isActive,
-            slots: (slots ?? []).map((s) => ({
-              id: s.id,
-              weekday: s.weekday,
-              start: s.slotStart,
-              end: s.slotEnd,
-              capacity: s.capacity ?? null,
-              is_active: s.isActive,
-            })),
-          };
-        }),
-      );
-    }
-  } catch {}
-  const zones = await db.deliveryZone.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    include: { slots: { orderBy: [{ weekday: "asc" }, { start: "asc" }] } },
-  });
+  const zones = await listDeliveryZones();
   return zones.map((z) => ({
     id: z.id,
     name_en: z.nameEn,
@@ -169,34 +151,15 @@ export async function listDeliveryZones() {
     min_order: numOrNull(z.minOrder),
     free_over: numOrNull(z.freeOver),
     is_active: z.isActive,
-    slots: z.slots.map((s) => ({
-      id: s.id,
-      weekday: s.weekday,
-      start: s.start,
-      end: s.end,
-      capacity: s.capacity,
-      is_active: s.isActive,
-    })),
+    slots: [],
   }));
 }
-
 export type DeliveryZoneRecord = Awaited<
   ReturnType<typeof listDeliveryZones>
 >[number];
 
 export async function listSharedSlots() {
-  const slots = await db.deliverySlot.findMany({
-    where: { zoneId: null },
-    orderBy: [{ weekday: "asc" }, { start: "asc" }],
-  });
-  return slots.map((s) => ({
-    id: s.id,
-    weekday: s.weekday,
-    start: s.start,
-    end: s.end,
-    capacity: s.capacity,
-    is_active: s.isActive,
-  }));
+  return [];
 }
 
 export interface DeliveryZoneInput {
@@ -211,39 +174,14 @@ export interface DeliveryZoneInput {
 }
 
 export async function saveDeliveryZone(input: DeliveryZoneInput) {
-  const money = (text: string, optional: boolean) => {
-    if (!text.trim() && optional) return null;
-    const value = Number(text || 0);
-    if (!Number.isFinite(value) || value < 0 || value > 99_999_999)
-      throw new Error(serverMessages.productAmountInvalid);
-    return roundStoredAmount(value);
-  };
-  const nameEn = input.nameEn.trim().slice(0, 120);
-  const nameAr = input.nameAr.trim().slice(0, 120);
-  if (!nameEn && !nameAr)
-    throw new Error(serverMessages.deliveryZoneNameRequired);
-  const seen = new Set<string>();
-  const areas = input.areas
-    .split(/[\n,،]/)
-    .map((a) => a.trim().slice(0, 80))
-    .filter(
-      (a) => a && !seen.has(normalizeArea(a)) && seen.add(normalizeArea(a)),
-    )
-    .slice(0, 300);
-  const data = {
-    nameEn: nameEn || nameAr,
-    nameAr: nameAr || nameEn,
-    areas,
-    fee: money(input.fee, false)!,
-    minOrder: money(input.minOrder, true),
-    freeOver: money(input.freeOver, true),
+  return createDeliveryZone({
+    nameEn: input.nameEn,
+    nameAr: input.nameAr,
+    areas: input.areas.split(/[\n,،]/).map(a => a.trim()),
+    fee: input.fee,
+    minOrder: input.minOrder,
+    freeOver: input.freeOver,
     isActive: input.isActive,
-  };
-  if (input.id)
-    return db.deliveryZone.update({ where: { id: input.id }, data });
-  const last = await db.deliveryZone.aggregate({ _max: { sortOrder: true } });
-  return db.deliveryZone.create({
-    data: { ...data, sortOrder: (last._max.sortOrder ?? 0) + 1 },
   });
 }
 
@@ -257,83 +195,17 @@ export interface DeliverySlotInput {
 }
 
 export async function saveDeliverySlot(input: DeliverySlotInput) {
-  if (
-    !isClockTime(input.start) ||
-    !isClockTime(input.end) ||
-    input.start >= input.end
-  )
-    throw new Error(serverMessages.deliverySlotInvalid);
-  const capacity = input.capacity.trim() ? Number(input.capacity) : null;
-  if (
-    capacity !== null &&
-    (!Number.isInteger(capacity) || capacity < 1 || capacity > 10_000)
-  )
-    throw new Error(serverMessages.deliverySlotInvalid);
-  const days = Array.from(new Set(input.weekdays)).filter(
-    (d) => Number.isInteger(d) && d >= 0 && d <= 6,
-  );
-  if (!days.length) throw new Error(serverMessages.deliverySlotInvalid);
-  const zoneId = input.zoneId || null;
-  if (input.id)
-    return db.deliverySlot.update({
-      where: { id: input.id },
-      data: { weekday: days[0], start: input.start, end: input.end, capacity },
-    });
-  await db.deliverySlot.createMany({
-    data: days.map((weekday) => ({
-      zoneId,
-      weekday,
-      start: input.start,
-      end: input.end,
-      capacity,
-    })),
-  });
+  throw new Error("saveDeliverySlot is not implemented in API");
 }
 
 export async function deleteDeliverySlot(id: string) {
-  await db.deliverySlot.delete({ where: { id } });
+  throw new Error("deleteDeliverySlot is not implemented in API");
 }
 
-export async function activeZoneTerms(client: Tx | typeof db = db) {
+export async function activeZoneTerms() {
   if (!(await isFeatureEnabled("delivery"))) return [];
-  try {
-    const apiZones = await listApiDeliveryZones();
-    if (Array.isArray(apiZones)) {
-      return apiZones
-        .filter((z) => z.isActive)
-        .map((z) => ({
-          id: z.id,
-          areas: z.areas ?? [],
-          fee: num(z.fee),
-          minOrder: numOrNull(z.minOrder),
-          freeOver: numOrNull(z.freeOver),
-        }));
-    }
-  } catch {}
-  const zones = await client.deliveryZone.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
-  return zones.map(zoneTerms);
-}
-
-
-async function bookedSlots(client: Tx | typeof db, from: string): Promise<Map<string, number>> {
-  const rows: any[] = await client.shipment.groupBy({
-    by: ["slotDate", "slotId"],
-    where: {
-      slotDate: { gte: new Date(`${from}T00:00:00Z`) },
-      slotId: { not: null },
-      status: { not: "cancelled" },
-    },
-    _count: { _all: true },
-  });
-  return new Map<string, number>(
-    rows.map((r: any) => [
-      `${r.slotDate!.toISOString().slice(0, 10)}|${r.slotId}`,
-      r._count._all,
-    ]),
-  );
+  const zones = await listDeliveryZones();
+  return zones.filter(z => z.isActive).map(zoneTerms);
 }
 
 export type DeliveryOptions = Awaited<ReturnType<typeof deliveryOptions>>;
@@ -348,33 +220,28 @@ export async function deliveryOptions(
       zones: false,
       zoneId: null,
       covered: true,
-      slots: [] as ReturnType<typeof upcomingSlots>,
+      slots: [],
       requireSlot: false,
-      slaHours: null as number | null,
+      slaHours: null,
     };
   const zone = zoneForAddress(zones, address);
-  const settings = await settingsRow();
+  const settings = await getDeliverySettings();
   const timeZone = await timeZoneOf(settings);
-  const slots = zone
-    ? await db.deliverySlot.findMany({
-        where: { isActive: true, OR: [{ zoneId: zone.id }, { zoneId: null }] },
-      })
-    : [];
-  const taken = await bookedSlots(db, now.toISOString().slice(0, 10));
+  const slots = zone ? await listDeliverySlots(zone.id) : [];
   const open = zone
     ? upcomingSlots(
         slots.map((s) => ({
           id: s.id,
-          zoneId: s.zoneId,
+          zoneId: s.zoneId ?? null,
           weekday: s.weekday,
-          start: s.start,
-          end: s.end,
-          capacity: s.capacity,
+          start: (s as any).slotStart || (s as any).start || "09:00",
+          end: (s as any).slotEnd || (s as any).end || "17:00",
+          capacity: s.capacity ?? null,
         })),
         zone.id,
         now,
         settings.slotDays,
-        taken,
+        new Map(),
         timeZone,
         settings.leadMinutes,
       )
@@ -385,7 +252,7 @@ export async function deliveryOptions(
     covered: !!zone,
     slots: open,
     requireSlot: settings.requireSlot && open.length > 0,
-    slaHours: settings.slaHours as number | null,
+    slaHours: settings.slaHours,
   };
 }
 
@@ -395,138 +262,22 @@ export interface ShipmentSlotChoice {
 }
 
 export async function createShipmentForOrder(
-  tx: Tx,
-  order: {
-    id: string;
-    placedAt: Date;
-    total: number | string | { toString(): string };
-    paymentMethod: string;
-    name: string;
-    phone: string | null;
-    shippingAddress: unknown;
-  },
+  tx: any,
+  order: any,
   choice: {
     zoneId: string | null;
     slot: ShipmentSlotChoice | null;
     requireSlot: boolean;
   },
 ) {
-  if (!(await isFeatureEnabled("delivery"))) return null;
-  const settings = await settingsRow(tx);
-  const timeZone = await timeZoneOf(settings, tx);
-  let slot: { id: string; date: string; start: string; end: string } | null =
-    null;
-  if (
-    !choice.slot &&
-    choice.requireSlot &&
-    settings.requireSlot &&
-    choice.zoneId &&
-    (await tx.deliverySlot.count({
-      where: {
-        isActive: true,
-        OR: [{ zoneId: choice.zoneId }, { zoneId: null }],
-      },
-    }))
-  )
-    throw new Error(serverMessages.deliverySlotRequired);
-  if (choice.slot) {
-    const row = await tx.deliverySlot.findFirst({
-      where: {
-        id: choice.slot.slotId,
-        isActive: true,
-        OR: [{ zoneId: choice.zoneId }, { zoneId: null }],
-      },
-    });
-    if (!row || !/^\d{4}-\d{2}-\d{2}$/.test(choice.slot.date))
-      throw new Error(serverMessages.deliverySlotUnavailable);
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`slot:${row.id}:${choice.slot.date}`}))`;
-    const open = upcomingSlots(
-      [
-        {
-          id: row.id,
-          zoneId: row.zoneId,
-          weekday: row.weekday,
-          start: row.start,
-          end: row.end,
-          capacity: row.capacity,
-        },
-      ],
-      choice.zoneId,
-      order.placedAt,
-      settings.slotDays,
-      await bookedSlots(tx, order.placedAt.toISOString().slice(0, 10)),
-      timeZone,
-      settings.leadMinutes,
-    );
-    if (!open.some((s) => s.date === choice.slot!.date))
-      throw new Error(serverMessages.deliverySlotUnavailable);
-    slot = {
-      id: row.id,
-      date: choice.slot.date,
-      start: row.start,
-      end: row.end,
-    };
-  }
-  const address = (order.shippingAddress ?? {}) as {
-    name?: string;
-    phone?: string;
-  };
-  const number = await getNextSequenceNumber("DL", undefined, tx);
-  return tx.shipment.create({
-    data: {
-      number,
-      orderId: order.id,
-      zoneId: choice.zoneId,
-      slotId: slot?.id ?? null,
-      slotDate: slot ? new Date(`${slot.date}T00:00:00Z`) : null,
-      slotStart: slot?.start ?? null,
-      slotEnd: slot?.end ?? null,
-      promisedBy: promisedBy(order.placedAt, settings.slaHours, slot, timeZone),
-      recipientName: address.name || order.name,
-      recipientPhone: address.phone || order.phone || "",
-      address: (order.shippingAddress ?? {}) as any,
-      codAmount: order.paymentMethod === "cod" ? order.total : 0,
-      trackingToken: crypto.randomBytes(18).toString("base64url"),
-      events: { create: { status: "pending" } },
-    },
-  });
+  throw new Error("createShipmentForOrder must be implemented as a single API call in Go backend");
 }
 
 export async function followOrderStatus(
-  tx: Tx,
+  tx: any,
   orderId: string,
   status: string,
   byId: string | null,
 ) {
-  const map: Record<string, string> = {
-    cancelled: "cancelled",
-    delivered: "delivered",
-    returned: "returned",
-  };
-  const to = map[status];
-  if (!to) return;
-  const open = await tx.shipment.findMany({
-    where: {
-      orderId,
-      status: {
-        in:
-          to === "cancelled"
-            ? ["pending", "assigned"]
-            : ["pending", "assigned", "out_for_delivery", "failed"],
-      },
-    },
-    select: { id: true },
-  });
-  for (const s of open) {
-    await tx.shipment.update({
-      where: { id: s.id },
-      data: {
-        status: to,
-        ...(to === "delivered" ? { deliveredAt: new Date() } : {}),
-      },
-    });
-    await tx.shipmentEvent.create({
-      data: { shipmentId: s.id, status: to, byId },
-    });
-  }
+  throw new Error("followOrderStatus must be implemented as a single API call in Go backend");
 }

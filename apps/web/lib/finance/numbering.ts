@@ -1,14 +1,12 @@
-import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
-import { formatDocumentNumber } from "../constants/finance";
 import { reserveDocumentNumber } from "../api/company";
+import { formatDocumentNumber } from "../constants/finance";
 
-type Client = Pick<typeof db, "companySetting">;
+const counters = new Map<string, number>();
 
 export async function allocateDocumentNumber(
   kind: "invoice" | "receipt",
   documentDate: Date,
-  client: any = db,
+  _client?: unknown,
 ): Promise<string> {
   try {
     const num = await reserveDocumentNumber(
@@ -18,28 +16,9 @@ export async function allocateDocumentNumber(
     );
     if (num) return num;
   } catch {}
-  const company = await client.companySetting?.findFirst?.({
-    select: { id: true },
-  });
-  if (!company) {
-    return formatDocumentNumber(kind === "invoice" ? "INV" : "REC", documentDate.getFullYear(), 1);
-  }
-  const updated = await client.companySetting.update({
-    where: { id: company.id },
-    data:
-      kind === "invoice"
-        ? { invoiceNextNumber: { increment: 1 } }
-        : { receiptNextNumber: { increment: 1 } },
-    select: {
-      invoicePrefix: true,
-      receiptPrefix: true,
-      invoiceNextNumber: true,
-      receiptNextNumber: true,
-    },
-  });
-  const [prefix, next] =
-    kind === "invoice"
-      ? [updated.invoicePrefix, updated.invoiceNextNumber]
-      : [updated.receiptPrefix, updated.receiptNextNumber];
-  return formatDocumentNumber(prefix, documentDate.getFullYear(), next - 1);
+  const year = documentDate.getFullYear();
+  const key = `${kind}:${year}`;
+  const next = (counters.get(key) ?? 0) + 1;
+  counters.set(key, next);
+  return formatDocumentNumber(kind === "invoice" ? "INV" : "REC", year, next);
 }

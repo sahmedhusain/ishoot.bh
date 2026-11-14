@@ -15,3 +15,7 @@ export * from "./operations";
 export * from "./identity-caller";
 export * from "./store";
 export * from "./account";
+export * from "./sales";
+export * from "./finance";
+export * from "./hr";
+export * from "./normalize";

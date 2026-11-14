@@ -13,3 +13,7 @@ export * from "./notify";
 export * from "./system";
 export * from "./operations";
 export * from "./identity-caller";
+export * from "./sales";
+export * from "./finance";
+export * from "./hr";
+export * from "./normalize";

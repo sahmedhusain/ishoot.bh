@@ -1,14 +1,11 @@
-import { db } from "../atomic";
 import { isPaymentGateway, type PaymentGatewayId } from "../constants/payments";
 import { getActiveIntegrationCredentials } from "../queries/integrations";
 import { paymentGateway } from "./gateways";
 
 export async function activePaymentGateway() {
-  const settings = await db.storeSettings.findUnique({
-    where: { id: "default" },
-    select: { paymentGateway: true },
-  });
-  const id = settings?.paymentGateway;
+  const { getStoreSettings } = await import("../queries/store");
+  const settings = await getStoreSettings().catch(() => null);
+  const id = settings?.payment_gateway;
   if (!id || !isPaymentGateway(id)) return null;
   return gatewayWithCredentials(id);
 }
