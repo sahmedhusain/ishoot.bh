@@ -1,9 +1,11 @@
+import { cache } from "react";
 import { isCountryCode } from "../constants/clients";
 import { normalizeContactInput } from "./contact-validation";
 import { formatPhoneE164, countryIso } from "../constants/phone";
 import { serverMessages } from "@platform/locales";
 import {
   getCompanyConfiguration,
+  getCompanyConfigurationNoStore,
   getCompanySetupStatus,
   lookupFile,
   lookupFiles,
@@ -96,10 +98,7 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     rules_en: s.rulesEn || undefined,
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
-    setup_completed: Boolean(
-      s.setupCompletedAt ||
-      ((s.companyNameEn || s.companyNameAr) && (s.crNumber || s.email || s.phone))
-    ),
+    setup_completed: Boolean(s.setupCompletedAt),
     content_languages: normalizeLanguages(s.contentLanguages),
     primary_language: normalizePrimaryLanguage(
       s.primaryLanguage,
@@ -119,6 +118,15 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     updated_at: s.updatedAt ? new Date(s.updatedAt).toISOString() : new Date().toISOString(),
   };
 }
+
+export const isCompanySetupCompleted = cache(async (): Promise<boolean> => {
+  try {
+    const settings = await getCompanyConfigurationNoStore();
+    return Boolean(settings?.setupCompletedAt);
+  } catch {
+    return false;
+  }
+});
 
 export async function getCompanySettings(): Promise<CompanySettings> {
   try {

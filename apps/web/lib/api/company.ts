@@ -8,6 +8,8 @@ let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const system = () => (client ??= serviceClient<paths>());
 export const getCompanyConfiguration = () =>
   unwrap(system().GET("/v1/system/company"));
+export const getCompanyConfigurationNoStore = () =>
+  unwrap(system().GET("/v1/system/company", { cache: "no-store" }));
 export const getCompanyConfigurationForIT = (token: string) =>
   unwrap(userClient<paths>(token).GET("/v1/system/desk/company"));
 export const updateCompanyConfigurationForIT = (

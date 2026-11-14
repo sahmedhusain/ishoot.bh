@@ -3,8 +3,12 @@ import type { Metadata, Viewport } from "next";
 import { getTranslations, formatMessage } from "@platform/locales";
 import { getSite } from "../lib/site";
 import { publicSiteUrl } from "../lib/site-url";
+import { isCompanySetupCompleted } from "@platform/database";
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return {};
+  }
   const [company, metadataBase] = await Promise.all([
     getSite().then(site => site.company),
     publicSiteUrl(),
@@ -32,6 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export async function generateViewport(): Promise<Viewport> {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return { width: "device-width", initialScale: 1 };
+  }
   const company = await getSite().then(site => site.company).catch(() => null);
   return {
     themeColor: company?.theme.primary,

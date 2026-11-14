@@ -7,6 +7,12 @@ export const contentType = "image/png";
 
 export default async function OpenGraphImage() {
   const { company } = await getSite();
+  if (!company.setup_completed) {
+    return new ImageResponse(
+      <div style={{ display: "flex", width: "100%", height: "100%", background: "white" }} />,
+      size,
+    );
+  }
   return new ImageResponse(
     <div
       style={{

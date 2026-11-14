@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { formatMessage, getAdminTranslations, isLocale } from "@platform/locales";
+import { isCompanySetupCompleted } from "@platform/database";
 import { getCachedCompanySettings } from "./cached-queries";
 import type { PageKey } from "./page-registry";
 import { adminTranslations } from "./translations-bilingual";
 
 export async function companyMetadata(pageTitle?: string): Promise<Metadata> {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return {};
+  }
   const copy = adminTranslations.ar.copy;
   const company = await getCachedCompanySettings().catch(() => null);
   const companyName = company?.company_name_ar || copy.genericCompany;
@@ -19,6 +23,9 @@ export async function companyMetadata(pageTitle?: string): Promise<Metadata> {
 }
 
 export async function pageMetadata(page: PageKey): Promise<Metadata> {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return {};
+  }
   const company = await getCachedCompanySettings().catch(() => null);
   const saved = (await cookies()).get("platform_admin_locale")?.value;
   const locale = isLocale(saved) ? saved : company?.primary_language ?? "ar";

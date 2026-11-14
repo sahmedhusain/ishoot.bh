@@ -1,6 +1,7 @@
 import { cache } from "react";
 import {
   getCompanyConfiguration,
+  getCompanyConfigurationNoStore,
 } from "@platform/api-client";
 import {
   normalizeTheme,
@@ -82,10 +83,7 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     rules_en: s.rulesEn || undefined,
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
-    setup_completed: Boolean(
-      s.setupCompletedAt ||
-      ((s.companyNameEn || s.companyNameAr) && (s.crNumber || s.email || s.phone))
-    ),
+    setup_completed: Boolean(s.setupCompletedAt),
     content_languages: normalizeLanguages(s.contentLanguages),
     primary_language: normalizePrimaryLanguage(
       s.primaryLanguage,
@@ -105,6 +103,15 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     updated_at: s.updatedAt.toISOString(),
   };
 }
+
+export const isCompanySetupCompleted = cache(async (): Promise<boolean> => {
+  try {
+    const settings = await getCompanyConfigurationNoStore();
+    return Boolean(settings?.setupCompletedAt);
+  } catch {
+    return false;
+  }
+});
 
 export const getCompanySettings = cache(
   async (): Promise<CompanySettings> => {

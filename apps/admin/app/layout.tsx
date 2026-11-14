@@ -13,6 +13,7 @@ import {
 } from "@platform/database/constants/theme";
 import { companyMetadata } from "../lib/company-metadata";
 import { getCachedCompanySettings } from "../lib/cached-queries";
+import { isCompanySetupCompleted } from "@platform/database";
 import { AdminLocaleProvider } from "../hooks/useAdminLocale";
 import { AdminThemeProvider } from "../hooks/useAdminTheme";
 import { UnsavedChangesProvider } from "../hooks/useUnsavedChanges";
@@ -26,9 +27,17 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const savedLocale = (await cookies()).get("platform_admin_locale")?.value;
+  const configured = await isCompanySetupCompleted().catch(() => false);
+  if (!configured) {
+    return (
+      <html lang={isLocale(savedLocale) ? savedLocale : "en"}>
+        <body />
+      </html>
+    );
+  }
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const company = await getCachedCompanySettings().catch(() => null);
-  const savedLocale = (await cookies()).get("platform_admin_locale")?.value;
   const initialLocale = isLocale(savedLocale) ? savedLocale : company?.primary_language ?? "ar";
   const initialTranslations = getAdminTranslations(initialLocale, company?.business_activity);
   const theme = normalizeTheme(company?.theme);

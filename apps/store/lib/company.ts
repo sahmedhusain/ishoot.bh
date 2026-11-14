@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { getCompanySettings } from "@platform/database";
+import { getCompanySettings, isCompanySetupCompleted } from "@platform/database";
 import type { PublicCompanySettings } from "@platform/database/types";
 const getCachedCompany = unstable_cache(
   getCompanySettings,
@@ -9,9 +9,16 @@ const getCachedCompany = unstable_cache(
 );
 export const getPublicCompanySettings = cache(
   async (): Promise<PublicCompanySettings> => {
-    const company = await getCachedCompany();
+    const [configured, cached] = await Promise.all([
+      isCompanySetupCompleted(),
+      getCachedCompany(),
+    ]);
+    const company =
+      configured && !cached.setup_completed
+        ? await getCompanySettings()
+        : cached;
     return {
-      setup_completed: company.setup_completed,
+      setup_completed: configured,
       theme: company.theme,
       content_languages: company.content_languages,
       primary_language: company.primary_language,

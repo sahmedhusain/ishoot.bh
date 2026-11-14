@@ -1,9 +1,13 @@
 import type { MetadataRoute } from "next";
+import { isCompanySetupCompleted } from "@platform/database";
 import { getSite } from "../lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return {};
+  }
   const { company, info } = await getSite();
   const name =
     info.primaryLanguage === "ar"

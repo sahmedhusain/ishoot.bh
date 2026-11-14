@@ -60,8 +60,7 @@ export async function proxy(request: NextRequest) {
   const api = pathname.startsWith("/api/");
   const protectedPage =
     pathname === "/" ||
-    pathname.startsWith("/dashboard") ||
-    pathname === "/setup";
+    pathname.startsWith("/dashboard");
   const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
   if (
     !protectedPage &&

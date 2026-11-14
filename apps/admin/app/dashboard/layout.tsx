@@ -29,12 +29,6 @@ export default async function DashboardLayout({
     Promise.resolve(0),
     getActiveTaxSummary(),
   ]);
-  const hasEnoughCompanyData = Boolean(
-    company.setup_completed ||
-    company.company_name_en ||
-    company.company_name_ar
-  );
-  if (!hasEnoughCompanyData) redirect("/setup");
 
   return (
     <PermissionsProvider

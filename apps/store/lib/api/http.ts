@@ -14,7 +14,10 @@ const gatewayClient = <Paths extends object>() =>
   createClient<Paths>({
     baseUrl: apiUrl(),
     fetch: (request: Request) =>
-      fetch(request, { signal: AbortSignal.timeout(apiTimeoutMs()) }),
+      fetch(request, {
+        cache: request.cache,
+        signal: AbortSignal.timeout(apiTimeoutMs()),
+      }),
   });
 
 export function serviceClient<Paths extends object>() {

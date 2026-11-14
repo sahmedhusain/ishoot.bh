@@ -1,9 +1,17 @@
+import { isCompanySetupCompleted } from "@platform/database";
 import { normalizeTheme, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 import { defaultWebsiteDesign, siteBaseTone } from "@platform/database/constants/website-design";
 import { getSite } from "../lib/site";
 import { WebUnifiedErrorPage } from "../components/shared/WebUnifiedErrorPage";
 
 export default async function NotFound() {
+  if (!(await isCompanySetupCompleted().catch(() => false))) {
+    return (
+      <html lang="en">
+        <body />
+      </html>
+    );
+  }
   const site = await getSite().catch(() => null);
   const company = site?.company;
   const design = site?.config.design ?? defaultWebsiteDesign();

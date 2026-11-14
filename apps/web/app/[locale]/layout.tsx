@@ -20,7 +20,7 @@ import { SiteThemeProvider, SiteRegion } from "../../components/site/SiteTheme";
 import { siteBaseTone, siteThemeBootstrap } from "@platform/database/constants/website-design";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
-import { getSiteCode, getSocialLinks } from "@platform/database";
+import { getSiteCode, getSocialLinks, isCompanySetupCompleted } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
@@ -41,6 +41,14 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const configured = await isCompanySetupCompleted().catch(() => false);
+  if (!configured) {
+    return (
+      <html lang={isValidLocale(locale) ? locale : "en"}>
+        <body />
+      </html>
+    );
+  }
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   if (!isValidLocale(locale)) {
@@ -77,11 +85,7 @@ export default async function LocaleLayout({
     </head>
   );
 
-  const isConfigured = Boolean(
-    company.setup_completed ||
-    process.env.NODE_ENV !== "production",
-  );
-  if ((!enabled || !website || !isConfigured) && !preview) {
+  if ((!enabled || !website) && !preview) {
     return (
       <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}
