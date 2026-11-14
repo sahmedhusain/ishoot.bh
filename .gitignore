@@ -80,9 +80,10 @@ apps/admin/next-env.d.ts
 apps/it/next-env.d.ts
 apps/web/next-env.d.ts
 *package-lock.json
-apps/admin/package-lock.json
-apps/it/package-lock.json
-apps/web/package-lock.json
+!apps/admin/package-lock.json
+!apps/it/package-lock.json
+!apps/store/package-lock.json
+!apps/web/package-lock.json
 apps/it/next-env.d.ts
 apps/admin/next-env.d.ts
 apps/it/next-env.d.ts
