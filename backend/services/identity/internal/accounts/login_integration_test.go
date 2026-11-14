@@ -47,10 +47,12 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	legacy, err := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.MinCost)
 	require.NoError(t, err)
 	const legacyMFA = "MTIzNDU2Nzg5MDEy.WAqUAxCQ3k3ssm1UH8s12w==.KMdZE+lMPbU7vI5DnqCbdg=="
-	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('staff','user-123','alice@example.test',$1,ARRAY['admin'],true,$2),('customer','customer-1','alice@example.test',NULL,ARRAY[]::text[],false,NULL)`, string(legacy), legacyMFA)
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,username,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('staff','user-123','alice@example.test','ALICE',$1,ARRAY['admin'],true,$2),('customer','customer-1','alice@example.test',NULL,NULL,ARRAY[]::text[],false,NULL)`, string(legacy), legacyMFA)
 	require.NoError(t, err)
-	input := accounts.Input{Realm: authn.RealmStaff, Email: "  Alice@Example.Test  ", Password: "correct-password"}
-	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "missing@example.test", Password: "anything"}, now)
+	input := accounts.Input{Realm: authn.RealmStaff, Email: "  Alice  ", Password: "correct-password"}
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "alice@example.test", Password: "correct-password"}, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "staff login must reject email address")
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "missing-user", Password: "anything"}, now)
 	require.ErrorIs(t, err, accounts.ErrInvalid)
 	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmCustomer, Email: "alice@example.test", Password: "correct-password"}, now)
 	require.ErrorIs(t, err, accounts.ErrInvalid)
@@ -87,13 +89,15 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	require.ErrorIs(t, err, sessions.ErrInvalid, "disabled accounts revoke the session family on refresh")
 	stronger, err := hasher.Hash("it-password")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash) VALUES ('it','it-1','it@example.test',$1)`, stronger)
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,username,password_hash) VALUES ('it','it-1','it@example.test','IT-1',$1)`, stronger)
 	require.NoError(t, err)
-	it := accounts.Input{Realm: authn.RealmIT, Email: "it@example.test", Password: "it-password"}
+	it := accounts.Input{Realm: authn.RealmIT, Email: "it-1", Password: "it-password"}
 	secret, err := ring.Seal([]byte("12345678901234567890"), "it-1")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `UPDATE identity.account SET mfa_enabled=true,mfa_secret_encrypted=$1 WHERE realm='it' AND subject_id='it-1'`, secret)
 	require.NoError(t, err)
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "it@example.test", Password: "it-password"}, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "IT login must reject email address")
 	_, err = svc.Login(ctx, it, now)
 	require.ErrorIs(t, err, accounts.ErrMFARequired)
 	codes, hashes, err := totp.NewRecoveryCodes(1)
@@ -124,7 +128,7 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	var count int
 	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.session_family WHERE realm='it' AND subject_id='it-1'`).Scan(&count))
 	require.Equal(t, 1, count)
-	snapshot, err := repo.FindByEmail(ctx, authn.RealmIT, "it@example.test")
+	snapshot, err := repo.FindByEmail(ctx, authn.RealmIT, "it-1")
 	require.NoError(t, err)
 	prepared, err := sessionService.Prepare(authn.RealmIT, "it-1", now)
 	require.NoError(t, err)
@@ -135,4 +139,68 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 		return accounts.MFAResult{}, nil
 	})
 	require.ErrorIs(t, err, accounts.ErrInvalid)
+}
+
+func TestEnvBootstrapLazyMaterializationAndDualRealmPasswords(t *testing.T) {
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
+	require.NoError(t, err)
+	defer pool.Close()
+	require.NoError(t, migrate.Run(ctx, pool, migrate.Options{Schema: "identity", Migrations: migrations.FS, Logger: slog.Default()}))
+	hasher, err := password.New(password.Config{Memory: 19456, Iterations: 2, Parallelism: 1, MaxMemory: 262144, MaxIterations: 10, MaxParallelism: 16, MaxBcryptCost: 16})
+	require.NoError(t, err)
+	adminHash, err := hasher.Hash("Admin12345678!")
+	require.NoError(t, err)
+	itHash, err := hasher.Hash("ITAdmin12345678!")
+	require.NoError(t, err)
+	primaryKey := base64.StdEncoding.EncodeToString([]byte(strings.Repeat("a", 32)))
+	ring, err := secrets.NewKeyring(secrets.Config{Keys: []string{"primary:" + primaryKey}, PrimaryKeyID: "primary"})
+	require.NoError(t, err)
+	otp, err := totp.New(totp.Config{Period: 30 * time.Second, Digits: 6, Window: 1})
+	require.NoError(t, err)
+	repo := postgres.New(pool).WithBootstrap(
+		postgres.BootstrapAccount{Realm: authn.RealmStaff, SubjectID: "super-admin", Username: "BA0001", Email: "ops@example.test", PasswordHash: adminHash, DisplayName: "Super Admin", Roles: []string{"super_admin"}},
+		postgres.BootstrapAccount{Realm: authn.RealmIT, SubjectID: "430c4105-6360-4415-bf1b-087d582c7fc6", Username: "IT0001", Email: "ops@example.test", PasswordHash: itHash, Roles: []string{"it_admin"}},
+	)
+	sessionService, err := sessions.New(repo, time.Hour)
+	require.NoError(t, err)
+	svc, err := accounts.New(repo, hasher, ring, otp, sessionService, 2, allowGuard{}, accounts.MFAConfig{EnrollmentTTL: 10 * time.Minute, RecoveryCount: 10, Digits: 6, Period: 30 * time.Second})
+	require.NoError(t, err)
+	now := time.Now().UTC().Truncate(time.Second)
+
+	var initialRows int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.account`).Scan(&initialRows))
+	require.Equal(t, 0, initialRows, "bootstrap users must not exist in SQL until first auth")
+
+	// IT0001 first-launch sign-in works without MFA, and rejects email sign-in.
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "ops@example.test", Password: "ITAdmin12345678!"}, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid)
+	itSignedIn, err := svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "it0001", Password: "ITAdmin12345678!"}, now)
+	require.NoError(t, err)
+	require.False(t, itSignedIn.Account.MFAEnabled)
+	itPrincipal := authn.Principal{Realm: authn.RealmIT, Subject: itSignedIn.Account.SubjectID, SessionID: itSignedIn.Credential.Family.ID, Roles: itSignedIn.Account.Roles}
+
+	// IT cannot change password to match BA0001's password (even while BA0001 is still only in env!).
+	err = svc.ChangePassword(ctx, itPrincipal, "ITAdmin12345678!", "Admin12345678!", "", "", 14, now)
+	require.ErrorIs(t, err, accounts.ErrSamePasswordOtherRealm)
+
+	// IT can change password to a new distinct password, and enroll TOTP afterwards.
+	err = svc.ChangePassword(ctx, itPrincipal, "ITAdmin12345678!", "NewITPass123456!", "", "", 14, now)
+	require.NoError(t, err)
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "IT0001", Password: "ITAdmin12345678!"}, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "old env password must stop working once DB password changes")
+	itSignedIn2, err := svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "IT0001", Password: "NewITPass123456!"}, now)
+	require.NoError(t, err)
+	itPrincipal2 := authn.Principal{Realm: authn.RealmIT, Subject: itSignedIn2.Account.SubjectID, SessionID: itSignedIn2.Credential.Family.ID, Roles: itSignedIn2.Account.Roles}
+	enrollment, err := svc.BeginMFA(ctx, itPrincipal2, "NewITPass123456!", "", now)
+	require.NoError(t, err)
+	totpCode, err := otp.Code([]byte(strings.Repeat("a", 20)), now.Unix()/30)
+	_ = totpCode
+	require.NotEmpty(t, enrollment.Secret)
+
+	// BA0001 sign-in materializes staff account + staff_access without MFA.
+	adminSignedIn, err := svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "ba0001", Password: "Admin12345678!"}, now)
+	require.NoError(t, err)
+	require.Equal(t, "super-admin", adminSignedIn.Account.SubjectID)
+	require.False(t, adminSignedIn.Account.MFAEnabled)
 }

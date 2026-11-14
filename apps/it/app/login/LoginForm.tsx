@@ -63,7 +63,7 @@ export function LoginForm({
                 name="username"
                 type="text"
                 autoComplete="username"
-                placeholder={c.enterYourEmail || c.username}
+                placeholder={c.usernamePlaceholder || c.username}
                 dir="ltr"
                 required
                 value={email}

@@ -1236,13 +1236,13 @@
     },
     "loginView": {
       "subtitle": "Management Workspace",
-      "emailLabel": "Staff Email",
-      "emailPlaceholder": "name@example.com",
+      "emailLabel": "Username",
+      "emailPlaceholder": "Username (e.g. BA0001)",
       "passwordLabel": "Password",
       "passwordPlaceholder": "••••••••",
       "submit": "Enter Workspace",
       "authenticating": "Authenticating...",
-      "errorInvalid": "Invalid staff credentials. Please verify your email and password.",
+      "errorInvalid": "Invalid staff credentials. Please verify your username and password.",
       "errorGeneric": "Authentication failed. Please try again.",
       "footerNote": "Operations Portal • Protected by RBAC & Audit Trails",
       "switchLanguage": "Arabic",
@@ -3262,10 +3262,12 @@
     "forgotPasswordForm": {
       "failedToSendResetLink": "Failed to send reset link.",
       "resetPassword": "Reset Password",
-      "enterYourEmailToReceive": "Enter your email to receive a reset link",
+      "enterYourEmailToReceive": "Enter your username and work email to receive a reset link",
       "sendResetLink": "Send Reset Link",
       "backToLogin": "Back to login",
-      "emailAddress": "Email"
+      "username": "Username",
+      "usernamePlaceholder": "BA0001",
+      "emailAddress": "Work Email"
     },
     "resetPasswordForm": {
       "invalidOrMissingPasswordReset": "Invalid or missing password reset token.",
@@ -5161,6 +5163,7 @@
         "profileSecurityError5": "Session not found",
         "profileSecurityError7": "Enter a name between 1 and 150 characters",
         "profileSecurityError8": "Change the name or email before submitting",
+        "profileSecuritySamePasswordOtherRealm": "IT and Admin accounts must use different passwords",
         "profilePhoneInvalid": "Enter a valid phone number",
         "runtimeFailedToAssignRequest": "Failed to assign request",
         "runtimeFailedToReAssignRequest": "Failed to re-assign request",

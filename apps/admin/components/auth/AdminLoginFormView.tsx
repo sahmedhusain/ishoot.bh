@@ -6,7 +6,7 @@ import { AuthBrandMark } from "./AuthBrandMark";
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input, Button, Card } from "@platform/ui";
-import { Lock, Mail, ArrowRight, AlertCircle, Globe } from "lucide-react";
+import { Lock, User, ArrowRight, AlertCircle, Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function AdminLoginFormView(brand: AuthBrandingProps) {
@@ -44,7 +44,6 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: email.trim(),
-          email: email.trim(),
           password,
           otp,
         }),
@@ -123,17 +122,17 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
               htmlFor="login-username"
               className="text-sm font-medium text-ink-muted"
             >
-              {locale === "ar" ? "اسم المستخدم" : "Username"}
+              {t.loginView.emailLabel}
             </label>
             <div className="relative" dir="ltr">
-              <Mail className="pointer-events-none w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <User className="pointer-events-none w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input
                 id="login-username"
                 name="username"
                 type="text"
                 required
                 autoComplete="username"
-                placeholder={locale === "ar" ? "اسم المستخدم (مثال: BA0001)" : "Username (e.g. BA0001)"}
+                placeholder={t.loginView.emailPlaceholder}
                 className="pl-10 pr-3.5"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

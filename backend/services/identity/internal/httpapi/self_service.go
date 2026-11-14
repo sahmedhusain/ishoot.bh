@@ -15,7 +15,7 @@ func RegisterSelfService(e *echo.Echo, verifier *authn.Verifier, svc *app.SelfSe
 			c.Response().Header().Set("Cache-Control", "no-store")
 			return next(c)
 		}
-	}, authn.Require(verifier, authn.RealmStaff, authn.RealmCustomer))
+	}, authn.Require(verifier, authn.RealmStaff, authn.RealmCustomer, authn.RealmIT))
 	principal := func(c echo.Context) authn.Principal {
 		p, _ := authn.PrincipalFrom(c.Request().Context())
 		return p
@@ -65,6 +65,9 @@ func RegisterSelfService(e *echo.Echo, verifier *authn.Verifier, svc *app.SelfSe
 		err := svc.ChangePassword(c.Request().Context(), principal(c), in.CurrentPassword, in.NewPassword, in.Code, in.ClientIP)
 		if errors.Is(err, accounts.ErrMFARequired) {
 			return problem.New(http.StatusUnauthorized, "mfa_required", "")
+		}
+		if errors.Is(err, accounts.ErrSamePasswordOtherRealm) {
+			return problem.New(http.StatusUnprocessableEntity, "password_same_as_other_realm", "")
 		}
 		if errors.Is(err, accounts.ErrInvalid) {
 			return problem.New(http.StatusUnprocessableEntity, "password_rejected", "")

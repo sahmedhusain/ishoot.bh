@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Input, Button, Card } from "@platform/ui";
 import {
   Mail,
+  User,
   ArrowRight,
   AlertCircle,
   CheckCircle2,
@@ -17,7 +18,9 @@ import { AuthBrandMark } from "./AuthBrandMark";
 export function ForgotPasswordForm(brand: AuthBrandingProps) {
   const { t } = useAdminLocale();
   const router = useRouter();
+  const usernameFieldId = React.useId();
   const fieldId = React.useId();
+  const [username, setUsername] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState("");
@@ -33,7 +36,10 @@ export function ForgotPasswordForm(brand: AuthBrandingProps) {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          username: username.trim(),
+          email: email.trim(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -85,6 +91,28 @@ export function ForgotPasswordForm(brand: AuthBrandingProps) {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label
+                htmlFor={usernameFieldId}
+                className="text-sm font-medium text-ink-muted"
+              >
+                {t.forgotPasswordForm.username}
+              </label>
+              <div className="relative" dir="ltr">
+                <User className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3.5 text-ink-muted pointer-events-none" />
+                <Input
+                  id={usernameFieldId}
+                  name="username"
+                  type="text"
+                  required
+                  autoComplete="username"
+                  placeholder={t.forgotPasswordForm.usernamePlaceholder}
+                  className="ps-10"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label
                 htmlFor={fieldId}
                 className="text-sm font-medium text-ink-muted"
               >
@@ -94,8 +122,10 @@ export function ForgotPasswordForm(brand: AuthBrandingProps) {
                 <Mail className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3.5 text-ink-muted pointer-events-none" />
                 <Input
                   id={fieldId}
+                  name="email"
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder={t.copy.emailExample}
                   className="ps-10"
                   value={email}

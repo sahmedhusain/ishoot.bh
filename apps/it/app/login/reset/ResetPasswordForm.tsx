@@ -101,7 +101,9 @@ export function ResetPasswordForm({
                   ? c.passwordsDoNotMatch
                   : state.error === "invalid_token"
                     ? c.invalidToken
-                    : c.unavailable}
+                    : state.error === "same_password"
+                      ? c.samePasswordOtherRealm
+                      : c.unavailable}
               </div>
             )}
 

@@ -21,6 +21,7 @@ export function ForgotPasswordForm({
     forgotPasswordAction,
     {},
   );
+  const [username, setUsername] = React.useState("");
   const [email, setEmail] = React.useState("");
 
   return (
@@ -78,11 +79,28 @@ export function ForgotPasswordForm({
 
             <label className="block space-y-1.5">
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {c.enterYourEmail}
+                {c.username}
+              </span>
+              <input
+                name="username"
+                type="text"
+                autoComplete="username"
+                dir="ltr"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={c.usernamePlaceholder || c.username}
+                className="w-full text-xs py-2 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0070d2]/30 focus:border-[#0070d2] transition-colors"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {c.email}
               </span>
               <input
                 name="email"
-                type="text"
+                type="email"
                 autoComplete="email"
                 dir="ltr"
                 required

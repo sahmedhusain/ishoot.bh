@@ -18,7 +18,9 @@ import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
+	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/bootstrap"
+	"platform.local/backend/services/identity/internal/postgres"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
 var (
@@ -30,14 +32,26 @@ type ManagedAccounts struct {
 	pool		*pgxpool.Pool
 	hasher		bootstrap.Hasher
 	minPassword	int
+	itMinPassword	int
 	resetTTL	time.Duration
 	permits		chan struct{}
 	limit		func(context.Context, authn.Realm, string, string, string) error
+	bootstrap	[]postgres.BootstrapAccount
 	now		func() time.Time
 }
 func NewManagedAccounts(pool *pgxpool.Pool, hasher bootstrap.Hasher, minPassword int, resetTTL time.Duration, maxConcurrent int, limit func(context.Context, authn.Realm, string, string, string) error) *ManagedAccounts {
-	return &ManagedAccounts{pool: pool, hasher: hasher, minPassword: minPassword, resetTTL: resetTTL,
+	return &ManagedAccounts{pool: pool, hasher: hasher, minPassword: minPassword, itMinPassword: max(14, minPassword), resetTTL: resetTTL,
 		limit:	limit, permits: make(chan struct{}, maxConcurrent), now: func() time.Time { return time.Now().UTC() }}
+}
+func (s *ManagedAccounts) WithBootstrap(items ...postgres.BootstrapAccount) *ManagedAccounts {
+	s.bootstrap = items
+	return s
+}
+func (s *ManagedAccounts) WithITMinPassword(min int) *ManagedAccounts {
+	if min > 0 {
+		s.itMinPassword = min
+	}
+	return s
 }
 type AccountInput struct {
 	Email		string
@@ -46,6 +60,7 @@ type AccountInput struct {
 	Active		bool
 }
 func managedRealm(r authn.Realm) bool	{ return r == authn.RealmStaff || r == authn.RealmCustomer }
+func resetRealm(r authn.Realm) bool	{ return r == authn.RealmStaff || r == authn.RealmCustomer || r == authn.RealmIT }
 func normalizeEmail(email string) (string, bool) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	addr, err := mail.ParseAddress(email)
@@ -136,6 +151,8 @@ func (s *ManagedAccounts) hash(ctx context.Context, realm authn.Realm, password 
 	minimum := s.minPassword
 	if realm == authn.RealmCustomer {
 		minimum = 8
+	} else if realm == authn.RealmIT {
+		minimum = max(14, s.itMinPassword)
 	}
 	if len([]rune(password)) < minimum || len(password) > 1024 {
 		return "", ErrValidation
@@ -167,7 +184,7 @@ func setPassword(ctx context.Context, q *sqlcdb.Queries, realm authn.Realm, id, 
 	return deleteResetLinks(ctx, q, realm, id)
 }
 func (s *ManagedAccounts) SetPassword(ctx context.Context, realm authn.Realm, id, password, keepSession, by string) error {
-	if !managedRealm(realm) || !validID(id) || len(keepSession) > 64 {
+	if !resetRealm(realm) || !validID(id) || len(keepSession) > 64 {
 		return ErrValidation
 	}
 	hash, err := s.hash(ctx, realm, password)
@@ -176,10 +193,20 @@ func (s *ManagedAccounts) SetPassword(ctx context.Context, realm authn.Realm, id
 	}
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := sqlcdb.New(tx)
-		if _, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(realm), SubjectID: id}); errors.Is(err, pgx.ErrNoRows) {
+		account, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(realm), SubjectID: id})
+		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		} else if err != nil {
 			return err
+		}
+		if verifier, ok := s.hasher.(postgres.PasswordVerifier); ok {
+			matched, err := postgres.MatchesOtherRealmPassword(ctx, tx, s.bootstrap, verifier, realm, account.Email, account.Username, password)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return accounts.ErrSamePasswordOtherRealm
+			}
 		}
 		if err := setPassword(ctx, q, realm, id, hash, keepSession, s.now()); err != nil {
 			return err
@@ -190,7 +217,7 @@ func (s *ManagedAccounts) SetPassword(ctx context.Context, realm authn.Realm, id
 	})
 }
 func (s *ManagedAccounts) ResetMFA(ctx context.Context, realm authn.Realm, id, by string) error {
-	if !managedRealm(realm) || !validID(id) {
+	if !resetRealm(realm) || !validID(id) {
 		return ErrValidation
 	}
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error { return resetManagedMFA(ctx, tx, realm, id, by) })
@@ -231,7 +258,7 @@ func tokenHash(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
-func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, email, ip string) (ResetRequest, error) {
+func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, email, ip string, username ...string) (ResetRequest, error) {
 	if s.limit == nil {
 		return ResetRequest{}, ErrPolicyUnavailable
 	}
@@ -239,7 +266,14 @@ func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, e
 		return ResetRequest{}, err
 	}
 	email, ok := normalizeEmail(email)
-	if !managedRealm(realm) || !ok {
+	if !resetRealm(realm) || !ok {
+		return ResetRequest{}, ErrValidation
+	}
+	u := ""
+	if len(username) > 0 {
+		u = strings.TrimSpace(username[0])
+	}
+	if (realm == authn.RealmStaff || realm == authn.RealmIT) && (u == "" || len(u) > 64) {
 		return ResetRequest{}, ErrValidation
 	}
 	raw := make([]byte, 32)
@@ -249,7 +283,21 @@ func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, e
 	out := ResetRequest{Token: base64.RawURLEncoding.EncodeToString(raw)}
 	err := db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := sqlcdb.New(tx)
-		id, err := q.FindActiveAccountByEmail(ctx, sqlcdb.FindActiveAccountByEmailParams{Realm: string(realm), Email: email})
+		now := s.now()
+		var id string
+		var err error
+		if realm == authn.RealmStaff || realm == authn.RealmIT {
+			if err := postgres.EnsureBootstrapForReset(ctx, tx, s.bootstrap, realm, u, email, now); err != nil {
+				return err
+			}
+			err = tx.QueryRow(ctx, `
+				SELECT subject_id FROM identity.account
+				WHERE realm = $1 AND active AND lower(email) = lower($2)
+				  AND username IS NOT NULL AND lower(username) = lower($3)
+			`, string(realm), email, u).Scan(&id)
+		} else {
+			id, err = q.FindActiveAccountByEmail(ctx, sqlcdb.FindActiveAccountByEmailParams{Realm: string(realm), Email: email})
+		}
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -260,10 +308,12 @@ func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, e
 		if err != nil {
 			return err
 		}
-		if !account.Active || account.Email != email {
+		if !account.Active || strings.ToLower(account.Email) != email {
 			return ErrNotFound
 		}
-		now := s.now()
+		if (realm == authn.RealmStaff || realm == authn.RealmIT) && (account.Username == nil || !strings.EqualFold(*account.Username, u)) {
+			return ErrNotFound
+		}
 		out.SubjectID, out.ExpiresAt, out.Email = id, now.Add(s.resetTTL), account.Email
 		if err := deleteResetLinks(ctx, q, realm, id); err != nil {
 			return err
@@ -277,7 +327,7 @@ func (s *ManagedAccounts) RequestReset(ctx context.Context, realm authn.Realm, e
 	return out, err
 }
 func (s *ManagedAccounts) ConfirmReset(ctx context.Context, realm authn.Realm, token, password string, legacyEmail ...string) (string, error) {
-	if !managedRealm(realm) || (len(token) != 43 && len(token) != 64) {
+	if !resetRealm(realm) || (len(token) != 43 && len(token) != 64) {
 		return "", ErrResetInvalid
 	}
 	ip := ""
@@ -329,6 +379,15 @@ func (s *ManagedAccounts) ConfirmReset(ctx context.Context, realm authn.Realm, t
 		}
 		if !account.Active {
 			return ErrResetInvalid
+		}
+		if verifier, ok := s.hasher.(postgres.PasswordVerifier); ok {
+			matched, err := postgres.MatchesOtherRealmPassword(ctx, tx, s.bootstrap, verifier, realm, account.Email, account.Username, password)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return accounts.ErrSamePasswordOtherRealm
+			}
 		}
 		now := s.now()
 		id, err = q.ConsumePasswordReset(ctx, sqlcdb.ConsumePasswordResetParams{TokenHash: tokenHash(token), Realm: string(realm), Now: &now})
@@ -452,6 +511,9 @@ func (s *ManagedAccounts) confirmImportedReset(ctx context.Context, email, token
 func (s *ManagedAccounts) PasswordMinimum(realm authn.Realm) int {
 	if realm == authn.RealmCustomer {
 		return 8
+	}
+	if realm == authn.RealmIT {
+		return max(14, s.itMinPassword)
 	}
 	return s.minPassword
 }

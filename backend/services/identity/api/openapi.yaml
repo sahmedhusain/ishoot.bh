@@ -492,6 +492,7 @@ paths:
               properties:
                 clientIp: { type: string, maxLength: 45 }
                 email: { type: string, minLength: 1, maxLength: 254 }
+                username: { type: string, maxLength: 64 }
       responses:
         "201":
           description: Token issued; never log it

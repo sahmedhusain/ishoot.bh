@@ -12,6 +12,7 @@ import (
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/bootstrap"
+	"platform.local/backend/services/identity/internal/postgres"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
 var (
@@ -41,9 +42,14 @@ type ITAccounts struct {
 	sealer		bootstrap.Sealer
 	defaults	bootstrap.Input
 	permits		chan struct{}
+	bootstrap	[]postgres.BootstrapAccount
 }
 func NewITAccounts(pool *pgxpool.Pool, hasher bootstrap.Hasher, sealer bootstrap.Sealer, defaults bootstrap.Input, maxConcurrent int) *ITAccounts {
 	return &ITAccounts{pool: pool, hasher: hasher, sealer: sealer, defaults: defaults, permits: make(chan struct{}, maxConcurrent)}
+}
+func (s *ITAccounts) WithBootstrap(items ...postgres.BootstrapAccount) *ITAccounts {
+	s.bootstrap = items
+	return s
 }
 func (s *ITAccounts) List(ctx context.Context, actor authn.Principal, cursor string, limit int32) (ITAccountPage, error) {
 	page := ITAccountPage{Items: []ITAccount{}, PasswordMinLength: s.defaults.MinPasswordLength}
@@ -100,6 +106,15 @@ func (s *ITAccounts) Create(ctx context.Context, actor authn.Principal, email, p
 		defer func() { <-s.permits }()
 	case <-ctx.Done():
 		return bootstrap.Result{}, ctx.Err()
+	}
+	if verifier, ok := s.hasher.(postgres.PasswordVerifier); ok && len(s.bootstrap) > 0 {
+		matched, err := postgres.MatchesOtherRealmPassword(ctx, s.pool, s.bootstrap, verifier, authn.RealmIT, in.Email, nil, in.Password)
+		if err != nil {
+			return bootstrap.Result{}, err
+		}
+		if matched {
+			return bootstrap.Result{}, accounts.ErrSamePasswordOtherRealm
+		}
 	}
 	return bootstrap.CreateITAccount(ctx, s.pool, s.hasher, s.sealer, in, time.Now().UTC(), actor)
 }

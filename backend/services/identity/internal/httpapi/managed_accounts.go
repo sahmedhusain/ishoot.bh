@@ -7,6 +7,7 @@ import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/problem"
+	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/app"
 )
 func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.ManagedAccounts, callers map[authn.Realm][]string, bodyLimit int64) {
@@ -18,7 +19,7 @@ func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.Ma
 	}, authn.Require(verifier, authn.RealmService))
 	realmOf := func(c echo.Context) (authn.Realm, string, error) {
 		r, err := authn.ParseRealm(c.Param("realm"))
-		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer) {
+		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer && r != authn.RealmIT) {
 			return "", "", problem.NotFound("")
 		}
 		p, ok := authn.PrincipalFrom(c.Request().Context())
@@ -118,12 +119,13 @@ func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.Ma
 		}
 		var in struct {
 			Email		string	`json:"email" validate:"required,max=254"`
+			Username	string	`json:"username" validate:"max=64"`
 			ClientIP	string	`json:"clientIp" validate:"max=45"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err
 		}
-		out, err := svc.RequestReset(c.Request().Context(), r, in.Email, in.ClientIP)
+		out, err := svc.RequestReset(c.Request().Context(), r, in.Email, in.ClientIP, in.Username)
 		if err != nil {
 			return managedError(c, err)
 		}
@@ -162,6 +164,8 @@ func managedError(c echo.Context, err error) error {
 		return problem.New(http.StatusConflict, "email_taken", "")
 	case errors.Is(err, app.ErrResetInvalid):
 		return problem.New(http.StatusUnprocessableEntity, "reset_invalid", "")
+	case errors.Is(err, accounts.ErrSamePasswordOtherRealm):
+		return problem.New(http.StatusUnprocessableEntity, "password_same_as_other_realm", "")
 	default:
 		return mfaError(c, err)
 	}

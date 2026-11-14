@@ -22,6 +22,7 @@ import (
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/totp"
 	"platform.local/backend/services/identity/internal/accounts"
+	"platform.local/backend/services/identity/internal/postgres"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
 var ErrExists = errors.New("an IT account already exists; create further accounts from the IT dashboard")
@@ -36,6 +37,7 @@ type Sealer interface {
 }
 type Input struct {
 	Email, Password, Role	string
+	Username		string
 	ReportingTo		*string
 	MinPasswordLength	int
 	RecoveryCount		int
@@ -118,14 +120,18 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 				return ErrExists
 			}
 		default:
-			target, err := q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(authn.RealmIT), Email: in.Email})
+			var targetSubject string
+			err := tx.QueryRow(ctx, `
+				SELECT subject_id FROM identity.account
+				WHERE realm = 'it' AND (lower(email) = lower($1) OR (username IS NOT NULL AND lower(username) = lower($1)))
+			`, in.Email).Scan(&targetSubject)
 			if errors.Is(err, pgx.ErrNoRows) {
 				return ErrRecoveryTarget
 			}
 			if err != nil {
 				return err
 			}
-			target, err = q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: target.Realm, SubjectID: target.SubjectID})
+			target, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(authn.RealmIT), SubjectID: targetSubject})
 			if err != nil {
 				return err
 			}
@@ -133,6 +139,45 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 				return ErrRecoveryTarget
 			}
 			subject = target.SubjectID
+		}
+		username := strings.ToUpper(strings.TrimSpace(in.Username))
+		if username == "" && actorID == "" {
+			var staffUsername *string
+			if err := tx.QueryRow(ctx, `
+				SELECT username FROM identity.account
+				WHERE realm = 'staff' AND lower(email) = lower($1) AND username IS NOT NULL
+				LIMIT 1
+			`, in.Email).Scan(&staffUsername); err == nil && staffUsername != nil && *staffUsername != "" {
+				username = strings.ToUpper(strings.TrimSpace(*staffUsername))
+			}
+			if username == "" {
+				local := strings.Split(in.Email, "@")[0]
+				username = strings.ToUpper(strings.TrimSpace(local))
+			}
+			if username != "" {
+				var taken bool
+				if err := tx.QueryRow(ctx, `
+					SELECT EXISTS(SELECT 1 FROM identity.account WHERE realm = 'it' AND lower(username) = lower($1) AND subject_id <> $2)
+				`, username, subject).Scan(&taken); err != nil {
+					return err
+				}
+				if taken {
+					username = username + "-" + strings.ToUpper(subject[:4])
+				}
+			}
+		}
+		if verifier, ok := hasher.(postgres.PasswordVerifier); ok {
+			var uPtr *string
+			if username != "" {
+				uPtr = &username
+			}
+			matched, err := postgres.MatchesOtherRealmPassword(ctx, tx, nil, verifier, authn.RealmIT, in.Email, uPtr, in.Password)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return accounts.ErrSamePasswordOtherRealm
+			}
 		}
 		sealed, err := sealer.Seal(secret, subject)
 		if err != nil {
@@ -148,6 +193,11 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 				Roles:	[]string{in.Role}, MfaEnabled: true, MfaSecretEncrypted: &sealed, Now: now,
 			}); err != nil {
 				return err
+			}
+			if username != "" {
+				if _, err := tx.Exec(ctx, "UPDATE identity.account SET username = $1 WHERE realm = 'it' AND subject_id = $2", username, subject); err != nil {
+					return err
+				}
 			}
 			if in.ReportingTo != nil && *in.ReportingTo != "" {
 				if _, err := tx.Exec(ctx, "UPDATE identity.account SET reporting_to = $1 WHERE realm = 'it' AND subject_id = $2", *in.ReportingTo, subject); err != nil {

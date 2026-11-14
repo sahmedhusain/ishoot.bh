@@ -60,10 +60,25 @@ const SECRETS = {
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
   PGADMIN_DEFAULT_PASSWORD: () => "Admin12345678!",
+  SUPER_ADMIN_USERNAME: () => "BA0001",
   SUPER_ADMIN_PASSWORD: () => "Admin12345678!",
+  IT_ADMIN_USERNAME: () => "IT0001",
   IT_ADMIN_EMAIL: () => "admin@example.com",
-  IT_ADMIN_PASSWORD: () => "Admin12345678!",
+  IT_ADMIN_PASSWORD: () => "ITAdmin12345678!",
 };
+function hashPasswordArgon2id(pw) {
+  const salt = crypto.randomBytes(16);
+  const key = crypto.argon2Sync("argon2id", {
+    message: Buffer.from(pw, "utf8"),
+    nonce: salt,
+    parallelism: 1,
+    tagLength: 32,
+    memory: 19456,
+    passes: 2,
+  });
+  const b64 = (buf) => buf.toString("base64").replace(/=+$/, "");
+  return `$argon2id$v=19$m=19456,t=2,p=1$${b64(salt)}$${b64(key)}`;
+}
 // Variables older versions of .env.example listed that no code reads any more.
 const RETIRED = {
   JWT_SECRET: "staff access tokens are signed by identity (IDENTITY_SIGNING_JWK) and verified using IDENTITY_JWKS_URL",
@@ -161,7 +176,8 @@ const fail = (message) => {
 function setValue(text, key, value) {
   const lines = text.split("\n");
   const at = lines.findIndex((line) => new RegExp(`^\\s*${key}=`).test(line));
-  const quoted = `${key}="${value}"`;
+  // Single-quote values containing '$' so POSIX shell sourcing and compose don't expand variables.
+  const quoted = value.includes("$") ? `${key}='${value}'` : `${key}="${value}"`;
   if (at < 0) return `${text.replace(/\n*$/, "\n")}${quoted}\n`;
   // Keep any trailing comment on the line.
   const comment = /^\s*[A-Z0-9_]+=("[^"]*"|'[^']*'|[^#\s]*)(\s+#.*)?$/.exec(lines[at])?.[2] ?? "";
@@ -178,6 +194,8 @@ const DERIVED = {
   S3_ENDPOINT: (env) => `http://127.0.0.1:${env.S3_PORT || "8333"}`,
   REDIS_URL: (env) => `redis://:${encodeURIComponent(env.VALKEY_PASSWORD)}@127.0.0.1:${env.VALKEY_PORT || "6379"}/1`,
   IDENTITY_LOGIN_MFA_LEGACY_KEY: (env) => env.MFA_ENCRYPTION_KEY,
+  SUPER_ADMIN_PASSWORD_HASH: (env) => (env.SUPER_ADMIN_PASSWORD ? hashPasswordArgon2id(env.SUPER_ADMIN_PASSWORD) : ""),
+  IT_ADMIN_PASSWORD_HASH: (env) => (env.IT_ADMIN_PASSWORD ? hashPasswordArgon2id(env.IT_ADMIN_PASSWORD) : ""),
 };
 
 function fillSecrets() {
@@ -243,7 +261,12 @@ function check() {
   need(Buffer.byteLength(env.ENCRYPTION_KEY || "", "utf8") === 32, "ENCRYPTION_KEY must be exactly 32 characters");
   need(Buffer.byteLength(env.ERASURE_HASH_KEY || "", "utf8") >= 32, "ERASURE_HASH_KEY must be at least 32 characters");
   need(!env.SUPER_ADMIN_PASSWORD || (Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) >= 12 && Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) <= 72), "SUPER_ADMIN_PASSWORD must be 12 to 72 bytes");
-  need(!!env.SUPER_ADMIN_EMAIL && !!env.SUPER_ADMIN_PASSWORD, "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD are needed to seed or bootstrap", warnings);
+  need(!!env.SUPER_ADMIN_USERNAME && !!env.SUPER_ADMIN_EMAIL && !!env.SUPER_ADMIN_PASSWORD, "SUPER_ADMIN_USERNAME, SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD are needed for env bootstrap", warnings);
+  need(!env.SUPER_ADMIN_PASSWORD_HASH || env.SUPER_ADMIN_PASSWORD_HASH.startsWith("$argon2id$"), "SUPER_ADMIN_PASSWORD_HASH must be an Argon2id PHC hash");
+  need(!env.IT_ADMIN_PASSWORD || (Buffer.byteLength(env.IT_ADMIN_PASSWORD) >= 14 && Buffer.byteLength(env.IT_ADMIN_PASSWORD) <= 72), "IT_ADMIN_PASSWORD must be 14 to 72 bytes");
+  need(!!env.IT_ADMIN_USERNAME && !!env.IT_ADMIN_EMAIL && !!env.IT_ADMIN_PASSWORD, "IT_ADMIN_USERNAME, IT_ADMIN_EMAIL and IT_ADMIN_PASSWORD are needed for IT env bootstrap", warnings);
+  need(!env.IT_ADMIN_PASSWORD_HASH || env.IT_ADMIN_PASSWORD_HASH.startsWith("$argon2id$"), "IT_ADMIN_PASSWORD_HASH must be an Argon2id PHC hash");
+  need(!env.SUPER_ADMIN_PASSWORD || !env.IT_ADMIN_PASSWORD || env.SUPER_ADMIN_PASSWORD !== env.IT_ADMIN_PASSWORD, "SUPER_ADMIN_PASSWORD and IT_ADMIN_PASSWORD must be different across admin and IT realms");
   for (const [key, entry] of parse(text))
     need(entry.commented || !/^\s*[A-Z0-9_]+="[^"]*$/.test(entry.line.replace(/\s+#.*$/, "")), `${key} has an unclosed quote: docker compose cannot read this file`);
   need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");

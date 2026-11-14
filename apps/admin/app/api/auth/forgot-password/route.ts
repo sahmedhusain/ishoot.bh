@@ -12,20 +12,30 @@ import { REALM } from "../../../../lib/identity-session";
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/forgot-password:POST", async () => {
     try {
-      const { email } = await req.json();
-      if (!email || typeof email !== "string" || !email.trim()) {
+      const { username, email } = await req.json();
+      if (
+        !username ||
+        typeof username !== "string" ||
+        !username.trim() ||
+        username.trim().includes("@") ||
+        !email ||
+        typeof email !== "string" ||
+        !email.trim()
+      ) {
         return NextResponse.json(
-          { error: serverMessages.runtimeEmailIsRequired },
+          { error: serverMessages.runtimeMissingRequiredFields },
           { status: 400 },
         );
       }
+      const usernameNorm = username.trim().toLowerCase().slice(0, 64);
       const emailNorm = email.trim().toLowerCase().slice(0, 254);
-      await consumeAbuseLimit("forgot-password", emailNorm, 3);
+      await consumeAbuseLimit("forgot-password", `${usernameNorm}:${emailNorm}`, 3);
 
       const reset = await requestPasswordReset(
         REALM,
         emailNorm,
         trustedClientIp(req.headers),
+        usernameNorm,
       );
       const user = reset ? await getSessionUser(reset.subjectId) : null;
       if (reset) {

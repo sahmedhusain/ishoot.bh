@@ -13,14 +13,12 @@ export async function POST(req: NextRequest) {
     const trans = getTranslations("en");
     try {
       const body = await readLoginInput(req);
-      const identifier = (
-        (typeof body.username === "string" && body.username.trim()) ||
-        (typeof body.email === "string" && body.email.trim()) ||
-        ""
-      );
+      const identifier =
+        typeof body.username === "string" ? body.username.trim() : "";
       const password = typeof body.password === "string" ? body.password : "";
       if (
         !identifier ||
+        identifier.includes("@") ||
         !password ||
         identifier.length > 254 ||
         password.length > 1024

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/netip"
+	"strings"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"time"
@@ -66,14 +67,20 @@ func newLogin(ctx context.Context, configuration settings.Config, pool *pgxpool.
 		_ = redisClient.Close()
 		return nil, err
 	}
-	svc, err := accounts.New(postgres.New(pool), hasher, ring, otp, sessionService, cfg.MaxConcurrentKDF, policy.ForAction("signin"), accounts.MFAConfig{EnrollmentTTL: cfg.MFAEnrollmentTTL, RecoveryCount: cfg.MFARecoveryCount, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period})
+	bootstrapAccounts, err := resolveBootstrap(configuration.Bootstrap, hasher)
+	if err != nil {
+		_ = redisClient.Close()
+		return nil, err
+	}
+	repo := postgres.New(pool).WithBootstrap(bootstrapAccounts...)
+	svc, err := accounts.New(repo, hasher, ring, otp, sessionService, cfg.MaxConcurrentKDF, policy.ForAction("signin"), accounts.MFAConfig{EnrollmentTTL: cfg.MFAEnrollmentTTL, RecoveryCount: cfg.MFARecoveryCount, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period})
 	if err != nil {
 		_ = redisClient.Close()
 		return nil, err
 	}
 	manager := app.NewITAccounts(pool, hasher, ring, bootstrap.Input{MinPasswordLength: cfg.ITPasswordMinLength,
-		RecoveryCount:	cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period}, cfg.MaxConcurrentKDF)
-	managed := app.NewManagedAccounts(pool, hasher, cfg.PasswordMinLength, cfg.PasswordResetTTL, cfg.MaxConcurrentKDF, policy.CheckAction)
+		RecoveryCount:	cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period}, cfg.MaxConcurrentKDF).WithBootstrap(bootstrapAccounts...)
+	managed := app.NewManagedAccounts(pool, hasher, cfg.PasswordMinLength, cfg.PasswordResetTTL, cfg.MaxConcurrentKDF, policy.CheckAction).WithBootstrap(bootstrapAccounts...).WithITMinPassword(cfg.ITPasswordMinLength)
 	codes := app.NewCustomerCodes(pool, policy.ForAction("code"), sessionService, svc, key, policy.ForAction("code-verify"))
 	var source func(context.Context, string) (systemclient.SignInConfiguration, error)
 	if configuration.Access.ServiceKey != "" {
@@ -85,4 +92,44 @@ func newLogin(ctx context.Context, configuration settings.Config, pool *pgxpool.
 		source = systemclient.New(configuration.Access.SystemURL, signer.Transport(nil)).SignIn
 	}
 	return &loginServices{login: svc, it: manager, managed: managed, codes: codes, oauth: app.NewCustomerOAuth(pool, codes, ring, source, cfg.CustomerWebURL, policy.ForAction("oauth")), redis: redisClient}, nil
+}
+
+func resolveBootstrap(cfg settings.EnvBootstrap, hasher *password.Hasher) ([]postgres.BootstrapAccount, error) {
+	resolveHash := func(hash, plain string) (string, error) {
+		h := strings.TrimSpace(hash)
+		if h != "" {
+			return h, nil
+		}
+		if plain == "" {
+			return "", nil
+		}
+		return hasher.Hash(plain)
+	}
+	var out []postgres.BootstrapAccount
+	if superHash, err := resolveHash(cfg.SuperAdminPasswordHash, cfg.SuperAdminPassword); err != nil {
+		return nil, err
+	} else if superHash != "" {
+		out = append(out, postgres.BootstrapAccount{
+			Realm:        authn.RealmStaff,
+			SubjectID:    "super-admin",
+			Username:     cfg.SuperAdminUsername,
+			Email:        cfg.SuperAdminEmail,
+			PasswordHash: superHash,
+			DisplayName:  cfg.SuperAdminName,
+			Roles:        []string{"super_admin"},
+		})
+	}
+	if itHash, err := resolveHash(cfg.ITAdminPasswordHash, cfg.ITAdminPassword); err != nil {
+		return nil, err
+	} else if itHash != "" {
+		out = append(out, postgres.BootstrapAccount{
+			Realm:        authn.RealmIT,
+			SubjectID:    "430c4105-6360-4415-bf1b-087d582c7fc6",
+			Username:     cfg.ITAdminUsername,
+			Email:        cfg.ITAdminEmail,
+			PasswordHash: itHash,
+			Roles:        []string{"it_admin"},
+		})
+	}
+	return out, nil
 }

@@ -46,6 +46,8 @@ export async function changeMyPasswordAction(input: {
   } catch (error) {
     if (isApiError(error, "mfa_required"))
       throw new Error(serverMessages.profileSecurityError3);
+    if (isApiError(error, "password_same_as_other_realm"))
+      throw new Error(serverMessages.profileSecuritySamePasswordOtherRealm);
     if (isApiError(error, "password_rejected"))
       throw new Error(
         input.code

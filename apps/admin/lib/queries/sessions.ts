@@ -42,10 +42,11 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
     if (token) {
       const access = await getStaffAccess(token);
       if (access && access.subjectId === id) {
+        const isSuper = access.subjectId === "super-admin";
         return {
           id: access.subjectId,
-          full_name: access.subjectId,
-          email: `${access.subjectId}@platform.local`,
+          full_name: isSuper ? (process.env.SUPER_ADMIN_NAME || "Super Admin") : access.subjectId,
+          email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@ishoot.bh") : `${access.subjectId}@platform.local`,
           role: access.role as UserRole,
           permissions: access.permissions as any,
           is_active: true,
@@ -56,10 +57,11 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
     }
     const access = await getStaffAccessForAccount(id);
     if (access && access.subjectId === id) {
+      const isSuper = access.subjectId === "super-admin";
       return {
         id: access.subjectId,
-        full_name: access.subjectId,
-        email: `${access.subjectId}@platform.local`,
+        full_name: isSuper ? (process.env.SUPER_ADMIN_NAME || "Super Admin") : access.subjectId,
+        email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@ishoot.bh") : `${access.subjectId}@platform.local`,
         role: access.role as UserRole,
         permissions: access.permissions as any,
         is_active: true,

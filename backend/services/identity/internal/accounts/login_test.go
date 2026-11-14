@@ -67,13 +67,13 @@ func TestMissingAccountsUseBoundedDummyVerification(t *testing.T) {
 	require.NoError(t, err)
 	done := make(chan error, 1)
 	go func() {
-		_, err := svc.Login(context.Background(), accounts.Input{Realm: authn.RealmStaff, Email: "missing@example.test", Password: "password"}, time.Now())
+		_, err := svc.Login(context.Background(), accounts.Input{Realm: authn.RealmStaff, Email: "missing-user", Password: "password"}, time.Now())
 		done <- err
 	}()
 	<-p.started
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "other@example.test", Password: "password"}, time.Now())
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmStaff, Email: "other-user", Password: "password"}, time.Now())
 	require.True(t, errors.Is(err, context.Canceled))
 	require.EqualValues(t, 1, p.calls.Load(), "a cancelled waiter must not start another KDF")
 	close(p.release)

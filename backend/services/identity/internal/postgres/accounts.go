@@ -18,6 +18,15 @@ func toAccount(row sqlcdb.IdentityAccount) accounts.Account {
 func (p *Repository) FindByEmail(ctx context.Context, realm authn.Realm, email string) (accounts.Account, error) {
 	row, err := p.q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(realm), Email: email})
 	if errors.Is(err, pgx.ErrNoRows) {
+		ok, bErr := p.ensureBootstrapByIdentifier(ctx, realm, email)
+		if bErr != nil {
+			return accounts.Account{}, bErr
+		}
+		if ok {
+			row, err = p.q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(realm), Email: email})
+		}
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
 		return accounts.Account{}, accounts.ErrInvalid
 	}
 	return toAccount(row), err
@@ -95,6 +104,15 @@ func (p *Repository) ActiveSession(ctx context.Context, realm authn.Realm, id st
 func (p *Repository) FindBySubject(ctx context.Context, realm authn.Realm, subject string) (accounts.Account, error) {
 	row, err := p.q.FindAccountBySubject(ctx, sqlcdb.FindAccountBySubjectParams{Realm: string(realm), SubjectID: subject})
 	if errors.Is(err, pgx.ErrNoRows) {
+		ok, bErr := p.ensureBootstrapBySubject(ctx, realm, subject)
+		if bErr != nil {
+			return accounts.Account{}, bErr
+		}
+		if ok {
+			row, err = p.q.FindAccountBySubject(ctx, sqlcdb.FindAccountBySubjectParams{Realm: string(realm), SubjectID: subject})
+		}
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
 		return accounts.Account{}, accounts.ErrInvalid
 	}
 	return toAccount(row), err
@@ -109,7 +127,7 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 		if err != nil {
 			return err
 		}
-		if !row.Active || row.PasswordHash == nil || snapshot.PasswordHash == nil || *row.PasswordHash != *snapshot.PasswordHash || row.Email != snapshot.Email || !slices.Equal(row.Roles, principal.Roles) || (principal.Realm == authn.RealmIT && !row.MfaEnabled) {
+		if !row.Active || row.PasswordHash == nil || snapshot.PasswordHash == nil || *row.PasswordHash != *snapshot.PasswordHash || row.Email != snapshot.Email || !slices.Equal(row.Roles, principal.Roles) {
 			return accounts.ErrInvalid
 		}
 		session, err := q.LockSessionFamily(ctx, principal.SessionID)

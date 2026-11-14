@@ -45,6 +45,11 @@ export async function POST(req: NextRequest) {
             { error: serverMessages.runtimeInvalidOrExpiredResetLink },
             { status: 400 },
           );
+        if (isApiError(error, "password_same_as_other_realm"))
+          return NextResponse.json(
+            { error: serverMessages.profileSecuritySamePasswordOtherRealm },
+            { status: 422 },
+          );
         if (isApiError(error) && error.status === 422)
           return NextResponse.json(
             { error: serverMessages.profileSecurityError0 },

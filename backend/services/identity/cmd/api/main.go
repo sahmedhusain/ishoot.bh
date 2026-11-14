@@ -183,7 +183,7 @@ func run(command string) error {
 		httpapi.RegisterCustomerOAuth(e, verifier, issuer, customerOAuth, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)
 		httpapi.RegisterCustomerCodes(e, verifier, issuer, customerCodes, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)
 		httpapi.RegisterManagedAccounts(e, verifier, managed, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer, authn.RealmIT: cfg.Callers.IT}, cfg.Session.JSONBodyLimit)
-		httpapi.RegisterSelfService(e, issuer.Verifier(), app.NewSelfService(pool, login, cfg.Login.PasswordMinLength), cfg.Session.JSONBodyLimit)
+		httpapi.RegisterSelfService(e, issuer.Verifier(), app.NewSelfService(pool, login, cfg.Login.PasswordMinLength).WithITMinPassword(cfg.Login.ITPasswordMinLength), cfg.Session.JSONBodyLimit)
 	}
 	if manager != nil {
 		httpapi.RegisterITAccounts(e, issuer.Verifier(), manager, cfg.Session.JSONBodyLimit)

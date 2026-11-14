@@ -1,4 +1,4 @@
-SELECT * FROM identity.account WHERE realm=$1 AND (email=$2 OR lower(email)=lower($2) OR (username IS NOT NULL AND lower(username)=lower($2)));
+SELECT * FROM identity.account WHERE realm=$1 AND CASE WHEN realm IN ('staff','it') THEN username IS NOT NULL AND lower(username)=lower($2) ELSE (email=$2 OR lower(email)=lower($2)) END;
 SELECT * FROM identity.account WHERE realm=$1 AND subject_id=$2 FOR UPDATE;
 UPDATE identity.account SET password_hash=$3, updated_at=$4 WHERE realm=$1 AND subject_id=$2;
 UPDATE identity.account SET mfa_last_step=$3, updated_at=$4 WHERE realm=$1 AND subject_id=$2;

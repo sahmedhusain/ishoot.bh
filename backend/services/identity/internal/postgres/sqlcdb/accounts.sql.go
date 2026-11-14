@@ -100,7 +100,7 @@ func (q *Queries) DeleteAccountRecovery(ctx context.Context, arg DeleteAccountRe
 }
 
 const findAccountByEmail = `-- name: FindAccountByEmail :one
-SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username, reporting_to FROM identity.account WHERE realm=$1 AND (email=$2 OR lower(email)=lower($2) OR (username IS NOT NULL AND lower(username)=lower($2)))
+SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username, reporting_to FROM identity.account WHERE realm=$1 AND CASE WHEN realm IN ('staff','it') THEN username IS NOT NULL AND lower(username)=lower($2) ELSE (email=$2 OR lower(email)=lower($2)) END
 `
 
 type FindAccountByEmailParams struct {

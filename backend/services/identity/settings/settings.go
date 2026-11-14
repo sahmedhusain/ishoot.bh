@@ -20,8 +20,20 @@ type Config struct {
 	Projection	ProfileProjection	`envPrefix:"IDENTITY_PROJECTION_"`
 	Access		StaffAccess		`envPrefix:"IDENTITY_"`
 	Callers		Callers			`envPrefix:"IDENTITY_CALLERS_"`
+	Bootstrap	EnvBootstrap
 	NATS		natsx.Config		`envPrefix:"NATS_"`
 	Outbox		outbox.Config		`envPrefix:"OUTBOX_"`
+}
+type EnvBootstrap struct {
+	SuperAdminUsername	string	`env:"SUPER_ADMIN_USERNAME" envDefault:"BA0001"`
+	SuperAdminEmail		string	`env:"SUPER_ADMIN_EMAIL" envDefault:"admin@ishoot.bh"`
+	SuperAdminPassword	string	`env:"SUPER_ADMIN_PASSWORD"`
+	SuperAdminPasswordHash	string	`env:"SUPER_ADMIN_PASSWORD_HASH"`
+	SuperAdminName		string	`env:"SUPER_ADMIN_NAME" envDefault:"Super Admin"`
+	ITAdminUsername		string	`env:"IT_ADMIN_USERNAME" envDefault:"IT0001"`
+	ITAdminEmail		string	`env:"IT_ADMIN_EMAIL" envDefault:"it@ishoot.bh"`
+	ITAdminPassword		string	`env:"IT_ADMIN_PASSWORD"`
+	ITAdminPasswordHash	string	`env:"IT_ADMIN_PASSWORD_HASH"`
 }
 type StaffAccess struct {
 	ServiceKey	string	`env:"SERVICE_KEY"`

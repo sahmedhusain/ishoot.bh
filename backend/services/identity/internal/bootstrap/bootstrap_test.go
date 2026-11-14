@@ -85,8 +85,9 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	assert.Len(t, result.RecoveryCodes, 3)
 	assert.Contains(t, result.OTPAuthURL, "otpauth://totp/Platform%20IT:")
 	assert.Contains(t, result.OTPAuthURL, "secret="+result.Secret)
-	var email string
-	require.NoError(t, pool.QueryRow(ctx, `SELECT email FROM identity.account WHERE realm='it' AND subject_id=$1`, result.SubjectID).Scan(&email))
+	var email, username string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT email, username FROM identity.account WHERE realm='it' AND subject_id=$1`, result.SubjectID).Scan(&email, &username))
+	require.NotEmpty(t, username)
 	repo := postgres.New(pool)
 	sessionService, err := sessions.New(repo, time.Hour)
 	require.NoError(t, err)
@@ -94,7 +95,9 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	require.NoError(t, err)
 	svc, err := accounts.New(repo, hasher, ring, otp, sessionService, 2, allowGuard{}, accounts.MFAConfig{EnrollmentTTL: time.Minute, RecoveryCount: 3, Digits: 6, Period: 30 * time.Second})
 	require.NoError(t, err)
-	login := accounts.Input{Realm: authn.RealmIT, Email: email, Password: "a long enough password"}
+	login := accounts.Input{Realm: authn.RealmIT, Email: username, Password: "a long enough password"}
+	_, err = svc.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: email, Password: "a long enough password"}, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "IT login must reject email addresses")
 	_, err = svc.Login(ctx, login, now)
 	require.ErrorIs(t, err, accounts.ErrMFARequired)
 	secret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(result.Secret)

@@ -1236,13 +1236,13 @@
     },
     "loginView": {
       "subtitle": "مساحة عمل الإدارة",
-      "emailLabel": "البريد الإلكتروني المهني",
-      "emailPlaceholder": "name@example.com",
+      "emailLabel": "اسم المستخدم",
+      "emailPlaceholder": "اسم المستخدم (مثال: BA0001)",
       "passwordLabel": "كلمة المرور",
       "passwordPlaceholder": "••••••••",
       "submit": "دخول مساحة العمل",
       "authenticating": "جاري التحقق من الهوية...",
-      "errorInvalid": "بيانات الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.",
+      "errorInvalid": "بيانات الدخول غير صحيحة. يرجى التحقق من اسم المستخدم وكلمة المرور.",
       "errorGeneric": "فشل التحقق من الهوية. يرجى المحاولة مرة أخرى.",
       "footerNote": "بوابة العمليات • محمية بنظام الصلاحيات وسجلات التدقيق",
       "switchLanguage": "English",
@@ -3262,10 +3262,12 @@
     "forgotPasswordForm": {
       "failedToSendResetLink": "تعذر إرسال رابط إعادة التعيين.",
       "resetPassword": "إعادة تعيين كلمة المرور",
-      "enterYourEmailToReceive": "أدخل بريدك الإلكتروني لاستلام رابط إعادة التعيين",
+      "enterYourEmailToReceive": "أدخل اسم المستخدم والبريد الإلكتروني للعمل لاستلام رابط إعادة التعيين",
       "sendResetLink": "إرسال رابط إعادة التعيين",
       "backToLogin": "العودة لتسجيل الدخول",
-      "emailAddress": "البريد الإلكتروني"
+      "username": "اسم المستخدم",
+      "usernamePlaceholder": "BA0001",
+      "emailAddress": "البريد الإلكتروني للعمل"
     },
     "resetPasswordForm": {
       "invalidOrMissingPasswordReset": "رمز إعادة تعيين كلمة المرور غير صالح أو مفقود.",
@@ -5161,6 +5163,7 @@
         "profileSecurityError5": "الجلسة غير موجودة",
         "profileSecurityError7": "أدخل اسماً من 1 إلى 150 حرفاً",
         "profileSecurityError8": "عدّل الاسم أو البريد الإلكتروني قبل الإرسال",
+        "profileSecuritySamePasswordOtherRealm": "يجب استخدام كلمة مرور مختلفة بين حساب تقنية المعلومات وحساب الإدارة",
         "profilePhoneInvalid": "أدخل رقم هاتف صحيحاً",
         "runtimeFailedToAssignRequest": "تعذّر إسناد الطلب",
         "runtimeFailedToReAssignRequest": "تعذّرت إعادة إسناد الطلب",

@@ -6,20 +6,34 @@ import { itPublicOrigin } from "../../../../lib/origin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-    if (!email || typeof email !== "string" || !email.trim()) {
+    const { username, email } = await req.json();
+    if (
+      !username ||
+      typeof username !== "string" ||
+      !username.trim() ||
+      username.trim().includes("@") ||
+      !email ||
+      typeof email !== "string" ||
+      !email.trim()
+    ) {
       return NextResponse.json(
-        { error: "Email or username is required" },
+        { error: "Username and work email are required" },
         { status: 400 },
       );
     }
+    const usernameNorm = username.trim().toLowerCase().slice(0, 64);
     const emailNorm = email.trim().toLowerCase().slice(0, 254);
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
 
-    const reset = await requestPasswordReset(REALM, emailNorm, clientIp);
+    const reset = await requestPasswordReset(
+      REALM,
+      emailNorm,
+      clientIp,
+      usernameNorm,
+    );
     if (reset) {
       const origin = await itPublicOrigin();
-      const resetUrl = `${origin}/login/reset?token=${encodeURIComponent(reset.token)}&email=${encodeURIComponent(emailNorm)}`;
+      const resetUrl = `${origin}/login/reset?token=${encodeURIComponent(reset.token)}&email=${encodeURIComponent(reset.email)}`;
       await queueMessage({
         channel: "email",
         to: reset.email,

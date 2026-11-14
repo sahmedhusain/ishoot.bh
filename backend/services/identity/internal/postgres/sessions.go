@@ -14,8 +14,9 @@ import (
 )
 const Schema = "identity"
 type Repository struct {
-	pool	*pgxpool.Pool
-	q	*sqlcdb.Queries
+	pool		*pgxpool.Pool
+	q		*sqlcdb.Queries
+	bootstrap	[]BootstrapAccount
 }
 func New(pool *pgxpool.Pool) *Repository	{ return &Repository{pool: pool, q: sqlcdb.New(pool)} }
 func (p *Repository) Create(ctx context.Context, f sessions.Family, tokenHash string) error {

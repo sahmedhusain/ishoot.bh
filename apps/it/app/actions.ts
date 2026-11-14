@@ -71,14 +71,12 @@ export async function signInAction(
   _: SignInState,
   form: FormData,
 ): Promise<SignInState> {
-  const identifier = (
-    text(form, "username", 254) ||
-    text(form, "email", 254)
-  ).trim().toLowerCase();
+  const identifier = text(form, "username", 254).trim().toLowerCase();
   const password = text(form, "password", 1024);
   const otp = text(form, "otp", 64).replace(/\s+/g, "");
   const step = otp ? "otp" : "password";
-  if (!identifier || !password) return { step, error: "invalid" };
+  if (!identifier || identifier.includes("@") || !password)
+    return { step, error: "invalid" };
   const header = config.clientIpHeader();
   const clientIp = header
     ? (await headers()).get(header)?.split(",")[0]?.trim().slice(0, 45)
@@ -514,10 +512,11 @@ export async function forgotPasswordAction(
   _: ForgotPasswordState,
   form: FormData,
 ): Promise<ForgotPasswordState> {
-  const identifier = (
-    text(form, "username", 254) || text(form, "email", 254)
-  ).trim().toLowerCase();
-  if (!identifier) return { error: "invalid" };
+  const username = text(form, "username", 64).trim().toLowerCase();
+  const email = text(form, "email", 254).trim().toLowerCase();
+  if (!username || !email || username.includes("@") || !email.includes("@")) {
+    return { error: "invalid" };
+  }
 
   const header = config.clientIpHeader();
   const clientIp = header
@@ -525,10 +524,10 @@ export async function forgotPasswordAction(
     : undefined;
 
   try {
-    const reset = await requestPasswordReset(REALM, identifier, clientIp);
+    const reset = await requestPasswordReset(REALM, email, clientIp, username);
     if (reset) {
       const origin = await itPublicOrigin();
-      const resetUrl = `${origin}/login/reset?token=${encodeURIComponent(reset.token)}&email=${encodeURIComponent(identifier)}`;
+      const resetUrl = `${origin}/login/reset?token=${encodeURIComponent(reset.token)}&email=${encodeURIComponent(reset.email)}`;
       await queueMessage({
         channel: "email",
         to: reset.email,
@@ -547,7 +546,13 @@ export async function forgotPasswordAction(
 
 export type ResetPasswordState = {
   success?: boolean;
-  error?: "invalid" | "mismatch" | "too_short" | "invalid_token" | "failed";
+  error?:
+    | "invalid"
+    | "mismatch"
+    | "too_short"
+    | "invalid_token"
+    | "same_password"
+    | "failed";
 };
 
 export async function resetPasswordAction(
@@ -588,6 +593,8 @@ export async function resetPasswordAction(
     return { success: true };
   } catch (err) {
     if (isApiError(err, "reset_invalid")) return { error: "invalid_token" };
+    if (isApiError(err, "password_same_as_other_realm"))
+      return { error: "same_password" };
     return { error: "failed" };
   }
 }

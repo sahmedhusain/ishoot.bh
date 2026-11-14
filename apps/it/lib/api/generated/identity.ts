@@ -1405,6 +1405,7 @@ export interface operations {
                 "application/json": {
                     clientIp?: string;
                     email: string;
+                    username?: string;
                 };
             };
         };

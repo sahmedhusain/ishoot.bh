@@ -39,7 +39,7 @@ func Run(ctx context.Context, pool *pgxpool.Pool, opts Options) error {
 	}
 	db := stdlib.OpenDBFromPool(pool)
 	defer db.Close()
-	provider, err := goose.NewProvider("", db, opts.Migrations, goose.WithStore(store))
+	provider, err := goose.NewProvider("", db, opts.Migrations, goose.WithStore(store), goose.WithAllowOutofOrder(true))
 	if err != nil {
 		return fmt.Errorf("migrate: %w", err)
 	}

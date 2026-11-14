@@ -176,12 +176,32 @@ func (s *Service) DisableMFA(ctx context.Context, p authn.Principal, plain, code
 	})
 }
 func (s *Service) ChangePassword(ctx context.Context, p authn.Principal, current, next, code, ip string, minLength int, now time.Time) error {
-	if p.Realm == authn.RealmIT || len([]rune(next)) < minLength || len(next) > 1024 || len(code) > 64 {
+	if (p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer && p.Realm != authn.RealmIT) || len([]rune(next)) < minLength || len(next) > 1024 || len(code) > 64 {
 		return ErrInvalid
 	}
 	account, err := s.mfaSnapshot(ctx, p, current, ip, now)
 	if err != nil {
 		return err
+	}
+	if p.Realm == authn.RealmStaff || p.Realm == authn.RealmIT {
+		if reader, ok := s.repo.(CounterpartHashReader); ok {
+			hashes, err := reader.CounterpartPasswordHashes(ctx, p.Realm, account.Email, account.Username)
+			if err != nil {
+				return err
+			}
+			for _, h := range hashes {
+				select {
+				case s.permits <- struct{}{}:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				_, vErr := s.passwords.Verify(next, h)
+				<-s.permits
+				if vErr == nil {
+					return ErrSamePasswordOtherRealm
+				}
+			}
+		}
 	}
 	select {
 	case s.permits <- struct{}{}:

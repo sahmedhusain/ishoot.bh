@@ -142,7 +142,12 @@ func TestITAccountAdministration(t *testing.T) {
 	require.NoError(t, err)
 	code, err := otp.Code(secret, time.Now().Unix()/30)
 	require.NoError(t, err)
-	member, err := authentication.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "new@example.test", Password: create["password"].(string), OTP: code}, time.Now())
+	var newUsername string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT username FROM identity.account WHERE realm='it' AND subject_id=$1`, result.SubjectID).Scan(&newUsername))
+	require.NotEmpty(t, newUsername)
+	_, err = authentication.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: "new@example.test", Password: create["password"].(string), OTP: code}, time.Now())
+	require.ErrorIs(t, err, accounts.ErrInvalid)
+	member, err := authentication.Login(ctx, accounts.Input{Realm: authn.RealmIT, Email: newUsername, Password: create["password"].(string), OTP: code}, time.Now())
 	require.NoError(t, err)
 	memberSession := member.Credential
 	_, err = pool.Exec(ctx, `CREATE FUNCTION identity.refuse_access_change() RETURNS trigger LANGUAGE plpgsql AS $$

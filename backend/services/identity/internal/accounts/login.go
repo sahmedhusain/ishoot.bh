@@ -13,9 +13,14 @@ import (
 	"platform.local/backend/services/identity/internal/sessions"
 )
 var (
-	ErrInvalid	= errors.New("invalid credentials")
-	ErrMFARequired	= errors.New("authentication code required")
+	ErrInvalid			= errors.New("invalid credentials")
+	ErrMFARequired			= errors.New("authentication code required")
+	ErrSamePasswordOtherRealm	= errors.New("IT and Admin accounts must use different passwords")
 )
+
+type CounterpartHashReader interface {
+	CounterpartPasswordHashes(context.Context, authn.Realm, string, *string) ([]string, error)
+}
 type Account struct {
 	Realm			authn.Realm
 	SubjectID, Email	string
@@ -97,10 +102,15 @@ func (s *Service) Login(ctx context.Context, input Input, now time.Time) (Result
 		}
 		return Result{}, err
 	}
-	account, err := s.repo.FindByEmail(ctx, input.Realm, email)
-	missing := errors.Is(err, ErrInvalid)
-	if err != nil && !missing {
-		return Result{}, err
+	var account Account
+	var err error
+	missing := (input.Realm == authn.RealmStaff || input.Realm == authn.RealmIT) && strings.Contains(email, "@")
+	if !missing {
+		account, err = s.repo.FindByEmail(ctx, input.Realm, email)
+		missing = errors.Is(err, ErrInvalid)
+		if err != nil && !missing {
+			return Result{}, err
+		}
 	}
 	encoded := s.dummyHash
 	if !missing && account.PasswordHash != nil {

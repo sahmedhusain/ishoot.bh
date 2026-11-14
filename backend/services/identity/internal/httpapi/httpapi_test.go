@@ -43,9 +43,9 @@ import (
 type testGuard struct{}
 func (testGuard) Check(_ context.Context, _ authn.Realm, email, _ string) error {
 	switch email {
-	case "limited@example.test":
+	case "limited@example.test", "limited-user":
 		return &guard.Limited{RetryAfter: time.Second}
-	case "unavailable@example.test":
+	case "unavailable@example.test", "unavailable-user":
 		return guard.ErrUnavailable
 	}
 	return nil
@@ -111,10 +111,12 @@ func TestSessionHTTP(t *testing.T) {
 	}
 	legacy, err := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.MinCost)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles) VALUES ('staff','login-user','login@example.test',$1,ARRAY['admin']), ('staff','staff-1','session@example.test',$1,ARRAY['viewer']), ('customer','customer-1','customer@example.test',$1,ARRAY[]::text[])`, string(legacy))
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,username,password_hash,roles) VALUES ('staff','login-user','login@example.test','LOGIN-USER',$1,ARRAY['admin']), ('staff','staff-1','session@example.test','STAFF-1',$1,ARRAY['viewer']), ('customer','customer-1','customer@example.test',NULL,$1,ARRAY[]::text[])`, string(legacy))
 	require.NoError(t, err)
-	loginBody, _ := json.Marshal(map[string]string{"email": "login@example.test", "password": "correct-password"})
+	loginBody, _ := json.Marshal(map[string]string{"email": "login-user", "password": "correct-password"})
+	emailLoginBody, _ := json.Marshal(map[string]string{"email": "login@example.test", "password": "correct-password"})
 	loginPath := "/v1/identity/staff/sessions/login"
+	require.Equal(t, 401, call(http.MethodPost, loginPath, serviceToken, emailLoginBody).Code)
 	require.Equal(t, 401, call(http.MethodPost, loginPath, itToken, loginBody).Code)
 	customerBody, _ := json.Marshal(map[string]string{"email": "customer@example.test", "password": "correct-password"})
 	customerPath := "/v1/identity/customer/sessions/login"
@@ -182,13 +184,13 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 200, call(http.MethodPost, "/v1/identity/staff/sessions/refresh", serviceToken, oldRefresh).Code)
 	require.Equal(t, 401, call(http.MethodPost, "/v1/identity/staff/sessions/refresh", serviceToken, oldRefresh).Code)
 	require.Equal(t, 401, call(http.MethodGet, statusPath, secondLogin.AccessToken, nil).Code)
-	wrongPassword, _ := json.Marshal(map[string]string{"email": "login@example.test", "password": "wrong"})
+	wrongPassword, _ := json.Marshal(map[string]string{"email": "login-user", "password": "wrong"})
 	require.Equal(t, 401, call(http.MethodPost, loginPath, serviceToken, wrongPassword).Code)
-	limited, _ := json.Marshal(map[string]string{"email": "limited@example.test", "password": "wrong"})
+	limited, _ := json.Marshal(map[string]string{"email": "limited-user", "password": "wrong"})
 	limitedResponse := call(http.MethodPost, loginPath, serviceToken, limited)
 	require.Equal(t, 429, limitedResponse.Code)
 	require.Equal(t, "1", limitedResponse.Header().Get("Retry-After"))
-	unavailable, _ := json.Marshal(map[string]string{"email": "unavailable@example.test", "password": "wrong"})
+	unavailable, _ := json.Marshal(map[string]string{"email": "unavailable-user", "password": "wrong"})
 	require.Equal(t, 503, call(http.MethodPost, loginPath, serviceToken, unavailable).Code)
 	jwks := call(http.MethodGet, "/.well-known/jwks.json", "", nil)
 	require.Equal(t, 200, jwks.Code)
@@ -223,9 +225,9 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodPost, "/v1/identity/it/sessions/logout", itToken, logout).Code)
 	_, err = svc.Active(ctx, authn.RealmIT, fresh.Family.ID, time.Now())
 	require.ErrorIs(t, err, sessions.ErrInvalid)
-	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles) VALUES ('staff','mfa-user','mfa@example.test',$1,ARRAY['admin'])`, string(legacy))
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,username,password_hash,roles) VALUES ('staff','mfa-user','mfa@example.test','MFA-USER',$1,ARRAY['admin'])`, string(legacy))
 	require.NoError(t, err)
-	mfaLoginBody, _ := json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password"})
+	mfaLoginBody, _ := json.Marshal(map[string]string{"email": "mfa-user", "password": "correct-password"})
 	mfaLogin := call(http.MethodPost, loginPath, serviceToken, mfaLoginBody)
 	require.Equal(t, 200, mfaLogin.Code)
 	var mfaSession struct {
@@ -289,7 +291,7 @@ func TestSessionHTTP(t *testing.T) {
 	require.NoError(t, json.Unmarshal(confirmed.Body.Bytes(), &recovery))
 	require.Len(t, recovery.RecoveryCodes, 10)
 	require.Equal(t, 401, call(http.MethodGet, statusPath, mfaSession.AccessToken, nil).Code)
-	loginWithRecovery, _ := json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
+	loginWithRecovery, _ := json.Marshal(map[string]string{"email": "mfa-user", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
 	relogged := call(http.MethodPost, loginPath, serviceToken, loginWithRecovery)
 	require.Equal(t, 200, relogged.Code)
 	require.Equal(t, 401, call(http.MethodPost, loginPath, serviceToken, loginWithRecovery).Code)
@@ -308,7 +310,7 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 200, confirmed.Code)
 	require.NoError(t, json.Unmarshal(confirmed.Body.Bytes(), &recovery))
 	require.Len(t, recovery.RecoveryCodes, 10)
-	loginWithRecovery, _ = json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
+	loginWithRecovery, _ = json.Marshal(map[string]string{"email": "mfa-user", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
 	relogged = call(http.MethodPost, loginPath, serviceToken, loginWithRecovery)
 	require.Equal(t, 200, relogged.Code)
 	require.NoError(t, json.Unmarshal(relogged.Body.Bytes(), &mfaSession))
@@ -319,11 +321,11 @@ func TestSessionHTTP(t *testing.T) {
 	itSecret := []byte("12345678901234567890")
 	itEncrypted, err := ring.Seal(itSecret, "it-mfa-user")
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('it','it-mfa-user','it-mfa@example.test',$1,ARRAY['it_admin'],true,$2)`, string(legacy), itEncrypted)
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,username,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('it','it-mfa-user','it-mfa@example.test','IT-MFA-USER',$1,ARRAY['it_admin'],true,$2)`, string(legacy), itEncrypted)
 	require.NoError(t, err)
 	itCode, err := otp.Code(itSecret, time.Now().Unix()/30)
 	require.NoError(t, err)
-	itLoginBody, _ := json.Marshal(map[string]string{"email": "it-mfa@example.test", "password": "correct-password", "otp": itCode})
+	itLoginBody, _ := json.Marshal(map[string]string{"email": "it-mfa-user", "password": "correct-password", "otp": itCode})
 	itLogin := call(http.MethodPost, "/v1/identity/it/sessions/login", itToken, itLoginBody)
 	require.Equal(t, 200, itLogin.Code)
 	var itSession struct {

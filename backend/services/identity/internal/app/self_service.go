@@ -15,9 +15,16 @@ type SelfService struct {
 	pool		*pgxpool.Pool
 	login		*accounts.Service
 	minPassword	int
+	itMinPassword	int
 }
 func NewSelfService(pool *pgxpool.Pool, login *accounts.Service, minPassword int) *SelfService {
-	return &SelfService{pool: pool, login: login, minPassword: minPassword}
+	return &SelfService{pool: pool, login: login, minPassword: minPassword, itMinPassword: max(14, minPassword)}
+}
+func (s *SelfService) WithITMinPassword(min int) *SelfService {
+	if min > 0 {
+		s.itMinPassword = min
+	}
+	return s
 }
 type OwnSession struct {
 	ID		string		`json:"id"`
@@ -28,7 +35,7 @@ type OwnSession struct {
 	Current		bool		`json:"current"`
 }
 func (s *SelfService) withSession(ctx context.Context, p authn.Principal, use func(pgx.Tx, time.Time) error) error {
-	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer {
+	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer && p.Realm != authn.RealmIT {
 		return accounts.ErrForbidden
 	}
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
@@ -106,12 +113,14 @@ func (s *SelfService) RevokeOthers(ctx context.Context, p authn.Principal) error
 	})
 }
 func (s *SelfService) ChangePassword(ctx context.Context, p authn.Principal, current, next, code, ip string) error {
-	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer {
+	if p.Realm != authn.RealmStaff && p.Realm != authn.RealmCustomer && p.Realm != authn.RealmIT {
 		return accounts.ErrForbidden
 	}
 	minimum := s.minPassword
 	if p.Realm == authn.RealmCustomer {
 		minimum = 8
+	} else if p.Realm == authn.RealmIT {
+		minimum = max(14, s.itMinPassword)
 	}
 	return s.login.ChangePassword(ctx, p, current, next, code, ip, minimum, time.Now().UTC())
 }

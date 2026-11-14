@@ -37,6 +37,12 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
+      if (isApiError(error, "password_same_as_other_realm")) {
+        return NextResponse.json(
+          { error: "IT and Admin accounts must use different passwords" },
+          { status: 422 },
+        );
+      }
       throw error;
     }
 

@@ -143,12 +143,13 @@ export async function requestPasswordReset(
   realm: ManagedRealm,
   email: string,
   clientIp?: string,
+  username?: string,
 ) {
   try {
     return await unwrap(
       identity().POST("/v1/identity/{realm}/password-resets", {
         params: { path: { realm } },
-        body: { email, clientIp },
+        body: { email, clientIp, ...(username ? { username } : {}) },
       }),
     );
   } catch (error) {

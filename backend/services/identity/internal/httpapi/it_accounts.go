@@ -132,6 +132,8 @@ func itAccountError(err error) error {
 		return problem.New(http.StatusConflict, "role_assigned", "")
 	case errors.Is(err, app.ErrRoleExists):
 		return problem.New(http.StatusConflict, "role_exists", "")
+	case errors.Is(err, accounts.ErrSamePasswordOtherRealm):
+		return problem.New(http.StatusUnprocessableEntity, "password_same_as_other_realm", "")
 	case errors.As(err, &pgerr) && pgerr.Code == "23505":
 		return problem.New(http.StatusConflict, "account_exists", "")
 	default:

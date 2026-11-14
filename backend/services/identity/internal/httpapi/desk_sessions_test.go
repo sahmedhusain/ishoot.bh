@@ -158,7 +158,12 @@ func TestDeskSessions(t *testing.T) {
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `ALTER TABLE identity.outbox DROP CONSTRAINT reject_revoke`)
 	require.NoError(t, err)
-	for _, change := range []string{`mfa_enabled=false`, `active=false`, `roles=ARRAY['it_support']`} {
+	_, err = pool.Exec(ctx, `UPDATE identity.account SET mfa_enabled=false WHERE realm='it' AND subject_id='operator'`)
+	require.NoError(t, err)
+	require.Equal(t, 200, call(http.MethodGet, path, token).Code)
+	_, err = pool.Exec(ctx, `UPDATE identity.account SET mfa_enabled=true WHERE realm='it' AND subject_id='operator'`)
+	require.NoError(t, err)
+	for _, change := range []string{`active=false`, `roles=ARRAY['it_support']`} {
 		_, err = pool.Exec(ctx, `UPDATE identity.account SET `+change+` WHERE realm='it' AND subject_id='operator'`)
 		require.NoError(t, err)
 		require.Equal(t, 401, call(http.MethodGet, path, token).Code)

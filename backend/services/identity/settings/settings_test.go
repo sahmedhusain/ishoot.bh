@@ -23,4 +23,6 @@ func TestIdentityConfigLoad(t *testing.T) {
 	assert.Equal(t, "identity", cfg.ServiceName)
 	assert.Equal(t, "Platform IT", cfg.Login.MFAIssuer)
 	assert.Contains(t, cfg.Callers.Staff, "admin")
+	assert.Equal(t, "BA0001", cfg.Bootstrap.SuperAdminUsername)
+	assert.Equal(t, "IT0001", cfg.Bootstrap.ITAdminUsername)
 }
