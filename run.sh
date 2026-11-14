@@ -689,7 +689,7 @@ cmd_setup() {
     esac
   fi
   step "Installing Playwright browser"
-  npx playwright install chromium || warn "Playwright browser not installed; run: npx playwright install chromium"
+  npm --prefix apps/admin exec -- playwright install chromium || warn "Playwright browser not installed; run: npm --prefix apps/admin exec -- playwright install chromium"
   ok "Ready. Start dev with: ./run.sh dev or container apps with: ./run.sh apps up"
   cmd_urls
 }

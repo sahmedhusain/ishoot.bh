@@ -95,17 +95,17 @@ flowchart LR
 ### Common Playwright Execution Commands
 
 ```bash
-# Install required Playwright Chromium browser
-npx playwright install chromium
+# Install required Playwright Chromium browser (using app-local Playwright version)
+npm --prefix apps/admin exec -- playwright install chromium
 
 # Run all E2E projects
 ./run.sh test e2e
 
 # Run E2E for a specific application project
-npx playwright test --project=web
+npm --prefix apps/web run test:e2e
 
 # Launch Playwright UI mode for visual debugging
-npx playwright test --ui
+npm --prefix apps/admin exec -- playwright test --ui
 ```
 
 ---
