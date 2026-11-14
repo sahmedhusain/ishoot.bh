@@ -834,7 +834,7 @@ html[data-site-width="wide"] { --site-shell-width: 1440px; }
 html[data-site-density="compact"] .page-heading { padding-bottom: 2rem; }
 html[data-site-density="compact"] [data-block] > div > section { padding-block: 3rem; }
 .site-navbar { background: rgb(var(--m3-color-surface) / .96); border-color: rgb(var(--m3-color-outline-variant)); }
-.site-mode-switch { display: flex; flex-wrap: wrap; gap: 2px; border: 1px solid rgb(var(--m3-color-outline)); border-radius: var(--brand-button-radius); padding: 3px; }
+.site-mode-switch { display: flex; flex-wrap: wrap; gap: 2px; border: 1px solid rgb(var(--m3-color-outline)); border-radius: var(--brand-radius, 12px); padding: 3px; }
 .site-mode-switch button { padding: .5rem .65rem; min-height: 44px; border-radius: inherit; font-size: .75rem; color: rgb(var(--m3-color-on-surface-variant)); }
 .site-mode-switch button[aria-pressed="true"] { background: rgb(var(--m3-color-secondary-container)); color: rgb(var(--m3-color-on-secondary-container)); }
 :where(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid rgb(var(--m3-color-primary)); outline-offset: 3px; }
@@ -890,7 +890,7 @@ html[data-site-footer="compact"] .site-footer-grid { padding-block: 1.5rem; gap:
 }
 
 html[data-corners="rounded"] body {
-  --brand-radius: 24px;
+  --brand-radius: 16px;
   --brand-button-radius: 999px;
 }
 html[data-corners="square"] body {
@@ -898,9 +898,13 @@ html[data-corners="square"] body {
   --brand-button-radius: 4px;
 }
 html[data-corners="rounded"] :is(#main-content, .site-navbar, .site-footer) :is(div, section, article, aside, form, li):is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-brand) {
-  border-radius: 24px !important;
+  border-radius: 16px !important;
 }
-html[data-corners="square"] :is(#main-content, .site-navbar, .site-footer) :is(div, section, article, aside, form, li, button, a, input, select, textarea):is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-full, .rounded-brand, [data-ui="button"], [data-ui="text-field"]) {
+html[data-corners="rounded"] :is(#main-content, .site-navbar, .site-footer) :is(button:not([role="switch"]):not([role="checkbox"]):not([role="radio"]):not([role="tab"]):not(.no-btn-shape), .web-button, .m3-button, [data-ui="button"]) {
+  border-radius: var(--brand-button-radius, 999px) !important;
+}
+html[data-corners="square"] :is(#main-content, .site-navbar, .site-footer) :is(div, section, article, aside, form, li, input, select, textarea):is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-brand, [data-ui="text-field"]),
+html[data-corners="square"] :is(#main-content, .site-navbar, .site-footer) :is(button:not([role="switch"]):not([role="checkbox"]):not([role="radio"]):not([role="tab"]):not(.no-btn-shape), .web-button, .m3-button, [data-ui="button"]) {
   border-radius: 4px !important;
 }
 html[data-borders="defined"] :is(#main-content, .site-navbar, .site-footer) :is(.border, .border-t, .border-b, [data-ui="text-field"], [data-ui="card"]) {

@@ -62,12 +62,12 @@ html[data-density="compact"] body {
   --admin-page-padding: clamp(14px, 1.8vw, 24px);
 }
 html[data-corners="rounded"] body {
-  --admin-card-radius: 24px;
-  --brand-radius: 24px;
-  --admin-panel-radius: 28px;
-  --admin-dialog-radius: 28px;
-  --admin-field-radius: 16px;
-  --admin-inner-radius: 18px;
+  --admin-card-radius: 16px;
+  --brand-radius: 16px;
+  --admin-panel-radius: 20px;
+  --admin-dialog-radius: 24px;
+  --admin-field-radius: 12px;
+  --admin-inner-radius: 12px;
   --admin-button-radius: 999px;
   --admin-chip-radius: 999px;
   --brand-button-radius: 999px;
@@ -1066,7 +1066,14 @@ html[data-motion="reduced"] [data-ui="button"]:active {
     border-radius: var(--admin-chip-radius) !important;
   }
   :is(.admin-main, [data-dialog-body], .admin-topbar, .admin-sidebar, .admin-popover)
-    :is(button, a, [role="radiogroup"], .m3-segment):not(
+    :is(
+      button:not([role="switch"]):not([role="checkbox"]):not([role="radio"]):not([role="tab"]):not(.no-btn-shape),
+      a.m3-button,
+      a.ui-btn,
+      a[data-ui="button"],
+      .m3-button,
+      .ui-btn
+    ):not(
       [data-keep-round="true"]
     ):not([data-print-target] *):not([data-testid="theme-preview"] *):not(
       [data-appearance-preview] *
