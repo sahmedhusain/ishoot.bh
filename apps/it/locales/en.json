@@ -118,7 +118,7 @@
     "passwordResetSuccess": "Your password has been successfully updated. You can now sign in.",
     "invalidToken": "Invalid or expired reset link.",
     "enterYourEmail": "Work e-mail",
-    "usernamePlaceholder": "IT0001",
+    "usernamePlaceholder": "BA0001",
     "samePasswordOtherRealm": "IT and Admin accounts must use different passwords.",
     "token": "Reset Token"
   },

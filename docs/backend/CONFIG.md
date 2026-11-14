@@ -531,8 +531,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SUPER_ADMIN_PASSWORD` |  |  |
 | `SUPER_ADMIN_PASSWORD_HASH` |  |  |
 | `SUPER_ADMIN_NAME` | `Super Admin` |  |
-| `IT_ADMIN_USERNAME` | `IT0001` |  |
-| `IT_ADMIN_EMAIL` | `it@ishoot.bh` |  |
+| `IT_ADMIN_USERNAME` | `BA0001` |  |
+| `IT_ADMIN_EMAIL` | `admin@ishoot.bh` |  |
 | `IT_ADMIN_PASSWORD` |  |  |
 | `IT_ADMIN_PASSWORD_HASH` |  |  |
 | `NATS_URL` |  |  |

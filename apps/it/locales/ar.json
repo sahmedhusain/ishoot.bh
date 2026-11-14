@@ -118,7 +118,7 @@
     "passwordResetSuccess": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
     "invalidToken": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
     "enterYourEmail": "البريد الإلكتروني للعمل",
-    "usernamePlaceholder": "IT0001",
+    "usernamePlaceholder": "BA0001",
     "samePasswordOtherRealm": "يجب أن تكون كلمة مرور حساب تقنية المعلومات مختلفة عن كلمة مرور حساب الإدارة.",
     "token": "رمز إعادة التعيين"
   },

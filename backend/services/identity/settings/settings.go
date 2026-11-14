@@ -30,8 +30,8 @@ type EnvBootstrap struct {
 	SuperAdminPassword	string	`env:"SUPER_ADMIN_PASSWORD"`
 	SuperAdminPasswordHash	string	`env:"SUPER_ADMIN_PASSWORD_HASH"`
 	SuperAdminName		string	`env:"SUPER_ADMIN_NAME" envDefault:"Super Admin"`
-	ITAdminUsername		string	`env:"IT_ADMIN_USERNAME" envDefault:"IT0001"`
-	ITAdminEmail		string	`env:"IT_ADMIN_EMAIL" envDefault:"it@ishoot.bh"`
+	ITAdminUsername		string	`env:"IT_ADMIN_USERNAME" envDefault:"BA0001"`
+	ITAdminEmail		string	`env:"IT_ADMIN_EMAIL" envDefault:"admin@ishoot.bh"`
 	ITAdminPassword		string	`env:"IT_ADMIN_PASSWORD"`
 	ITAdminPasswordHash	string	`env:"IT_ADMIN_PASSWORD_HASH"`
 }
