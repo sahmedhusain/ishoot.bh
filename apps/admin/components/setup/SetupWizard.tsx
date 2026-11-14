@@ -1,8 +1,6 @@
 "use client";
 import { useNavigationGuard } from "../../hooks/useUnsavedChanges";
 import { DomainSettingsCard } from "../settings/DomainSettingsCard";
-import { ShowExampleButton } from "../cms/SampleContentCard";
-import { addSampleContentAction } from "../../app/actions/samples";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { WebsitePreviewPane } from "./WebsitePreviewPane";
@@ -123,7 +121,6 @@ export function SetupWizard(props: SetupWizardProps) {
   const [config, setConfig] = React.useState(props.config);
   const [website, setWebsite] = React.useState(props.website);
   const [publishWebsite, setPublishWebsite] = React.useState(true);
-  const [sampleContent, setSampleContent] = React.useState(false);
   const touched = React.useRef({ theme: false, modules: false, departments: false });
   const [previewRevision, setPreviewRevision] = React.useState(0);
   const [finished, setFinished] = React.useState(false);
@@ -209,7 +206,6 @@ export function SetupWizard(props: SetupWizardProps) {
       setConfig((current) => ({ ...current, modules: current.modules.map((m) => (m.moduleKey === "cms" ? { ...m, isEnabled: website.enabled } : m)) }));
       return run(async () => {
         await saveSetupWebsiteAction({ enabled: website.enabled, config: website.config });
-        if (website.enabled && sampleContent && activity) await addSampleContentAction(activity);
       }, next);
     }
     if (step === "configuration") return run(() => saveSetupConfigAction(config), next);
@@ -387,9 +383,8 @@ export function SetupWizard(props: SetupWizardProps) {
                               title={copy.company.activities[a].name}
                               description={copy.company.activities[a].description}
                               testId={`activity-${a}`}
-                              preview={<ActivityThumb activity={a} locale={locale} />}
+                              preview={<ActivityThumb activity={a} locale={locale} title={copy.company.activities[a].name} />}
                             />
-                            <ShowExampleButton activity={a} compact className="absolute end-2 top-2" />
                           </div>
                         ))}
                       </div>
@@ -504,16 +499,6 @@ export function SetupWizard(props: SetupWizardProps) {
                           companyActivity={activity}
                           hasWhatsapp={!!company.whatsappPhone?.trim()}
                         />
-                        <div className="flex flex-col gap-3 rounded-xl border border-outline-variant p-4 sm:flex-row sm:items-start">
-                          <label className="flex flex-1 items-start gap-3 text-sm text-ink">
-                            <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={sampleContent} onChange={(e) => setSampleContent(e.target.checked)} data-testid="sample-content" />
-                            <span>
-                              <span className="block font-semibold">{t.sampleContent.start}</span>
-                              <span className="block text-xs text-ink-muted">{t.sampleContent.startHint}</span>
-                            </span>
-                          </label>
-                          {activity ? <ShowExampleButton activity={activity} /> : null}
-                        </div>
                         <DomainSettingsCard compact canEdit initialWebsiteDomain={props.domains.websiteDomain} initialAdminDomain={props.domains.adminDomain} />
                         <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-ink">
                           <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={publishWebsite} onChange={(e) => setPublishWebsite(e.target.checked)} />

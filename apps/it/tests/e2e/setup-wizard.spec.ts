@@ -111,8 +111,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page.locator('input[name="collectionNavAr"]')).toHaveCount(0);
   await page.locator('input[name="collectionNavEn"]').fill("Shop");
   await page.getByLabel(copy.website.collectionSlug).fill("shop");
-  await expect(page.getByTestId("example-products")).toBeVisible();
-  await page.getByTestId("sample-content").check();
   await page.getByTestId("setup-next").click();
 
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
@@ -166,14 +164,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(
     page.getByRole("main").getByText(t.websiteEditor.lastPublished),
   ).toBeVisible();
-
-  await page.goto("/dashboard/cms/portfolio");
-  await expect(
-    page.getByText(/Classic Chair|الكرسي الكلاسيكي/).first(),
-  ).toBeVisible();
-  await page.goto("/dashboard/cms/website");
-  await page.getByTestId("remove-samples").click();
-  await expect(page.getByTestId("add-samples")).toBeVisible();
 
   await page.goto("/dashboard/settings/departments");
   await expect(

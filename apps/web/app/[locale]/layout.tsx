@@ -1,4 +1,4 @@
-import { isWebsitePreview, websiteExample } from "../../lib/website";
+import { isWebsitePreview } from "../../lib/website";
 import Script from "next/script";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
 import * as React from "react";
@@ -48,11 +48,10 @@ export default async function LocaleLayout({
   }
   await requireSiteLanguage(locale);
 
-  const [{ company, config, info, enabled, website }, socialLinks, preview, example, t, code] = await Promise.all([
+  const [{ company, config, info, enabled, website }, socialLinks, preview, t, code] = await Promise.all([
     getSite(),
     getSocialLinks(),
     isWebsitePreview(),
-    websiteExample(),
     siteTranslations(locale),
     getSiteCode().catch((error) => {
       console.error("Site code unavailable:", error);
@@ -108,7 +107,7 @@ export default async function LocaleLayout({
         </a>
         {preview && (
           <div className="fixed bottom-4 start-4 z-[100] bg-amber-100 text-amber-950 p-3 rounded-lg shadow-lg flex gap-4 items-center text-sm">
-            <span>{example ? t.common.examplePreview : t.common.preview}</span>
+            <span>{t.common.preview}</span>
             <form method="post" action="/api/preview">
               <button className="underline">{t.common.exitPreview}</button>
             </form>

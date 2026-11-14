@@ -2,7 +2,6 @@ import { serverMessages } from "@platform/locales";
 import { measureOperation } from "@platform/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { isBusinessActivity } from "@platform/database/website-presets";
 export async function GET(req: NextRequest) {
   return measureOperation("web:preview:GET", async () => {
     const expires = req.nextUrl.searchParams.get("expires") || "";
@@ -19,15 +18,8 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Preview expired or unavailable", {
         status: 403,
       });
-    const example = req.nextUrl.searchParams.get("example") ?? "";
-    if (example && !isBusinessActivity(example))
-      return new NextResponse("Invalid preview", { status: 403 });
     const expected = createHmac("sha256", secret)
-      .update(
-        example
-          ? `website-example:${example}:${expires}`
-          : `website-preview:${expires}`,
-      )
+      .update(`website-preview:${expires}`)
       .digest("hex");
     if (!timingSafeEqual(Buffer.from(expected), Buffer.from(token)))
       return new NextResponse("Invalid preview", { status: 403 });
@@ -41,7 +33,7 @@ export async function GET(req: NextRequest) {
     const response = NextResponse.redirect(new URL(target, req.url));
     response.cookies.set(
       "platform_preview",
-      example ? `${expires}.${token}.${example}` : `${expires}.${token}`,
+      `${expires}.${token}`,
       {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

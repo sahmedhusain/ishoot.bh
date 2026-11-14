@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, sampleContentCount, getPortfolioCategories, getAllServices } from "@platform/database";
+import { requireFeatureEnabled, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, getPortfolioCategories, getAllServices } from "@platform/database";
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -10,13 +10,12 @@ export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePagePermission("settings", "read");
   await requireFeatureEnabled("cms");
-  const [content, rawServices, delivery, publication, company, sampleCount, categories] = await Promise.all([
+  const [content, rawServices, delivery, publication, company, categories] = await Promise.all([
     getWebsiteEditor(),
     getAllServices({ isActive: true }).catch(() => []),
     Promise.resolve(null),
     getWebsitePublicationStatus(),
     getCompanySettings(),
-    sampleContentCount(),
     getPortfolioCategories(),
   ]);
   const services = rawServices.map((s) => ({
@@ -42,7 +41,6 @@ export default async function WebsitePage() {
       publishedAt={content.publishedAt?.toISOString()}
       canRestore={!!content.previous}
       services={services}
-      sampleCount={sampleCount}
     />
   );
 }

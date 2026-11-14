@@ -24,7 +24,6 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { WebsiteSnapshotSection } from "@platform/database";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
-import { SampleContentCard } from "./SampleContentCard";
 import { PageHeader } from "../layout/PageHeader";
 export function WebsiteEditor({
   config,
@@ -35,14 +34,12 @@ export function WebsiteEditor({
   deliveryStatus,
   publication,
   company,
-  sampleCount,
   categories,
 }: {
   config: ResolvedWebsiteConfig;
   categories?: { slug: string; name_en: string; name_ar: string }[];
   company: { languages: ContentLanguage[]; primaryLanguage: ContentLanguage; activity: BusinessActivity | null; hasWhatsapp: boolean };
   deliveryStatus?: string;
-  sampleCount: number;
   publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] };
   revision: number;
   publishedAt?: string;
@@ -131,7 +128,6 @@ export function WebsiteEditor({
       />
       <div className="space-y-3">
         <UnpublishedChangesNotice status={publication} canPublish />
-        <SampleContentCard activity={company.activity} count={sampleCount} />
       </div>
       <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-surface py-3 border-b border-outline-variant">
         <button disabled={busy} className={button} onClick={() => run(save)}>

@@ -405,9 +405,9 @@ export async function loadDashboardData(
     archiveFolders: archiveFoldersData,
     customFolders: (customFoldersData ?? []) as CustomArchiveFolder[],
     userProfile: userProfileData,
-    currency: companyData.default_currency,
-    companyCity: companyData.city || "",
-    company: has("company")
+    currency: companyData?.default_currency ?? "BHD",
+    companyCity: companyData?.city || "",
+    company: has("company") && companyData
       ? canFinance
         ? companyData
         : {
