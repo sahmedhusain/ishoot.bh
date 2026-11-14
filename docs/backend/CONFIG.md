@@ -96,8 +96,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
-| `CMS_READERS` | `admin,web,it` | `min=1,dive,required` |
-| `CMS_WRITERS` | `admin` | `min=1,dive,required` |
+| `CMS_READERS` | `admin,web,store,it` | `min=1,dive,required` |
+| `CMS_WRITERS` | `admin,it` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -207,7 +207,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
-| `DELIVERY_READERS` | `admin,it,web,commerce` | `min=1,dive,required` |
+| `DELIVERY_READERS` | `admin,it,web,store,commerce` | `min=1,dive,required` |
 | `DELIVERY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
 | `DELIVERY_SERVICE_KEY` |  |  |
 | `DELIVERY_FILES_URL` | `http://files:8080` | `http_url` |
@@ -526,6 +526,15 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_CALLERS_STAFF` | `admin,it` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web,store` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it,admin` | `min=1,dive,required` |
+| `SUPER_ADMIN_USERNAME` | `BA0001` |  |
+| `SUPER_ADMIN_EMAIL` | `admin@ishoot.bh` |  |
+| `SUPER_ADMIN_PASSWORD` |  |  |
+| `SUPER_ADMIN_PASSWORD_HASH` |  |  |
+| `SUPER_ADMIN_NAME` | `Super Admin` |  |
+| `IT_ADMIN_USERNAME` | `IT0001` |  |
+| `IT_ADMIN_EMAIL` | `it@ishoot.bh` |  |
+| `IT_ADMIN_PASSWORD` |  |  |
+| `IT_ADMIN_PASSWORD_HASH` |  |  |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -713,8 +722,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OUTBOX_INTERVAL` | `1s` | `gt=0` |
 | `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
 | `OUTBOX_RETENTION` | `168h` | `gte=0` |
-| `NOTIFY_SEND_CALLERS` | `admin,web,it` | `min=1,dive,required` |
-| `NOTIFY_INBOX_CALLERS` | `admin,web,it` | `min=1,dive,required` |
+| `NOTIFY_SEND_CALLERS` | `admin,web,store,it` | `min=1,dive,required` |
+| `NOTIFY_INBOX_CALLERS` | `admin,web,store,it` | `min=1,dive,required` |
 | `NOTIFY_INBOX_BODY_LIMIT` | `2097152` | `gt=0` |
 | `NOTIFY_INBOX_RETENTION` | `8760h` | `gte=0` |
 | `NOTIFY_INBOX_PURGE_EVERY` | `6h` | `gte=0` |
@@ -731,13 +740,13 @@ the environment. A service refuses to start when a value is missing or fails its
 | `NOTIFY_SERVICE_KEY` |  |  |
 | `NOTIFY_SYSTEM_URL` | `http://system:8080` | `url` |
 | `NOTIFY_EMAIL_PROVIDER` | `integration` | `oneof=integration smtp` |
-| `NOTIFY_EMAIL_FROM` | `Platform <no-reply@example.com>` |  |
+| `NOTIFY_EMAIL_FROM` | `Platform <no-reply@platform.test>` |  |
 | `NOTIFY_RESEND_URL` | `https://api.resend.com` | `url` |
 | `NOTIFY_SMTP_HOST` | `mailpit` |  |
 | `NOTIFY_SMTP_PORT` | `1025` | `gt=0,lt=65536` |
 | `NOTIFY_SMTP_USERNAME` |  |  |
 | `NOTIFY_SMTP_PASSWORD` |  |  |
-| `NOTIFY_SMTP_TLS` | `starttls` | `oneof=none starttls tls` |
+| `NOTIFY_SMTP_TLS` | `none` | `oneof=none starttls tls` |
 | `NOTIFY_WHATSAPP_URL` | `https://graph.facebook.com/v21.0` | `url` |
 | `NOTIFY_WHATSAPP_CREDENTIALS` | `integration` | `oneof=integration static` |
 | `NOTIFY_WHATSAPP_PHONE_ID` |  |  |
@@ -911,14 +920,14 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SYSTEM_FILES_URL` | `http://files:8080` | `http_url` |
 | `SYSTEM_COMPANY_BODY_LIMIT` | `1048576` | `gt=0` |
 | `SYSTEM_COMPANY_READERS` | `admin,web,store,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms` | `min=1,dive,required` |
-| `SYSTEM_COMPANY_WRITERS` | `admin` | `min=1,dive,required` |
+| `SYSTEM_COMPANY_WRITERS` | `admin,it` | `min=1,dive,required` |
 | `SYSTEM_CURRENCY_CALLERS` | `admin,web,store,sales,finance,workflow,hr,inventory,commerce,delivery` | `min=1,dive,required` |
-| `SYSTEM_SEQUENCE_CALLERS` | `admin,finance` | `min=1,dive,required` |
+| `SYSTEM_SEQUENCE_CALLERS` | `admin,finance,it` | `min=1,dive,required` |
 | `SYSTEM_READ_CALLERS` | `admin,web,store,it,notify` | `min=1,dive,required` |
 | `SYSTEM_MODULE_READ_CALLERS` | `identity` | `dive,required` |
-| `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
-| `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |
-| `SYSTEM_DOMAIN_WRITERS` | `admin` | `dive,required` |
+| `SYSTEM_MODULE_WRITERS` | `admin,it` | `dive,required` |
+| `SYSTEM_INTEGRATION_WRITERS` | `admin,it` | `dive,required` |
+| `SYSTEM_DOMAIN_WRITERS` | `admin,it` | `dive,required` |
 | `SYSTEM_JSON_BODY_LIMIT` | `16384` | `gt=0` |
 | `SYSTEM_SITE_CODE_BODY_LIMIT` | `524288` | `gt=0` |
 | `NATS_URL` |  |  |
