@@ -24,16 +24,16 @@ export async function discountDecision(
   options: { alwaysApprove?: boolean } = {},
 ): Promise<DiscountDecision> {
   const [user, company] = await Promise.all([
-    db.user.findUniqueOrThrow({
+    db.user.findUnique({
       where: { id: userId },
       select: { role: true, discountLimitPercent: true },
-    }),
+    }).catch(() => null),
     getCompanyConfiguration().catch(() => null),
   ]);
   const percent = discountPercent(subtotal, discountAmount);
   const always =
     options.alwaysApprove ?? (company as any)?.quotationsAlwaysNeedApproval ?? false;
-  if (user.role === "super_admin")
+  if (user?.role === "super_admin")
     return {
       percent,
       limit: null,
@@ -42,7 +42,7 @@ export async function discountDecision(
       needsApproval: false,
     };
   const own =
-    user.discountLimitPercent === null
+    user?.discountLimitPercent === null || user?.discountLimitPercent === undefined
       ? null
       : Number(user.discountLimitPercent);
   const limit = own ?? Number((company as any)?.defaultDiscountLimitPercent ?? 0);

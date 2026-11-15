@@ -18,6 +18,7 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<any | null>(null);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const [saving, setSaving] = React.useState(false);
 
   const [questionEn, setQuestionEn] = React.useState("");
   const [questionAr, setQuestionAr] = React.useState("");
@@ -44,16 +45,31 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     const data = { questionEn, questionAr, answerEn, answerAr, sortOrder, isPublished };
     try {
       if (editingItem) {
-        await updateFaqAction(editingItem.id, data);
+        const res = await updateFaqAction(editingItem.id, data);
+        if (res?.faq) {
+          setFaqs((prev) =>
+            prev
+              .map((f) => (f.id === editingItem.id ? res.faq : f))
+              .sort((a, b) => a.sortOrder - b.sortOrder),
+          );
+        }
       } else {
-        await createFaqAction(data);
+        const res = await createFaqAction(data);
+        if (res?.faq) {
+          setFaqs((prev) => [...prev, res.faq].sort((a, b) => a.sortOrder - b.sortOrder));
+        }
       }
-      window.location.reload();
+      setIsModalOpen(false);
+      setEditingItem(null);
     } catch (error) {
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -104,9 +120,9 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
         ))}
       </div>
 
-      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.faqsView.editFaq : t.faqsView.newFaq} footer={<div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)} type="button">{t.faqsView.cancel}</Button>
-            <Button type="submit" className="bg-accent text-accent-foreground" form={modalFormId}>{t.faqsView.saveFaq}</Button>
+      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => { if (!saving) setIsModalOpen(false); }} busy={saving} title={editingItem ? t.faqsView.editFaq : t.faqsView.newFaq} footer={<div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={saving} type="button">{t.faqsView.cancel}</Button>
+            <Button type="submit" className="bg-accent text-accent-foreground" disabled={saving} form={modalFormId}>{t.faqsView.saveFaq}</Button>
           </div>}>
         <form onSubmit={handleSave} className="space-y-4" id={modalFormId}>
           <LanguageFields name="question" label={t.faqsView.question} languages={languages} required maxLength={500} en={questionEn} ar={questionAr} onChange={(v) => { setQuestionEn(v.en); setQuestionAr(v.ar); }} />

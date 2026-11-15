@@ -17,8 +17,8 @@ export default async function SettlementsPage({
   const status = typeof query.status === "string" ? query.status : "all";
   const q = typeof query.q === "string" ? query.q : "";
   const [items, rules, canCreate, canEdit] = await Promise.all([
-    listFinalSettlements({ status, q }),
-    getSettlementRules(),
+    listFinalSettlements({ status, q }).catch(() => []),
+    getSettlementRules().catch(() => ({}) as any),
     hasPermission("payroll", "create"),
     hasPermission("payroll", "edit"),
   ]);

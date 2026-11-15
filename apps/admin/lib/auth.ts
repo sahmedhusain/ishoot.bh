@@ -31,11 +31,16 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
       await checkSession(staff.token);
     } catch (error) {
       console.error("getCurrentUser: checkSession error:", error);
-      if (isApiError(error) && (error.status === 401 || error.status === 403)) return null;
+      return null;
     }
-    const user = await getSessionUser(staff.userId, staff.token);
-    if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);
-    return user;
+    try {
+      const user = await getSessionUser(staff.userId, staff.token);
+      if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);
+      return user;
+    } catch (error) {
+      console.error("getCurrentUser: getSessionUser error:", error);
+      return null;
+    }
   }),
 );
 
@@ -56,12 +61,21 @@ export const getCurrentPermissions = cache(async () =>
       console.error("getCurrentPermissions: staff is null, calling redirect('/login')!");
       redirect("/login");
     }
-    const policy = await getStaffAccess(staff.token);
+    let policy;
+    try {
+      policy = await getStaffAccess(staff.token);
+    } catch (error) {
+      console.error("getCurrentPermissions: getStaffAccess error:", error);
+      if (isApiError(error) && (error.status === 503 || error.status === 502 || error.status === 504)) {
+        return {};
+      }
+      throw error;
+    }
     if (policy.subjectId !== user.id) {
       console.error("getCurrentPermissions: policy.subjectId !== user.id", policy.subjectId, user.id);
       redirect("/login");
     }
-    return policy.permissions;
+    return policy.permissions ?? {};
   }),
 );
 

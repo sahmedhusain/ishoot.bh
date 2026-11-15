@@ -68,7 +68,7 @@ test.describe("Admin Architecture, Auth & Go Gateway API", () => {
 
       await page.locator('button[type="submit"][form]').click();
 
-      const createdCard = page.locator('[data-ui="card"]', { hasText: uniqueSuffix });
+      const createdCard = page.locator('#admin-main [data-ui="card"]', { hasText: uniqueSuffix });
       await expect(createdCard).toBeVisible({ timeout: 20_000 });
 
       const listRes = await request.get(`${gatewayUrl}/v1/cms/faqs?all=true`);
@@ -85,7 +85,7 @@ test.describe("Admin Architecture, Auth & Go Gateway API", () => {
       }
       await page.locator('button[type="submit"][form]').click();
 
-      const updatedCard = page.locator('[data-ui="card"]', { hasText: updatedSuffix });
+      const updatedCard = page.locator('#admin-main [data-ui="card"]', { hasText: updatedSuffix });
       await expect(updatedCard).toBeVisible({ timeout: 20_000 });
 
       const afterUpdateRes = await request.get(`${gatewayUrl}/v1/cms/faqs?all=true`);
@@ -103,7 +103,7 @@ test.describe("Admin Architecture, Auth & Go Gateway API", () => {
       expect(afterDelete.some((item) => item.id === createdId)).toBe(false);
     } finally {
       if (createdId) {
-        const cleanupCard = page.locator('[data-ui="card"]', { hasText: uniqueSuffix });
+        const cleanupCard = page.locator('#admin-main [data-ui="card"]', { hasText: uniqueSuffix });
         if ((await cleanupCard.count()) > 0) {
           await cleanupCard.first().locator('button[aria-label="Delete"], button[aria-label="حذف"]').click();
           await page.getByRole("button", { name: /^confirm$|^تأكيد$/i }).click();

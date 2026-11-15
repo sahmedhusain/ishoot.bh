@@ -40,7 +40,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
   const selectedAgency = agencies.find(agency => agency.id === handover.agencyId);
   const automaticBooking = dispatchable && !!selectedAgency && selectedAgency.kind !== "manual" && !handover.trackingNumber.trim();
   const pending = React.useRef(false);
-  const address = shipment.address;
+  const address = shipment.address ?? ({} as typeof shipment.address);
   const addressText = [address.line1, address.line2, address.area, address.city, address.country, address.postalCode].filter(Boolean).join(", ");
 
   const run = async (task: () => Promise<unknown>) => {
@@ -262,7 +262,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.history}</h2>
         <ol className="space-y-2 text-sm" data-testid="shipment-history">
-          {shipment.events.map((e) => (
+          {(shipment.events ?? []).map((e) => (
             <li key={e.id} className="flex flex-wrap gap-x-3">
               <span className="text-xs text-ink-muted w-36">{formatDate(e.at, locale, "time")}</span>
               <span className="font-medium text-ink">{(t.delivery.statuses as Record<string, string>)[e.status] ?? e.status}</span>

@@ -195,6 +195,6 @@ jobs:
         if: always()
         with:
           name: playwright-results
-          path: tests/.results/
+          path: apps/*/tests/.results/
           retention-days: 14
           if-no-files-found: ignore

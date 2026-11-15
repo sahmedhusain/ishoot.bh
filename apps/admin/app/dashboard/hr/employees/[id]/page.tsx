@@ -89,18 +89,24 @@ export default async function EmployeeDetailPage({
         .catch(() => [] as Array<{ id: string; fullName: string }>),
     ]);
   const year = new Date().getUTCFullYear();
-  const [balances, payItems, recurringPay, rawAttachments, credentialRows] = await Promise.all([
+  const [balances, payItems, recurringPay, rawAttachmentsRes, credentialRowsRes] = await Promise.all([
     getLeaveBalances(id, year),
     canViewPay ? listEmployeePayItems(id).catch(() => []) : Promise.resolve([]),
     canViewPay ? listRecurringPay(id) : Promise.resolve([]),
     listEntityAttachments({ entityType: "employee", entityId: id }).catch(() => []),
     listEmployeeCredentials(id).catch(() => []),
   ]);
+  const rawAttachments: any[] = Array.isArray(rawAttachmentsRes)
+    ? rawAttachmentsRes
+    : (rawAttachmentsRes as any)?.items || [];
+  const credentialRows: any[] = Array.isArray(credentialRowsRes)
+    ? credentialRowsRes
+    : (credentialRowsRes as any)?.items || [];
   const attachments: { id: string; fileName: string; fileUrl: string }[] = [
     ...rawAttachments.map((a) => ({
       id: a.id,
-      fileName: a.fileName,
-      fileUrl: a.fileUrl,
+      fileName: a.fileName || a.name || a.title || "Attachment",
+      fileUrl: a.fileUrl || a.url,
     })),
     ...credentialRows
       .filter((c) => c.fileUrl)
