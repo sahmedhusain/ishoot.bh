@@ -194,14 +194,6 @@ export interface DeliverySlotInput {
   capacity: string;
 }
 
-export async function saveDeliverySlot(input: DeliverySlotInput) {
-  throw new Error("saveDeliverySlot is not implemented in API");
-}
-
-export async function deleteDeliverySlot(id: string) {
-  throw new Error("deleteDeliverySlot is not implemented in API");
-}
-
 export async function activeZoneTerms() {
   if (!(await isFeatureEnabled("delivery"))) return [];
   const zones = await listDeliveryZonesApi();

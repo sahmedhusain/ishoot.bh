@@ -147,41 +147,6 @@ export async function shipmentCounts(
   return { ...stats, late };
 }
 
-export async function moveShipment(
-  id: string,
-  input: { to: string; note?: string; reason?: string; codCollected?: number; [key: string]: any },
-  byId: string | null,
-): Promise<any> {
-  throw new Error("moveShipment is not implemented in API");
-}
-
-export async function handToAgency(
-  shipmentId: string,
-  input: any,
-  byId: string,
-): Promise<{ trackingNumber: string; [key: string]: any }> {
-  throw new Error("handToAgency must be implemented as a single API call in Go backend");
-}
-
-export async function syncAgencyTracking(limit = 100) {
-  throw new Error("syncAgencyTracking is handled by the Go backend");
-}
-
-export async function unbilledAgencyShipments(agencyId: string): Promise<any[]> {
-  return [];
-}
-
-export async function recordAgencyInvoice(
-  input: any,
-  userId: string,
-): Promise<{ id: string; reference: string; [key: string]: any }> {
-  throw new Error("recordAgencyInvoice must be implemented as a single API call in Go backend");
-}
-
-export async function listAgencyInvoices(): Promise<any[]> {
-  return [];
-}
-
 export async function shipmentForTracking(token: string) {
   if (!/^[A-Za-z0-9_-]{20,40}$/.test(token)) return null;
   try {
