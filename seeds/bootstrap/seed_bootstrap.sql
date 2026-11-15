@@ -1561,18 +1561,33 @@ INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, c
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_create', 'viewer', 'it_support', 'create', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 INSERT INTO identity.staff_permission (id, role_id, resource, action, allowed, created_at) VALUES ('stfperm_viewer_it_support_edit', 'viewer', 'it_support', 'edit', true, now()) ON CONFLICT (role_id, resource, action) DO NOTHING;
 
--- Bootstrap Accounts Note:
--- First bootstrap accounts (BA0001 in staff realm, IT0001 in it realm) are provisioned
--- and authenticated exclusively from environment variables (.env) with MFA disabled on launch.
+-- Bootstrap Accounts:
+-- Provision BA0001 in staff realm and IT0001 in IT realm with complete identity and HR profiles.
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at)
 VALUES
-  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, NULL, now(), now()),
+  ('staff', 'super-admin', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$pY9XsX6uhwv8DfyY+1St1w$+gLc4Swb4+gFXMhwXuQYoMx/NxPL4Qbg1gCEk4w1ODA', '{"super_admin"}', true, false, NULL, now(), now()),
+  ('it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', 'BA0001', '$argon2id$v=19$m=19456,t=2,p=1$f6QjVQlUTFDJVEOR+5VS7w$re5Ds6ToUPvX8R5nHc4qg6UkyVdxWyZapa6/WErJd44', '{"it_admin"}', true, false, NULL, now(), now()),
+  ('it', 'it-manager-001', 'it-manager@example.com', 'IT0002', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_manager"}', true, false, '430c4105-6360-4415-bf1b-087d582c7fc6', now(), now()),
   ('it', 'it-lead-001', 'it-lead@example.com', 'IT0003', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_lead"}', true, false, 'it-manager-001', now(), now()),
   ('it', 'it-eng-001', 'it-engineer@example.com', 'IT0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_engineer"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-work-001', 'it-worker@example.com', 'IT0005', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_worker"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-supp-001', 'it-support@example.com', 'IT0006', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_support"}', true, false, 'it-lead-001', now(), now()),
   ('it', 'it-audit-001', 'it-auditor@example.com', 'IT0007', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"it_auditor"}', true, false, 'it-manager-001', now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now();
+
+INSERT INTO identity.staff_access (realm, subject_id, display_name, permission_overrides, data_scopes, updated_at)
+VALUES
+  ('staff', 'super-admin', 'Super Admin', '{"*": {"view": true, "create": true, "edit": true, "delete": true, "export": true}}'::jsonb, '{"scope": "global", "branches": ["br-hq", "br-seef", "br-muharraq", "br-riffa"]}'::jsonb, now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET display_name = EXCLUDED.display_name, permission_overrides = EXCLUDED.permission_overrides, data_scopes = EXCLUDED.data_scopes, updated_at = now();
+
+-- HR Department & Employee Profile for BA0001
+INSERT INTO hr.department (id, code, name_en, name_ar, head_id, parent_id, catalogue_key, manager_id, deputy_id, cost_centre, sort_order, is_active, created_at, updated_at)
+VALUES ('d-exec', 'EXEC', 'Executive Management', 'الإدارة التنفيذية', 'super-admin', NULL, 'exec', 'super-admin', 'super-admin', 'CC-100', 1, true, now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO hr.employee (id, user_id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, country_code, mobile_number, job_title_en, job_title_ar, department_id, reporting_to, manager_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, cpr_number, cpr_expiry_date, nationality, date_of_birth, gender, passport_number, passport_country, passport_expiry_date, leave_balance_days, created_at, updated_at)
+VALUES ('super-admin', 'super-admin', 'BA0001', 'Bader', 'Ali', 'بدر', 'علي', 'admin@example.com', '+97339000001', 'BH', '39000001', 'Group Chief Executive', 'الرئيس التنفيذي للمجموعة', 'd-exec', NULL, NULL, '2020-01-01', 'active', 3200.000, 320.000, 160.000, 180.000, '800110001', '2028-01-28', 'BH', '1980-01-15', 'male', 'BHP-100400', 'BH', '2030-01-15', 30, now(), now())
+ON CONFLICT (id) DO NOTHING;
 
 -- Default modules (18 feature modules)
 INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) VALUES

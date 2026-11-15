@@ -15,6 +15,16 @@ function sha256(seed) {
   return crypto.createHash("sha256").update(seed).digest("hex");
 }
 
+function splitPhone(phone) {
+  const raw = String(phone || "").trim();
+  if (!raw) return { country_code: "BH", mobile_number: "" };
+  if (raw.startsWith("+973")) return { country_code: "BH", mobile_number: raw.slice(4) };
+  if (raw.startsWith("+966")) return { country_code: "SA", mobile_number: raw.slice(4) };
+  if (raw.startsWith("+971")) return { country_code: "AE", mobile_number: raw.slice(4) };
+  const digits = raw.replace(/\D/g, "");
+  return { country_code: "BH", mobile_number: digits };
+}
+
 function sqlRaw(raw) {
   return { __rawSql: String(raw) };
 }
@@ -162,7 +172,7 @@ function buildExtraModuleSql({
   ];
   for (const r of roles) {
     lines.push(ins("identity.role", {
-      id: r.id, name: r.name, description: r.desc, is_system: true, created_at: ago(365),
+      id: r.id, name: r.name, name_en: r.name, name_ar: r.name, description: r.desc, is_system: true, created_at: ago(365),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("identity.role_data_scope", {
       role: r.id, area: "all", scope: r.id.includes("admin") ? "all" : "department",
@@ -184,7 +194,7 @@ function buildExtraModuleSql({
   ];
   for (const p of perms) {
     lines.push(ins("identity.permission", {
-      id: p.id, key: p.key, name: p.name, category: p.cat, description: `${p.name} permission`, created_at: ago(365),
+      id: p.id, key: p.key, name: p.name, role: "admin", resource: p.cat.toLowerCase(), action: "manage", allowed: true, category: p.cat, description: `${p.name} permission`, created_at: ago(365),
     }, "ON CONFLICT (id) DO NOTHING"));
   }
 
@@ -195,31 +205,31 @@ function buildExtraModuleSql({
     const sessId = u(`sess-${i}`);
     lines.push(ins("identity.profile_projection", {
       realm: "staff", subject_id: s.id, email, full_name: s.nameEn, avatar_url: `/api/files/brand/icon-light.png`,
-      department_id: s.dept, updated_at: now,
+      department_id: s.dept, version: 1, delivered_version: 1, deleted: false, updated_at: now,
     }, "ON CONFLICT (realm, subject_id) DO NOTHING"));
 
     lines.push(ins("identity.session_family", {
       id: famId, realm: "staff", subject_id: s.id, user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-      ip_address: `10.20.1.${10 + i}`, expires_at: ahead(30), created_at: ago(5), last_used_at: ago(0), revoked_at: null,
+      ip_address: `10.20.1.${10 + i}`, client_ip: `10.20.1.${10 + i}`, expires_at: ahead(30), created_at: ago(5), last_used_at: ago(0), revoked_at: null,
     }, "ON CONFLICT (id) DO NOTHING"));
 
     lines.push(ins("identity.session", {
-      id: sessId, user_id: s.id, token_hash: uuidOf(`tok-${s.id}`), expires_at: ahead(7),
+      id: sessId, user_id: s.id, token: uuidOf(`tok-${s.id}`), token_hash: uuidOf(`tok-${s.id}`), expires_at: ahead(7),
       user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", ip_address: `10.20.1.${10 + i}`, created_at: ago(1),
     }, "ON CONFLICT (id) DO NOTHING"));
 
     lines.push(ins("identity.refresh_token", {
       id: u(`rtok-${i}`), family_id: famId, token_hash: sha256(`rt-${s.id}`),
-      expires_at: ahead(30), used_at: i % 3 === 0 ? ago(1) : null, revoked_at: null, created_at: ago(5),
+      expires_at: ahead(30), used_at: i % 3 === 0 ? ago(1) : null, consumed_at: i % 3 === 0 ? ago(1) : null, revoked_at: null, created_at: ago(5),
     }, "ON CONFLICT DO NOTHING"));
 
     if (i < 10) {
       lines.push(ins("identity.mfa_recovery_code", {
-        id: u(`mfa-rc-${i}`), realm: "staff", subject_id: s.id, code_hash: sha256(`mfa-${s.id}`),
+        id: u(`mfa-rc-${i}`), realm: "staff", user_id: s.id, subject_id: s.id, code_hash: sha256(`mfa-${s.id}`),
         used_at: null, created_at: ago(60),
       }, "ON CONFLICT DO NOTHING"));
       lines.push(ins("identity.auth_challenge", {
-        id: u(`auth-ch-${i}`), realm: "staff", subject_id: s.id, kind: "mfa_totp",
+        id: u(`auth-ch-${i}`), realm: "staff", user_id: s.id, subject_id: s.id, email, type: "mfa_totp", kind: "mfa_totp",
         code_hash: sha256(`ch-${s.id}`), attempts: 0, expires_at: ago(10), consumed_at: ago(10), created_at: ago(10),
       }, "ON CONFLICT DO NOTHING"));
       lines.push(ins("identity.password_reset", {
@@ -227,8 +237,8 @@ function buildExtraModuleSql({
         expires_at: ago(20), used_at: ago(20), created_at: ago(21),
       }, "ON CONFLICT DO NOTHING"));
       lines.push(ins("identity.legacy_reset_challenge", {
-        id: u(`lrst-${i}`), subject_id: s.id, email, code_hash: sha256(`lrc-${s.id}`),
-        kind: "password_reset", attempts: 1, expires_at: ago(30), consumed_at: ago(30), created_at: ago(31),
+        id: u(`lrst-${i}`), realm: "staff", subject_id: s.id, email, code_hash: sha256(`lrc-${s.id}`),
+        kind: "password_reset", attempts: 1, expires_at: ago(30), consumed_at: ago(30), used_at: ago(30), created_at: ago(31),
       }, "ON CONFLICT DO NOTHING"));
     }
   }
@@ -245,17 +255,18 @@ function buildExtraModuleSql({
       created_at: ago(1),
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("identity.customer_code", {
-      id: u(`cust-code-${i}`), email: c.email, code_hash: sha256(`cc-${c.id}`),
-      purpose: "login_otp", attempts: 0, expires_at: ago(2), consumed_at: ago(2), created_at: ago(2),
+      id: u(`cust-code-${i}`), email: c.email, code_hash: sha256(`cc-${c.id}`), hash_kind: "sha256",
+      purpose: "login_otp", attempts: 0, expires_at: ago(2), consumed_at: ago(2), used_at: ago(2), created_at: ago(2),
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("identity.customer_provider", {
-      id: u(`cust-prov-${i}`), subject_id: c.id, provider: i % 2 === 0 ? "google" : "apple",
+      id: u(`cust-prov-${i}`), realm: "customer", subject_id: c.id, provider: i % 2 === 0 ? "google" : "apple",
       provider_subject: `sub-${c.id}-${i}`, email: c.email, created_at: ago(90),
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("identity.oauth_state", {
       id: u(`oauth-st-${i}`), state_hash: sha256(`st-${i}`), provider: i % 2 === 0 ? "google" : "apple",
       redirect_uri: `https://${domainHost}/auth/callback`, next_path: "/store", locale: "en",
-      secret_encrypted: sha256(`sec-${i}`), expires_at: ago(1), consumed_at: ago(1), created_at: ago(1),
+      secret_encrypted: sha256(`sec-${i}`), claims_encrypted: sha256(`claims-${i}`),
+      exchanging_at: ago(1), expires_at: ago(1), consumed_at: ago(1), created_at: ago(1),
     }, "ON CONFLICT DO NOTHING"));
   }
 
@@ -368,8 +379,10 @@ function buildExtraModuleSql({
     { id: "ag-smsa", name: "SMSA Express", contact: "Manama Station", email: "manama@smsaexpress.com", phone: "+97317552211" },
   ];
   for (const ag of agencies) {
+    const pp = splitPhone(ag.phone);
     lines.push(ins("delivery.courier_agency", {
       id: ag.id, name: ag.name, contact_name: ag.contact, email: ag.email, phone: ag.phone,
+      country_code: pp.country_code, mobile_number: pp.mobile_number,
       api_endpoint: `https://api.${ag.id.replace("ag-", "")}.example.bh/v1`, is_active: true, created_at: ago(200),
     }, "ON CONFLICT (id) DO NOTHING"));
   }
@@ -382,6 +395,7 @@ function buildExtraModuleSql({
   for (const v of vehicles) {
     lines.push(ins("delivery.vehicle", {
       id: v.id, plate: v.plate, name: `${v.model} (${v.plate})`, vehicle_type: v.type,
+      kind: v.type, notes: `Delivery fleet vehicle (${v.model})`,
       capacity_kg: 1200, is_active: true, created_at: ago(200), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
   }
@@ -437,9 +451,11 @@ function buildExtraModuleSql({
     const total = Number((subtotal + vat + 2.5).toFixed(3));
     const status = i < 10 ? "pending" : i < 25 ? "processing" : i < 65 ? "delivered" : "shipped";
     const payStatus = i < 10 ? "unpaid" : "paid";
+    const pp = splitPhone(cust.phone);
+
     lines.push(ins("commerce.sales_order", {
       id: ordId, number: ordNum, customer_id: cust.id, contact_id: cust.id,
-      email: cust.email, name: cust.nameEn, phone: cust.phone, channel: i % 3 === 0 ? "pos" : "web",
+      email: cust.email, name: cust.nameEn, phone: cust.phone, country_code: pp.country_code, mobile_number: pp.mobile_number, channel: i % 3 === 0 ? "pos" : "web",
       status, payment_status: payStatus, payment_method: i % 2 === 0 ? "benefit_pay" : "card",
       fulfilment: "delivery",
       shipping_address: { line1: `Building ${10 + i}, Road ${120 + i}`, city: cust.city, country: "BH" },
@@ -471,7 +487,7 @@ function buildExtraModuleSql({
 
     lines.push(ins("delivery.order_ref", {
       order_id: ordId, order_number: ordNum, customer_id: cust.id, contact_id: cust.id,
-      recipient_name: cust.nameEn, recipient_phone: cust.phone, status, total, currency: cur, updated_at: now,
+      recipient_name: cust.nameEn, recipient_phone: cust.phone, recipient_country_code: pp.country_code, recipient_mobile_number: pp.mobile_number, status, total, currency: cur, updated_at: now,
     }, "ON CONFLICT (order_id) DO NOTHING"));
 
     const rs = routeSheets[i % routeSheets.length];
@@ -488,7 +504,8 @@ function buildExtraModuleSql({
       tracking_number: `AWB-${pfx}-${80001 + i}`, tracking_token: `TRK-${pfx}-${80001 + i}`,
       tracking_url: `https://track.${domainHost}/AWB-${80001 + i}`,
       promised_by: ahead(2),
-      recipient_name: cust.nameEn, recipient_phone: cust.phone,
+      recipient_name: cust.nameEn, recipient_phone: cust.phone, recipient_country_code: pp.country_code, recipient_mobile_number: pp.mobile_number,
+      attempts: 1, failure_reason: null, out_at: ago(i % 30), route_stop: (i % 8) + 1, proof_signature: "/api/files/brand/signature.png",
       address: { line1: `Building ${10 + i}, ${cust.city}`, area: cust.city, city: cust.city, country: "BH" },
       cod_amount: i % 4 === 0 ? total : 0, cod_collected: i % 4 === 0 && status === "delivered" ? total : 0,
       delivery_fee: 2.5, proof_photo_url: null, signature_url: null,
@@ -501,7 +518,7 @@ function buildExtraModuleSql({
     lines.push(ins("delivery.shipment_event", {
       id: u(`ship-evt-${i}`), shipment_id: shipId,
       status: status === "delivered" ? "delivered" : "dispatched",
-      note: `Scanned at ${cust.city} hub`, location: cust.city,
+      note: `Scanned at ${cust.city} hub`, reason: "Regular dispatch update", at: ago(i % 30), location: cust.city,
       by_id: rs.driverId, created_at: ago(i % 30),
     }, "ON CONFLICT (id) DO NOTHING"));
   }
@@ -517,6 +534,8 @@ function buildExtraModuleSql({
     lines.push(ins("finance.tax_rate", {
       id: tr.id, name_en: tr.nameEn, name_ar: tr.nameAr, rate_percent: tr.rate,
       code: tr.id.toUpperCase(), country: "BH", is_default: tr.def, is_active: true,
+      registration_number: company.vatId, certificate_url: "/api/files/brand/stamp.png",
+      certificate_valid_until: ago(-1000), applies_to_invoices: true, applies_to_quotations: true, display_order: 1,
       effective_from: dateAgo(365), effective_to: null, description: tr.nameEn,
       created_at: ago(365), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
@@ -524,16 +543,17 @@ function buildExtraModuleSql({
   for (let i = 0; i < 4; i++) {
     const cdId = `cd-${i + 1}`;
     lines.push(ins("finance.cash_drawer", {
-      id: cdId, branch_id: i < 2 ? "br-hq" : "br-muharraq", code: `DRW-0${i + 1}`,
-      name_en: `Cash Drawer #${i + 1}`, name_ar: `صندوق النقد ${i + 1}`,
+      id: cdId, register_id: "pos-reg-1", name: `Cash Drawer #${i + 1}`, name_en: `Cash Drawer #${i + 1}`, name_ar: `صندوق النقد ${i + 1}`,
+      opening_float: 150, revision: 1, branch_id: i < 2 ? "br-hq" : "br-muharraq", code: `DRW-0${i + 1}`,
       currency: cur, opening_balance: 150, current_balance: 480 + i * 65,
       is_active: true, created_at: ago(180), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
     for (let s = 0; s < 5; s++) {
       lines.push(ins("finance.cashier_session", {
-        id: u(`csess-${i}-${s}`), cash_drawer_id: cdId, cashier_id: staffRoster[(s + 2) % staffRoster.length].id,
+        id: u(`csess-${i}-${s}`), register_id: cdId, drawer_id: cdId, shift_id: "shift-01", cash_drawer_id: cdId, cashier_id: staffRoster[(s + 2) % staffRoster.length].id,
         branch_id: i < 2 ? "br-hq" : "br-muharraq", status: s === 0 ? "open" : "closed",
-        opening_float: 150, expected_closing: 520, actual_closing: s === 0 ? null : 520,
+        opening_float: 150, closing_float: 520, expected_closing: 520, actual_closing: s === 0 ? null : 520,
+        expected_cash: 520, actual_cash: s === 0 ? null : 520, cash_difference: 0, total_sales: 520, total_returns: 0, note: `Shift session #${s + 1}`, revision: 1,
         variance: 0, opened_at: ago(s * 3 + 1), closed_at: s === 0 ? null : ago(s * 3),
         notes: `Shift session #${s + 1}`, created_at: ago(s * 3 + 1), updated_at: ago(s * 3),
         total_cash_sales: 210, total_card_sales: 310, total_refunds: 0,
@@ -545,6 +565,7 @@ function buildExtraModuleSql({
     const ag = agencies[i % agencies.length];
     lines.push(ins("finance.agency_invoice", {
       id: u(`ag-inv-${i}`), agency_id: ag.id, invoice_number: `${ag.id.toUpperCase()}-2026-${100 + i}`,
+      reference: `${ag.id.toUpperCase()}-REF`, invoice_date: ago(i * 30), amount: Number((180 + i * 32.5).toFixed(3)), expense_id: null, created_by_id: staffRoster[0].id,
       total_amount: Number((180 + i * 32.5).toFixed(3)), currency: cur,
       status: i < 4 ? "pending" : "paid", period_start: dateAgo((i + 1) * 30), period_end: dateAgo(i * 30),
       created_at: ago(i * 30),
@@ -555,13 +576,13 @@ function buildExtraModuleSql({
     const cust = customers[i % customers.length];
     const amt = Number((150 + i * 42.5).toFixed(3));
     lines.push(ins("finance.document_tax", {
-      id: u(`doc-tax-${i}`), document_type: "invoice", document_id: `inv-${String(invNum).padStart(3, "0")}`,
+      id: u(`doc-tax-${i}`), invoice_id: `inv-${String(invNum).padStart(3, "0")}`, quotation_id: null, code: "VAT10", name_en: "Standard VAT 10%", name_ar: "ضريبة القيمة المضافة 10%", registration_number: company.vatId, amount: Number((amt * 0.1).toFixed(3)), display_order: 1, document_type: "invoice", document_id: `inv-${String(invNum).padStart(3, "0")}`,
       tax_rate_id: "tax-vat-10", tax_name: "Standard VAT 10%", rate_percent: 10,
       taxable_amount: amt, tax_amount: Number((amt * 0.1).toFixed(3)),
       currency: cur, created_at: ago(i * 4), updated_at: ago(i * 4),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("finance.payment_attempt", {
-      id: u(`pay-att-${i}`), order_id: u(`order-${i}`), invoice_id: `inv-${String(invNum).padStart(3, "0")}`,
+      id: u(`pay-att-${i}`), session_id: null, gateway_payment_id: `gw-${i}`, test_mode: false, payment_id: null, amount_refunded: 0, failure_reason: null, paid_at: ago(i * 4), order_id: u(`order-${i}`), invoice_id: `inv-${String(invNum).padStart(3, "0")}`,
       gateway: i % 2 === 0 ? "benefit_pay" : "tap_payments",
       gateway_ref: `GW-${pfx}-${9000 + i}`, amount: Number((amt * 1.1).toFixed(3)), currency: cur,
       status: "succeeded", error_message: null, metadata: { channel: "web" },
@@ -569,7 +590,7 @@ function buildExtraModuleSql({
       customer_id: cust.id, payment_method: i % 2 === 0 ? "benefit" : "card",
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("finance.payment_collection", {
-      id: u(`pay-col-${i}`), collector_id: staffRoster[i % staffRoster.length].id,
+      id: u(`pay-col-${i}`), number: `COL-${pfx}-${500 + i}`, session_id: null, order_id: u(`order-${i}`), method_code: i % 2 === 0 ? "cash" : "bank_transfer", reference_number: `REF-${500 + i}`, evidence: { verified: true }, collected_by_id: staffRoster[i % staffRoster.length].id, collector_id: staffRoster[i % staffRoster.length].id,
       customer_id: cust.id, invoice_id: `inv-${String(invNum).padStart(3, "0")}`, amount: Number((amt * 1.1).toFixed(3)),
       currency: cur, method: i % 2 === 0 ? "cash" : "bank_transfer",
       reference: `COL-${pfx}-${500 + i}`, collected_at: ago(i * 3), status: "verified",
@@ -577,11 +598,11 @@ function buildExtraModuleSql({
       branch_id: "br-hq",
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("finance.payment_webhook_event", {
-      id: u(`pwh-${i}`), gateway: i % 2 === 0 ? "benefit_pay" : "tap_payments",
-      event_id: `evt_${pfx}_${7000 + i}`, processed_at: ago(i * 4),
+      id: u(`pwh-${i}`), event_id: `evt_${pfx}_${7000 + i}`, attempt_id: u(`pay-att-${i}`), received_at: ago(i * 4), gateway: i % 2 === 0 ? "benefit_pay" : "tap_payments",
+      processed_at: ago(i * 4),
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("finance.commission_snapshot", {
-      id: u(`comm-snap-${i}`), invoice_id: `inv-${String(invNum).padStart(3, "0")}`, owner_id: staffRoster[7].id,
+      id: u(`comm-snap-${i}`), order_id: u(`order-${i}`), order_line_id: u(`ord-line-${i}`), attributed_user_id: staffRoster[7].id, rule_version: 1, rule_rate: 5.0, basis_amount: amt, reversal_of_id: null, calculation_details: { percent: 5 }, earned_at: ago(i * 4), created_by_id: staffRoster[0].id, invoice_id: `inv-${String(invNum).padStart(3, "0")}`, owner_id: staffRoster[7].id,
       rule_id: "crule-std", rate_percent: 5, commissionable_amount: amt,
       commission_amount: Number((amt * 0.05).toFixed(3)), currency: cur,
       status: i < 10 ? "paid" : "accrued", period_month: "2026-10",
@@ -594,6 +615,7 @@ function buildExtraModuleSql({
   lines.push(`\n-- HR: GOSI, BENEFITS, SUPPORT, SALARY DOCS, 600 ATTENDANCE & PAYROLL LINES`);
   lines.push(ins("hr.gosi_settings", {
     id: "default", settings: { employeeRateBahraini: 7, employerRateBahraini: 12, employeeRateExpat: 0, employerRateExpat: 3, wageCap: 4000 },
+    nationality_categories: { bahraini: { emp: 7, er: 12 }, expat: { emp: 0, er: 3 } },
   }, "ON CONFLICT (id) DO NOTHING"));
   for (const gc of [
     { id: "gosi-bh-emp", nameEn: "Bahraini Employee Share", nameAr: "حصة الموظف البحريني", rate: 7, payer: "employee" },
@@ -601,7 +623,9 @@ function buildExtraModuleSql({
     { id: "gosi-ex-er", nameEn: "Expat Occupational Hazard", nameAr: "تأمين إصابات العمل للوافدين", rate: 3, payer: "employer" },
   ]) {
     lines.push(ins("hr.gosi_component", {
-      id: gc.id, name_en: gc.nameEn, name_ar: gc.nameAr, rate_percent: gc.rate, payer: gc.payer, is_active: true,
+      id: gc.id, code: gc.id.toUpperCase(), name_en: gc.nameEn, name_ar: gc.nameAr, rate_percent: gc.rate,
+      employee_percent: gc.payer === "employee" ? gc.rate : 0, employer_percent: gc.payer === "employer" ? gc.rate : 0,
+      payer: gc.payer, is_active: true,
     }, "ON CONFLICT (id) DO NOTHING"));
   }
   for (const bp of [
@@ -611,8 +635,8 @@ function buildExtraModuleSql({
     { id: "bp-edu", nameEn: "Training & Certification Allowance", nameAr: "بدل التدريب والشهادات", cat: "allowance", cost: 35 },
   ]) {
     lines.push(ins("hr.benefit_plan", {
-      id: bp.id, name_en: bp.nameEn, name_ar: bp.nameAr, category: bp.cat,
-      employer_contribution: bp.cost, employee_contribution: 0, is_active: true, created_at: ago(300),
+      id: bp.id, code: bp.id.toUpperCase(), name_en: bp.nameEn, name_ar: bp.nameAr, category: bp.cat,
+      coverage_details: `${bp.nameEn} corporate package`, employer_contribution: bp.cost, employee_contribution: 0, is_active: true, created_at: ago(300),
     }, "ON CONFLICT (id) DO NOTHING"));
   }
 
@@ -620,11 +644,13 @@ function buildExtraModuleSql({
     const s = staffRoster[i];
     lines.push(ins("hr.leave_adjustment", {
       id: u(`la-${i}`), employee_id: s.id, leave_type_id: "lt-annual", year: 2026,
-      days: 2, reason: "Carried forward from 2025", adjusted_by_id: staffRoster[0].id, created_at: ago(300),
+      days: 2, reason: "Carried forward from 2025", adjusted_by_id: staffRoster[0].id, created_by_id: staffRoster[0].id, created_at: ago(300),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("hr.salary_document", {
       id: u(`sal-doc-${i}`), employee_id: s.id, title: `Salary Certificate — ${s.nameEn}`,
-      document_type: "salary_certificate", file_url: `/api/files/brand/stamp.png`,
+      kind: "salary_certificate", document_type: "salary_certificate", file_url: `/api/files/brand/stamp.png`,
+      months: ["2026-09", "2026-10"], status: "issued", requested_by_id: s.id, reviewed_by_id: staffRoster[2].id,
+      review_notes: "Approved and verified", snapshot: { salary: s.salary },
       issued_at: ago(30), issued_by_id: staffRoster[2].id, basic_salary: s.salary,
       allowances: Number((s.salary * 0.15).toFixed(3)), currency: cur,
       notes: "Official HR salary certificate", created_at: ago(30), updated_at: ago(30),
@@ -633,13 +659,13 @@ function buildExtraModuleSql({
     // 20 days of attendance per employee (30 * 20 = 600 rows!)
     for (let d = 1; d <= 20; d++) {
       lines.push(ins("hr.attendance_entry", {
-        id: u(`att-${i}-${d}`), employee_id: s.id, date: dateAgo(d),
+        id: u(`att-${i}-${d}`), employee_id: s.id, date: dateAgo(d), entry_date: dateAgo(d),
         check_in: sqlRaw(`date_trunc('day', now() - interval '${d} days') + interval '8 hours ${d % 9} minutes'`),
         check_out: sqlRaw(`date_trunc('day', now() - interval '${d} days') + interval '17 hours ${d % 9} minutes'`),
         status: d % 17 === 0 ? "late" : "present", worked_minutes: 480,
         overtime_minutes: d % 5 === 0 ? 60 : 0, late_minutes: d % 17 === 0 ? 12 : 0,
         notes: "Biometric HQ check-in", created_at: ago(d), updated_at: ago(d),
-        shift_type_id: "shf-morning", source: "biometric",
+        shift_type_id: "shf-morning", source: "biometric", recorded_by_id: staffRoster[0].id,
         overtime_night_minutes: 0, overtime_rest_day_minutes: 0, overtime_holiday_minutes: 0,
       }, "ON CONFLICT DO NOTHING"));
     }
@@ -648,14 +674,16 @@ function buildExtraModuleSql({
       const supId = u(`emp-sup-${i}`);
       lines.push(ins("hr.employee_support", {
         id: supId, employee_id: s.id, program_id: "sp-tamkeen", title: `Tamkeen Wage Support — ${s.nameEn}`,
+        qualification: "Bachelor Degree", application_ref: `APP-TMK-${100 + i}`, applied_on: ago(190), decided_on: ago(175),
+        start_month: "2026-01", end_month: "2026-12", approved_percent: 50.0, approved_amount: 150.0, monthly_cap: 200.0,
         status: i < 10 ? "active" : "pending", monthly_amount: 150, currency: cur,
         start_date: dateAgo(180), end_date: dateAhead(180), reference: `TMK-2026-${100 + i}`,
         notes: "National employment wage subsidy", created_by_id: staffRoster[2].id,
         created_at: ago(180), updated_at: now, approved_at: ago(175), approved_by_id: staffRoster[0].id,
       }, "ON CONFLICT (id) DO NOTHING"));
       lines.push(ins("hr.employee_support_event", {
-        id: u(`emp-sup-evt-${i}`), support_id: supId, event_type: "claim_verified",
-        note: "Monthly Tamkeen disbursement confirmed", actor_id: staffRoster[2].id,
+        id: u(`emp-sup-evt-${i}`), support_id: supId, event_type: "claim_verified", action: "claim_verified",
+        note: "Monthly Tamkeen disbursement confirmed", details: { status: "disbursed" }, actor_id: staffRoster[2].id,
         amount: 150, created_at: ago(15),
       }, "ON CONFLICT (id) DO NOTHING"));
     }
@@ -668,13 +696,15 @@ function buildExtraModuleSql({
       const piId = `pi-prun-2026-${String(m).padStart(2, "0")}-${s.id}`;
       lines.push(ins("hr.payroll_item_line", {
         id: u(`pil-basic-${m}-${i}`), payroll_item_id: piId, kind: "earning", category: "basic_salary",
-        label_en: "Basic Salary", label_ar: "الراتب الأساسي", amount: s.salary,
+        label: "Basic Salary", label_en: "Basic Salary", label_ar: "الراتب الأساسي", amount: s.salary,
+        note: "Standard basic salary component", source: "contract", recurring_id: null, display_order: 1, created_by_id: staffRoster[0].id,
         is_taxable: false, sort_order: 1, created_at: ago(m * 30),
       }, "ON CONFLICT (id) DO NOTHING"));
       lines.push(ins("hr.payroll_item_line", {
         id: u(`pil-allow-${m}-${i}`), payroll_item_id: piId, kind: "earning", category: "housing_allowance",
-        label_en: "Housing & Transport Allowance", label_ar: "بدل السكن والمواصلات",
-        amount: Number((s.salary * 0.15).toFixed(3)), is_taxable: false, sort_order: 2, created_at: ago(m * 30),
+        label: "Housing & Transport Allowance", label_en: "Housing & Transport Allowance", label_ar: "بدل السكن والمواصلات",
+        amount: Number((s.salary * 0.15).toFixed(3)), note: "Standard housing allowance", source: "contract", recurring_id: null, display_order: 2, created_by_id: staffRoster[0].id,
+        is_taxable: false, sort_order: 2, created_at: ago(m * 30),
       }, "ON CONFLICT (id) DO NOTHING"));
     }
   }
@@ -685,8 +715,8 @@ function buildExtraModuleSql({
     const prod = prodList[i];
     const pid = `prod-${i + 1}`;
     lines.push(ins("inventory.product_packaging_unit", {
-      id: `ppu-${i + 1}`, product_id: pid, code: "BOX-10", name_en: "Master Carton (10 Units)",
-      name_ar: "كرتون رئيسي (10 وحدات)", units_per_package: 10, barcode: `629000100${100 + i}`,
+      id: `ppu-${i + 1}`, product_id: pid, code: "BOX-10", name: "Master Carton (10 Units)", name_en: "Master Carton (10 Units)",
+      name_ar: "كرتون رئيسي (10 وحدات)", base_units: 10, units_per_package: 10, indivisible: true, revision: 1, is_active: true, barcode: `629000100${100 + i}`,
       is_default: true, created_at: ago(180), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
 
@@ -695,13 +725,14 @@ function buildExtraModuleSql({
       const serNum = `${prod.sku}-SN-${String(1000 + i * 100 + j)}`;
       lines.push(ins("inventory.stock_serial", {
         id: serId, product_id: pid, variant_key: "default", batch_key: `B-2026-0${(j % 3) + 1}`,
-        serial_number: serNum, status: j < 10 ? "in_stock" : "sold",
-        warehouse_id: "wh-main", location_id: "loc-a1",
+        serial_number: serNum, code: serNum, manufacturer_serial: `MFG-${serNum}`, manufacturer_scope: "global", package_id: null, generation_id: "gen-1", revision: 1,
+        status: j < 10 ? "in_stock" : "sold", warehouse_id: "wh-main", location_id: "loc-a1",
         purchase_order_id: null, goods_receipt_id: null,
         notes: `Serialized unit ${serNum}`, created_at: ago(60), updated_at: ago(j),
       }, "ON CONFLICT (id) DO NOTHING"));
       lines.push(ins("inventory.stock_trace_event", {
         id: u(`ste-${i}-${j}`), serial_id: serId, event_type: j < 10 ? "received" : "dispatched",
+        entity_type: "stock_serial", entity_id: serId, revision: 1, action: j < 10 ? "received" : "dispatched", actor_id: staffRoster[0].id, details: { location: "loc-a1" },
         from_location_id: j < 10 ? null : "loc-a1", to_location_id: j < 10 ? "loc-a1" : null,
         reference_type: j < 10 ? "goods_receipt" : "sales_order",
         reference_id: u(`order-${j}`), created_at: ago(j * 2),
@@ -711,13 +742,13 @@ function buildExtraModuleSql({
   for (let i = 0; i < 12; i++) {
     const pkgId = u(`pkg-${i}`);
     lines.push(ins("inventory.stock_package", {
-      id: pkgId, code: `${pfx}-PKG-${500 + i}`, warehouse_id: "wh-main", location_id: "loc-a1",
+      id: pkgId, code: `${pfx}-PKG-${500 + i}`, kind: "pallet", parent_id: null, seal_number: `SEAL-${9000 + i}`, revision: 1, warehouse_id: "wh-main", location_id: "loc-a1",
       status: i < 4 ? "sealed" : "dispatched", weight_kg: 12.5 + i,
       notes: `Outbound pallet package #${500 + i}`, created_by_id: staffRoster[0].id,
       created_at: ago(i * 3), updated_at: ago(i * 3),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("inventory.stock_acknowledgment", {
-      id: u(`ack-${i}`), allocation_id: `salloc-00${(i % 2) + 1}`,
+      id: u(`ack-${i}`), allocation_id: `salloc-00${(i % 2) + 1}`, revision: 1, stage: "final", actor_id: staffRoster[0].id, signer_name: staffRoster[0].nameEn, statement: "I confirm stock receipt", manifest: { items: 5 }, manifest_hash: uuidOf(`man-${i}`), signature: "/api/files/brand/signature.png",
       acknowledged_by_id: staffRoster[(i % 10) + 1].id, status: "acknowledged",
       received_quantity: 5 + i, damaged_quantity: 0, missing_quantity: 0,
       notes: `Handover acknowledged at ${company.city}`, acknowledged_at: ago(i * 2),
@@ -733,25 +764,27 @@ function buildExtraModuleSql({
   ]) {
     lines.push(ins("itsm.support_program", {
       id: sp.id, code: sp.id.toUpperCase(), name_en: sp.nameEn, name_ar: sp.nameAr,
+      provider: "Tamkeen", claim_period_months: 12, prorate: false, notes: `${sp.nameEn} corporate policy`,
       description: `${sp.nameEn} corporate policy`, is_active: true, default_coverage_percent: sp.pct,
       max_claim_amount: 1500, currency: cur, created_at: ago(200), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("itsm.support_program_rule", {
       id: `${sp.id}-r1`, program_id: sp.id, rule_key: "eligibility_tenure_days",
+      effective_from: dateAgo(365), effective_to: null, wage_basis: "basic_plus_housing",
       rule_value: "90", description: "Minimum 90 days active employment", created_at: ago(200),
     }, "ON CONFLICT (id) DO NOTHING"));
   }
   for (let i = 0; i < 15; i++) {
     lines.push(ins("itsm.support_reimbursement", {
       id: u(`itsm-reimb-${i}`), program_id: i % 2 === 0 ? "sp-tamkeen" : "sp-equip",
-      employee_id: staffRoster[i % staffRoster.length].id, amount: 85 + i * 15,
+      employee_id: staffRoster[i % staffRoster.length].id, provider: "Tamkeen", period_start: "2026-01-01", period_end: "2026-12-31", claimed_amount: 85 + i * 15, received_amount: 85 + i * 15, received_on: ago(i * 4), reference: `REF-SUP-${100 + i}`, recorded_by_id: staffRoster[0].id, amount: 85 + i * 15,
       currency: cur, status: i < 5 ? "pending" : "approved",
       receipt_url: `/api/files/brand/stamp.png`, notes: `Support claim #${i + 1}`,
       submitted_at: ago(i * 4), decided_at: i < 5 ? null : ago(i * 4 - 1),
-      decided_by_id: i < 5 ? null : staffRoster[0].id,
+      decided_by_id: i < 5 ? null : staffRoster[0].id, created_at: ago(i * 4),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("itsm.ticket_attachment", {
-      id: u(`tkt-att-${i}`), ticket_id: u(`ticket:${(i % 12) + 1}`),
+      id: u(`tkt-att-${i}`), ticket_id: u(`ticket:${(i % 12) + 1}`), comment_id: u(`tkt-cmt-${i}`),
       file_name: `diagnostic-log-${i + 1}.pdf`, file_url: `/api/files/brand/stamp.png`,
       mime_type: "application/pdf", file_size: 48200 + i * 1024,
       added_by: staffRoster[i % staffRoster.length].id, created_at: ago(i * 2),
@@ -761,14 +794,16 @@ function buildExtraModuleSql({
   for (let i = 0; i < 12; i++) {
     lines.push(ins("notify.category_setting", {
       id: `ncat-${i + 1}`, realm: "staff", user_id: staffRoster[i % staffRoster.length].id,
-      category: ["finance", "hr", "sales", "itsm"][i % 4], email_enabled: true,
+      category: ["finance", "hr", "sales", "itsm"][i % 4], email_enabled: true, muted: false, sound: true,
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("notify.message", {
       id: u(`nmsg-${i}`), caller: "notify-seed", idempotency_key: `nmsg-${pfx}-${i}`,
-      channel: i % 2 === 0 ? "email" : "whatsapp",
+      actor: "system", channel: i % 2 === 0 ? "email" : "whatsapp",
       recipient: `${staffRoster[i % staffRoster.length].id}@${domainHost}`,
       subject: `${company.shortEn}: Action Required #${i + 1}`,
       body: `Automated notification dispatch #${i + 1} for ${company.shortEn}.`,
+      body_text: `Automated notification dispatch #${i + 1} for ${company.shortEn}.`,
+      body_html: `<p>Automated notification dispatch #${i + 1} for ${company.shortEn}.</p>`,
       status: "sent", provider: "smtp", provider_id: `msg-${pfx}-${i}`,
       attempts: 1, last_error: null, metadata: { priority: "normal" },
       user_id: staffRoster[i % staffRoster.length].id, realm: "staff",
@@ -781,7 +816,7 @@ function buildExtraModuleSql({
     }, "ON CONFLICT DO NOTHING"));
     lines.push(ins("notify.mute", {
       id: u(`nmute-${i}`), realm: "staff", user_id: staffRoster[i % staffRoster.length].id,
-      entity_type: "ticket", entity_id: u(`ticket:${(i % 12) + 1}`), created_at: ago(1),
+      entity_type: "ticket", entity_id: u(`ticket:${(i % 12) + 1}`), until: ahead(7), created_at: ago(1),
     }, "ON CONFLICT DO NOTHING"));
   }
 
@@ -797,7 +832,7 @@ function buildExtraModuleSql({
   for (let i = 0; i < 15; i++) {
     lines.push(ins("sales.sales_attribution_change", {
       id: u(`sac-${i}`), entity_type: "quotation", entity_id: `qt-${String((i % 14) + 1).padStart(3, "0")}`,
-      from_owner_id: staffRoster[7].id, to_owner_id: staffRoster[8].id,
+      from_owner_id: staffRoster[7].id, to_owner_id: staffRoster[8].id, from_user_id: staffRoster[7].id, to_user_id: staffRoster[8].id,
       changed_by_id: staffRoster[0].id, reason: "Territory rebalancing Q4",
       created_at: ago(i * 5),
     }, "ON CONFLICT (id) DO NOTHING"));
@@ -807,17 +842,17 @@ function buildExtraModuleSql({
   lines.push(`\n-- SYSTEM: GOVERNANCE, POLICIES, API KEYS, BROADCASTS, DOCS, COMMS & LOGS`);
   for (let i = 0; i < 10; i++) {
     lines.push(ins("system.abuse_window", {
-      key: `rate:login:10.20.1.${i + 1}`, count: 1 + (i % 3), reset_at: ahead(1),
+      key: `rate:login:10.20.1.${i + 1}`, count: 1 + (i % 3), reset_at: ahead(1), expires_at: ahead(1),
     }, "ON CONFLICT (key) DO NOTHING"));
     lines.push(ins("system.api_key", {
       id: u(`apikey-${i}`), name: `Integration Key #${i + 1}`, key_prefix: `${pfx.toLowerCase()}_live_${10 + i}`,
-      key_hash: uuidOf(`ak-${i}`), scopes: ["read:orders", "read:inventory"],
+      key_hash: uuidOf(`ak-${i}`), scopes: ["read:orders", "read:inventory"], rate_limit: 1000,
       created_by: staffRoster[0].id, last_used_at: ago(i), expires_at: ahead(365),
       revoked_at: null, created_at: ago(90), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.backup_record", {
       id: u(`bkp-${i}`), kind: i % 2 === 0 ? "database" : "full",
-      file_name: `${company.slug}-backup-2026-11-${String(15 - i).padStart(2, "0")}.dump`,
+      file_name: `${company.slug}-backup-2026-11-${String(15 - i).padStart(2, "0")}.dump`, file_size: 18450000, error_message: null, verified_at: ago(i), details: { type: "pg_dump" },
       storage_path: `backups/${company.slug}/${i}.dump`, size_bytes: 18450000 + i * 240000,
       checksum: uuidOf(`chk-${i}`), status: "completed",
       created_by: staffRoster[0].id, completed_at: ago(i), created_at: ago(i),
@@ -833,12 +868,12 @@ function buildExtraModuleSql({
   for (let i = 0; i < 6; i++) {
     const apId = `ap-pol-${i + 1}`;
     lines.push(ins("system.approval_policy", {
-      id: apId, entity_type: ["expense", "purchase_order", "leave_request", "quotation", "contract", "payment"][i],
+      id: apId, target_type: ["expense", "purchase_order", "leave_request", "quotation", "contract", "payment"][i], enabled: true, allow_self_approval: false, reminder_after_hours: 24, entity_type: ["expense", "purchase_order", "leave_request", "quotation", "contract", "payment"][i],
       name_en: `Standard Approval Policy #${i + 1}`, name_ar: `سياسة الاعتماد القياسية ${i + 1}`,
       is_active: true, created_at: ago(180), updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.approval_policy_step", {
-      id: `${apId}-s1`, policy_id: apId, step_order: 1, approver_role: "operations_manager",
+      id: `${apId}-s1`, policy_id: apId, step_order: 1, order: 1, approver_mode: "single", role_key: "operations_manager", user_id: staffRoster[3].id, permission: "approve", min_days: 0, min_discount_percent: 0, escalate_mode: "manager", escalate_role_key: "admin", escalate_user_id: staffRoster[0].id, approver_role: "operations_manager",
       approver_user_id: staffRoster[3].id, min_amount: 0, max_amount: 1000,
       require_all: false, auto_approve_below: 50, label_en: "Department Manager", label_ar: "مدير القسم",
       escalate_after_hours: 24, notify_channel: "in_app", created_at: ago(180),
@@ -848,7 +883,8 @@ function buildExtraModuleSql({
   for (let i = 0; i < 8; i++) {
     const bcId = u(`bc-${i}`);
     lines.push(ins("system.broadcast", {
-      id: bcId, title_en: `${company.shortEn} Operational Update #${i + 1}`,
+      id: bcId, name: `Broadcast #${i + 1}`, segment_id: "all", campaign_id: null, subject_en: `${company.shortEn} Update #${i + 1}`, subject_ar: `تحديث ${company.shortAr} رقم ${i + 1}`, queued_at: ago(i * 7), updated_at: ago(i * 7),
+      title_en: `${company.shortEn} Operational Update #${i + 1}`,
       title_ar: `تحديث تشغيلي رقم ${i + 1}`, body_en: "Quarterly performance & compliance notice for all teams.",
       body_ar: "إشعار الأداء والامتثال الربع سنوي لجميع الفرق.", channel: "email",
       audience: "all_staff", status: "sent", sent_count: staffRoster.length,
@@ -857,7 +893,7 @@ function buildExtraModuleSql({
     for (let j = 0; j < 5; j++) {
       const s = staffRoster[(i + j) % staffRoster.length];
       lines.push(ins("system.broadcast_recipient", {
-        id: u(`bcr-${i}-${j}`), broadcast_id: bcId, user_id: s.id,
+        id: u(`bcr-${i}-${j}`), broadcast_id: bcId, user_id: s.id, customer_id: null, locale: "en", error: null, sent_at: ago(i * 7),
         email: `${s.id}@${domainHost}`, status: "delivered", delivered_at: ago(i * 7),
         read_at: ago(i * 7), error_message: null,
       }, "ON CONFLICT (id) DO NOTHING"));
@@ -868,13 +904,13 @@ function buildExtraModuleSql({
     const thId = u(`comm-th-${i}`);
     const cust = customers[i % customers.length];
     lines.push(ins("system.communication_thread", {
-      id: thId, subject: `Client Thread: ${cust.nameEn} (#${i + 1})`,
+      id: thId, subject: `Client Thread: ${cust.nameEn} (#${i + 1})`, assigned_to: staffRoster[7].id, updated_at: ago(i),
       contact_id: cust.id, deal_id: `deal-${(i % 8) + 1}`, inquiry_id: null,
       status: i < 4 ? "open" : "resolved", last_message_at: ago(i), created_at: ago(i + 2),
     }, "ON CONFLICT (id) DO NOTHING"));
     const msgId = u(`comm-msg-${i}`);
     lines.push(ins("system.communication_message", {
-      id: msgId, thread_id: thId, direction: i % 2 === 0 ? "outbound" : "inbound",
+      id: msgId, thread_id: thId, message_id: `msg-${pfx}-${i}`, in_reply_to: null, from_email: i % 2 === 0 ? `${staffRoster[7].id}@${domainHost}` : cust.email, to_email: i % 2 === 0 ? cust.email : `sales@${domainHost}`, delivery_log: { delivered: true }, invoice_id: null, quotation_id: `qt-${String((i % 14) + 1).padStart(3, "0")}`, updated_at: ago(i), direction: i % 2 === 0 ? "outbound" : "inbound",
       channel: "email", sender_name: i % 2 === 0 ? staffRoster[7].nameEn : cust.nameEn,
       sender_email: i % 2 === 0 ? `${staffRoster[7].id}@${domainHost}` : cust.email,
       recipient_email: i % 2 === 0 ? cust.email : `sales@${domainHost}`,
@@ -894,7 +930,7 @@ function buildExtraModuleSql({
   for (let i = 0; i < staffRoster.length; i++) {
     const s = staffRoster[i];
     lines.push(ins("system.calendar_feed_token", {
-      id: u(`cft-${i}`), user_id: s.id, token: uuidOf(`cal-tok-${s.id}`),
+      id: u(`cft-${i}`), user_id: s.id, token: uuidOf(`cal-tok-${s.id}`), token_hash: sha256(`cft-${s.id}`), last_used_at: ago(1),
       is_active: true, created_at: ago(90),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.employment_record", {
@@ -910,7 +946,7 @@ function buildExtraModuleSql({
         month: 10, year: 2026, storage_path: `payslips/2026-10/${s.id}.pdf`, issued_at: ago(15),
       }, "ON CONFLICT (id) DO NOTHING"));
       lines.push(ins("system.account_change_request", {
-        id: u(`acr-${i}`), user_id: s.id, requested_by_id: s.id,
+        id: u(`acr-${i}`), user_id: s.id, requested_by_id: s.id, changes: { role: s.role }, before: { role: "viewer" }, reason: "Role update request", decided_by_id: staffRoster[0].id,
         change_type: "role_update", payload: { requestedRole: s.role },
         status: i < 3 ? "pending" : "approved", reviewed_by_id: i < 3 ? null : staffRoster[0].id,
         review_notes: "Verified with department head", decided_at: i < 3 ? null : ago(5),
@@ -932,8 +968,9 @@ function buildExtraModuleSql({
 
   for (let i = 0; i < 10; i++) {
     const cust = customers[i];
+    const pp = splitPhone(cust.phone);
     lines.push(ins("system.client_contact_person", {
-      id: u(`ccp-${i}`), client_id: cust.id, name_en: `Contact ${i + 1} (${cust.city})`,
+      id: u(`ccp-${i}`), client_id: cust.id, contact_id: cust.id, full_name: `Contact ${i + 1} (${cust.city})`, position: "Procurement Director", department: "Procurement", display_order: i + 1, country_code: pp.country_code, mobile_number: pp.mobile_number, name_en: `Contact ${i + 1} (${cust.city})`,
       name_ar: `جهة الاتصال ${i + 1}`, email: cust.email, phone: cust.phone,
       job_title: "Procurement Director", is_primary: true, notes: "Primary billing & project contact",
       created_at: ago(180), updated_at: now,
@@ -942,6 +979,7 @@ function buildExtraModuleSql({
       id: u(`csig-${i}`), client_id: cust.id, signer_name: `Authorized Signatory #${i + 1}`,
       signer_email: cust.email, signer_phone: cust.phone, signature_url: "/api/files/brand/signature.png",
       document_type: "quotation", document_id: `qt-${String((i % 14) + 1).padStart(3, "0")}`,
+      method: "digital_otp", token_hash: sha256(`sig-${i}`), recipient_email: cust.email, signer_title: "Authorized Representative", signature_data: "data:image/png;base64,iVBORw0...", signed_file_url: "/api/files/brand/signature.png", terms_text: "Standard commercial agreement terms accepted.", terms_accepted: true, document_hash: sha256(`doc-${i}`), signed_ip: `185.12.4.${20 + i}`, signed_user_agent: "Mozilla/5.0", viewed_at: ago(i * 3 + 1), revoked_at: null,
       ip_address: `185.12.4.${20 + i}`, user_agent: "Mozilla/5.0",
       signed_at: ago(i * 3), created_by_id: staffRoster[7].id, created_at: ago(i * 3),
       notes: "E-signed via client portal", verified: true, verification_code: `VER-${1000 + i}`,
@@ -955,7 +993,7 @@ function buildExtraModuleSql({
   }
 
   lines.push(ins("system.dashboard_layout", {
-    user_id: staffRoster[0].id,
+    user_id: staffRoster[0].id, widgets: [{ id: "w1", type: "kpi" }], scratchpad: { notes: "Dashboard scratchpad" }, sidebar_prefs: { open: true }, updated_at: now,
   }, "ON CONFLICT (user_id) DO NOTHING"));
 
   for (const [key, en, ar] of [
@@ -972,7 +1010,7 @@ function buildExtraModuleSql({
   }
   for (const dk of ["sql_trace", "nats_verbose", "webhook_replay"]) {
     lines.push(ins("system.debug_toggle", {
-      id: `dbg-${dk}`, service: dk, enabled_by: staffRoster[0].id, expires_at: ahead(7),
+      id: `dbg-${dk}`, service: dk, enabled_by: staffRoster[0].id, expires_at: ahead(7), log_level: "debug", enabled_at: ago(1),
       key: dk, enabled: false, description: `Diagnostic toggle: ${dk}`,
       updated_by_id: staffRoster[0].id, updated_at: now,
     }, "ON CONFLICT (id) DO NOTHING"));
@@ -992,7 +1030,7 @@ function buildExtraModuleSql({
       document_type: dt, mode: "optional", updated_by_id: staffRoster[0].id, updated_at: now,
     }, "ON CONFLICT (document_type) DO NOTHING"));
     lines.push(ins("system.document_template", {
-      id: `tmpl-${dt}`, document_type: dt, name_en: `Standard ${dt} Template`,
+      id: `tmpl-${dt}`, document_type: dt, slug: dt, category: "document", body_html: "<p>Template</p>", body_json: { blocks: [] }, version: 1, name_en: `Standard ${dt} Template`,
       name_ar: `قالب ${dt} القياسي`, header_html: `<div>${company.nameEn}</div>`,
       footer_html: `<div>${company.addressEn}</div>`, body_template: "<p>{{content}}</p>",
       is_default: true, is_active: true, created_by_id: staffRoster[0].id,
@@ -1004,7 +1042,7 @@ function buildExtraModuleSql({
     lines.push(ins("system.company_document", {
       id: u(`cdoc-${i}`), title_en: ["Commercial Registration", "VAT Certificate", "GOSI Clearance", "Chamber Membership", "Trade License", "ISO 9001 Certificate"][i],
       title_ar: ["السجل التجاري", "شهادة القيمة المضافة", "شهادة التأمينات", "عضوية الغرفة", "الرخصة التجارية", "شهادة الجودة"][i],
-      category: "compliance", document_number: `${company.crNumber}-${i + 1}`,
+      category: "compliance", document_number: `${company.crNumber}-${i + 1}`, file_size: 85200, mime_type: "application/pdf", valid_from: ago(300), valid_until: ahead(180),
       file_url: "/api/files/brand/stamp.png", issue_date: dateAgo(300), expiry_date: dateAhead(180 + i * 30),
       remind_days_before: 30, status: "valid", uploaded_by_id: staffRoster[0].id,
       notes: "Verified corporate compliance document", created_at: ago(300), updated_at: now,
@@ -1035,7 +1073,7 @@ function buildExtraModuleSql({
       id: u(`actlog-${i}`), user_id: staffRoster[i % staffRoster.length].id,
       action: ["invoice.issued", "quotation.sent", "employee.onboarded", "stock.adjusted", "ticket.resolved"][i % 5],
       entity_type: ["invoice", "quotation", "employee", "product", "ticket"][i % 5],
-      entity_id: u(`act-ent-${i}`), metadata: { ip: `10.20.1.${10 + i}`, source: "admin" },
+      entity_id: u(`act-ent-${i}`), details: { ip: `10.20.1.${10 + i}`, source: "admin" }, diff_payload: { status: "updated", previous: "pending", new: "active" }, metadata: { ip: `10.20.1.${10 + i}`, source: "admin" },
       created_at: ago(i),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.email_job", {
@@ -1048,8 +1086,8 @@ function buildExtraModuleSql({
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.document_fx", {
       id: u(`dfx-${i}`), document_type: "invoice", document_id: `inv-${String(i + 1).padStart(3, "0")}`,
-      base_currency: cur, quote_currency: "USD", raw_rate: 2.6525,
-      margin_percent: 0.5, effective_rate: 2.6658, snapshot_id: null, created_at: ago(i * 2),
+      base_currency: cur, quote_currency: "USD", base_amount: 100.000, target_amount: 266.580, raw_rate: 2.6525,
+      margin_percent: 0.5, effective_rate: 2.6658, rate_snapshot_id: "snap-fx-1", snapshot_id: "snap-fx-1", created_at: ago(i * 2),
     }, "ON CONFLICT (id) DO NOTHING"));
     lines.push(ins("system.revalidation_job", {
       id: u(`reval-${i}`), event_key: `cms.publish.${i}`, payload: { paths: ["/", "/services"] },

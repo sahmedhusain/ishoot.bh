@@ -8,20 +8,20 @@ Complete schema reference for PostgreSQL 17 (`platform_db`) generated directly f
 |---|---|---:|---:|---:|
 | [`audit`](#schema-audit) | `audit` | 1 | 10 | 0 |
 | [`cms`](#schema-cms) | `cms` | 17 | 175 | 0 |
-| [`commerce`](#schema-commerce) | `commerce` | 17 | 209 | 7 |
-| [`delivery`](#schema-delivery) | `delivery` | 13 | 127 | 7 |
+| [`commerce`](#schema-commerce) | `commerce` | 17 | 215 | 7 |
+| [`delivery`](#schema-delivery) | `delivery` | 13 | 133 | 7 |
 | [`files`](#schema-files) | `files` | 2 | 27 | 2 |
-| [`finance`](#schema-finance) | `finance` | 32 | 436 | 30 |
-| [`hr`](#schema-hr) | `hr` | 25 | 309 | 24 |
-| [`identity`](#schema-identity) | `identity` | 26 | 197 | 24 |
+| [`finance`](#schema-finance) | `finance` | 32 | 438 | 30 |
+| [`hr`](#schema-hr) | `hr` | 25 | 311 | 24 |
+| [`identity`](#schema-identity) | `identity` | 26 | 199 | 24 |
 | [`inventory`](#schema-inventory) | `inventory` | 29 | 330 | 31 |
 | [`itsm`](#schema-itsm) | `itsm` | 16 | 158 | 8 |
 | [`notify`](#schema-notify) | `notify` | 8 | 74 | 2 |
 | [`realtime`](#schema-realtime) | `realtime` | 2 | 15 | 0 |
-| [`sales`](#schema-sales) | `sales` | 14 | 232 | 9 |
-| [`system`](#schema-system) | `system` | 70 | 713 | 7 |
+| [`sales`](#schema-sales) | `sales` | 14 | 238 | 9 |
+| [`system`](#schema-system) | `system` | 70 | 725 | 7 |
 | [`workflow`](#schema-workflow) | `workflow` | 14 | 196 | 8 |
-| **Total** | **15 stateful services** | **286** | **3208** | **159** |
+| **Total** | **15 stateful services** | **286** | **3244** | **159** |
 
 ## Cross-Service Relational Event Mesh
 
@@ -603,6 +603,8 @@ erDiagram
         text apple_sub
         boolean marketing_opt_in
         text crm_contact_id
+        text country_code
+        text mobile_number
     }
     commerce__customer_address {
         text id PK
@@ -620,6 +622,8 @@ erDiagram
         text phone
         text area
         timestamptz created_at
+        text country_code
+        text mobile_number
     }
     commerce__customer_auth_code {
         text id PK
@@ -742,6 +746,8 @@ erDiagram
         text shipment_id
         text shipment_status
         text tracking_token
+        text country_code
+        text mobile_number
     }
     commerce__sales_order_event {
         text id PK
@@ -863,6 +869,8 @@ erDiagram
 | `apple_sub` | `text` | YES |  |  |
 | `marketing_opt_in` | `boolean` | YES |  |  |
 | `crm_contact_id` | `text` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `commerce.customer_address`
 
@@ -883,6 +891,8 @@ erDiagram
 | `phone` | `text` | YES |  |  |
 | `area` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `commerce.customer_auth_code`
 
@@ -1032,6 +1042,8 @@ erDiagram
 | `shipment_id` | `text` | YES |  |  |
 | `shipment_status` | `text` | YES |  |  |
 | `tracking_token` | `text` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `commerce.sales_order_event`
 
@@ -1141,6 +1153,8 @@ erDiagram
         text api_endpoint
         boolean is_active
         timestamptz created_at
+        text country_code
+        text mobile_number
     }
     delivery__delivery_settings {
         text id PK
@@ -1201,6 +1215,8 @@ erDiagram
         numeric total
         text currency
         timestamptz updated_at
+        text recipient_country_code
+        text recipient_mobile_number
     }
     delivery__outbox {
         uuid id PK
@@ -1255,6 +1271,8 @@ erDiagram
         text tracking_number
         timestamptz created_at
         timestamptz updated_at
+        text recipient_country_code
+        text recipient_mobile_number
     }
     delivery__shipment_event {
         text id PK
@@ -1311,6 +1329,8 @@ erDiagram
 | `api_endpoint` | `text` | YES |  |  |
 | `is_active` | `boolean` | NO |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `delivery.delivery_settings`
 
@@ -1389,6 +1409,8 @@ erDiagram
 | `total` | `numeric` | NO |  |  |
 | `currency` | `text` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `recipient_country_code` | `text` | YES |  |  |
+| `recipient_mobile_number` | `text` | YES |  |  |
 
 #### `delivery.outbox`
 
@@ -1452,6 +1474,8 @@ erDiagram
 | `tracking_number` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `recipient_country_code` | `text` | YES |  |  |
+| `recipient_mobile_number` | `text` | YES |  |  |
 
 #### `delivery.shipment_event`
 
@@ -1689,6 +1713,8 @@ erDiagram
         text email
         text phone
         timestamptz updated_at
+        text country_code
+        text mobile_number
     }
     finance__document_tax {
         text id PK
@@ -2250,6 +2276,8 @@ erDiagram
 | `email` | `text` | YES |  |  |
 | `phone` | `text` | YES |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `finance.document_tax`
 
@@ -2784,6 +2812,8 @@ erDiagram
         timestamptz passport_expiry_date
         numeric leave_balance_days
         text manager_id FK
+        text country_code
+        text mobile_number
     }
     hr__employee_credential {
         text id PK
@@ -3183,6 +3213,8 @@ erDiagram
 | `passport_expiry_date` | `timestamp with time zone` | YES |  |  |
 | `leave_balance_days` | `numeric` | YES |  |  |
 | `manager_id` | `text` | YES | FK | `hr.employee.id` |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `hr.employee_credential`
 
@@ -3783,6 +3815,8 @@ erDiagram
         timestamptz suspended_at
         text suspended_by_id
         text suspension_reason
+        text country_code
+        text mobile_number
     }
     identity__account ||--o{ identity__account : "reporting_to"
     identity__account ||--o{ identity__account : "realm"
@@ -3796,8 +3830,8 @@ erDiagram
     identity__account ||--o{ identity__legacy_reset_challenge : "realm"
     identity__account ||--o{ identity__legacy_reset_challenge : "subject_id"
     identity__user ||--o{ identity__mfa_recovery_code : "user_id"
-    identity__account ||--o{ identity__mfa_recovery_code : "realm"
     identity__account ||--o{ identity__mfa_recovery_code : "subject_id"
+    identity__account ||--o{ identity__mfa_recovery_code : "realm"
     identity__account ||--o{ identity__password_reset : "realm"
     identity__account ||--o{ identity__password_reset : "subject_id"
     identity__session_family ||--o{ identity__refresh_token : "family_id"
@@ -4138,6 +4172,8 @@ erDiagram
 | `suspended_at` | `timestamp with time zone` | YES |  |  |
 | `suspended_by_id` | `text` | YES |  |  |
 | `suspension_reason` | `text` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 ---
 
@@ -5823,6 +5859,8 @@ erDiagram
         array tags
         timestamptz created_at
         timestamptz updated_at
+        text country_code
+        text mobile_number
     }
     sales__crm_contact {
         text id PK
@@ -5868,6 +5906,8 @@ erDiagram
         timestamptz updated_at
         integer supplier_lead_time_days
         integer supplier_payment_terms_days
+        text country_code
+        text mobile_number
     }
     sales__crm_deal {
         text id PK
@@ -5934,6 +5974,8 @@ erDiagram
         text deal_id FK
         timestamptz created_at
         timestamptz updated_at
+        text requester_country_code
+        text requester_mobile_number
     }
     sales__outbox {
         uuid id PK
@@ -6105,6 +6147,8 @@ erDiagram
 | `tags` | `ARRAY` | NO |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `sales.crm_contact`
 
@@ -6153,6 +6197,8 @@ erDiagram
 | `updated_at` | `timestamp with time zone` | NO |  |  |
 | `supplier_lead_time_days` | `integer` | YES |  |  |
 | `supplier_payment_terms_days` | `integer` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `sales.crm_deal`
 
@@ -6234,6 +6280,8 @@ erDiagram
 | `deal_id` | `text` | YES | FK | `sales.deal.id` |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `requester_country_code` | `text` | YES |  |  |
+| `requester_mobile_number` | `text` | YES |  |  |
 
 #### `sales.outbox`
 
@@ -6540,6 +6588,8 @@ erDiagram
         integer display_order
         timestamptz created_at
         timestamptz updated_at
+        text country_code
+        text mobile_number
     }
     system__client_logo {
         text id PK
@@ -6715,9 +6765,17 @@ erDiagram
         text map_url
         text website_domain
         text admin_domain
+        text country_code
+        text mobile_number
+        text whatsapp_country_code
+        text whatsapp_mobile_number
     }
     system__dashboard_layout {
         text user_id PK
+        jsonb widgets
+        jsonb scratchpad
+        jsonb sidebar_prefs
+        timestamptz updated_at
     }
     system__debug_toggle {
         text id PK
@@ -6958,6 +7016,8 @@ erDiagram
         boolean is_active
         timestamptz created_at
         timestamptz updated_at
+        text country_code
+        text mobile_number
     }
     system__media_coverage {
         text id PK
@@ -7452,6 +7512,8 @@ erDiagram
 | `display_order` | `integer` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `system.client_logo`
 
@@ -7654,12 +7716,20 @@ erDiagram
 | `map_url` | `text` | YES |  |  |
 | `website_domain` | `text` | YES |  |  |
 | `admin_domain` | `text` | YES |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
+| `whatsapp_country_code` | `text` | YES |  |  |
+| `whatsapp_mobile_number` | `text` | YES |  |  |
 
 #### `system.dashboard_layout`
 
 | Column | Type | Nullable | Key | References |
 |---|---|---|---|---|
 | `user_id` | `text` | NO | PK |  |
+| `widgets` | `jsonb` | NO |  |  |
+| `scratchpad` | `jsonb` | NO |  |  |
+| `sidebar_prefs` | `jsonb` | NO |  |  |
+| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.debug_toggle`
 
@@ -7957,6 +8027,8 @@ erDiagram
 | `is_active` | `boolean` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
+| `country_code` | `text` | YES |  |  |
+| `mobile_number` | `text` | YES |  |  |
 
 #### `system.media_coverage`
 

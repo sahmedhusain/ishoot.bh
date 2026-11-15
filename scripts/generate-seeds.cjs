@@ -5,16 +5,40 @@ const sharp = require(path.resolve(__dirname, "../apps/admin/node_modules/sharp"
 const { COMPANIES } = require("./seed-companies.cjs");
 const { buildRichModuleSql } = require("./seed-rich-modules.cjs");
 const { EXTRA_STAFF, EXTRA_CUSTOMERS, buildExtraModuleSql } = require("./seed-extra-modules.cjs");
+const {
+  schemaMeta,
+  uuidOf,
+  sqlRaw,
+  ins,
+  splitPhone,
+  staffEmail,
+  loadDotEnv,
+} = require("./lib/seed-sql.cjs");
+const { getActivityCatalog } = require("./lib/activity-catalogs.cjs");
 
 const root = path.resolve(__dirname, "..");
-const schemaMeta = require("./schema-meta.json");
-const templateSqlPath = path.join(root, "seeds/zayed-group/seed.sql");
-const templateSql = fs.readFileSync(templateSqlPath, "utf8");
+const envVars = loadDotEnv(path.join(root, ".env"));
 
-// Extract static identity roles/permissions/scopes (preserving IT roles/permissions)
-const identityMatch = templateSql.match(/-- IDENTITY\n[\s\S]*?(?=\nINSERT INTO identity\.account)/);
+const SUPER_ADMIN_USERNAME = envVars.SUPER_ADMIN_USERNAME || "BA0001";
+const SUPER_ADMIN_EMAIL = envVars.SUPER_ADMIN_EMAIL || "admin@example.com";
+const SUPER_ADMIN_NAME = envVars.SUPER_ADMIN_NAME || "Super Admin";
+const SUPER_ADMIN_PASSWORD_HASH =
+  envVars.SUPER_ADMIN_PASSWORD_HASH ||
+  "$argon2id$v=19$m=19456,t=2,p=1$pY9XsX6uhwv8DfyY+1St1w$+gLc4Swb4+gFXMhwXuQYoMx/NxPL4Qbg1gCEk4w1ODA";
+const IT_ADMIN_USERNAME = envVars.IT_ADMIN_USERNAME || "BA0001";
+const IT_ADMIN_EMAIL = envVars.IT_ADMIN_EMAIL || "admin@example.com";
+const IT_ADMIN_PASSWORD_HASH =
+  envVars.IT_ADMIN_PASSWORD_HASH ||
+  "$argon2id$v=19$m=19456,t=2,p=1$f6QjVQlUTFDJVEOR+5VS7w$re5Ds6ToUPvX8R5nHc4qg6UkyVdxWyZapa6/WErJd44";
+
+// Extract static RBAC roles/permissions cleanly from canonical bootstrap SQL (never from generated seeds)
+const bootstrapSqlPath = path.join(root, "seeds/bootstrap/seed_bootstrap.sql");
+const bootstrapSql = fs.readFileSync(bootstrapSqlPath, "utf8");
+const identityMatch = bootstrapSql.match(
+  /-- Staff roles with hierarchy[\s\S]*?(?=\n-- Bootstrap Accounts)/,
+);
 if (!identityMatch) {
-  throw new Error("Could not extract identity roles block from template SQL.");
+  throw new Error("Could not extract static RBAC roles/permissions block from seeds/bootstrap/seed_bootstrap.sql.");
 }
 const identityRolesBlock = identityMatch[0].trimEnd();
 
@@ -98,16 +122,34 @@ const DEFAULT_PASSWORD_HASH =
   "$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU";
 
 const STAFF_ROSTER = [
-  { id: "omar-haddad", nameEn: "Omar Haddad", nameAr: "عمر حداد", username: "OH0002", role: "super_admin", dept: "d-exec", titleEn: "Managing Partner", titleAr: "الشريك الإداري", salary: 2400, reportTo: null },
-  { id: "yusuf-rahman", nameEn: "Yusuf Al-Rahman", nameAr: "يوسف الرحمن", username: "YR0003", role: "admin", dept: "d-exec", titleEn: "General Director", titleAr: "المدير العام", salary: 2100, reportTo: "omar-haddad" },
-  { id: "layla-nasser", nameEn: "Layla Al-Nasser", nameAr: "ليلى الناصر", username: "LN0004", role: "finance_manager", dept: "d-fin", titleEn: "Finance Manager", titleAr: "المدير المالي", salary: 1650, reportTo: "yusuf-rahman" },
-  { id: "karim-fawzi", nameEn: "Karim Fawzi", nameAr: "كريم فوزي", username: "KF0005", role: "operations_manager", dept: "d-ops", titleEn: "Operations Manager", titleAr: "مدير العمليات", salary: 1600, reportTo: "yusuf-rahman" },
-  { id: "tariq-saleh", nameEn: "Tariq Al-Saleh", nameAr: "طارق الصالح", username: "TS0006", role: "project_lead", dept: "d-ops", titleEn: "Operations Lead", titleAr: "قائد المشاريع", salary: 1250, reportTo: "karim-fawzi" },
-  { id: "noor-hamdan", nameEn: "Noor Al-Hamdan", nameAr: "نور الحمدان", username: "NH0007", role: "editor", dept: "d-ops", titleEn: "Senior Coordinator", titleAr: "منسق أول", salary: 950, reportTo: "tariq-saleh" },
-  { id: "faisal-mansour", nameEn: "Faisal Al-Mansour", nameAr: "فيصل المنصور", username: "FM0008", role: "accountant", dept: "d-fin", titleEn: "Senior Accountant", titleAr: "محاسب أول", salary: 980, reportTo: "layla-nasser" },
-  { id: "sami-khoury", nameEn: "Sami Khoury", nameAr: "سامي خوري", username: "SK0009", role: "sales", dept: "d-sales", titleEn: "Account Executive", titleAr: "تنفيذي مبيعات", salary: 1100, reportTo: "karim-fawzi" },
-  { id: "hana-yousef", nameEn: "Hana Yousef", nameAr: "هناء يوسف", username: "HY0010", role: "marketing", dept: "d-mkt", titleEn: "Growth Specialist", titleAr: "أخصائية نمو وتسويق", salary: 920, reportTo: "karim-fawzi" },
+  { id: "super-admin", nameEn: "Bader Ali", nameAr: "بدر علي", displayName: SUPER_ADMIN_NAME, username: SUPER_ADMIN_USERNAME, email: SUPER_ADMIN_EMAIL, passwordHash: SUPER_ADMIN_PASSWORD_HASH, role: "super_admin", dept: "d-exec", titleEn: "Group Chief Executive", titleAr: "الرئيس التنفيذي للمجموعة", salary: 3200, reportTo: null, hireDate: "2020-01-01", gender: "male", nationality: "BH" },
+  { id: "omar-haddad", nameEn: "Omar Haddad", nameAr: "عمر حداد", username: "OH0002", role: "super_admin", dept: "d-exec", titleEn: "Managing Partner", titleAr: "الشريك الإداري", salary: 2400, reportTo: "super-admin", hireDate: "2021-02-01", gender: "male", nationality: "BH" },
+  { id: "yusuf-rahman", nameEn: "Yusuf Al-Rahman", nameAr: "يوسف الرحمن", username: "YR0003", role: "admin", dept: "d-exec", titleEn: "General Director", titleAr: "المدير العام", salary: 2100, reportTo: "omar-haddad", hireDate: "2021-06-15", gender: "male", nationality: "BH" },
+  { id: "layla-nasser", nameEn: "Layla Al-Nasser", nameAr: "ليلى الناصر", username: "LN0004", role: "finance_manager", dept: "d-fin", titleEn: "Finance Manager", titleAr: "المدير المالي", salary: 1650, reportTo: "yusuf-rahman", hireDate: "2022-01-10", gender: "female", nationality: "BH" },
+  { id: "karim-fawzi", nameEn: "Karim Fawzi", nameAr: "كريم فوزي", username: "KF0005", role: "operations_manager", dept: "d-ops", titleEn: "Operations Manager", titleAr: "مدير العمليات", salary: 1600, reportTo: "yusuf-rahman", hireDate: "2022-03-01", gender: "male", nationality: "BH" },
+  { id: "tariq-saleh", nameEn: "Tariq Al-Saleh", nameAr: "طارق الصالح", username: "TS0006", role: "project_lead", dept: "d-ops", titleEn: "Operations Lead", titleAr: "قائد المشاريع", salary: 1250, reportTo: "karim-fawzi", hireDate: "2022-07-01", gender: "male", nationality: "BH" },
+  { id: "noor-hamdan", nameEn: "Noor Al-Hamdan", nameAr: "نور الحمدان", username: "NH0007", role: "editor", dept: "d-ops", titleEn: "Senior Coordinator", titleAr: "منسق أول", salary: 950, reportTo: "tariq-saleh", hireDate: "2023-01-15", gender: "female", nationality: "BH" },
+  { id: "faisal-mansour", nameEn: "Faisal Al-Mansour", nameAr: "فيصل المنصور", username: "FM0008", role: "accountant", dept: "d-fin", titleEn: "Senior Accountant", titleAr: "محاسب أول", salary: 980, reportTo: "layla-nasser", hireDate: "2023-02-01", gender: "male", nationality: "SA" },
+  { id: "sami-khoury", nameEn: "Sami Khoury", nameAr: "سامي خوري", username: "SK0009", role: "sales", dept: "d-sales", titleEn: "Account Executive", titleAr: "تنفيذي مبيعات", salary: 1100, reportTo: "karim-fawzi", hireDate: "2023-04-01", gender: "male", nationality: "JO" },
+  { id: "hana-yousef", nameEn: "Hana Yousef", nameAr: "هناء يوسف", username: "HY0010", role: "marketing", dept: "d-mkt", titleEn: "Growth Specialist", titleAr: "أخصائية نمو وتسويق", salary: 920, reportTo: "karim-fawzi", hireDate: "2023-05-15", gender: "female", nationality: "BH" },
   ...EXTRA_STAFF,
+];
+
+const FEMALE_STAFF_IDS = new Set([
+  "layla-nasser", "noor-hamdan", "hana-yousef", "maryam-bucheeri", "fatima-khalifa",
+  "zahra-jaffar", "reem-ansari", "latifa-shaker", "amal-sultan", "dina-mansoor",
+  "sara-kanoo", "mona-essa", "nadia-fakhro",
+]);
+const NATIONALITY_CYCLE = ["BH", "BH", "BH", "BH", "SA", "EG", "JO", "AE", "IN", "BH", "BH", "GB"];
+
+const IT_ROSTER = [
+  { id: "430c4105-6360-4415-bf1b-087d582c7fc6", username: IT_ADMIN_USERNAME, email: IT_ADMIN_EMAIL, displayName: `${SUPER_ADMIN_NAME} (IT)`, passwordHash: IT_ADMIN_PASSWORD_HASH, role: "it_admin", reportTo: null },
+  { id: "it-manager-001", username: "IT0002", email: "it-manager@example.com", displayName: "IT Operations Manager", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_manager", reportTo: "430c4105-6360-4415-bf1b-087d582c7fc6" },
+  { id: "it-lead-001", username: "IT0003", email: "it-lead@example.com", displayName: "IT Team Lead", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_lead", reportTo: "it-manager-001" },
+  { id: "it-eng-001", username: "IT0004", email: "it-engineer@example.com", displayName: "IT Systems Engineer", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_engineer", reportTo: "it-lead-001" },
+  { id: "it-work-001", username: "IT0005", email: "it-worker@example.com", displayName: "IT Operations Worker", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_worker", reportTo: "it-lead-001" },
+  { id: "it-supp-001", username: "IT0006", email: "it-support@example.com", displayName: "IT Support Specialist", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_support", reportTo: "it-lead-001" },
+  { id: "it-audit-001", username: "IT0007", email: "it-auditor@example.com", displayName: "IT Compliance Auditor", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_auditor", reportTo: "it-manager-001" },
 ];
 
 const CUSTOMERS = [
@@ -405,6 +447,10 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     legal: true,
   };
 
+  const catalog = getActivityCatalog(company);
+  const nowSql = sqlRaw("now()");
+  const agoSql = (hours) => sqlRaw(`now() - interval '${hours} hours'`);
+
   const lines = [];
   lines.push(`-- ============================================================================`);
   lines.push(`-- STANDALONE COMPANY SEED: ${company.nameEn} (${company.slug})`);
@@ -415,65 +461,370 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
   lines.push(truncateBlock);
   lines.push(``);
   lines.push(`-- SYSTEM`);
-  lines.push(`INSERT INTO system.company (id, singleton, data, currency_locked, revision, updated_by, updated_at)`);
-  lines.push(`VALUES ('c0000000-0000-0000-0000-000000000001', true, ${sqlQ(companyData)}, false, 1, 'seed:sql', now())`);
-  lines.push(`ON CONFLICT (singleton) DO UPDATE SET data = EXCLUDED.data, updated_at = now();`);
+  lines.push(
+    ins(
+      "system.company",
+      {
+        id: "c0000000-0000-0000-0000-000000000001",
+        singleton: true,
+        data: companyData,
+        currency_locked: false,
+        revision: 1,
+        updated_by: "seed:sql",
+        updated_at: nowSql,
+      },
+      "ON CONFLICT (singleton) DO UPDATE SET data = EXCLUDED.data, updated_at = now()",
+    ),
+  );
 
   for (const [key, enabled] of Object.entries(modules)) {
-    lines.push(`INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at) VALUES (${sqlQ(key)}, ${enabled}, 'seed:sql', now()) ON CONFLICT (module_key) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now();`);
+    lines.push(
+      ins(
+        "system.module_setting",
+        { module_key: key, enabled, updated_by: "seed:sql", updated_at: nowSql },
+        "ON CONFLICT (module_key) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now()",
+      ),
+    );
   }
 
-  lines.push(`INSERT INTO system.document_sequence (kind, prefix, next_number) VALUES ('invoice', ${sqlQ(company.prefix)}, 120), ('receipt', 'RCT', 120) ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number;`);
-  lines.push(`INSERT INTO system.site_setting (id, website_domain, admin_domain, code, updated_at, updated_by) VALUES (true, ${sqlQ(domainHost)}, ${sqlQ("admin." + domainHost)}, '{"headHtml":"","bodyHtml":"","customCss":""}'::jsonb, now(), 'seed:sql') ON CONFLICT (id) DO UPDATE SET website_domain = EXCLUDED.website_domain, admin_domain = EXCLUDED.admin_domain, updated_at = now();`);
-
-  lines.push(`INSERT INTO system.public_holiday (id, date, name_en, name_ar) VALUES`);
-  lines.push(`  ('hol-01', '2026-01-01', 'New Year''s Day', 'رأس السنة الميلادية'),`);
-  lines.push(`  ('hol-02', '2026-12-16', 'Bahrain National Day', 'العيد الوطني لمملكة البحرين')`);
-  lines.push(`ON CONFLICT (id) DO NOTHING;`);
-
-  if (company.services.length > 0) {
-    lines.push(`INSERT INTO system.service (id, code, name_en, name_ar, category, description_en, description_ar, unit, default_rate, is_active, display_order, is_public, created_at, updated_at, is_sample) VALUES`);
-    company.services.forEach((s, i) => {
-      const comma = i === company.services.length - 1 ? "" : ",";
-      lines.push(`  (${sqlQ(`svc-${i + 1}`)}, ${sqlQ(s.code)}, ${sqlQ(s.en)}, ${sqlQ(s.ar)}, ${sqlQ(s.cat)}, ${sqlQ(s.en)}, ${sqlQ(s.ar)}, ${sqlQ(s.unit)}, ${s.rate.toFixed(3)}, true, ${i + 1}, ${company.hasWeb}, now(), now(), false)${comma}`);
-    });
-    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  const sequences = [
+    ["invoice", company.prefix, 150],
+    ["receipt", "RCT", 150],
+  ];
+  for (const [kind, prefix, nextNum] of sequences) {
+    lines.push(
+      ins(
+        "system.document_sequence",
+        { kind, prefix, next_number: nextNum },
+        "ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number",
+      ),
+    );
   }
+
+  lines.push(
+    ins(
+      "system.site_setting",
+      {
+        id: true,
+        website_domain: domainHost,
+        admin_domain: `admin.${domainHost}`,
+        code: {
+          headHtml: `<!-- ${company.shortEn} Production Telemetry -->`,
+          bodyHtml: "",
+          customCss: `:root { --brand-primary: ${company.theme.primary}; --brand-accent: ${company.theme.accent}; }`,
+        },
+        updated_at: nowSql,
+        updated_by: "seed:sql",
+      },
+      "ON CONFLICT (id) DO UPDATE SET website_domain = EXCLUDED.website_domain, admin_domain = EXCLUDED.admin_domain, updated_at = now()",
+    ),
+  );
+
+  const publicHolidays = [
+    ["hol-01", "2026-01-01", "New Year's Day", "رأس السنة الميلادية"],
+    ["hol-02", "2026-03-20", "Eid Al-Fitr (Day 1)", "عيد الفطر المبارك - اليوم الأول"],
+    ["hol-03", "2026-03-21", "Eid Al-Fitr (Day 2)", "عيد الفطر المبارك - اليوم الثاني"],
+    ["hol-04", "2026-05-01", "Labour Day", "عيد العمال العالمي"],
+    ["hol-05", "2026-05-27", "Eid Al-Adha (Day 1)", "عيد الأضحى المبارك - اليوم الأول"],
+    ["hol-06", "2026-06-16", "Islamic New Year 1448H", "رأس السنة الهجرية 1448"],
+    ["hol-07", "2026-12-16", "Bahrain National Day", "العيد الوطني لمملكة البحرين"],
+    ["hol-08", "2026-12-17", "Accession Day", "عيد جلوس جلالة الملك"],
+  ];
+  for (const [id, date, en, ar] of publicHolidays) {
+    lines.push(ins("system.public_holiday", { id, date, name_en: en, name_ar: ar }, "ON CONFLICT (id) DO NOTHING"));
+  }
+
+  catalog.services.forEach((s, i) => {
+    lines.push(
+      ins(
+        "system.service",
+        {
+          id: `svc-${i + 1}`,
+          code: s.code,
+          name_en: s.en,
+          name_ar: s.ar,
+          category: s.cat,
+          description_en: `${s.en} delivered in ${company.city} under ${company.shortEn} SLA standards.`,
+          description_ar: `تقديم خدمة ${s.ar} في ${company.city} وفق معايير الجودة لدى ${company.shortAr}.`,
+          unit: s.unit,
+          default_rate: Number(s.rate.toFixed(3)),
+          is_active: true,
+          display_order: i + 1,
+          is_public: company.hasWeb,
+          image_url: `/api/files/media/banners/banner-0${(i % 3) + 1}.png`,
+          created_at: nowSql,
+          updated_at: nowSql,
+          is_sample: false,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
 
   lines.push(``);
   lines.push(`-- FILES`);
   filesList.forEach((f, i) => {
     const id = crypto.createHash("md5").update(`${company.slug}:${f.fileUrl}`).digest("hex");
     const uuid = `${id.slice(0, 8)}-${id.slice(8, 12)}-4${id.slice(13, 16)}-8${id.slice(17, 20)}-${id.slice(20, 32)}`;
-    lines.push(`INSERT INTO files.upload_object (id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at) VALUES (${sqlQ(uuid)}, ${sqlQ(f.fileUrl)}, 'system', ${sqlQ(f.fileName)}, ${f.size}, ${sqlQ(f.mime)}, true, now(), now() + interval '100 years', now()) ON CONFLICT (file_url) DO NOTHING;`);
+    lines.push(
+      ins(
+        "files.upload_object",
+        {
+          id: uuid,
+          file_url: f.fileUrl,
+          owner_id: "super-admin",
+          file_name: f.fileName,
+          file_size: f.size,
+          mime_type: f.mime,
+          is_public: true,
+          claimed_at: nowSql,
+          expires_at: sqlRaw("now() + interval '100 years'"),
+          created_at: nowSql,
+        },
+        "ON CONFLICT (file_url) DO NOTHING",
+      ),
+    );
     if (f.rel.startsWith("brand/") && f.fileName.endsWith(".png")) {
-      lines.push(`INSERT INTO system.company_asset (id, asset_key, title, file_url, mime_type, file_size, created_at, updated_at) VALUES (${sqlQ(`ca-${i + 1}`)}, ${sqlQ(f.fileName.replace(/\.png$/, ""))}, ${sqlQ(f.fileName)}, ${sqlQ(f.fileUrl)}, ${sqlQ(f.mime)}, ${f.size}, now(), now()) ON CONFLICT (id) DO NOTHING;`);
+      lines.push(
+        ins(
+          "system.company_asset",
+          {
+            id: `ca-${i + 1}`,
+            asset_key: f.fileName.replace(/\.png$/, ""),
+            title: f.fileName,
+            file_url: f.fileUrl,
+            mime_type: f.mime,
+            file_size: f.size,
+            created_at: nowSql,
+            updated_at: nowSql,
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
     }
   });
 
   lines.push(``);
   lines.push(`-- IDENTITY`);
   lines.push(identityRolesBlock);
-  for (const s of STAFF_ROSTER) {
-    const email = `${s.id}@${domainHost}`;
-    lines.push(`INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, reporting_to, created_at, updated_at) VALUES ('staff', ${sqlQ(s.id)}, ${sqlQ(email)}, ${sqlQ(s.username)}, ${sqlQ(DEFAULT_PASSWORD_HASH)}, ${sqlQ([s.role])}, true, false, ${sqlQ(s.reportTo)}, now(), now()) ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, reporting_to = EXCLUDED.reporting_to, updated_at = now();`);
-    lines.push(`INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', ${sqlQ(s.id)}, '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;`);
+
+  for (const itAcc of IT_ROSTER) {
+    lines.push(
+      ins(
+        "identity.account",
+        {
+          realm: "it",
+          subject_id: itAcc.id,
+          email: itAcc.email,
+          username: itAcc.username,
+          password_hash: itAcc.passwordHash,
+          roles: [itAcc.role],
+          active: true,
+          mfa_enabled: false,
+          mfa_secret_encrypted: null,
+          mfa_last_step: null,
+          mfa_pending_secret_encrypted: null,
+          mfa_pending_expires_at: null,
+          last_login_at: agoSql(4),
+          reporting_to: itAcc.reportTo,
+          created_at: agoSql(720),
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, active = true, updated_at = now()",
+      ),
+    );
   }
-  lines.push(`INSERT INTO identity.branch (id, code, name, time_zone, business_day_start, is_active, revision, created_at, updated_at) VALUES ('br-hq', 'HQ-01', ${sqlQ(`${company.shortEn} ${company.city} HQ`)}, 'Asia/Bahrain', 8, true, 1, now(), now()) ON CONFLICT (id) DO NOTHING;`);
+
+  STAFF_ROSTER.forEach((s, idx) => {
+    const email = staffEmail(s, domainHost);
+    const display = s.displayName || s.nameEn;
+    lines.push(
+      ins(
+        "identity.account",
+        {
+          realm: "staff",
+          subject_id: s.id,
+          email,
+          username: s.username,
+          password_hash: s.passwordHash || DEFAULT_PASSWORD_HASH,
+          roles: [s.role],
+          active: true,
+          mfa_enabled: false,
+          mfa_secret_encrypted: null,
+          mfa_last_step: null,
+          mfa_pending_secret_encrypted: null,
+          mfa_pending_expires_at: null,
+          last_login_at: agoSql((idx % 48) + 1),
+          reporting_to: s.reportTo,
+          created_at: agoSql(1440),
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, username = EXCLUDED.username, password_hash = EXCLUDED.password_hash, roles = EXCLUDED.roles, reporting_to = EXCLUDED.reporting_to, updated_at = now()",
+      ),
+    );
+    lines.push(
+      ins(
+        "identity.staff_access",
+        {
+          realm: "staff",
+          subject_id: s.id,
+          display_name: display,
+          permission_overrides: s.id === "super-admin" ? { "*": { view: true, create: true, edit: true, delete: true, export: true } } : {},
+          data_scopes:
+            idx <= 3
+              ? { scope: "global", branches: ["br-hq", "br-seef", "br-muharraq", "br-riffa"] }
+              : { scope: "department", departmentId: s.dept, branches: ["br-hq"] },
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (realm, subject_id) DO UPDATE SET display_name = EXCLUDED.display_name, data_scopes = EXCLUDED.data_scopes, updated_at = now()",
+      ),
+    );
+  });
+
+  lines.push(
+    ins(
+      "identity.branch",
+      {
+        id: "br-hq",
+        code: "HQ-01",
+        name: `${company.shortEn} ${company.city} HQ`,
+        time_zone: "Asia/Bahrain",
+        business_day_start: 8,
+        is_active: true,
+        revision: 1,
+        created_at: agoSql(2160),
+        updated_at: nowSql,
+      },
+      "ON CONFLICT (id) DO NOTHING",
+    ),
+  );
 
   lines.push(``);
   lines.push(`-- HR`);
-  lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d-exec', 'EXEC', 'Executive', 'الإدارة التنفيذية'), ('d-fin', 'FIN', 'Finance', 'المالية'), ('d-ops', 'OPS', 'Operations', 'العمليات'), ('d-sales', 'SLS', 'Sales', 'المبيعات'), ('d-mkt', 'MKT', 'Marketing', 'التسويق'), ('d-hr', 'HR', 'Human Resources', 'الموارد البشرية'), ('d-it', 'IT', 'Information Technology', 'تقنية المعلومات'), ('d-log', 'LOG', 'Logistics & Warehousing', 'اللوجستيات والمستودعات'), ('d-proc', 'PROC', 'Procurement', 'المشتريات') ON CONFLICT (id) DO NOTHING;`);
-  lines.push(`INSERT INTO hr.leave_type (id, code, name_en, name_ar, days_allowed_per_year, is_paid, pay_percent) VALUES ('lt-annual', 'ANN', 'Annual Leave', 'إجازة سنوية', 30, true, 100), ('lt-sick', 'SCK', 'Sick Leave', 'إجازة مرضية', 15, true, 100) ON CONFLICT (id) DO NOTHING;`);
-  for (const s of STAFF_ROSTER) {
+  const coreDepartments = [
+    { id: "d-exec", code: "EXEC", en: "Executive", ar: "الإدارة التنفيذية", head: "super-admin", mgr: "super-admin", dep: "omar-haddad", parent: null, cc: "CC-100", order: 1 },
+    { id: "d-fin", code: "FIN", en: "Finance & Accounting", ar: "المالية والمحاسبة", head: "layla-nasser", mgr: "layla-nasser", dep: "faisal-mansour", parent: "d-exec", cc: "CC-200", order: 2 },
+    { id: "d-ops", code: "OPS", en: "Operations Delivery", ar: "إدارة العمليات", head: "karim-fawzi", mgr: "karim-fawzi", dep: "tariq-saleh", parent: "d-exec", cc: "CC-300", order: 3 },
+    { id: "d-sales", code: "SLS", en: "Commercial & Sales", ar: "المبيعات والتطوير", head: "sami-khoury", mgr: "karim-fawzi", dep: "ahmed-zayani", parent: "d-exec", cc: "CC-400", order: 4 },
+    { id: "d-mkt", code: "MKT", en: "Marketing & Growth", ar: "التسويق والنمو", head: "hana-yousef", mgr: "karim-fawzi", dep: "zahra-jaffar", parent: "d-exec", cc: "CC-500", order: 5 },
+    { id: "d-hr", code: "HR", en: "Human Resources", ar: "الموارد البشرية", head: "fatima-khalifa", mgr: "fatima-khalifa", dep: "mona-essa", parent: "d-exec", cc: "CC-600", order: 6 },
+    { id: "d-it", code: "IT", en: "Information Technology", ar: "تقنية المعلومات", head: "ali-mahmood", mgr: "karim-fawzi", dep: "amal-sultan", parent: "d-exec", cc: "CC-700", order: 7 },
+    { id: "d-log", code: "LOG", en: "Logistics & Warehousing", ar: "اللوجستيات والمستودعات", head: "khalid-doseri", mgr: "karim-fawzi", dep: "hamad-ali", parent: "d-ops", cc: "CC-800", order: 8 },
+    { id: "d-proc", code: "PROC", en: "Procurement & Vendors", ar: "المشتريات والموردين", head: "ibrahim-kooheji", mgr: "karim-fawzi", dep: "maryam-bucheeri", parent: "d-ops", cc: "CC-850", order: 9 },
+    { id: "d-legal", code: "LGL", en: "Legal & Compliance", ar: "الشؤون القانونية والامتثال", head: "dina-mansoor", mgr: "yusuf-rahman", dep: "dina-mansoor", parent: "d-exec", cc: "CC-900", order: 10 },
+    { id: "d-prod", code: "PRD", en: "Field Production & Quality", ar: "الإنتاج الميداني والجودة", head: "majed-harbi", mgr: "tariq-saleh", dep: "hassan-matar", parent: "d-ops", cc: "CC-910", order: 11 },
+    { id: "d-cs", code: "CS", en: "Customer Success & Support", ar: "خدمة العملاء والدعم", head: "sara-kanoo", mgr: "karim-fawzi", dep: "reem-ansari", parent: "d-sales", cc: "CC-920", order: 12 },
+  ];
+  for (const d of coreDepartments) {
+    lines.push(
+      ins(
+        "hr.department",
+        {
+          id: d.id,
+          code: d.code,
+          name_en: d.en,
+          name_ar: d.ar,
+          head_id: d.head,
+          parent_id: d.parent,
+          catalogue_key: d.code.toLowerCase(),
+          manager_id: d.mgr,
+          deputy_id: d.dep,
+          cost_centre: d.cc,
+          sort_order: d.order,
+          is_active: true,
+          created_at: agoSql(2160),
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  const leaveTypes = [
+    { id: "lt-annual", code: "ANN", en: "Annual Leave", ar: "إجازة سنوية", days: 30, paid: true, pct: 100 },
+    { id: "lt-sick", code: "SCK", en: "Sick Leave", ar: "إجازة مرضية", days: 15, paid: true, pct: 100 },
+    { id: "lt-emerg", code: "EMG", en: "Emergency & Bereavement", ar: "إجازة طارئة ووفاة", days: 5, paid: true, pct: 100 },
+    { id: "lt-matern", code: "MAT", en: "Maternity Leave", ar: "إجازة وضع وأمومة", days: 60, paid: true, pct: 100 },
+    { id: "lt-patern", code: "PAT", en: "Paternity Leave", ar: "إجازة أبوة", days: 3, paid: true, pct: 100 },
+    { id: "lt-hajj", code: "HJJ", en: "Hajj Pilgrimage Leave", ar: "إجازة الحج", days: 14, paid: true, pct: 100 },
+  ];
+  for (const lt of leaveTypes) {
+    lines.push(
+      ins(
+        "hr.leave_type",
+        {
+          id: lt.id,
+          code: lt.code,
+          name_en: lt.en,
+          name_ar: lt.ar,
+          days_allowed_per_year: lt.days,
+          is_paid: lt.paid,
+          pay_percent: lt.pct,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  }
+
+  STAFF_ROSTER.forEach((s, idx) => {
     const [firstEn, ...restEn] = s.nameEn.split(" ");
     const lastEn = restEn.join(" ") || firstEn;
     const [firstAr, ...restAr] = s.nameAr.split(" ");
     const lastAr = restAr.join(" ") || firstAr;
     const housingAllow = Number((s.salary * 0.1).toFixed(3));
     const transportAllow = Number((s.salary * 0.05).toFixed(3));
-    lines.push(`INSERT INTO hr.employee (id, user_id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, job_title_en, job_title_ar, department_id, reporting_to, manager_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, leave_balance_days, created_at, updated_at) VALUES (${sqlQ(s.id)}, ${sqlQ(s.id)}, ${sqlQ(s.username)}, ${sqlQ(firstEn)}, ${sqlQ(lastEn)}, ${sqlQ(firstAr)}, ${sqlQ(lastAr)}, ${sqlQ(`${s.id}@${domainHost}`)}, ${sqlQ(s.titleEn)}, ${sqlQ(s.titleAr)}, ${sqlQ(s.dept)}, ${sqlQ(s.reportTo)}, ${sqlQ(s.reportTo)}, '2023-01-15', 'active', ${s.salary.toFixed(3)}, ${housingAllow.toFixed(3)}, ${transportAllow.toFixed(3)}, 27, now(), now()) ON CONFLICT (id) DO NOTHING;`);
-  }
+    const otherAllow = idx === 0 ? 180.0 : Number((s.salary * 0.04).toFixed(3));
+    const phone = s.phone || `+9733900${String(idx + 1).padStart(4, "0")}`;
+    const phoneParts = splitPhone(phone);
+    const nat = s.nationality || NATIONALITY_CYCLE[idx % NATIONALITY_CYCLE.length];
+    const gender = s.gender || (FEMALE_STAFF_IDS.has(s.id) ? "female" : "male");
+    const cprPrefix = `${80 + (idx % 16)}0${(idx % 9) + 1}`;
+    const cprNumber = `${cprPrefix}${String(10001 + idx).slice(-5)}`;
+    const dobYear = 1980 + (idx % 16);
+    const dobMonth = String((idx % 12) + 1).padStart(2, "0");
+    const dobDay = String(((idx * 3) % 27) + 1).padStart(2, "0");
+    lines.push(
+      ins(
+        "hr.employee",
+        {
+          id: s.id,
+          user_id: s.id,
+          employee_number: s.username,
+          first_name_en: firstEn,
+          last_name_en: lastEn,
+          first_name_ar: firstAr,
+          last_name_ar: lastAr,
+          email: staffEmail(s, domainHost),
+          phone,
+          country_code: phoneParts.country_code,
+          mobile_number: phoneParts.mobile_number,
+          job_title_en: s.titleEn,
+          job_title_ar: s.titleAr,
+          department_id: s.dept,
+          reporting_to: s.reportTo,
+          manager_id: s.reportTo,
+          hire_date: s.hireDate || `2023-0${(idx % 9) + 1}-${String(((idx * 2) % 27) + 1).padStart(2, "0")}`,
+          status: "active",
+          basic_salary: Number(s.salary.toFixed(3)),
+          housing_allowance: housingAllow,
+          transport_allowance: transportAllow,
+          other_allowances: otherAllow,
+          cpr_number: cprNumber,
+          cpr_expiry_date: `2028-${dobMonth}-28`,
+          nationality: nat,
+          date_of_birth: `${dobYear}-${dobMonth}-${dobDay}`,
+          gender,
+          passport_number: `${nat}P-${100400 + idx}`,
+          passport_country: nat,
+          passport_expiry_date: `2030-${dobMonth}-15`,
+          leave_balance_days: 24 + (idx % 7),
+          created_at: agoSql(1440),
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
 
   lines.push(``);
   lines.push(`-- FINANCE, SALES, HR, INVENTORY, COMMERCE, DELIVERY, ITSM, WORKFLOW, NOTIFY, REALTIME & AUDIT`);
@@ -485,6 +836,8 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     customers: CUSTOMERS,
     filesList,
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
+    superAdminEmail: SUPER_ADMIN_EMAIL,
+    itRoster: IT_ROSTER,
   }));
 
   lines.push(``);
@@ -497,26 +850,78 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     customers: CUSTOMERS,
     filesList,
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
+    superAdminEmail: SUPER_ADMIN_EMAIL,
+    itRoster: IT_ROSTER,
   }));
 
-  if (true) {
-    lines.push(``);
-    lines.push(`-- CMS PAGES & STATS`);
-    lines.push(`INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, is_visible, in_header, in_footer, sort_order, blocks, updated_at) VALUES`);
-    lines.push(`  ('pg-home', 'home', 'home', ${sqlQ(company.shortEn)}, ${sqlQ(company.shortAr)}, ${company.hasWeb}, ${company.hasWeb}, false, 1, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-about', 'about', 'about', 'About Us', 'من نحن', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 2, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-services', 'services', 'services', 'Services', 'خدماتنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 3, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-work', 'work', 'portfolio', 'Portfolio', 'أعمالنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 4, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-contact', 'contact', 'contact', 'Contact', 'تواصل معنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 5, '[]'::jsonb, now())`);
-    lines.push(`ON CONFLICT (id) DO NOTHING;`);
+  lines.push(``);
+  lines.push(`-- CMS PAGES & STATS`);
+  const cmsPages = [
+    { id: "pg-home", slug: "home", type: "home", en: company.shortEn, ar: company.shortAr, hdr: company.hasWeb, ftr: false, seoEn: `${company.shortEn} | ${company.taglineEn}`, seoAr: `${company.shortAr} | ${company.taglineAr}` },
+    { id: "pg-about", slug: "about", type: "about", en: "About Us", ar: "من نحن", hdr: company.hasWeb, ftr: company.hasWeb, seoEn: `About ${company.shortEn} — Established ${company.foundedYear} in ${company.city}`, seoAr: `عن ${company.shortAr} — تأسست عام ${company.foundedYear} في ${company.city}` },
+    { id: "pg-services", slug: "services", type: "services", en: "Services", ar: "خدماتنا", hdr: company.hasWeb, ftr: company.hasWeb, seoEn: `Enterprise Services | ${company.shortEn}`, seoAr: `الخدمات المؤسسية | ${company.shortAr}` },
+    { id: "pg-work", slug: "work", type: "portfolio", en: "Portfolio", ar: "أعمالنا", hdr: company.hasWeb, ftr: company.hasWeb, seoEn: `Selected Case Studies | ${company.shortEn}`, seoAr: `أبرز المشاريع والأعمال | ${company.shortAr}` },
+    { id: "pg-shop", slug: "shop", type: "shop", en: "Catalog & Store", ar: "المتجر والكتالوج", hdr: company.hasStore, ftr: company.hasWeb, seoEn: `Official Products & Packages | ${company.shortEn}`, seoAr: `المنتجات والباقات الرسمية | ${company.shortAr}` },
+    { id: "pg-insights", slug: "insights", type: "articles", en: "Insights & Press", ar: "المقالات والأخبار", hdr: company.hasWeb, ftr: company.hasWeb, seoEn: `Market Reports & Briefings | ${company.shortEn}`, seoAr: `التقارير والمقالات | ${company.shortAr}` },
+    { id: "pg-faq", slug: "faq", type: "faq", en: "FAQ", ar: "الأسئلة الشائعة", hdr: false, ftr: company.hasWeb, seoEn: `Frequently Asked Questions | ${company.shortEn}`, seoAr: `الأسئلة الشائعة | ${company.shortAr}` },
+    { id: "pg-contact", slug: "contact", type: "contact", en: "Contact", ar: "تواصل معنا", hdr: company.hasWeb, ftr: company.hasWeb, seoEn: `Contact ${company.shortEn} — ${company.city}, Bahrain`, seoAr: `تواصل مع ${company.shortAr} — ${company.city}، البحرين` },
+  ];
+  cmsPages.forEach((pg, idx) => {
+    lines.push(
+      ins(
+        "cms.page",
+        {
+          id: pg.id,
+          slug: pg.slug,
+          page_type: pg.type,
+          title_en: pg.en,
+          title_ar: pg.ar,
+          seo_title_en: pg.seoEn,
+          seo_title_ar: pg.seoAr,
+          seo_description_en: `${company.aboutEn} Explore ${pg.en} in ${company.city}.`,
+          seo_description_ar: `${company.aboutAr} تصفح صفحة ${pg.ar}.`,
+          blocks: [
+            { id: `${pg.id}-hero`, type: "hero", titleEn: pg.seoEn, titleAr: pg.seoAr, image: `/api/files/media/banners/banner-0${(idx % 3) + 1}.png` },
+            { id: `${pg.id}-body`, type: "rich_section", ctaEn: "Request Proposal", ctaAr: "طلب عرض سعر", sortOrder: idx + 1 },
+          ],
+          is_visible: company.hasWeb,
+          in_header: pg.hdr,
+          in_footer: pg.ftr,
+          sort_order: idx + 1,
+          created_at: agoSql(2160),
+          updated_at: nowSql,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
 
-    lines.push(`INSERT INTO cms.statistic (id, metric_value, label_en, label_ar, sort_order) VALUES`);
-    lines.push(`  ('stat-1', '${2026 - company.foundedYear}+', 'Years of Excellence', 'سنوات من التميز', 1),`);
-    lines.push(`  ('stat-2', '120+', 'Enterprise Clients', 'عملاء المؤسسات', 2),`);
-    lines.push(`  ('stat-3', '99.4%', 'On-Time Delivery', 'الالتزام بالمواعيد', 3),`);
-    lines.push(`  ('stat-4', '24/7', 'Client Support', 'دعم العملاء', 4)`);
-    lines.push(`ON CONFLICT (id) DO NOTHING;`);
-  }
+  const cmsStats = [
+    { id: "stat-1", val: `${2026 - company.foundedYear}+`, en: "Years of Excellence", ar: "سنوات من التميز", subEn: "Continuous Bahrain operations", subAr: "عمليات متواصلة في البحرين", icon: "Award" },
+    { id: "stat-2", val: "140+", en: "Enterprise Clients", ar: "عملاء المؤسسات", subEn: "Across 12 regional sectors", subAr: "في 12 قطاعاً إقليمياً", icon: "Building2" },
+    { id: "stat-3", val: "99.4%", en: "On-Time Delivery", ar: "الالتزام بالمواعيد", subEn: "Audited SLA completion rate", subAr: "معدل الالتزام بالاتفاقيات", icon: "CheckCircle2" },
+    { id: "stat-4", val: "24/7", en: "Client Support", ar: "دعم العملاء", subEn: "Bilingual response desk", subAr: "فريق دعم ثنائي اللغة", icon: "Headphones" },
+    { id: "stat-5", val: "4.9/5", en: "Client Satisfaction", ar: "رضا العملاء", subEn: "Verified post-project score", subAr: "تقييم موثق بعد التسليم", icon: "Star" },
+    { id: "stat-6", val: "100%", en: "NBR VAT Compliant", ar: "الامتثال الضريبي", subEn: "ISO & PDPL aligned governance", subAr: "حوكمة متوافقة مع المعايير", icon: "ShieldCheck" },
+  ];
+  cmsStats.forEach((st, idx) => {
+    lines.push(
+      ins(
+        "cms.statistic",
+        {
+          id: st.id,
+          metric_value: st.val,
+          label_en: st.en,
+          label_ar: st.ar,
+          sub_label_en: st.subEn,
+          sub_label_ar: st.subAr,
+          icon: st.icon,
+          sort_order: idx + 1,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
 
   lines.push(``);
   lines.push(`COMMIT;`);

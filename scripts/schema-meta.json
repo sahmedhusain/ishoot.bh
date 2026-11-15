@@ -1275,6 +1275,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "commerce.customer_address": {
@@ -1364,6 +1376,18 @@
     },
     "created_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
@@ -1933,6 +1957,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "commerce.sales_order_event": {
@@ -2379,6 +2415,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "delivery.delivery_settings": {
@@ -2659,6 +2707,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "recipient_country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "recipient_mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "delivery.route_sheet": {
@@ -2894,6 +2954,18 @@
     },
     "updated_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "recipient_country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "recipient_mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
@@ -3796,6 +3868,18 @@
     },
     "updated_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
@@ -6195,6 +6279,18 @@
       "req": false,
       "pk": false,
       "fk": "hr.employee.id"
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "hr.employee_credential": {
@@ -8743,6 +8839,18 @@
       "fk": null
     },
     "suspension_reason": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
       "udt": "text",
       "req": false,
       "pk": false,
@@ -12355,6 +12463,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "sales.crm_contact": {
@@ -12612,6 +12732,18 @@
     },
     "supplier_payment_terms_days": {
       "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
@@ -12938,6 +13070,18 @@
     },
     "updated_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "requester_country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "requester_mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
@@ -14373,6 +14517,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "system.client_logo": {
@@ -15333,6 +15489,30 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "whatsapp_country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "whatsapp_mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "system.dashboard_layout": {
@@ -15340,6 +15520,30 @@
       "udt": "text",
       "req": true,
       "pk": true,
+      "fk": null
+    },
+    "widgets": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "scratchpad": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "sidebar_prefs": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "updated_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
       "fk": null
     }
   },
@@ -16568,6 +16772,18 @@
     },
     "updated_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "country_code": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "mobile_number": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null
