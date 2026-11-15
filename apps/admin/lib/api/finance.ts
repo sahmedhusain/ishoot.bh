@@ -336,3 +336,48 @@ export const listFinanceContactsRef = (token?: string) =>
 
 export const listFinanceQuotationsRef = (token?: string) =>
   financeFetch<FinanceQuotationRef[]>("/v1/finance/quotations-ref", {}, token);
+
+export const listExpenseClaims = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/expense-claims", {}, token);
+
+export const listRecurringExpenses = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/recurring-expenses", {}, token);
+
+export const listSupplierBills = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/supplier-bills", {}, token);
+
+export const listTaxRates = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/tax-rates", {}, token);
+
+export const listCommissionRules = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/commission-rules", {}, token);
+
+export const listCommissionPayouts = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/commission-payouts", {}, token);
+
+export const listCommissionSnapshots = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/commission-snapshots", {}, token);
+
+export const listCashierSessions = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/cashier-sessions", {}, token);
+
+export const listCashDrawers = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/cash-drawers", {}, token);
+
+export const listJournalEntries = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/journal-entries", {}, token);
+
+export const listJournalLines = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/journal-lines", {}, token);
+
+export const listPaymentAttempts = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/payment-attempts", {}, token);
+
+export const listPaymentCollections = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/payment-collections", {}, token);
+
+export const listPaymentMethods = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/payment-methods", {}, token);
+
+export const listDocumentTaxes = (token?: string) =>
+  financeFetch<any[]>("/v1/finance/document-taxes", {}, token);

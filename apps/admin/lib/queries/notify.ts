@@ -1,4 +1,4 @@
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 import type {
   PermissionAction,
   PermissionResource,
@@ -19,10 +19,8 @@ export async function notifyUsersWithPermission(
     entity_id: string;
   },
 ) {
-  const users = await db.user.findMany({
-    where: { isActive: true, archivedAt: null },
-    select: { id: true, role: true },
-  });
+  const allUsers = await listTableRows<any>("identity", "user").catch(() => []);
+  const users = allUsers.filter((u) => u.isActive && !u.archivedAt);
   const roles = Array.from(new Set(users.map((u) => u.role)));
   const allowed = new Set(
     (

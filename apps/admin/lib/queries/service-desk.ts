@@ -4,7 +4,7 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { getMessageStatus, queueMessage } from "@platform/api-client";
 import { resolveIncomingLead } from "../services/lead-resolver";
 import { getCompanyConfiguration } from "../api/company";
@@ -19,13 +19,11 @@ const escape = (value: string) =>
   );
 
 export async function getServiceSettings() {
-  const s = await db.serviceSettings
-    .upsert({
-      where: { id: "default" },
-      update: {},
-      create: { id: "default" },
-    })
-    .catch(() => null);
+  const rows = await listTableRows<any>("system", "service_settings").catch(() => []);
+  let s = rows.find((r) => r.id === "default") || null;
+  if (!s) {
+    s = await upsertTableRow("system", "service_settings", { id: "default" }).catch(() => null);
+  }
   return {
     sla_urgent_hours: s?.slaUrgentHours ?? 4,
     sla_high_hours: s?.slaHighHours ?? 24,
@@ -52,24 +50,20 @@ export async function saveServiceSettings(input: {
     slaHighHours: hours(input.high, 720),
     slaNormalHours: hours(input.normal, 2160),
   };
-  await db.serviceSettings.upsert({
-    where: { id: "default" },
-    update: data,
-    create: { id: "default", ...data },
-  });
+  const rows = await listTableRows<any>("system", "service_settings").catch(() => []);
+  const existing = rows.find((r) => r.id === "default");
+  await upsertTableRow("system", "service_settings", { ...(existing || {}), id: "default", ...data });
 }
 
 export async function listCannedReplies(activeOnly = false) {
-  const rows = await db.cannedReply.findMany({
-    where: activeOnly ? { isActive: true } : {},
-    orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
-  });
+  const allRows = await listTableRows<any>("system", "canned_reply", "sort_order ASC, title ASC");
+  const rows = activeOnly ? allRows.filter((r) => r.isActive) : allRows;
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
     body_en: r.bodyEn,
     body_ar: r.bodyAr,
-    is_active: r.isActive,
+    is_active: !!r.isActive,
   }));
 }
 export type CannedReplyRecord = Awaited<
@@ -96,9 +90,13 @@ export async function saveCannedReply(input: CannedReplyInput) {
     bodyAr: bodyAr || bodyEn,
     isActive: input.isActive,
   };
-  return input.id
-    ? db.cannedReply.update({ where: { id: input.id }, data })
-    : db.cannedReply.create({ data });
+  const rows = input.id ? await listTableRows<any>("system", "canned_reply").catch(() => []) : [];
+  const existing = input.id ? rows.find((r) => r.id === input.id) : null;
+  return upsertTableRow("system", "canned_reply", {
+    ...(existing || {}),
+    id: input.id || crypto.randomUUID(),
+    ...data,
+  });
 }
 
 async function notRefused(id: string, waitMs = 5000) {
@@ -124,19 +122,8 @@ export async function replyToRequest(
 ) {
   const body = input.body.trim().slice(0, 4000);
   if (!body) throw new Error(serverMessages.serviceReplyEmpty);
-  const request = await db.inquiry.findUnique({
-    where: { id: inquiryId },
-    select: {
-      id: true,
-      reference: true,
-      email: true,
-      phone: true,
-      phoneE164: true,
-      locale: true,
-      name: true,
-      workflowStatus: true,
-    },
-  });
+  const inquiries = await listTableRows<any>("sales", "inquiry");
+  const request = inquiries.find((r) => r.id === inquiryId);
   if (!request) throw new Error(serverMessages.requestNotFound);
   let whatsappLink: string | null = null;
   if (input.channel === "email") {
@@ -173,35 +160,37 @@ export async function replyToRequest(
     if (!delivered)
       whatsappLink = `https://wa.me/${to}?text=${encodeURIComponent(body)}`;
   }
-  const comment = await db.requestComment.create({
-    data: {
-      inquiryId,
-      authorId: author.id,
-      body,
-      isClientVisible: true,
-      channel: input.channel,
-    },
+  const comment = await upsertTableRow<any>("system", "request_comment", {
+    id: crypto.randomUUID(),
+    inquiryId,
+    authorId: author.id,
+    body,
+    isClientVisible: true,
+    channel: input.channel,
   });
   if (request.workflowStatus === "received")
-    await db.inquiry.update({
-      where: { id: inquiryId },
-      data: { workflowStatus: "under_review", status: "contacted" },
+    await upsertTableRow("sales", "inquiry", {
+      ...request,
+      id: inquiryId,
+      workflowStatus: "under_review",
+      status: "contacted",
     });
   return { commentId: comment.id, whatsappLink };
 }
 
 export async function requestReplies(inquiryId: string) {
-  const rows = await db.requestComment.findMany({
-    where: { inquiryId, isClientVisible: true },
-    orderBy: { createdAt: "asc" },
-    include: { author: { select: { fullName: true } } },
-  });
+  const [allRows, users] = await Promise.all([
+    listTableRows<any>("system", "request_comment", "created_at ASC"),
+    listTableRows<any>("identity", "user").catch(() => []),
+  ]);
+  const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, u]));
+  const rows = allRows.filter((r) => r.inquiryId === inquiryId && r.isClientVisible);
   return rows.map((r) => ({
     id: r.id,
     body: r.body,
     channel: r.channel ?? "",
-    author: r.author.fullName,
-    at: r.createdAt.toISOString(),
+    author: userMap.get(r.authorId)?.fullName ?? "",
+    at: new Date(r.createdAt || Date.now()).toISOString(),
   }));
 }
 
@@ -214,10 +203,8 @@ export async function createOrderHelpRequest(
     locale: string;
   },
 ) {
-  const order = await db.salesOrder.findFirst({
-    where: { id: input.orderId, customerId: customer.id },
-    select: { id: true, number: true, phone: true },
-  });
+  const orders = await listTableRows<any>("commerce", "sales_order");
+  const order = orders.find((o) => o.id === input.orderId && o.customerId === customer.id);
   if (!order) throw new Error(serverMessages.requestNotFound);
   const message = input.message.trim().slice(0, 5000);
   if (message.length < 5) throw new Error(serverMessages.serviceReplyEmpty);
@@ -236,23 +223,13 @@ export async function createOrderHelpRequest(
 }
 
 export async function requestsForOrder(orderId: string) {
-  const rows = await db.inquiry.findMany({
-    where: { orderId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    select: {
-      id: true,
-      reference: true,
-      intent: true,
-      workflowStatus: true,
-      createdAt: true,
-    },
-  });
+  const allRows = await listTableRows<any>("sales", "inquiry", "created_at DESC");
+  const rows = allRows.filter((r) => r.orderId === orderId).slice(0, 20);
   return rows.map((r) => ({
     id: r.id,
     reference: r.reference,
     intent: r.intent,
     status: r.workflowStatus,
-    created_at: r.createdAt.toISOString(),
+    created_at: new Date(r.createdAt || Date.now()).toISOString(),
   }));
 }

@@ -4,6 +4,7 @@ const crypto = require("node:crypto");
 const sharp = require(path.resolve(__dirname, "../apps/admin/node_modules/sharp"));
 const { COMPANIES } = require("./seed-companies.cjs");
 const { buildRichModuleSql } = require("./seed-rich-modules.cjs");
+const { EXTRA_STAFF, EXTRA_CUSTOMERS, buildExtraModuleSql } = require("./seed-extra-modules.cjs");
 
 const root = path.resolve(__dirname, "..");
 const schemaMeta = require("./schema-meta.json");
@@ -74,6 +75,23 @@ const TRUNCATE_TABLES = [
   "system.company_asset", "system.company",
 ].filter((t) => Boolean(schemaMeta[t]));
 
+// Also include all remaining schemaMeta tables (except static RBAC tables and append-only audit.event) and event mesh inbox/outbox tables
+const STATIC_RBAC_TABLES = new Set([
+  "audit.event",
+  "identity.it_role",
+  "identity.it_permission",
+  "identity.staff_role",
+  "identity.staff_permission",
+]);
+for (const tbl of Object.keys(schemaMeta)) {
+  if (!STATIC_RBAC_TABLES.has(tbl) && !TRUNCATE_TABLES.includes(tbl)) {
+    TRUNCATE_TABLES.unshift(tbl);
+  }
+}
+for (const svc of ["cms", "commerce", "delivery", "finance", "hr", "identity", "inventory", "itsm", "notify", "sales", "system", "workflow"]) {
+  TRUNCATE_TABLES.unshift(`${svc}.inbox`, `${svc}.outbox`);
+}
+
 const truncateBlock = `TRUNCATE TABLE\n    ${TRUNCATE_TABLES.join(",\n    ")}\nCASCADE;`;
 
 const DEFAULT_PASSWORD_HASH =
@@ -89,6 +107,7 @@ const STAFF_ROSTER = [
   { id: "faisal-mansour", nameEn: "Faisal Al-Mansour", nameAr: "فيصل المنصور", username: "FM0008", role: "accountant", dept: "d-fin", titleEn: "Senior Accountant", titleAr: "محاسب أول", salary: 980, reportTo: "layla-nasser" },
   { id: "sami-khoury", nameEn: "Sami Khoury", nameAr: "سامي خوري", username: "SK0009", role: "sales", dept: "d-sales", titleEn: "Account Executive", titleAr: "تنفيذي مبيعات", salary: 1100, reportTo: "karim-fawzi" },
   { id: "hana-yousef", nameEn: "Hana Yousef", nameAr: "هناء يوسف", username: "HY0010", role: "marketing", dept: "d-mkt", titleEn: "Growth Specialist", titleAr: "أخصائية نمو وتسويق", salary: 920, reportTo: "karim-fawzi" },
+  ...EXTRA_STAFF,
 ];
 
 const CUSTOMERS = [
@@ -100,6 +119,7 @@ const CUSTOMERS = [
   { id: "cust-006", nameEn: "Al-Waha Medical Supplies", nameAr: "الواحة للمستلزمات الطبية", email: "buying@alwahamed.bh", phone: "+97317778899", city: "Zinj" },
   { id: "cust-007", nameEn: "Riffa Athletic Foundation", nameAr: "مؤسسة الرفاع الرياضية", email: "admin@riffaathletic.bh", phone: "+97317889900", city: "Riffa" },
   { id: "cust-008", nameEn: "Sitra Maritime Services", nameAr: "سترة للخدمات البحرية", email: "ops@sitramaritime.bh", phone: "+97317990011", city: "Sitra" },
+  ...EXTRA_CUSTOMERS,
 ];
 
 function sqlQ(val) {
@@ -443,7 +463,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
 
   lines.push(``);
   lines.push(`-- HR`);
-  lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d-exec', 'EXEC', 'Executive', 'الإدارة التنفيذية'), ('d-fin', 'FIN', 'Finance', 'المالية'), ('d-ops', 'OPS', 'Operations', 'العمليات'), ('d-sales', 'SLS', 'Sales', 'المبيعات'), ('d-mkt', 'MKT', 'Marketing', 'التسويق') ON CONFLICT (id) DO NOTHING;`);
+  lines.push(`INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('d-exec', 'EXEC', 'Executive', 'الإدارة التنفيذية'), ('d-fin', 'FIN', 'Finance', 'المالية'), ('d-ops', 'OPS', 'Operations', 'العمليات'), ('d-sales', 'SLS', 'Sales', 'المبيعات'), ('d-mkt', 'MKT', 'Marketing', 'التسويق'), ('d-hr', 'HR', 'Human Resources', 'الموارد البشرية'), ('d-it', 'IT', 'Information Technology', 'تقنية المعلومات'), ('d-log', 'LOG', 'Logistics & Warehousing', 'اللوجستيات والمستودعات'), ('d-proc', 'PROC', 'Procurement', 'المشتريات') ON CONFLICT (id) DO NOTHING;`);
   lines.push(`INSERT INTO hr.leave_type (id, code, name_en, name_ar, days_allowed_per_year, is_paid, pay_percent) VALUES ('lt-annual', 'ANN', 'Annual Leave', 'إجازة سنوية', 30, true, 100), ('lt-sick', 'SCK', 'Sick Leave', 'إجازة مرضية', 15, true, 100) ON CONFLICT (id) DO NOTHING;`);
   for (const s of STAFF_ROSTER) {
     const [firstEn, ...restEn] = s.nameEn.split(" ");
@@ -467,15 +487,27 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
   }));
 
-  if (company.hasWeb) {
+  lines.push(``);
+  lines.push(`-- FULL COVERAGE & HIGH-VOLUME MODULES`);
+  lines.push(buildExtraModuleSql({
+    company,
+    companyJson,
+    domainHost,
+    staffRoster: STAFF_ROSTER,
+    customers: CUSTOMERS,
+    filesList,
+    defaultPasswordHash: DEFAULT_PASSWORD_HASH,
+  }));
+
+  if (true) {
     lines.push(``);
     lines.push(`-- CMS PAGES & STATS`);
     lines.push(`INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, is_visible, in_header, in_footer, sort_order, blocks, updated_at) VALUES`);
-    lines.push(`  ('pg-home', 'home', 'home', ${sqlQ(company.shortEn)}, ${sqlQ(company.shortAr)}, true, true, false, 1, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-about', 'about', 'about', 'About Us', 'من نحن', true, true, true, 2, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-services', 'services', 'services', 'Services', 'خدماتنا', true, true, true, 3, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-work', 'work', 'portfolio', 'Portfolio', 'أعمالنا', true, true, true, 4, '[]'::jsonb, now()),`);
-    lines.push(`  ('pg-contact', 'contact', 'contact', 'Contact', 'تواصل معنا', true, true, true, 5, '[]'::jsonb, now())`);
+    lines.push(`  ('pg-home', 'home', 'home', ${sqlQ(company.shortEn)}, ${sqlQ(company.shortAr)}, ${company.hasWeb}, ${company.hasWeb}, false, 1, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-about', 'about', 'about', 'About Us', 'من نحن', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 2, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-services', 'services', 'services', 'Services', 'خدماتنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 3, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-work', 'work', 'portfolio', 'Portfolio', 'أعمالنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 4, '[]'::jsonb, now()),`);
+    lines.push(`  ('pg-contact', 'contact', 'contact', 'Contact', 'تواصل معنا', ${company.hasWeb}, ${company.hasWeb}, ${company.hasWeb}, 5, '[]'::jsonb, now())`);
     lines.push(`ON CONFLICT (id) DO NOTHING;`);
 
     lines.push(`INSERT INTO cms.statistic (id, metric_value, label_en, label_ar, sort_order) VALUES`);

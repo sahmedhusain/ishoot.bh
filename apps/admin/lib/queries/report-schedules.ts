@@ -1,6 +1,6 @@
 import { isValidEmail } from "../constants/validation";
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import {
   REPORT_FORMATS,
   REPORT_FREQUENCIES,
@@ -10,19 +10,19 @@ import {
 } from "../constants/reports";
 
 export async function listReportSchedules(reportKey: string, ownerId: string) {
-  const rows = await db.reportSchedule.findMany({
-    where: { reportKey, ownerId, isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const allRows = await listTableRows<any>("system", "report_schedule", "created_at ASC");
+  const rows = allRows.filter(
+    (s) => s.reportKey === reportKey && s.ownerId === ownerId && s.isActive,
+  );
   return rows.map((s) => ({
     id: s.id,
     frequency: s.frequency,
     format: s.format,
     recipients: s.recipients,
     locale: s.locale,
-    compare: s.compare,
-    next_run_at: s.nextRunAt.toISOString(),
-    last_sent_at: s.lastSentAt?.toISOString() ?? null,
+    compare: !!s.compare,
+    next_run_at: new Date(s.nextRunAt || Date.now()).toISOString(),
+    last_sent_at: s.lastSentAt ? new Date(s.lastSentAt).toISOString() : null,
     last_error: s.lastError ?? "",
   }));
 }
@@ -61,45 +61,40 @@ export async function saveReportSchedule(
     recipients.some((r) => !isValidEmail(r))
   )
     throw new Error(serverMessages.reportScheduleInvalid);
-  return db.reportSchedule.create({
-    data: {
-      reportKey: input.reportKey,
-      frequency: input.frequency,
-      format: input.format,
-      recipients,
-      locale: input.locale === "en" ? "en" : "ar",
-      compare: input.compare,
-      ownerId,
-      nextRunAt: nextScheduledRun(input.frequency as ReportFrequency, now),
-    },
+  return upsertTableRow("system", "report_schedule", {
+    id: crypto.randomUUID(),
+    reportKey: input.reportKey,
+    frequency: input.frequency,
+    format: input.format,
+    recipients,
+    locale: input.locale === "en" ? "en" : "ar",
+    compare: input.compare,
+    ownerId,
+    isActive: true,
+    nextRunAt: nextScheduledRun(input.frequency as ReportFrequency, now).toISOString(),
   });
 }
 
 export async function stopReportSchedule(id: string, ownerId: string) {
-  await db.reportSchedule.updateMany({
-    where: { id, ownerId },
-    data: { isActive: false },
-  });
+  const rows = await listTableRows<any>("system", "report_schedule");
+  for (const r of rows.filter((row) => row.id === id && row.ownerId === ownerId)) {
+    await upsertTableRow("system", "report_schedule", { ...r, isActive: false });
+  }
 }
 
 export async function dueReportSchedules(now = new Date()) {
-  const rows = await db.reportSchedule.findMany({
-    where: { isActive: true, nextRunAt: { lte: now } },
-    take: 50,
-  });
-  const owners = await db.user.findMany({
-    where: { id: { in: rows.map((r) => r.ownerId) } },
-    select: {
-      id: true,
-      role: true,
-      isActive: true,
-      archivedAt: true,
-      permissions: true,
-    },
-  });
+  const [allRows, owners] = await Promise.all([
+    listTableRows<any>("system", "report_schedule"),
+    listTableRows<any>("identity", "user").catch(() => []),
+  ]);
+  const nowMs = now.getTime();
+  const rows = allRows
+    .filter((r) => r.isActive && new Date(r.nextRunAt || 0).getTime() <= nowMs)
+    .slice(0, 50);
+  const ownerMap = new Map<string, any>(owners.map((o): [any, any] => [o.id, o]));
   return rows.map((r) => ({
     ...r,
-    owner: owners.find((o) => o.id === r.ownerId) ?? null,
+    owner: ownerMap.get(r.ownerId) ?? null,
   }));
 }
 
@@ -109,13 +104,15 @@ export async function markReportScheduleRun(
   result: { error?: string },
   now = new Date(),
 ) {
-  await db.reportSchedule.update({
-    where: { id },
-    data: {
-      nextRunAt: nextScheduledRun(frequency as ReportFrequency, now),
-      ...(result.error
-        ? { lastError: result.error.slice(0, 300) }
-        : { lastSentAt: now, lastError: null }),
-    },
+  const rows = await listTableRows<any>("system", "report_schedule");
+  const existing = rows.find((r) => r.id === id);
+  if (!existing) return;
+  await upsertTableRow("system", "report_schedule", {
+    ...existing,
+    id,
+    nextRunAt: nextScheduledRun(frequency as ReportFrequency, now).toISOString(),
+    ...(result.error
+      ? { lastError: result.error.slice(0, 300) }
+      : { lastSentAt: now.toISOString(), lastError: null }),
   });
 }

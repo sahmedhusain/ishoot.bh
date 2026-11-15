@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listAdminUsersApi } from "../api/identity";
 import {
   listStaffAccountsForIT,
   getStaffAccountForIT,
@@ -117,8 +117,12 @@ export async function updateUser(
 ): Promise<Profile | null> {
   try {
     const token = await serviceToken();
-    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } }).catch(() => null);
-    if (existing && existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) {
+    const users = await listAdminUsersApi().catch(() => []);
+    const existing = users.find((u: any) => u.id === id) ?? null;
+    const otherSuperAdmins = users.filter(
+      (u: any) => u.role === "super_admin" && u.is_active !== false && u.id !== id,
+    ).length;
+    if (existing && existing.role === "super_admin" && existing.is_active !== false && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && otherSuperAdmins === 0) {
       throw new Error("Keep at least one active super administrator");
     }
     const updated = await updateITAccountForIT(token, id, {
@@ -141,11 +145,16 @@ export async function updateUserRole(
 
 export async function deleteUser(id: string): Promise<boolean> {
   try {
-    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } }).catch(() => null);
-    if (existing && existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) {
+    const users = await listAdminUsersApi().catch(() => []);
+    const existing = users.find((u: any) => u.id === id) ?? null;
+    const otherSuperAdmins = users.filter(
+      (u: any) => u.role === "super_admin" && u.is_active !== false && u.id !== id,
+    ).length;
+    if (existing && existing.role === "super_admin" && existing.is_active !== false && otherSuperAdmins === 0) {
       throw new Error("Keep at least one active super administrator");
     }
-    await db.user.delete({ where: { id } }).catch(() => {});
+    const token = await serviceToken();
+    await updateITAccountForIT(token, id, { role: (existing?.role as any) ?? "it_support", active: false }).catch(() => {});
     return true;
   } catch (e) {
     console.error(`Error deleting user ${id}:`, e);
@@ -182,7 +191,8 @@ export async function setUserDiscountLimit(
   userId: string,
   limit: number | null,
 ): Promise<{ discount_limit_percent: number | null; [key: string]: any }> {
-  throw new Error("setUserDiscountLimit is not implemented in API");
+  const { setUserDiscountLimitApi } = await import("../api/identity");
+  return setUserDiscountLimitApi(userId, limit);
 }
 
 export interface UserListFilters {

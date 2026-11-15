@@ -1,3 +1,4 @@
+import { listDepartments, listEmployees } from "./api/hr";
 import {
   ARCHIVE_GROUPS,
   ARCHIVE_KINDS,
@@ -287,16 +288,27 @@ export async function loadDashboardData(
     : null;
   const userProfile = has("welcome_profile", "custom_folders")
     ? (async () => {
+        const [employees, departments] = await Promise.all([
+          listEmployees().catch(() => []),
+          listDepartments().catch(() => []),
+        ]);
+        const emp = employees.find(
+          (e: any) =>
+            e.userId === userId ||
+            (e.email && ctx.user.email && e.email.toLowerCase() === ctx.user.email.toLowerCase()),
+        );
+        const deptId = emp?.departmentId ?? (ctx.user as any).department_id ?? null;
+        const dept = deptId ? departments.find((d) => d.id === deptId) : undefined;
         return {
           id: userId,
           fullName: ctx.user.full_name,
           email: ctx.user.email,
           role: ctx.user.role,
-          departmentId: (ctx.user as any).department_id ?? null,
-          departmentNameEn: "",
-          departmentNameAr: "",
-          jobTitleEn: "",
-          jobTitleAr: "",
+          departmentId: deptId,
+          departmentNameEn: dept?.nameEn ?? "",
+          departmentNameAr: dept?.nameAr ?? "",
+          jobTitleEn: emp?.jobTitleEn ?? "",
+          jobTitleAr: emp?.jobTitleAr ?? "",
         };
       })()
     : null;

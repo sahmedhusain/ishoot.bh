@@ -1,12 +1,12 @@
 import {
   REPORTS,
   buildXlsx,
-  db,
   getEffectivePermissions,
   isFeatureEnabled,
   type ReportDefinition,
   type ReportResult,
 } from "@platform/database";
+import { listTableRows } from "./api/tables";
 import { formatMessage, getTranslations } from "@platform/locales";
 import type { CompanySettings } from "@platform/database/types";
 import { generateReportPdf } from "./pdf/report-pdf";
@@ -43,10 +43,8 @@ export async function reportsFor(
 }
 
 export async function reportsForUser(userId: string) {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { role: true, permissions: true },
-  });
+  const users = await listTableRows<Record<string, any>>("identity", "user");
+  const user = users.find((u) => u.id === userId);
   return user
     ? reportsFor(
         user.role,

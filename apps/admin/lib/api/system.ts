@@ -144,3 +144,4 @@ export const setSiteCodeForIT = (token: string, code: SiteCode) =>
   );
 
 export * from "./system-catalog";
+export * from "./system-workspace";

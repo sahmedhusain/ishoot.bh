@@ -1,5 +1,7 @@
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listAllPayrollItemsApi, listEmployees, listPayrollRuns } from "../api/hr";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { parsePayrollSettings, supportBreakdown } from "../payroll-calculation";
 import { SUPPORT_CLAIM_MONTHS, addMonths } from "../constants/hr-support";
 
@@ -29,27 +31,24 @@ const monthsBetween = (from: string, to: string) => {
 };
 
 export async function getSupportClaims(): Promise<SupportClaimRow[]> {
-  const [items, receipts] = await Promise.all([
-    db.payrollItem.findMany({
-      where: {
-        externalSupport: { gt: 0 },
-        payrollRun: { status: { in: ["approved", "paid", "closed"] } },
-      },
-      select: {
-        employeeId: true,
-        basicSalary: true,
-        housingAllowance: true,
-        transportAllowance: true,
-        otherAllowances: true,
-        calculationSnapshot: true,
-        payrollRun: { select: { year: true, month: true } },
-        employee: {
-          select: { firstNameEn: true, lastNameEn: true, employeeNumber: true },
-        },
-      },
-    }),
-    db.supportReimbursement.findMany(),
+  const [allItems, allRuns, allEmps, receipts] = await Promise.all([
+    listAllPayrollItemsApi(),
+    listPayrollRuns(),
+    listEmployees(),
+    listTableRows("itsm", "support_reimbursement"),
   ]);
+  const runById = new Map<string, any>(allRuns.map((r: any) => [r.id, r]));
+  const empById = new Map<string, any>(allEmps.map((e: any) => [e.id, e]));
+  const items = allItems
+    .filter((i: any) => {
+      const run = runById.get(i.payrollRunId);
+      return Number(i.externalSupport ?? 0) > 0 && run && ["approved", "paid", "closed"].includes(run.status);
+    })
+    .map((i: any) => ({
+      ...i,
+      payrollRun: runById.get(i.payrollRunId),
+      employee: empById.get(i.employeeId) ?? { firstNameEn: "", lastNameEn: "", employeeNumber: "" },
+    }));
 
   const programmes = new Map<
     string,
@@ -201,18 +200,16 @@ export async function recordSupportReimbursement(
     const receivedOn = new Date(input.receivedOn);
     if (Number.isNaN(receivedOn.getTime()))
       throw new Error(serverMessages.enterTheDateItWasReceived);
-    return db.supportReimbursement.create({
-      data: {
-        employeeId: input.employeeId,
-        provider: input.provider,
-        periodStart: claim.periodStart,
-        periodEnd: claim.periodEnd,
-        claimedAmount: claim.accrued,
-        receivedAmount: Math.round(input.receivedAmount * 1000) / 1000,
-        receivedOn,
-        reference: input.reference?.trim() || null,
-        recordedById: actorId,
-      },
+    return upsertTableRow("itsm", "support_reimbursement", {
+      employeeId: input.employeeId,
+      provider: input.provider,
+      periodStart: claim.periodStart,
+      periodEnd: claim.periodEnd,
+      claimedAmount: claim.accrued,
+      receivedAmount: Math.round(input.receivedAmount * 1000) / 1000,
+      receivedOn: receivedOn.toISOString(),
+      reference: input.reference?.trim() || null,
+      recordedById: actorId,
     });
   });
 }

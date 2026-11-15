@@ -60,6 +60,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/payroll/:id", h.getPayroll)
 	g.POST("/payroll", h.createPayroll)
 	g.PUT("/payroll/:id/process", h.processPayroll)
+	h.extrasRoutes(g)
 }
 func (h *handler) listDepartments(c echo.Context) error {
 	departments, err := h.svc.ListDepartments(c.Request().Context())

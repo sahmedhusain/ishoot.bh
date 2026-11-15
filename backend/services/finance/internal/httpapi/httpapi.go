@@ -52,6 +52,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/catalog", h.listCatalogItems)
 	g.GET("/contacts-ref", h.listContactsRef)
 	g.GET("/quotations-ref", h.listQuotationsRef)
+	h.extrasRoutes(g)
 }
 func (h *handler) listInvoices(c echo.Context) error {
 	var contactID, quotationID *string

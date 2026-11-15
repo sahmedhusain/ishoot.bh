@@ -52,6 +52,8 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.POST("/purchase-orders", h.createPurchaseOrder)
 	g.GET("/purchase-orders/:id", h.getPurchaseOrder)
 	g.POST("/purchase-orders/:id/receive", h.receivePurchaseOrder)
+	h.requisitionRoutes(g)
+	h.extrasRoutes(g)
 
 	adminInv := e.Group("/v1/admin/inventory", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 	adminInv.GET("/warehouses", h.listWarehouses)

@@ -57,6 +57,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.DELETE("/campaigns/:id", h.deleteCampaign)
 	g.GET("/pipeline-stages", h.listPipelineStages)
 	g.GET("/catalog", h.listCatalogItems)
+	h.extrasRoutes(g)
 }
 func (h *handler) listContacts(c echo.Context) error {
 	contacts, err := h.svc.ListContacts(c.Request().Context())

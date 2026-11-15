@@ -1,4 +1,5 @@
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { requireStockLocationAccess } from "./branches";
 import { postMovements } from "./inventory";
 import { uniqueSerials } from "../constants/stock-traceability";
@@ -14,56 +15,59 @@ export async function fulfillSerializedOrder(
   actorId: string,
 ) {
   return runAtomicMutation(async () => {
-    const order = await db.salesOrder.findUnique({
-      where: { id: orderId },
-      include: { lines: true },
-    });
+    const [orders, orderLines, allSerials] = await Promise.all([
+      listTableRows<Record<string, any>>("commerce", "sales_order"),
+      listTableRows<Record<string, any>>("commerce", "sales_order_line"),
+      listTableRows<Record<string, any>>("inventory", "stock_serial"),
+    ]);
+    const order = orders.find((o) => o.id === orderId);
     if (!order) throw new Error("Sales order not found");
+    const linesForOrder = orderLines.filter((l) => l.orderId === orderId);
 
     for (const reqLine of lines) {
-      const line = order.lines.find((l) => l.id === reqLine.lineId);
+      const line = linesForOrder.find((l) => l.id === reqLine.lineId);
       if (!line) throw new Error("Sales order line not found");
       const requiredQty = Number(line.quantity);
       if (!Array.isArray(reqLine.serialCodes) || reqLine.serialCodes.length !== requiredQty) {
         throw new Error("Serial count does not match line quantity");
       }
       const codes = uniqueSerials(reqLine.serialCodes);
+      const codeSet = new Set(codes);
 
       if (!line.locationId) {
         throw new Error("Location is unavailable or has no branch");
       }
-      await requireStockLocationAccess(actorId, line.locationId, true);
+      await requireStockLocationAccess(actorId, String(line.locationId), true);
 
-      const serials = await db.stockSerial.findMany({
-        where: {
-          code: { in: codes },
-          productId: line.productId,
-          variantKey: line.variantKey,
-          locationId: line.locationId,
-          status: "available",
-        },
-      });
+      const serials = allSerials.filter(
+        (s) =>
+          codeSet.has(String(s.code)) &&
+          s.productId === line.productId &&
+          (s.variantKey ?? "") === (line.variantKey ?? "") &&
+          s.locationId === line.locationId &&
+          s.status === "available",
+      );
       if (serials.length !== codes.length) {
         throw new Error("Serial not available for sale");
       }
 
-      await db.stockSerial.updateMany({
-        where: { code: { in: codes } },
-        data: {
+      for (const s of serials) {
+        await upsertTableRow("inventory", "stock_serial", {
+          id: s.id,
           status: "sold",
           locationId: null,
-          revision: { increment: 1 },
-        },
-      });
+          revision: Number(s.revision ?? 0) + 1,
+        });
+      }
 
       await postMovements(
-        db,
+        null,
         [
           {
             type: "sale",
-            productId: line.productId,
+            productId: String(line.productId),
             variantId: line.variantKey || undefined,
-            locationId: line.locationId,
+            locationId: String(line.locationId),
             quantity: -requiredQty,
             sourceType: "order",
             sourceId: orderId,
@@ -73,15 +77,14 @@ export async function fulfillSerializedOrder(
         actorId,
       );
 
-      await db.stockTraceEvent.create({
-        data: {
-          entityType: "sales_order",
-          entityId: orderId,
-          revision: 1,
-          action: "serial_fulfilled",
-          actorId,
-          details: { lineId: line.id, codes },
-        },
+      await upsertTableRow("inventory", "stock_trace_event", {
+        id: crypto.randomUUID(),
+        entityType: "sales_order",
+        entityId: orderId,
+        revision: 1,
+        action: "serial_fulfilled",
+        actorId,
+        details: { lineId: line.id, codes },
       });
     }
 
@@ -102,56 +105,57 @@ export async function returnSerializedOrder(
   actorId: string,
 ) {
   return runAtomicMutation(async () => {
-    const order = await db.salesOrder.findUnique({
-      where: { id: orderId },
-      include: { lines: true },
-    });
+    const [orders, orderLines, allSerials] = await Promise.all([
+      listTableRows<Record<string, any>>("commerce", "sales_order"),
+      listTableRows<Record<string, any>>("commerce", "sales_order_line"),
+      listTableRows<Record<string, any>>("inventory", "stock_serial"),
+    ]);
+    const order = orders.find((o) => o.id === orderId);
     if (!order) throw new Error("Sales order not found");
+    const linesForOrder = orderLines.filter((l) => l.orderId === orderId);
 
     for (const reqLine of lines) {
-      const line = order.lines.find((l) => l.id === reqLine.lineId);
+      const line = linesForOrder.find((l) => l.id === reqLine.lineId);
       if (!line) throw new Error("Sales order line not found");
       const codes = uniqueSerials(reqLine.serialCodes);
       if (codes.length === 0) {
         throw new Error("Duplicate or invalid serial identifier");
       }
+      const codeSet = new Set(codes);
 
       await requireStockLocationAccess(actorId, reqLine.locationId, true);
 
-      const serials = await db.stockSerial.findMany({
-        where: {
-          code: { in: codes },
-          productId: line.productId,
-          variantKey: line.variantKey,
-          status: "sold",
-        },
-      });
+      const serials = allSerials.filter(
+        (s) =>
+          codeSet.has(String(s.code)) &&
+          s.productId === line.productId &&
+          (s.variantKey ?? "") === (line.variantKey ?? "") &&
+          s.status === "sold",
+      );
       if (serials.length !== codes.length) {
         throw new Error("Serial was not sold on this order");
       }
 
-      await db.stockSerial.updateMany({
-        where: { code: { in: codes } },
-        data: {
+      for (const s of serials) {
+        await upsertTableRow("inventory", "stock_serial", {
+          id: s.id,
           status: "available",
           locationId: reqLine.locationId,
-          revision: { increment: 1 },
-        },
-      });
+          revision: Number(s.revision ?? 0) + 1,
+        });
+      }
 
-      await db.salesOrderLine.update({
-        where: { id: line.id },
-        data: {
-          returnedQuantity: { increment: codes.length },
-        },
+      await upsertTableRow("commerce", "sales_order_line", {
+        id: line.id,
+        returnedQuantity: Number(line.returnedQuantity ?? 0) + codes.length,
       });
 
       await postMovements(
-        db,
+        null,
         [
           {
             type: "return",
-            productId: line.productId,
+            productId: String(line.productId),
             variantId: line.variantKey || undefined,
             locationId: reqLine.locationId,
             quantity: codes.length,
@@ -164,15 +168,14 @@ export async function returnSerializedOrder(
         actorId,
       );
 
-      await db.stockTraceEvent.create({
-        data: {
-          entityType: "sales_order",
-          entityId: orderId,
-          revision: 2,
-          action: "serial_returned",
-          actorId,
-          details: { lineId: line.id, codes, returnLocationId: reqLine.locationId },
-        },
+      await upsertTableRow("inventory", "stock_trace_event", {
+        id: crypto.randomUUID(),
+        entityType: "sales_order",
+        entityId: orderId,
+        revision: 2,
+        action: "serial_returned",
+        actorId,
+        details: { lineId: line.id, codes, returnLocationId: reqLine.locationId },
       });
     }
 
@@ -186,22 +189,20 @@ export async function getAvailableSerials(
   variantKey = "",
   batchKey = "",
 ) {
-  return db.stockSerial.findMany({
-    where: {
-      productId,
-      locationId,
-      variantKey,
-      batchKey,
-      status: "available",
-    },
-    select: {
-      id: true,
-      code: true,
-      revision: true,
-      packageId: true,
-      batchKey: true,
-      manufacturerSerial: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
+  const serials = await listTableRows<Record<string, any>>("inventory", "stock_serial", "code ASC");
+  return serials
+    .filter(
+      (s) =>
+        s.productId === productId &&
+        s.locationId === locationId &&
+        (s.variantKey ?? "") === variantKey &&
+        (s.batchKey ?? "") === batchKey &&
+        s.status === "available",
+    )
+    .sort((a, b) => String(a.code ?? "").localeCompare(String(b.code ?? "")))
+    .map((s) => ({
+      id: String(s.id),
+      code: String(s.code ?? ""),
+      revision: Number(s.revision ?? 1),
+    }));
 }

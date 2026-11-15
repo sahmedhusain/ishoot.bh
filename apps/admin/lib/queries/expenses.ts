@@ -1,7 +1,7 @@
 import { roundMoney, validMoneyAmount } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { claimUploadOrLink } from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
 import {
@@ -59,7 +59,7 @@ export function mapExpense(e: any): Expense {
     description_ar: e.descriptionAr || undefined,
     amount: Number(e.amount),
     currency: String(e.currency ?? ""),
-    expense_date: e.expenseDate.toISOString().split("T")[0],
+    expense_date: (e.expenseDate instanceof Date ? e.expenseDate.toISOString() : String(e.expenseDate ?? new Date().toISOString())).split("T")[0],
     vendor_name: e.vendorName || undefined,
     receipt_url: e.receiptUrl || undefined,
     is_billable: e.isBillable,
@@ -69,7 +69,7 @@ export function mapExpense(e: any): Expense {
     status: e.status,
     review_notes: e.reviewNotes || undefined,
     input_vat_amount: Number(e.inputVatAmount ?? 0),
-    created_at: e.createdAt.toISOString(),
+    created_at: e.createdAt instanceof Date ? e.createdAt.toISOString() : String(e.createdAt ?? new Date().toISOString()),
   };
 }
 
@@ -80,10 +80,13 @@ export async function getExpenseCategories(
   if (apiCats && apiCats.length > 0) {
     return apiCats.map(mapCategory);
   }
-  const categories = await db.expenseCategory.findMany({
-    where: options.includeInactive ? undefined : { isActive: true },
-    orderBy: [{ displayOrder: "asc" }, { nameEn: "asc" }],
-  });
+  const allCategories = await listTableRows<any>("finance", "expense_category");
+  const categories = allCategories
+    .filter((c) => options.includeInactive || c.isActive)
+    .sort((a, b) => {
+      const ord = Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0);
+      return ord !== 0 ? ord : String(a.nameEn ?? "").localeCompare(String(b.nameEn ?? ""));
+    });
   return categories.map(mapCategory);
 }
 
@@ -132,28 +135,24 @@ export async function createExpenseCategory(data: {
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_|_$/g, "")
       .slice(0, 40) || "category";
+  const allCategories = await listTableRows<any>("finance", "expense_category");
+  const usedSlugs = new Set(allCategories.map((c) => c.slug));
   let slug = `custom_${base}`;
-  for (
-    let i = 2;
-    await db.expenseCategory.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-    i++
-  )
-    slug = `custom_${base}_${i}`;
-  const last = await db.expenseCategory.aggregate({
-    _max: { displayOrder: true },
-  });
-  const created = await db.expenseCategory.create({
-    data: {
-      slug,
-      nameEn: fields.nameEn!,
-      nameAr: fields.nameAr || fields.nameEn!,
-      color: fields.color!,
-      kind: fields.kind!,
-      displayOrder: (last._max.displayOrder ?? 0) + 1,
-    },
+  for (let i = 2; usedSlugs.has(slug); i++) slug = `custom_${base}_${i}`;
+  const maxOrder = allCategories.reduce(
+    (max, c) => Math.max(max, Number(c.displayOrder ?? 0)),
+    0,
+  );
+  const created = await upsertTableRow("finance", "expense_category", {
+    id: crypto.randomUUID(),
+    slug,
+    nameEn: fields.nameEn!,
+    nameAr: fields.nameAr || fields.nameEn!,
+    color: fields.color!,
+    kind: fields.kind!,
+    displayOrder: maxOrder + 1,
+    isActive: true,
+    isSystem: false,
   });
   return mapCategory(created);
 }
@@ -168,12 +167,13 @@ export async function updateExpenseCategory(
     is_active?: boolean;
   },
 ): Promise<ExpenseCategory> {
-  const updated = await db.expenseCategory.update({
-    where: { id },
-    data: {
-      ...categoryFields(data),
-      ...(data.is_active !== undefined && { isActive: data.is_active }),
-    },
+  const allCategories = await listTableRows<any>("finance", "expense_category");
+  const existing = allCategories.find((c) => c.id === id);
+  if (!existing) throw new Error("Category not found");
+  const updated = await upsertTableRow("finance", "expense_category", {
+    ...existing,
+    ...categoryFields(data),
+    ...(data.is_active !== undefined && { isActive: data.is_active }),
   });
   return mapCategory(updated);
 }
@@ -181,18 +181,21 @@ export async function updateExpenseCategory(
 export async function deleteExpenseCategory(
   id: string,
 ): Promise<"deleted" | "hidden"> {
-  const category = await db.expenseCategory.findUniqueOrThrow({
-    where: { id },
-    select: { isSystem: true, _count: { select: { expenses: true } } },
-  });
-  if (category.isSystem || category._count.expenses > 0) {
-    await db.expenseCategory.update({
-      where: { id },
-      data: { isActive: false },
+  const [allCategories, allExpenses] = await Promise.all([
+    listTableRows<any>("finance", "expense_category"),
+    listTableRows<any>("finance", "expense"),
+  ]);
+  const category = allCategories.find((c) => c.id === id);
+  if (!category) throw new Error("Category not found");
+  const expenseCount = allExpenses.filter((e) => e.categoryId === id).length;
+  if (category.isSystem || expenseCount > 0) {
+    await upsertTableRow("finance", "expense_category", {
+      ...category,
+      isActive: false,
     });
     return "hidden";
   }
-  await db.expenseCategory.delete({ where: { id } });
+  await deleteTableRow("finance", "expense_category", id);
   return "deleted";
 }
 
@@ -282,20 +285,16 @@ async function resolveExpenseLink(input: {
   if (scope === "deal") {
     if (!input.deal_id)
       throw new Error(serverMessages.chooseTheDealThisExpenseBelongsTo);
-    const deal = await db.crmDeal.findUnique({
-      where: { id: input.deal_id },
-      select: { contactId: true },
-    });
+    const deals = await listTableRows<any>("sales", "crm_deal");
+    const deal = deals.find((d) => d.id === input.deal_id);
     if (!deal) throw new Error(serverMessages.dealNotFound);
     return { scope, dealId: input.deal_id, clientId: deal.contactId ?? null };
   }
   if (scope === "client") {
     if (!input.client_id)
       throw new Error(serverMessages.chooseTheClientThisExpenseBelongsTo);
-    const client = await db.crmContact.findUnique({
-      where: { id: input.client_id },
-      select: { id: true },
-    });
+    const contacts = await listTableRows<any>("sales", "crm_contact");
+    const client = contacts.find((c) => c.id === input.client_id);
     if (!client) throw new Error(serverMessages.clientNotFound);
     return { scope, dealId: null, clientId: input.client_id };
   }
@@ -334,36 +333,49 @@ export async function getRelatedExpenses(
 ) {
   if (!filter.dealId && !filter.clientId)
     throw new Error(serverMessages.aDealOrClientIsRequired);
-  const where = filter.dealId
-    ? { dealId: filter.dealId }
-    : { clientId: filter.clientId };
-  const [rows, totals] = await Promise.all([
-    db.expense.findMany({
-      where,
-      include: {
-        category: true,
-        deal: { select: { title: true } },
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-      },
-      orderBy: { expenseDate: "desc" },
-      take,
-    }),
-    db.expense.groupBy({
-      by: ["currency"],
-      where: { ...where, status: "approved" },
-      _sum: { amount: true, netAmount: true },
-      _count: { _all: true },
-    }),
+  const [allExpenses, categories, deals, contacts] = await Promise.all([
+    listTableRows<any>("finance", "expense"),
+    listTableRows<any>("finance", "expense_category"),
+    listTableRows<any>("sales", "crm_deal"),
+    listTableRows<any>("sales", "crm_contact"),
   ]);
+  const catMap = new Map<string, any>(categories.map((c) => [c.id, c]));
+  const dealMap = new Map<string, any>(deals.map((d) => [d.id, d]));
+  const clientMap = new Map<string, any>(contacts.map((c) => [c.id, c]));
+  const filtered = allExpenses.filter((e) =>
+    filter.dealId ? e.dealId === filter.dealId : e.clientId === filter.clientId,
+  );
+  const rows = [...filtered]
+    .sort((a, b) =>
+      String(b.expenseDate ?? "").localeCompare(String(a.expenseDate ?? "")),
+    )
+    .slice(0, take)
+    .map((e) => ({
+      ...e,
+      category: e.categoryId ? catMap.get(e.categoryId) ?? null : null,
+      deal: e.dealId ? dealMap.get(e.dealId) ?? null : null,
+      client: e.clientId ? clientMap.get(e.clientId) ?? null : null,
+    }));
+  const totalsByCurrency = new Map<
+    string,
+    { amount: number; net: number; count: number }
+  >();
+  for (const e of filtered) {
+    if (e.status !== "approved") continue;
+    const cur = String(e.currency ?? "");
+    const entry = totalsByCurrency.get(cur) ?? { amount: 0, net: 0, count: 0 };
+    entry.amount += Number(e.amount ?? 0);
+    entry.net += Number(e.netAmount ?? 0);
+    entry.count += 1;
+    totalsByCurrency.set(cur, entry);
+  }
   return {
     items: rows.map(mapExpense),
-    totals: totals.map((t) => ({
-      currency: t.currency,
-      amount: Number(t._sum.amount ?? 0),
-      net: Number(t._sum.netAmount ?? 0),
-      count: t._count._all,
+    totals: Array.from(totalsByCurrency.entries()).map(([currency, t]) => ({
+      currency,
+      amount: t.amount,
+      net: t.net,
+      count: t.count,
     })),
   };
 }

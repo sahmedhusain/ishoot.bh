@@ -56,6 +56,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/retail/shifts", h.listRetailShifts)
 	g.POST("/retail/shifts", h.createRetailShift)
 	g.POST("/retail/shifts/:id/close", h.closeRetailShift)
+	h.extrasRoutes(g)
 
 	storeGroup := e.Group("/v1/store", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 	storeGroup.GET("/settings", h.getStoreSettings)

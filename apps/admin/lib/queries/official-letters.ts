@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import crypto from "crypto";
 import { resolveSigningSignature } from "./signature-policies";
-import { db, runAtomicMutation } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { LETTER_CLASSIFICATIONS } from "../constants/communications";
 import {
   registerApprovalFinalizer,
@@ -25,11 +25,15 @@ export interface LetterTemplateInput {
 }
 
 export async function listLetterTemplates(includeInactive = true) {
-  const rows = await db.letterTemplate.findMany({
-    where: includeInactive ? {} : { isActive: true },
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-    include: { _count: { select: { letters: true } } },
-  });
+  const [allRows, allLetters] = await Promise.all([
+    listTableRows<any>("workflow", "letter_template", "display_order ASC, created_at ASC"),
+    listTableRows<any>("workflow", "official_letter").catch(() => []),
+  ]);
+  const rows = includeInactive ? allRows : allRows.filter((t) => t.isActive);
+  const countByTpl = new Map<string, number>();
+  for (const l of allLetters) {
+    if (l.templateId) countByTpl.set(l.templateId, (countByTpl.get(l.templateId) ?? 0) + 1);
+  }
   return rows.map((t) => ({
     id: t.id,
     key: t.key,
@@ -39,9 +43,9 @@ export async function listLetterTemplates(includeInactive = true) {
     subjectAr: t.subjectAr,
     bodyEn: t.bodyEn,
     bodyAr: t.bodyAr,
-    aboutEmployee: t.aboutEmployee,
-    isActive: t.isActive,
-    letters: t._count.letters,
+    aboutEmployee: !!t.aboutEmployee,
+    isActive: !!t.isActive,
+    letters: countByTpl.get(t.id) ?? 0,
   }));
 }
 
@@ -62,23 +66,23 @@ export async function saveLetterTemplate(
     aboutEmployee: !!input.about_employee,
     isActive: !!input.is_active,
   };
-  if (id) return db.letterTemplate.update({ where: { id }, data });
+  const existingRows = await listTableRows<any>("workflow", "letter_template");
+  if (id) {
+    const existing = existingRows.find((r) => r.id === id);
+    return upsertTableRow("workflow", "letter_template", { ...existing, id, ...data });
+  }
   let key =
     (input.key?.trim().toLowerCase() || nameEn.toLowerCase())
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "")
       .slice(0, 40) || "template";
-  for (
-    let n = 2;
-    await db.letterTemplate.findUnique({
-      where: { key },
-      select: { id: true },
-    });
-    n++
-  )
-    key = `${key.replace(/_\d+$/, "")}_${n}`;
-  return db.letterTemplate.create({
-    data: { ...data, key, displayOrder: await db.letterTemplate.count() },
+  const keys = new Set(existingRows.map((r) => r.key));
+  for (let n = 2; keys.has(key); n++) key = `${key.replace(/_\d+$/, "")}_${n}`;
+  return upsertTableRow("workflow", "letter_template", {
+    id: crypto.randomUUID(),
+    ...data,
+    key,
+    displayOrder: existingRows.length,
   });
 }
 
@@ -130,20 +134,20 @@ export async function letterValues(input: {
     purpose: input.purpose ?? "",
   };
   if (input.employeeId) {
-    const e = await db.employee.findUnique({
-      where: { id: input.employeeId },
-      include: {
-        department: true,
-        employmentRecords: { where: { isCurrent: true }, take: 1 },
-      },
-    });
+    const [emps, depts, empRecords] = await Promise.all([
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("hr", "department").catch(() => []),
+      listTableRows<any>("system", "employment_record").catch(() => []),
+    ]);
+    const e = emps.find((row) => row.id === input.employeeId);
     if (e) {
-      const pay = e.employmentRecords[0];
+      const dept = e.departmentId ? depts.find((d) => d.id === e.departmentId) : null;
+      const pay = empRecords.find((r) => r.employeeId === e.id && r.isCurrent);
       const gross = pay
-        ? Number(pay.basicSalary) +
-          Number(pay.housingAllowance) +
-          Number(pay.transportAllowance) +
-          Number(pay.otherAllowances)
+        ? Number(pay.basicSalary ?? 0) +
+          Number(pay.housingAllowance ?? 0) +
+          Number(pay.transportAllowance ?? 0) +
+          Number(pay.otherAllowances ?? 0)
         : 0;
       Object.assign(values, {
         "employee.name": isAr
@@ -152,13 +156,13 @@ export async function letterValues(input: {
         "employee.number": e.employeeNumber,
         "employee.jobTitle": isAr ? e.jobTitleAr : e.jobTitleEn,
         "employee.department":
-          (isAr ? e.department?.nameAr : e.department?.nameEn) ?? "",
-        "employee.hireDate": fmtDate(e.hireDate, input.language, tz),
+          (isAr ? dept?.nameAr : dept?.nameEn) ?? "",
+        "employee.hireDate": e.hireDate ? fmtDate(new Date(e.hireDate), input.language, tz) : "",
         "employee.cpr": e.cprNumber ?? "",
         "employee.nationality": e.nationality ?? "",
         "employee.passport": e.passportNumber ?? "",
         "employee.basicSalary": pay
-          ? fmtMoney(Number(pay.basicSalary), input.language, curr, dec)
+          ? fmtMoney(Number(pay.basicSalary ?? 0), input.language, curr, dec)
           : "",
         "employee.grossSalary": pay ? fmtMoney(gross, input.language, curr, dec) : "",
       });
@@ -188,9 +192,8 @@ export async function draftFromTemplate(
     purpose?: string | null;
   },
 ) {
-  const template = await db.letterTemplate.findUnique({
-    where: { id: templateId },
-  });
+  const templates = await listTableRows<any>("workflow", "letter_template");
+  const template = templates.find((t) => t.id === templateId);
   if (!template) throw new Error(serverMessages.communicationError14);
   const [en, ar] = await Promise.all([
     letterValues({ ...input, language: "en" }),
@@ -308,36 +311,40 @@ export async function submitOfficialLetter(id: string, _actorId: string) {
 }
 
 export async function cancelOfficialLetter(id: string) {
-  const letter = await db.officialLetter.findUnique({
-    where: { id },
-    select: { status: true },
-  });
+  const letters = await listTableRows<any>("workflow", "official_letter");
+  const letter = letters.find((l) => l.id === id);
   if (!letter) throw new Error(serverMessages.communicationError20);
   if (letter.status === "cancelled") return;
   await cancelPendingApprovals("official_letter", id);
-  await db.officialLetter.update({
-    where: { id },
-    data: { status: "cancelled" },
+  await upsertTableRow("workflow", "official_letter", {
+    ...letter,
+    id,
+    status: "cancelled",
   });
 }
 
 registerApprovalFinalizer("official_letter", {
   async approve(id, decider) {
-    const letter = await db.officialLetter.findUniqueOrThrow({
-      where: { id },
-      select: { status: true, showSignature: true },
-    });
+    const [letters, approvals, decisions] = await Promise.all([
+      listTableRows<any>("workflow", "official_letter"),
+      listTableRows<any>("workflow", "approval_request").catch(() => []),
+      listTableRows<any>("workflow", "approval_decision", "decided_at DESC").catch(() => []),
+    ]);
+    const letter = letters.find((l) => l.id === id);
+    if (!letter) throw new Error(serverMessages.communicationError20);
     if (letter.status !== "pending_approval")
       throw new Error(serverMessages.communicationError23);
-    const decision = await db.approvalDecision.findFirst({
-      where: {
-        decidedById: decider,
-        decision: "approved",
-        approvalRequest: { targetType: "official_letter", targetId: id },
-      },
-      orderBy: { decidedAt: "desc" },
-      select: { signatureData: true },
-    });
+    const reqIds = new Set(
+      approvals
+        .filter((a) => a.targetType === "official_letter" && a.targetId === id)
+        .map((a) => a.id),
+    );
+    const decision = decisions.find(
+      (d) =>
+        d.decidedById === decider &&
+        d.decision === "approved" &&
+        reqIds.has(d.approvalRequestId),
+    );
     const signature = letter.showSignature
       ? await resolveSigningSignature(
           "official_letter",
@@ -345,20 +352,24 @@ registerApprovalFinalizer("official_letter", {
           decision?.signatureData,
         )
       : null;
-    await db.officialLetter.update({
-      where: { id },
-      data: {
-        status: "approved",
-        signerId: decider,
-        signatureUrl: signature,
-        signedAt: new Date(),
-      },
+    await upsertTableRow("workflow", "official_letter", {
+      ...letter,
+      id,
+      status: "approved",
+      signerId: decider,
+      signatureUrl: signature,
+      signedAt: new Date().toISOString(),
     });
   },
   async reject(id, _decider, reason) {
-    await db.officialLetter.update({
-      where: { id },
-      data: { status: "rejected", decisionNotes: reason || null },
+    const letters = await listTableRows<any>("workflow", "official_letter");
+    const letter = letters.find((l) => l.id === id);
+    if (!letter) return;
+    await upsertTableRow("workflow", "official_letter", {
+      ...letter,
+      id,
+      status: "rejected",
+      decisionNotes: reason || null,
     });
   },
 });
@@ -389,25 +400,25 @@ export async function listOfficialLetters(filters: { status?: string } = {}) {
     console.warn("api-client listOfficialLetters failed:", e);
   }
 
-  const rows = await db.officialLetter.findMany({
-    where:
-      filters.status && filters.status !== "all"
-        ? { status: filters.status }
-        : {},
-    include: {
-      template: { select: { nameEn: true, nameAr: true } },
-      employee: {
-        select: {
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 300,
-  });
+  const [allRows, templates, employees] = await Promise.all([
+    listTableRows<any>("workflow", "official_letter", "created_at DESC").catch(() => []),
+    listTableRows<any>("workflow", "letter_template").catch(() => []),
+    listTableRows<any>("hr", "employee").catch(() => []),
+  ]);
+  const tplMap = new Map<string, any>(templates.map((t): [any, any] => [t.id, t]));
+  const empMap = new Map<string, any>(employees.map((e): [any, any] => [e.id, e]));
+  const rows = (
+    filters.status && filters.status !== "all"
+      ? allRows.filter((r) => r.status === filters.status)
+      : allRows
+  )
+    .slice(0, 300)
+    .map((l) => ({
+      ...l,
+      template: l.templateId ? tplMap.get(l.templateId) || null : null,
+      employee: l.employeeId ? empMap.get(l.employeeId) || null : null,
+      letterDate: new Date(l.letterDate || l.createdAt || Date.now()),
+    }));
   return rows.map((l) => ({
     id: l.id,
     reference: l.reference,
@@ -483,43 +494,27 @@ export async function getOfficialLetter(id: string) {
     console.warn(`api-client getOfficialLetter ${id} failed:`, e);
   }
 
-  const l = await db.officialLetter.findUnique({
-    where: { id },
-    include: { template: { select: { id: true, nameEn: true, nameAr: true } } },
-  });
-  if (!l) return null;
-  const [author, signer] = await Promise.all([
-    db.user.findUnique({
-      where: { id: l.createdById },
-      select: { fullName: true },
-    }),
-    l.signerId
-      ? db.user.findUnique({
-          where: { id: l.signerId },
-          select: {
-            fullName: true,
-            employee: {
-              select: {
-                firstNameEn: true,
-                lastNameEn: true,
-                firstNameAr: true,
-                lastNameAr: true,
-                jobTitleEn: true,
-                jobTitleAr: true,
-              },
-            },
-          },
-        })
-      : null,
+  const [letters, templates, users, employees] = await Promise.all([
+    listTableRows<any>("workflow", "official_letter").catch(() => []),
+    listTableRows<any>("workflow", "letter_template").catch(() => []),
+    listTableRows<any>("identity", "user").catch(() => []),
+    listTableRows<any>("hr", "employee").catch(() => []),
   ]);
+  const l = letters.find((row) => row.id === id);
+  if (!l) return null;
+  const tpl = l.templateId ? templates.find((t) => t.id === l.templateId) || null : null;
+  const author = users.find((u) => u.id === l.createdById) || null;
+  const signerUser = l.signerId ? users.find((u) => u.id === l.signerId) || null : null;
+  const signerEmp = signerUser ? employees.find((e) => e.userId === signerUser.id) || null : null;
+  const signer = signerUser ? { ...signerUser, employee: signerEmp } : null;
   return {
     id: l.id,
     reference: l.reference,
     status: l.status,
     templateId: l.templateId,
-    template: l.template,
+    template: tpl ? { id: tpl.id, nameEn: tpl.nameEn, nameAr: tpl.nameAr } : null,
     employeeId: l.employeeId,
-    languages: l.languages as Array<"ar" | "en">,
+    languages: (l.languages || ["ar", "en"]) as Array<"ar" | "en">,
     recipientName: l.recipientName,
     recipientTitle: l.recipientTitle,
     recipientOrganization: l.recipientOrganization,
@@ -528,7 +523,7 @@ export async function getOfficialLetter(id: string) {
     subjectAr: l.subjectAr,
     bodyEn: l.bodyEn,
     bodyAr: l.bodyAr,
-    letterDate: l.letterDate.toISOString().slice(0, 10),
+    letterDate: new Date(l.letterDate || l.createdAt || Date.now()).toISOString().slice(0, 10),
     classification: l.classification,
     showSignature: l.showSignature,
     showStamp: l.showStamp,
@@ -537,7 +532,7 @@ export async function getOfficialLetter(id: string) {
     author: author?.fullName ?? "",
     createdById: l.createdById,
     signatureUrl: l.signatureUrl,
-    signedAt: l.signedAt?.toISOString() ?? null,
+    signedAt: l.signedAt ? new Date(l.signedAt).toISOString() : null,
     signer: signer
       ? {
           nameEn: signer.employee
@@ -558,24 +553,18 @@ export type OfficialLetterDetail = NonNullable<
 
 export async function verifyOfficialLetter(code: string) {
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(code ?? "")) return null;
-  const l = await db.officialLetter.findUnique({
-    where: { verificationCode: code },
-    select: {
-      reference: true,
-      status: true,
-      letterDate: true,
-      subjectEn: true,
-      subjectAr: true,
-      recipientName: true,
-      recipientOrganization: true,
-      signedAt: true,
-    },
-  });
+  const letters = await listTableRows<any>("workflow", "official_letter").catch(() => []);
+  const l = letters.find((row) => row.verificationCode === code);
   if (!l) return null;
   return {
-    ...l,
-    letterDate: l.letterDate.toISOString().slice(0, 10),
-    signedAt: l.signedAt?.toISOString() ?? null,
+    reference: l.reference,
+    status: l.status,
+    subjectEn: l.subjectEn,
+    subjectAr: l.subjectAr,
+    recipientName: l.recipientName,
+    recipientOrganization: l.recipientOrganization,
+    letterDate: new Date(l.letterDate || l.createdAt || Date.now()).toISOString().slice(0, 10),
+    signedAt: l.signedAt ? new Date(l.signedAt).toISOString() : null,
     valid: l.status === "approved",
   };
 }

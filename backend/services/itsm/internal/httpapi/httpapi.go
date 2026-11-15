@@ -52,6 +52,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	requests.GET("/asset-handovers", h.listAssetHandovers)
 	requests.POST("/asset-handovers", h.saveAssetHandover)
 	requests.PUT("/asset-handovers/:id", h.saveAssetHandover)
+	h.extrasRoutes(requests)
 	desk := e.Group("/v1/itsm/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	read := authz.Require(catalog.ITAccess, "tickets", "read")
 	edit := authz.Require(catalog.ITAccess, "tickets", "edit")

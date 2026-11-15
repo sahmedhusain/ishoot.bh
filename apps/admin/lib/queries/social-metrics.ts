@@ -1,6 +1,5 @@
-import { Database } from "@platform/database/decimal";
 import { listIntegrations } from "@platform/api-client";
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 
 export interface LatestSocialMetric {
   id: string;
@@ -14,7 +13,12 @@ export interface LatestSocialMetric {
 
 export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
   const integrations = await listIntegrations();
-  const activeConditions: Database.Sql[] = [];
+  const matchers: Array<{
+    provider: string;
+    platform: string;
+    accountId: string;
+    metrics: Set<string>;
+  }> = [];
 
   for (const item of integrations) {
     if (!item.isActive) continue;
@@ -27,20 +31,41 @@ export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
     for (const [platform, accountId] of Object.entries(socialAccounts)) {
       const metrics = availableMetrics[platform];
       if (accountId && Array.isArray(metrics) && metrics.length > 0) {
-        activeConditions.push(
-          Database.sql`(m."sourceProvider" = ${item.provider} AND m."platform" = ${platform} AND m."sourceAccountId" = ${accountId} AND m."metricType" IN (${Database.join(metrics)}))`,
-        );
+        matchers.push({
+          provider: item.provider,
+          platform,
+          accountId,
+          metrics: new Set(metrics),
+        });
       }
     }
   }
 
-  if (activeConditions.length === 0) return [];
+  if (matchers.length === 0) return [];
 
-  return db.$queryRaw<LatestSocialMetric[]>`
-    SELECT DISTINCT ON ("platform", "metricType")
-      "id", "platform", "metricType", "value", "recordedAt", "isStale", "errorStatus"
-    FROM "SocialMetric" m
-    WHERE ${Database.join(activeConditions, " OR ")}
-    ORDER BY "platform", "metricType", "recordedAt" DESC
-  `;
+  const rows = await listTableRows<any>("cms", "social_metric", "recorded_at DESC").catch(() => []);
+  const latestByKey = new Map<string, LatestSocialMetric>();
+  for (const m of rows) {
+    const matched = matchers.some(
+      (c) =>
+        m.sourceProvider === c.provider &&
+        m.platform === c.platform &&
+        m.sourceAccountId === c.accountId &&
+        c.metrics.has(m.metricType),
+    );
+    if (!matched) continue;
+    const k = `${m.platform}|${m.metricType}`;
+    if (!latestByKey.has(k)) {
+      latestByKey.set(k, {
+        id: m.id,
+        platform: m.platform,
+        metricType: m.metricType,
+        value: Number(m.value ?? 0),
+        recordedAt: new Date(m.recordedAt || Date.now()),
+        isStale: !!m.isStale,
+        errorStatus: m.errorStatus ?? null,
+      });
+    }
+  }
+  return Array.from(latestByKey.values());
 }

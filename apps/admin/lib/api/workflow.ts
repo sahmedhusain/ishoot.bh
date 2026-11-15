@@ -382,3 +382,15 @@ export const updateContract = (id: string, input: Partial<WorkflowContract>, tok
 
 export const deleteContract = (id: string, token?: string) =>
   workflowFetch<void>(`/v1/workflow/contracts/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listApprovalPolicies = (token?: string) =>
+  workflowFetch<any[]>("/v1/workflow/approval-policies", {}, token);
+
+export const listApprovalPolicySteps = (token?: string) =>
+  workflowFetch<any[]>("/v1/workflow/approval-policy-steps", {}, token);
+
+export const listSignaturePolicies = (token?: string) =>
+  workflowFetch<any[]>("/v1/workflow/signature-policies", {}, token);
+
+export const listCalendarFeedTokens = (token?: string) =>
+  workflowFetch<any[]>("/v1/workflow/calendar-feed-tokens", {}, token);

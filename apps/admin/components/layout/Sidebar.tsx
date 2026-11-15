@@ -161,24 +161,38 @@ export function Sidebar() {
     } catch {
       setFolded({});
     }
-    try {
-      const rawCustom = localStorage.getItem(customStorageKey);
-      if (rawCustom) {
-        setCustomConfig(normalizeSidebarCustomization(JSON.parse(rawCustom), role));
-      } else {
+    let active = true;
+    fetch("/api/workspace/prefs", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { sidebarPrefs?: { custom?: unknown; folded?: Record<string, boolean> } } | null) => {
+        if (!active || !data?.sidebarPrefs) return;
+        if (data.sidebarPrefs.custom) {
+          setCustomConfig(normalizeSidebarCustomization(data.sidebarPrefs.custom, role));
+        } else {
+          setCustomConfig(defaultSidebarCustomization(role));
+        }
+        if (data.sidebarPrefs.folded && typeof data.sidebarPrefs.folded === "object") {
+          setFolded((prev) => ({ ...prev, ...data.sidebarPrefs!.folded }));
+        }
+      })
+      .catch(() => {
         setCustomConfig(defaultSidebarCustomization(role));
-      }
-    } catch {
-      setCustomConfig(defaultSidebarCustomization(role));
-    }
+      });
+    return () => {
+      active = false;
+    };
   }, [storageKey, customStorageKey, role]);
 
   const handleSaveCustomConfig = (next: SidebarCustomizationConfig) => {
     const normalized = normalizeSidebarCustomization(next, role);
     setCustomConfig(normalized);
-    try {
-      localStorage.setItem(customStorageKey, JSON.stringify(normalized));
-    } catch { }
+    fetch("/api/workspace/prefs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sidebarPrefs: { custom: normalized, folded },
+      }),
+    }).catch(() => {});
   };
 
   const sections = React.useMemo<NavSection[]>(() => {
@@ -855,6 +869,13 @@ export function Sidebar() {
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
     } catch { }
+    fetch("/api/workspace/prefs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sidebarPrefs: { custom: customConfig, folded: next },
+      }),
+    }).catch(() => {});
   };
 
   const customizerCopy = (t as Record<string, unknown>).sidebarCustomizer as Record<string, string> | undefined;

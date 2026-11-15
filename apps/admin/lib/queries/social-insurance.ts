@@ -2,7 +2,9 @@ import { companyCurrency } from "../finance/company-currency";
 import { isCountryCode } from "../constants/clients";
 import { serverMessages } from "@platform/locales";
 import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { getEmployeeRelations, listEmployees } from "../api/hr";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import {
   INSURED_CATEGORIES,
   WAGE_BASES,
@@ -35,7 +37,8 @@ const dateInput = (
 const dayBefore = (value: Date) => new Date(value.getTime() - 86_400_000);
 
 export async function getGosiRules(): Promise<GosiRules> {
-  const row = await db.gosiSettings.findUnique({ where: { id: "default" } });
+  const rows = await listTableRows("hr", "gosi_settings").catch(() => []);
+  const row = rows.find((r) => r.id === "default") ?? rows[0];
   return {
     currency: await companyCurrency(),
     firstOfMonthRule: row?.firstOfMonthRule ?? true,
@@ -49,28 +52,17 @@ export async function updateGosiRules(input: GosiRules, actorId: string) {
     throw new Error(serverMessages.chooseTheWageContributionsAreWorked);
   const categories = input.nationalityCategories ?? {};
   if (Object.entries(categories).some(([country, category]) => (country !== "*" && !isCountryCode(country)) || !(INSURED_CATEGORIES as readonly string[]).includes(category))) throw new Error(serverMessages.invalidInput);
-  await db.gosiSettings.upsert({
-    where: { id: "default" },
-    update: {
-      nationalityCategories: categories,
-      firstOfMonthRule: !!input.firstOfMonthRule,
-      wageSource: input.wageSource,
-      updatedById: actorId,
-    },
-    create: {
-      id: "default",
-      nationalityCategories: categories,
-      firstOfMonthRule: !!input.firstOfMonthRule,
-      wageSource: input.wageSource,
-      updatedById: actorId,
-    },
+  await upsertTableRow("hr", "gosi_settings", {
+    id: "default",
+    nationalityCategories: categories,
+    firstOfMonthRule: !!input.firstOfMonthRule,
+    wageSource: input.wageSource,
+    updatedById: actorId,
   });
   return getGosiRules();
 }
 
-type ComponentRow = Awaited<
-  ReturnType<typeof db.gosiComponent.findMany>
->[number];
+type ComponentRow = any;
 export function toComponentRule(row: ComponentRow): GosiComponentRule {
   return {
     id: row.id,
@@ -183,13 +175,15 @@ function normalizeComponent(input: GosiComponentInput) {
 }
 
 export async function listGosiComponents() {
-  const rows = await db.gosiComponent.findMany({
-    orderBy: [{ code: "asc" }, { effectiveFrom: "desc" }],
-  });
+  const rows = await listTableRows("hr", "gosi_component", "code ASC, effective_from DESC");
   return rows.map((row) => ({
-    ...toComponentRule(row),
+    ...toComponentRule({
+      ...row,
+      effectiveFrom: row.effectiveFrom ? new Date(row.effectiveFrom) : new Date(),
+      effectiveTo: row.effectiveTo ? new Date(row.effectiveTo) : null,
+    }),
     notes: row.notes,
-    createdAt: row.createdAt.toISOString(),
+    createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
   }));
 }
 
@@ -199,17 +193,21 @@ export async function scheduleGosiComponent(
 ) {
   const data = normalizeComponent(input);
   return runAtomicMutation(async () => {
-    const versions = await db.gosiComponent.findMany({
-      where: { code: data.code },
-      orderBy: { effectiveFrom: "asc" },
-    });
+    const all = await listTableRows("hr", "gosi_component", "effective_from ASC");
+    const versions = all
+      .filter((v) => v.code === data.code)
+      .map((v) => ({
+        ...v,
+        effectiveFrom: new Date(v.effectiveFrom),
+        effectiveTo: v.effectiveTo ? new Date(v.effectiveTo) : null,
+      }));
     if (
       versions.some(
         (v) => v.effectiveFrom.getTime() === data.effectiveFrom.getTime(),
       )
     )
       throw new Error(serverMessages.ratesAlreadyStartOnThatDate);
-    const previous = versions
+    const previous: any = versions
       .filter((v) => v.effectiveFrom < data.effectiveFrom)
       .pop();
     const next = versions.find((v) => v.effectiveFrom > data.effectiveFrom);
@@ -217,16 +215,15 @@ export async function scheduleGosiComponent(
       previous &&
       (!previous.effectiveTo || previous.effectiveTo >= data.effectiveFrom)
     )
-      await db.gosiComponent.update({
-        where: { id: previous.id },
-        data: { effectiveTo: dayBefore(data.effectiveFrom) },
+      await upsertTableRow("hr", "gosi_component", {
+        id: previous.id,
+        effectiveTo: dayBefore(data.effectiveFrom).toISOString().slice(0, 10),
       });
-    return db.gosiComponent.create({
-      data: {
-        ...data,
-        effectiveTo: next ? dayBefore(next.effectiveFrom) : null,
-        createdById: actorId,
-      },
+    return upsertTableRow("hr", "gosi_component", {
+      ...data,
+      effectiveFrom: data.effectiveFrom.toISOString().slice(0, 10),
+      effectiveTo: next ? dayBefore(next.effectiveFrom).toISOString().slice(0, 10) : null,
+      createdById: actorId,
     });
   });
 }
@@ -235,24 +232,29 @@ export async function updateGosiComponent(
   id: string,
   input: Omit<GosiComponentInput, "effective_from" | "code">,
 ) {
-  const existing = await db.gosiComponent.findUnique({ where: { id } });
+  const all = await listTableRows("hr", "gosi_component");
+  const existing = all.find((r) => r.id === id);
   if (!existing) throw new Error(serverMessages.contributionNotFound);
   const data = normalizeComponent({
     ...input,
     code: existing.code,
-    effective_from: day(existing.effectiveFrom)!,
+    effective_from: String(existing.effectiveFrom).slice(0, 10),
   });
   const { effectiveFrom: _from, code: _code, ...rest } = data;
-  return db.gosiComponent.update({ where: { id }, data: rest });
+  return upsertTableRow("hr", "gosi_component", { id, ...rest });
 }
 
 export async function endGosiComponent(id: string, endsOn: string) {
-  const existing = await db.gosiComponent.findUnique({ where: { id } });
+  const all = await listTableRows("hr", "gosi_component");
+  const existing = all.find((r) => r.id === id);
   if (!existing) throw new Error(serverMessages.contributionNotFound);
   const end = dateInput(endsOn, "Choose the last day the contribution applies");
-  if (!end || end < existing.effectiveFrom)
+  if (!end || end < new Date(existing.effectiveFrom))
     throw new Error(serverMessages.theEndDateCannotBeBeforeTheContribution);
-  return db.gosiComponent.update({ where: { id }, data: { effectiveTo: end } });
+  return upsertTableRow("hr", "gosi_component", {
+    id,
+    effectiveTo: end.toISOString().slice(0, 10),
+  });
 }
 
 export interface EmployeeGosiInput {
@@ -270,9 +272,7 @@ export interface EmployeeGosiInput {
   notes?: string | null;
 }
 
-type ProfileRow = Awaited<
-  ReturnType<typeof db.employeeGosiRecord.findMany>
->[number];
+type ProfileRow = any;
 export function toGosiProfile(
   row: ProfileRow,
 ): GosiProfile & { id: string; notes: string | null } {
@@ -291,11 +291,16 @@ export function toGosiProfile(
 }
 
 export async function listEmployeeGosiRecords(employeeId: string) {
-  const rows = await db.employeeGosiRecord.findMany({
-    where: { employeeId },
-    orderBy: { effectiveFrom: "desc" },
-  });
-  return rows.map(toGosiProfile);
+  const rows = await listTableRows("hr", "employee_gosi_record", "effective_from DESC");
+  return rows
+    .filter((r) => r.employeeId === employeeId)
+    .map((r) =>
+      toGosiProfile({
+        ...r,
+        effectiveFrom: new Date(r.effectiveFrom),
+        effectiveTo: r.effectiveTo ? new Date(r.effectiveTo) : null,
+      }),
+    );
 }
 
 export async function saveEmployeeGosiRecord(
@@ -343,22 +348,24 @@ export async function saveEmployeeGosiRecord(
         o.employerPercent != null,
     );
   return runAtomicMutation(async () => {
-    const employee = await db.employee.findUnique({
-      where: { id: employeeId },
-      select: { id: true },
-    });
+    const employees = await listEmployees();
+    const employee = employees.find((e) => e.id === employeeId);
     if (!employee) throw new Error(serverMessages.employeeNotFound);
-    const versions = await db.employeeGosiRecord.findMany({
-      where: { employeeId },
-      orderBy: { effectiveFrom: "asc" },
-    });
+    const allVersions = await listTableRows("hr", "employee_gosi_record", "effective_from ASC");
+    const versions = allVersions
+      .filter((v) => v.employeeId === employeeId)
+      .map((v) => ({
+        ...v,
+        effectiveFrom: new Date(v.effectiveFrom),
+        effectiveTo: v.effectiveTo ? new Date(v.effectiveTo) : null,
+      }));
     if (
       versions.some(
         (v) => v.effectiveFrom.getTime() === effectiveFrom.getTime(),
       )
     )
       throw new Error(serverMessages.aRegistrationAlreadyStartsOnThatDate);
-    const previous = versions
+    const previous: any = versions
       .filter((v) => v.effectiveFrom < effectiveFrom)
       .pop();
     const next = versions.find((v) => v.effectiveFrom > effectiveFrom);
@@ -366,43 +373,41 @@ export async function saveEmployeeGosiRecord(
       previous &&
       (!previous.effectiveTo || previous.effectiveTo >= effectiveFrom)
     )
-      await db.employeeGosiRecord.update({
-        where: { id: previous.id },
-        data: { effectiveTo: dayBefore(effectiveFrom) },
+      await upsertTableRow("hr", "employee_gosi_record", {
+        id: previous.id,
+        effectiveTo: dayBefore(effectiveFrom).toISOString().slice(0, 10),
       });
-    return db.employeeGosiRecord.create({
-      data: {
-        employeeId,
-        category: input.category,
-        registrationNumber:
-          input.registration_number?.trim().slice(0, 40) || null,
-        registeredWage: wage,
-        overrides: overrides as unknown as Database.InputJsonValue,
-        effectiveFrom,
-        effectiveTo: next ? dayBefore(next.effectiveFrom) : null,
-        notes: input.notes?.trim().slice(0, 500) || null,
-        createdById: actorId,
-      },
+    return upsertTableRow("hr", "employee_gosi_record", {
+      employeeId,
+      category: input.category,
+      registrationNumber:
+        input.registration_number?.trim().slice(0, 40) || null,
+      registeredWage: wage,
+      overrides,
+      effectiveFrom: effectiveFrom.toISOString().slice(0, 10),
+      effectiveTo: next ? dayBefore(next.effectiveFrom).toISOString().slice(0, 10) : null,
+      notes: input.notes?.trim().slice(0, 500) || null,
+      createdById: actorId,
     });
   });
 }
 
 export async function deleteEmployeeGosiRecord(id: string) {
-  const record = await db.employeeGosiRecord.findUnique({ where: { id } });
+  const all = await listTableRows("hr", "employee_gosi_record", "effective_from DESC");
+  const record = all.find((r) => r.id === id);
   if (!record) throw new Error(serverMessages.registrationNotFound);
   return runAtomicMutation(async () => {
-    await db.employeeGosiRecord.delete({ where: { id } });
-    const previous = await db.employeeGosiRecord.findFirst({
-      where: {
-        employeeId: record.employeeId,
-        effectiveFrom: { lt: record.effectiveFrom },
-      },
-      orderBy: { effectiveFrom: "desc" },
-    });
+    await deleteTableRow("hr", "employee_gosi_record", id);
+    const previous = all.find(
+      (r) =>
+        r.id !== id &&
+        r.employeeId === record.employeeId &&
+        new Date(r.effectiveFrom) < new Date(record.effectiveFrom),
+    );
     if (previous)
-      await db.employeeGosiRecord.update({
-        where: { id: previous.id },
-        data: { effectiveTo: record.effectiveTo },
+      await upsertTableRow("hr", "employee_gosi_record", {
+        id: previous.id,
+        effectiveTo: record.effectiveTo,
       });
     return record.employeeId;
   });
@@ -418,17 +423,31 @@ export async function registerUnregisteredEmployees(
   );
   if (!effectiveFrom)
     throw new Error(serverMessages.chooseTheDateTheRegistrationTakesEffect);
-  const employees = await db.employee.findMany({
-    where: { status: { not: "terminated" }, gosiRecords: { none: {} } },
-    select: { id: true, nationality: true },
-  });
-  const rules = await getGosiRules();
-  const records = employees.flatMap((e) => {
-    const category = e.nationality ? rules.nationalityCategories?.[e.nationality] ?? rules.nationalityCategories?.["*"] : undefined;
-    return category ? [{ employeeId: e.id, category, effectiveFrom, createdById: actorId }] : [];
-  });
-  if (records.length) await db.employeeGosiRecord.createMany({ data: records });
-  return { registered: records.length, skipped: employees.length - records.length };
+  const [allEmps, existingRecords, rules] = await Promise.all([
+    listEmployees(),
+    listTableRows("hr", "employee_gosi_record"),
+    getGosiRules(),
+  ]);
+  const registeredEmpIds = new Set(existingRecords.map((r) => r.employeeId));
+  const employees = allEmps.filter(
+    (e) => e.status !== "terminated" && !registeredEmpIds.has(e.id),
+  );
+  let registered = 0;
+  for (const e of employees) {
+    const category = (e as any).nationality
+      ? rules.nationalityCategories?.[(e as any).nationality] ?? rules.nationalityCategories?.["*"]
+      : undefined;
+    if (category) {
+      await upsertTableRow("hr", "employee_gosi_record", {
+        employeeId: e.id,
+        category,
+        effectiveFrom: effectiveFrom.toISOString().slice(0, 10),
+        createdById: actorId,
+      });
+      registered++;
+    }
+  }
+  return { registered, skipped: employees.length - registered };
 }
 
 export interface GosiContext {
@@ -440,17 +459,23 @@ export interface GosiContext {
 export async function loadGosiContext(
   employeeIds: string[],
 ): Promise<GosiContext> {
-  const [rules, components, records] = await Promise.all([
+  const empSet = new Set(employeeIds);
+  const [rules, components, allRecords] = await Promise.all([
     getGosiRules(),
-    db.gosiComponent.findMany(),
-    db.employeeGosiRecord.findMany({
-      where: { employeeId: { in: employeeIds } },
-    }),
+    listTableRows("hr", "gosi_component"),
+    listTableRows("hr", "employee_gosi_record"),
   ]);
+  const records = allRecords.filter((r) => empSet.has(r.employeeId));
   const profiles = new Map<string, Array<GosiProfile & { id: string }>>();
   for (const row of records) {
     const list = profiles.get(row.employeeId) ?? [];
-    list.push(toGosiProfile(row));
+    list.push(
+      toGosiProfile({
+        ...row,
+        effectiveFrom: new Date(row.effectiveFrom),
+        effectiveTo: row.effectiveTo ? new Date(row.effectiveTo) : null,
+      }),
+    );
     profiles.set(row.employeeId, list);
   }
   return { rules, components: components.map(toComponentRule), profiles };
@@ -488,27 +513,22 @@ export async function previewEmployeeContributions(
   employeeId: string,
   months: string[],
 ) {
-  const employee = await db.employee.findUniqueOrThrow({
-    where: { id: employeeId },
-    select: {
-      hireDate: true,
-      employmentRecords: { where: { isCurrent: true }, take: 1 },
-    },
-  });
-  const record = employee.employmentRecords[0];
+  const employee = await getEmployeeRelations(employeeId);
+  const empRecords = (employee as any).employmentRecords ?? [];
+  const record = empRecords.find((r: any) => r.isCurrent) ?? empRecords[0];
   if (!record) return [];
   const pay = {
-    basic: Number(record.basicSalary),
-    housing: Number(record.housingAllowance),
-    transport: Number(record.transportAllowance),
-    other: Number(record.otherAllowances),
+    basic: Number(record.basicSalary ?? employee.basicSalary ?? 0),
+    housing: Number(record.housingAllowance ?? employee.housingAllowance ?? 0),
+    transport: Number(record.transportAllowance ?? employee.transportAllowance ?? 0),
+    other: Number(record.otherAllowances ?? employee.otherAllowances ?? 0),
   };
   const ctx = await loadGosiContext([employeeId]);
   return months.map((m) => {
     const [year, month] = m.split("-").map(Number);
     const result = schemeContributions(ctx, employeeId, {
       pay,
-      hireDate: employee.hireDate,
+      hireDate: new Date(employee.hireDate),
       year,
       month,
     });
@@ -526,31 +546,30 @@ export async function previewEmployeeContributions(
 }
 
 export async function listGosiRegistrations() {
-  const employees = await db.employee.findMany({
-    where: { status: { not: "terminated" } },
-    select: {
-      id: true,
-      employeeNumber: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      firstNameAr: true,
-      lastNameAr: true,
-      nationality: true,
-      hireDate: true,
-      gosiRecords: { orderBy: { effectiveFrom: "desc" } },
-      employmentRecords: {
-        where: { isCurrent: true },
-        take: 1,
-        select: {
-          basicSalary: true,
-          housingAllowance: true,
-          transportAllowance: true,
-          otherAllowances: true,
-        },
-      },
-    },
-    orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }],
-  });
+  const [allEmps, gosiRecords, empRecords] = await Promise.all([
+    listEmployees(),
+    listTableRows("hr", "employee_gosi_record", "effective_from DESC"),
+    listTableRows("system", "employment_record").catch(() => []),
+  ]);
+  const gosiByEmp = new Map<string, any[]>();
+  for (const r of gosiRecords) {
+    const arr = gosiByEmp.get(r.employeeId) ?? [];
+    arr.push(r);
+    gosiByEmp.set(r.employeeId, arr);
+  }
+  const compByEmp = new Map<string, any>();
+  for (const r of empRecords) {
+    if (r.isCurrent || !compByEmp.has(r.employeeId)) compByEmp.set(r.employeeId, r);
+  }
+  const employees = allEmps
+    .filter((e) => e.status !== "terminated")
+    .map((e) => ({
+      ...e,
+      hireDate: new Date(e.hireDate),
+      gosiRecords: gosiByEmp.get(e.id) ?? [],
+      employmentRecords: compByEmp.has(e.id) ? [compByEmp.get(e.id)] : [],
+    }))
+    .sort((a, b) => `${a.firstNameEn} ${a.lastNameEn}`.localeCompare(`${b.firstNameEn} ${b.lastNameEn}`));
   const ctx = await loadGosiContext(employees.map((e) => e.id));
   const now = new Date();
   const [year, month] = [now.getUTCFullYear(), now.getUTCMonth() + 1];
@@ -582,7 +601,7 @@ export async function listGosiRegistrations() {
       employeeNumber: e.employeeNumber,
       nameEn: `${e.firstNameEn} ${e.lastNameEn}`,
       nameAr: `${e.firstNameAr} ${e.lastNameAr}`,
-      nationality: e.nationality,
+      nationality: (e as any).nationality ?? null,
       hireDate: day(e.hireDate)!,
       current: current ? { ...current } : null,
       history: e.gosiRecords.map(toGosiProfile),

@@ -1,42 +1,32 @@
-import { db } from "../atomic";
-import { getStaffAccess, getStaffAccessForAccount } from "../api/identity";
+import { getAdminUserApi, getStaffAccess, getStaffAccessForAccount } from "../api/identity";
 import { Profile, UserRole } from "../types";
-
-const sessionUserSelect = {
-  id: true,
-  fullName: true,
-  email: true,
-  role: true,
-  avatarUrl: true,
-  signatureUrl: true,
-  phone: true,
-  department: true,
-  isActive: true,
-  permissions: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
 
 function mapUser(u: any): Profile {
   return {
     id: u.id,
-    full_name: u.fullName || u.nameEn || u.id,
+    full_name: u.full_name || u.fullName || u.nameEn || u.id,
     email: u.email,
     role: u.role as UserRole,
-    avatar_url: u.avatarUrl || undefined,
-    signature_url: u.signatureUrl || undefined,
+    avatar_url: u.avatar_url || u.avatarUrl || undefined,
+    signature_url: u.signature_url || u.signatureUrl || undefined,
     phone: u.phone || undefined,
     department: u.department || undefined,
-    is_active: u.isActive ?? true,
+    is_active: u.is_active ?? u.isActive ?? true,
     permissions: u.permissions || undefined,
-    created_at: u.createdAt instanceof Date ? u.createdAt.toISOString() : (u.createdAt || new Date().toISOString()),
-    updated_at: u.updatedAt instanceof Date ? u.updatedAt.toISOString() : (u.updatedAt || new Date().toISOString()),
+    created_at: u.created_at || u.createdAt || new Date().toISOString(),
+    updated_at: u.updated_at || u.updatedAt || new Date().toISOString(),
   } as Profile;
 }
 
 export async function getSessionUser(id: string, token?: string): Promise<Profile | null> {
-  const userFromDbProxy = await db.user.findUnique({ where: { id }, select: sessionUserSelect }).catch(() => null);
-  if (userFromDbProxy?.isActive) return mapUser(userFromDbProxy);
+  try {
+    const user = await getAdminUserApi(id, token);
+    if (user && (user.is_active ?? user.isActive ?? true)) {
+      return mapUser(user);
+    }
+  } catch {
+    // Fallback to access policy lookup below
+  }
 
   try {
     if (token) {
@@ -77,6 +67,3 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
 
   return null;
 }
-
-
-

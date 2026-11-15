@@ -1,6 +1,28 @@
 import { phoneSearchVariants } from "../constants/phone";
-import { Database } from "@platform/database/decimal";
-import { db } from "../atomic";
+import { listOrders } from "../api/commerce";
+import { listShipments } from "../api/delivery";
+import {
+  listDepartments,
+  listEmployees,
+  listHRUsers,
+  listLeaveRequests,
+} from "../api/hr";
+import {
+  listProducts,
+  listPurchaseOrders,
+  listPurchaseRequisitions,
+} from "../api/inventory";
+import { listCampaigns, listInquiries } from "../api/sales";
+import {
+  getWorkspacePrefsApi,
+  listActivityLogsApi,
+  listLegalMattersApi,
+  listWorkspaceFoldersApi,
+  putWorkspacePrefsApi,
+  resetWorkspaceLayoutApi,
+  type WorkspacePrefs,
+} from "../api/system";
+import { listTasks } from "../api/workflow";
 import { ROUTES } from "../constants/routes";
 import { OPEN_TASK_STATUSES } from "../constants/tasks";
 import type {
@@ -26,15 +48,64 @@ function extractStoredFolders(raw: unknown): CustomArchiveFolder[] {
   );
 }
 
+export async function getWorkspacePrefs(
+  userId: string,
+): Promise<WorkspacePrefs> {
+  return getWorkspacePrefsApi(userId);
+}
+
+export async function saveWorkspacePrefs(
+  userId: string,
+  input: {
+    widgets?: unknown;
+    scratchpad?: Record<string, unknown>;
+    sidebarPrefs?: Record<string, unknown>;
+  },
+): Promise<WorkspacePrefs> {
+  return putWorkspacePrefsApi(userId, input);
+}
+
+export async function getScratchpad(
+  userId: string,
+): Promise<Record<string, unknown>> {
+  const prefs = await getWorkspacePrefsApi(userId);
+  return prefs.scratchpad && typeof prefs.scratchpad === "object"
+    ? prefs.scratchpad
+    : {};
+}
+
+export async function saveScratchpad(
+  userId: string,
+  scratchpad: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const updated = await putWorkspacePrefsApi(userId, { scratchpad });
+  return updated.scratchpad ?? scratchpad;
+}
+
+export async function getSidebarPrefs(
+  userId: string,
+): Promise<Record<string, unknown>> {
+  const prefs = await getWorkspacePrefsApi(userId);
+  return prefs.sidebarPrefs && typeof prefs.sidebarPrefs === "object"
+    ? prefs.sidebarPrefs
+    : {};
+}
+
+export async function saveSidebarPrefs(
+  userId: string,
+  sidebarPrefs: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const updated = await putWorkspacePrefsApi(userId, { sidebarPrefs });
+  return updated.sidebarPrefs ?? sidebarPrefs;
+}
+
 export async function getDashboardLayout(
   userId: string,
 ): Promise<unknown | null> {
-  const row = await db.dashboardLayout.findUnique({
-    where: { userId },
-    select: { widgets: true },
-  });
-  if (!row) return null;
-  if (Array.isArray(row.widgets)) return row.widgets;
+  const row = await getWorkspacePrefsApi(userId);
+  if (Array.isArray(row.widgets)) {
+    return row.widgets.length > 0 ? row.widgets : null;
+  }
   if (
     row.widgets &&
     typeof row.widgets === "object" &&
@@ -49,42 +120,24 @@ export async function saveDashboardLayout(
   userId: string,
   widgets: DashboardLayoutItem[],
 ) {
-  const existing = await db.dashboardLayout.findUnique({
-    where: { userId },
-    select: { widgets: true },
-  });
-  const customFolders = extractStoredFolders(existing?.widgets);
+  const existing = await getWorkspacePrefsApi(userId);
+  const customFolders = extractStoredFolders(existing.widgets);
   const items = widgets.map((w) => ({
     id: w.id,
     size: w.size,
     ...(w.settings ? { settings: w.settings } : {}),
   }));
-  const value = (
-    customFolders.length > 0 ? { items, customFolders } : items
-  ) as Database.InputJsonValue;
-  await db.dashboardLayout.upsert({
-    where: { userId },
-    create: { userId, widgets: value },
-    update: { widgets: value },
-  });
+  const value = customFolders.length > 0 ? { items, customFolders } : items;
+  await putWorkspacePrefsApi(userId, { widgets: value });
 }
 
 export async function resetDashboardLayout(userId: string) {
-  const existing = await db.dashboardLayout.findUnique({
-    where: { userId },
-    select: { widgets: true },
-  });
-  const customFolders = extractStoredFolders(existing?.widgets);
-  if (customFolders.length > 0) {
-    await db.dashboardLayout.update({
-      where: { userId },
-      data: {
-        widgets: { customFolders } as unknown as Database.InputJsonValue,
-      },
-    });
-  } else {
-    await db.dashboardLayout.deleteMany({ where: { userId } });
-  }
+  const existing = await getWorkspacePrefsApi(userId);
+  const customFolders = extractStoredFolders(existing.widgets);
+  await resetWorkspaceLayoutApi(
+    userId,
+    customFolders.length > 0 ? { customFolders } : [],
+  );
 }
 
 export async function listCustomFoldersForUser(params: {
@@ -92,9 +145,7 @@ export async function listCustomFoldersForUser(params: {
   role: string;
   departmentId?: string | null;
 }): Promise<CustomArchiveFolder[]> {
-  const rows = await db.dashboardLayout.findMany({
-    select: { userId: true, widgets: true },
-  });
+  const rows = await listWorkspaceFoldersApi();
   const all: CustomArchiveFolder[] = [];
   for (const row of rows) {
     for (const folder of extractStoredFolders(row.widgets)) {
@@ -119,11 +170,8 @@ export async function upsertCustomFolderForUser(
   userId: string,
   folder: CustomArchiveFolder,
 ): Promise<CustomArchiveFolder[]> {
-  const existing = await db.dashboardLayout.findUnique({
-    where: { userId },
-    select: { widgets: true },
-  });
-  const raw = existing?.widgets;
+  const existing = await getWorkspacePrefsApi(userId);
+  const raw = existing.widgets;
   const items = Array.isArray(raw)
     ? raw
     : raw && typeof raw === "object" && Array.isArray((raw as { items?: unknown }).items)
@@ -136,15 +184,11 @@ export async function upsertCustomFolderForUser(
       ? folders.map((f, i) => (i === idx ? folder : f))
       : [folder, ...folders].slice(0, 30);
 
-  const payload = (
-    items ? { items, customFolders: nextFolders } : { customFolders: nextFolders }
-  ) as unknown as Database.InputJsonValue;
+  const payload = items
+    ? { items, customFolders: nextFolders }
+    : { customFolders: nextFolders };
 
-  await db.dashboardLayout.upsert({
-    where: { userId },
-    create: { userId, widgets: payload },
-    update: { widgets: payload },
-  });
+  await putWorkspacePrefsApi(userId, { widgets: payload });
   return nextFolders;
 }
 
@@ -152,11 +196,7 @@ export async function deleteCustomFolderForUser(
   userId: string,
   folderId: string,
 ): Promise<void> {
-  const existing = await db.dashboardLayout.findUnique({
-    where: { userId },
-    select: { widgets: true },
-  });
-  if (!existing) return;
+  const existing = await getWorkspacePrefsApi(userId);
   const raw = existing.widgets;
   const items = Array.isArray(raw)
     ? raw
@@ -164,33 +204,29 @@ export async function deleteCustomFolderForUser(
       ? (raw as { items: unknown[] }).items
       : undefined;
   const nextFolders = extractStoredFolders(raw).filter((f) => f.id !== folderId);
-  const payload = (
-    items
-      ? nextFolders.length > 0
-        ? { items, customFolders: nextFolders }
-        : items
-      : { customFolders: nextFolders }
-  ) as unknown as Database.InputJsonValue;
+  const payload = items
+    ? nextFolders.length > 0
+      ? { items, customFolders: nextFolders }
+      : items
+    : { customFolders: nextFolders };
 
-  await db.dashboardLayout.update({
-    where: { userId },
-    data: { widgets: payload },
-  });
+  await putWorkspacePrefsApi(userId, { widgets: payload });
 }
 
 export async function hrPulseSummary(now = new Date()) {
-  const today = new Date(`${now.toISOString().slice(0, 10)}T00:00:00Z`);
-  const [activeCount, onLeaveCount, pendingLeaveCount] = await Promise.all([
-    db.employee.count({ where: { status: "active" } }),
-    db.leaveRequest.count({
-      where: {
-        status: "approved",
-        startDate: { lte: now },
-        endDate: { gte: today },
-      },
-    }),
-    db.leaveRequest.count({ where: { status: "pending" } }),
+  const todayIso = now.toISOString().slice(0, 10);
+  const [employees, leaveRequests] = await Promise.all([
+    listEmployees().catch(() => []),
+    listLeaveRequests().catch(() => []),
   ]);
+  const activeCount = employees.filter((e) => e.status === "active").length;
+  const onLeaveCount = leaveRequests.filter((l) => {
+    if (l.status !== "approved") return false;
+    const start = String(l.startDate ?? "").slice(0, 10);
+    const end = String(l.endDate ?? "").slice(0, 10);
+    return start <= todayIso && end >= todayIso;
+  }).length;
+  const pendingLeaveCount = leaveRequests.filter((l) => l.status === "pending").length;
   return {
     active: activeCount,
     on_leave: onLeaveCount,
@@ -199,14 +235,16 @@ export async function hrPulseSummary(now = new Date()) {
 }
 
 export async function procurementPulseSummary() {
-  const [openRequisitions, openOrders] = await Promise.all([
-    db.purchaseRequisition.count({
-      where: { status: { in: ["draft", "submitted", "approved"] } },
-    }),
-    db.purchaseOrder.count({
-      where: { status: { in: ["draft", "sent", "partially_received"] } },
-    }),
+  const [requisitions, orders] = await Promise.all([
+    listPurchaseRequisitions().catch(() => []),
+    listPurchaseOrders().catch(() => []),
   ]);
+  const openRequisitions = requisitions.filter((r) =>
+    ["draft", "submitted", "approved"].includes(r.status),
+  ).length;
+  const openOrders = orders.filter((o) =>
+    ["draft", "sent", "partially_received"].includes(o.status),
+  ).length;
   return {
     open_requisitions: openRequisitions,
     open_orders: openOrders,
@@ -218,18 +256,17 @@ const OPEN_ORDER_STATUSES = ["placed", "paid", "packing", "shipped"];
 export async function orderSummary(now = new Date()) {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
-  const [open, today] = await Promise.all([
-    db.salesOrder.count({ where: { status: { in: OPEN_ORDER_STATUSES } } }),
-    db.salesOrder.aggregate({
-      where: { placedAt: { gte: start }, status: { notIn: ["cancelled"] } },
-      _count: { _all: true },
-      _sum: { total: true },
-    }),
-  ]);
+  const orders = await listOrders().catch(() => []);
+  const open = orders.filter((o) => OPEN_ORDER_STATUSES.includes(o.status)).length;
+  const todayOrders = orders.filter((o) => {
+    if (o.status === "cancelled") return false;
+    const placed = o.placedAt ? new Date(o.placedAt) : null;
+    return placed ? placed >= start : false;
+  });
   return {
     open,
-    today_count: today._count._all,
-    today_total: num(today._sum.total),
+    today_count: todayOrders.length,
+    today_total: todayOrders.reduce((sum, o) => sum + num(o.total), 0),
   };
 }
 
@@ -239,65 +276,53 @@ export async function myTaskSummary(
   limit = 6,
 ) {
   const today = now.toISOString().slice(0, 10);
-  const where: Database.TaskWhereInput = {
-    assigneeId: userId,
-    status: { in: OPEN_TASK_STATUSES },
-  };
-  const [open, overdue, rows] = await Promise.all([
-    db.task.count({ where }),
-    db.task.count({
-      where: { ...where, dueDate: { lt: new Date(`${today}T00:00:00Z`) } },
-    }),
-    db.task.findMany({
-      where,
-      orderBy: [
-        { dueDate: { sort: "asc", nulls: "last" } },
-        { createdAt: "asc" },
-      ],
-      take: limit,
-      select: {
-        id: true,
-        number: true,
-        title: true,
-        status: true,
-        priority: true,
-        dueDate: true,
-        project: { select: { name: true, color: true } },
-      },
-    }),
-  ]);
+  const allTasks = await listTasks({ assignedTo: userId }).catch(() => []);
+  const openTasks = allTasks.filter((t) =>
+    OPEN_TASK_STATUSES.includes(t.status as (typeof OPEN_TASK_STATUSES)[number]),
+  );
+  const overdue = openTasks.filter(
+    (t) => t.dueDate && String(t.dueDate).slice(0, 10) < today,
+  ).length;
+  const sorted = [...openTasks].sort((a, b) => {
+    const ad = a.dueDate ? String(a.dueDate) : "9999-12-31";
+    const bd = b.dueDate ? String(b.dueDate) : "9999-12-31";
+    if (ad !== bd) return ad.localeCompare(bd);
+    return String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? ""));
+  });
   return {
-    open,
+    open: openTasks.length,
     overdue,
-    tasks: rows.map((t) => ({
+    tasks: sorted.slice(0, limit).map((t) => ({
       id: t.id,
-      number: t.number,
+      number: (t as any).number ?? "",
       title: t.title,
       status: t.status,
-      priority: t.priority,
-      due_date: dateOnly(t.dueDate),
-      project: t.project?.name ?? "",
-      color: t.project?.color ?? "",
+      priority: t.priority ?? "medium",
+      due_date: t.dueDate ? dateOnly(new Date(t.dueDate)) : null,
+      project: (t as any).projectName ?? "",
+      color: (t as any).projectColor ?? "",
     })),
   };
 }
 
 export async function upcomingLegalDates(now = new Date(), limit = 5) {
-  const rows = await db.legalMatter.findMany({
-    where: {
-      status: { not: "closed" },
-      nextDate: { gte: new Date(now.toISOString().slice(0, 10)) },
-    },
-    orderBy: { nextDate: "asc" },
-    take: limit,
-    select: { id: true, number: true, title: true, kind: true, nextDate: true },
-  });
-  return rows.map((m) => ({
+  const today = now.toISOString().slice(0, 10);
+  const matters = await listLegalMattersApi().catch(() => []);
+  const filtered = matters
+    .filter(
+      (m) =>
+        m.status !== "closed" &&
+        m.nextDate &&
+        String(m.nextDate).slice(0, 10) >= today,
+    )
+    .sort((a, b) => String(a.nextDate ?? "").localeCompare(String(b.nextDate ?? "")))
+    .slice(0, limit);
+  return filtered.map((m) => ({
     id: m.id,
-    number: m.number,
-    title: m.title,
-    kind: m.kind,
-    next_date: dateOnly(m.nextDate),
+    number: m.number ?? "",
+    title: m.title ?? "",
+    kind: m.kind ?? "matter",
+    next_date: m.nextDate ? dateOnly(new Date(m.nextDate)) : null,
   }));
 }
 
@@ -315,134 +340,135 @@ export async function activityFeed(
   everyone: boolean,
   limit = 12,
 ): Promise<ActivityFeedEntry[]> {
-  const rows = await db.activityLog.findMany({
-    where: {
-      ...(everyone ? {} : { userId }),
-      action: { notIn: ["login", "logout", "view"] },
-    },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: {
-      id: true,
-      action: true,
-      entityType: true,
-      entityId: true,
-      createdAt: true,
-      user: { select: { fullName: true } },
-    },
-  });
-  return rows.map((r) => ({
-    id: r.id,
-    user: r.user.fullName,
-    action: r.action,
-    entity_type: r.entityType,
-    entity_id: r.entityId,
-    at: r.createdAt.toISOString(),
-  }));
+  const [rows, users] = await Promise.all([
+    listActivityLogsApi(Math.max(limit * 3, 50)).catch(() => []),
+    listHRUsers().catch(() => []),
+  ]);
+  const userNames = new Map<string, any>(users.map((u: any): [any, any] => [u.id, u.fullName || u.email || u.id]));
+  return rows
+    .filter((r) => {
+      if (!everyone && r.userId !== userId) return false;
+      return !["login", "logout", "view"].includes(r.action ?? "");
+    })
+    .slice(0, limit)
+    .map((r) => {
+      const details =
+        r.details && typeof r.details === "object" && !Array.isArray(r.details)
+          ? (r.details as Record<string, unknown>)
+          : undefined;
+      const at =
+        typeof details?.created_at === "string"
+          ? details.created_at
+          : new Date().toISOString();
+      return {
+        id: r.id,
+        user: (r.userId && userNames.get(r.userId)) || r.userId || "System",
+        action: r.action ?? "",
+        entity_type: r.entityType ?? "",
+        entity_id: r.entityId ?? null,
+        at,
+      };
+    });
 }
 
 export async function dashboardDepartments(userId: string, all: boolean) {
-  const rows = await db.department.findMany({
-    where: {
-      isActive: true,
-      ...(all ? {} : { OR: [{ managerId: userId }, { deputyId: userId }] }),
-    },
-    orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
-    select: { id: true, nameEn: true, nameAr: true },
-  });
-  return rows.map((d) => ({ id: d.id, name_en: d.nameEn, name_ar: d.nameAr }));
+  const rows = await listDepartments().catch(() => []);
+  return rows
+    .filter((d) => {
+      if ((d as any).isActive === false) return false;
+      if (all) return true;
+      return (d as any).managerId === userId || (d as any).deputyId === userId;
+    })
+    .sort((a, b) => {
+      const sa = (a as any).sortOrder ?? 0;
+      const sb = (b as any).sortOrder ?? 0;
+      if (sa !== sb) return sa - sb;
+      return String(a.nameEn ?? "").localeCompare(String(b.nameEn ?? ""));
+    })
+    .map((d) => ({ id: d.id, name_en: d.nameEn, name_ar: d.nameAr }));
 }
 
 export async function departmentDashboard(
   departmentIds: string[],
   now = new Date(),
 ) {
-  const today = new Date(`${now.toISOString().slice(0, 10)}T00:00:00Z`);
-  const employees = await db.employee.findMany({
-    where: {
-      departmentId: { in: departmentIds },
-      status: { in: ["active", "on_leave"] },
-    },
-    orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }],
-    take: 500,
-    select: {
-      id: true,
-      userId: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      firstNameAr: true,
-      lastNameAr: true,
-      jobTitleEn: true,
-      jobTitleAr: true,
-      departmentId: true,
-    },
-  });
-  const employeeIds = employees.map((e) => e.id);
-  const userIds = employees
-    .map((e) => e.userId)
-    .filter((v): v is string => !!v);
-  const [away, pendingLeave, openTasks, overdueTasks, openRequests] =
-    await Promise.all([
-      db.leaveRequest.findMany({
-        where: {
-          employeeId: { in: employeeIds },
-          status: "approved",
-          startDate: { lte: now },
-          endDate: { gte: today },
-        },
-        select: { employeeId: true, endDate: true },
-      }),
-      db.leaveRequest.count({
-        where: { employeeId: { in: employeeIds }, status: "pending" },
-      }),
-      db.task.groupBy({
-        by: ["assigneeId"],
-        where: {
-          assigneeId: { in: userIds },
-          status: { in: OPEN_TASK_STATUSES },
-        },
-        _count: { _all: true },
-      }),
-      db.task.groupBy({
-        by: ["assigneeId"],
-        where: {
-          assigneeId: { in: userIds },
-          status: { in: OPEN_TASK_STATUSES },
-          dueDate: { lt: today },
-        },
-        _count: { _all: true },
-      }),
-      db.inquiry.groupBy({
-        by: ["assignedToId"],
-        where: {
-          assignedToId: { in: userIds },
-          workflowStatus: { notIn: ["resolved", "rejected"] },
-          status: { not: "archived" },
-        },
-        _count: { _all: true },
-      }),
-    ]);
-  const awayUntil = new Map(
-    away.map((a) => [a.employeeId, dateOnly(a.endDate)]),
+  const todayIso = now.toISOString().slice(0, 10);
+  const deptSet = new Set(departmentIds);
+  const [allEmployees, allLeaves, allTasks, allInquiries] = await Promise.all([
+    listEmployees().catch(() => []),
+    listLeaveRequests().catch(() => []),
+    listTasks().catch(() => []),
+    listInquiries().catch(() => []),
+  ]);
+
+  const employees = allEmployees
+    .filter(
+      (e) =>
+        e.departmentId &&
+        deptSet.has(e.departmentId) &&
+        ["active", "on_leave"].includes(e.status ?? ""),
+    )
+    .sort((a, b) =>
+      `${a.firstNameEn} ${a.lastNameEn}`.localeCompare(
+        `${b.firstNameEn} ${b.lastNameEn}`,
+      ),
+    )
+    .slice(0, 500);
+
+  const employeeIds = new Set(employees.map((e) => e.id));
+  const userIds = new Set(
+    employees.map((e: any) => e.userId as string | undefined).filter((v): v is string => !!v),
   );
-  const open = new Map(openTasks.map((r) => [r.assigneeId, r._count._all]));
-  const overdue = new Map(
-    overdueTasks.map((r) => [r.assigneeId, r._count._all]),
-  );
-  const requests = new Map(
-    openRequests.map((r) => [r.assignedToId, r._count._all]),
-  );
-  const people = employees.map((e) => ({
+
+  const awayUntil = new Map<string, string | null>();
+  let pendingLeave = 0;
+  for (const l of allLeaves) {
+    if (!employeeIds.has(l.employeeId)) continue;
+    if (l.status === "pending") pendingLeave++;
+    if (l.status === "approved") {
+      const start = String(l.startDate ?? "").slice(0, 10);
+      const end = String(l.endDate ?? "").slice(0, 10);
+      if (start <= todayIso && end >= todayIso) {
+        awayUntil.set(l.employeeId, end || null);
+      }
+    }
+  }
+
+  const open = new Map<string, number>();
+  const overdue = new Map<string, number>();
+  for (const t of allTasks as any[]) {
+    const assignee = t.assigneeId ?? t.assignedTo;
+    if (!assignee || !userIds.has(assignee)) continue;
+    if (!OPEN_TASK_STATUSES.includes(t.status as (typeof OPEN_TASK_STATUSES)[number])) {
+      continue;
+    }
+    open.set(assignee, (open.get(assignee) ?? 0) + 1);
+    if (t.dueDate && String(t.dueDate).slice(0, 10) < todayIso) {
+      overdue.set(assignee, (overdue.get(assignee) ?? 0) + 1);
+    }
+  }
+
+  const requests = new Map<string, number>();
+  for (const r of allInquiries as any[]) {
+    const assigned = r.assignedToId ?? r.assigned_to_id;
+    if (!assigned || !userIds.has(assigned)) continue;
+    if (["resolved", "rejected"].includes(r.workflowStatus ?? r.workflow_status)) continue;
+    if (r.status === "archived") continue;
+    requests.set(assigned, (requests.get(assigned) ?? 0) + 1);
+  }
+
+  const people = employees.map((e: any) => ({
     id: e.id,
     name_en: `${e.firstNameEn} ${e.lastNameEn}`.trim(),
-    name_ar: `${e.firstNameAr} ${e.lastNameAr}`.trim(),
-    title_en: e.jobTitleEn,
-    title_ar: e.jobTitleAr,
+    name_ar: `${e.firstNameAr ?? ""} ${e.lastNameAr ?? ""}`.trim(),
+    title_en: e.jobTitleEn ?? "",
+    title_ar: e.jobTitleAr ?? "",
     away_until: awayUntil.get(e.id) ?? null,
     open_tasks: (e.userId && open.get(e.userId)) || 0,
     overdue_tasks: (e.userId && overdue.get(e.userId)) || 0,
     open_requests: (e.userId && requests.get(e.userId)) || 0,
   }));
+
   return {
     headcount: people.length,
     away_today: people.filter((p) => p.away_until).length,
@@ -479,7 +505,10 @@ export async function searchRecords(
 ) {
   const q = query.trim().slice(0, 100);
   if (q.length < 2) return [];
-  const like = { contains: q, mode: "insensitive" as const };
+  const qLower = q.toLowerCase();
+  const phoneVariants = phoneSearchVariants(q);
+  const matches = (val: unknown) =>
+    typeof val === "string" && val.toLowerCase().includes(qLower);
   const take = Math.min(Math.max(limit, 1), 20);
   const results: {
     category: RecordSearchCategory;
@@ -499,139 +528,24 @@ export async function searchRecords(
     matters,
     campaigns,
   ] = await Promise.all([
-    categories.has("orders")
-      ? db.salesOrder.findMany({
-          where: {
-            OR: [
-              { number: like },
-              { name: like },
-              { email: like },
-              ...phoneSearchVariants(q).map((value) => ({ phone: { contains: value } })),
-            ],
-          },
-          orderBy: { placedAt: "desc" },
-          take,
-          select: {
-            id: true,
-            number: true,
-            name: true,
-            status: true,
-            total: true,
-            currency: true,
-          },
-        })
-      : [],
-    categories.has("products")
-      ? db.product.findMany({
-          where: {
-            OR: [
-              { nameEn: like },
-              { nameAr: { contains: q } },
-              { sku: like },
-              { barcode: q },
-              { variants: { some: { OR: [{ sku: like }, { barcode: q }] } } },
-            ],
-          },
-          orderBy: { updatedAt: "desc" },
-          take,
-          select: { id: true, nameEn: true, nameAr: true, sku: true },
-        })
-      : [],
-    categories.has("shipments")
-      ? db.shipment.findMany({
-          where: {
-            ...(options.driverId ? { driverId: options.driverId } : {}),
-            OR: [
-              { number: like },
-              { recipientName: like },
-              { trackingNumber: like },
-              { order: { number: like } },
-            ],
-          },
-          orderBy: { createdAt: "desc" },
-          take,
-          select: { id: true, number: true, recipientName: true, status: true },
-        })
-      : [],
-    categories.has("tasks")
-      ? db.task.findMany({
-          where: {
-            AND: [
-              options.tasks && !options.tasks.all
-                ? {
-                    OR: [
-                      { assigneeId: options.tasks.userId },
-                      { createdById: options.tasks.userId },
-                      ...(options.tasks.departmentId
-                        ? [{ departmentId: options.tasks.departmentId }]
-                        : []),
-                      { project: { ownerId: options.tasks.userId } },
-                    ],
-                  }
-                : {},
-              { OR: [{ number: like }, { title: like }] },
-            ],
-          },
-          orderBy: { updatedAt: "desc" },
-          take,
-          select: { id: true, number: true, title: true, status: true },
-        })
-      : [],
-    categories.has("purchase_orders")
-      ? db.purchaseOrder.findMany({
-          where: {
-            OR: [
-              { number: like },
-              { supplier: { companyName: like } },
-              { supplier: { firstName: like } },
-            ],
-          },
-          orderBy: { createdAt: "desc" },
-          take,
-          select: {
-            id: true,
-            number: true,
-            status: true,
-            total: true,
-            supplier: {
-              select: { companyName: true, firstName: true, lastName: true },
-            },
-          },
-        })
-      : [],
-    categories.has("legal")
-      ? db.legalMatter.findMany({
-          where: {
-            OR: [
-              { number: like },
-              { title: like },
-              { counterparty: like },
-              { reference: like },
-            ],
-          },
-          orderBy: { updatedAt: "desc" },
-          take,
-          select: {
-            id: true,
-            number: true,
-            title: true,
-            status: true,
-            counterparty: true,
-          },
-        })
-      : [],
-    categories.has("campaigns")
-      ? db.campaign.findMany({
-          where: {
-            OR: [{ code: like }, { name: like }, { utmCampaign: like }],
-          },
-          orderBy: { createdAt: "desc" },
-          take,
-          select: { id: true, code: true, name: true, status: true },
-        })
-      : [],
+    categories.has("orders") ? listOrders().catch(() => []) : [],
+    categories.has("products") ? listProducts().catch(() => []) : [],
+    categories.has("shipments") ? listShipments().catch(() => []) : [],
+    categories.has("tasks") ? listTasks().catch(() => []) : [],
+    categories.has("purchase_orders") ? listPurchaseOrders().catch(() => []) : [],
+    categories.has("legal") ? listLegalMattersApi().catch(() => []) : [],
+    categories.has("campaigns") ? listCampaigns().catch(() => []) : [],
   ]);
-  for (const o of orders)
+
+  for (const o of orders
+    .filter(
+      (o) =>
+        matches(o.number) ||
+        matches(o.name) ||
+        matches(o.email) ||
+        (o.phone && phoneVariants.some((v) => o.phone!.includes(v))),
+    )
+    .slice(0, take)) {
     results.push({
       category: "orders",
       id: o.id,
@@ -640,17 +554,38 @@ export async function searchRecords(
       url: ROUTES.orders.detail(o.id),
       badge: o.status,
     });
-  for (const p of products)
+  }
+
+  for (const p of products
+    .filter(
+      (p) =>
+        matches(p.nameEn) ||
+        matches(p.nameAr) ||
+        matches(p.sku) ||
+        p.barcode === q,
+    )
+    .slice(0, take)) {
     results.push({
       category: "products",
       id: p.id,
-      title: p.nameEn || p.nameAr,
+      title: p.nameEn || p.nameAr || p.sku || p.id,
       subtitle: [p.sku, p.nameAr !== p.nameEn ? p.nameAr : ""]
         .filter(Boolean)
         .join(" • "),
       url: ROUTES.products.detail(p.id),
     });
-  for (const s of shipments)
+  }
+
+  for (const s of shipments
+    .filter((s) => {
+      if (options.driverId && s.driverId !== options.driverId) return false;
+      return (
+        matches(s.number) ||
+        matches(s.recipientName) ||
+        matches(s.trackingNumber)
+      );
+    })
+    .slice(0, take)) {
     results.push({
       category: "shipments",
       id: s.id,
@@ -659,41 +594,78 @@ export async function searchRecords(
       url: ROUTES.delivery.shipment(s.id),
       badge: s.status,
     });
-  for (const t of tasks)
+  }
+
+  for (const t of (tasks as any[])
+    .filter((t) => {
+      if (options.tasks && !options.tasks.all) {
+        const assignee = t.assigneeId ?? t.assignedTo;
+        const allowed =
+          assignee === options.tasks.userId ||
+          t.createdById === options.tasks.userId ||
+          (!!options.tasks.departmentId && t.departmentId === options.tasks.departmentId);
+        if (!allowed) return false;
+      }
+      return matches(t.number) || matches(t.title);
+    })
+    .slice(0, take)) {
     results.push({
       category: "tasks",
       id: t.id,
       title: t.title,
-      subtitle: t.number,
+      subtitle: t.number ?? "",
       url: ROUTES.tasks.detail(t.id),
       badge: t.status,
     });
-  for (const po of purchaseOrders)
+  }
+
+  for (const po of purchaseOrders
+    .filter((po) => matches(po.number) || matches((po as any).supplierName))
+    .slice(0, take)) {
     results.push({
       category: "purchase_orders",
       id: po.id,
       title: po.number,
-      subtitle: `${po.supplier.companyName || `${po.supplier.firstName ?? ""} ${po.supplier.lastName ?? ""}`.trim()} • ${num(po.total).toFixed(3)}`,
+      subtitle: `${(po as any).supplierName ?? ""} • ${num(po.total).toFixed(3)}`,
       url: ROUTES.procurement.order(po.id),
       badge: po.status,
     });
-  for (const m of matters)
+  }
+
+  for (const m of matters
+    .filter(
+      (m) =>
+        matches(m.number) ||
+        matches(m.title) ||
+        matches(m.counterparty) ||
+        matches(m.reference),
+    )
+    .slice(0, take)) {
     results.push({
       category: "legal",
       id: m.id,
-      title: m.title,
+      title: m.title ?? m.number ?? m.id,
       subtitle: [m.number, m.counterparty].filter(Boolean).join(" • "),
       url: ROUTES.legal.matter(m.id),
-      badge: m.status,
+      badge: m.status ?? undefined,
     });
-  for (const c of campaigns)
+  }
+
+  for (const c of (campaigns as any[])
+    .filter(
+      (c: any) =>
+        matches(c.code) || matches(c.name) || matches(c.utmCampaign),
+    )
+    .slice(0, take)) {
     results.push({
       category: "campaigns",
       id: c.id,
       title: c.name,
-      subtitle: c.code,
+      subtitle: c.code ?? "",
       url: ROUTES.marketing.campaigns,
       badge: c.status,
     });
+  }
+
   return results;
 }

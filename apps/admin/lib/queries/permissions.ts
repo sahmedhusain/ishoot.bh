@@ -1,5 +1,7 @@
-import { getTranslations } from "@platform/locales";
-import { db } from "../atomic";
+import {
+  listAdminPermissionsApi,
+  setAdminPermissionApi,
+} from "../api/identity";
 import { moduleOnByDefault } from "../constants/features";
 import { getFeatureToggles, isFeatureEnabled } from "./features";
 import { Permission, UserRole } from "../types";
@@ -62,10 +64,10 @@ export async function hasPermission(
   }
 
   try {
-    const rows = await db.permission.findMany({
-      where: { role, resource, action: { in: [action, "write"] } },
-      select: { action: true, allowed: true },
-    });
+    const all = await listAdminPermissionsApi();
+    const rows = all.filter(
+      (p) => p.role === role && p.resource === resource && (p.action === action || p.action === "write"),
+    );
     return resolveGrant(
       role,
       resource,
@@ -80,16 +82,14 @@ export async function hasPermission(
 
 export async function getAllPermissions(): Promise<Permission[]> {
   try {
-    const records = await db.permission.findMany({
-      orderBy: [{ role: "asc" }, { resource: "asc" }, { action: "asc" }],
-    });
+    const records = await listAdminPermissionsApi();
     return records.map((p) => ({
       id: p.id,
       role: p.role as UserRole,
       resource: p.resource,
       action: p.action,
-      allowed: p.role === "super_admin" || p.allowed,
-      created_at: p.createdAt.toISOString(),
+      allowed: p.role === "super_admin" || Boolean(p.allowed),
+      created_at: p.created_at || p.createdAt || new Date().toISOString(),
     }));
   } catch (err) {
     console.error("Error fetching permissions:", err);
@@ -105,22 +105,7 @@ export async function setPermission(
 ): Promise<boolean> {
   const granted = role === "super_admin" || allowed;
   try {
-    await db.permission.upsert({
-      where: {
-        role_resource_action: {
-          role,
-          resource,
-          action,
-        },
-      },
-      update: { allowed: granted },
-      create: {
-        role,
-        resource,
-        action,
-        allowed: granted,
-      },
-    });
+    await setAdminPermissionApi({ role, resource, action, allowed: granted });
     return true;
   } catch (err) {
     console.error("Error upserting permission:", err);
@@ -143,12 +128,9 @@ export async function getEffectivePermissions(
   const known = new Map(features.map((f) => [f.moduleKey, f.isEnabled]));
   const moduleOn = (moduleKey: string) =>
     known.get(moduleKey) ?? moduleOnByDefault(moduleKey);
-  const records = await db.permission.findMany({
-    where: { role },
-    select: { resource: true, action: true, allowed: true },
-  });
+  const records = (await listAdminPermissionsApi()).filter((r) => r.role === role);
   const stored = new Map(
-    records.map((r) => [`${r.resource}:${r.action}`, r.allowed]),
+    records.map((r) => [`${r.resource}:${r.action}`, Boolean(r.allowed)]),
   );
   for (const resource of ALL_RESOURCES) {
     for (const action of ALL_ACTIONS) {
@@ -156,7 +138,7 @@ export async function getEffectivePermissions(
         role,
         resource,
         action,
-        (res, act) => stored.get(`${res}:${act}`) as boolean | undefined,
+        (res, act) => stored.get(`${res}:${act}`),
       );
     }
   }
@@ -175,48 +157,9 @@ export async function getEffectivePermissions(
 }
 
 export async function ensureRoleTemplates() {
-  const existing = new Set(
-    (await db.role.findMany({ select: { id: true } })).map((role) => role.id),
-  );
-  const missing = ALL_ROLES.filter((role) => !existing.has(role));
-  if (missing.length) {
-    const en = getTranslations("en").admin.roles as Record<string, string>;
-    const ar = getTranslations("ar").admin.roles as Record<string, string>;
-    await db.role.createMany({
-      data: missing.map((id) => ({
-        id,
-        nameEn: en[id] ?? id,
-        nameAr: ar[id] ?? id,
-        isSystem: true,
-      })),
-      skipDuplicates: true,
-    });
-  }
-  const stored = await db.permission.count({
-    where: { role: { in: [...ALL_ROLES] } },
-  });
-  if (stored >= ALL_ROLES.length * ALL_RESOURCES.length * ALL_ACTIONS.length)
-    return;
-  await db.permission.createMany({
-    data: ALL_ROLES.flatMap((role) =>
-      ALL_RESOURCES.flatMap((resource) =>
-        ALL_ACTIONS.map((action) => ({
-          role,
-          resource,
-          action,
-          allowed: isDefaultAllowed(role, resource, action),
-        })),
-      ),
-    ),
-    skipDuplicates: true,
-  });
+  // Role and permission templates are seeded in PostgreSQL identity.role / identity.permission.
 }
 
-let templatesReady: Promise<void> | null = null;
 export function ensureRoleTemplatesOnce() {
-  templatesReady ??= ensureRoleTemplates().catch((error) => {
-    templatesReady = null;
-    throw error;
-  });
-  return templatesReady;
+  return Promise.resolve();
 }

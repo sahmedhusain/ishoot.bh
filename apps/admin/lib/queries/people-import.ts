@@ -1,5 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { db } from "../atomic";
+import { listDepartments } from "../api/hr";
+import {
+  listAdminRolesApi,
+  listAdminUsersApi,
+  updateAdminUserFieldsApi,
+} from "../api/identity";
 import { createEmployee } from "./hrms";
 import { createUser } from "./users";
 
@@ -81,23 +86,13 @@ export async function checkPeopleImport(
 ): Promise<PeopleImportCheck[]> {
   const rows = input.slice(0, PEOPLE_IMPORT_LIMIT).map(clean);
   const [departments, roles, users] = await Promise.all([
-    db.department.findMany({ select: { code: true } }),
-    db.role.findMany({ select: { id: true } }),
-    db.user.findMany({
-      where: {
-        email: {
-          in: rows
-            .flatMap((r) => [r.email, r.manager_email])
-            .filter(Boolean)
-            .map((e) => e.toLowerCase()),
-        },
-      },
-      select: { email: true },
-    }),
+    listDepartments(),
+    listAdminRolesApi(),
+    listAdminUsersApi(),
   ]);
-  const codes = new Set(departments.map((d) => d.code.toUpperCase()));
-  const roleIds = new Set(roles.map((r) => r.id));
-  const existing = new Set(users.map((u) => u.email.toLowerCase()));
+  const codes = new Set(departments.map((d: any) => String(d.code ?? "").toUpperCase()));
+  const roleIds = new Set(roles.map((r: any) => r.id));
+  const existing = new Set(users.map((u: any) => String(u.email ?? "").toLowerCase()));
   const importedEmails = new Map<string, number>();
   for (const row of rows)
     if (row.email)
@@ -158,9 +153,7 @@ export async function importPeople(
   const checks = await checkPeopleImport(input, options);
   const rows = input.slice(0, PEOPLE_IMPORT_LIMIT).map(clean);
   const departments = new Map<string, string>(
-    (await db.department.findMany({ select: { id: true, code: true } })).map(
-      (d: any) => [d.code.toUpperCase(), d.id],
-    ),
+    (await listDepartments()).map((d: any) => [String(d.code ?? "").toUpperCase(), d.id]),
   );
   let employees = 0;
   let accounts = 0;
@@ -209,16 +202,11 @@ export async function importPeople(
     );
     employees++;
   }
+  const allUsers = managerLinks.length ? await listAdminUsersApi() : [];
   for (const link of managerLinks) {
-    const manager = await db.user.findUnique({
-      where: { email: link.managerEmail },
-      select: { id: true },
-    });
+    const manager = allUsers.find((u: any) => String(u.email ?? "").toLowerCase() === link.managerEmail);
     if (manager && manager.id !== link.userId)
-      await db.user.update({
-        where: { id: link.userId },
-        data: { managerId: manager.id },
-      });
+      await updateAdminUserFieldsApi(link.userId, { managerId: manager.id });
   }
   return {
     employees,

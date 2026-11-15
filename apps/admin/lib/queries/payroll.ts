@@ -11,7 +11,12 @@ import {
   parsePayrollSettings,
 } from "../payroll-calculation";
 import { MAX_PAY_LINES, PAY_LINE_CATEGORIES } from "../constants/hr";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import {
+  deleteTableRow,
+  listTableRows,
+  upsertTableRow,
+} from "../api/tables";
 import { PayrollRun } from "../types";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
@@ -63,12 +68,18 @@ const DECIMAL_FIELDS = [
   "netSalary",
 ] as const;
 
+const toIso = (v: any): string =>
+  v instanceof Date ? v.toISOString() : v ? String(v) : new Date().toISOString();
+
+const toIsoOrNull = (v: any): string | null =>
+  v ? (v instanceof Date ? v.toISOString() : String(v)) : null;
+
 function mapPayrollItem(it: any) {
   const out = { ...it };
   for (const field of DECIMAL_FIELDS) out[field] = Number(it[field] ?? 0);
-  out.createdAt = it.createdAt.toISOString();
-  out.editedAt = it.editedAt ? it.editedAt.toISOString() : null;
-  out.paidAt = it.paidAt ? it.paidAt.toISOString() : null;
+  out.createdAt = toIso(it.createdAt);
+  out.editedAt = toIsoOrNull(it.editedAt);
+  out.paidAt = toIsoOrNull(it.paidAt);
   delete out.commissionPayout;
   delete out.lines;
   return out;
@@ -77,39 +88,57 @@ function mapPayrollItem(it: any) {
 function mapRun(run: any): PayrollRun {
   return {
     ...run,
-    totalGross: Number(run.totalGross),
-    totalDeductions: Number(run.totalDeductions),
-    totalNet: Number(run.totalNet),
-    totalEmployerCost: Number(run.totalEmployerCost),
-    periodStart: run.periodStart.toISOString(),
-    periodEnd: run.periodEnd.toISOString(),
-    attendanceStart: run.attendanceStart?.toISOString() ?? null,
-    attendanceEnd: run.attendanceEnd?.toISOString() ?? null,
-    payDate: run.payDate?.toISOString() ?? null,
-    createdAt: run.createdAt.toISOString(),
-    updatedAt: run.updatedAt.toISOString(),
-    approvedAt: run.approvedAt?.toISOString() || null,
-    paidAt: run.paidAt?.toISOString() || null,
+    totalGross: Number(run.totalGross ?? 0),
+    totalDeductions: Number(run.totalDeductions ?? 0),
+    totalNet: Number(run.totalNet ?? 0),
+    totalEmployerCost: Number(run.totalEmployerCost ?? 0),
+    periodStart: toIso(run.periodStart),
+    periodEnd: toIso(run.periodEnd),
+    attendanceStart: toIsoOrNull(run.attendanceStart),
+    attendanceEnd: toIsoOrNull(run.attendanceEnd),
+    payDate: toIsoOrNull(run.payDate),
+    createdAt: toIso(run.createdAt),
+    updatedAt: toIso(run.updatedAt),
+    approvedAt: toIsoOrNull(run.approvedAt) || null,
+    paidAt: toIsoOrNull(run.paidAt) || null,
     items: (run.items ?? []).map(mapPayrollItem),
   };
 }
 
-const runInclude = {
-  items: {
-    include: {
-      employee: {
-        select: {
-          id: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-        },
+async function hydrateRuns(runs: any[]) {
+  if (!runs.length) return [];
+  const [items, employees] = await Promise.all([
+    listTableRows<any>("hr", "payroll_item"),
+    listTableRows<any>("hr", "employee"),
+  ]);
+  const empMap = new Map<string, any>(
+    employees.map((e) => [
+      e.id,
+      {
+        id: e.id,
+        employeeNumber: e.employeeNumber,
+        firstNameEn: e.firstNameEn,
+        lastNameEn: e.lastNameEn,
+        firstNameAr: e.firstNameAr,
+        lastNameAr: e.lastNameAr,
       },
-    },
-  },
-} as const;
+    ]),
+  );
+  return runs.map((run) => ({
+    ...run,
+    items: items
+      .filter((i) => i.payrollRunId === run.id)
+      .map((i) => ({ ...i, employee: empMap.get(i.employeeId) ?? null })),
+  }));
+}
+
+async function hydrateRunById(runId: string) {
+  const runs = await listTableRows<any>("hr", "payroll_run");
+  const run = runs.find((r) => r.id === runId);
+  if (!run) throw new Error(serverMessages.payrollRunNotFound);
+  const [hydrated] = await hydrateRuns([run]);
+  return hydrated;
+}
 
 export interface PayrollLineInput {
   basicSalary: number;
@@ -165,31 +194,33 @@ export function computePayrollLine(
 const roundIntermediate = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
 async function refreshPayrollTotals(runId: string) {
-  const items = await db.payrollItem.findMany({
-    where: { payrollRunId: runId },
-  });
-  const sum = (pick: (i: (typeof items)[number]) => number) =>
+  const [runs, allItems] = await Promise.all([
+    listTableRows<any>("hr", "payroll_run"),
+    listTableRows<any>("hr", "payroll_item"),
+  ]);
+  const run = runs.find((r) => r.id === runId);
+  if (!run) return;
+  const items = allItems.filter((i) => i.payrollRunId === runId);
+  const sum = (pick: (i: any) => number) =>
     roundIntermediate(items.reduce((acc, i) => acc + pick(i), 0));
-  await db.payrollRun.update({
-    where: { id: runId },
-    data: {
-      totalGross: sum((i) => Number(i.grossSalary)),
-      totalDeductions: sum(
-        (i) =>
-          Number(i.gosiEmployee) +
-          Number(i.absenceDeduction) +
-          Number(i.leaveDeduction) +
-          Number(i.latenessDeduction) +
-          Number(i.otherDeductions),
-      ),
-      totalNet: sum((i) => Number(i.netSalary)),
-      totalEmployerCost: sum(
-        (i) =>
-          Number(i.grossSalary) +
-          Number(i.gosiEmployer) -
-          Number(i.externalSupport),
-      ),
-    },
+  await upsertTableRow("hr", "payroll_run", {
+    ...run,
+    totalGross: sum((i) => Number(i.grossSalary)),
+    totalDeductions: sum(
+      (i) =>
+        Number(i.gosiEmployee) +
+        Number(i.absenceDeduction) +
+        Number(i.leaveDeduction) +
+        Number(i.latenessDeduction) +
+        Number(i.otherDeductions),
+    ),
+    totalNet: sum((i) => Number(i.netSalary)),
+    totalEmployerCost: sum(
+      (i) =>
+        Number(i.grossSalary) +
+        Number(i.gosiEmployer) -
+        Number(i.externalSupport),
+    ),
   });
 }
 
@@ -209,26 +240,42 @@ interface RunContext {
 type EligibleEmployee = Awaited<ReturnType<typeof eligibleEmployees>>[number];
 
 async function eligibleEmployees(window: PayrollWindow) {
-  return db.employee.findMany({
-    where: {
-      status: { in: ["active", "on_leave"] },
-      hireDate: { lte: window.salaryEnd },
-    },
-    include: {
-      user: { select: { id: true, commissionRatePercent: true } },
-      employmentRecords: {
-        where: {
-          effectiveFrom: { lte: window.salaryEnd },
-          OR: [
-            { effectiveTo: null },
-            { effectiveTo: { gte: window.salaryStart } },
-          ],
-        },
-        orderBy: { effectiveFrom: "desc" },
-        take: 1,
-      },
-    },
-  });
+  const [employees, users, records] = await Promise.all([
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("identity", "user"),
+    listTableRows<any>("system", "employment_record"),
+  ]);
+  const userMap = new Map<string, any>(
+    users.map((u) => [u.id, { id: u.id, commissionRatePercent: u.commissionRatePercent }]),
+  );
+  const salaryStartMs = window.salaryStart.getTime();
+  const salaryEndMs = window.salaryEnd.getTime();
+  return employees
+    .filter((e) => {
+      if (!["active", "on_leave"].includes(e.status)) return false;
+      const hireMs = e.hireDate ? new Date(e.hireDate).getTime() : 0;
+      return hireMs <= salaryEndMs;
+    })
+    .map((e) => {
+      const empRecords = records
+        .filter((r) => {
+          if (r.employeeId !== e.id) return false;
+          const fromMs = r.effectiveFrom ? new Date(r.effectiveFrom).getTime() : 0;
+          if (fromMs > salaryEndMs) return false;
+          if (!r.effectiveTo) return true;
+          return new Date(r.effectiveTo).getTime() >= salaryStartMs;
+        })
+        .sort((a, b) =>
+          String(b.effectiveFrom ?? "").localeCompare(String(a.effectiveFrom ?? "")),
+        )
+        .slice(0, 1);
+      return {
+        ...e,
+        hireDate: new Date(e.hireDate),
+        user: e.userId ? userMap.get(e.userId) ?? null : null,
+        employmentRecords: empRecords,
+      };
+    });
 }
 
 async function buildContext(
@@ -245,9 +292,10 @@ async function buildContext(
   const [
     holidays,
     attendance,
-    leaveRows,
+    allLeaveRows,
+    leaveTypes,
     commissions,
-    payoutsElsewhere,
+    allPayouts,
     gosi,
     supports,
   ] = await Promise.all([
@@ -260,15 +308,8 @@ async function buildContext(
         : w.salaryEnd,
     ),
     attendanceForPayroll(ids, w.attendanceStart, w.attendanceEnd),
-    db.leaveRequest.findMany({
-      where: {
-        employeeId: { in: ids },
-        status: "approved",
-        startDate: { gte: yearStart, lte: w.attendanceEnd },
-      },
-      include: { leaveType: true },
-      orderBy: { startDate: "asc" },
-    }),
+    listTableRows<any>("hr", "leave_request"),
+    listTableRows<any>("hr", "leave_type"),
     policy.commissionInPayroll
       ? commissionsForRange(
           {
@@ -280,13 +321,29 @@ async function buildContext(
       : Promise.resolve(
           new Map<string, { net: number; invoices: Set<string> }>(),
         ),
-    db.commissionPayout.findMany({
-      where: { periodMonth: monthKey, payrollItemId: null },
-      select: { userId: true },
-    }),
+    listTableRows<any>("finance", "commission_payout"),
     loadGosiContext(ids),
     loadSupportContext(ids),
   ]);
+
+  const leaveTypeMap = new Map<string, any>(leaveTypes.map((t) => [t.id, t]));
+  const idSet = new Set(ids);
+  const leaveRows = allLeaveRows
+    .filter((row) => {
+      if (!idSet.has(row.employeeId) || row.status !== "approved") return false;
+      const startMs = new Date(row.startDate).getTime();
+      return startMs >= yearStart.getTime() && startMs <= w.attendanceEnd.getTime();
+    })
+    .map((row) => ({
+      ...row,
+      startDate: new Date(row.startDate),
+      endDate: new Date(row.endDate),
+      leaveType: leaveTypeMap.get(row.leaveTypeId) ?? {},
+    }))
+    .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  const payoutsElsewhere = allPayouts.filter(
+    (p) => p.periodMonth === monthKey && !p.payrollItemId,
+  );
 
   const leaves = new Map<string, LeaveInWindow[]>();
   const takenByTypeYear = new Map<string, number>();
@@ -357,15 +414,19 @@ type LineDraft = {
 };
 
 async function recurringPayFor(employeeIds: string[], monthKey: string) {
-  const rows = await db.employeeRecurringPay.findMany({
-    where: {
-      employeeId: { in: employeeIds },
-      isActive: true,
-      startMonth: { lte: monthKey },
-      OR: [{ endMonth: null }, { endMonth: { gte: monthKey } }],
-    },
-    orderBy: { createdAt: "asc" },
-  });
+  const idSet = new Set(employeeIds);
+  const allRows = await listTableRows<any>("hr", "employee_recurring_pay");
+  const rows = allRows
+    .filter(
+      (r) =>
+        idSet.has(r.employeeId) &&
+        r.isActive &&
+        String(r.startMonth ?? "") <= monthKey &&
+        (!r.endMonth || String(r.endMonth) >= monthKey),
+    )
+    .sort((a, b) =>
+      String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? "")),
+    );
   const map = new Map<string, LineDraft[]>();
   for (const r of rows) {
     const list = map.get(r.employeeId) ?? [];
@@ -556,18 +617,27 @@ async function syncCommissionPayout(
   actorId: string,
 ) {
   if (!userId || amount <= 0) {
-    await db.commissionPayout.deleteMany({ where: { payrollItemId: itemId } });
+    const payouts = await listTableRows<any>("finance", "commission_payout");
+    await Promise.all(
+      payouts
+        .filter((p) => p.payrollItemId === itemId)
+        .map((p) => deleteTableRow("finance", "commission_payout", p.id)),
+    );
     return;
   }
-  await db.commissionPayout.upsert({
-    where: { payrollItemId: itemId },
-    update: {
+  const payouts = await listTableRows<any>("finance", "commission_payout");
+  const existing = payouts.find((p) => p.payrollItemId === itemId);
+  if (existing) {
+    await upsertTableRow("finance", "commission_payout", {
+      ...existing,
       amount,
       basisAmount: basis,
       ratePercent: rate,
       recordedById: actorId,
-    },
-    create: {
+    });
+  } else {
+    await upsertTableRow("finance", "commission_payout", {
+      id: crypto.randomUUID(),
       userId,
       currency: await assertCompanyCurrency(),
       periodMonth: month,
@@ -576,8 +646,8 @@ async function syncCommissionPayout(
       ratePercent: rate,
       payrollItemId: itemId,
       recordedById: actorId,
-    },
-  });
+    });
+  }
 }
 
 function assertPeriod(month: number, year: number) {
@@ -599,11 +669,12 @@ export async function createPayrollRun(
 ): Promise<PayrollRun> {
   await assertActorNotOnLeave(actorId);
   assertPeriod(month, year);
-  const existing = await db.payrollRun.findUnique({
-    where: { year_month: { year, month } },
-    include: runInclude,
-  });
-  if (existing) return mapRun(existing);
+  const runs = await listTableRows<any>("hr", "payroll_run");
+  const existing = runs.find((r) => r.year === year && r.month === month);
+  if (existing) {
+    const [hydrated] = await hydrateRuns([existing]);
+    return mapRun(hydrated);
+  }
 
   const policy = await getHrPolicy();
   const window = payrollWindow(policy, year, month);
@@ -626,31 +697,39 @@ export async function createPayrollRun(
   });
 
   const run = await runAtomicMutation(async () => {
-    const created = await db.payrollRun.create({
-      data: {
-        month,
-        year,
-        periodStart: window.salaryStart,
-        periodEnd: window.salaryEnd,
-        attendanceStart: window.attendanceStart,
-        attendanceEnd: window.attendanceEnd,
-        payDate: window.payDate,
-        status: "calculated",
-      },
+    const created = await upsertTableRow<any>("hr", "payroll_run", {
+      id: crypto.randomUUID(),
+      month,
+      year,
+      periodStart: window.salaryStart.toISOString(),
+      periodEnd: window.salaryEnd.toISOString(),
+      attendanceStart: window.attendanceStart.toISOString(),
+      attendanceEnd: window.attendanceEnd.toISOString(),
+      payDate: window.payDate ? window.payDate.toISOString() : null,
+      status: "calculated",
+      totalGross: 0,
+      totalDeductions: 0,
+      totalNet: 0,
+      totalEmployerCost: 0,
     });
     for (const line of lines) {
-      const item = await db.payrollItem.create({
-        data: {
-          payrollRunId: created.id,
-          employeeId: line.employee.id,
-          paymentStatus: "pending",
-          ...line.data,
-        },
+      const item = await upsertTableRow<any>("hr", "payroll_item", {
+        id: crypto.randomUUID(),
+        payrollRunId: created.id,
+        employeeId: line.employee.id,
+        paymentStatus: "pending",
+        ...line.data,
       });
       if (line.payLines.length)
-        await db.payrollItemLine.createMany({
-          data: line.payLines.map((l) => ({ ...l, payrollItemId: item.id })),
-        });
+        await Promise.all(
+          line.payLines.map((l) =>
+            upsertTableRow("hr", "payroll_item_line", {
+              id: crypto.randomUUID(),
+              ...l,
+              payrollItemId: item.id,
+            }),
+          ),
+        );
       const rate = Number(line.employee.user?.commissionRatePercent ?? 0);
       await syncCommissionPayout(
         item.id,
@@ -663,10 +742,7 @@ export async function createPayrollRun(
       );
     }
     await refreshPayrollTotals(created.id);
-    return db.payrollRun.findUniqueOrThrow({
-      where: { id: created.id },
-      include: runInclude,
-    });
+    return hydrateRunById(created.id);
   });
   return mapRun(run);
 }
@@ -675,10 +751,20 @@ export async function recalculatePayrollRun(
   runId: string,
   actorId: string,
 ): Promise<PayrollRun> {
-  const run = await db.payrollRun.findUniqueOrThrow({
-    where: { id: runId },
-    include: { items: { include: { lines: true } } },
-  });
+  const [runs, allItems, allLines] = await Promise.all([
+    listTableRows<any>("hr", "payroll_run"),
+    listTableRows<any>("hr", "payroll_item"),
+    listTableRows<any>("hr", "payroll_item_line"),
+  ]);
+  const rawRun = runs.find((r) => r.id === runId);
+  if (!rawRun) throw new Error(serverMessages.payrollRunNotFound);
+  const runItems = allItems
+    .filter((i) => i.payrollRunId === runId)
+    .map((i) => ({
+      ...i,
+      lines: allLines.filter((l) => l.payrollItemId === i.id),
+    }));
+  const run = { ...rawRun, items: runItems };
   if (!["draft", "calculated"].includes(run.status))
     throw new Error(
       formatMessage(serverTemplates.payrollIs0ItCanOnlyBe, { 0: run.status }),
@@ -692,21 +778,19 @@ export async function recalculatePayrollRun(
     ctx.month,
   );
   await runAtomicMutation(async () => {
-    await db.payrollRun.update({
-      where: { id: runId },
-      data: {
-        attendanceStart: window.attendanceStart,
-        attendanceEnd: window.attendanceEnd,
-        payDate: window.payDate,
-        periodStart: window.salaryStart,
-        periodEnd: window.salaryEnd,
-      },
+    await upsertTableRow("hr", "payroll_run", {
+      ...rawRun,
+      attendanceStart: window.attendanceStart.toISOString(),
+      attendanceEnd: window.attendanceEnd.toISOString(),
+      payDate: window.payDate ? window.payDate.toISOString() : null,
+      periodStart: window.salaryStart.toISOString(),
+      periodEnd: window.salaryEnd.toISOString(),
     });
     const keep = new Set<string>();
     for (const employee of employees) {
-      const existing = run.items.find((i) => i.employeeId === employee.id);
+      const existing = run.items.find((i: any) => i.employeeId === employee.id);
       const manual = (existing?.lines ?? []).filter(
-        (l) => l.source === "manual",
+        (l: any) => l.source === "manual",
       );
       const fresh = recurring.get(employee.id) ?? [];
       const line = lineFor(employee, ctx, {
@@ -714,29 +798,36 @@ export async function recalculatePayrollRun(
         adjustmentNote: existing?.adjustmentNote ?? null,
       });
       const item = existing
-        ? await db.payrollItem.update({
-            where: { id: existing.id },
-            data: line.data,
+        ? await upsertTableRow<any>("hr", "payroll_item", {
+            ...existing,
+            ...line.data,
           })
-        : await db.payrollItem.create({
-            data: {
-              payrollRunId: runId,
-              employeeId: employee.id,
-              paymentStatus: "pending",
-              ...line.data,
-            },
+        : await upsertTableRow<any>("hr", "payroll_item", {
+            id: crypto.randomUUID(),
+            payrollRunId: runId,
+            employeeId: employee.id,
+            paymentStatus: "pending",
+            ...line.data,
           });
-      await db.payrollItemLine.deleteMany({
-        where: { payrollItemId: item.id, source: "recurring" },
-      });
+      const oldRecurring = (existing?.lines ?? []).filter(
+        (l: any) => l.source === "recurring",
+      );
+      await Promise.all(
+        oldRecurring.map((l: any) =>
+          deleteTableRow("hr", "payroll_item_line", l.id),
+        ),
+      );
       if (fresh.length)
-        await db.payrollItemLine.createMany({
-          data: fresh.map((l) => ({
-            ...l,
-            payrollItemId: item.id,
-            displayOrder: manual.length + l.displayOrder,
-          })),
-        });
+        await Promise.all(
+          fresh.map((l) =>
+            upsertTableRow("hr", "payroll_item_line", {
+              id: crypto.randomUUID(),
+              ...l,
+              payrollItemId: item.id,
+              displayOrder: manual.length + l.displayOrder,
+            }),
+          ),
+        );
       keep.add(item.id);
       const rate = Number(employee.user?.commissionRatePercent ?? 0);
       await syncCommissionPayout(
@@ -749,17 +840,16 @@ export async function recalculatePayrollRun(
         actorId,
       );
     }
-    const dropped = run.items.filter((i) => !keep.has(i.id)).map((i) => i.id);
+    const dropped = run.items
+      .filter((i: any) => !keep.has(i.id))
+      .map((i: any) => i.id);
     if (dropped.length)
-      await db.payrollItem.deleteMany({ where: { id: { in: dropped } } });
+      await Promise.all(
+        dropped.map((id: string) => deleteTableRow("hr", "payroll_item", id)),
+      );
     await refreshPayrollTotals(runId);
   });
-  return mapRun(
-    await db.payrollRun.findUniqueOrThrow({
-      where: { id: runId },
-      include: runInclude,
-    }),
-  );
+  return mapRun(await hydrateRunById(runId));
 }
 
 export interface PayLineInput {
@@ -778,15 +868,17 @@ export async function setPayrollItemLines(
   },
   actorId: string,
 ) {
-  const item = await db.payrollItem.findUniqueOrThrow({
-    where: { id: itemId },
-    include: {
-      payrollRun: {
-        select: { id: true, status: true, year: true, month: true },
-      },
-      lines: true,
-    },
-  });
+  const [items, runs, allLines] = await Promise.all([
+    listTableRows<any>("hr", "payroll_item"),
+    listTableRows<any>("hr", "payroll_run"),
+    listTableRows<any>("hr", "payroll_item_line"),
+  ]);
+  const rawItem = items.find((i) => i.id === itemId);
+  if (!rawItem) throw new Error(serverMessages.payrollRunNotFound);
+  const payrollRun = runs.find((r) => r.id === rawItem.payrollRunId);
+  if (!payrollRun) throw new Error(serverMessages.payrollRunNotFound);
+  const lines = allLines.filter((l) => l.payrollItemId === itemId);
+  const item = { ...rawItem, payrollRun, lines };
   if (!["draft", "calculated"].includes(item.payrollRun.status))
     throw new Error(
       formatMessage(serverTemplates.payrollIs0LinesCanOnlyBe, {
@@ -825,7 +917,7 @@ export async function setPayrollItemLines(
       };
     }),
   );
-  const recurring = item.lines.filter((l) => l.source === "recurring");
+  const recurring = item.lines.filter((l: any) => l.source === "recurring");
   const { bonus, otherDeductions } = lineTotals([...drafts, ...recurring]);
   const fixedPay = roundIntermediate(
     Number(item.basicSalary) +
@@ -851,24 +943,29 @@ export async function setPayrollItemLines(
     input.note === undefined
       ? item.adjustmentNote
       : input.note?.trim().slice(0, 500) || null;
-  await db.payrollItemLine.deleteMany({
-    where: { payrollItemId: itemId, source: "manual" },
-  });
+  const oldManual = item.lines.filter((l: any) => l.source === "manual");
+  await Promise.all(
+    oldManual.map((l: any) => deleteTableRow("hr", "payroll_item_line", l.id)),
+  );
   if (drafts.length)
-    await db.payrollItemLine.createMany({
-      data: drafts.map((d) => ({ ...d, payrollItemId: itemId })),
-    });
-  const updated = await db.payrollItem.update({
-    where: { id: itemId },
-    data: {
-      bonus,
-      otherDeductions,
-      grossSalary: totals.gross,
-      netSalary: totals.net,
-      adjustmentNote: note,
-      editedById: actorId,
-      editedAt: new Date(),
-    },
+    await Promise.all(
+      drafts.map((d) =>
+        upsertTableRow("hr", "payroll_item_line", {
+          id: crypto.randomUUID(),
+          ...d,
+          payrollItemId: itemId,
+        }),
+      ),
+    );
+  const updated = await upsertTableRow<any>("hr", "payroll_item", {
+    ...rawItem,
+    bonus,
+    otherDeductions,
+    grossSalary: totals.gross,
+    netSalary: totals.net,
+    adjustmentNote: note,
+    editedById: actorId,
+    editedAt: new Date().toISOString(),
   });
   await refreshPayrollTotals(item.payrollRun.id);
   return {
@@ -883,10 +980,14 @@ export async function submitPayrollRunForApproval(
   actorId: string,
 ): Promise<{ success: boolean; approvalRequestId: string }> {
   await assertActorNotOnLeave(actorId);
-  const run = await db.payrollRun.findUnique({
-    where: { id },
-    include: { items: true },
-  });
+  const [runs, items] = await Promise.all([
+    listTableRows<any>("hr", "payroll_run"),
+    listTableRows<any>("hr", "payroll_item"),
+  ]);
+  const rawRun = runs.find((r) => r.id === id);
+  const run = rawRun
+    ? { ...rawRun, items: items.filter((i) => i.payrollRunId === id) }
+    : null;
   if (!run) throw new Error(serverMessages.payrollRunNotFound);
   if (run.status !== "calculated" && run.status !== "draft")
     throw new Error(
@@ -894,7 +995,10 @@ export async function submitPayrollRunForApproval(
         0: run.status,
       }),
     );
-  await db.payrollRun.update({ where: { id }, data: { status: "submitted" } });
+  await upsertTableRow("hr", "payroll_run", {
+    ...rawRun,
+    status: "submitted",
+  });
   const approvalReq = await submitForApproval({
     targetType: "payroll_run",
     targetId: run.id,
@@ -948,55 +1052,65 @@ async function payItems(
   )
     throw new Error(serverMessages.chooseAPaymentDateThatIsNot);
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "PayrollRun" WHERE id = ${runId} FOR UPDATE`;
-    const run = await db.payrollRun.findUniqueOrThrow({
-      where: { id: runId },
-      include: { items: true },
-    });
-    if (run.status !== "approved")
+    const [runs, allItems, existingSlips] = await Promise.all([
+      listTableRows<any>("hr", "payroll_run"),
+      listTableRows<any>("hr", "payroll_item"),
+      listTableRows<any>("system", "payslip"),
+    ]);
+    const rawRun = runs.find((r) => r.id === runId);
+    if (!rawRun) throw new Error(serverMessages.payrollRunNotFound);
+    const runItems = allItems.filter((i) => i.payrollRunId === runId);
+    if (rawRun.status !== "approved")
       throw new Error(
         formatMessage(serverTemplates.salariesCanBePaidOnceThePayroll, {
-          0: run.status,
+          0: rawRun.status,
         }),
       );
-    const targets = run.items.filter(
+    const targets = runItems.filter(
       (i) => i.paymentStatus !== "paid" && (!itemIds || itemIds.includes(i.id)),
     );
     if (itemIds && targets.length !== itemIds.length)
       throw new Error(serverMessages.thisSalaryIsAlreadyPaid);
-    await db.payrollItem.updateMany({
-      where: { id: { in: targets.map((item) => item.id) } },
-      data: {
-        paymentStatus: "paid",
-        paidAt,
-        paidById: actorId,
-        paymentMethod: input.method,
-        paymentReference: input.reference?.trim().slice(0, 120) || null,
-      },
-    });
-    const issuedAt = new Date();
-    await db.payslip.createMany({
-      data: targets.map((item) => ({
-        payrollItemId: item.id,
-        employeeId: item.employeeId,
-        month: run.month,
-        year: run.year,
-        issuedAt,
-      })),
-      skipDuplicates: true,
-    });
-    const remaining = await db.payrollItem.count({
-      where: { payrollRunId: runId, paymentStatus: { not: "paid" } },
-    });
+    const paidAtIso = paidAt.toISOString();
+    await Promise.all(
+      targets.map((item) =>
+        upsertTableRow("hr", "payroll_item", {
+          ...item,
+          paymentStatus: "paid",
+          paidAt: paidAtIso,
+          paidById: actorId,
+          paymentMethod: input.method,
+          paymentReference: input.reference?.trim().slice(0, 120) || null,
+        }),
+      ),
+    );
+    const issuedAtIso = new Date().toISOString();
+    const slipItemIds = new Set(existingSlips.map((s) => s.payrollItemId));
+    await Promise.all(
+      targets
+        .filter((item) => !slipItemIds.has(item.id))
+        .map((item) =>
+          upsertTableRow("system", "payslip", {
+            id: crypto.randomUUID(),
+            payrollItemId: item.id,
+            employeeId: item.employeeId,
+            month: rawRun.month,
+            year: rawRun.year,
+            issuedAt: issuedAtIso,
+          }),
+        ),
+    );
+    const paidIds = new Set(targets.map((t) => t.id));
+    const remaining = runItems.filter(
+      (i) => i.paymentStatus !== "paid" && !paidIds.has(i.id),
+    ).length;
     if (remaining === 0)
-      await db.payrollRun.update({
-        where: { id: runId },
-        data: { status: "paid", paidAt },
+      await upsertTableRow("hr", "payroll_run", {
+        ...rawRun,
+        status: "paid",
+        paidAt: paidAtIso,
       });
-    return db.payrollRun.findUniqueOrThrow({
-      where: { id: runId },
-      include: runInclude,
-    });
+    return hydrateRunById(runId);
   });
 }
 
@@ -1006,10 +1120,9 @@ export async function payPayrollItem(
   actorId: string,
 ) {
   await assertActorNotOnLeave(actorId);
-  const item = await db.payrollItem.findUniqueOrThrow({
-    where: { id: itemId },
-    select: { payrollRunId: true },
-  });
+  const items = await listTableRows<any>("hr", "payroll_item");
+  const item = items.find((i) => i.id === itemId);
+  if (!item) throw new Error(serverMessages.payrollRunNotFound);
   return mapRun(await payItems(item.payrollRunId, [itemId], input, actorId));
 }
 
@@ -1023,88 +1136,137 @@ export async function markPayrollAsPaid(
 }
 
 export async function listPayrollRuns(): Promise<PayrollRun[]> {
-  const runs = await db.payrollRun.findMany({
-    orderBy: [{ year: "desc" }, { month: "desc" }],
-    include: runInclude,
-  });
-  return runs.map(mapRun);
+  const runs = await listTableRows<any>("hr", "payroll_run");
+  runs.sort((a, b) => b.year - a.year || b.month - a.month);
+  const hydrated = await hydrateRuns(runs);
+  return hydrated.map(mapRun);
 }
 
 export async function getPayrollItemDetail(itemId: string) {
-  const item = await db.payrollItem.findUnique({
-    where: { id: itemId },
-    include: {
-      payrollRun: true,
-      payslip: { select: { id: true, issuedAt: true } },
-      commissionPayout: {
-        select: { basisAmount: true, ratePercent: true, amount: true },
-      },
-      lines: { orderBy: [{ kind: "asc" }, { displayOrder: "asc" }] },
-      employee: {
-        select: {
-          id: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-          jobTitleEn: true,
-          jobTitleAr: true,
-          hireDate: true,
-          userId: true,
-          department: { select: { nameEn: true, nameAr: true } },
-        },
-      },
-    },
-  });
-  if (!item) {
+  const [
+    allItems,
+    runs,
+    slips,
+    payouts,
+    allLines,
+    employees,
+    departments,
+  ] = await Promise.all([
+    listTableRows<any>("hr", "payroll_item"),
+    listTableRows<any>("hr", "payroll_run"),
+    listTableRows<any>("system", "payslip"),
+    listTableRows<any>("finance", "commission_payout"),
+    listTableRows<any>("hr", "payroll_item_line"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("hr", "department"),
+  ]);
+  const rawItem = allItems.find((i) => i.id === itemId);
+  if (!rawItem) {
     return await getApiPayrollItemDetail(itemId);
   }
-  const run = item.payrollRun;
-  const start = run.attendanceStart ?? run.periodStart;
-  const end = run.attendanceEnd ?? run.periodEnd;
-  const [attendance, leaves, editedBy, paidBy, siblings] = await Promise.all([
-    db.attendanceEntry.findMany({
-      where: { employeeId: item.employeeId, date: { gte: start, lte: end } },
-      orderBy: { date: "asc" },
-      include: { shiftType: { select: { nameEn: true, nameAr: true } } },
-    }),
-    db.leaveRequest.findMany({
-      where: {
-        employeeId: item.employeeId,
-        status: "approved",
-        startDate: { lte: end },
-        endDate: { gte: start },
-      },
-      orderBy: { startDate: "asc" },
-      include: {
-        leaveType: { select: { code: true, nameEn: true, nameAr: true } },
-      },
-    }),
-    item.editedById
-      ? db.user.findUnique({
-          where: { id: item.editedById },
-          select: { fullName: true },
-        })
-      : null,
-    item.paidById
-      ? db.user.findUnique({
-          where: { id: item.paidById },
-          select: { fullName: true },
-        })
-      : null,
-    db.payrollItem.findMany({
-      where: { payrollRunId: run.id },
-      select: {
-        id: true,
-        employee: { select: { firstNameEn: true, lastNameEn: true } },
-      },
-      orderBy: [
-        { employee: { firstNameEn: "asc" } },
-        { employee: { lastNameEn: "asc" } },
-      ],
-    }),
-  ]);
+  const run = runs.find((r) => r.id === rawItem.payrollRunId);
+  if (!run) {
+    return await getApiPayrollItemDetail(itemId);
+  }
+  const emp = employees.find((e) => e.id === rawItem.employeeId);
+  if (!emp) {
+    return await getApiPayrollItemDetail(itemId);
+  }
+  const dept = departments.find((d) => d.id === emp.departmentId) ?? null;
+  const item = {
+    ...rawItem,
+    payrollRun: run,
+    payslip: slips.find((s) => s.payrollItemId === itemId) ?? null,
+    commissionPayout: payouts.find((p) => p.payrollItemId === itemId) ?? null,
+    lines: allLines
+      .filter((l) => l.payrollItemId === itemId)
+      .sort((a, b) => {
+        const kCmp = String(a.kind ?? "").localeCompare(String(b.kind ?? ""));
+        return kCmp !== 0 ? kCmp : Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0);
+      }),
+    employee: {
+      id: emp.id,
+      employeeNumber: emp.employeeNumber,
+      firstNameEn: emp.firstNameEn,
+      lastNameEn: emp.lastNameEn,
+      firstNameAr: emp.firstNameAr,
+      lastNameAr: emp.lastNameAr,
+      jobTitleEn: emp.jobTitleEn,
+      jobTitleAr: emp.jobTitleAr,
+      hireDate: emp.hireDate,
+      userId: emp.userId,
+      department: dept ? { nameEn: dept.nameEn, nameAr: dept.nameAr } : null,
+    },
+  };
+  const start = new Date(run.attendanceStart ?? run.periodStart);
+  const end = new Date(run.attendanceEnd ?? run.periodEnd);
+  const [allAttendance, shiftTypes, allLeaves, leaveTypes, users] =
+    await Promise.all([
+      listTableRows<any>("hr", "attendance_entry"),
+      listTableRows<any>("hr", "shift_type"),
+      listTableRows<any>("hr", "leave_request"),
+      listTableRows<any>("hr", "leave_type"),
+      listTableRows<any>("identity", "user"),
+    ]);
+  const shiftMap = new Map<string, any>(
+    shiftTypes.map((s) => [s.id, { nameEn: s.nameEn, nameAr: s.nameAr }]),
+  );
+  const leaveTypeMap = new Map<string, any>(
+    leaveTypes.map((t) => [
+      t.id,
+      { code: t.code, nameEn: t.nameEn, nameAr: t.nameAr },
+    ]),
+  );
+  const empMap = new Map<string, any>(employees.map((e) => [e.id, e]));
+  const attendance = allAttendance
+    .filter((a) => {
+      if (a.employeeId !== item.employeeId) return false;
+      const ms = new Date(a.date).getTime();
+      return ms >= start.getTime() && ms <= end.getTime();
+    })
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .map((a) => ({
+      ...a,
+      date: new Date(a.date),
+      shiftType: a.shiftTypeId ? shiftMap.get(a.shiftTypeId) ?? null : null,
+    }));
+  const leaves = allLeaves
+    .filter((l) => {
+      if (l.employeeId !== item.employeeId || l.status !== "approved")
+        return false;
+      const sMs = new Date(l.startDate).getTime();
+      const eMs = new Date(l.endDate).getTime();
+      return sMs <= end.getTime() && eMs >= start.getTime();
+    })
+    .sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)))
+    .map((l) => ({
+      ...l,
+      startDate: new Date(l.startDate),
+      endDate: new Date(l.endDate),
+      leaveType: leaveTypeMap.get(l.leaveTypeId) ?? {},
+    }));
+  const editedBy = item.editedById
+    ? users.find((u) => u.id === item.editedById) ?? null
+    : null;
+  const paidBy = item.paidById
+    ? users.find((u) => u.id === item.paidById) ?? null
+    : null;
+  const siblings = allItems
+    .filter((i) => i.payrollRunId === run.id)
+    .map((i) => ({
+      id: i.id,
+      employee: empMap.get(i.employeeId) ?? { firstNameEn: "", lastNameEn: "" },
+    }))
+    .sort((a, b) => {
+      const f = String(a.employee.firstNameEn ?? "").localeCompare(
+        String(b.employee.firstNameEn ?? ""),
+      );
+      return f !== 0
+        ? f
+        : String(a.employee.lastNameEn ?? "").localeCompare(
+            String(b.employee.lastNameEn ?? ""),
+          );
+    });
   const index = siblings.findIndex((s) => s.id === item.id);
   return {
     item: {

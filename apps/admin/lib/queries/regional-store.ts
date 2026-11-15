@@ -1,5 +1,6 @@
 import { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { requireBranchAccess } from "./branches";
 
 export interface StoreRegionInput {
@@ -21,9 +22,10 @@ export async function saveStoreRegion(input: StoreRegionInput, actorId: string) 
     if (!input.code.trim() || !input.nameEn.trim() || !input.nameAr.trim() || !input.currency.trim())
       throw new Error("Invalid store region");
 
-    const multiplier = input.priceMultiplier != null
-      ? new Database.Decimal(input.priceMultiplier.toString())
-      : new Database.Decimal("1.0000");
+    const multiplier =
+      input.priceMultiplier != null
+        ? new Database.Decimal(input.priceMultiplier.toString())
+        : new Database.Decimal("1.0000");
 
     if (multiplier.lessThan(0)) throw new Error("Invalid store region");
 
@@ -35,40 +37,59 @@ export async function saveStoreRegion(input: StoreRegionInput, actorId: string) 
       defaultLanguage: input.defaultLanguage?.trim() || "en",
       branchId: input.branchId,
       isEnabled: input.isEnabled ?? true,
-      priceMultiplier: multiplier,
+      priceMultiplier: Number(multiplier.toString()),
       settings: input.settings ? JSON.parse(JSON.stringify(input.settings)) : undefined,
     };
 
     if (input.id) {
-      const existing = await db.storeRegion.findUnique({ where: { id: input.id } });
+      const regions = await listTableRows<Record<string, any>>("commerce", "store_region");
+      const existing = regions.find((r) => r.id === input.id);
       if (!existing) throw new Error("Store region not found");
-      return db.storeRegion.update({
-        where: { id: input.id },
-        data,
+      return upsertTableRow("commerce", "store_region", {
+        id: input.id,
+        ...data,
       });
     }
 
-    return db.storeRegion.create({ data });
+    return upsertTableRow("commerce", "store_region", {
+      id: crypto.randomUUID(),
+      ...data,
+    });
   });
 }
 
 export async function listStoreRegions() {
-  return db.storeRegion.findMany({
-    orderBy: { code: "asc" },
-    include: { branch: true },
-  });
+  const [regions, branches] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "store_region", "code ASC"),
+    listTableRows<Record<string, any>>("identity", "branch"),
+  ]);
+  const branchById = new Map(branches.map((b) => [String(b.id), b]));
+  return regions
+    .sort((a, b) => String(a.code ?? "").localeCompare(String(b.code ?? "")))
+    .map((r) => ({
+      ...r,
+      branch: r.branchId ? (branchById.get(String(r.branchId)) ?? null) : null,
+    }));
 }
 
 export async function getStoreRegion(code: string) {
-  return db.storeRegion.findUnique({
-    where: { code: code.trim().toUpperCase() },
-    include: { branch: true },
-  });
+  const normalized = code.trim().toUpperCase();
+  const [regions, branches] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "store_region"),
+    listTableRows<Record<string, any>>("identity", "branch"),
+  ]);
+  const region = regions.find((r) => String(r.code ?? "").toUpperCase() === normalized);
+  if (!region) return null;
+  const branch = region.branchId
+    ? (branches.find((b) => b.id === region.branchId) ?? null)
+    : null;
+  return { ...region, branch };
 }
 
 export async function resolveRegionalPrice(basePrice: number | string, regionCode: string) {
   const region = await getStoreRegion(regionCode);
+  const reg: Record<string, any> | null = region;
   const base = new Database.Decimal(basePrice.toString());
-  if (!region || !region.isEnabled) return base;
-  return base.mul(region.priceMultiplier);
+  if (!reg || !reg.isEnabled) return base;
+  return base.mul(new Database.Decimal(String(reg.priceMultiplier ?? 1)));
 }

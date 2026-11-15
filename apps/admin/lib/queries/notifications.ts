@@ -1,4 +1,4 @@
-import { db } from "../atomic";
+import { upsertTableRow } from "../api/tables";
 import { Notification } from "../types";
 
 function mapNotification(n: any): Notification {
@@ -14,8 +14,8 @@ function mapNotification(n: any): Notification {
     message_params:
       (n.messageParams as Record<string, string> | null) || undefined,
     action_url: n.actionUrl || undefined,
-    is_read: n.isRead,
-    created_at: n.createdAt.toISOString(),
+    is_read: !!n.isRead,
+    created_at: new Date(n.createdAt || Date.now()).toISOString(),
   };
 }
 
@@ -29,17 +29,17 @@ export async function createNotification(data: {
   message_key?: string;
   message_params?: Record<string, string>;
 }): Promise<Notification> {
-  const created = await db.notification.create({
-    data: {
-      userId: data.user_id,
-      title: data.title,
-      message: data.message,
-      type: data.type || "info",
-      entityType: data.entity_type || null,
-      entityId: data.entity_id || null,
-      messageKey: data.message_key || null,
-      messageParams: data.message_params,
-    },
+  const created = await upsertTableRow<any>("notify", "notification", {
+    id: crypto.randomUUID(),
+    userId: data.user_id,
+    title: data.title,
+    message: data.message,
+    type: data.type || "info",
+    entityType: data.entity_type || null,
+    entityId: data.entity_id || null,
+    messageKey: data.message_key || null,
+    messageParams: data.message_params ?? null,
+    isRead: false,
   });
   return mapNotification(created);
 }

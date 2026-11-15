@@ -1,56 +1,59 @@
-import { Database } from "@platform/database/decimal";
 import {
   formatMessage,
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { LEGAL_KINDS, LEGAL_STATUSES } from "../constants/outreach";
 import { createNotification } from "./notifications";
 import { getNextSequenceNumber } from "./sequence";
 
-const num = (value: { toString(): string } | null | undefined) =>
+const num = (value: { toString(): string } | number | string | null | undefined) =>
   value == null ? null : Number(value.toString());
-const dateOnly = (value: Date | null) =>
-  value ? value.toISOString().slice(0, 10) : null;
+const dateOnly = (value: Date | string | null | undefined) =>
+  value ? new Date(value).toISOString().slice(0, 10) : null;
 
-async function names(ids: (string | null)[]) {
-  const wanted = Array.from(new Set(ids.filter((v): v is string => !!v)));
-  const rows = wanted.length
-    ? await db.user.findMany({
-        where: { id: { in: wanted } },
-        select: { id: true, fullName: true },
-      })
+async function names(ids: (string | null | undefined)[]) {
+  const wanted = new Set(ids.filter((v): v is string => !!v));
+  const rows = wanted.size
+    ? await listTableRows<any>("identity", "user").catch(() => [])
     : [];
-  return new Map<string, string>(rows.map((u: any) => [u.id, u.fullName]));
+  return new Map<string, string>(
+    rows.filter((u: any) => wanted.has(u.id)).map((u: any) => [u.id, u.fullName]),
+  );
 }
 
 export async function listLegalMatters(
   filters: { status?: string; q?: string } = {},
 ) {
-  const where: Database.LegalMatterWhereInput = {};
-  if (filters.status === "open") where.status = { not: "closed" };
-  else if (
-    filters.status &&
-    (LEGAL_STATUSES as readonly string[]).includes(filters.status)
-  )
-    where.status = filters.status;
-  const q = filters.q?.trim();
-  if (q)
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { number: { contains: q, mode: "insensitive" } },
-      { counterparty: { contains: q, mode: "insensitive" } },
-      { reference: { contains: q, mode: "insensitive" } },
-    ];
-  const rows = await db.legalMatter.findMany({
-    where,
-    orderBy: [
-      { nextDate: { sort: "asc", nulls: "last" } },
-      { createdAt: "desc" },
-    ],
-    take: 300,
-  });
+  const allRows = await listTableRows<any>("system", "legal_matter");
+  const q = filters.q?.trim().toLowerCase();
+  const rows = allRows
+    .filter((m) => {
+      if (filters.status === "open" && m.status === "closed") return false;
+      else if (
+        filters.status &&
+        filters.status !== "open" &&
+        (LEGAL_STATUSES as readonly string[]).includes(filters.status) &&
+        m.status !== filters.status
+      )
+        return false;
+      if (q) {
+        const hay = [m.title, m.number, m.counterparty, m.reference]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const na = a.nextDate ? new Date(a.nextDate).getTime() : Infinity;
+      const nb = b.nextDate ? new Date(b.nextDate).getTime() : Infinity;
+      if (na !== nb) return na - nb;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    })
+    .slice(0, 300);
   const people = await names(rows.map((r) => r.assigneeId));
   return rows.map((m) => ({
     id: m.id,
@@ -70,12 +73,14 @@ export type LegalMatterRow = Awaited<
 >[number];
 
 export async function getLegalMatter(id: string) {
-  const m = await db.legalMatter.findUnique({
-    where: { id },
-    include: { events: { orderBy: { at: "asc" } } },
-  });
+  const [matters, allEvents] = await Promise.all([
+    listTableRows<any>("system", "legal_matter"),
+    listTableRows<any>("system", "legal_matter_event", "at ASC"),
+  ]);
+  const m = matters.find((row) => row.id === id);
   if (!m) return null;
-  const people = await names([m.assigneeId, ...m.events.map((e) => e.byId)]);
+  const events = allEvents.filter((e) => e.matterId === id);
+  const people = await names([m.assigneeId, ...events.map((e) => e.byId)]);
   return {
     id: m.id,
     number: m.number,
@@ -90,12 +95,12 @@ export async function getLegalMatter(id: string) {
     amount_at_stake: num(m.amountAtStake),
     description: m.description ?? "",
     outcome: m.outcome ?? "",
-    closed_at: m.closedAt?.toISOString() ?? null,
-    events: m.events.map((e) => ({
+    closed_at: m.closedAt ? new Date(m.closedAt).toISOString() : null,
+    events: events.map((e) => ({
       id: e.id,
       kind: e.kind,
       body: e.body,
-      at: e.at.toISOString(),
+      at: new Date(e.at || e.createdAt || Date.now()).toISOString(),
       by: people.get(e.byId ?? "") ?? "",
     })),
   };
@@ -136,67 +141,64 @@ export async function saveLegalMatter(input: LegalMatterInput, userId: string) {
   const nextDate = input.nextDate
     ? new Date(`${input.nextDate}T00:00:00Z`)
     : null;
+  const nextDateIso = nextDate ? nextDate.toISOString() : null;
   const data = {
     title,
     kind: input.kind,
     status: input.status,
     counterparty: input.counterparty.trim().slice(0, 200) || null,
     reference: input.reference.trim().slice(0, 120) || null,
-    nextDate,
+    nextDate: nextDateIso,
     assigneeId: input.assigneeId || null,
     amountAtStake: amount === null ? null : Math.round(amount * 1000) / 1000,
     description: input.description.trim().slice(0, 10000) || null,
     outcome: input.outcome.trim().slice(0, 10000) || null,
   };
   if (!input.id) {
-    const created = await db.legalMatter.create({
-      data: {
-        ...data,
-        number: await getNextSequenceNumber("LGL"),
-        createdById: userId,
-        closedAt: data.status === "closed" ? new Date() : null,
-      },
+    const created = await upsertTableRow<any>("system", "legal_matter", {
+      id: crypto.randomUUID(),
+      ...data,
+      number: await getNextSequenceNumber("LGL"),
+      createdById: userId,
+      closedAt: data.status === "closed" ? new Date().toISOString() : null,
     });
-    await db.legalMatterEvent.create({
-      data: {
-        matterId: created.id,
-        kind: "status",
-        body: created.status,
-        byId: userId,
-      },
+    await upsertTableRow("system", "legal_matter_event", {
+      id: crypto.randomUUID(),
+      matterId: created.id,
+      kind: "status",
+      body: created.status,
+      byId: userId,
     });
     return created;
   }
-  const before = await db.legalMatter.findUnique({ where: { id: input.id } });
+  const matters = await listTableRows<any>("system", "legal_matter");
+  const before = matters.find((row) => row.id === input.id);
   if (!before) throw new Error(serverMessages.legalMatterInvalid);
-  const updated = await db.legalMatter.update({
-    where: { id: input.id },
-    data: {
-      ...data,
-      closedAt:
-        data.status === "closed" ? (before.closedAt ?? new Date()) : null,
-      ...(before.nextDate?.getTime() !== nextDate?.getTime()
-        ? { remindedFor: null }
-        : {}),
-    },
+  const beforeNextTime = before.nextDate ? new Date(before.nextDate).getTime() : undefined;
+  const nextTime = nextDate?.getTime();
+  const updated = await upsertTableRow<any>("system", "legal_matter", {
+    ...before,
+    ...data,
+    id: input.id,
+    closedAt:
+      data.status === "closed" ? (before.closedAt ?? new Date().toISOString()) : null,
+    ...(beforeNextTime !== nextTime ? { remindedFor: null } : {}),
   });
   if (before.status !== updated.status)
-    await db.legalMatterEvent.create({
-      data: {
-        matterId: updated.id,
-        kind: "status",
-        body: updated.status,
-        byId: userId,
-      },
+    await upsertTableRow("system", "legal_matter_event", {
+      id: crypto.randomUUID(),
+      matterId: updated.id,
+      kind: "status",
+      body: updated.status,
+      byId: userId,
     });
-  if (before.nextDate?.getTime() !== nextDate?.getTime() && nextDate)
-    await db.legalMatterEvent.create({
-      data: {
-        matterId: updated.id,
-        kind: "date",
-        body: input.nextDate,
-        byId: userId,
-      },
+  if (beforeNextTime !== nextTime && nextDate)
+    await upsertTableRow("system", "legal_matter_event", {
+      id: crypto.randomUUID(),
+      matterId: updated.id,
+      kind: "date",
+      body: input.nextDate,
+      byId: userId,
     });
   return updated;
 }
@@ -204,19 +206,23 @@ export async function saveLegalMatter(input: LegalMatterInput, userId: string) {
 export async function addLegalNote(id: string, body: string, userId: string) {
   const text = body.trim().slice(0, 5000);
   if (!text) throw new Error(serverMessages.taskCommentEmpty);
-  await db.legalMatterEvent.create({
-    data: { matterId: id, kind: "note", body: text, byId: userId },
+  await upsertTableRow("system", "legal_matter_event", {
+    id: crypto.randomUUID(),
+    matterId: id,
+    kind: "note",
+    body: text,
+    byId: userId,
   });
 }
 
 export async function remindLegalDates(now = new Date()) {
-  const horizon = new Date(now.getTime() + 7 * 86_400_000);
-  const due = await db.legalMatter.findMany({
-    where: {
-      status: { not: "closed" },
-      assigneeId: { not: null },
-      nextDate: { lte: horizon, gte: new Date(now.getTime() - 86_400_000) },
-    },
+  const horizonMs = now.getTime() + 7 * 86_400_000;
+  const floorMs = now.getTime() - 86_400_000;
+  const all = await listTableRows<any>("system", "legal_matter");
+  const due = all.filter((m) => {
+    if (m.status === "closed" || !m.assigneeId || !m.nextDate) return false;
+    const t = new Date(m.nextDate).getTime();
+    return t <= horizonMs && t >= floorMs;
   });
   const copy = getTranslations("en").admin.legal.notifications.nextDate;
   let sent = 0;
@@ -224,7 +230,7 @@ export async function remindLegalDates(now = new Date()) {
     if (
       m.remindedFor &&
       m.nextDate &&
-      m.remindedFor.getTime() === m.nextDate.getTime()
+      new Date(m.remindedFor).getTime() === new Date(m.nextDate).getTime()
     )
       continue;
     const params = {
@@ -242,9 +248,9 @@ export async function remindLegalDates(now = new Date()) {
       entity_type: "legal_matter",
       entity_id: m.id,
     });
-    await db.legalMatter.update({
-      where: { id: m.id },
-      data: { remindedFor: m.nextDate },
+    await upsertTableRow("system", "legal_matter", {
+      ...m,
+      remindedFor: m.nextDate,
     });
     sent++;
   }

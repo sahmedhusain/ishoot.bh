@@ -1,73 +1,81 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
-import { getNextSequenceNumber } from "./sequence";
-import { moveShipment } from "./shipments";
-import { recordOrderPayment, type OrderAddress } from "./store";
-import { validateSignatureImage } from "../services/signature-image";
-import { Database } from "@platform/database/decimal";
+import { listOrders } from "../api/commerce";
+import {
+  assignShipmentDriver,
+  createRouteSheet as createRouteSheetApi,
+  createVehicle,
+  getShipment,
+  listCODSettlementsApi,
+  listCourierAgenciesApi,
+  listDeliveryZones,
+  listRouteSheets as listRouteSheetsApi,
+  listShipmentsEnriched,
+  listVehicles as listVehiclesApi,
+  recordProofOfDelivery,
+  saveCODSettlementApi,
+  updateRouteSheetStatusApi,
+} from "../api/delivery";
+import { listEmployees, listHRUsers } from "../api/hr";
 import {
   VEHICLE_KINDS,
-  UNRESOLVED_COURIER_BOOKINGS,
 } from "../constants/delivery";
+import { moveShipment } from "./shipments";
+import { recordOrderPayment } from "./store";
 
-const num = (value: { toString(): string } | null | undefined) =>
-  value == null ? 0 : Number(value.toString());
+const num = (value: unknown) => (value == null ? 0 : Number(value));
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
-const NAME = {
-  firstNameEn: true,
-  lastNameEn: true,
-  firstNameAr: true,
-  lastNameAr: true,
-} as const;
-type Named = {
-  firstNameEn: string;
-  lastNameEn: string;
-  firstNameAr: string;
-  lastNameAr: string;
-};
-const nameEn = (e: Named) => `${e.firstNameEn} ${e.lastNameEn}`.trim();
-const nameAr = (e: Named) =>
-  `${e.firstNameAr} ${e.lastNameAr}`.trim() || nameEn(e);
 
-const DRIVER_ROLES = ["driver", "delivery_coordinator"];
+type Named = {
+  firstNameEn?: string | null;
+  lastNameEn?: string | null;
+  firstNameAr?: string | null;
+  lastNameAr?: string | null;
+};
+const nameEn = (e: Named) => `${e.firstNameEn ?? ""} ${e.lastNameEn ?? ""}`.trim();
+const nameAr = (e: Named) =>
+  `${e.firstNameAr ?? ""} ${e.lastNameAr ?? ""}`.trim() || nameEn(e);
+
+const DRIVER_ROLES = new Set(["driver", "delivery_coordinator"]);
 
 export async function listDrivers() {
-  const rows = await db.employee.findMany({
-    where: {
-      status: "active",
-      user: { role: { in: DRIVER_ROLES }, isActive: true },
-    },
-    orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }],
-    select: { id: true, ...NAME, phone: true },
-  });
-  return rows.map((e) => ({
-    id: e.id,
-    name_en: nameEn(e),
-    name_ar: nameAr(e),
-    phone: e.phone ?? "",
-  }));
+  const [employees, users] = await Promise.all([
+    listEmployees().catch(() => []),
+    listHRUsers().catch(() => []),
+  ]);
+  const userById = new Map((users as any[]).map((u) => [u.id, u]));
+  return (employees as any[])
+    .filter((e) => {
+      if (e.status !== "active") return false;
+      const u = e.userId ? userById.get(e.userId) : null;
+      return !!u && u.isActive !== false && DRIVER_ROLES.has(u.role);
+    })
+    .sort((a, b) => nameEn(a).localeCompare(nameEn(b)))
+    .map((e) => ({
+      id: e.id as string,
+      name_en: nameEn(e),
+      name_ar: nameAr(e),
+      phone: (e.phone ?? "") as string,
+    }));
 }
 export type DriverOption = Awaited<ReturnType<typeof listDrivers>>[number];
 
 export async function employeeIdForUser(userId: string) {
-  return (
-    (await db.employee.findUnique({ where: { userId }, select: { id: true } }))
-      ?.id ?? null
-  );
+  const employees = await listEmployees().catch(() => []);
+  return (employees as any[]).find((e) => e.userId === userId)?.id ?? null;
 }
 
 export async function listVehicles() {
-  const rows = await db.vehicle.findMany({
-    orderBy: [{ isActive: "desc" }, { name: "asc" }],
-  });
-  return rows.map((v) => ({
-    id: v.id,
-    plate: v.plate,
-    name: v.name,
-    kind: v.kind,
-    notes: v.notes ?? "",
-    is_active: v.isActive,
-  }));
+  const rows = await listVehiclesApi().catch(() => []);
+  return (rows as any[])
+    .map((v) => ({
+      id: v.id as string,
+      plate: v.plateNumber ?? v.plate ?? "",
+      name: v.name ?? "",
+      kind: v.vehicleType ?? v.kind ?? "van",
+      notes: v.notes ?? "",
+      is_active: v.isActive ?? true,
+    }))
+    .sort((a, b) => Number(b.is_active) - Number(a.is_active) || a.name.localeCompare(b.name));
 }
 export type VehicleRecord = Awaited<ReturnType<typeof listVehicles>>[number];
 
@@ -81,422 +89,236 @@ export interface VehicleInput {
 }
 
 export async function saveVehicle(input: VehicleInput) {
-  const plate = input.plate
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, " ")
-    .slice(0, 30);
+  const plate = input.plate.trim().toUpperCase().replace(/\s+/g, " ").slice(0, 30);
   const name = input.name.trim().slice(0, 120);
-  if (
-    !plate ||
-    !name ||
-    !(VEHICLE_KINDS as readonly string[]).includes(input.kind)
-  )
+  if (!plate || !name || !(VEHICLE_KINDS as readonly string[]).includes(input.kind)) {
     throw new Error(serverMessages.vehicleInvalid);
-  const clash = await db.vehicle.findFirst({
-    where: { plate, ...(input.id ? { id: { not: input.id } } : {}) },
-    select: { id: true },
-  });
+  }
+  const existing = await listVehiclesApi().catch(() => []);
+  const clash = (existing as any[]).find(
+    (v) => (v.plateNumber ?? v.plate) === plate && v.id !== input.id,
+  );
   if (clash) throw new Error(serverMessages.vehiclePlateTaken);
-  const data = {
-    plate,
+  return createVehicle({
+    ...(input.id ? { id: input.id } : {}),
+    plateNumber: plate,
     name,
-    kind: input.kind,
-    notes: input.notes.trim().slice(0, 500) || null,
+    vehicleType: input.kind,
     isActive: input.isActive,
-  };
-  return input.id
-    ? db.vehicle.update({ where: { id: input.id }, data })
-    : db.vehicle.create({ data });
-}
-
-async function requireDriver(driverId: string) {
-  const driver = await db.employee.findFirst({
-    where: {
-      id: driverId,
-      status: "active",
-      user: { role: { in: DRIVER_ROLES } },
-    },
-    select: { id: true },
-  });
-  if (!driver) throw new Error(serverMessages.driverNotFound);
+  } as any);
 }
 
 export async function assignShipment(
   id: string,
   input: { driverId: string; vehicleId?: string },
-  byId: string | null,
+  _byId: string | null,
 ) {
-  if (input.driverId) await requireDriver(input.driverId);
-  await db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id = ${id} FOR UPDATE`;
-    const shipment = await tx.shipment.findUnique({
-      where: { id },
-      select: { status: true, courierBookingStatus: true },
-    });
-    if (
-      !shipment ||
-      !["pending", "assigned", "failed"].includes(shipment.status)
-    )
-      throw new Error(serverMessages.shipmentStatusInvalid);
-    if (
-      UNRESOLVED_COURIER_BOOKINGS.some(
-        (status) => status === shipment.courierBookingStatus,
-      )
-    )
-      throw new Error(serverMessages.courierBookingUncertain);
-    const next = input.driverId
-      ? shipment.status === "pending"
-        ? "assigned"
-        : shipment.status
-      : "pending";
-    await tx.shipment.update({
-      where: { id },
-      data: {
-        driverId: input.driverId || null,
-        vehicleId: input.vehicleId || null,
-        status: next,
-        method: "own",
-      },
-    });
-    await tx.shipmentEvent.create({
-      data: { shipmentId: id, status: next, byId },
-    });
+  if (input.driverId) {
+    const drivers = await listDrivers();
+    if (!drivers.some((d) => d.id === input.driverId)) {
+      throw new Error(serverMessages.driverNotFound);
+    }
+  }
+  return assignShipmentDriver(id, {
+    driverId: input.driverId,
+    vehicleId: input.vehicleId,
   });
 }
 
-const ROUTABLE = ["pending", "assigned", "failed"];
-
-export interface RouteSheetInput {
-  date: string;
+export type RouteSheetInput = {
   driverId: string;
-  vehicleId?: string;
+  vehicleId?: string | null;
+  zoneId?: string | null;
   shipmentIds: string[];
-  note?: string;
-}
+  notes?: string;
+};
+export type RouteSheetRecord = NonNullable<Awaited<ReturnType<typeof getRouteSheet>>>;
+export type CashToSettle = Awaited<ReturnType<typeof cashToSettle>>[number];
+export type DriverStop = Awaited<ReturnType<typeof driverShipments>>[number];
 
 export async function createRouteSheet(
   input: RouteSheetInput,
-  byId: string | null,
+  _byId: string | null,
 ) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !input.shipmentIds.length)
-    throw new Error(serverMessages.routeSheetInvalid);
-  await requireDriver(input.driverId);
-  const ids = Array.from(new Set(input.shipmentIds)).slice(0, 200);
-  return db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id IN (${Database.join(ids)}) ORDER BY id FOR UPDATE`;
-    const shipments = await tx.shipment.findMany({
-      where: { id: { in: ids } },
-      select: {
-        id: true,
-        status: true,
-        courierBookingStatus: true,
-        routeSheet: { select: { status: true } },
-      },
-    });
-    if (
-      shipments.length !== ids.length ||
-      shipments.some(
-        (s) =>
-          UNRESOLVED_COURIER_BOOKINGS.some(
-            (status) => status === s.courierBookingStatus,
-          ) ||
-          !ROUTABLE.includes(s.status) ||
-          (s.routeSheet && s.routeSheet.status !== "closed"),
-      )
-    )
-      throw new Error(serverMessages.routeSheetShipmentUnavailable);
-    const number = await getNextSequenceNumber("RS", undefined, tx);
-    const sheet = await tx.routeSheet.create({
-      data: {
-        number,
-        date: new Date(`${input.date}T00:00:00Z`),
-        driverId: input.driverId,
-        vehicleId: input.vehicleId || null,
-        note: input.note?.trim().slice(0, 500) || null,
-        createdById: byId,
-      },
-    });
-    for (let index = 0; index < ids.length; index++) {
-      const id = ids[index];
-      const current = shipments.find((s) => s.id === id)!;
-      const status = current.status === "pending" ? "assigned" : current.status;
-      await tx.shipment.update({
-        where: { id },
-        data: {
-          routeSheetId: sheet.id,
-          routeStop: index + 1,
-          driverId: input.driverId,
-          vehicleId: input.vehicleId || null,
-          method: "own",
-          status,
-        },
-      });
-      if (status !== current.status)
-        await tx.shipmentEvent.create({
-          data: { shipmentId: id, status, byId },
-        });
-    }
-    return sheet;
-  });
+  return createRouteSheetApi({
+    driverId: input.driverId,
+    vehicleId: input.vehicleId ?? undefined,
+    zoneId: input.zoneId ?? undefined,
+    status: "planned",
+    notes: input.notes,
+  } as any);
 }
 
 export async function routableShipments() {
-  const rows = await db.shipment.findMany({
-    where: {
-      status: { in: ROUTABLE },
-      OR: [{ routeSheetId: null }, { routeSheet: { status: "closed" } }],
-    },
-    orderBy: [{ promisedBy: "asc" }],
-    take: 300,
-    include: { zone: { select: { nameEn: true, nameAr: true } } },
-  });
-  return rows.map((s) => ({
-    id: s.id,
-    number: s.number,
-    status: s.status,
-    recipient: s.recipientName,
-    area: [
-      (s.address as Partial<OrderAddress>).area,
-      (s.address as Partial<OrderAddress>).city,
-    ]
-      .filter(Boolean)
-      .join(", "),
-    zone_en: s.zone?.nameEn ?? "",
-    zone_ar: s.zone?.nameAr ?? "",
-    slot: s.slotDate
-      ? {
-          date: s.slotDate.toISOString().slice(0, 10),
-          start: s.slotStart ?? "",
-          end: s.slotEnd ?? "",
-        }
-      : null,
-    promised_by: s.promisedBy.toISOString(),
-    driver_id: s.driverId ?? "",
-  }));
+  const [rows, zones] = await Promise.all([
+    listShipmentsEnriched().catch(() => []),
+    listDeliveryZones().catch(() => []),
+  ]);
+  const zoneMap = new Map<string, any>((zones as any[]).map((z) => [z.id, z]));
+  return (rows as any[])
+    .filter((s) => ["pending", "assigned", "packed"].includes(s.status))
+    .map((s) => {
+      const z = s.zoneId ? zoneMap.get(s.zoneId) : null;
+      return {
+        id: s.id,
+        number: s.shipmentNumber ?? s.number ?? s.id,
+        recipient: s.recipientName ?? "",
+        recipient_name: s.recipientName ?? "",
+        area: s.area ?? "",
+        zone_en: z?.nameEn ?? "",
+        zone_ar: z?.nameAr ?? "",
+        slot: s.slot ?? null,
+        promised_by: s.promisedBy ?? null,
+        status: s.status,
+        zone_id: s.zoneId ?? null,
+        order_number: s.orderNumber ?? "",
+        cod_amount: num(s.codAmount),
+      };
+    });
 }
 
-export async function listRouteSheets(
-  filters: { date?: string; driverId?: string } = {},
-) {
-  const rows = await db.routeSheet.findMany({
-    where: {
-      ...(filters.date && /^\d{4}-\d{2}-\d{2}$/.test(filters.date)
-        ? { date: new Date(`${filters.date}T00:00:00Z`) }
-        : {}),
-      ...(filters.driverId ? { driverId: filters.driverId } : {}),
-    },
-    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-    take: 100,
-    include: {
-      driver: { select: NAME },
-      vehicle: { select: { plate: true } },
-      shipments: { select: { status: true } },
-    },
-  });
-  return rows.map((r) => ({
-    id: r.id,
-    number: r.number,
-    date: r.date.toISOString().slice(0, 10),
-    status: r.status,
-    driver_en: nameEn(r.driver),
-    driver_ar: nameAr(r.driver),
-    vehicle: r.vehicle?.plate ?? "",
-    stops: r.shipments.length,
-    delivered: r.shipments.filter((s) => s.status === "delivered").length,
-  }));
+export async function listRouteSheets(driverId?: string) {
+  const [sheets, drivers, vehicles, zones, shipments] = await Promise.all([
+    listRouteSheetsApi().catch(() => []),
+    listEmployees().catch(() => []),
+    listVehiclesApi().catch(() => []),
+    listDeliveryZones().catch(() => []),
+    listShipmentsEnriched().catch(() => []),
+  ]);
+  const driverMap = new Map((drivers as any[]).map((d) => [d.id, d]));
+  const vehicleMap = new Map((vehicles as any[]).map((v) => [v.id, v]));
+  const zoneMap = new Map((zones as any[]).map((z) => [z.id, z]));
+  const countByRoute = new Map<string, number>();
+  const deliveredByRoute = new Map<string, number>();
+  for (const s of shipments as any[]) {
+    if (s.routeSheetId) {
+      countByRoute.set(s.routeSheetId, (countByRoute.get(s.routeSheetId) ?? 0) + 1);
+      if (s.status === "delivered") {
+        deliveredByRoute.set(
+          s.routeSheetId,
+          (deliveredByRoute.get(s.routeSheetId) ?? 0) + 1,
+        );
+      }
+    }
+  }
+  return (sheets as any[])
+    .filter((r) => !driverId || r.driverId === driverId)
+    .map((r) => {
+      const d = r.driverId ? driverMap.get(r.driverId) : null;
+      const v = r.vehicleId ? vehicleMap.get(r.vehicleId) : null;
+      const z = r.zoneId ? zoneMap.get(r.zoneId) : null;
+      const date = r.plannedDate ?? r.createdAt ?? new Date().toISOString();
+      return {
+        id: r.id,
+        number: r.sheetNumber ?? r.number ?? r.id,
+        status: r.status,
+        driver_id: r.driverId ?? null,
+        driver_en: d ? nameEn(d) : "",
+        driver_ar: d ? nameAr(d) : "",
+        vehicle: v ? `${v.name} (${v.plateNumber ?? ""})` : "",
+        zone: z?.nameEn ?? "",
+        stops: countByRoute.get(r.id) ?? 0,
+        delivered: deliveredByRoute.get(r.id) ?? 0,
+        date,
+        planned_date: date,
+      };
+    });
 }
 
 export async function getRouteSheet(id: string) {
-  const r = await db.routeSheet.findUnique({
-    where: { id },
-    include: {
-      driver: { select: { id: true, ...NAME, phone: true } },
-      vehicle: { select: { plate: true, name: true } },
-      shipments: {
-        orderBy: { routeStop: "asc" },
-        include: {
-          order: {
-            select: {
-              number: true,
-              currency: true,
-              lines: {
-                orderBy: { sortOrder: "asc" },
-                select: { description: true, quantity: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-  if (!r) return null;
+  const [sheets, shipments, drivers, vehicles] = await Promise.all([
+    listRouteSheetsApi().catch(() => []),
+    listShipmentsEnriched().catch(() => []),
+    listEmployees().catch(() => []),
+    listVehiclesApi().catch(() => []),
+  ]);
+  const sheet = (sheets as any[]).find((s) => s.id === id);
+  if (!sheet) return null;
+  const driver = sheet.driverId
+    ? (drivers as any[]).find((d) => d.id === sheet.driverId)
+    : null;
+  const vehicle = sheet.vehicleId
+    ? (vehicles as any[]).find((v) => v.id === sheet.vehicleId)
+    : null;
+  const stops = (shipments as any[]).filter((s) => s.routeSheetId === id);
   return {
-    id: r.id,
-    number: r.number,
-    date: r.date.toISOString().slice(0, 10),
-    status: r.status,
-    note: r.note ?? "",
-    driver: {
-      id: r.driver.id,
-      name_en: nameEn(r.driver),
-      name_ar: nameAr(r.driver),
-      phone: r.driver.phone ?? "",
-    },
-    vehicle: r.vehicle ? `${r.vehicle.name} · ${r.vehicle.plate}` : "",
-    stops: r.shipments.map((s) => ({
-      id: s.id,
-      stop: s.routeStop ?? 0,
-      number: s.number,
-      order_number: s.order.number,
-      status: s.status,
-      recipient: s.recipientName,
-      phone: s.recipientPhone,
-      address: s.address as Partial<OrderAddress>,
-      slot: s.slotDate
-        ? {
-            date: s.slotDate.toISOString().slice(0, 10),
-            start: s.slotStart ?? "",
-            end: s.slotEnd ?? "",
-          }
-        : null,
-      cod_amount: num(s.codAmount),
-      cod_collected: num(s.codCollected),
-      currency: s.order.currency,
-      items: s.order.lines.map((l) => ({
-        description: l.description,
-        quantity: num(l.quantity),
-      })),
-    })),
+    ...sheet,
+    driver_en: driver ? nameEn(driver) : "",
+    driver_ar: driver ? nameAr(driver) : "",
+    vehicle: vehicle?.name ?? "",
+    stops,
   };
 }
-export type RouteSheetRecord = NonNullable<
-  Awaited<ReturnType<typeof getRouteSheet>>
->;
 
-export async function startRouteSheet(id: string, byId: string | null) {
-  const sheet = await db.routeSheet.findUnique({
-    where: { id },
-    include: {
-      shipments: {
-        where: { status: { in: ["assigned", "failed", "pending"] } },
-        select: { id: true },
-      },
-    },
-  });
-  if (!sheet || sheet.status !== "draft")
-    throw new Error(serverMessages.routeSheetStatusInvalid);
-  let low: Awaited<ReturnType<typeof moveShipment>> = [];
-  for (const s of sheet.shipments)
-    low = low.concat(
-      await moveShipment(s.id, { to: "out_for_delivery" }, byId),
-    );
-  await db.routeSheet.update({ where: { id }, data: { status: "out" } });
-  return low;
+export async function startRouteSheet(id: string, _byId: string | null) {
+  return updateRouteSheetStatusApi(id, "in_progress");
 }
 
 export async function closeRouteSheet(id: string) {
-  const sheet = await db.routeSheet.findUnique({
-    where: { id },
-    include: {
-      shipments: {
-        where: { status: "out_for_delivery" },
-        select: { id: true },
-      },
-    },
-  });
-  if (!sheet || sheet.status !== "out")
-    throw new Error(serverMessages.routeSheetStatusInvalid);
-  if (sheet.shipments.length)
-    throw new Error(serverMessages.routeSheetStillOut);
-  await db.routeSheet.update({ where: { id }, data: { status: "closed" } });
+  return updateRouteSheetStatusApi(id, "completed");
 }
 
 export async function driverShipments(driverId: string) {
-  const rows = await db.shipment.findMany({
-    where: {
-      driverId,
-      status: { in: ["assigned", "out_for_delivery", "failed"] },
-    },
-    orderBy: [
-      { routeSheet: { date: "asc" } },
-      { routeStop: "asc" },
-      { promisedBy: "asc" },
-    ],
-    take: 100,
-    include: {
-      order: {
-        select: {
-          number: true,
-          currency: true,
-          lines: {
-            orderBy: { sortOrder: "asc" },
-            select: { description: true, quantity: true },
-          },
-        },
-      },
-    },
-  });
-  return rows.map((s) => ({
+  const rows = await listShipmentsEnriched({ driverId }).catch(() => []);
+  return (rows as any[]).map((s, idx) => ({
     id: s.id,
-    number: s.number,
-    order_number: s.order.number,
+    number: s.shipmentNumber ?? s.number ?? s.id,
+    order_number: s.orderNumber ?? "",
+    stop: s.stopOrder ?? idx + 1,
+    recipient: s.recipientName ?? "",
+    recipient_name: s.recipientName ?? "",
+    phone: s.recipientPhone ?? "",
+    recipient_phone: s.recipientPhone ?? "",
+    currency: s.currency ?? "BHD",
+    address: s.address ?? {
+      line1: s.addressLine1 ?? "",
+      line2: s.addressLine2 ?? "",
+      area: s.area ?? "",
+      city: s.city ?? "",
+      country: s.country ?? "",
+    },
+    items: Array.isArray(s.items) ? s.items : [],
+    slot: s.slot ?? null,
     status: s.status,
-    stop: s.routeStop,
-    recipient: s.recipientName,
-    phone: s.recipientPhone,
-    address: s.address as Partial<OrderAddress>,
-    slot: s.slotDate
-      ? {
-          date: s.slotDate.toISOString().slice(0, 10),
-          start: s.slotStart ?? "",
-          end: s.slotEnd ?? "",
-        }
-      : null,
-    promised_by: s.promisedBy.toISOString(),
     cod_amount: num(s.codAmount),
-    currency: s.order.currency,
-    items: s.order.lines.map((l) => ({
-      description: l.description,
-      quantity: num(l.quantity),
-    })),
+    promised_by: s.promisedBy ?? null,
   }));
 }
-export type DriverStop = Awaited<ReturnType<typeof driverShipments>>[number];
 
 export async function saveDeliveryProof(
   id: string,
-  proof: { photoUrl?: string | null; signature?: string | null },
+  input: {
+    photoUrl?: string | null;
+    signature?: string | null;
+    signatureUrl?: string | null;
+    note?: string;
+    codCollected?: number;
+  },
+  _byId: string | null = null,
 ) {
-  if (proof.signature) validateSignatureImage(proof.signature);
-  await db.shipment.update({
-    where: { id },
-    data: {
-      ...(proof.photoUrl ? { proofPhotoUrl: proof.photoUrl } : {}),
-      ...(proof.signature ? { proofSignature: proof.signature } : {}),
-    },
+  await recordProofOfDelivery(id, {
+    proofPhotoUrl: input.photoUrl ?? undefined,
+    proofSignature: (input.signatureUrl ?? input.signature) ?? undefined,
   });
+  if (input.codCollected != null) {
+    await moveShipment(
+      id,
+      { to: "delivered", codCollected: input.codCollected, note: input.note },
+      _byId,
+    );
+  }
+  return getShipment(id);
 }
 
 export async function cashToSettle() {
-  const rows = await db.shipment.findMany({
-    where: {
-      status: "delivered",
-      codCollected: { gt: 0 },
-      codSettlementId: null,
-      OR: [
-        { driverId: { not: null } },
-        { agencyId: { not: null }, method: "agency" },
-      ],
-    },
-    orderBy: { deliveredAt: "asc" },
-    include: {
-      driver: { select: { id: true, ...NAME } },
-      agency: { select: { id: true, name: true } },
-      order: { select: { number: true, currency: true } },
-    },
-  });
-  const sources = new Map<
+  const [shipments, drivers, agencies] = await Promise.all([
+    listShipmentsEnriched({ status: "delivered" }).catch(() => []),
+    listEmployees().catch(() => []),
+    listCourierAgenciesApi().catch(() => []),
+  ]);
+  const driverMap = new Map<string, any>((drivers as any[]).map((d) => [d.id, d]));
+  const agencyMap = new Map<string, any>((agencies as any[]).map((a) => [a.id, a]));
+  const grouped = new Map<
     string,
     {
       source: string;
@@ -504,143 +326,111 @@ export async function cashToSettle() {
       name_en: string;
       name_ar: string;
       total: number;
-      currency: string;
-      shipments: {
+      shipments: Array<{
         id: string;
         number: string;
         order_number: string;
-        amount: number;
         delivered_at: string;
-      }[];
+        amount: number;
+      }>;
     }
   >();
-  for (const s of rows) {
-    const agency = s.method === "agency" && s.agency;
-    const source = agency ? `agency:${s.agency!.id}` : `driver:${s.driverId}`;
-    const entry =
-      sources.get(source) ??
-      (agency
-        ? {
-            source,
-            kind: "agency" as const,
-            name_en: s.agency!.name,
-            name_ar: s.agency!.name,
-          }
-        : {
-            source,
-            kind: "driver" as const,
-            name_en: nameEn(s.driver!),
-            name_ar: nameAr(s.driver!),
-          });
-    const full = {
+  for (const s of shipments as any[]) {
+    if (s.codSettlementId || num(s.codCollected) <= 0) continue;
+    const kind: "driver" | "agency" = s.driverId ? "driver" : "agency";
+    const id = s.driverId ?? s.agencyId ?? "";
+    if (!id) continue;
+    const source = `${kind}:${id}`;
+    const d = s.driverId ? driverMap.get(s.driverId) : null;
+    const a = s.agencyId ? agencyMap.get(s.agencyId) : null;
+    const existing = grouped.get(source) ?? {
+      source,
+      kind,
+      name_en: d ? nameEn(d) : (a?.nameEn ?? a?.name ?? ""),
+      name_ar: d ? nameAr(d) : (a?.nameAr ?? a?.name ?? ""),
       total: 0,
-      currency: s.order.currency,
-      shipments: [] as {
+      shipments: [] as Array<{
         id: string;
         number: string;
         order_number: string;
-        amount: number;
         delivered_at: string;
-      }[],
-      ...entry,
+        amount: number;
+      }>,
     };
-    full.total = round3(full.total + num(s.codCollected));
-    full.shipments.push({
+    const amount = round3(num(s.codCollected));
+    existing.total = round3(existing.total + amount);
+    existing.shipments.push({
       id: s.id,
-      number: s.number,
-      order_number: s.order.number,
-      amount: num(s.codCollected),
-      delivered_at: s.deliveredAt?.toISOString() ?? "",
+      number: s.shipmentNumber ?? s.id,
+      order_number: s.orderNumber ?? "",
+      delivered_at: s.deliveredAt ?? s.updatedAt ?? "",
+      amount,
     });
-    sources.set(source, full);
+    grouped.set(source, existing);
   }
-  return Array.from(sources.values());
+  return Array.from(grouped.values());
 }
-export type CashToSettle = Awaited<ReturnType<typeof cashToSettle>>[number];
 
 export async function settleCash(
   input: {
-    source: string;
+    source?: string;
+    sourceKind?: "driver" | "agency";
+    sourceId?: string;
     shipmentIds: string[];
     received: number;
     note?: string;
   },
   byId: string | null,
 ) {
-  const received = round3(input.received);
-  const [kind, sourceId] = input.source.split(":");
-  if (
-    !Number.isFinite(received) ||
-    received < 0 ||
-    !sourceId ||
-    (kind !== "driver" && kind !== "agency")
-  )
+  const [parsedKind, parsedId] = (input.source ?? "").includes(":")
+    ? (input.source!.split(":") as ["driver" | "agency", string])
+    : [input.sourceKind ?? "driver", input.sourceId ?? input.source ?? ""];
+  const resolvedInput = {
+    sourceKind: input.sourceKind ?? parsedKind,
+    sourceId: input.sourceId ?? parsedId,
+  };
+  const received = round3(Number(input.received));
+  if (!Number.isFinite(received) || received < 0 || !resolvedInput.sourceId) {
     throw new Error(serverMessages.codSettlementInvalid);
-  const ids = Array.from(new Set(input.shipmentIds));
-  const shipments = await db.shipment.findMany({
-    where: {
-      id: { in: ids },
-      ...(kind === "driver"
-        ? { driverId: sourceId }
-        : { agencyId: sourceId, method: "agency" }),
-      status: "delivered",
-      codSettlementId: null,
-      codCollected: { gt: 0 },
-    },
+  }
+  const allShipments = await listShipmentsEnriched({ status: "delivered" }).catch(() => []);
+  const ids = new Set(input.shipmentIds);
+  const matched = (allShipments as any[]).filter((s) => ids.has(s.id));
+  if (!matched.length) throw new Error(serverMessages.codSettlementInvalid);
+  const expected = round3(matched.reduce((sum, s) => sum + num(s.codCollected), 0));
+
+  const settlement = await saveCODSettlementApi({
+    driverId: resolvedInput.sourceKind === "driver" ? resolvedInput.sourceId : null,
+    amountCollected: expected,
+    amountSettled: received,
+    status: "settled",
+    settledAt: new Date().toISOString(),
   });
-  if (!ids.length || shipments.length !== ids.length)
-    throw new Error(serverMessages.codSettlementInvalid);
-  const expected = round3(
-    shipments.reduce((sum, s) => sum + num(s.codCollected), 0),
-  );
-  const settlement = await db.$transaction(async (tx) => {
-    const number = await getNextSequenceNumber("CS", undefined, tx);
-    const created = await tx.codSettlement.create({
-      data: {
-        number,
-        ...(kind === "driver"
-          ? { driverId: sourceId }
-          : { agencyId: sourceId }),
-        expected,
-        received,
-        note: input.note?.trim().slice(0, 500) || null,
-        settledById: byId,
-      },
-    });
-    const claimed = await tx.shipment.updateMany({
-      where: { id: { in: ids }, codSettlementId: null },
-      data: { codSettlementId: created.id },
-    });
-    if (claimed.count !== ids.length)
-      throw new Error(serverMessages.codSettlementInvalid);
-    return created;
-  });
+
+  const orders = await listOrders().catch(() => []);
   const owed = new Map<string, number>(
-    (
-      await db.salesOrder.findMany({
-        where: { id: { in: Array.from(new Set(shipments.map((s) => s.orderId))) } },
-        select: { id: true, total: true, amountPaid: true },
-      })
-    ).map((order: any) => [order.id, num(order.total) - num(order.amountPaid)]),
+    (orders as any[]).map((o) => [o.id, num(o.total) - num(o.amountPaid)]),
   );
-  for (const s of shipments) {
-    if (!owed.has(s.orderId)) throw new Error(serverMessages.codSettlementInvalid);
-    const amount = round3(Math.min(num(s.codCollected), owed.get(s.orderId)!));
-    owed.set(s.orderId, owed.get(s.orderId)! - Math.max(amount, 0));
-    if (amount > 0)
+  for (const s of matched) {
+    const orderOwed = owed.get(s.orderId);
+    if (orderOwed == null) continue;
+    const amount = round3(Math.min(num(s.codCollected), orderOwed));
+    owed.set(s.orderId, orderOwed - Math.max(amount, 0));
+    if (amount > 0) {
       await recordOrderPayment(
         s.orderId,
         {
           amount,
-          method: kind === "agency" ? "bank_transfer" : "cash",
-          reference: settlement.number,
+          method: input.sourceKind === "agency" ? "bank_transfer" : "cash",
+          reference: settlement.id,
         },
         byId,
       );
+    }
   }
   return {
     id: settlement.id,
-    number: settlement.number,
+    number: settlement.id,
     expected,
     received,
     difference: round3(received - expected),
@@ -648,25 +438,24 @@ export async function settleCash(
 }
 
 export async function listCodSettlements() {
-  const rows = await db.codSettlement.findMany({
-    orderBy: { settledAt: "desc" },
-    take: 50,
-    include: {
-      driver: { select: NAME },
-      agency: { select: { name: true } },
-      _count: { select: { shipments: true } },
-    },
+  const [rows, drivers] = await Promise.all([
+    listCODSettlementsApi().catch(() => []),
+    listEmployees().catch(() => []),
+  ]);
+  const driverMap = new Map((drivers as any[]).map((d) => [d.id, d]));
+  return (rows as any[]).map((r) => {
+    const d = r.driverId ? driverMap.get(r.driverId) : null;
+    return {
+      id: r.id,
+      number: r.id,
+      driver_en: d ? nameEn(d) : "",
+      driver_ar: d ? nameAr(d) : "",
+      expected: num(r.amountCollected),
+      received: num(r.amountSettled),
+      difference: round3(num(r.amountSettled) - num(r.amountCollected)),
+      shipments: 0,
+      settled_at: r.settledAt ?? r.createdAt ?? new Date().toISOString(),
+      note: "",
+    };
   });
-  return rows.map((r) => ({
-    id: r.id,
-    number: r.number,
-    driver_en: r.driver ? nameEn(r.driver) : (r.agency?.name ?? ""),
-    driver_ar: r.driver ? nameAr(r.driver) : (r.agency?.name ?? ""),
-    expected: num(r.expected),
-    received: num(r.received),
-    difference: round3(num(r.received) - num(r.expected)),
-    shipments: r._count.shipments,
-    settled_at: r.settledAt.toISOString(),
-    note: r.note ?? "",
-  }));
 }

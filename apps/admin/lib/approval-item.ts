@@ -1,6 +1,5 @@
 import {
   canDecideApproval,
-  db,
   getSignatureMode,
   type Profile,
 } from "@platform/database";
@@ -8,6 +7,7 @@ import {
   APPROVAL_TARGET_TYPES,
   type ApprovalTargetType,
 } from "@platform/database/constants/approvals";
+import { listTableRows } from "./api/tables";
 import { ROUTES } from "../constants/routes";
 import { readableApprovalTypes } from "./approval-access";
 
@@ -59,8 +59,8 @@ export interface ApprovalItemDetail {
 
 const text = (value: string | null | undefined): FactValue | null =>
   value ? { kind: "text", value } : null;
-const day = (value: Date | null | undefined): FactValue | null =>
-  value ? { kind: "date", value: value.toISOString().slice(0, 10) } : null;
+const day = (value: Date | string | null | undefined): FactValue | null =>
+  value ? { kind: "date", value: new Date(value).toISOString().slice(0, 10) } : null;
 const money = (value: unknown, currency = "USD"): FactValue => ({
   kind: "money",
   value: Number(value ?? 0),
@@ -98,21 +98,25 @@ const push = (b: Builder, key: string, value: FactValue | null) =>
 
 async function userName(id: string | null | undefined) {
   if (!id) return null;
-  const user = await db.user.findUnique({
-    where: { id },
-    select: { fullName: true },
-  });
+  const users = await listTableRows<Record<string, any>>("identity", "user");
+  const user = users.find((u) => u.id === id);
   return user?.fullName ?? null;
 }
 
 async function attachmentsOf(entityType: string, entityId: string) {
-  const rows = await db.attachment.findMany({
-    where: { entityType, entityId },
-    select: { fileName: true, fileUrl: true },
-    orderBy: { createdAt: "asc" },
-    take: 20,
-  });
-  return rows.map((r) => ({ name: r.fileName, url: r.fileUrl }));
+  const rows = await listTableRows<Record<string, any>>(
+    "notify",
+    "attachment",
+  );
+  return rows
+    .filter((r) => r.entityType === entityType && r.entityId === entityId)
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt || 0).getTime() -
+        new Date(b.createdAt || 0).getTime(),
+    )
+    .slice(0, 20)
+    .map((r) => ({ name: r.fileName, url: r.fileUrl }));
 }
 
 async function describe(
@@ -123,17 +127,17 @@ async function describe(
   const b = empty();
   switch (targetType) {
     case "profile_change": {
-      const r = await db.profileChangeRequest.findUnique({
-        where: { id },
-        include: {
-          user: { select: { id: true, fullName: true, email: true } },
-        },
-      });
-      if (!r) return null;
+      const [reqs, users] = await Promise.all([
+        listTableRows<Record<string, any>>("system", "profile_change_request"),
+        listTableRows<Record<string, any>>("identity", "user"),
+      ]);
+      const r = reqs.find((x) => x.id === id);
+      const user = r ? users.find((u) => u.id === r.userId) : null;
+      if (!r || !user) return null;
       const before = (r.oldValues ?? {}) as Record<string, string>;
       const after = (r.newValues ?? {}) as Record<string, string>;
-      b.subject = { name: r.user.fullName, email: r.user.email };
-      b.subjectUserId = r.user.id;
+      b.subject = { name: user.fullName, email: user.email };
+      b.subjectUserId = user.id;
       for (const key of ["fullName", "email"])
         if (after[key] && after[key] !== before[key])
           b.changes.push({
@@ -150,15 +154,15 @@ async function describe(
       return b;
     }
     case "signature_change": {
-      const r = await db.signatureChange.findUnique({
-        where: { id },
-        include: {
-          user: { select: { id: true, fullName: true, email: true } },
-        },
-      });
-      if (!r) return null;
-      b.subject = { name: r.user.fullName, email: r.user.email };
-      b.subjectUserId = r.user.id;
+      const [reqs, users] = await Promise.all([
+        listTableRows<Record<string, any>>("system", "signature_change"),
+        listTableRows<Record<string, any>>("identity", "user"),
+      ]);
+      const r = reqs.find((x) => x.id === id);
+      const user = r ? users.find((u) => u.id === r.userId) : null;
+      if (!r || !user) return null;
+      b.subject = { name: user.fullName, email: user.email };
+      b.subjectUserId = user.id;
       b.images.push(
         { key: "currentSignature", url: r.previousUrl },
         { key: "newSignature", url: r.signatureUrl },
@@ -171,21 +175,18 @@ async function describe(
       return b;
     }
     case "account_change": {
-      const r = await db.accountChangeRequest.findUnique({
-        where: { id },
-        include: {
-          user: { select: { id: true, fullName: true, email: true } },
-          requestedBy: { select: { fullName: true } },
-        },
-      });
-      if (!r) return null;
+      const [reqs, users, roles] = await Promise.all([
+        listTableRows<Record<string, any>>("system", "account_change_request"),
+        listTableRows<Record<string, any>>("identity", "user"),
+        listTableRows<Record<string, any>>("identity", "role"),
+      ]);
+      const r = reqs.find((x) => x.id === id);
+      const user = r ? users.find((u) => u.id === r.userId) : null;
+      if (!r || !user) return null;
       const changes = (r.changes ?? {}) as Record<string, unknown>;
       const before = (r.before ?? {}) as Record<string, unknown>;
-      b.subject = { name: r.user.fullName, email: r.user.email };
-      b.subjectUserId = r.user.id;
-      const roles = await db.role.findMany({
-        select: { id: true, nameEn: true, nameAr: true },
-      });
+      b.subject = { name: user.fullName, email: user.email };
+      b.subjectUserId = user.id;
       const role = (value: unknown): FactValue | null => {
         const found = roles.find((x) => x.id === value);
         return found
@@ -231,27 +232,19 @@ async function describe(
       return b;
     }
     case "leave_request": {
-      const r = await db.leaveRequest.findUnique({
-        where: { id },
-        include: {
-          leaveType: true,
-          employee: {
-            select: {
-              id: true,
-              userId: true,
-              firstNameEn: true,
-              lastNameEn: true,
-              employeeNumber: true,
-              leaveBalanceDays: true,
-            },
-          },
-        },
-      });
-      if (!r) return null;
-      b.subject = { name: name(r.employee) };
-      b.subjectUserId = r.employee.userId;
-      b.reference = r.employee.employeeNumber;
-      push(b, "leaveType", bilingual(r.leaveType.nameEn, r.leaveType.nameAr));
+      const [reqs, leaveTypes, employees] = await Promise.all([
+        listTableRows<Record<string, any>>("hr", "leave_request"),
+        listTableRows<Record<string, any>>("hr", "leave_type"),
+        listTableRows<Record<string, any>>("hr", "employee"),
+      ]);
+      const r = reqs.find((x) => x.id === id);
+      const leaveType = r ? leaveTypes.find((lt) => lt.id === r.leaveTypeId) : null;
+      const employee = r ? employees.find((e) => e.id === r.employeeId) : null;
+      if (!r || !leaveType || !employee) return null;
+      b.subject = { name: name(employee as any) };
+      b.subjectUserId = employee.userId;
+      b.reference = employee.employeeNumber;
+      push(b, "leaveType", bilingual(leaveType.nameEn, leaveType.nameAr));
       push(b, "from", day(r.startDate));
       push(b, "to", day(r.endDate));
       push(b, "portion", {
@@ -272,23 +265,16 @@ async function describe(
       return b;
     }
     case "salary_document": {
-      const r = await db.salaryDocument.findUnique({
-        where: { id },
-        include: {
-          employee: {
-            select: {
-              userId: true,
-              firstNameEn: true,
-              lastNameEn: true,
-              employeeNumber: true,
-            },
-          },
-        },
-      });
-      if (!r) return null;
-      b.subject = { name: name(r.employee) };
-      b.subjectUserId = r.employee.userId;
-      b.reference = r.employee.employeeNumber;
+      const [docs, employees] = await Promise.all([
+        listTableRows<Record<string, any>>("hr", "salary_document"),
+        listTableRows<Record<string, any>>("hr", "employee"),
+      ]);
+      const r = docs.find((x) => x.id === id);
+      const employee = r ? employees.find((e) => e.id === r.employeeId) : null;
+      if (!r || !employee) return null;
+      b.subject = { name: name(employee as any) };
+      b.subjectUserId = employee.userId;
+      b.reference = employee.employeeNumber;
       push(b, "documentKind", {
         kind: "enum",
         group: "salaryDocument",
@@ -296,7 +282,11 @@ async function describe(
       });
       const months = (r.months as string[]) ?? [];
       if (months.length) push(b, "months", text(months.join(", ")));
-      push(b, "languages", text(r.languages.join(" + ").toUpperCase()));
+      push(
+        b,
+        "languages",
+        text((Array.isArray(r.languages) ? r.languages : []).join(" + ").toUpperCase()),
+      );
       push(b, "status", {
         kind: "enum",
         group: "requestStatus",
@@ -306,39 +296,38 @@ async function describe(
       return b;
     }
     case "expense": {
-      const r = await db.expense.findUnique({
-        where: { id },
-        include: {
-          category: true,
-          deal: { select: { title: true } },
-          client: {
-            select: { firstName: true, lastName: true, companyName: true },
-          },
-          createdBy: { select: { id: true, fullName: true } },
-        },
-      });
+      const [expenses, categories, deals, contacts, users] = await Promise.all([
+        listTableRows<Record<string, any>>("finance", "expense"),
+        listTableRows<Record<string, any>>("finance", "expense_category"),
+        listTableRows<Record<string, any>>("sales", "crm_deal"),
+        listTableRows<Record<string, any>>("sales", "crm_contact"),
+        listTableRows<Record<string, any>>("identity", "user"),
+      ]);
+      const r = expenses.find((x) => x.id === id);
       if (!r) return null;
-      b.subject = r.createdBy ? { name: r.createdBy.fullName } : null;
-      b.subjectUserId = r.createdBy?.id;
+      const category = r.categoryId ? categories.find((c) => c.id === r.categoryId) : null;
+      const deal = r.dealId ? deals.find((d) => d.id === r.dealId) : null;
+      const client = r.clientId ? contacts.find((c) => c.id === r.clientId) : null;
+      const createdBy = r.createdById ? users.find((u) => u.id === r.createdById) : null;
+      b.subject = createdBy ? { name: createdBy.fullName } : null;
+      b.subjectUserId = createdBy?.id;
       push(b, "description", text(r.descriptionEn));
       push(b, "amount", money(r.amount, r.currency));
       if (Number(r.inputVatAmount) > 0)
         push(b, "inputVat", money(r.inputVatAmount, r.currency));
       push(b, "date", day(r.expenseDate));
-      if (r.category)
-        push(b, "category", bilingual(r.category.nameEn, r.category.nameAr));
+      if (category)
+        push(b, "category", bilingual(category.nameEn, category.nameAr));
       push(b, "vendor", text(r.vendorName));
       push(b, "scope", { kind: "enum", group: "expenseScope", value: r.scope });
-      push(b, "deal", text(r.deal?.title));
+      push(b, "deal", text(deal?.title));
       push(
         b,
         "client",
         text(
-          r.client
-            ? r.client.companyName ||
-                [r.client.firstName, r.client.lastName]
-                  .filter(Boolean)
-                  .join(" ")
+          client
+            ? client.companyName ||
+                [client.firstName, client.lastName].filter(Boolean).join(" ")
             : null,
         ),
       );
@@ -355,23 +344,25 @@ async function describe(
       return b;
     }
     case "expense_claim": {
-      const r = await db.expenseClaim.findUnique({
-        where: { id },
-        include: {
-          category: true,
-          deal: { select: { title: true } },
-          claimant: { select: { id: true, fullName: true, email: true } },
-        },
-      });
-      if (!r) return null;
-      b.subject = { name: r.claimant.fullName, email: r.claimant.email };
-      b.subjectUserId = r.claimant.id;
+      const [claims, categories, deals, users] = await Promise.all([
+        listTableRows<Record<string, any>>("finance", "expense_claim"),
+        listTableRows<Record<string, any>>("finance", "expense_category"),
+        listTableRows<Record<string, any>>("sales", "crm_deal"),
+        listTableRows<Record<string, any>>("identity", "user"),
+      ]);
+      const r = claims.find((x) => x.id === id);
+      const claimant = r ? users.find((u) => u.id === r.claimantId) : null;
+      if (!r || !claimant) return null;
+      const category = r.categoryId ? categories.find((c) => c.id === r.categoryId) : null;
+      const deal = r.dealId ? deals.find((d) => d.id === r.dealId) : null;
+      b.subject = { name: claimant.fullName, email: claimant.email };
+      b.subjectUserId = claimant.id;
       b.reference = r.claimNumber;
       push(b, "amount", money(r.amount, r.currency));
       push(b, "date", day(r.expenseDate));
-      if (r.category)
-        push(b, "category", bilingual(r.category.nameEn, r.category.nameAr));
-      push(b, "deal", text(r.deal?.title));
+      if (category)
+        push(b, "category", bilingual(category.nameEn, category.nameAr));
+      push(b, "deal", text(deal?.title));
       push(b, "status", {
         kind: "enum",
         group: "claimStatus",
@@ -379,21 +370,24 @@ async function describe(
       });
       b.note = r.reason;
       b.files = await attachmentsOf("expense_claim", id);
-      if (!b.files.length) b.files.push({ name: "receipt", url: r.receiptUrl });
+      if (!b.files.length && r.receiptUrl)
+        b.files.push({ name: "receipt", url: r.receiptUrl });
       b.recordUrl = ROUTES.claims.list({ highlight: id });
       return b;
     }
     case "payroll_run": {
-      const r = await db.payrollRun.findUnique({
-        where: { id },
-        include: { _count: { select: { items: true } } },
-      });
+      const [runs, items] = await Promise.all([
+        listTableRows<Record<string, any>>("hr", "payroll_run"),
+        listTableRows<Record<string, any>>("hr", "payroll_item"),
+      ]);
+      const r = runs.find((x) => x.id === id);
       if (!r) return null;
+      const itemCount = items.filter((i) => i.payrollRunId === id).length;
       b.reference = `${r.year}-${String(r.month).padStart(2, "0")}`;
       push(b, "period", text(b.reference));
       push(b, "employees", {
         kind: "number",
-        value: r._count.items,
+        value: itemCount,
         unit: "people",
       });
       push(b, "totalGross", money(r.totalGross));
@@ -410,25 +404,21 @@ async function describe(
       return b;
     }
     case "invoice": {
-      const r = await db.invoice.findUnique({
-        where: { id },
-        include: {
-          client: {
-            select: { firstName: true, lastName: true, companyName: true },
-          },
-        },
-      });
+      const [invoices, contacts] = await Promise.all([
+        listTableRows<Record<string, any>>("finance", "invoice"),
+        listTableRows<Record<string, any>>("sales", "crm_contact"),
+      ]);
+      const r = invoices.find((x) => x.id === id);
       if (!r) return null;
+      const client = r.clientId ? contacts.find((c) => c.id === r.clientId) : null;
       b.reference = r.invoiceNumber;
       push(
         b,
         "client",
         text(
-          r.client
-            ? r.client.companyName ||
-                [r.client.firstName, r.client.lastName]
-                  .filter(Boolean)
-                  .join(" ")
+          client
+            ? client.companyName ||
+                [client.firstName, client.lastName].filter(Boolean).join(" ")
             : null,
         ),
       );
@@ -442,25 +432,21 @@ async function describe(
       return b;
     }
     case "quotation": {
-      const r = await db.quotation.findUnique({
-        where: { id },
-        include: {
-          client: {
-            select: { firstName: true, lastName: true, companyName: true },
-          },
-        },
-      });
+      const [quotations, contacts] = await Promise.all([
+        listTableRows<Record<string, any>>("sales", "quotation"),
+        listTableRows<Record<string, any>>("sales", "crm_contact"),
+      ]);
+      const r = quotations.find((x) => x.id === id);
       if (!r) return null;
+      const client = r.clientId ? contacts.find((c) => c.id === r.clientId) : null;
       b.reference = r.quotationNumber;
       push(
         b,
         "client",
         text(
-          r.client
-            ? r.client.companyName ||
-                [r.client.firstName, r.client.lastName]
-                  .filter(Boolean)
-                  .join(" ")
+          client
+            ? client.companyName ||
+                [client.firstName, client.lastName].filter(Boolean).join(" ")
             : null,
         ),
       );
@@ -472,7 +458,8 @@ async function describe(
       return b;
     }
     case "service_request": {
-      const r = await db.inquiry.findUnique({ where: { id } });
+      const inquiries = await listTableRows<Record<string, any>>("sales", "inquiry");
+      const r = inquiries.find((x) => x.id === id);
       if (!r) return null;
       b.reference = r.projectReference || r.reference;
       b.subject = { name: r.name, email: r.email };
@@ -484,30 +471,55 @@ async function describe(
       return b;
     }
     case "purchase_requisition": {
-      const r = await db.purchaseRequisition.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } } } });
+      const [reqs, allLines] = await Promise.all([
+        listTableRows<Record<string, any>>("inventory", "purchase_requisition"),
+        listTableRows<Record<string, any>>("inventory", "purchase_requisition_line"),
+      ]);
+      const r = reqs.find((x) => x.id === id);
       if (!r) return null;
+      const lines = allLines
+        .filter((l) => l.requisitionId === id)
+        .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
       b.reference = r.number;
       b.subjectUserId = r.requestedById;
       const requester = await userName(r.requestedById);
       b.subject = requester ? { name: requester } : null;
       push(b, "amount", money(r.estimatedTotal));
       push(b, "neededBy", day(r.neededBy));
-      push(b, "lineCount", { kind: "number", value: r.lines.length });
-      b.note = [r.note, ...r.lines.map((l) => `• ${l.description} × ${Number(l.quantity)}`)].filter(Boolean).join("\n");
+      push(b, "lineCount", { kind: "number", value: lines.length });
+      b.note = [r.note, ...lines.map((l) => `• ${l.description} × ${Number(l.quantity)}`)].filter(Boolean).join("\n");
       b.recordUrl = ROUTES.procurement.requisition(id);
       return b;
     }
     case "purchase_order": {
-      const o = await db.purchaseOrder.findUnique({ where: { id }, include: { supplier: true, lines: { orderBy: { sortOrder: "asc" } } } });
+      const [orders, allLines, contacts] = await Promise.all([
+        listTableRows<Record<string, any>>("inventory", "purchase_order"),
+        listTableRows<Record<string, any>>("inventory", "purchase_order_line"),
+        listTableRows<Record<string, any>>("sales", "crm_contact"),
+      ]);
+      const o = orders.find((x) => x.id === id);
       if (!o) return null;
+      const supplier = o.supplierId ? contacts.find((c) => c.id === o.supplierId) : null;
+      const lines = allLines
+        .filter((l) => l.purchaseOrderId === id)
+        .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
       b.reference = o.number;
       b.subjectUserId = o.createdById;
-      push(b, "vendor", text(o.supplier.companyName || [o.supplier.firstName, o.supplier.lastName].filter(Boolean).join(" ")));
+      push(
+        b,
+        "vendor",
+        text(
+          supplier
+            ? supplier.companyName ||
+                [supplier.firstName, supplier.lastName].filter(Boolean).join(" ")
+            : null,
+        ),
+      );
       push(b, "total", money(o.total));
       push(b, "date", day(o.orderDate));
       push(b, "expectedDate", day(o.expectedDate));
-      push(b, "lineCount", { kind: "number", value: o.lines.length });
-      b.note = [o.note, ...o.lines.map((l) => `• ${l.description} × ${Number(l.quantity)} @ ${Number(l.unitPrice)}`)].filter(Boolean).join("\n");
+      push(b, "lineCount", { kind: "number", value: lines.length });
+      b.note = [o.note, ...lines.map((l) => `• ${l.description} × ${Number(l.quantity)} @ ${Number(l.unitPrice)}`)].filter(Boolean).join("\n");
       b.recordUrl = ROUTES.procurement.order(id);
       return b;
     }
@@ -524,17 +536,24 @@ export async function getApprovalItem(
   if (!(APPROVAL_TARGET_TYPES as readonly string[]).includes(targetTypeParam))
     return null;
   const targetType = targetTypeParam as ApprovalTargetType;
-  const latest = await db.approvalRequest.findFirst({
-    where: { targetType, targetId },
-    orderBy: { revision: "desc" },
-    include: {
-      requestedBy: { select: { fullName: true, email: true } },
-      decisions: {
-        orderBy: { decidedAt: "asc" },
-        include: { decidedBy: { select: { id: true, fullName: true } } },
-      },
-    },
-  });
+  const [requests, allDecisions, users] = await Promise.all([
+    listTableRows<Record<string, any>>("workflow", "approval_request"),
+    listTableRows<Record<string, any>>("workflow", "approval_decision"),
+    listTableRows<Record<string, any>>("identity", "user"),
+  ]);
+  const userMap = new Map(users.map((u) => [u.id, u] as const));
+  const latest = requests
+    .filter((r) => r.targetType === targetType && r.targetId === targetId)
+    .sort((a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0))[0];
+  const latestDecisions = latest
+    ? allDecisions
+        .filter((d) => d.approvalRequestId === latest.id)
+        .sort(
+          (a, b) =>
+            new Date(a.decidedAt || 0).getTime() -
+            new Date(b.decidedAt || 0).getTime(),
+        )
+    : [];
   const details = await describe(
     targetType,
     targetId,
@@ -542,25 +561,26 @@ export async function getApprovalItem(
   );
   if (!details) return null;
 
+  const approverIds: string[] = Array.isArray(latest?.approverIds)
+    ? latest.approverIds
+    : [];
   const involved =
     viewer.role === "super_admin" ||
     details.subjectUserId === viewer.id ||
     (latest &&
       (latest.requestedById === viewer.id ||
-        latest.approverIds.includes(viewer.id) ||
-        latest.decisions.some((d) => d.decidedById === viewer.id)));
+        approverIds.includes(viewer.id) ||
+        latestDecisions.some((d) => d.decidedById === viewer.id)));
   if (!involved && !(await readableApprovalTypes()).includes(targetType))
     return null;
 
   const waitingFor =
     latest?.status === "pending"
-      ? (
-          await db.user.findMany({
-            where: { id: { in: latest.approverIds } },
-            select: { fullName: true },
-          })
-        ).map((u) => u.fullName)
+      ? approverIds
+          .map((uid) => userMap.get(uid)?.fullName)
+          .filter((n): n is string => Boolean(n))
       : [];
+  const requestedByUser = latest ? userMap.get(latest.requestedById) : null;
   const { subjectUserId: _subject, ...rest } = details;
   return {
     targetType,
@@ -572,23 +592,33 @@ export async function getApprovalItem(
           status: latest.status,
           currentStep: latest.currentStep,
           revision: latest.revision,
-          selfApproved: latest.selfApproved,
-          createdAt: latest.createdAt.toISOString(),
+          selfApproved: Boolean(latest.selfApproved),
+          createdAt: new Date(latest.createdAt || Date.now()).toISOString(),
           requestedBy: {
-            name: latest.requestedBy.fullName,
-            email: latest.requestedBy.email,
+            name: requestedByUser?.fullName ?? "",
+            email: requestedByUser?.email ?? "",
           },
           waitingFor,
-          decisions: latest.decisions.map((d) => ({
+          decisions: latestDecisions.map((d) => ({
             decision: d.decision,
-            name: d.decidedBy.fullName,
-            at: d.decidedAt.toISOString(),
-            reason: d.reason,
+            name: userMap.get(d.decidedById)?.fullName ?? "",
+            at: new Date(d.decidedAt || Date.now()).toISOString(),
+            reason: d.reason ?? null,
             step: d.step,
           })),
         }
       : null,
-    canDecide: latest ? canDecideApproval(latest, viewer) : false,
+    canDecide: latest
+      ? canDecideApproval(
+          {
+            status: latest.status,
+            requestedById: latest.requestedById,
+            approverIds,
+            selfApproved: latest.selfApproved,
+          },
+          viewer,
+        )
+      : false,
     isRequester: latest?.requestedById === viewer.id,
     signatureRequired: (await getSignatureMode(targetType)) === "live",
   };

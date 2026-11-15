@@ -246,3 +246,122 @@ export async function listShipmentsEnriched(
 export async function listDeliveryDriversRef(token?: string): Promise<DriverRef[]> {
   return delivFetch<DriverRef[]>("/v1/delivery/drivers-ref", {}, token);
 }
+
+export type CourierAgency = {
+  id: string;
+  name: string;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  apiEndpoint?: string | null;
+  isActive: boolean;
+  createdAt?: string;
+};
+
+export async function listCourierAgenciesApi(token?: string): Promise<CourierAgency[]> {
+  const res = await delivFetch<{ items: CourierAgency[] }>("/v1/delivery/agencies", {}, token);
+  return res?.items ?? [];
+}
+
+export async function saveCourierAgencyApi(input: Partial<CourierAgency>, token?: string): Promise<CourierAgency> {
+  if (input.id) {
+    return delivFetch<CourierAgency>(`/v1/delivery/agencies/${encodeURIComponent(input.id)}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }, token);
+  }
+  return delivFetch<CourierAgency>("/v1/delivery/agencies", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function createDeliverySlotApi(
+  zoneId: string,
+  input: { weekday: number; slotStart: string; slotEnd: string; capacity: number; isActive?: boolean },
+  token?: string,
+): Promise<DeliverySlot> {
+  return delivFetch<DeliverySlot>(`/v1/delivery/zones/${encodeURIComponent(zoneId)}/slots`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function updateDeliverySlotApi(
+  slotId: string,
+  input: { weekday: number; slotStart: string; slotEnd: string; capacity: number; isActive?: boolean },
+  token?: string,
+): Promise<void> {
+  await delivFetch<void>(`/v1/delivery/slots/${encodeURIComponent(slotId)}`, {
+    method: "PUT",
+    body: JSON.stringify({ ...input, isActive: input.isActive ?? true }),
+  }, token);
+}
+
+export async function deleteDeliverySlotApi(slotId: string, token?: string): Promise<void> {
+  await delivFetch<void>(`/v1/delivery/slots/${encodeURIComponent(slotId)}`, {
+    method: "DELETE",
+  }, token);
+}
+
+export async function moveShipmentStatusApi(
+  id: string,
+  input: { to: string; note?: string; reason?: string; codCollected?: number; actorId?: string },
+  token?: string,
+): Promise<{ id: string; status: string }> {
+  return delivFetch<{ id: string; status: string }>(`/v1/delivery/shipments/${encodeURIComponent(id)}/status`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function handToAgencyApi(
+  id: string,
+  input: { agencyName?: string; trackingNumber?: string; note?: string; actorId?: string },
+  token?: string,
+): Promise<{ id: string; trackingNumber: string; status: string }> {
+  return delivFetch<{ id: string; trackingNumber: string; status: string }>(`/v1/delivery/shipments/${encodeURIComponent(id)}/hand-to-agency`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export type CODSettlement = {
+  id: string;
+  sheetId?: string | null;
+  driverId?: string | null;
+  amountCollected: number;
+  amountSettled: number;
+  status: string;
+  settledAt?: string | null;
+  createdAt?: string;
+};
+
+export async function listCODSettlementsApi(token?: string): Promise<CODSettlement[]> {
+  const res = await delivFetch<{ items: CODSettlement[] }>("/v1/delivery/cod-settlements", {}, token);
+  return res?.items ?? [];
+}
+
+export async function saveCODSettlementApi(input: Partial<CODSettlement>, token?: string): Promise<CODSettlement> {
+  if (input.id) {
+    return delivFetch<CODSettlement>(`/v1/delivery/cod-settlements/${encodeURIComponent(input.id)}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }, token);
+  }
+  return delivFetch<CODSettlement>("/v1/delivery/cod-settlements", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function updateRouteSheetStatusApi(
+  id: string,
+  status: string,
+  token?: string,
+): Promise<RouteSheet> {
+  return delivFetch<RouteSheet>(`/v1/delivery/routes/${encodeURIComponent(id)}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  }, token);
+}

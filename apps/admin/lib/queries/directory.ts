@@ -1,4 +1,5 @@
-import { db } from "../atomic";
+import { listAdminUsersApi } from "../api/identity";
+import { listDepartments, listEmployees } from "../api/hr";
 import { departmentSubtree } from "./departments";
 
 export interface DirectoryEntry {
@@ -27,152 +28,106 @@ export interface DirectoryFilters {
 const DIRECTORY_PAGE = 48;
 
 export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
-  const q = (filters.q ?? "").trim().slice(0, 120);
-  const departments =
+  const q = (filters.q ?? "").trim().slice(0, 120).toLowerCase();
+  const deptIds =
     filters.departmentId && filters.departmentId !== "all"
-      ? await departmentSubtree([filters.departmentId])
+      ? new Set(await departmentSubtree([filters.departmentId]))
       : null;
-  const text = (field: string, insensitive = true) => ({
-    [field]: {
-      contains: q,
-      ...(insensitive ? { mode: "insensitive" as const } : {}),
-    },
-  });
-  const employeeMatch = q
-    ? [
-        text("firstNameEn"),
-        text("lastNameEn"),
-        text("firstNameAr", false),
-        text("lastNameAr", false),
-        text("jobTitleEn"),
-        text("jobTitleAr", false),
-        text("phone", false),
-      ]
-    : [];
-  const [users, hrStaff] = await Promise.all([
-    db.user.findMany({
-      where: {
-        isActive: true,
-        archivedAt: null,
-        ...(departments
-          ? {
-              OR: [
-                { departmentId: { in: departments } },
-                {
-                  departmentId: null,
-                  employee: { departmentId: { in: departments } },
-                },
-              ],
-            }
-          : {}),
-        ...(q
-          ? {
-              AND: [
-                {
-                  OR: [
-                    text("fullName"),
-                    text("email"),
-                    text("phone", false),
-                    { employee: { OR: employeeMatch } },
-                  ],
-                },
-              ],
-            }
-          : {}),
-      },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phone: true,
-        role: true,
-        department: true,
-        avatarUrl: true,
-        departmentRecord: { select: { nameEn: true, nameAr: true } },
-        manager: { select: { fullName: true } },
-        employee: {
-          select: {
-            id: true,
-            firstNameAr: true,
-            lastNameAr: true,
-            jobTitleEn: true,
-            jobTitleAr: true,
-            phone: true,
-            status: true,
-            department: { select: { nameEn: true, nameAr: true } },
-          },
-        },
-      },
-    }),
-    db.employee.findMany({
-      where: {
-        userId: null,
-        status: { in: ["active", "on_leave"] },
-        ...(departments ? { departmentId: { in: departments } } : {}),
-        ...(q ? { OR: [...employeeMatch, text("email")] } : {}),
-      },
-      select: {
-        id: true,
-        firstNameEn: true,
-        lastNameEn: true,
-        firstNameAr: true,
-        lastNameAr: true,
-        jobTitleEn: true,
-        jobTitleAr: true,
-        email: true,
-        phone: true,
-        status: true,
-        department: { select: { nameEn: true, nameAr: true } },
-      },
-    }),
+
+  const [users, employees, departments] = await Promise.all([
+    listAdminUsersApi().catch(() => []),
+    listEmployees().catch(() => []),
+    listDepartments().catch(() => []),
   ]);
-  const entries: DirectoryEntry[] = [
-    ...users
-      .filter(
-        (u) =>
-          !u.employee || ["active", "on_leave"].includes(u.employee.status),
-      )
-      .map((u) => ({
-        id: u.employee?.id ?? u.id,
+
+  const deptById = new Map<string, any>(departments.map((d: any): [any, any] => [d.id, d]));
+  const userById = new Map<string, any>(users.map((u: any): [any, any] => [u.id, u]));
+  const empByUserId = new Map<string, any>(
+    employees.filter((e: any) => e.userId).map((e: any): [any, any] => [e.userId, e]),
+  );
+
+  const matchesQ = (fields: Array<string | null | undefined>) =>
+    !q || fields.some((f) => f && f.toLowerCase().includes(q));
+
+  const userEntries: DirectoryEntry[] = users
+    .filter((u: any) => (u.is_active ?? u.isActive ?? true) && !(u.archived_at ?? u.archivedAt))
+    .filter((u: any) => {
+      const emp = empByUserId.get(u.id);
+      if (emp && !["active", "on_leave"].includes(emp.status)) return false;
+      const depId = u.department_id ?? u.departmentId ?? emp?.departmentId ?? null;
+      if (deptIds && (!depId || !deptIds.has(depId))) return false;
+      return matchesQ([
+        u.full_name ?? u.fullName,
+        u.email,
+        u.phone,
+        emp?.firstNameEn,
+        emp?.lastNameEn,
+        emp?.firstNameAr,
+        emp?.lastNameAr,
+        emp?.jobTitleEn,
+        emp?.jobTitleAr,
+        emp?.phone,
+      ]);
+    })
+    .map((u: any) => {
+      const emp = empByUserId.get(u.id);
+      const depId = u.department_id ?? u.departmentId ?? emp?.departmentId ?? null;
+      const dep = depId ? deptById.get(depId) : null;
+      const mgr = (u.manager_id ?? u.managerId) ? userById.get(u.manager_id ?? u.managerId) : null;
+      return {
+        id: emp?.id ?? u.id,
         userId: u.id,
-        name: u.fullName,
-        nameAr: u.employee
-          ? `${u.employee.firstNameAr} ${u.employee.lastNameAr}`
-          : null,
-        title: u.employee?.jobTitleEn ?? null,
-        titleAr: u.employee?.jobTitleAr ?? null,
-        role: u.role,
-        department:
-          u.departmentRecord?.nameEn ??
-          u.employee?.department?.nameEn ??
-          u.department ??
-          null,
-        departmentAr:
-          u.departmentRecord?.nameAr ?? u.employee?.department?.nameAr ?? null,
-        email: u.email,
-        phone: u.phone || u.employee?.phone || null,
-        avatarUrl: u.avatarUrl,
-        manager: u.manager?.fullName ?? null,
-        onLeave: u.employee?.status === "on_leave",
-      })),
-    ...hrStaff.map((e: any) => ({
-      id: e.id,
-      userId: null,
-      name: `${e.firstNameEn} ${e.lastNameEn}`,
-      nameAr: `${e.firstNameAr} ${e.lastNameAr}`,
-      title: e.jobTitleEn,
-      titleAr: e.jobTitleAr,
-      role: null,
-      department: e.department?.nameEn ?? null,
-      departmentAr: e.department?.nameAr ?? null,
-      email: e.email,
-      phone: e.phone,
-      avatarUrl: null,
-      manager: null,
-      onLeave: e.status === "on_leave",
-    })),
-  ];
-  entries.sort(
+        name: u.full_name ?? u.fullName ?? u.email ?? u.id,
+        nameAr: emp ? `${emp.firstNameAr ?? ""} ${emp.lastNameAr ?? ""}`.trim() || null : null,
+        title: emp?.jobTitleEn ?? null,
+        titleAr: emp?.jobTitleAr ?? null,
+        role: u.role ?? null,
+        department: dep?.nameEn ?? u.department ?? null,
+        departmentAr: dep?.nameAr ?? null,
+        email: u.email ?? null,
+        phone: u.phone || emp?.phone || null,
+        avatarUrl: u.avatar_url ?? u.avatarUrl ?? null,
+        manager: mgr ? (mgr.full_name ?? mgr.fullName ?? null) : null,
+        onLeave: emp?.status === "on_leave",
+      };
+    });
+
+  const unlinkedEntries: DirectoryEntry[] = employees
+    .filter((e: any) => !e.userId && ["active", "on_leave"].includes(e.status))
+    .filter((e: any) => {
+      if (deptIds && (!e.departmentId || !deptIds.has(e.departmentId))) return false;
+      return matchesQ([
+        e.firstNameEn,
+        e.lastNameEn,
+        e.firstNameAr,
+        e.lastNameAr,
+        e.jobTitleEn,
+        e.jobTitleAr,
+        e.email,
+        e.phone,
+      ]);
+    })
+    .map((e: any) => {
+      const dep = e.departmentId ? deptById.get(e.departmentId) : null;
+      return {
+        id: e.id,
+        userId: null,
+        name: `${e.firstNameEn ?? ""} ${e.lastNameEn ?? ""}`.trim(),
+        nameAr: `${e.firstNameAr ?? ""} ${e.lastNameAr ?? ""}`.trim() || null,
+        title: e.jobTitleEn ?? null,
+        titleAr: e.jobTitleAr ?? null,
+        role: null,
+        department: dep?.nameEn ?? null,
+        departmentAr: dep?.nameAr ?? null,
+        email: e.email ?? null,
+        phone: e.phone ?? null,
+        avatarUrl: null,
+        manager: null,
+        onLeave: e.status === "on_leave",
+      };
+    });
+
+  const entries = [...userEntries, ...unlinkedEntries].sort(
     (a, b) =>
       (a.department ?? "~").localeCompare(b.department ?? "~") ||
       a.name.localeCompare(b.name),
@@ -184,6 +139,6 @@ export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
     total: entries.length,
     page,
     pageSize: DIRECTORY_PAGE,
-    filters: { q, departmentId: filters.departmentId || "all" },
+    filters: { q: (filters.q ?? "").trim().slice(0, 120), departmentId: filters.departmentId || "all" },
   };
 }

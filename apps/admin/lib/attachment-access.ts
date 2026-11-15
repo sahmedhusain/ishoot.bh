@@ -1,10 +1,10 @@
 import { assertRecordInScope } from "./data-scope";
 import { serverMessages } from "@platform/locales";
 import {
-  db,
   type PermissionAction,
   type PermissionResource,
 } from "@platform/database";
+import { listTableRows, type ServiceSchema } from "./api/tables";
 import { getCurrentUser, requirePermission } from "./auth";
 import { requireShipmentAccess } from "./delivery-scope";
 
@@ -46,7 +46,8 @@ export async function requireAttachmentAccess(
 ) {
   if (entityType === "inquiry") {
     const user = await requirePermission("requests", action);
-    const inquiry = await db.inquiry.findUnique({ where: { id: entityId }, select: { assignedToId: true } });
+    const inquiries = await listTableRows<Record<string, any>>("sales", "inquiry");
+    const inquiry = inquiries.find((i) => i.id === entityId);
     if (!inquiry) throw new Error(serverMessages.attachmentTargetNotFound);
     await assertRecordInScope("requests", inquiry.assignedToId);
     return user;
@@ -77,10 +78,9 @@ export async function requireAttachmentAccess(
     if (!user) throw new Error(serverMessages.unauthorized);
     const claim =
       entityId && entityId !== "pending"
-        ? await db.expenseClaim.findUnique({
-            where: { id: entityId },
-            select: { claimantId: true },
-          })
+        ? (await listTableRows<Record<string, any>>("finance", "expense_claim")).find(
+            (c) => c.id === entityId,
+          )
         : null;
     if (claim?.claimantId === user.id) return user;
     return requirePermission("expenses", "read");
@@ -104,59 +104,25 @@ export async function requireAttachmentAccess(
   if (!resource) throw new Error(serverMessages.unsupportedAttachmentType);
   const user = await requirePermission(resource, action);
   if (entityId && entityId !== "pending" && entityId !== "company_setting") {
-    const exists =
-      entityType === "employee"
-        ? await db.employee.findUnique({
-            where: { id: entityId },
-            select: { id: true },
-          })
-        : entityType === "user_signature"
-          ? await db.user.findUnique({
-              where: { id: entityId },
-              select: { id: true },
-            })
-          : entityType === "expense"
-            ? await db.expense.findUnique({
-                where: { id: entityId },
-                select: { id: true },
-              })
-            : entityType === "payment"
-              ? await db.payment.findUnique({
-                  where: { id: entityId },
-                  select: { id: true },
-                })
-              : entityType === "invoice"
-                ? await db.invoice.findUnique({
-                    where: { id: entityId },
-                    select: { id: true },
-                  })
-                : entityType === "quotation"
-                  ? await db.quotation.findUnique({
-                      where: { id: entityId },
-                      select: { id: true },
-                    })
-                  : entityType === "sales_order"
-                    ? await db.salesOrder.findUnique({
-                        where: { id: entityId },
-                        select: { id: true },
-                      })
-                    : entityType === "supplier_bill"
-                      ? await db.supplierBill.findUnique({
-                          where: { id: entityId },
-                          select: { id: true },
-                        })
-                      : entityType === "contact" ||
-                          entityType === "customer_vault"
-                        ? await db.crmContact.findUnique({
-                            where: { id: entityId },
-                            select: { id: true },
-                          })
-                        : entityType === "deal"
-                          ? await db.crmDeal.findUnique({
-                              where: { id: entityId },
-                              select: { id: true },
-                            })
-                          : true;
+    const targetMap: Record<string, [ServiceSchema, string]> = {
+      employee: ["hr", "employee"],
+      user_signature: ["identity", "user"],
+      expense: ["finance", "expense"],
+      payment: ["finance", "payment"],
+      invoice: ["finance", "invoice"],
+      quotation: ["sales", "quotation"],
+      sales_order: ["commerce", "sales_order"],
+      supplier_bill: ["finance", "supplier_bill"],
+      contact: ["sales", "crm_contact"],
+      customer_vault: ["sales", "crm_contact"],
+      deal: ["sales", "crm_deal"],
+    };
+    const target = targetMap[entityType];
+    const exists = target
+      ? (await listTableRows<Record<string, any>>(target[0], target[1])).some(
+          (r) => r.id === entityId,
+        )
+      : true;
     if (!exists) throw new Error(serverMessages.attachmentTargetNotFound);
   }
   return user;

@@ -4,7 +4,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 
 export async function processRevalidationJobs(options: {
   webUrl: string;
@@ -20,38 +20,41 @@ export async function processRevalidationJobs(options: {
   const size = options.batchSize || 5;
   if (!Number.isInteger(size) || size < 1 || size > 25)
     throw new Error(serverMessages.invalidBatchSize);
-  const jobs = await db.$transaction(async (tx) => {
-    await tx.revalidationJob.updateMany({
-      where: {
-        status: "processing",
-        attempts: { gte: 8 },
-        nextAttemptAt: { lte: now },
-      },
-      data: {
+  const nowMs = now.getTime();
+  const allJobs = await listTableRows<any>("system", "revalidation_job", "next_attempt_at ASC, id ASC").catch(() => []);
+  for (const j of allJobs) {
+    if (
+      j.status === "processing" &&
+      Number(j.attempts ?? 0) >= 8 &&
+      new Date(j.nextAttemptAt || 0).getTime() <= nowMs
+    ) {
+      await upsertTableRow("system", "revalidation_job", {
+        ...j,
         status: "failed",
         lastError: "Worker lease expired after final attempt",
-      },
-    });
-    const picked = await tx.$queryRaw<Array<{ id: string }>>`
-      SELECT "id" FROM "RevalidationJob"
-      WHERE "status" IN ('pending', 'processing') AND "nextAttemptAt" <= ${now} AND "attempts" < 8
-      ORDER BY "nextAttemptAt", "id" LIMIT ${size} FOR UPDATE SKIP LOCKED
-    `;
-    const claimed: any[] = [];
-    for (const job of picked)
-      claimed.push(
-        await tx.revalidationJob.update({
-          where: { id: job.id },
-          data: {
-            status: "processing",
-            attempts: { increment: 1 },
-            nextAttemptAt: new Date(now.getTime() + 300000),
-          },
-        }),
-      );
-    return claimed;
-  });
+      });
+    }
+  }
+  const picked = allJobs
+    .filter(
+      (j) =>
+        (j.status === "pending" || j.status === "processing") &&
+        new Date(j.nextAttemptAt || 0).getTime() <= nowMs &&
+        Number(j.attempts ?? 0) < 8,
+    )
+    .slice(0, size);
+  const jobs = await Promise.all(
+    picked.map((job) =>
+      upsertTableRow<any>("system", "revalidation_job", {
+        ...job,
+        status: "processing",
+        attempts: Number(job.attempts ?? 0) + 1,
+        nextAttemptAt: new Date(nowMs + 300000).toISOString(),
+      }),
+    ),
+  );
   for (const job of jobs) {
+    const attempts = Number(job.attempts ?? 1);
     try {
       const response = await (options.fetcher || fetch)(
         new URL("/api/revalidate", url),
@@ -71,31 +74,22 @@ export async function processRevalidationJobs(options: {
             0: response.status,
           }),
         );
-      await txResult(job.id, job.attempts, {
+      await upsertTableRow("system", "revalidation_job", {
+        ...job,
         status: "delivered",
-        deliveredAt: new Date(),
+        deliveredAt: new Date().toISOString(),
         lastError: null,
       });
     } catch {
-      await txResult(job.id, job.attempts, {
-        status: job.attempts >= 8 ? "failed" : "pending",
+      await upsertTableRow("system", "revalidation_job", {
+        ...job,
+        status: attempts >= 8 ? "failed" : "pending",
         lastError: "Invalidation delivery failed",
         nextAttemptAt: new Date(
-          now.getTime() + Math.min(1800000, 5000 * 2 ** job.attempts),
-        ),
+          nowMs + Math.min(1800000, 5000 * 2 ** attempts),
+        ).toISOString(),
       });
     }
   }
   return { claimed: jobs.length };
-}
-
-async function txResult(
-  id: string,
-  attempts: number,
-  data: any,
-) {
-  await db.revalidationJob.updateMany({
-    where: { id, attempts, status: "processing" },
-    data,
-  });
 }

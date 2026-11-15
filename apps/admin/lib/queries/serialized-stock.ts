@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { requireStockLocationAccess } from "./branches";
 import { postMovements } from "./inventory";
 import { uniqueSerials } from "../constants/stock-traceability";
@@ -11,42 +12,48 @@ export async function verifyGeneratedSerials(
 ) {
   const codes = uniqueSerials(scannedCodes);
   return runAtomicMutation(async () => {
-    const generation = await db.serialGeneration.findUniqueOrThrow({
-      where: { id: generationId },
-    });
-    await requireStockLocationAccess(actorId, generation.locationId, true);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`serial-generation:${generationId}`}, 0))`;
-    const serials = await db.stockSerial.findMany({ where: { generationId } });
+    const [generations, allSerials, traceEvents] = await Promise.all([
+      listTableRows<Record<string, any>>("system", "serial_generation"),
+      listTableRows<Record<string, any>>("inventory", "stock_serial"),
+      listTableRows<Record<string, any>>("inventory", "stock_trace_event"),
+    ]);
+    const generation = generations.find((g) => g.id === generationId);
+    if (!generation) throw new Error("Serial generation not found");
+    await requireStockLocationAccess(actorId, String(generation.locationId), true);
+
+    const serials = allSerials.filter((s) => s.generationId === generationId);
     if (
-      codes.length !== generation.quantity ||
+      codes.length !== Number(generation.quantity) ||
       serials.length !== codes.length ||
-      serials.some((s) => !codes.includes(s.code))
+      serials.some((s) => !codes.includes(String(s.code)))
     )
       throw new Error("Scans must match every generated identifier");
+
     const eventId = `serial-verified:${generationId}`;
-    if (await db.stockTraceEvent.findUnique({ where: { id: eventId } }))
-      return { id: generationId };
+    if (traceEvents.some((e) => e.id === eventId)) return { id: generationId };
+
     if (
       serials.some(
-        (s) =>
-          s.status !== "reserved" || s.locationId !== generation.locationId,
+        (s) => s.status !== "reserved" || s.locationId !== generation.locationId,
       )
     )
       throw new Error("Serial state changed; reconcile before verification");
-    await db.stockSerial.updateMany({
-      where: { generationId },
-      data: { status: "available", revision: { increment: 1 } },
-    });
-    await db.stockTraceEvent.create({
-      data: {
-        id: eventId,
-        entityType: "serial_generation",
-        entityId: generationId,
-        revision: 2,
-        action: "scan_verified",
-        actorId,
-        details: { codes },
-      },
+
+    for (const s of serials) {
+      await upsertTableRow("inventory", "stock_serial", {
+        id: s.id,
+        status: "available",
+        revision: Number(s.revision ?? 0) + 1,
+      });
+    }
+    await upsertTableRow("inventory", "stock_trace_event", {
+      id: eventId,
+      entityType: "serial_generation",
+      entityId: generationId,
+      revision: 2,
+      action: "scan_verified",
+      actorId,
+      details: { codes },
     });
     return { id: generationId };
   });
@@ -58,6 +65,7 @@ export interface SerialBinMove {
   serials: { code: string; revision: number }[];
   idempotencyKey: string;
 }
+
 export async function moveSerialsBetweenBins(
   input: SerialBinMove,
   actorId: string,
@@ -65,13 +73,12 @@ export async function moveSerialsBetweenBins(
   const codes = uniqueSerials(input.serials.map((s) => s.code));
   if (
     codes.length > 1000 ||
-    input.serials.some(
-      (s) => !Number.isInteger(s.revision) || s.revision < 1,
-    ) ||
+    input.serials.some((s) => !Number.isInteger(s.revision) || s.revision < 1) ||
     !/^[a-zA-Z0-9_-]{16,100}$/.test(input.idempotencyKey) ||
     input.sourceLocationId === input.destinationLocationId
   )
     throw new Error("Invalid serial movement");
+
   const requestHash = createHash("sha256")
     .update(
       JSON.stringify([
@@ -85,6 +92,7 @@ export async function moveSerialsBetweenBins(
     )
     .digest("hex");
   const operationId = `serial-bin:${input.idempotencyKey}`;
+
   return runAtomicMutation(async () => {
     const source = await requireStockLocationAccess(
       actorId,
@@ -98,22 +106,30 @@ export async function moveSerialsBetweenBins(
     );
     if (source.warehouseId !== destination.warehouseId)
       throw new Error("Bin relocation requires the same warehouse");
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${operationId}, 0))`;
-    const previous = await db.stockTraceEvent.findUnique({
-      where: { id: operationId },
-    });
+
+    const [traceEvents, allSerials, allBatches] = await Promise.all([
+      listTableRows<Record<string, any>>("inventory", "stock_trace_event"),
+      listTableRows<Record<string, any>>("inventory", "stock_serial"),
+      listTableRows<Record<string, any>>("inventory", "stock_batch"),
+    ]);
+
+    const previous = traceEvents.find((e) => e.id === operationId);
     if (previous) {
-      if (
-        (previous.details as { requestHash?: string })?.requestHash !==
-        requestHash
-      )
+      if ((previous.details as { requestHash?: string })?.requestHash !== requestHash)
         throw new Error("Idempotency key belongs to a different request");
       return { id: operationId };
     }
-    const serials = await db.stockSerial.findMany({
-      where: { code: { in: codes } },
-      orderBy: [{ productId: "asc" }, { variantKey: "asc" }, { code: "asc" }],
-    });
+
+    const codeSet = new Set(codes);
+    const serials = allSerials
+      .filter((s) => codeSet.has(String(s.code)))
+      .sort(
+        (a, b) =>
+          String(a.productId).localeCompare(String(b.productId)) ||
+          String(a.variantKey ?? "").localeCompare(String(b.variantKey ?? "")) ||
+          String(a.code).localeCompare(String(b.code)),
+      );
+
     if (
       serials.length !== codes.length ||
       serials.some(
@@ -121,32 +137,25 @@ export async function moveSerialsBetweenBins(
           s.locationId !== source.id ||
           s.status !== "available" ||
           s.packageId ||
-          s.revision !==
-            input.serials.find((requested) => requested.code === s.code)
-              ?.revision,
+          Number(s.revision) !==
+            input.serials.find((requested) => requested.code === s.code)?.revision,
       )
     )
       throw new Error("Serial state changed; reconcile before movement");
+
     for (const serial of serials) {
-      const changed = await db.stockSerial.updateMany({
-        where: {
-          id: serial.id,
-          revision: serial.revision,
-          status: "available",
-          locationId: source.id,
-          packageId: null,
-        },
-        data: { locationId: destination.id, revision: { increment: 1 } },
+      await upsertTableRow("inventory", "stock_serial", {
+        id: serial.id,
+        locationId: destination.id,
+        revision: Number(serial.revision) + 1,
       });
-      if (changed.count !== 1)
-        throw new Error("Serial state changed; reconcile before movement");
       const batch = serial.batchKey
-        ? await db.stockBatch.findUniqueOrThrow({
-            where: { id: serial.batchKey },
-          })
+        ? allBatches.find((b) => b.id === serial.batchKey)
         : null;
+      if (serial.batchKey && !batch) throw new Error("Stock batch not found");
+
       const common = {
-        productId: serial.productId,
+        productId: String(serial.productId),
         variantId: serial.variantKey || undefined,
         batchNumber: batch?.batchNumber,
         sourceType: "serial_bin_move",
@@ -154,7 +163,7 @@ export async function moveSerialsBetweenBins(
         transferId: operationId,
       };
       await postMovements(
-        db,
+        null,
         [
           {
             ...common,
@@ -172,20 +181,19 @@ export async function moveSerialsBetweenBins(
         actorId,
       );
     }
-    await db.stockTraceEvent.create({
-      data: {
-        id: operationId,
-        entityType: "serial_bin_move",
-        entityId: operationId,
-        revision: 1,
-        action: "relocate",
-        actorId,
-        details: {
-          requestHash,
-          codes,
-          sourceLocationId: source.id,
-          destinationLocationId: destination.id,
-        },
+
+    await upsertTableRow("inventory", "stock_trace_event", {
+      id: operationId,
+      entityType: "serial_bin_move",
+      entityId: operationId,
+      revision: 1,
+      action: "relocate",
+      actorId,
+      details: {
+        requestHash,
+        codes,
+        sourceLocationId: source.id,
+        destinationLocationId: destination.id,
       },
     });
     return { id: operationId };

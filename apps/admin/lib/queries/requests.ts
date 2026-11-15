@@ -1,7 +1,7 @@
 import { slaDueFor } from "../services/service-sla";
 import { serverMessages } from "@platform/locales";
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import {
   REQUEST_CLOSED_STATUSES,
   REQUEST_SORTS,
@@ -58,70 +58,79 @@ export async function createConsolidatedRequest(
   }
 
   const emailNorm = data.email.toLowerCase().trim();
+  const slaDueDate = data.slaDueDate || (await slaDueFor(data.priority, new Date()));
 
-  const inquiry = await db.$transaction(async (tx) => {
-    const inq = await tx.inquiry.create({
-      data: {
-        reference,
-        requestType: data.requestType,
-        intent:
-          data.requestType === "quote_request" ? "quote_request" : "inquiry",
-        name: data.name,
-        email: data.email,
-        emailNorm,
-        phone: data.phone || null,
-        companyName: data.companyName || null,
-        serviceType: data.serviceType || null,
-        budgetRange: data.budgetRange || null,
-        timeline: data.timeline || null,
-        message: data.message,
-        priority: data.priority || "normal",
-        team: data.team || null,
-        assignedToId: data.assignedToId || null,
-        customerId: data.customerId || null,
-        slaDueDate:
-          data.slaDueDate || (await slaDueFor(data.priority, new Date(), tx)),
-        workflowStatus: data.assignedToId ? "assigned" : "received",
-      },
-      include: {
-        assignedTo: { select: { id: true, fullName: true, email: true } },
-        customer: true,
-      },
+  return runAtomicMutation(async () => {
+    const inqId = crypto.randomUUID();
+    const inq = await upsertTableRow<Record<string, any>>("sales", "inquiry", {
+      id: inqId,
+      reference,
+      requestType: data.requestType,
+      intent:
+        data.requestType === "quote_request" ? "quote_request" : "inquiry",
+      name: data.name,
+      email: data.email,
+      emailNorm,
+      phone: data.phone || null,
+      companyName: data.companyName || null,
+      serviceType: data.serviceType || null,
+      budgetRange: data.budgetRange || null,
+      timeline: data.timeline || null,
+      message: data.message,
+      priority: data.priority || "normal",
+      team: data.team || null,
+      assignedToId: data.assignedToId || null,
+      customerId: data.customerId || null,
+      slaDueDate: slaDueDate.toISOString(),
+      workflowStatus: data.assignedToId ? "assigned" : "received",
     });
 
     if (actorId) {
-      await tx.requestEvent.create({
-        data: {
-          inquiryId: inq.id,
-          actorId,
-          eventType: "created",
-          details: {
-            requestType: data.requestType,
-            reference,
-            priority: data.priority || "normal",
-            assignedToId: data.assignedToId || null,
-          },
+      await upsertTableRow("system", "request_event", {
+        id: crypto.randomUUID(),
+        inquiryId: inqId,
+        actorId,
+        eventType: "created",
+        details: {
+          requestType: data.requestType,
+          reference,
+          priority: data.priority || "normal",
+          assignedToId: data.assignedToId || null,
         },
       });
 
       if (data.assignedToId) {
-        await tx.requestAssignment.create({
-          data: {
-            inquiryId: inq.id,
-            assignedToId: data.assignedToId,
-            assignedById: actorId,
-            team: data.team || null,
-            reason: "Initial assignment upon request creation",
-            active: true,
-          },
+        await upsertTableRow("system", "request_assignment", {
+          id: crypto.randomUUID(),
+          inquiryId: inqId,
+          assignedToId: data.assignedToId,
+          assignedById: actorId,
+          team: data.team || null,
+          reason: "Initial assignment upon request creation",
+          active: true,
         });
       }
     }
 
-    return inq;
-  });
+    const [users, contacts] = await Promise.all([
+      data.assignedToId ? listTableRows<Record<string, any>>("identity", "user") : Promise.resolve([]),
+      data.customerId ? listTableRows<Record<string, any>>("sales", "crm_contact") : Promise.resolve([]),
+    ]);
+    const assignedTo = data.assignedToId
+      ? users.find((u) => u.id === data.assignedToId) ?? null
+      : null;
+    const customer = data.customerId
+      ? contacts.find((c) => c.id === data.customerId) ?? null
+      : null;
 
-  return inquiry;
+    return {
+      ...inq,
+      assignedTo: assignedTo
+        ? { id: assignedTo.id, fullName: assignedTo.fullName, email: assignedTo.email }
+        : null,
+      customer,
+    };
+  });
 }
 
 export async function assignConsolidatedRequest(
@@ -134,30 +143,26 @@ export async function assignConsolidatedRequest(
   await assertActorNotOnLeave(actorId);
 
   return runAtomicMutation(async () => {
-    const request = await db.inquiry.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        slaDueDate: true,
-        assignedToId: true,
-        workflowStatus: true,
-      },
-    });
+    const [inquiries, users, assignments, contacts] = await Promise.all([
+      listTableRows<Record<string, any>>("sales", "inquiry"),
+      listTableRows<Record<string, any>>("identity", "user"),
+      listTableRows<Record<string, any>>("system", "request_assignment"),
+      listTableRows<Record<string, any>>("sales", "crm_contact"),
+    ]);
+    const request = inquiries.find((i) => i.id === id);
     if (!request) throw new Error(serverMessages.requestNotFound);
 
     const periodStart = new Date();
-    const periodEnd =
-      request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const periodEnd = request.slaDueDate
+      ? new Date(request.slaDueDate)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await assertAssigneeAvailable(newAssigneeId, periodStart, periodEnd);
 
-    const actor = await db.user.findUnique({
-      where: { id: actorId },
-      select: { fullName: true },
-    });
+    const actor = users.find((u) => u.id === actorId);
     const isFirstAssignment =
-      canTransitionRequest(request.workflowStatus, "assign") &&
+      canTransitionRequest(String(request.workflowStatus ?? ""), "assign") &&
       (!request.assignedToId ||
-        !canTransitionRequest(request.workflowStatus, "reassign"));
+        !canTransitionRequest(String(request.workflowStatus ?? ""), "reassign"));
     if (isFirstAssignment) {
       await assignRequest(id, {
         assignedToId: newAssigneeId,
@@ -178,41 +183,53 @@ export async function assignConsolidatedRequest(
       });
     }
 
-    await db.requestAssignment.updateMany({
-      where: { inquiryId: id, active: true },
-      data: { active: false },
+    for (const a of assignments) {
+      if (a.inquiryId === id && a.active) {
+        await upsertTableRow("system", "request_assignment", {
+          id: a.id,
+          active: false,
+        });
+      }
+    }
+    await upsertTableRow("system", "request_assignment", {
+      id: crypto.randomUUID(),
+      inquiryId: id,
+      assignedToId: newAssigneeId,
+      assignedById: actorId,
+      team: team || null,
+      reason: reason || (isFirstAssignment ? "Assigned" : "Reassigned"),
+      active: true,
     });
-    await db.requestAssignment.create({
-      data: {
-        inquiryId: id,
-        assignedToId: newAssigneeId,
-        assignedById: actorId,
-        team: team || null,
-        reason: reason || (isFirstAssignment ? "Assigned" : "Reassigned"),
-        active: true,
-      },
-    });
-    await db.requestEvent.create({
-      data: {
-        inquiryId: id,
-        actorId,
-        eventType: "assignment",
-        details: {
-          previousAssigneeId: request.assignedToId,
-          newAssigneeId,
-          team,
-          reason,
-        },
+    await upsertTableRow("system", "request_event", {
+      id: crypto.randomUUID(),
+      inquiryId: id,
+      actorId,
+      eventType: "assignment",
+      details: {
+        previousAssigneeId: request.assignedToId,
+        newAssigneeId,
+        team,
+        reason,
       },
     });
 
-    return db.inquiry.findUnique({
-      where: { id },
-      include: {
-        assignedTo: { select: { id: true, fullName: true, email: true } },
-        customer: true,
-      },
-    });
+    const refreshed = (await listTableRows<Record<string, any>>("sales", "inquiry")).find(
+      (i) => i.id === id,
+    );
+    if (!refreshed) return null;
+    const assignedTo = refreshed.assignedToId
+      ? users.find((u) => u.id === refreshed.assignedToId) ?? null
+      : null;
+    const customer = refreshed.customerId
+      ? contacts.find((c) => c.id === refreshed.customerId) ?? null
+      : null;
+    return {
+      ...refreshed,
+      assignedTo: assignedTo
+        ? { id: assignedTo.id, fullName: assignedTo.fullName, email: assignedTo.email }
+        : null,
+      customer,
+    };
   });
 }
 
@@ -225,36 +242,38 @@ export async function addRequestComment(
 ): Promise<any> {
   await assertActorNotOnLeave(authorId);
 
-  const comment = await db.$transaction(async (tx) => {
-    const c = await tx.requestComment.create({
-      data: {
-        inquiryId: id,
-        authorId,
-        body,
+  return runAtomicMutation(async () => {
+    const commentId = crypto.randomUUID();
+    const c = await upsertTableRow<Record<string, any>>("system", "request_comment", {
+      id: commentId,
+      inquiryId: id,
+      authorId,
+      body,
+      isClientVisible,
+      attachments: attachments || null,
+    });
+
+    await upsertTableRow("system", "request_event", {
+      id: crypto.randomUUID(),
+      inquiryId: id,
+      actorId: authorId,
+      eventType: "comment",
+      details: {
+        commentId,
         isClientVisible,
-        attachments: attachments || null,
-      },
-      include: {
-        author: { select: { id: true, fullName: true, email: true } },
       },
     });
 
-    await tx.requestEvent.create({
-      data: {
-        inquiryId: id,
-        actorId: authorId,
-        eventType: "comment",
-        details: {
-          commentId: c.id,
-          isClientVisible,
-        },
-      },
-    });
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const author = users.find((u) => u.id === authorId) ?? null;
 
-    return c;
+    return {
+      ...c,
+      author: author
+        ? { id: author.id, fullName: author.fullName, email: author.email }
+        : null,
+    };
   });
-
-  return comment;
 }
 
 export async function addRequestEvent(
@@ -263,92 +282,112 @@ export async function addRequestEvent(
   details: any,
   actorId?: string,
 ): Promise<any> {
-  return await db.requestEvent.create({
-    data: {
-      inquiryId,
-      actorId: actorId || null,
-      eventType,
-      details: details || {},
-    },
-    include: {
-      actor: { select: { id: true, fullName: true, email: true } },
-    },
+  const evt = await upsertTableRow<Record<string, any>>("system", "request_event", {
+    id: crypto.randomUUID(),
+    inquiryId,
+    actorId: actorId || null,
+    eventType,
+    details: details || {},
   });
+  let actor: any = null;
+  if (actorId) {
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const u = users.find((x) => x.id === actorId);
+    if (u) actor = { id: u.id, fullName: u.fullName, email: u.email };
+  }
+  return { ...evt, actor };
 }
 
-const consolidatedRequestInclude = {
-  customer: true,
-  assignedTo: { select: { id: true, fullName: true, email: true } },
+export type ConsolidatedRequest = Record<string, any> & {
   convertedDeal: {
-    select: { id: true, title: true, dealStage: true, dealValue: true },
-  },
+    id: string;
+    title: string;
+    dealStage: string;
+    dealValue: number;
+  } | null;
   quotations: {
-    select: {
-      id: true,
-      quotationNumber: true,
-      totalAmount: true,
-      currency: true,
-      status: true,
-    },
-    orderBy: { createdAt: "desc" },
-  },
-  requestEvents: {
-    include: { actor: { select: { id: true, fullName: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-  },
-  assignments: {
-    include: {
-      assignedTo: { select: { id: true, fullName: true, email: true } },
-      assignedBy: { select: { id: true, fullName: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  },
-  comments: {
-    include: { author: { select: { id: true, fullName: true, email: true } } },
-    orderBy: { createdAt: "asc" },
-  },
-} satisfies Database.InquiryInclude;
-
-type RawConsolidatedRequest = Database.InquiryGetPayload<{
-  include: typeof consolidatedRequestInclude;
-}>;
-
-export type ConsolidatedRequest = Omit<
-  RawConsolidatedRequest,
-  "convertedDeal" | "quotations"
-> & {
-  convertedDeal:
-    | (Omit<
-        NonNullable<RawConsolidatedRequest["convertedDeal"]>,
-        "dealValue"
-      > & { dealValue: number })
-    | null;
-  quotations: (Omit<
-    RawConsolidatedRequest["quotations"][number],
-    "totalAmount"
-  > & { totalAmount: number })[];
+    id: string;
+    quotationNumber: string;
+    totalAmount: number;
+    currency: string;
+    status: string;
+  }[];
 };
 
 export async function getConsolidatedRequestById(
   id: string,
 ): Promise<ConsolidatedRequest | null> {
-  const request = await db.inquiry.findUnique({
-    where: { id },
-    include: consolidatedRequestInclude,
-  });
+  const [inquiries, contacts, users, deals, quotations, events, assignments, comments] =
+    await Promise.all([
+      listTableRows<Record<string, any>>("sales", "inquiry"),
+      listTableRows<Record<string, any>>("sales", "crm_contact"),
+      listTableRows<Record<string, any>>("identity", "user"),
+      listTableRows<Record<string, any>>("sales", "crm_deal"),
+      listTableRows<Record<string, any>>("sales", "quotation", "created_at DESC"),
+      listTableRows<Record<string, any>>("system", "request_event", "created_at DESC"),
+      listTableRows<Record<string, any>>("system", "request_assignment", "created_at DESC"),
+      listTableRows<Record<string, any>>("system", "request_comment", "created_at ASC"),
+    ]);
+
+  const request = inquiries.find((i) => i.id === id);
   if (!request) return null;
+
+  const userSummary = (uid: string | null | undefined) => {
+    if (!uid) return null;
+    const u = users.find((x) => x.id === uid);
+    return u ? { id: String(u.id), fullName: String(u.fullName ?? ""), email: String(u.email ?? "") } : null;
+  };
+
+  const deal = request.convertedDealId
+    ? deals.find((d) => d.id === request.convertedDealId)
+    : deals.find((d) => d.inquiryId === id);
+
+  const reqQuotations = quotations
+    .filter((q) => q.inquiryId === id)
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .map((q) => ({
+      id: String(q.id),
+      quotationNumber: String(q.quotationNumber ?? ""),
+      totalAmount: Number(q.totalAmount ?? 0),
+      currency: String(q.currency ?? "BHD"),
+      status: String(q.status ?? "draft"),
+    }));
+
+  const requestEvents = events
+    .filter((e) => e.inquiryId === id)
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .map((e) => ({ ...e, actor: userSummary(e.actorId) }));
+
+  const reqAssignments = assignments
+    .filter((a) => a.inquiryId === id)
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .map((a) => ({
+      ...a,
+      assignedTo: userSummary(a.assignedToId),
+      assignedBy: userSummary(a.assignedById),
+    }));
+
+  const reqComments = comments
+    .filter((c) => c.inquiryId === id)
+    .sort((a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime())
+    .map((c) => ({ ...c, author: userSummary(c.authorId) }));
+
   return {
     ...request,
-    convertedDeal: request.convertedDeal
+    customer: request.customerId ? (contacts.find((c) => c.id === request.customerId) ?? null) : null,
+    assignedTo: userSummary(request.assignedToId),
+    convertedDeal: deal
       ? {
-          ...request.convertedDeal,
-          dealValue: Number(request.convertedDeal.dealValue),
+          id: String(deal.id),
+          title: String(deal.title ?? ""),
+          dealStage: String(deal.dealStage ?? ""),
+          dealValue: Number(deal.dealValue ?? 0),
         }
       : null,
-    quotations: request.quotations.map((quotation) => ({
-      ...quotation,
-      totalAmount: Number(quotation.totalAmount),
-    })),
+    quotations: reqQuotations,
+    requestEvents,
+    assignments: reqAssignments,
+    comments: reqComments,
   };
 }
 
@@ -385,71 +424,31 @@ export interface RequestListRow {
   createdAt: string;
 }
 
-const kindWhere = (kind: RequestKind): Database.InquiryWhereInput =>
-  kind === "service"
-    ? { requestType: "SR" }
-    : kind === "feedback"
-      ? {
-          OR: [
-            { requestType: "CR" },
-            { intent: { in: ["complaint", "suggestion"] } },
-          ],
-        }
-      : kind === "quote"
-        ? {
-            requestType: { notIn: ["SR", "CR"] },
-            OR: [{ requestType: "quote_request" }, { intent: "quote_request" }],
-          }
-        : {
-            requestType: { notIn: ["SR", "CR", "quote_request"] },
-            intent: "inquiry",
-          };
+function matchesKind(r: Record<string, any>, kind: RequestKind): boolean {
+  const rt = String(r.requestType ?? "");
+  const intent = String(r.intent ?? "");
+  if (kind === "service") return rt === "SR";
+  if (kind === "feedback")
+    return rt === "CR" || intent === "complaint" || intent === "suggestion";
+  if (kind === "quote")
+    return rt !== "SR" && rt !== "CR" && (rt === "quote_request" || intent === "quote_request");
+  return rt !== "SR" && rt !== "CR" && rt !== "quote_request" && intent === "inquiry";
+}
 
-function requestWhere(
+function filterInquiries(
+  rows: Record<string, any>[],
   filters: RequestListFilters,
   viewerId: string,
   visible?: string[] | null,
-): Database.InquiryWhereInput {
-  const now = new Date();
-  const open: Database.InquiryWhereInput = {
-    workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
-  };
-  const and: Database.InquiryWhereInput[] = [];
-  if (visible) and.push({ assignedToId: { in: visible } });
-  if (filters.kind && filters.kind !== "all") and.push(kindWhere(filters.kind));
-  const status = filters.status || "open";
-  if (status === "open") and.push(open);
-  else if (status !== "all") and.push({ workflowStatus: status });
-  if (filters.scope === "mine") and.push({ assignedToId: viewerId });
-  if (filters.scope === "unassigned") and.push({ assignedToId: null });
-  if (filters.team && filters.team !== "all") and.push({ team: filters.team });
-  if (filters.priority && filters.priority !== "all")
-    and.push({ priority: filters.priority });
+  now = new Date(),
+) {
+  const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  const visibleSet = visible ? new Set(visible) : null;
   const due = filters.overdue ? "overdue" : filters.due;
-  if (due === "overdue") and.push(open, { slaDueDate: { lt: now } });
-  if (due === "today") {
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    and.push(open, { slaDueDate: { gte: now, lte: end } });
-  }
-  if (due === "week")
-    and.push(open, {
-      slaDueDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) },
-    });
-  if (due === "none") and.push({ slaDueDate: null });
-  if (
-    filters.assignee &&
-    filters.assignee !== "all" &&
-    filters.assignee.length <= 150
-  )
-    and.push({ assignedToId: filters.assignee });
-  if (
-    filters.source &&
-    (REQUEST_SOURCES as readonly string[]).includes(filters.source)
-  )
-    and.push({ source: filters.source });
-  if (filters.customerId && filters.customerId.length <= 150)
-    and.push({ customerId: filters.customerId });
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+  const weekEnd = new Date(now.getTime() + 7 * 86400000);
+
   const day = (value: string | undefined, end = false) =>
     value &&
     /^\d{4}-\d{2}-\d{2}$/.test(value) &&
@@ -458,130 +457,109 @@ function requestWhere(
       : null;
   const from = day(filters.from);
   const to = day(filters.to, true);
-  if (from || to)
-    and.push({
-      createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) },
-    });
-  if (filters.search?.trim()) {
-    const term = filters.search.trim().slice(0, 200);
-    and.push({
-      OR: [
-        "name",
-        "email",
-        "companyName",
-        "message",
-        "reference",
-        "serviceType",
-      ].map((field) => ({
-        [field]: { contains: term, mode: "insensitive" as const },
-      })),
-    });
-  }
-  return and.length ? { AND: and } : {};
-}
+  const term = filters.search?.trim().slice(0, 200).toLowerCase() ?? "";
 
-const REQUEST_ORDER: Record<
-  Exclude<RequestSort, "priority">,
-  Database.InquiryOrderByWithRelationInput[]
-> = {
-  urgency: [
-    { slaDueDate: { sort: "asc", nulls: "last" } },
-    { createdAt: "desc" },
-    { id: "desc" },
-  ],
-  newest: [{ createdAt: "desc" }, { id: "desc" }],
-  oldest: [{ createdAt: "asc" }, { id: "asc" }],
-  sla_asc: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { id: "asc" }],
-  sla_desc: [{ slaDueDate: { sort: "desc", nulls: "last" } }, { id: "asc" }],
-  customer_asc: [
-    { companyName: { sort: "asc", nulls: "last" } },
-    { name: "asc" },
-    { id: "asc" },
-  ],
-};
+  return rows.filter((r) => {
+    if (visibleSet && (!r.assignedToId || !visibleSet.has(String(r.assignedToId)))) return false;
+    if (filters.kind && filters.kind !== "all" && !matchesKind(r, filters.kind)) return false;
+    const status = filters.status || "open";
+    const isOpen = !closed.has(String(r.workflowStatus ?? ""));
+    if (status === "open" && !isOpen) return false;
+    if (status !== "open" && status !== "all" && r.workflowStatus !== status) return false;
+    if (filters.scope === "mine" && r.assignedToId !== viewerId) return false;
+    if (filters.scope === "unassigned" && r.assignedToId != null) return false;
+    if (filters.team && filters.team !== "all" && r.team !== filters.team) return false;
+    if (filters.priority && filters.priority !== "all" && r.priority !== filters.priority) return false;
 
-const listSelect = {
-  id: true,
-  reference: true,
-  requestType: true,
-  intent: true,
-  serviceType: true,
-  message: true,
-  name: true,
-  companyName: true,
-  source: true,
-  priority: true,
-  workflowStatus: true,
-  team: true,
-  slaDueDate: true,
-  createdAt: true,
-  assignedTo: { select: { fullName: true } },
-} satisfies Database.InquirySelect;
-type ListRecord = Database.InquiryGetPayload<{ select: typeof listSelect }>;
+    const slaDate = r.slaDueDate ? new Date(r.slaDueDate) : null;
+    if (due === "overdue" && !(isOpen && slaDate && slaDate < now)) return false;
+    if (due === "today" && !(isOpen && slaDate && slaDate >= now && slaDate <= endOfToday)) return false;
+    if (due === "week" && !(isOpen && slaDate && slaDate >= now && slaDate <= weekEnd)) return false;
+    if (due === "none" && r.slaDueDate != null) return false;
 
-async function requestPage(
-  where: Database.InquiryWhereInput,
-  sort: RequestSort,
-  skip: number,
-  take: number,
-): Promise<ListRecord[]> {
-  if (sort !== "priority")
-    return db.inquiry.findMany({
-      where,
-      select: listSelect,
-      orderBy: REQUEST_ORDER[sort],
-      skip,
-      take,
-    });
-  const buckets = ["urgent", "high", "normal"];
-  const rest: Database.InquiryWhereInput = { priority: { notIn: buckets } };
-  const groups = [...buckets.map((priority) => ({ priority })), rest];
-  const counted = await db.inquiry.groupBy({ by: ["priority"], where, _count: { _all: true } });
-  const sizes = buckets.map((priority) => counted.find((row) => row.priority === priority)?._count._all ?? 0);
-  sizes.push(counted.filter((row) => !buckets.includes(row.priority as string)).reduce((sum, row) => sum + row._count._all, 0));
-  const rows: ListRecord[] = [];
-  for (let index = 0; index < groups.length; index++) {
-    if (rows.length >= take) break;
-    const group = groups[index];
-    const bucket: Database.InquiryWhereInput = { AND: [where, group] };
-    const count = sizes[index];
-    if (skip >= count) {
-      skip -= count;
-      continue;
+    if (filters.assignee && filters.assignee !== "all" && filters.assignee.length <= 150) {
+      if (r.assignedToId !== filters.assignee) return false;
     }
-    rows.push(
-      ...(await db.inquiry.findMany({
-        where: bucket,
-        select: listSelect,
-        orderBy: REQUEST_ORDER.urgency,
-        skip,
-        take: take - rows.length,
-      })),
-    );
-    skip = 0;
-  }
-  return rows;
+    if (filters.source && (REQUEST_SOURCES as readonly string[]).includes(filters.source)) {
+      if (r.source !== filters.source) return false;
+    }
+    if (filters.customerId && filters.customerId.length <= 150) {
+      if (r.customerId !== filters.customerId) return false;
+    }
+    if (from || to) {
+      const cr = r.createdAt ? new Date(r.createdAt) : null;
+      if (!cr) return false;
+      if (from && cr < from) return false;
+      if (to && cr > to) return false;
+    }
+    if (term) {
+      const fields = [r.name, r.email, r.companyName, r.message, r.reference, r.serviceType];
+      if (!fields.some((f) => f && String(f).toLowerCase().includes(term))) return false;
+    }
+    return true;
+  });
 }
 
-function toRow(r: ListRecord, now: Date): RequestListRow {
+function sortInquiries(rows: Record<string, any>[], sort: RequestSort) {
+  const priorityRank = (p: string) =>
+    p === "urgent" ? 0 : p === "high" ? 1 : p === "normal" ? 2 : 3;
+  const slaMs = (r: Record<string, any>, fallback: number) =>
+    r.slaDueDate ? new Date(r.slaDueDate).getTime() : fallback;
+  const crMs = (r: Record<string, any>) =>
+    r.createdAt ? new Date(r.createdAt).getTime() : 0;
+
+  const copy = [...rows];
+  copy.sort((a, b) => {
+    if (sort === "priority") {
+      const pr = priorityRank(String(a.priority ?? "")) - priorityRank(String(b.priority ?? ""));
+      if (pr !== 0) return pr;
+    }
+    if (sort === "priority" || sort === "urgency") {
+      const sDiff = slaMs(a, Infinity) - slaMs(b, Infinity);
+      if (sDiff !== 0) return sDiff;
+      const cDiff = crMs(b) - crMs(a);
+      if (cDiff !== 0) return cDiff;
+      return String(b.id).localeCompare(String(a.id));
+    }
+    if (sort === "newest") return crMs(b) - crMs(a) || String(b.id).localeCompare(String(a.id));
+    if (sort === "oldest") return crMs(a) - crMs(b) || String(a.id).localeCompare(String(b.id));
+    if (sort === "sla_asc") return slaMs(a, Infinity) - slaMs(b, Infinity) || String(a.id).localeCompare(String(b.id));
+    if (sort === "sla_desc") return slaMs(b, -Infinity) - slaMs(a, -Infinity) || String(a.id).localeCompare(String(b.id));
+    if (sort === "customer_asc") {
+      const ac = String(a.companyName ?? "\uffff").localeCompare(String(b.companyName ?? "\uffff"));
+      if (ac !== 0) return ac;
+      const an = String(a.name ?? "").localeCompare(String(b.name ?? ""));
+      if (an !== 0) return an;
+      return String(a.id).localeCompare(String(b.id));
+    }
+    return 0;
+  });
+  return copy;
+}
+
+function toRow(
+  r: Record<string, any>,
+  userById: Map<string, string>,
+  now: Date,
+): RequestListRow {
   const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  const msg = String(r.message ?? "");
+  const slaDate = r.slaDueDate ? new Date(r.slaDueDate) : null;
+  const createdDate = r.createdAt ? new Date(r.createdAt) : now;
   return {
-    id: r.id,
-    reference: r.reference,
-    kind: requestKindOf(r),
-    title:
-      r.serviceType ||
-      (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
-    customer: r.companyName || r.name,
-    priority: r.priority,
-    workflowStatus: r.workflowStatus,
-    team: r.team,
-    source: r.source,
-    assignee: r.assignedTo?.fullName ?? null,
-    slaDueDate: r.slaDueDate?.toISOString() ?? null,
-    overdue:
-      !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
-    createdAt: r.createdAt.toISOString(),
+    id: String(r.id),
+    reference: String(r.reference ?? ""),
+    kind: requestKindOf(r as any),
+    title: r.serviceType || (msg.length > 80 ? msg.slice(0, 80) + "…" : msg),
+    customer: String(r.companyName || r.name || ""),
+    priority: String(r.priority ?? "normal"),
+    workflowStatus: String(r.workflowStatus ?? "received"),
+    team: r.team ?? null,
+    source: String(r.source ?? ""),
+    assignee: r.assignedToId ? (userById.get(String(r.assignedToId)) ?? null) : null,
+    slaDueDate: slaDate ? slaDate.toISOString() : null,
+    overdue: !!slaDate && slaDate < now && !closed.has(String(r.workflowStatus ?? "")),
+    createdAt: createdDate.toISOString(),
   };
 }
 
@@ -591,17 +569,17 @@ export async function getRequestExportBatch(
   batch: { after?: string; batchSize: number },
   visible?: string[] | null,
 ) {
-  const where = requestWhere(filters, viewerId, visible);
-  const rows = await db.inquiry.findMany({
-    where: {
-      AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])],
-    },
-    select: listSelect,
-    orderBy: { id: "asc" },
-    take: Math.min(500, batch.batchSize),
-  });
+  const [inquiries, users] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "inquiry"),
+    listTableRows<Record<string, any>>("identity", "user"),
+  ]);
   const now = new Date();
-  return rows.map((r) => toRow(r, now));
+  const userById = new Map(users.map((u) => [String(u.id), String(u.fullName ?? "")]));
+  const rows = filterInquiries(inquiries, filters, viewerId, visible, now)
+    .filter((r) => !batch.after || String(r.id) > batch.after)
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+    .slice(0, Math.min(500, batch.batchSize));
+  return rows.map((r) => toRow(r, userById, now));
 }
 
 export async function getRequestList(
@@ -611,14 +589,6 @@ export async function getRequestList(
   visible?: string[] | null,
 ) {
   const now = new Date();
-  const scope: Database.InquiryWhereInput = visible
-    ? { assignedToId: { in: visible } }
-    : {};
-  const open: Database.InquiryWhereInput = {
-    ...scope,
-    workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
-  };
-  const where = requestWhere(filters, viewerId, visible);
   const sort: RequestSort = (REQUEST_SORTS as readonly string[]).includes(
     filters.sort ?? "",
   )
@@ -629,49 +599,42 @@ export async function getRequestList(
   const monthStart = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
   );
-  const [
-    rows,
-    total,
-    openCount,
-    overdueCount,
-    unassignedCount,
-    awaitingApproval,
-    mineCount,
-    resolvedThisMonth,
-  ] = await runAtomicMutation(
-    () =>
-      Promise.all([
-        requestPage(where, sort, (safePage - 1) * 50, 50),
-        db.inquiry.count({ where }),
-        db.inquiry.count({ where: open }),
-        db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
-        db.inquiry.count({ where: { ...open, assignedToId: null } }),
-        db.inquiry.count({
-          where: { ...scope, workflowStatus: "pending_approval" },
-        }),
-        db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
-        db.inquiry.count({
-          where: {
-            ...scope,
-            workflowStatus: "resolved",
-            resolvedAt: { gte: monthStart },
-          },
-        }),
-      ]),
-  );
+
+  const [inquiries, users] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "inquiry"),
+    listTableRows<Record<string, any>>("identity", "user"),
+  ]);
+  const userById = new Map(users.map((u) => [String(u.id), String(u.fullName ?? "")]));
+
+  const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  const visibleSet = visible ? new Set(visible) : null;
+  const scoped = visibleSet
+    ? inquiries.filter((r) => r.assignedToId && visibleSet.has(String(r.assignedToId)))
+    : inquiries;
+  const openRows = scoped.filter((r) => !closed.has(String(r.workflowStatus ?? "")));
+
+  const filtered = filterInquiries(inquiries, filters, viewerId, visible, now);
+  const sorted = sortInquiries(filtered, sort);
+  const pageRows = sorted.slice((safePage - 1) * 50, safePage * 50);
+
   return {
     page: safePage,
     pageSize: 50,
-    total,
+    total: filtered.length,
     sort,
     stats: {
-      open: openCount,
-      overdue: overdueCount,
-      unassigned: unassignedCount,
-      awaitingApproval,
-      mine: mineCount,
-      resolvedThisMonth,
+      open: openRows.length,
+      overdue: openRows.filter((r) => r.slaDueDate && new Date(r.slaDueDate) < now).length,
+      unassigned: openRows.filter((r) => r.assignedToId == null).length,
+      awaitingApproval: scoped.filter((r) => r.workflowStatus === "pending_approval").length,
+      mine: openRows.filter((r) => r.assignedToId === viewerId).length,
+      resolvedThisMonth: scoped.filter(
+        (r) =>
+          r.workflowStatus === "resolved" &&
+          r.resolvedAt &&
+          new Date(r.resolvedAt) >= monthStart,
+      ).length,
     },
-    items: rows.map((r) => toRow(r, now)),
+    items: pageRows.map((r) => toRow(r, userById, now)),
   };
 }

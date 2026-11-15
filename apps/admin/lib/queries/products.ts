@@ -286,5 +286,6 @@ export async function saveProductCategory(input: ProductCategoryInput) {
 }
 
 export async function deleteProductCategory(id: string) {
-  throw new Error("deleteProductCategory is not implemented in API");
+  const { deleteCategoryApi } = await import("../api/inventory");
+  await deleteCategoryApi(id);
 }

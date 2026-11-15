@@ -1,5 +1,6 @@
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 
 export interface TaxRateRecord {
@@ -54,27 +55,37 @@ function slug(text: string) {
 }
 
 export async function listTaxRates(): Promise<TaxRateRecord[]> {
-  const rows =
-    (await db.taxRate.findMany({
-      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-      include: { _count: { select: { documentTaxes: true } } },
-    })) || [];
-  return rows.map((r: any) => ({
-    id: r.id,
-    code: r.code,
-    name_en: r.nameEn,
-    name_ar: r.nameAr,
-    rate: Number(r.ratePercent),
-    registration_number: r.registrationNumber ?? undefined,
-    certificate_url: r.certificateUrl ?? undefined,
-    certificate_valid_until: r.certificateValidUntil
-      ?.toISOString()
-      .slice(0, 10),
-    applies_to_invoices: r.appliesToInvoices,
-    applies_to_quotations: r.appliesToQuotations,
-    is_active: r.isActive,
-    documents: r._count?.documentTaxes ?? 0,
-  }));
+  const [rows, docTaxes] = await Promise.all([
+    listTableRows<any>("finance", "tax_rate").catch(() => []),
+    listTableRows<any>("finance", "document_tax").catch(() => []),
+  ]);
+  const counts = new Map<string, number>();
+  for (const dt of docTaxes) {
+    if (dt.taxRateId) counts.set(dt.taxRateId, (counts.get(dt.taxRateId) ?? 0) + 1);
+  }
+  return rows
+    .sort((a, b) => {
+      const ord = Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0);
+      return ord !== 0
+        ? ord
+        : String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? ""));
+    })
+    .map((r: any) => ({
+      id: r.id,
+      code: r.code,
+      name_en: r.nameEn,
+      name_ar: r.nameAr,
+      rate: Number(r.ratePercent),
+      registration_number: r.registrationNumber ?? undefined,
+      certificate_url: r.certificateUrl ?? undefined,
+      certificate_valid_until: r.certificateValidUntil
+        ? String(r.certificateValidUntil).slice(0, 10)
+        : undefined,
+      applies_to_invoices: Boolean(r.appliesToInvoices),
+      applies_to_quotations: Boolean(r.appliesToQuotations),
+      is_active: Boolean(r.isActive),
+      documents: counts.get(r.id) ?? 0,
+    }));
 }
 
 export async function saveTaxRate(input: TaxRateInput) {
@@ -98,40 +109,37 @@ export async function saveTaxRate(input: TaxRateInput) {
     ratePercent: rate,
     registrationNumber: input.registration_number?.trim().slice(0, 60) || null,
     certificateUrl: input.certificate_url?.trim() || null,
-    certificateValidUntil: validUntil
-      ? new Date(`${validUntil}T00:00:00Z`)
-      : null,
+    certificateValidUntil: validUntil ? `${validUntil}T00:00:00.000Z` : null,
     appliesToInvoices: !!input.applies_to_invoices,
     appliesToQuotations: !!input.applies_to_quotations,
     isActive: !!input.is_active,
   };
   return runAtomicMutation(async () => {
+    const rows = await listTableRows<any>("finance", "tax_rate");
     if (input.id) {
-      const existing = await db.taxRate.findUnique({
-        where: { id: input.id },
-        select: { id: true },
-      });
+      const existing = rows.find((r) => r.id === input.id);
       if (!existing) throw new Error(serverMessages.taxNotFound);
-      return db.taxRate.update({ where: { id: input.id }, data });
+      return upsertTableRow("finance", "tax_rate", { ...existing, ...data });
     }
     const base = slug(nameEn) === VAT_TAX_CODE ? "tax" : slug(nameEn);
+    const usedCodes = new Set(rows.map((r) => r.code));
     let code = base;
-    for (
-      let n = 2;
-      await db.taxRate.findUnique({ where: { code }, select: { id: true } });
-      n++
-    )
-      code = `${base}-${n}`;
-    const order = await db.taxRate.count();
-    return db.taxRate.create({ data: { ...data, code, displayOrder: order } });
+    for (let n = 2; usedCodes.has(code); n++) code = `${base}-${n}`;
+    return upsertTableRow("finance", "tax_rate", {
+      id: crypto.randomUUID(),
+      ...data,
+      code,
+      displayOrder: rows.length,
+    });
   });
 }
 
 export async function deleteTaxRate(id: string) {
   return runAtomicMutation(async () => {
-    const used = await db.documentTax.count({ where: { taxRateId: id } });
+    const docTaxes = await listTableRows<any>("finance", "document_tax");
+    const used = docTaxes.some((d) => d.taxRateId === id);
     if (used) throw new Error(serverMessages.thisTaxIsOnExistingDocuments);
-    await db.taxRate.delete({ where: { id } });
+    await deleteTableRow("finance", "tax_rate", id);
   });
 }
 
@@ -152,7 +160,8 @@ export async function getTaxCertificate(
     };
   }
   if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(code)) return null;
-  const tax = await db.taxRate.findUnique({ where: { code } });
+  const rows = await listTableRows<any>("finance", "tax_rate");
+  const tax = rows.find((r) => r.code === code);
   if (!tax) return null;
   return {
     code,
@@ -160,23 +169,28 @@ export async function getTaxCertificate(
     nameAr: tax.nameAr,
     registrationNumber: tax.registrationNumber,
     certificateUrl: tax.certificateUrl,
-    validUntil: tax.certificateValidUntil?.toISOString().slice(0, 10) ?? null,
-    active: tax.isActive,
+    validUntil: tax.certificateValidUntil
+      ? String(tax.certificateValidUntil).slice(0, 10)
+      : null,
+    active: Boolean(tax.isActive),
   };
 }
 
 export async function getActiveTaxSummary() {
-  const rows =
-    (await db.taxRate.findMany({
-      where: { isActive: true },
-      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-    })) || [];
+  const rows = (await listTableRows<any>("finance", "tax_rate").catch(() => []))
+    .filter((r) => r.isActive)
+    .sort((a, b) => {
+      const ord = Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0);
+      return ord !== 0
+        ? ord
+        : String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? ""));
+    });
   return rows.map((r: any) => ({
     code: r.code,
     name_en: r.nameEn,
     name_ar: r.nameAr,
     rate: Number(r.ratePercent),
-    invoices: r.appliesToInvoices,
-    quotations: r.appliesToQuotations,
+    invoices: Boolean(r.appliesToInvoices),
+    quotations: Boolean(r.appliesToQuotations),
   }));
 }

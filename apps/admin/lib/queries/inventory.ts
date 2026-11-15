@@ -227,7 +227,9 @@ export async function saveWarehouse(input: WarehouseInput) {
     isDefault: input.isDefault,
   };
   if (input.id) {
-    throw new Error("updateWarehouse is not implemented in API");
+    const { updateWarehouseApi } = await import("../api/inventory");
+    await updateWarehouseApi(input.id, data as any);
+    return { id: input.id, ...data };
   }
   return createWarehouse(data);
 }
@@ -250,7 +252,9 @@ export async function saveLocation(input: LocationInput) {
     isActive: input.isActive,
   };
   if (input.id) {
-    throw new Error("updateLocation is not implemented in API");
+    const { updateLocationApi } = await import("../api/inventory");
+    await updateLocationApi(input.id, data as any);
+    return { id: input.id, ...data };
   }
   return createLocation(input.warehouseId, data as any);
 }
@@ -365,7 +369,14 @@ export async function setReorderPoint(
   reorderPoint: number | null,
   reorderQuantity: number | null,
 ) {
-  throw new Error("setReorderPoint is not implemented in API");
+  const { setReorderPointApi } = await import("../api/inventory");
+  await setReorderPointApi({
+    productId,
+    variantId: variantKey || null,
+    locationId: null,
+    reorderPoint,
+    reorderQuantity,
+  });
 }
 
 export interface StockCountInput {
@@ -389,8 +400,9 @@ export async function createStockCount(
   });
 }
 
-export async function getStockCount(id: string, actorId?: string): Promise<any> {
-  throw new Error("getStockCount is not implemented in API");
+export async function getStockCount(id: string, _actorId?: string): Promise<any> {
+  const { getStockCountApi } = await import("../api/inventory");
+  return getStockCountApi(id);
 }
 
 export async function listStockCounts(actorId?: string): Promise<any> {
@@ -401,14 +413,19 @@ export async function recordCountedQuantities(
   countId: string,
   entries: { lineId: string; counted: string; note?: string }[],
 ): Promise<any> {
-  throw new Error("recordCountedQuantities is not implemented in API");
+  const { recordCountedQuantitiesApi } = await import("../api/inventory");
+  await recordCountedQuantitiesApi(
+    countId,
+    entries.map((e) => ({ lineId: e.lineId, counted: Number(e.counted) || 0, note: e.note })),
+  );
 }
 
 export async function addCountLine(
   countId: string,
   input: { productId: string; variantId?: string; locationId: string },
 ): Promise<{ id: string; [key: string]: any }> {
-  throw new Error("addCountLine is not implemented in API");
+  const { addCountLineApi } = await import("../api/inventory");
+  return addCountLineApi(countId, input);
 }
 
 export async function findByCode(code: string) {
@@ -429,20 +446,31 @@ export async function setStockCountStatus(
   countId: string,
   status: "review" | "counting" | "cancelled",
 ): Promise<any> {
-  throw new Error("setStockCountStatus is not implemented in API");
+  const { setStockCountStatusApi } = await import("../api/inventory");
+  await setStockCountStatusApi(countId, status);
 }
 
 export async function approveStockCount(
   countId: string,
   userId: string | null,
 ): Promise<{ low: any[]; adjusted: number; [key: string]: any }> {
-  throw new Error("approveStockCount is not implemented in API");
+  const { approveStockCountApi } = await import("../api/inventory");
+  return approveStockCountApi(countId, userId);
 }
 
-export async function listMovements(query: any = {}, actorId?: string) {
-  return { rows: [], total: 0 };
+export async function listMovements(query: any = {}, _actorId?: string) {
+  const { listMovementsApi } = await import("../api/inventory");
+  const rows = await listMovementsApi().catch(() => []);
+  const filtered = rows.filter((r: any) => {
+    if (query?.productId && r.productId !== query.productId) return false;
+    if (query?.warehouseId && r.warehouseId !== query.warehouseId) return false;
+    if (query?.type && r.kind !== query.type) return false;
+    return true;
+  });
+  return { rows: filtered, total: filtered.length };
 }
 
-export async function expiringBatches(days = 30, actorId?: string) {
-  return [];
+export async function expiringBatches(days = 30, _actorId?: string) {
+  const { listExpiringBatchesApi } = await import("../api/inventory");
+  return listExpiringBatchesApi(days).catch(() => []);
 }

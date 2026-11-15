@@ -1,8 +1,8 @@
 import { validMoneyAmount } from "../finance/money";
 import { companyCurrency as getAccountingCurrency, assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import { getNextSequenceNumber } from "./sequence";
 import { validateSignatureImage } from "../services/signature-image";
@@ -150,8 +150,8 @@ export interface HandoverSignature {
   signer_name: string;
 }
 
-const iso = (d: Date | null | undefined) =>
-  d ? d.toISOString().slice(0, 10) : undefined;
+const iso = (d: Date | string | null | undefined) =>
+  d ? new Date(d).toISOString().slice(0, 10) : undefined;
 const clean = (v: unknown, max = 200) =>
   typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
 const slug = (text: string) =>
@@ -186,11 +186,15 @@ export async function listAssetCategories(
   includeInactive = true,
 ): Promise<AssetCategoryRecord[]> {
   try {
-    const rows = await db.assetCategory.findMany({
-      where: includeInactive ? {} : { isActive: true },
-      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-      include: { _count: { select: { assets: true } } },
-    });
+    const [allRows, allAssets] = await Promise.all([
+      listTableRows<any>("itsm", "asset_category", "display_order ASC, created_at ASC"),
+      listTableRows<any>("itsm", "asset").catch(() => []),
+    ]);
+    const rows = includeInactive ? allRows : allRows.filter((r) => r.isActive);
+    const assetCountByCat = new Map<string, number>();
+    for (const a of allAssets) {
+      assetCountByCat.set(a.categoryId, (assetCountByCat.get(a.categoryId) ?? 0) + 1);
+    }
     if (rows && rows.length > 0) {
       return rows.map((r) => ({
         id: r.id,
@@ -199,8 +203,8 @@ export async function listAssetCategories(
         name_ar: r.nameAr,
         spec_fields: asSpecFields(r.specFields),
         checklist: asChecklist(r.checklist),
-        is_active: r.isActive,
-        assets: r._count.assets,
+        is_active: !!r.isActive,
+        assets: assetCountByCat.get(r.id) ?? 0,
       }));
     }
   } catch (err) {
@@ -282,64 +286,47 @@ export async function saveAssetCategory(
   const data = {
     nameEn,
     nameAr,
-    specFields: specFields as unknown as Database.InputJsonValue,
-    checklist: checklist as unknown as Database.InputJsonValue,
+    specFields,
+    checklist,
     isActive: !!input.is_active,
   };
-  if (id) return db.assetCategory.update({ where: { id }, data });
+  const existingCats = await listTableRows<any>("itsm", "asset_category");
+  if (id) {
+    const existing = existingCats.find((c) => c.id === id);
+    return upsertTableRow("itsm", "asset_category", { ...existing, id, ...data });
+  }
   let code = slug(nameEn) || "category";
-  for (
-    let n = 2;
-    await db.assetCategory.findUnique({
-      where: { code },
-      select: { id: true },
-    });
-    n++
-  )
-    code = `${slug(nameEn)}_${n}`;
-  return db.assetCategory.create({
-    data: { ...data, code, displayOrder: await db.assetCategory.count() },
+  const codes = new Set(existingCats.map((c) => c.code));
+  for (let n = 2; codes.has(code); n++) code = `${slug(nameEn)}_${n}`;
+  return upsertTableRow("itsm", "asset_category", {
+    id: crypto.randomUUID(),
+    ...data,
+    code,
+    displayOrder: existingCats.length,
   });
 }
 
-const assetInclude = {
-  category: true,
-  holder: {
-    select: {
-      id: true,
-      employeeNumber: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      firstNameAr: true,
-      lastNameAr: true,
-    },
-  },
-  handovers: {
-    where: { status: { in: ["awaiting_employee", "pending_approval"] } },
-    select: { id: true, reference: true, kind: true, status: true },
-    take: 1,
-  },
-} satisfies Database.AssetInclude;
-type AssetRow = Database.AssetGetPayload<{ include: typeof assetInclude }>;
+type AssetRow = Record<string, any>;
 
 function mapAsset(a: AssetRow): AssetRecord {
+  const cat = a.category || { id: a.categoryId || "general", code: "general", nameEn: "General", nameAr: "عام", specFields: [], checklist: [] };
   return {
     id: a.id,
     asset_tag: a.assetTag,
     category: {
-      id: a.category.id,
-      code: a.category.code,
-      name_en: a.category.nameEn,
-      name_ar: a.category.nameAr,
-      spec_fields: asSpecFields(a.category.specFields),
-      checklist: asChecklist(a.category.checklist),
+      id: cat.id,
+      code: cat.code,
+      name_en: cat.nameEn,
+      name_ar: cat.nameAr,
+      spec_fields: asSpecFields(cat.specFields),
+      checklist: asChecklist(cat.checklist),
     },
     name: a.name,
     brand: a.brand ?? undefined,
     model: a.model ?? undefined,
     serial_number: a.serialNumber ?? undefined,
     purchase_date: iso(a.purchaseDate),
-    purchase_cost: a.purchaseCost === null ? undefined : Number(a.purchaseCost),
+    purchase_cost: a.purchaseCost === null || a.purchaseCost === undefined ? undefined : Number(a.purchaseCost),
     currency: a.currency,
     supplier: a.supplier ?? undefined,
     invoice_reference: a.invoiceReference ?? undefined,
@@ -356,8 +343,8 @@ function mapAsset(a: AssetRow): AssetRecord {
           ...name(a.holder),
         }
       : undefined,
-    open_handover: a.handovers[0] ? { ...a.handovers[0] } : undefined,
-    created_at: a.createdAt.toISOString(),
+    open_handover: a.handovers?.[0] ? { ...a.handovers[0] } : undefined,
+    created_at: new Date(a.createdAt || Date.now()).toISOString(),
   };
 }
 
@@ -380,60 +367,69 @@ export const ASSET_SORTS = [
 
 export async function listAssets(filters: AssetFilters = {}) {
   const accountingCurrency = await getAccountingCurrency();
-  const and: Database.AssetWhereInput[] = [];
-  const q = filters.q?.trim().slice(0, 100);
-  if (q)
-    and.push({
-      OR: [
-        "assetTag",
-        "name",
-        "brand",
-        "model",
-        "serialNumber",
-        "supplier",
-      ].map((f) => ({ [f]: { contains: q, mode: "insensitive" as const } })),
-    });
-  if (filters.category && filters.category !== "all")
-    and.push({ categoryId: filters.category });
-  if (filters.status && filters.status !== "all")
-    and.push({ status: filters.status });
-  if (filters.condition && filters.condition !== "all")
-    and.push({ condition: filters.condition });
-  if (filters.holder && filters.holder !== "all")
-    and.push({ holderEmployeeId: filters.holder });
-  const orderBy: Database.AssetOrderByWithRelationInput[] =
-    filters.sort === "newest"
-      ? [{ createdAt: "desc" }]
-      : filters.sort === "name"
-        ? [{ name: "asc" }]
-        : filters.sort === "value_desc"
-          ? [{ purchaseCost: { sort: "desc", nulls: "last" } }]
-          : filters.sort === "purchase_desc"
-            ? [{ purchaseDate: { sort: "desc", nulls: "last" } }]
-            : filters.sort === "warranty_asc"
-              ? [{ warrantyUntil: { sort: "asc", nulls: "last" } }]
-              : [{ assetTag: "asc" }];
+  const q = filters.q?.trim().slice(0, 100)?.toLowerCase();
   try {
-    const [rows, byStatus, value] = await Promise.all([
-      db.asset.findMany({
-        where: and.length ? { AND: and } : {},
-        include: assetInclude,
-        orderBy,
-        take: 500,
-      }),
-      db.asset.groupBy({ by: ["status"], _count: { _all: true } }),
-      db.asset.aggregate({
-        where: { status: { notIn: ["retired", "lost"] }, currency: accountingCurrency },
-        _sum: { purchaseCost: true },
-      }),
+    const [rawAssets, rawCats, rawEmps, rawHandovers] = await Promise.all([
+      listTableRows<any>("itsm", "asset"),
+      listTableRows<any>("itsm", "asset_category").catch(() => []),
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("itsm", "asset_handover").catch(() => []),
     ]);
-    if (rows && rows.length > 0) {
+    const catMap = new Map<string, any>(rawCats.map((c): [any, any] => [c.id, c]));
+    const empMap = new Map<string, any>(rawEmps.map((e): [any, any] => [e.id, e]));
+    const openHandoversByAsset = new Map<string, any[]>();
+    for (const h of rawHandovers) {
+      if (["awaiting_employee", "pending_approval"].includes(h.status)) {
+        const arr = openHandoversByAsset.get(h.assetId) || [];
+        arr.push({ id: h.id, reference: h.reference, kind: h.kind, status: h.status });
+        openHandoversByAsset.set(h.assetId, arr);
+      }
+    }
+    const counts: Record<string, number> = {};
+    let totalValue = 0;
+    for (const a of rawAssets) {
+      counts[a.status] = (counts[a.status] ?? 0) + 1;
+      if (!["retired", "lost"].includes(a.status) && a.currency === accountingCurrency && a.purchaseCost != null) {
+        totalValue += Number(a.purchaseCost);
+      }
+    }
+    const filtered = rawAssets
+      .filter((a) => {
+        if (q) {
+          const hay = [a.assetTag, a.name, a.brand, a.model, a.serialNumber, a.supplier]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        if (filters.category && filters.category !== "all" && a.categoryId !== filters.category) return false;
+        if (filters.status && filters.status !== "all" && a.status !== filters.status) return false;
+        if (filters.condition && filters.condition !== "all" && a.condition !== filters.condition) return false;
+        if (filters.holder && filters.holder !== "all" && a.holderEmployeeId !== filters.holder) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (filters.sort === "newest") return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        if (filters.sort === "name") return String(a.name || "").localeCompare(String(b.name || ""));
+        if (filters.sort === "value_desc") return Number(b.purchaseCost ?? -1) - Number(a.purchaseCost ?? -1);
+        if (filters.sort === "purchase_desc") return (b.purchaseDate ? new Date(b.purchaseDate).getTime() : -1) - (a.purchaseDate ? new Date(a.purchaseDate).getTime() : -1);
+        if (filters.sort === "warranty_asc") return (a.warrantyUntil ? new Date(a.warrantyUntil).getTime() : Infinity) - (b.warrantyUntil ? new Date(b.warrantyUntil).getTime() : Infinity);
+        return String(a.assetTag || "").localeCompare(String(b.assetTag || ""));
+      })
+      .slice(0, 500)
+      .map((a) =>
+        mapAsset({
+          ...a,
+          category: catMap.get(a.categoryId),
+          holder: a.holderEmployeeId ? empMap.get(a.holderEmployeeId) : null,
+          handovers: openHandoversByAsset.get(a.id) || [],
+        }),
+      );
+    if (rawAssets.length > 0) {
       return {
-        items: rows.map(mapAsset),
-        counts: Object.fromEntries(
-          byStatus.map((g) => [g.status, g._count._all]),
-        ) as Record<string, number>,
-        totalValue: Number(value._sum.purchaseCost ?? 0),
+        items: filtered,
+        counts,
+        totalValue,
       };
     }
   } catch (err) {
@@ -452,7 +448,7 @@ export async function listAssets(filters: AssetFilters = {}) {
     ]);
     if (itAssets && itAssets.length > 0) {
       const empMap = new Map<string, any>(
-        (employees || []).map((e: any) => [e.id, e] as [string, any]),
+        (employees || []).map((e: any): [any, any] => [e.id, e] as [string, any]),
       );
       const activeHandoverByAsset = new Map<string, any>();
       for (const h of itHandovers || []) {
@@ -608,38 +604,42 @@ export async function listAssets(filters: AssetFilters = {}) {
 
 export async function getAsset(id: string) {
   try {
-    const asset = await db.asset.findUnique({
-      where: { id },
-      include: assetInclude,
-    });
-    if (asset) {
-      const handovers = await db.assetHandover.findMany({
-        where: { assetId: id },
-        orderBy: { createdAt: "desc" },
-        include: {
-          employee: {
-            select: {
-              firstNameEn: true,
-              lastNameEn: true,
-              firstNameAr: true,
-              lastNameAr: true,
-            },
-          },
-        },
-      });
+    const [rawAssets, rawCats, rawEmps, rawHandovers] = await Promise.all([
+      listTableRows<any>("itsm", "asset"),
+      listTableRows<any>("itsm", "asset_category").catch(() => []),
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("itsm", "asset_handover", "created_at DESC").catch(() => []),
+    ]);
+    const found = rawAssets.find((a) => a.id === id);
+    if (found) {
+      const cat = rawCats.find((c) => c.id === found.categoryId);
+      const holder = found.holderEmployeeId ? rawEmps.find((e) => e.id === found.holderEmployeeId) : null;
+      const handovers = rawHandovers.filter((h) => h.assetId === id);
+      const openHandovers = handovers
+        .filter((h) => ["awaiting_employee", "pending_approval"].includes(h.status))
+        .slice(0, 1);
+      const empMap = new Map<string, any>(rawEmps.map((e): [any, any] => [e.id, e]));
       return {
-        asset: mapAsset(asset),
-        handovers: handovers.map((h) => ({
-          id: h.id,
-          reference: h.reference,
-          kind: h.kind,
-          status: h.status,
-          handover_date: iso(h.handoverDate)!,
-          condition: h.condition,
-          employee: name(h.employee),
-          damage_charge:
-            h.damageCharge === null ? undefined : Number(h.damageCharge),
-        })),
+        asset: mapAsset({
+          ...found,
+          category: cat,
+          holder,
+          handovers: openHandovers,
+        }),
+        handovers: handovers.map((h) => {
+          const emp = empMap.get(h.employeeId) || { firstNameEn: "", lastNameEn: "", firstNameAr: "", lastNameAr: "" };
+          return {
+            id: h.id,
+            reference: h.reference,
+            kind: h.kind,
+            status: h.status,
+            handover_date: iso(h.handoverDate)!,
+            condition: h.condition,
+            employee: name(emp),
+            damage_charge:
+              h.damageCharge === null || h.damageCharge === undefined ? undefined : Number(h.damageCharge),
+          };
+        }),
       };
     }
   } catch (err) {
@@ -660,7 +660,7 @@ export async function getAsset(id: string) {
     const foundAsset = (itAssets || []).find((a) => a.id === id || a.assetTag === id);
     if (foundAsset) {
       const empMap = new Map<string, any>(
-        (employees || []).map((e: any) => [e.id, e] as [string, any]),
+        (employees || []).map((e: any): [any, any] => [e.id, e] as [string, any]),
       );
       const assetHandovers = (itHandovers || []).filter((h) => h.assetId === foundAsset.id);
       const latestHandover = assetHandovers[0];
@@ -827,7 +827,7 @@ function normalizeAsset(input: AssetInput, specFields: SpecField[]) {
     condition: input.condition,
     location: clean(input.location, 120),
     notes: clean(input.notes, 1000),
-    specs: specs as Database.InputJsonValue,
+    specs,
   };
 }
 
@@ -837,72 +837,71 @@ export async function saveAsset(
   id?: string,
 ) {
   return runAtomicMutation(async () => {
-    const category = await db.assetCategory.findUnique({
-      where: { id: input.category_id },
-    });
+    const [categories, assets, handovers, employees] = await Promise.all([
+      listTableRows<any>("itsm", "asset_category"),
+      listTableRows<any>("itsm", "asset"),
+      id ? listTableRows<any>("itsm", "asset_handover") : Promise.resolve([]),
+      id ? listTableRows<any>("hr", "employee") : Promise.resolve([]),
+    ]);
+    const category = categories.find((c) => c.id === input.category_id);
     if (!category) throw new Error(serverMessages.chooseTheAssetSCategory);
     const data = normalizeAsset(input, asSpecFields(category.specFields));
     const currency = await assertCompanyCurrency();
     if (data.purchaseCost !== null && !validMoneyAmount(data.purchaseCost, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     if (id && input.purchase_cost !== undefined) {
-      const existing = await db.asset.findUniqueOrThrow({ where: { id }, select: { currency: true } });
+      const existing = assets.find((a) => a.id === id);
+      if (!existing) throw new Error(serverMessages.assetNotFound);
       await assertCompanyCurrency(existing.currency);
     }
     if (data.serialNumber) {
-      const clash = await db.asset.findFirst({
-        where: {
-          categoryId: category.id,
-          serialNumber: data.serialNumber,
-          ...(id ? { id: { not: id } } : {}),
-        },
-        select: { id: true },
-      });
+      const clash = assets.find(
+        (a) =>
+          a.categoryId === category.id &&
+          a.serialNumber === data.serialNumber &&
+          (!id || a.id !== id),
+      );
       if (clash) throw new Error(serverMessages.anotherAssetInThisCategoryHas);
     }
     if (id) {
-      const existing = await db.asset.findUnique({
-        where: { id },
-        select: { status: true, holderEmployeeId: true },
-      });
+      const existing = assets.find((a) => a.id === id);
       if (!existing) throw new Error(serverMessages.assetNotFound);
       const status = input.status || existing.status;
       if (!(ASSET_STATUSES as readonly string[]).includes(status))
         throw new Error(serverMessages.invalidInput);
       let holderEmployeeId = existing.holderEmployeeId;
       if (status !== existing.status) {
-        const open = await db.assetHandover.count({
-          where: {
-            assetId: id,
-            status: { in: ["awaiting_employee", "pending_approval"] },
-          },
-        });
+        const open = handovers.filter(
+          (h) =>
+            h.assetId === id &&
+            ["awaiting_employee", "pending_approval"].includes(h.status),
+        ).length;
         if (open) throw new Error(serverMessages.thisAssetAlreadyHasAHandover);
         if (status === "assigned") {
           const holder = input.holder_employee_id
-            ? await db.employee.findUnique({
-                where: { id: input.holder_employee_id },
-                select: { id: true },
-              })
+            ? employees.find((e) => e.id === input.holder_employee_id)
             : null;
           if (!holder) throw new Error(serverMessages.employeeNotFound);
           holderEmployeeId = holder.id;
         } else holderEmployeeId = null;
       }
-      return db.asset.update({
-        where: { id },
-        data: { ...data, categoryId: category.id, status, holderEmployeeId },
+      return upsertTableRow("itsm", "asset", {
+        ...existing,
+        ...data,
+        id,
+        categoryId: category.id,
+        status,
+        holderEmployeeId,
       });
     }
     const assetTag = await getNextSequenceNumber("AST");
-    return db.asset.create({
-      data: {
-        ...data,
-        currency,
-        categoryId: category.id,
-        assetTag,
-        status: "available",
-        createdById: actorId,
-      },
+    return upsertTableRow("itsm", "asset", {
+      id: crypto.randomUUID(),
+      ...data,
+      currency,
+      categoryId: category.id,
+      assetTag,
+      status: "available",
+      createdById: actorId,
     });
   });
 }
@@ -914,29 +913,20 @@ export async function startAssetHandover(
   issuerSignature?: string | null,
 ) {
   return runAtomicMutation(async () => {
-    const asset = await db.asset.findUnique({
-      where: { id: input.asset_id },
-      include: {
-        category: true,
-        handovers: {
-          where: { status: { in: ["awaiting_employee", "pending_approval"] } },
-          select: { id: true },
-        },
-      },
-    });
+    const [assets, categories, handovers, employees] = await Promise.all([
+      listTableRows<any>("itsm", "asset"),
+      listTableRows<any>("itsm", "asset_category"),
+      listTableRows<any>("itsm", "asset_handover"),
+      listTableRows<any>("hr", "employee"),
+    ]);
+    const asset = assets.find((a) => a.id === input.asset_id);
     if (!asset) throw new Error(serverMessages.assetNotFound);
-    if (asset.handovers.length)
+    const openHandovers = handovers.filter(
+      (h) => h.assetId === asset.id && ["awaiting_employee", "pending_approval"].includes(h.status),
+    );
+    if (openHandovers.length)
       throw new Error(serverMessages.thisAssetAlreadyHasAHandover);
-    const employee = await db.employee.findUnique({
-      where: { id: input.employee_id },
-      select: {
-        id: true,
-        status: true,
-        userId: true,
-        firstNameEn: true,
-        lastNameEn: true,
-      },
-    });
+    const employee = employees.find((e) => e.id === input.employee_id);
     if (!employee) throw new Error(serverMessages.employeeNotFound);
     if (input.kind === "issue") {
       if (asset.status !== "available")
@@ -951,7 +941,8 @@ export async function startAssetHandover(
       throw new Error(serverMessages.chooseTheAssetSCondition);
     const handoverDate = day(input.handover_date);
     if (!handoverDate) throw new Error(serverMessages.invalidDate);
-    const items = asChecklist(asset.category.checklist);
+    const category = categories.find((c) => c.id === asset.categoryId);
+    const items = asChecklist(category?.checklist);
     const checklist = items.map((item) => {
       const answer = input.checklist.find((c) => c.key === item.key);
       return { ...item, ok: !!answer?.ok, note: clean(answer?.note, 200) };
@@ -980,55 +971,55 @@ export async function startAssetHandover(
     )
       throw new Error(serverMessages.invalidInput);
     const reference = await getNextSequenceNumber("AHO");
-    const handover = await db.assetHandover.create({
-      data: {
-        reference,
-        assetId: asset.id,
-        employeeId: employee.id,
-        kind: input.kind,
-        handoverDate,
-        condition: input.condition,
-        checklist: checklist as unknown as Database.InputJsonValue,
-        specsSnapshot: asset.specs as Database.InputJsonValue,
-        accessories: clean(input.accessories, 500),
-        damageNotes,
-        damageCharge: charge,
-        deductFromSalary: !!input.deduct_from_salary && (charge ?? 0) > 0,
-        returnStatus,
-        notes: clean(input.notes, 1000),
-        offboardingId: input.offboarding_id || null,
-        createdById: actorId,
-        creatorSignatureUrl,
-      },
+    const handover = await upsertTableRow<any>("itsm", "asset_handover", {
+      id: crypto.randomUUID(),
+      reference,
+      assetId: asset.id,
+      employeeId: employee.id,
+      kind: input.kind,
+      status: "awaiting_employee",
+      handoverDate: handoverDate.toISOString(),
+      condition: input.condition,
+      checklist,
+      specsSnapshot: asset.specs ?? {},
+      accessories: clean(input.accessories, 500),
+      damageNotes,
+      damageCharge: charge,
+      deductFromSalary: !!input.deduct_from_salary && (charge ?? 0) > 0,
+      returnStatus,
+      notes: clean(input.notes, 1000),
+      offboardingId: input.offboarding_id || null,
+      createdById: actorId,
+      creatorSignatureUrl,
     });
     if (inPerson) {
       await signAssetHandover(handover.id, inPerson, actorId, true);
     } else if (employee.userId) {
-      await db.notification.create({
-        data: {
-          userId: employee.userId,
-          title:
-            input.kind === "issue"
-              ? "Asset handover to sign"
-              : "Asset return to sign",
-          message: `${asset.assetTag} · ${asset.name}`,
-          type: "action",
-          entityType: "asset_handover",
-          entityId: handover.id,
-          messageKey:
-            input.kind === "issue"
-              ? "assets.notifications.signIssue"
-              : "assets.notifications.signReturn",
-          messageParams: {
-            nameEn: `${asset.assetTag} · ${asset.name}`,
-            nameAr: `${asset.assetTag} · ${asset.name}`,
-          },
-          actionUrl: ROUTES.assets.handover(handover.id),
-          eventKey: `asset-handover-sign:${handover.id}`,
+      await upsertTableRow("notify", "notification", {
+        id: crypto.randomUUID(),
+        userId: employee.userId,
+        title:
+          input.kind === "issue"
+            ? "Asset handover to sign"
+            : "Asset return to sign",
+        message: `${asset.assetTag} · ${asset.name}`,
+        type: "action",
+        entityType: "asset_handover",
+        entityId: handover.id,
+        messageKey:
+          input.kind === "issue"
+            ? "assets.notifications.signIssue"
+            : "assets.notifications.signReturn",
+        messageParams: {
+          nameEn: `${asset.assetTag} · ${asset.name}`,
+          nameAr: `${asset.assetTag} · ${asset.name}`,
         },
+        actionUrl: ROUTES.assets.handover(handover.id),
+        eventKey: `asset-handover-sign:${handover.id}`,
       });
     }
-    return db.assetHandover.findUniqueOrThrow({ where: { id: handover.id } });
+    const updated = await listTableRows<any>("itsm", "asset_handover");
+    return updated.find((h) => h.id === handover.id) ?? handover;
   });
 }
 
@@ -1039,73 +1030,71 @@ export async function signAssetHandover(
   inPerson: boolean | "link",
 ) {
   return runAtomicMutation(async () => {
-    const handover = await db.assetHandover.findUnique({
-      where: { id },
-      include: {
-        employee: { select: { userId: true } },
-        asset: { select: { purchaseCost: true } },
-      },
-    });
+    const [handovers, employees, assets] = await Promise.all([
+      listTableRows<any>("itsm", "asset_handover"),
+      listTableRows<any>("hr", "employee"),
+      listTableRows<any>("itsm", "asset"),
+    ]);
+    const handover = handovers.find((h) => h.id === id);
     if (!handover) throw new Error(serverMessages.handoverNotFound);
     if (handover.status !== "awaiting_employee")
       throw new Error(serverMessages.thisHandoverIsNotWaitingFor);
-    if (inPerson === false && handover.employee.userId !== actorId)
+    const employee = employees.find((e) => e.id === handover.employeeId);
+    const asset = assets.find((a) => a.id === handover.assetId);
+    if (inPerson === false && employee?.userId !== actorId)
       throw new Error(serverMessages.onlyTheEmployeeCanSignThis);
     validateSignatureImage(input.signature);
     const signerName = clean(input.signer_name, 120);
     if (!signerName) throw new Error(serverMessages.enterYourFullName);
-    await db.assetHandover.update({
-      where: { id },
-      data: {
-        employeeSignature: input.signature,
-        employeeSignerName: signerName,
-        employeeSignedAt: new Date(),
-        signedInPerson: inPerson === true,
-        status: "pending_approval",
-      },
+    const updated = await upsertTableRow<any>("itsm", "asset_handover", {
+      ...handover,
+      id,
+      employeeSignature: input.signature,
+      employeeSignerName: signerName,
+      employeeSignedAt: new Date().toISOString(),
+      signedInPerson: inPerson === true,
+      status: "pending_approval",
     });
     await submitForApproval({
       targetType: "asset_handover",
       targetId: id,
-      requesterId: handover.employee.userId ?? handover.createdById,
+      requesterId: employee?.userId ?? handover.createdById,
       policySnapshot: {
         kind: handover.kind,
         value:
-          handover.asset.purchaseCost === null
+          asset?.purchaseCost === null || asset?.purchaseCost === undefined
             ? null
-            : Number(handover.asset.purchaseCost),
+            : Number(asset.purchaseCost),
       },
     });
-    return db.assetHandover.findUniqueOrThrow({ where: { id } });
+    return updated;
   });
 }
 
 export async function cancelAssetHandover(id: string) {
   return runAtomicMutation(async () => {
-    const handover = await db.assetHandover.findUnique({
-      where: { id },
-      select: { status: true },
-    });
+    const handovers = await listTableRows<any>("itsm", "asset_handover");
+    const handover = handovers.find((h) => h.id === id);
     if (!handover) throw new Error(serverMessages.handoverNotFound);
     if (!["awaiting_employee", "pending_approval"].includes(handover.status))
       throw new Error(serverMessages.onlyOpenHandoversCanBeCancelled);
     await cancelPendingApprovals("asset_handover", id);
-    await db.assetHandover.update({
-      where: { id },
-      data: { status: "cancelled", decidedAt: new Date() },
+    await upsertTableRow("itsm", "asset_handover", {
+      ...handover,
+      id,
+      status: "cancelled",
+      decidedAt: new Date().toISOString(),
     });
   });
 }
 
 async function nextPayrollMonth(): Promise<string> {
+  const runs = await listTableRows<any>("hr", "payroll_run").catch(() => []);
   const now = new Date();
   let year = now.getUTCFullYear();
   let month = now.getUTCMonth() + 1;
   for (let i = 0; i < 24; i++) {
-    const run = await db.payrollRun.findUnique({
-      where: { year_month: { year, month } },
-      select: { status: true },
-    });
+    const run = runs.find((r) => Number(r.year) === year && Number(r.month) === month);
     if (!run || ["draft", "calculated"].includes(run.status)) break;
     month++;
     if (month > 12) {
@@ -1118,104 +1107,102 @@ async function nextPayrollMonth(): Promise<string> {
 
 registerApprovalFinalizer("asset_handover", {
   async approve(id, _decider, reason) {
-    const h = await db.assetHandover.findUniqueOrThrow({
-      where: { id },
-      include: { asset: { select: { assetTag: true, name: true } } },
-    });
+    const [handovers, assets] = await Promise.all([
+      listTableRows<any>("itsm", "asset_handover"),
+      listTableRows<any>("itsm", "asset"),
+    ]);
+    const h = handovers.find((row) => row.id === id);
+    if (!h) throw new Error(serverMessages.handoverNotFound);
+    const asset = assets.find((a) => a.id === h.assetId);
     if (h.status !== "pending_approval")
       throw new Error(serverMessages.thisHandoverIsNotWaitingFor2);
-    await db.assetHandover.update({
-      where: { id },
-      data: {
-        status: "completed",
-        decidedAt: new Date(),
-        decisionNotes: reason || null,
-      },
+    await upsertTableRow("itsm", "asset_handover", {
+      ...h,
+      id,
+      status: "completed",
+      decidedAt: new Date().toISOString(),
+      decisionNotes: reason || null,
     });
     if (h.kind === "issue") {
-      await db.asset.update({
-        where: { id: h.assetId },
-        data: {
+      if (asset) {
+        await upsertTableRow("itsm", "asset", {
+          ...asset,
+          id: h.assetId,
           status: "assigned",
           holderEmployeeId: h.employeeId,
           condition: h.condition,
-        },
-      });
+        });
+      }
     } else {
       const status = h.returnStatus ?? "available";
-      await db.asset.update({
-        where: { id: h.assetId },
-        data: { status, holderEmployeeId: null, condition: h.condition },
-      });
+      if (asset) {
+        await upsertTableRow("itsm", "asset", {
+          ...asset,
+          id: h.assetId,
+          status,
+          holderEmployeeId: null,
+          condition: h.condition,
+        });
+      }
       if (h.deductFromSalary && Number(h.damageCharge ?? 0) > 0) {
         const month = await nextPayrollMonth();
-        await db.employeeRecurringPay.create({
-          data: {
-            employeeId: h.employeeId,
-            kind: "deduction",
-            category: "damage",
-            label: `${h.asset.assetTag} ${h.asset.name}`.slice(0, 120),
-            amount: Number(h.damageCharge),
-            startMonth: month,
-            endMonth: month,
-            note: `${h.reference}: ${h.damageNotes ?? ""}`.slice(0, 300),
-          },
+        await upsertTableRow("hr", "employee_recurring_pay", {
+          id: crypto.randomUUID(),
+          employeeId: h.employeeId,
+          kind: "deduction",
+          category: "damage",
+          label: `${asset?.assetTag ?? ""} ${asset?.name ?? ""}`.trim().slice(0, 120),
+          amount: Number(h.damageCharge),
+          startMonth: month,
+          endMonth: month,
+          note: `${h.reference}: ${h.damageNotes ?? ""}`.slice(0, 300),
         });
       }
     }
   },
   async reject(id, _decider, reason) {
-    await db.assetHandover.update({
-      where: { id },
-      data: {
-        status: "rejected",
-        decidedAt: new Date(),
-        decisionNotes: reason || null,
-      },
+    const handovers = await listTableRows<any>("itsm", "asset_handover");
+    const h = handovers.find((row) => row.id === id);
+    if (!h) return;
+    await upsertTableRow("itsm", "asset_handover", {
+      ...h,
+      id,
+      status: "rejected",
+      decidedAt: new Date().toISOString(),
+      decisionNotes: reason || null,
     });
   },
 });
 
 export async function getAssetHandover(id: string) {
   try {
-    const h = await db.assetHandover.findUnique({
-      where: { id },
-      include: {
-        asset: { include: { category: true } },
-        employee: {
-          select: {
-            id: true,
-            userId: true,
-            employeeNumber: true,
-            firstNameEn: true,
-            lastNameEn: true,
-            firstNameAr: true,
-            lastNameAr: true,
-            jobTitleEn: true,
-            jobTitleAr: true,
-          },
-        },
-      },
-    });
+    const [handovers, assets, categories, employees] = await Promise.all([
+      listTableRows<any>("itsm", "asset_handover"),
+      listTableRows<any>("itsm", "asset").catch(() => []),
+      listTableRows<any>("itsm", "asset_category").catch(() => []),
+      listTableRows<any>("hr", "employee").catch(() => []),
+    ]);
+    const h = handovers.find((row) => row.id === id);
     if (h) {
-      const [creator, approval] = await Promise.all([
-        db.user.findUnique({
-          where: { id: h.createdById },
-          select: { fullName: true },
-        }),
-        db.approvalRequest.findFirst({
-          where: { targetType: "asset_handover", targetId: id },
-          orderBy: { createdAt: "desc" },
-          include: {
-            decisions: {
-              orderBy: { decidedAt: "asc" },
-              include: {
-                decidedBy: { select: { fullName: true, signatureUrl: true } },
-              },
-            },
-          },
-        }),
+      const asset = assets.find((a) => a.id === h.assetId) || { id: h.assetId, assetTag: "", name: "", currency: "BHD" };
+      const category = categories.find((c) => c.id === asset.categoryId) || { nameEn: "General", nameAr: "عام", specFields: [] };
+      const employee = employees.find((e) => e.id === h.employeeId) || { id: h.employeeId, userId: null, employeeNumber: "", firstNameEn: "", lastNameEn: "", firstNameAr: "", lastNameAr: "", jobTitleEn: "", jobTitleAr: "" };
+      const [users, approvals, decisions, sigRequests] = await Promise.all([
+        listTableRows<any>("identity", "user").catch(() => []),
+        listTableRows<any>("workflow", "approval_request", "created_at DESC").catch(() => []),
+        listTableRows<any>("workflow", "approval_decision", "decided_at ASC").catch(() => []),
+        listTableRows<any>("workflow", "signature_request").catch(() => []),
       ]);
+      const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, u]));
+      const creator = userMap.get(h.createdById);
+      const approval = approvals.find((a) => a.targetType === "asset_handover" && a.targetId === id);
+      const approvalDecisions = approval
+        ? decisions.filter((d) => d.approvalRequestId === approval.id)
+        : [];
+      const signedByLink =
+        !!h.employeeSignedAt &&
+        !h.signedInPerson &&
+        sigRequests.some((s) => s.documentType === "asset_handover" && s.documentId === h.id && s.status === "signed");
       return {
         id: h.id,
         reference: h.reference,
@@ -1231,71 +1218,64 @@ export async function getAssetHandover(id: string) {
         specs: (h.specsSnapshot ?? {}) as Record<string, string>,
         accessories: h.accessories ?? undefined,
         damage_notes: h.damageNotes ?? undefined,
-        damage_charge: h.damageCharge === null ? undefined : Number(h.damageCharge),
-        deduct_from_salary: h.deductFromSalary,
+        damage_charge: h.damageCharge === null || h.damageCharge === undefined ? undefined : Number(h.damageCharge),
+        deduct_from_salary: !!h.deductFromSalary,
         notes: h.notes ?? undefined,
         created_by: creator?.fullName ?? "",
         creator_signature_url: h.creatorSignatureUrl ?? undefined,
-        created_at: h.createdAt.toISOString(),
+        created_at: new Date(h.createdAt || Date.now()).toISOString(),
         employee_signature: h.employeeSignature ?? undefined,
         employee_signer_name: h.employeeSignerName ?? undefined,
-        employee_signed_at: h.employeeSignedAt?.toISOString(),
-        signed_in_person: h.signedInPerson,
-        signed_by_link:
-          !!h.employeeSignedAt &&
-          !h.signedInPerson &&
-          !!(await db.signatureRequest.findFirst({
-            where: {
-              documentType: "asset_handover",
-              documentId: h.id,
-              status: "signed",
-            },
-            select: { id: true },
-          })),
-        decided_at: h.decidedAt?.toISOString(),
+        employee_signed_at: h.employeeSignedAt ? new Date(h.employeeSignedAt).toISOString() : undefined,
+        signed_in_person: !!h.signedInPerson,
+        signed_by_link: signedByLink,
+        decided_at: h.decidedAt ? new Date(h.decidedAt).toISOString() : undefined,
         decision_notes: h.decisionNotes ?? undefined,
         approval: approval
           ? {
               id: approval.id,
               status: approval.status,
-              approver_ids: approval.approverIds,
-              decisions: approval.decisions.map((d) => ({
-                decision: d.decision,
-                step: d.step,
-                name: d.decidedBy.fullName,
-                signature_url:
-                  d.signatureData ?? d.decidedBy.signatureUrl ?? undefined,
-                signed_now: !!d.signatureData,
-                at: d.decidedAt.toISOString(),
-                note: d.reason ?? undefined,
-              })),
+              approver_ids: approval.approverIds || [],
+              decisions: approvalDecisions.map((d) => {
+                const decider = userMap.get(d.decidedById);
+                return {
+                  decision: d.decision,
+                  step: d.step,
+                  name: decider?.fullName ?? "",
+                  signature_url:
+                    d.signatureData ?? decider?.signatureUrl ?? undefined,
+                  signed_now: !!d.signatureData,
+                  at: new Date(d.decidedAt || Date.now()).toISOString(),
+                  note: d.reason ?? undefined,
+                };
+              }),
             }
           : null,
         asset: {
-          id: h.asset.id,
-          asset_tag: h.asset.assetTag,
-          name: h.asset.name,
-          brand: h.asset.brand ?? undefined,
-          model: h.asset.model ?? undefined,
-          serial_number: h.asset.serialNumber ?? undefined,
+          id: asset.id,
+          asset_tag: asset.assetTag,
+          name: asset.name,
+          brand: asset.brand ?? undefined,
+          model: asset.model ?? undefined,
+          serial_number: asset.serialNumber ?? undefined,
           purchase_cost:
-            h.asset.purchaseCost === null
+            asset.purchaseCost === null || asset.purchaseCost === undefined
               ? undefined
-              : Number(h.asset.purchaseCost),
-          currency: h.asset.currency,
+              : Number(asset.purchaseCost),
+          currency: asset.currency,
           category: {
-            name_en: h.asset.category.nameEn,
-            name_ar: h.asset.category.nameAr,
-            spec_fields: asSpecFields(h.asset.category.specFields),
+            name_en: category.nameEn,
+            name_ar: category.nameAr,
+            spec_fields: asSpecFields(category.specFields),
           },
         },
         employee: {
-          id: h.employee.id,
-          user_id: h.employee.userId,
-          employee_number: h.employee.employeeNumber,
-          ...name(h.employee),
-          job_title_en: h.employee.jobTitleEn,
-          job_title_ar: h.employee.jobTitleAr,
+          id: employee.id,
+          user_id: employee.userId,
+          employee_number: employee.employeeNumber,
+          ...name(employee),
+          job_title_en: employee.jobTitleEn,
+          job_title_ar: employee.jobTitleAr,
         },
       };
     }
@@ -1390,7 +1370,7 @@ export async function getEmployeeAssets(employeeId: string) {
     listITAssetHandovers({ employeeId }).catch(() => []),
   ]);
   const assetMap = new Map<string, (typeof itAssets)[number]>(
-    (itAssets || []).map((a) => [a.id, a] as [string, (typeof itAssets)[number]]),
+    (itAssets || []).map((a): [any, any] => [a.id, a] as [string, (typeof itAssets)[number]]),
   );
   const pending = (handovers || [])
     .filter((h) => ["awaiting_employee", "pending_approval", "open"].includes(h.status))

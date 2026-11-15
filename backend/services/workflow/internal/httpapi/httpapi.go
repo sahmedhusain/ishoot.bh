@@ -57,6 +57,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.POST("/letters/:id/issue", h.issueOfficialLetter)
 	g.GET("/letter-templates", h.listLetterTemplates)
 	g.POST("/letter-templates", h.createLetterTemplate)
+	h.extrasRoutes(g)
 }
 func (h *handler) listApprovals(c echo.Context) error {
 	approvals, err := h.svc.ListApprovalRequests(c.Request().Context())

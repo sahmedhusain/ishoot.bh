@@ -320,3 +320,111 @@ export const getPasswordPolicy = (realm: ManagedRealm) =>
       params: { path: { realm } },
     }),
   );
+
+import { serviceFetch } from "./service-fetch";
+
+export const listAdminUsersApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/users", {}, token);
+
+export const getAdminUserApi = (id: string, token?: string) =>
+  serviceFetch<any>(`/v1/identity/admin/users/${encodeURIComponent(id)}`, {}, token);
+
+export const setUserDiscountLimitApi = (id: string, discountLimitPercent: number | null, token?: string) =>
+  serviceFetch<{ id: string; discount_limit_percent: number | null }>(
+    `/v1/identity/admin/users/${encodeURIComponent(id)}/discount-limit`,
+    { method: "PUT", body: JSON.stringify({ discountLimitPercent }) },
+    token,
+  );
+
+export const listAdminRolesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/roles", {}, token);
+
+export const listAdminPermissionsApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/permissions", {}, token);
+
+export const listAdminRoleDataScopesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/role-data-scopes", {}, token);
+
+export const listAdminBranchesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/branches", {}, token);
+
+export const listAdminBranchGrantsApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/branch-grants", {}, token);
+
+export const listAdminSessionsApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/sessions", {}, token);
+
+export const listAdminProfileChangesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/profile-changes", {}, token);
+
+export const listAdminAccountChangesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/account-changes", {}, token);
+
+export const listAdminSignatureChangesApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/identity/admin/signature-changes", {}, token);
+
+export const setAdminPermissionApi = (
+  input: { role: string; resource: string; action: string; allowed: boolean },
+  token?: string,
+) =>
+  serviceFetch<{ ok: boolean }>(
+    "/v1/identity/admin/permissions",
+    { method: "PUT", body: JSON.stringify(input) },
+    token,
+  );
+
+export const setAdminRoleDataScopesApi = (
+  input: { role: string; scopes: Record<string, string> },
+  token?: string,
+) =>
+  serviceFetch<{ ok: boolean }>(
+    "/v1/identity/admin/role-data-scopes",
+    { method: "PUT", body: JSON.stringify(input) },
+    token,
+  );
+
+export const saveAdminBranchApi = (
+  input: { id?: string; code: string; name: string; timeZone: string; businessDayStart: number },
+  token?: string,
+) =>
+  serviceFetch<any>(
+    "/v1/identity/admin/branches",
+    { method: "POST", body: JSON.stringify(input) },
+    token,
+  );
+
+export const createProfileChangeApi = (input: Record<string, any>, token?: string) =>
+  serviceFetch<any>("/v1/identity/admin/profile-changes", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updateProfileChangeStatusApi = (
+  id: string,
+  input: { status: string; reviewedById?: string; reviewNotes?: string | null },
+  token?: string,
+) =>
+  serviceFetch<any>(`/v1/identity/admin/profile-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const createAccountChangeApi = (input: Record<string, any>, token?: string) =>
+  serviceFetch<any>("/v1/identity/admin/account-changes", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updateAccountChangeStatusApi = (
+  id: string,
+  input: { status: string; reviewedById?: string; reviewNotes?: string | null },
+  token?: string,
+) =>
+  serviceFetch<any>(`/v1/identity/admin/account-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const createSignatureChangeApi = (
+  input: { userId: string; signatureUrl: string; previousUrl?: string | null },
+  token?: string,
+) =>
+  serviceFetch<any>("/v1/identity/admin/signature-changes", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updateSignatureChangeStatusApi = (
+  id: string,
+  input: { status: string; reviewedById?: string; reviewNotes?: string | null },
+  token?: string,
+) =>
+  serviceFetch<any>(`/v1/identity/admin/signature-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const updateAdminUserFieldsApi = (id: string, input: Record<string, any>, token?: string) =>
+  serviceFetch<any>(`/v1/identity/admin/users/${encodeURIComponent(id)}/fields`, { method: "PUT", body: JSON.stringify(input) }, token);

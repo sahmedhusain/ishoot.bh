@@ -1,5 +1,6 @@
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVAL_TARGET_TYPES,
@@ -39,31 +40,37 @@ export interface ApprovalPolicyView {
 }
 
 export async function listApprovalPolicies(): Promise<ApprovalPolicyView[]> {
-  const stored = await db.approvalPolicy.findMany({
-    include: { steps: { orderBy: { order: "asc" } } },
-  });
-  const byType = new Map<string, any>(stored.map((policy: any) => [policy.targetType, policy]));
+  const [stored, allSteps] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "approval_policy"),
+    listTableRows<Record<string, any>>("system", "approval_policy_step"),
+  ]);
+  const byType = new Map<string, any>(stored.map((policy) => [String(policy.targetType), policy]));
   return APPROVAL_TARGET_TYPES.map((targetType) => {
     const policy = byType.get(targetType);
+    const steps = policy
+      ? allSteps
+          .filter((s) => s.policyId === policy.id)
+          .sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+      : [];
     return {
       targetType,
       enabled: policy?.enabled ?? true,
       allowSelfApproval: policy?.allowSelfApproval ?? false,
-      autoApproveRoles: policy?.autoApproveRoles ?? [],
+      autoApproveRoles: Array.isArray(policy?.autoApproveRoles) ? policy.autoApproveRoles : [],
       reminderAfterHours: policy?.reminderAfterHours ?? null,
-      steps: (policy?.steps ?? []).map((step) => ({
-        order: step.order,
+      steps: steps.map((step) => ({
+        order: Number(step.order ?? 0),
         approverMode: step.approverMode as ApproverMode,
-        roleKey: step.roleKey,
-        userId: step.userId,
-        permission: step.permission,
+        roleKey: step.roleKey ?? null,
+        userId: step.userId ?? null,
+        permission: step.permission ?? null,
         minAmount: num(step.minAmount),
         minDays: num(step.minDays),
         minDiscountPercent: num(step.minDiscountPercent),
-        escalateAfterHours: step.escalateAfterHours,
-        escalateMode: step.escalateMode as "role" | "user" | null,
-        escalateRoleKey: step.escalateRoleKey,
-        escalateUserId: step.escalateUserId,
+        escalateAfterHours: step.escalateAfterHours ?? null,
+        escalateMode: (step.escalateMode as "role" | "user" | null) ?? null,
+        escalateRoleKey: step.escalateRoleKey ?? null,
+        escalateUserId: step.escalateUserId ?? null,
       })),
     };
   });
@@ -149,66 +156,66 @@ export async function updateApprovalPolicy(
       (step) => step.approverMode === "user" || step.escalateMode === "user",
     )
   ) {
-    const ids = input.steps.flatMap((step) => [
-      ...(step.approverMode === "user" ? [step.userId!] : []),
-      ...(step.escalateMode === "user" && step.escalateAfterHours != null
-        ? [step.escalateUserId!]
-        : []),
-    ]);
-    const active = await db.user.count({
-      where: { id: { in: ids }, isActive: true },
-    });
-    if (active !== new Set(ids).size)
+    const ids = new Set(
+      input.steps.flatMap((step) => [
+        ...(step.approverMode === "user" ? [step.userId!] : []),
+        ...(step.escalateMode === "user" && step.escalateAfterHours != null
+          ? [step.escalateUserId!]
+          : []),
+      ]),
+    );
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const activeCount = users.filter((u) => u.isActive && ids.has(String(u.id))).length;
+    if (activeCount !== ids.size)
       throw new Error(serverMessages.chooseActiveUsersForUserSteps);
   }
 
   await runAtomicMutation(async () => {
-    const policy = await db.approvalPolicy.upsert({
-      where: { targetType },
-      update: {
-        enabled: input.enabled,
-        allowSelfApproval: input.allowSelfApproval,
-        autoApproveRoles,
-        reminderAfterHours,
-      },
-      create: {
-        targetType,
-        enabled: input.enabled,
-        allowSelfApproval: input.allowSelfApproval,
-        autoApproveRoles,
-        reminderAfterHours,
-      },
+    const [policies, existingSteps] = await Promise.all([
+      listTableRows<Record<string, any>>("system", "approval_policy"),
+      listTableRows<Record<string, any>>("system", "approval_policy_step"),
+    ]);
+    const existing = policies.find((p) => p.targetType === targetType);
+    const policy = await upsertTableRow<Record<string, any>>("system", "approval_policy", {
+      id: existing?.id || crypto.randomUUID(),
+      targetType,
+      enabled: input.enabled,
+      allowSelfApproval: input.allowSelfApproval,
+      autoApproveRoles,
+      reminderAfterHours,
     });
-    await db.approvalPolicyStep.deleteMany({ where: { policyId: policy.id } });
-    if (input.steps.length) {
-      await db.approvalPolicyStep.createMany({
-        data: input.steps.map((step, index) => ({
-          policyId: policy.id,
-          order: index + 1,
-          approverMode: step.approverMode,
-          roleKey: step.approverMode === "role" ? (step.roleKey ?? null) : null,
-          userId: step.approverMode === "user" ? (step.userId ?? null) : null,
-          permission:
-            step.approverMode === "permission"
-              ? (step.permission ?? null)
-              : null,
-          minAmount: step.minAmount ?? null,
-          minDays: step.minDays ?? null,
-          minDiscountPercent: step.minDiscountPercent ?? null,
-          escalateAfterHours: step.escalateAfterHours ?? null,
-          escalateMode:
-            step.escalateAfterHours != null
-              ? (step.escalateMode ?? null)
-              : null,
-          escalateRoleKey:
-            step.escalateAfterHours != null && step.escalateMode === "role"
-              ? (step.escalateRoleKey ?? null)
-              : null,
-          escalateUserId:
-            step.escalateAfterHours != null && step.escalateMode === "user"
-              ? (step.escalateUserId ?? null)
-              : null,
-        })),
+    for (const s of existingSteps) {
+      if (s.policyId === policy.id) {
+        await deleteTableRow("system", "approval_policy_step", String(s.id));
+      }
+    }
+    for (let index = 0; index < input.steps.length; index++) {
+      const step = input.steps[index];
+      await upsertTableRow("system", "approval_policy_step", {
+        id: crypto.randomUUID(),
+        policyId: policy.id,
+        order: index + 1,
+        approverMode: step.approverMode,
+        roleKey: step.approverMode === "role" ? (step.roleKey ?? null) : null,
+        userId: step.approverMode === "user" ? (step.userId ?? null) : null,
+        permission:
+          step.approverMode === "permission"
+            ? (step.permission ?? null)
+            : null,
+        minAmount: step.minAmount ?? null,
+        minDays: step.minDays ?? null,
+        minDiscountPercent: step.minDiscountPercent ?? null,
+        escalateAfterHours: step.escalateAfterHours ?? null,
+        escalateMode:
+          step.escalateAfterHours != null ? (step.escalateMode ?? null) : null,
+        escalateRoleKey:
+          step.escalateAfterHours != null && step.escalateMode === "role"
+            ? (step.escalateRoleKey ?? null)
+            : null,
+        escalateUserId:
+          step.escalateAfterHours != null && step.escalateMode === "user"
+            ? (step.escalateUserId ?? null)
+            : null,
       });
     }
   });

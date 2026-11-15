@@ -1,9 +1,9 @@
 import { serverMessages } from "@platform/locales";
 import {
-  db,
   employeeIdForUser,
   type PermissionAction,
 } from "@platform/database";
+import { listTableRows } from "./api/tables";
 import { hasPermission, requirePermission } from "./auth";
 
 export async function deliveryScope(action: PermissionAction = "read") {
@@ -20,10 +20,11 @@ export async function requireShipmentAccess(
 ) {
   const scope = await deliveryScope(action);
   if (scope.driverId) {
-    const shipment = await db.shipment.findUnique({
-      where: { id },
-      select: { driverId: true },
-    });
+    const shipments = await listTableRows<Record<string, any>>(
+      "delivery",
+      "shipment",
+    );
+    const shipment = shipments.find((s) => s.id === id);
     if (shipment?.driverId !== scope.driverId)
       throw new Error(serverMessages.shipmentNotYours);
   }

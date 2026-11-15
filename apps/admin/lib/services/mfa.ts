@@ -7,7 +7,8 @@ import {
   createDecipheriv,
   timingSafeEqual,
 } from "node:crypto";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 export function base32(bytes: Buffer) {
   let value = 0,
@@ -74,32 +75,30 @@ function matchingStep(
 }
 export async function beginMfaEnrollment(userId: string) {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
-    const user = await db.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { mfaEnabled: true, email: true },
-    });
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new Error(serverMessages.userNotFound || "User not found");
     if (user.mfaEnabled) throw new Error(serverMessages.mfaIsAlreadyEnabled);
     const secret = randomBytes(20);
-    await db.user.update({
-      where: { id: userId },
-      data: {
-        mfaPendingSecretEncrypted: encrypt(secret, userId),
-        mfaPendingExpiresAt: new Date(Date.now() + 600000),
-      },
+    await upsertTableRow("identity", "user", {
+      ...user,
+      id: userId,
+      mfaPendingSecretEncrypted: encrypt(secret, userId),
+      mfaPendingExpiresAt: new Date(Date.now() + 600000).toISOString(),
     });
     return { secret: base32(secret), email: user.email };
   });
 }
 export async function completeMfaEnrollment(userId: string, code: string) {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
-    const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new Error(serverMessages.userNotFound || "User not found");
     if (
       user.mfaEnabled ||
       !user.mfaPendingSecretEncrypted ||
       !user.mfaPendingExpiresAt ||
-      user.mfaPendingExpiresAt <= new Date()
+      new Date(user.mfaPendingExpiresAt) <= new Date()
     )
       throw new Error(serverMessages.enrollmentExpired);
     const step = matchingStep(
@@ -111,70 +110,86 @@ export async function completeMfaEnrollment(userId: string, code: string) {
     const codes = Array.from({ length: 10 }, () =>
       randomBytes(16).toString("hex"),
     );
-    await db.mfaRecoveryCode.deleteMany({ where: { userId } });
-    await db.mfaRecoveryCode.createMany({
-      data: codes.map((c) => ({
+    const existingCodes = await listTableRows<Record<string, any>>(
+      "identity",
+      "mfa_recovery_code",
+    );
+    for (const row of existingCodes.filter((c) => c.userId === userId)) {
+      await deleteTableRow("identity", "mfa_recovery_code", row.id);
+    }
+    for (const c of codes) {
+      await upsertTableRow("identity", "mfa_recovery_code", {
+        id: crypto.randomUUID(),
         userId,
         codeHash: createHash("sha256").update(c).digest("hex"),
-      })),
+      });
+    }
+    await upsertTableRow("identity", "user", {
+      ...user,
+      id: userId,
+      mfaEnabled: true,
+      mfaSecretEncrypted: user.mfaPendingSecretEncrypted,
+      mfaPendingSecretEncrypted: null,
+      mfaPendingExpiresAt: null,
+      mfaLastStep: step,
     });
-    await db.user.update({
-      where: { id: userId },
-      data: {
-        mfaEnabled: true,
-        mfaSecretEncrypted: user.mfaPendingSecretEncrypted,
-        mfaPendingSecretEncrypted: null,
-        mfaPendingExpiresAt: null,
-        mfaLastStep: step,
-      },
-    });
-    await db.session.deleteMany({ where: { userId } });
-    await db.activityLog.create({
-      data: {
-        userId,
-        action: "enable_mfa",
-        entityType: "auth",
-        entityId: userId,
-      },
+    const sessions = await listTableRows<Record<string, any>>(
+      "identity",
+      "session",
+    );
+    for (const s of sessions.filter((s) => s.userId === userId)) {
+      await deleteTableRow("identity", "session", s.id);
+    }
+    await upsertTableRow("system", "activity_log", {
+      id: crypto.randomUUID(),
+      userId,
+      action: "enable_mfa",
+      entityType: "auth",
+      entityId: userId,
     });
     return codes;
   });
 }
 export async function verifyMfa(userId: string, code: string) {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
-    const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new Error(serverMessages.userNotFound || "User not found");
     if (!user.mfaEnabled) return true;
     if (/^[a-f0-9]{32}$/.test(code)) {
-      const result = await db.mfaRecoveryCode.updateMany({
-        where: {
-          userId,
-          codeHash: createHash("sha256").update(code).digest("hex"),
-          usedAt: null,
-        },
-        data: { usedAt: new Date() },
+      const codeHash = createHash("sha256").update(code).digest("hex");
+      const recoveryCodes = await listTableRows<Record<string, any>>(
+        "identity",
+        "mfa_recovery_code",
+      );
+      const match = recoveryCodes.find(
+        (r) => r.userId === userId && r.codeHash === codeHash && !r.usedAt,
+      );
+      if (!match) return false;
+      await upsertTableRow("identity", "mfa_recovery_code", {
+        ...match,
+        usedAt: new Date().toISOString(),
       });
-      if (result.count)
-        await db.activityLog.create({
-          data: {
-            userId,
-            action: "use_recovery_code",
-            entityType: "auth",
-            entityId: userId,
-          },
-        });
-      return result.count === 1;
+      await upsertTableRow("system", "activity_log", {
+        id: crypto.randomUUID(),
+        userId,
+        action: "use_recovery_code",
+        entityType: "auth",
+        entityId: userId,
+      });
+      return true;
     }
     if (!user.mfaSecretEncrypted) return false;
     const step = matchingStep(
       decrypt(user.mfaSecretEncrypted, userId),
       code,
-      user.mfaLastStep,
+      user.mfaLastStep != null ? BigInt(user.mfaLastStep) : null,
     );
     if (step === undefined) return false;
-    await db.user.update({
-      where: { id: userId },
-      data: { mfaLastStep: step },
+    await upsertTableRow("identity", "user", {
+      ...user,
+      id: userId,
+      mfaLastStep: step,
     });
     return true;
   });
@@ -183,42 +198,61 @@ export async function disableMfa(userId: string, code: string) {
   return runAtomicMutation(async () => {
     if (!(await verifyMfa(userId, code)))
       throw new Error(serverMessages.invalidAuthenticationCode);
-    await db.user.update({
-      where: { id: userId },
-      data: {
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      await upsertTableRow("identity", "user", {
+        ...user,
+        id: userId,
         mfaEnabled: false,
         mfaSecretEncrypted: null,
         mfaPendingSecretEncrypted: null,
         mfaPendingExpiresAt: null,
         mfaLastStep: null,
-      },
-    });
-    await db.mfaRecoveryCode.deleteMany({ where: { userId } });
-    await db.session.deleteMany({ where: { userId } });
-    await db.activityLog.create({
-      data: {
-        userId,
-        action: "disable_mfa",
-        entityType: "auth",
-        entityId: userId,
-      },
+      });
+    }
+    const existingCodes = await listTableRows<Record<string, any>>(
+      "identity",
+      "mfa_recovery_code",
+    );
+    for (const row of existingCodes.filter((c) => c.userId === userId)) {
+      await deleteTableRow("identity", "mfa_recovery_code", row.id);
+    }
+    const sessions = await listTableRows<Record<string, any>>(
+      "identity",
+      "session",
+    );
+    for (const s of sessions.filter((s) => s.userId === userId)) {
+      await deleteTableRow("identity", "session", s.id);
+    }
+    await upsertTableRow("system", "activity_log", {
+      id: crypto.randomUUID(),
+      userId,
+      action: "disable_mfa",
+      entityType: "auth",
+      entityId: userId,
     });
   });
 }
 
 export async function cancelMfaEnrollment(userId: string) {
   await runAtomicMutation(async () => {
-    await db.user.update({
-      where: { id: userId },
-      data: { mfaPendingSecretEncrypted: null, mfaPendingExpiresAt: null },
-    });
-    await db.activityLog.create({
-      data: {
-        userId,
-        action: "cancel_mfa_enrollment",
-        entityType: "auth",
-        entityId: userId,
-      },
+    const users = await listTableRows<Record<string, any>>("identity", "user");
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      await upsertTableRow("identity", "user", {
+        ...user,
+        id: userId,
+        mfaPendingSecretEncrypted: null,
+        mfaPendingExpiresAt: null,
+      });
+    }
+    await upsertTableRow("system", "activity_log", {
+      id: crypto.randomUUID(),
+      userId,
+      action: "cancel_mfa_enrollment",
+      entityType: "auth",
+      entityId: userId,
     });
   });
 }

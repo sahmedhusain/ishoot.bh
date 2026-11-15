@@ -145,25 +145,38 @@ export async function saveSupplier(input: any) {
 }
 
 export async function saveRequisition(input: any, userId: string): Promise<{ id: string; number: string; [key: string]: any }> {
-  throw new Error("saveRequisition must be implemented as a single API call in Go backend");
+  const { createPurchaseRequisition, updatePurchaseRequisition } = await import("../api/inventory");
+  if (input?.id) {
+    return updatePurchaseRequisition(input.id, { ...input, requestedById: input.requestedById ?? userId });
+  }
+  return createPurchaseRequisition({ ...input, requestedById: input.requestedById ?? userId });
 }
 
 export async function submitRequisition(id: string, userId: string): Promise<{ status: string; [key: string]: any }> {
-  throw new Error("submitRequisition must be implemented as a single API call in Go backend");
+  const { updatePurchaseRequisition } = await import("../api/inventory");
+  return updatePurchaseRequisition(id, { status: "submitted", requestedById: userId });
 }
 
 export async function cancelRequisition(id: string): Promise<any> {
-  throw new Error("cancelRequisition is not implemented in API");
+  const { updatePurchaseRequisition } = await import("../api/inventory");
+  return updatePurchaseRequisition(id, { status: "cancelled" });
 }
 
 export async function listRequisitions(
   filter: { status?: string; requestedById?: string } = {},
 ): Promise<any[]> {
-  return [];
+  const { listPurchaseRequisitions } = await import("../api/inventory");
+  const rows = await listPurchaseRequisitions().catch(() => []);
+  return rows.filter((r) => {
+    if (filter.status && r.status !== filter.status) return false;
+    if (filter.requestedById && r.requestedById !== filter.requestedById) return false;
+    return true;
+  });
 }
 
 export async function getRequisition(id: string): Promise<any> {
-  return null;
+  const { getPurchaseRequisition } = await import("../api/inventory");
+  return getPurchaseRequisition(id).catch(() => null);
 }
 
 export async function createRfq(input: any, userId: string): Promise<{ id: string; number: string; [key: string]: any }> {

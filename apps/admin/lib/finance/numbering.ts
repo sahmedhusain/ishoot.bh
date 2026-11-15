@@ -1,14 +1,11 @@
-import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { formatDocumentNumber } from "../constants/finance";
 import { reserveDocumentNumber } from "../api/company";
-
-type Client = Pick<typeof db, "companySetting">;
 
 export async function allocateDocumentNumber(
   kind: "invoice" | "receipt",
   documentDate: Date,
-  client: any = db,
+  _client?: unknown,
 ): Promise<string> {
   try {
     const num = await reserveDocumentNumber(
@@ -18,28 +15,24 @@ export async function allocateDocumentNumber(
     );
     if (num) return num;
   } catch {}
-  const company = await client.companySetting?.findFirst?.({
-    select: { id: true },
-  });
+  const settings = await listTableRows<any>("system", "company_setting").catch(() => []);
+  const company = settings[0];
   if (!company) {
     return formatDocumentNumber(kind === "invoice" ? "INV" : "REC", documentDate.getFullYear(), 1);
   }
-  const updated = await client.companySetting.update({
-    where: { id: company.id },
-    data:
-      kind === "invoice"
-        ? { invoiceNextNumber: { increment: 1 } }
-        : { receiptNextNumber: { increment: 1 } },
-    select: {
-      invoicePrefix: true,
-      receiptPrefix: true,
-      invoiceNextNumber: true,
-      receiptNextNumber: true,
-    },
-  });
-  const [prefix, next] =
+  const nextVal =
     kind === "invoice"
-      ? [updated.invoicePrefix, updated.invoiceNextNumber]
-      : [updated.receiptPrefix, updated.receiptNextNumber];
-  return formatDocumentNumber(prefix, documentDate.getFullYear(), next - 1);
+      ? Number(company.invoiceNextNumber ?? 1)
+      : Number(company.receiptNextNumber ?? 1);
+  await upsertTableRow("system", "company_setting", {
+    ...company,
+    ...(kind === "invoice"
+      ? { invoiceNextNumber: nextVal + 1 }
+      : { receiptNextNumber: nextVal + 1 }),
+  });
+  const prefix =
+    kind === "invoice"
+      ? company.invoicePrefix || "INV"
+      : company.receiptPrefix || "REC";
+  return formatDocumentNumber(prefix, documentDate.getFullYear(), nextVal);
 }

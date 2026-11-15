@@ -4,7 +4,7 @@ import {
   syncStatusWindows,
   type StatusWindowInput,
 } from "@platform/api-client";
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 
 const DAY = 86_400_000;
 const MEETINGS_AHEAD = 14 * DAY;
@@ -14,14 +14,14 @@ function meetingPeople(event: { createdById: string | null; visibility: string; 
   const people = new Set<string>();
   if (event.createdById) people.add(event.createdById);
   if (event.visibility === "private" || event.visibility === "custom")
-    for (const id of event.audienceUserIds) people.add(id);
+    for (const id of event.audienceUserIds || []) people.add(id);
   return Array.from(people).slice(0, 500);
 }
 
 type MeetingRow = {
   id: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | string;
+  endDate: Date | string;
   allDay: boolean;
   eventType: string;
   createdById: string | null;
@@ -30,22 +30,13 @@ type MeetingRow = {
 };
 
 function meetingWindow(event: MeetingRow): StatusWindowInput | null {
-  if (event.eventType !== "meeting" || event.allDay || event.endDate <= event.startDate) return null;
+  const start = new Date(event.startDate);
+  const end = new Date(event.endDate);
+  if (event.eventType !== "meeting" || event.allDay || end <= start) return null;
   const userIds = meetingPeople(event);
   if (!userIds.length) return null;
-  return { sourceId: event.id, kind: "meeting", startsAt: event.startDate.toISOString(), endsAt: event.endDate.toISOString(), userIds };
+  return { sourceId: event.id, kind: "meeting", startsAt: start.toISOString(), endsAt: end.toISOString(), userIds };
 }
-
-const meetingSelect = {
-  id: true,
-  startDate: true,
-  endDate: true,
-  allDay: true,
-  eventType: true,
-  createdById: true,
-  visibility: true,
-  audienceUserIds: true,
-} as const;
 
 function quietly(what: string, error: unknown) {
   console.error(`Updating statuses for ${what} failed; the next full sync repairs it:`, error);
@@ -53,7 +44,8 @@ function quietly(what: string, error: unknown) {
 
 export async function syncMeetingStatus(eventId: string) {
   try {
-    const event = await db.calendarEvent.findUnique({ where: { id: eventId }, select: meetingSelect });
+    const events = await listTableRows<any>("workflow", "calendar_event");
+    const event = events.find((e) => e.id === eventId);
     const window = event ? meetingWindow(event) : null;
     if (window) await replaceStatusWindow("staff", "calendar", window);
     else await removeStatusWindow("staff", "calendar", eventId);
@@ -65,14 +57,14 @@ export async function syncMeetingStatus(eventId: string) {
 type LeaveRow = {
   id: string;
   status: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | string;
+  endDate: Date | string;
   employee: { userId: string | null };
   leaveType: { code: string };
 };
 
 function leaveWindow(leave: LeaveRow): StatusWindowInput | null {
-  const userId = leave.employee.userId;
+  const userId = leave.employee?.userId;
   if (leave.status !== "approved" || !userId) return null;
   const startsAt = new Date(leave.startDate);
   startsAt.setHours(0, 0, 0, 0);
@@ -81,25 +73,28 @@ function leaveWindow(leave: LeaveRow): StatusWindowInput | null {
   if (endsAt <= startsAt) return null;
   return {
     sourceId: leave.id,
-    kind: leave.leaveType.code === "sick" ? "sick" : "leave",
+    kind: leave.leaveType?.code === "sick" ? "sick" : "leave",
     startsAt: startsAt.toISOString(),
     endsAt: endsAt.toISOString(),
     userIds: [userId],
   };
 }
 
-const leaveSelect = {
-  id: true,
-  status: true,
-  startDate: true,
-  endDate: true,
-  employee: { select: { userId: true } },
-  leaveType: { select: { code: true } },
-} as const;
-
 export async function syncLeaveStatus(leaveId: string) {
   try {
-    const leave = await db.leaveRequest.findUnique({ where: { id: leaveId }, select: leaveSelect });
+    const [leaves, employees, leaveTypes] = await Promise.all([
+      listTableRows<any>("hr", "leave_request"),
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("hr", "leave_type").catch(() => []),
+    ]);
+    const raw = leaves.find((l) => l.id === leaveId);
+    const leave = raw
+      ? {
+          ...raw,
+          employee: employees.find((e) => e.id === raw.employeeId) || { userId: null },
+          leaveType: leaveTypes.find((lt) => lt.id === raw.leaveTypeId) || { code: "" },
+        }
+      : null;
     const window = leave ? leaveWindow(leave) : null;
     if (window) await replaceStatusWindow("staff", "leave", window);
     else await removeStatusWindow("staff", "leave", leaveId);
@@ -112,18 +107,36 @@ export async function syncAllStatusWindows(now = new Date()) {
   const from = new Date(now.getTime() - DAY);
   const meetingsUntil = new Date(now.getTime() + MEETINGS_AHEAD);
   const leaveUntil = new Date(now.getTime() + LEAVE_AHEAD);
-  const [meetings, leave] = await Promise.all([
-    db.calendarEvent.findMany({
-      where: { eventType: "meeting", allDay: false, endDate: { gt: from }, startDate: { lt: meetingsUntil } },
-      select: meetingSelect,
-      take: 5000,
-    }),
-    db.leaveRequest.findMany({
-      where: { status: "approved", endDate: { gte: from }, startDate: { lt: leaveUntil } },
-      select: leaveSelect,
-      take: 5000,
-    }),
+  const [allEvents, allLeaves, employees, leaveTypes] = await Promise.all([
+    listTableRows<any>("workflow", "calendar_event").catch(() => []),
+    listTableRows<any>("hr", "leave_request").catch(() => []),
+    listTableRows<any>("hr", "employee").catch(() => []),
+    listTableRows<any>("hr", "leave_type").catch(() => []),
   ]);
+  const empMap = new Map<string, any>(employees.map((e): [any, any] => [e.id, e]));
+  const ltMap = new Map<string, any>(leaveTypes.map((lt): [any, any] => [lt.id, lt]));
+  const meetings = allEvents
+    .filter(
+      (e) =>
+        e.eventType === "meeting" &&
+        !e.allDay &&
+        new Date(e.endDate || 0) > from &&
+        new Date(e.startDate || 0) < meetingsUntil,
+    )
+    .slice(0, 5000);
+  const leave = allLeaves
+    .filter(
+      (l) =>
+        l.status === "approved" &&
+        new Date(l.endDate || 0) >= from &&
+        new Date(l.startDate || 0) < leaveUntil,
+    )
+    .slice(0, 5000)
+    .map((l) => ({
+      ...l,
+      employee: empMap.get(l.employeeId) || { userId: null },
+      leaveType: ltMap.get(l.leaveTypeId) || { code: "" },
+    }));
   const meetingWindows = (meetings || []).map(meetingWindow).filter((w): w is StatusWindowInput => !!w);
   const leaveWindows = (leave || []).map(leaveWindow).filter((w): w is StatusWindowInput => !!w);
   await syncStatusWindows("staff", "calendar", from.toISOString(), meetingsUntil.toISOString(), meetingWindows);

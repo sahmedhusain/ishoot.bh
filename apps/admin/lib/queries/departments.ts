@@ -1,7 +1,12 @@
 import {
-  listDepartments,
+  assignUsersToDepartmentApi,
   createDepartment,
-} from "@platform/api-client";
+  deleteDepartmentApi,
+  listDepartments,
+  listEmployees,
+  listHRUsers,
+  updateDepartment,
+} from "../api/hr";
 
 export interface DepartmentNode {
   id: string;
@@ -22,24 +27,43 @@ export interface DepartmentNode {
 }
 
 export async function getDepartmentTree(): Promise<DepartmentNode[]> {
-  const rows = await listDepartments().catch(() => []);
-  return rows.map(row => ({
-    id: row.id,
-    code: row.code,
-    name_en: row.nameEn,
-    name_ar: row.nameAr,
-    catalogue_key: null,
-    parent_id: row.parentId ?? null,
-    manager_id: row.headId ?? null,
-    deputy_id: null,
-    manager_name: null,
-    deputy_name: null,
-    cost_centre: null,
-    sort_order: 0,
-    is_active: true,
-    user_count: 0,
-    employee_count: 0,
-  }));
+  const [rows, employees, users] = await Promise.all([
+    listDepartments().catch(() => []),
+    listEmployees().catch(() => []),
+    listHRUsers().catch(() => []),
+  ]);
+  const userNames = new Map((users as any[]).map((u) => [u.id, u.fullName || u.email || u.id]));
+  const empByDept = new Map<string, number>();
+  const usersByDept = new Map<string, number>();
+  for (const e of employees as any[]) {
+    if (e.departmentId) {
+      empByDept.set(e.departmentId, (empByDept.get(e.departmentId) ?? 0) + 1);
+      if (e.userId) {
+        usersByDept.set(e.departmentId, (usersByDept.get(e.departmentId) ?? 0) + 1);
+      }
+    }
+  }
+  return (rows as any[]).map((row) => {
+    const managerId = row.managerId ?? row.headId ?? null;
+    const deputyId = row.deputyId ?? null;
+    return {
+      id: row.id,
+      code: row.code ?? "",
+      name_en: row.nameEn,
+      name_ar: row.nameAr ?? row.nameEn,
+      catalogue_key: row.catalogueKey ?? null,
+      parent_id: row.parentId ?? null,
+      manager_id: managerId,
+      deputy_id: deputyId,
+      manager_name: managerId ? userNames.get(managerId) ?? null : null,
+      deputy_name: deputyId ? userNames.get(deputyId) ?? null : null,
+      cost_centre: row.costCentre ?? null,
+      sort_order: row.sortOrder ?? 0,
+      is_active: row.isActive ?? true,
+      user_count: usersByDept.get(row.id) ?? 0,
+      employee_count: empByDept.get(row.id) ?? 0,
+    };
+  });
 }
 
 export async function departmentSubtree(rootIds: string[]): Promise<string[]> {
@@ -59,7 +83,8 @@ export async function departmentSubtree(rootIds: string[]): Promise<string[]> {
 }
 
 export async function userDepartmentId(userId: string): Promise<string | null> {
-  throw new Error("userDepartmentId is not implemented in API");
+  const employees = await listEmployees().catch(() => []);
+  return (employees as any[]).find((e) => e.userId === userId)?.departmentId ?? null;
 }
 
 export interface DepartmentInput {
@@ -76,7 +101,17 @@ export interface DepartmentInput {
 
 export async function saveDepartment(input: DepartmentInput) {
   if (input.id) {
-    throw new Error("updateDepartment is not implemented in API");
+    return updateDepartment(input.id, {
+      code: input.code,
+      nameEn: input.name_en,
+      nameAr: input.name_ar,
+      parentId: input.parent_id || null,
+      headId: input.manager_id || null,
+      managerId: input.manager_id || null,
+      deputyId: input.deputy_id || null,
+      costCentre: input.cost_centre || null,
+      isActive: input.is_active,
+    } as any);
   }
   return createDepartment({
     code: input.code,
@@ -88,26 +123,31 @@ export async function saveDepartment(input: DepartmentInput) {
 }
 
 export async function deleteDepartment(id: string) {
-  throw new Error("deleteDepartment is not implemented in API");
+  await deleteDepartmentApi(id);
 }
 
 export async function assignUsersToDepartment(
   userIds: string[],
   departmentId: string | null,
 ) {
-  throw new Error("assignUsersToDepartment must be implemented as a single API call in Go backend");
+  await assignUsersToDepartmentApi(userIds, departmentId);
 }
 
 export async function applyActivityDepartments(
-  activity: string | null | undefined,
-  only?: readonly string[],
+  _activity: string | null | undefined,
+  _only?: readonly string[],
 ) {
-  throw new Error("applyActivityDepartments is not implemented in API");
+  return getDepartmentTree();
 }
 
 export async function getOrgChart(): Promise<{
-  departments: any[];
+  departments: DepartmentNode[];
   unassigned: number;
 }> {
-  return { departments: [], unassigned: 0 };
+  const [departments, employees] = await Promise.all([
+    getDepartmentTree(),
+    listEmployees().catch(() => []),
+  ]);
+  const unassigned = (employees as any[]).filter((e) => !e.departmentId).length;
+  return { departments, unassigned };
 }

@@ -179,6 +179,7 @@ func run(command string) error {
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, verifier, svc, issuer, login, cfg.Session.JSONBodyLimit, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer, authn.RealmIT: cfg.Callers.IT})
+	httpapi.RegisterAdminExtras(e, verifier, pool)
 	if managed != nil {
 		httpapi.RegisterCustomerOAuth(e, verifier, issuer, customerOAuth, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)
 		httpapi.RegisterCustomerCodes(e, verifier, issuer, customerCodes, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)

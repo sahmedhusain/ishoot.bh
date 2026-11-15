@@ -1,6 +1,7 @@
 import { apiError } from "./errors";
 import type { components, paths } from "./generated/notify";
 import { serviceClient, unwrap, userClient } from "./http";
+import { serviceFetch } from "./service-fetch";
 
 export type NotifyMessage = components["schemas"]["Message"];
 export type QueueMessageInput = components["schemas"]["QueueMessageInput"];
@@ -60,3 +61,18 @@ export const sendTestMessageForIT = (
       body: { channel, to },
     }),
   );
+
+export const listAdminNotifications = (token?: string) =>
+  serviceFetch<any[]>("/v1/notify/admin/notifications", {}, token);
+
+export const listAdminNotifyMessages = (token?: string) =>
+  serviceFetch<any[]>("/v1/notify/admin/messages", {}, token);
+
+export const listNotifyCategorySettings = (token?: string) =>
+  serviceFetch<any[]>("/v1/notify/admin/category-settings", {}, token);
+
+export const listNotifyPreferences = (token?: string) =>
+  serviceFetch<any[]>("/v1/notify/admin/preferences", {}, token);
+
+export const listNotifyMutes = (token?: string) =>
+  serviceFetch<any[]>("/v1/notify/admin/mutes", {}, token);

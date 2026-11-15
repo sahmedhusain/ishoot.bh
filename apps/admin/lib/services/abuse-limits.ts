@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 export function trustedClientIp(headers: Headers): string | undefined {
   const header = process.env.TRUSTED_CLIENT_IP_HEADER;
   if (!header) return;
@@ -18,11 +18,20 @@ export async function consumeAbuseLimit(
 ) {
   const key =
     scope + ":" + createHash("sha256").update(identifier).digest("hex");
-  const [state] = await db.$queryRaw<Array<{ count: number }>>`
-    INSERT INTO "AbuseWindow" (key,count,"expiresAt") VALUES (${key},1,CURRENT_TIMESTAMP + ${seconds} * INTERVAL '1 second')
-    ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "AbuseWindow"."expiresAt"<=CURRENT_TIMESTAMP THEN 1 ELSE LEAST("AbuseWindow".count+1,${limit + 1}) END,
-    "expiresAt"=CASE WHEN "AbuseWindow"."expiresAt"<=CURRENT_TIMESTAMP THEN CURRENT_TIMESTAMP + ${seconds} * INTERVAL '1 second' ELSE "AbuseWindow"."expiresAt" END
-    RETURNING count
-  `;
-  if (state && state.count > limit) throw new Error(serverMessages.rateLimit);
+  const now = Date.now();
+  const rows = await listTableRows<any>("system", "abuse_window").catch(() => []);
+  const existing = rows.find((r) => r.key === key || r.id === key);
+  const expired = !existing || new Date(existing.expiresAt || 0).getTime() <= now;
+  const count = expired ? 1 : Math.min(Number(existing.count ?? 0) + 1, limit + 1);
+  const expiresAt = expired
+    ? new Date(now + seconds * 1000).toISOString()
+    : existing.expiresAt;
+  await upsertTableRow("system", "abuse_window", {
+    ...(existing || {}),
+    id: existing?.id ?? key,
+    key,
+    count,
+    expiresAt,
+  });
+  if (count > limit) throw new Error(serverMessages.rateLimit);
 }

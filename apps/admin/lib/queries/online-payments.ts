@@ -4,7 +4,8 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
   ONLINE_PAYMENT_TIMEOUT_MINUTES,
@@ -55,16 +56,19 @@ export async function startOrderPayment(
 ): Promise<StartedPayment & { attemptId: string; testMode: boolean }> {
   const active = await activePaymentGateway();
   if (!active) throw new Error(serverMessages.storePaymentMethodInvalid);
-  const order = await db.salesOrder.findUnique({ where: { id: orderId } });
+  const [orders, attempts] = await Promise.all([
+    listTableRows<any>("commerce", "sales_order"),
+    listTableRows<any>("finance", "payment_attempt"),
+  ]);
+  const order = orders.find((o) => o.id === orderId);
   if (!order || ["cancelled", "returned"].includes(order.status))
     throw new Error(serverMessages.orderStatusInvalid);
   if (
-    await db.paymentAttempt.count({
-      where: {
-        orderId,
-        OR: [{ status: "review" }, { status: "paid", paymentId: null }],
-      },
-    })
+    attempts.some(
+      (a) =>
+        a.orderId === orderId &&
+        (a.status === "review" || (a.status === "paid" && !a.paymentId)),
+    )
   )
     throw new Error(serverMessages.paymentNeedsReview);
   const owed = round3(num(order.total) - num(order.amountPaid));
@@ -72,14 +76,14 @@ export async function startOrderPayment(
   await assertCompanyCurrency(order.currency);
   if (Number(owed.toFixed(getCurrencyDecimals(order.currency))) !== owed)
     throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-  const attempt = await db.paymentAttempt.create({
-    data: {
-      orderId,
-      gateway: active.id,
-      amount: owed,
-      currency: order.currency,
-      testMode: active.testMode,
-    },
+  const attempt = await upsertTableRow<any>("finance", "payment_attempt", {
+    id: crypto.randomUUID(),
+    orderId,
+    gateway: active.id,
+    amount: owed,
+    currency: order.currency,
+    testMode: active.testMode,
+    status: "pending",
   });
   const back = `${site.url}/api/store/payment/return?attempt=${attempt.id}`;
   try {
@@ -98,16 +102,18 @@ export async function startOrderPayment(
       cancelUrl: `${back}&cancelled=1`,
       webhookUrl: `${site.url}/api/store/payment/webhook/${active.id}`,
     });
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { sessionId: started.sessionId, status: "pending" },
+    await upsertTableRow("finance", "payment_attempt", {
+      ...attempt,
+      sessionId: started.sessionId,
+      status: "pending",
     });
     return { ...started, attemptId: attempt.id, testMode: active.testMode };
   } catch (error) {
     const reason = serverMessages.paymentGatewayUnavailable;
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { status: "failed", failureReason: reason },
+    await upsertTableRow("finance", "payment_attempt", {
+      ...attempt,
+      status: "failed",
+      failureReason: reason,
     });
     console.error(`Payment gateway ${active.id} refused to start a payment`);
     throw new Error(serverMessages.paymentGatewayUnavailable);
@@ -115,14 +121,14 @@ export async function startOrderPayment(
 }
 
 export async function openPaymentAttempt(attemptId: string) {
-  const attempt = await db.paymentAttempt.findUnique({
-    where: { id: attemptId },
-    include: {
-      order: {
-        select: { number: true, total: true, currency: true, locale: true },
-      },
-    },
-  });
+  const [attempts, orders] = await Promise.all([
+    listTableRows<any>("finance", "payment_attempt"),
+    listTableRows<any>("commerce", "sales_order"),
+  ]);
+  const raw = attempts.find((a) => a.id === attemptId);
+  const attempt = raw
+    ? { ...raw, order: orders.find((o) => o.id === raw.orderId) ?? null }
+    : null;
   if (!attempt || !OPEN.includes(attempt.status)) return null;
   return {
     id: attempt.id,
@@ -141,24 +147,22 @@ export async function settleAttempt(
   providerEventId?: string,
 ) {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "PaymentAttempt" WHERE id = ${attemptId} FOR UPDATE`;
-    const attempt = await db.paymentAttempt.findUnique({
-      where: { id: attemptId },
-      include: { order: true },
-    });
-    if (!attempt) return null;
+    const [attempts, orders, webhookEvents] = await Promise.all([
+      listTableRows<any>("finance", "payment_attempt"),
+      listTableRows<any>("commerce", "sales_order"),
+      listTableRows<any>("finance", "payment_webhook_event"),
+    ]);
+    const rawAttempt = attempts.find((a) => a.id === attemptId);
+    if (!rawAttempt) return null;
+    const order = orders.find((o) => o.id === rawAttempt.orderId);
+    if (!order) throw new Error(serverMessages.orderStatusInvalid);
+    const attempt = { ...rawAttempt, order };
     if (providerEventId) {
-      const event = await db.paymentWebhookEvent.createMany({
-        data: [
-          {
-            gateway: attempt.gateway,
-            eventId: providerEventId.slice(0, 200),
-            attemptId,
-          },
-        ],
-        skipDuplicates: true,
-      });
-      if (!event.count)
+      const eventId = providerEventId.slice(0, 200);
+      const exists = webhookEvents.some(
+        (e) => e.gateway === attempt.gateway && e.eventId === eventId,
+      );
+      if (exists)
         return {
           state:
             attempt.status === "paid" && attempt.paymentId
@@ -169,37 +173,37 @@ export async function settleAttempt(
           order: attempt.order,
           duplicate: true,
         };
+      await upsertTableRow("finance", "payment_webhook_event", {
+        id: crypto.randomUUID(),
+        gateway: attempt.gateway,
+        eventId,
+        attemptId,
+      });
     }
     if (attempt.status === "paid" && attempt.paymentId)
       return { state: "paid" as const, order: attempt.order };
     if (payment.state !== "paid") {
       if (attempt.status === "review" || attempt.status === "paid")
         return { state: "review" as const, order: attempt.order };
-      await db.paymentAttempt.updateMany({
-        where: { id: attemptId, status: { in: OPEN } },
-        data: { status: payment.state },
-      });
+      if (OPEN.includes(attempt.status)) {
+        await upsertTableRow("finance", "payment_attempt", {
+          ...rawAttempt,
+          status: payment.state,
+        });
+      }
       return { state: payment.state, order: attempt.order };
     }
     const reference = payment.paymentId?.trim();
     const paymentId =
       reference && reference.length <= 200 ? reference : undefined;
-    if (paymentId)
-      await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${`${attempt.gateway}:${paymentId}`}, 0))`;
     const used = paymentId
-      ? await db.paymentAttempt.findFirst({
-          where: {
-            id: { not: attemptId },
-            gateway: attempt.gateway,
-            gatewayPaymentId: paymentId,
-          },
-          select: { id: true },
-        })
+      ? attempts.find(
+          (a) =>
+            a.id !== attemptId &&
+            a.gateway === attempt.gateway &&
+            a.gatewayPaymentId === paymentId,
+        ) ?? null
       : null;
-    await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${attempt.orderId} FOR UPDATE`;
-    const order = await db.salesOrder.findUniqueOrThrow({
-      where: { id: attempt.orderId },
-    });
     const amount = payment.amount;
     const currency = payment.currency?.toUpperCase();
     const verified =
@@ -221,14 +225,12 @@ export async function settleAttempt(
       const reason = used
         ? serverMessages.paymentReferenceAlreadyUsed
         : serverMessages.paymentNeedsReview;
-      await db.paymentAttempt.update({
-        where: { id: attemptId },
-        data: {
-          status: "review",
-          paidAt: attempt.paidAt ?? new Date(),
-          failureReason: reason,
-          ...(!used && paymentId ? { gatewayPaymentId: paymentId } : {}),
-        },
+      await upsertTableRow("finance", "payment_attempt", {
+        ...rawAttempt,
+        status: "review",
+        paidAt: rawAttempt.paidAt ?? new Date().toISOString(),
+        failureReason: reason,
+        ...(!used && paymentId ? { gatewayPaymentId: paymentId } : {}),
       });
       if (attempt.status !== "review" || attempt.failureReason !== reason) {
         const alert =
@@ -255,15 +257,13 @@ export async function settleAttempt(
       },
       null,
     );
-    await db.paymentAttempt.update({
-      where: { id: attemptId },
-      data: {
-        status: "paid",
-        paidAt: attempt.paidAt ?? new Date(),
-        gatewayPaymentId: paymentId!,
-        paymentId: receiptId,
-        failureReason: null,
-      },
+    await upsertTableRow("finance", "payment_attempt", {
+      ...rawAttempt,
+      status: "paid",
+      paidAt: rawAttempt.paidAt ?? new Date().toISOString(),
+      gatewayPaymentId: paymentId!,
+      paymentId: receiptId,
+      failureReason: null,
     });
     return { state: "paid" as const, order };
   });
@@ -273,10 +273,14 @@ export async function confirmReturn(
   attemptId: string,
   params: Record<string, string>,
 ) {
-  const attempt = await db.paymentAttempt.findUnique({
-    where: { id: attemptId },
-    include: { order: true },
-  });
+  const [attempts, orders] = await Promise.all([
+    listTableRows<any>("finance", "payment_attempt"),
+    listTableRows<any>("commerce", "sales_order"),
+  ]);
+  const raw = attempts.find((a) => a.id === attemptId);
+  const attempt = raw
+    ? { ...raw, order: orders.find((o) => o.id === raw.orderId) ?? null }
+    : null;
   if (!attempt) return null;
   if (attempt.status === "paid" && attempt.paymentId)
     return { state: "paid" as const, order: attempt.order };
@@ -331,19 +335,11 @@ export async function handlePaymentWebhook(
   if (!active) throw new WebhookSignatureError("Gateway is not set up");
   const event = await active.gateway.webhook(active.credentials, request);
   if (!event || !event.eventId) return { handled: false };
+  const allAttempts = await listTableRows<any>("finance", "payment_attempt");
   const attempt = event.attemptId
-    ? await db.paymentAttempt.findFirst({
-        where: { id: event.attemptId, gateway: gatewayId },
-      })
+    ? allAttempts.find((a) => a.id === event.attemptId && a.gateway === gatewayId) ?? null
     : event.sessionId
-      ? await db.paymentAttempt.findUnique({
-          where: {
-            gateway_sessionId: {
-              gateway: gatewayId,
-              sessionId: event.sessionId,
-            },
-          },
-        })
+      ? allAttempts.find((a) => a.gateway === gatewayId && a.sessionId === event.sessionId) ?? null
       : null;
   if (!attempt || attempt.gateway !== gatewayId) return { handled: false };
   let payment: GatewayPayment = event;
@@ -369,15 +365,16 @@ export async function refundOrder(
   byId: string | null,
 ) {
   const amount = round3(amountInput);
-  const attempts = await db.paymentAttempt.findMany({
-    where: {
-      orderId,
-      status: "paid",
-      paymentId: { not: null },
-      gatewayPaymentId: { not: null },
-    },
-    orderBy: { paidAt: "desc" },
-  });
+  const allAttempts = await listTableRows<any>("finance", "payment_attempt");
+  const attempts = allAttempts
+    .filter(
+      (a) =>
+        a.orderId === orderId &&
+        a.status === "paid" &&
+        a.paymentId != null &&
+        a.gatewayPaymentId != null,
+    )
+    .sort((a, b) => String(b.paidAt ?? "").localeCompare(String(a.paidAt ?? "")));
   if (!attempts.length) return recordOrderRefund(orderId, amount, reason, byId);
   const refundable = round3(
     attempts.reduce((sum, a) => sum + num(a.amount) - num(a.amountRefunded), 0),
@@ -404,9 +401,9 @@ export async function refundOrder(
       console.error(`Payment gateway ${attempt.gateway} refused a refund`);
       throw new Error(serverMessages.paymentRefundFailed);
     }
-    await db.paymentAttempt.update({
-      where: { id: attempt.id },
-      data: { amountRefunded: { increment: part } },
+    await upsertTableRow("finance", "payment_attempt", {
+      ...attempt,
+      amountRefunded: round3(num(attempt.amountRefunded) + part),
     });
     await recordOrderRefund(orderId, part, reason, byId);
     left = round3(left - part);
@@ -415,11 +412,13 @@ export async function refundOrder(
 }
 
 export async function orderPaymentAttempts(orderId: string) {
-  const rows = await db.paymentAttempt.findMany({
-    where: { orderId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  const allRows = await listTableRows<any>("finance", "payment_attempt");
+  const rows = allRows
+    .filter((a) => a.orderId === orderId)
+    .sort((a, b) =>
+      String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")),
+    )
+    .slice(0, 20);
   return rows.map((a) => ({
     id: a.id,
     gateway: a.gateway,
@@ -429,7 +428,7 @@ export async function orderPaymentAttempts(orderId: string) {
     currency: a.currency,
     test_mode: a.testMode,
     reference: a.gatewayPaymentId ?? a.sessionId ?? "",
-    created_at: a.createdAt.toISOString(),
+    created_at: String(a.createdAt ?? new Date().toISOString()),
     failure: a.failureReason ?? "",
   }));
 }
@@ -438,10 +437,18 @@ export async function expireOnlinePayments(now = new Date()) {
   const cutoff = new Date(
     now.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000,
   );
-  const stale = await db.paymentAttempt.findMany({
-    where: { status: { in: OPEN }, createdAt: { lt: cutoff } },
-    take: 200,
-  });
+  const [allAttempts, allOrders] = await Promise.all([
+    listTableRows<any>("finance", "payment_attempt"),
+    listTableRows<any>("commerce", "sales_order"),
+  ]);
+  const stale = allAttempts
+    .filter(
+      (a) =>
+        OPEN.includes(a.status) &&
+        a.createdAt &&
+        new Date(a.createdAt) < cutoff,
+    )
+    .slice(0, 200);
   let expired = 0;
   let cancelled = 0;
   for (const attempt of stale) {
@@ -465,30 +472,28 @@ export async function expireOnlinePayments(now = new Date()) {
     if (state === "paid" || state === "unknown") continue;
     if (
       state === "pending" &&
-      attempt.createdAt >
+      new Date(attempt.createdAt) >
         new Date(cutoff.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000)
     )
       continue;
-    const changed = await db.paymentAttempt.updateMany({
-      where: { id: attempt.id, status: { in: OPEN } },
-      data: { status: "expired" },
-    });
-    expired += changed.count;
-    const order = await db.salesOrder.findUnique({
-      where: { id: attempt.orderId },
-      include: {
-        paymentAttempts: {
-          where: { status: { in: OPEN } },
-          select: { id: true },
-        },
-      },
-    });
+    if (OPEN.includes(attempt.status)) {
+      await upsertTableRow("finance", "payment_attempt", {
+        ...attempt,
+        status: "expired",
+      });
+      attempt.status = "expired";
+      expired += 1;
+    }
+    const order = allOrders.find((o) => o.id === attempt.orderId);
+    const openForOrder = allAttempts.filter(
+      (a) => a.orderId === attempt.orderId && OPEN.includes(a.status),
+    );
     if (
       order &&
       order.paymentMethod === "online" &&
       order.status === "placed" &&
       num(order.amountPaid) === 0 &&
-      order.paymentAttempts.length === 0
+      openForOrder.length === 0
     ) {
       await moveOrder(
         order.id,
@@ -504,19 +509,24 @@ export async function expireOnlinePayments(now = new Date()) {
 }
 
 export async function paymentLinkOrder(orderId: string) {
-  const order = await db.salesOrder.findUnique({
-    where: { id: orderId },
-    include: {
-      lines: { orderBy: { sortOrder: "asc" } },
-      paymentAttempts: {
-        where: {
-          OR: [{ status: "review" }, { status: "paid", paymentId: null }],
-        },
-        select: { id: true },
-      },
-    },
-  });
-  if (!order) return null;
+  const [orders, allLines, allAttempts] = await Promise.all([
+    listTableRows<any>("commerce", "sales_order"),
+    listTableRows<any>("commerce", "sales_order_line"),
+    listTableRows<any>("finance", "payment_attempt"),
+  ]);
+  const rawOrder = orders.find((o) => o.id === orderId);
+  if (!rawOrder) return null;
+  const order = {
+    ...rawOrder,
+    lines: allLines
+      .filter((l) => l.orderId === orderId)
+      .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0)),
+    paymentAttempts: allAttempts.filter(
+      (a) =>
+        a.orderId === orderId &&
+        (a.status === "review" || (a.status === "paid" && !a.paymentId)),
+    ),
+  };
   return {
     id: order.id,
     number: order.number,

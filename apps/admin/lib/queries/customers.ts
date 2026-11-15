@@ -1,6 +1,7 @@
 import { isLocale } from "@platform/locales/registry";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164 } from "../constants/phone";
 
@@ -19,41 +20,47 @@ export interface CustomerProfile {
   email_verified: boolean;
 }
 
-type CustomerRow = NonNullable<
-  Awaited<ReturnType<typeof db.customer.findUnique>>
->;
-const profile = (c: CustomerRow): CustomerProfile => ({
-  id: c.id,
-  email: c.email,
-  name: c.name,
-  phone: c.phone ?? "",
-  locale: c.locale,
+const profile = (c: Record<string, any>): CustomerProfile => ({
+  id: String(c.id),
+  email: String(c.email ?? ""),
+  name: String(c.name ?? ""),
+  phone: String(c.phone ?? ""),
+  locale: String(c.locale ?? "en"),
   has_password: !!c.passwordHash,
   google: !!c.googleSub,
   apple: !!c.appleSub,
-  marketing_opt_in: c.marketingOptIn,
+  marketing_opt_in: Boolean(c.marketingOptIn),
   email_verified: !!c.emailVerifiedAt,
 });
 
 async function linkContact(email: string, name: string, phone: string | null) {
-  const existing = await db.crmContact.findFirst({
-    where: { emailNorm: email, contactType: { not: "vendor" }, customer: null },
-    select: { id: true },
-  });
-  if (existing) return existing.id;
+  const [contacts, customers] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "crm_contact"),
+    listTableRows<Record<string, any>>("commerce", "customer"),
+  ]);
+  const linkedContactIds = new Set(
+    customers.map((c) => c.crmContactId).filter(Boolean).map(String),
+  );
+  const existing = contacts.find(
+    (c) =>
+      c.emailNorm === email &&
+      c.contactType !== "vendor" &&
+      !linkedContactIds.has(String(c.id)),
+  );
+  if (existing) return String(existing.id);
+
   const [firstName, ...rest] = name.split(/\s+/);
-  const contact = await db.crmContact.create({
-    data: {
-      firstName: firstName || name,
-      lastName: rest.join(" ") || null,
-      email,
-      emailNorm: email,
-      phone,
-      contactType: "client",
-      clientKind: "individual",
-    },
+  const contact = await upsertTableRow<Record<string, any>>("sales", "crm_contact", {
+    id: crypto.randomUUID(),
+    firstName: firstName || name,
+    lastName: rest.join(" ") || null,
+    email,
+    emailNorm: email,
+    phone,
+    contactType: "client",
+    clientKind: "individual",
   });
-  return contact.id;
+  return String(contact.id);
 }
 
 function checkName(name: string) {
@@ -63,26 +70,48 @@ function checkName(name: string) {
 }
 
 export async function getCustomerProfile(id: string) {
- const customer=await db.customer.findUnique({where:{id}});
- return customer ? profile(customer) : null;
+  const customers = await listTableRows<Record<string, any>>("commerce", "customer");
+  const customer = customers.find((c) => c.id === id);
+  return customer ? profile(customer) : null;
 }
 
-export async function ensureCustomerProfile(id: string, emailInput: string, input: {name?: string;locale: string;marketingOptIn?: boolean}, emailVerified=false) {
- const email=normalizeCustomerEmail(emailInput);
- if(!isValidEmail(email))throw new Error(serverMessages.customerEmailInvalid);
- return runAtomicMutation(async()=>{
-  await db.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"customer-projection:"+id},0))::text`;
-  const existing=await db.customer.findUnique({where:{id}});
-  if(existing){
-   if(existing.email!==email)throw new Error(serverMessages.customerEmailInvalid);
-   if(emailVerified && !existing.emailVerifiedAt)
-    return profile(await db.customer.update({where:{id},data:{emailVerifiedAt:new Date()}}));
-   return profile(existing);
-  }
-  const name=checkName(input.name || email.split("@")[0]);
-  const crmContactId=await linkContact(email,name,null);
-  return profile(await db.customer.create({data:{id,email,name,locale:isLocale(input.locale)?input.locale:"en",marketingOptIn:!!input.marketingOptIn,emailVerifiedAt:emailVerified?new Date():null,crmContactId}}));
- });
+export async function ensureCustomerProfile(
+  id: string,
+  emailInput: string,
+  input: { name?: string; locale: string; marketingOptIn?: boolean },
+  emailVerified = false,
+) {
+  const email = normalizeCustomerEmail(emailInput);
+  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
+  return runAtomicMutation(async () => {
+    const customers = await listTableRows<Record<string, any>>("commerce", "customer");
+    const existing = customers.find((c) => c.id === id);
+    if (existing) {
+      if (existing.email !== email) throw new Error(serverMessages.customerEmailInvalid);
+      if (emailVerified && !existing.emailVerifiedAt) {
+        return profile(
+          await upsertTableRow("commerce", "customer", {
+            id,
+            emailVerifiedAt: new Date().toISOString(),
+          }),
+        );
+      }
+      return profile(existing);
+    }
+    const name = checkName(input.name || email.split("@")[0]);
+    const crmContactId = await linkContact(email, name, null);
+    return profile(
+      await upsertTableRow("commerce", "customer", {
+        id,
+        email,
+        name,
+        locale: isLocale(input.locale) ? input.locale : "en",
+        marketingOptIn: !!input.marketingOptIn,
+        emailVerifiedAt: emailVerified ? new Date().toISOString() : null,
+        crmContactId,
+      }),
+    );
+  });
 }
 
 export async function updateCustomerProfile(
@@ -100,20 +129,19 @@ export async function updateCustomerProfile(
     if (!isValidPhone(phone)) throw new Error(serverMessages.invalidInput);
     phone = formatPhoneE164(phone);
   }
-  const customer = await db.customer.update({
-    where: { id: customerId },
-    data: {
-      name,
-      phone,
-      locale: isLocale(input.locale) ? input.locale : "en",
-      marketingOptIn: input.marketingOptIn,
-    },
+  const customer = await upsertTableRow<Record<string, any>>("commerce", "customer", {
+    id: customerId,
+    name,
+    phone,
+    locale: isLocale(input.locale) ? input.locale : "en",
+    marketingOptIn: input.marketingOptIn,
   });
-  if (customer.crmContactId)
-    await db.crmContact.update({
-      where: { id: customer.crmContactId },
-      data: { phone: phone ?? undefined },
+  if (customer.crmContactId && phone !== null) {
+    await upsertTableRow("sales", "crm_contact", {
+      id: String(customer.crmContactId),
+      phone,
     });
+  }
   return profile(customer);
 }
 
@@ -132,23 +160,26 @@ export interface CustomerAddressInput {
 }
 
 export async function listCustomerAddresses(customerId: string) {
-  const rows = await db.customerAddress.findMany({
-    where: { customerId },
-    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-  });
-  return rows.map((a) => ({
-    id: a.id,
-    label: a.label ?? "",
-    name: a.name,
-    phone: a.phone,
-    line1: a.line1,
-    line2: a.line2 ?? "",
-    area: a.area ?? "",
-    city: a.city,
-    country: a.country,
-    postal_code: a.postalCode ?? "",
-    is_default: a.isDefault,
-  }));
+  const rows = await listTableRows<Record<string, any>>(
+    "commerce",
+    "customer_address",
+    "is_default DESC, created_at ASC",
+  );
+  return rows
+    .filter((a) => a.customerId === customerId)
+    .map((a) => ({
+      id: String(a.id),
+      label: String(a.label ?? ""),
+      name: String(a.name ?? ""),
+      phone: String(a.phone ?? ""),
+      line1: String(a.line1 ?? ""),
+      line2: String(a.line2 ?? ""),
+      area: String(a.area ?? ""),
+      city: String(a.city ?? ""),
+      country: String(a.country ?? ""),
+      postal_code: String(a.postalCode ?? ""),
+      is_default: Boolean(a.isDefault),
+    }));
 }
 
 export async function saveCustomerAddress(
@@ -172,108 +203,125 @@ export async function saveCustomerAddress(
   if (!isValidPhone(data.phone))
     throw new Error(serverMessages.invalidInput);
   data.phone = formatPhoneE164(data.phone);
-  if (
-    (await db.customerAddress.count({ where: { customerId } })) >= 20 &&
-    !input.id
-  )
+
+  const existingAddresses = (
+    await listTableRows<Record<string, any>>("commerce", "customer_address")
+  ).filter((a) => a.customerId === customerId);
+
+  if (existingAddresses.length >= 20 && !input.id)
     throw new Error(serverMessages.customerAddressIncomplete);
-  return db.$transaction(async (tx) => {
-    const first = !(await tx.customerAddress.findFirst({
-      where: { customerId },
-      select: { id: true },
-    }));
+
+  return runAtomicMutation(async () => {
+    const first = existingAddresses.length === 0;
     const isDefault = input.isDefault || first;
-    if (isDefault)
-      await tx.customerAddress.updateMany({
-        where: { customerId },
-        data: { isDefault: false },
-      });
+    if (isDefault) {
+      for (const addr of existingAddresses) {
+        if (addr.isDefault) {
+          await upsertTableRow("commerce", "customer_address", {
+            id: addr.id,
+            isDefault: false,
+          });
+        }
+      }
+    }
     if (input.id) {
-      const result = await tx.customerAddress.updateMany({
-        where: { id: input.id, customerId },
-        data: { ...data, isDefault },
+      const target = existingAddresses.find((a) => a.id === input.id);
+      if (!target) throw new Error(serverMessages.customerAddressIncomplete);
+      await upsertTableRow("commerce", "customer_address", {
+        id: input.id,
+        ...data,
+        isDefault,
       });
-      if (!result.count)
-        throw new Error(serverMessages.customerAddressIncomplete);
       return input.id;
     }
-    return (
-      await tx.customerAddress.create({
-        data: { ...data, isDefault, customerId },
-      })
-    ).id;
+    const created = await upsertTableRow<Record<string, any>>(
+      "commerce",
+      "customer_address",
+      {
+        id: crypto.randomUUID(),
+        ...data,
+        isDefault,
+        customerId,
+      },
+    );
+    return String(created.id);
   });
 }
 
 export async function deleteCustomerAddress(customerId: string, id: string) {
-  await db.customerAddress.deleteMany({ where: { id, customerId } });
+  const rows = await listTableRows<Record<string, any>>("commerce", "customer_address");
+  const target = rows.find((a) => a.id === id && a.customerId === customerId);
+  if (target) await deleteTableRow("commerce", "customer_address", id);
 }
 
 export async function toggleWishlist(
   customerId: string,
   catalogueItemId: string,
 ) {
-  const existing = await db.wishlistItem.findUnique({
-    where: { customerId_catalogueItemId: { customerId, catalogueItemId } },
-  });
+  const items = await listTableRows<Record<string, any>>("system", "wishlist_item");
+  const existing = items.find(
+    (w) => w.customerId === customerId && w.catalogueItemId === catalogueItemId,
+  );
   if (existing) {
-    await db.wishlistItem.delete({ where: { id: existing.id } });
+    await deleteTableRow("system", "wishlist_item", String(existing.id));
     return false;
   }
-  if (
-    !(await db.portfolioItem.findUnique({
-      where: { id: catalogueItemId },
-      select: { id: true },
-    }))
-  )
+  const portfolioItems = await listTableRows<Record<string, any>>("cms", "portfolio_item");
+  if (!portfolioItems.some((p) => p.id === catalogueItemId))
     throw new Error(serverMessages.customerItemMissing);
-  await db.wishlistItem.create({ data: { customerId, catalogueItemId } });
+  await upsertTableRow("system", "wishlist_item", {
+    id: crypto.randomUUID(),
+    customerId,
+    catalogueItemId,
+  });
   return true;
 }
 
 export async function listWishlist(customerId: string) {
-  const rows = await db.wishlistItem.findMany({
-    where: { customerId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      catalogueItem: {
-        select: {
-          id: true,
-          slug: true,
-          titleEn: true,
-          titleAr: true,
-          thumbnailUrl: true,
-          price: true,
-        },
-      },
-    },
-  });
-  return rows.map((w) => ({
-    id: w.catalogueItem.id,
-    slug: w.catalogueItem.slug,
-    title_en: w.catalogueItem.titleEn,
-    title_ar: w.catalogueItem.titleAr,
-    thumbnail_url: w.catalogueItem.thumbnailUrl,
-    price: w.catalogueItem.price == null ? null : Number(w.catalogueItem.price),
-  }));
+  const [rows, portfolioItems] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "wishlist_item", "created_at DESC"),
+    listTableRows<Record<string, any>>("cms", "portfolio_item"),
+  ]);
+  const byId = new Map(portfolioItems.map((p) => [String(p.id), p]));
+  return rows
+    .filter((w) => w.customerId === customerId && byId.has(String(w.catalogueItemId)))
+    .map((w) => {
+      const item = byId.get(String(w.catalogueItemId))!;
+      return {
+        id: String(item.id),
+        slug: String(item.slug ?? ""),
+        title_en: item.titleEn ?? null,
+        title_ar: item.titleAr ?? null,
+        thumbnail_url: item.thumbnailUrl ?? null,
+        price: item.price == null ? null : Number(item.price),
+      };
+    });
 }
 
 export async function deleteCustomerAccount(customerId: string) {
-  await db.$transaction([
-    db.customerAddress.deleteMany({ where: { customerId } }),
-    db.wishlistItem.deleteMany({ where: { customerId } }),
-    db.customer.update({
-      where: { id: customerId },
-      data: {
-        email: `deleted-${customerId}@deleted.invalid`,
-        name: "—",
-        phone: null,
-        passwordHash: null,
-        googleSub: null,
-        appleSub: null,
-        marketingOptIn: false,
-        crmContactId: null,
-      },
-    }),
-  ]);
+  return runAtomicMutation(async () => {
+    const [addresses, wishlists] = await Promise.all([
+      listTableRows<Record<string, any>>("commerce", "customer_address"),
+      listTableRows<Record<string, any>>("system", "wishlist_item"),
+    ]);
+    for (const a of addresses) {
+      if (a.customerId === customerId)
+        await deleteTableRow("commerce", "customer_address", String(a.id));
+    }
+    for (const w of wishlists) {
+      if (w.customerId === customerId)
+        await deleteTableRow("system", "wishlist_item", String(w.id));
+    }
+    await upsertTableRow("commerce", "customer", {
+      id: customerId,
+      email: `deleted-${customerId}@deleted.invalid`,
+      name: "—",
+      phone: null,
+      passwordHash: null,
+      googleSub: null,
+      appleSub: null,
+      marketingOptIn: false,
+      crmContactId: null,
+    });
+  });
 }

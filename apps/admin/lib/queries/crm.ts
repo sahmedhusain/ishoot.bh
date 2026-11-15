@@ -1,4 +1,4 @@
-import { db } from "@platform/database";
+import { listTableRows } from "../api/tables";
 import { serviceToken } from "../api/service-token";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
@@ -203,22 +203,25 @@ export async function getCustomerDossier(
     if (contactRaw) {
       contact = mapContact(contactRaw);
     } else {
-      const dbContact = await db.crmContact.findUnique({
-        where: { id },
-        include: { contactPersons: true },
-      }).catch(() => null);
+      const dbContact = (
+        await listTableRows<Record<string, any>>("sales", "crm_contact").catch(
+          () => [],
+        )
+      ).find((c) => c.id === id);
       if (!dbContact) return null;
       contact = {
         id: dbContact.id,
-        fullName: dbContact.fullName,
+        fullName:
+          dbContact.fullName ||
+          [dbContact.firstName, dbContact.lastName].filter(Boolean).join(" "),
         email: dbContact.email ?? "",
         phone: dbContact.phone ?? "",
-        company: dbContact.company ?? "",
+        company: dbContact.companyName ?? dbContact.company ?? "",
         notes: dbContact.notes ?? "",
         status: dbContact.status ?? "active",
         category: dbContact.contactType ?? "client",
-        createdAt: dbContact.createdAt.toISOString(),
-        updatedAt: dbContact.updatedAt.toISOString(),
+        createdAt: new Date(dbContact.createdAt || Date.now()).toISOString(),
+        updatedAt: new Date(dbContact.updatedAt || Date.now()).toISOString(),
       };
     }
 
@@ -490,31 +493,35 @@ export async function getCustomerDossier(
 }
 
 export async function advanceDealForEvent(
-  tx: any,
+  _tx: any,
   dealId: string | null | undefined,
   event: DealProgressEvent,
 ): Promise<boolean> {
   if (!dealId) return false;
   const target = DEAL_STAGE_ON_EVENT[event];
   if (!target) return false;
-  const stages = await tx.dealPipelineStage.findMany({
-    select: { id: true, sortOrder: true, kind: true, probability: true },
-  });
+  const { listTableRows, upsertTableRow } = await import("../api/tables");
+  const [stages, deals] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "deal_pipeline_stage"),
+    listTableRows<Record<string, any>>("sales", "crm_deal"),
+  ]);
   const goal = stages.find((stage: any) => stage.id === target);
   if (!goal) return false;
-  const before = stages
-    .filter(
-      (stage: any) => stage.kind === "open" && stage.sortOrder < goal.sortOrder,
-    )
-    .map((stage: any) => stage.id);
-  const { count } = await tx.crmDeal.updateMany({
-    where: { id: dealId, dealStage: { in: before } },
-    data: {
-      dealStage: target,
-      probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability,
-    },
+  const before = new Set(
+    stages
+      .filter(
+        (stage: any) => stage.kind === "open" && Number(stage.sortOrder ?? 0) < Number(goal.sortOrder ?? 0),
+      )
+      .map((stage: any) => String(stage.id)),
+  );
+  const deal = deals.find((d: any) => d.id === dealId && before.has(String(d.dealStage ?? "")));
+  if (!deal) return false;
+  await upsertTableRow("sales", "crm_deal", {
+    id: dealId,
+    dealStage: target,
+    probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability,
   });
-  return count > 0;
+  return true;
 }
 
 export async function createCRMContact(

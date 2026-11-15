@@ -293,3 +293,15 @@ export async function listOrderLines(orderId: string, token?: string): Promise<S
 export async function listOrderEvents(orderId: string, token?: string): Promise<SalesOrderEvent[]> {
   return commFetch<SalesOrderEvent[]>(`/v1/commerce/orders/${encodeURIComponent(orderId)}/events`, {}, token);
 }
+
+export async function listRetailClosings(token?: string): Promise<any[]> {
+  return commFetch<any[]>("/v1/commerce/retail/closings", {}, token);
+}
+
+export async function listStoreRegions(token?: string): Promise<any[]> {
+  return commFetch<any[]>("/v1/commerce/regions", {}, token);
+}
+
+export async function listCustomerSegments(token?: string): Promise<any[]> {
+  return commFetch<any[]>("/v1/commerce/segments", {}, token);
+}

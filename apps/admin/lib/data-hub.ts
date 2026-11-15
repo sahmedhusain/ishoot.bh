@@ -1,5 +1,5 @@
 export * from "./types";
-export * from "./atomic";
+export * from "./api/atomic";
 export * from "./decimal";
 export * from "./queries/banners";
 export * from "./queries/portfolio";

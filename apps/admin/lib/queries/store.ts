@@ -1,13 +1,12 @@
 import { roundMoney, validMoneyAmount, toMinorUnits } from "../finance/money";
-import { assertCompanyCurrency } from "../finance/company-currency";
+import { assertCompanyCurrency, companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { isLocale } from "@platform/locales/registry";
-import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
-import { Database } from "@platform/database/decimal";
 import { phoneSearchVariants, isValidPhone, formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
@@ -42,19 +41,22 @@ import {
   type ShipmentSlotChoice,
 } from "./delivery";
 
-type Tx = Database.TransactionClient;
-const num = (value: { toString(): string } | null | undefined) =>
-  value == null ? 0 : Number(value.toString());
-const numOrNull = (value: { toString(): string } | null | undefined) =>
-  value == null ? null : Number(value.toString());
+const num = (value: unknown) => (value == null ? 0 : Number(value));
+const numOrNull = (value: unknown) => (value == null ? null : Number(value));
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
+const toIso = (v: unknown) => (v ? new Date(v as any).toISOString() : new Date().toISOString());
 
 export async function getStoreSettings() {
-  const s = await db.storeSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  }).catch(() => null);
+  let s: Record<string, any> | undefined;
+  try {
+    const rows = await listTableRows<Record<string, any>>("commerce", "store_settings");
+    s = rows.find((r) => r.id === "default");
+    if (!s) {
+      s = await upsertTableRow("commerce", "store_settings", { id: "default" });
+    }
+  } catch {
+    s = undefined;
+  }
 
   return {
     guest_checkout: s?.guestCheckout ?? true,
@@ -103,6 +105,7 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
   if (gateway && !isPaymentGateway(gateway))
     throw new Error(serverMessages.storePaymentMethodInvalid);
   const data = {
+    id: "default",
     guestCheckout: input.guestCheckout,
     deliveryEnabled: input.deliveryEnabled,
     deliveryFee: money(input.deliveryFee, false)!,
@@ -117,29 +120,24 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
       ? {}
       : { paymentGateway: gateway || null }),
   };
-  await db.storeSettings.upsert({
-    where: { id: "default" },
-    update: data,
-    create: { id: "default", ...data },
-  });
+  await upsertTableRow("commerce", "store_settings", data);
 }
 
 export async function listCoupons() {
-  const rows = await db.coupon.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 500,
-  });
+  const rows = (await listTableRows<Record<string, any>>("commerce", "coupon", "created_at DESC"))
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .slice(0, 500);
   return rows.map((c) => ({
-    id: c.id,
-    code: c.code,
-    kind: c.kind,
+    id: String(c.id),
+    code: String(c.code ?? ""),
+    kind: String(c.kind ?? "fixed"),
     value: num(c.value),
     min_order: numOrNull(c.minOrder),
-    starts_at: c.startsAt?.toISOString().slice(0, 10) ?? null,
-    ends_at: c.endsAt?.toISOString().slice(0, 10) ?? null,
-    max_uses: c.maxUses,
-    used_count: c.usedCount,
-    is_active: c.isActive,
+    starts_at: c.startsAt ? toIso(c.startsAt).slice(0, 10) : null,
+    ends_at: c.endsAt ? toIso(c.endsAt).slice(0, 10) : null,
+    max_uses: c.maxUses ?? null,
+    used_count: Number(c.usedCount ?? 0),
+    is_active: Boolean(c.isActive),
   }));
 }
 
@@ -169,16 +167,12 @@ export async function saveCoupon(input: CouponInput) {
   )
     throw new Error(serverMessages.productAmountInvalid);
   const date = (text: string, end = false) =>
-    text ? new Date(`${text}T${end ? "23:59:59.999" : "00:00:00.000"}Z`) : null;
+    text ? `${text}T${end ? "23:59:59.999" : "00:00:00.000"}Z` : null;
   const maxUses = input.maxUses.trim() ? Number(input.maxUses) : null;
   if (maxUses != null && (!Number.isInteger(maxUses) || maxUses < 1))
     throw new Error(serverMessages.productAmountInvalid);
-  if (
-    await db.coupon.findFirst({
-      where: { code, id: { not: input.id ?? "" } },
-      select: { id: true },
-    })
-  )
+  const coupons = await listTableRows<Record<string, any>>("commerce", "coupon");
+  if (coupons.some((c) => c.code === code && c.id !== (input.id ?? "")))
     throw new Error(serverMessages.couponCodeTaken);
   const data = {
     code,
@@ -190,67 +184,89 @@ export async function saveCoupon(input: CouponInput) {
     maxUses,
     isActive: input.isActive,
   };
-  return input.id
-    ? db.coupon.update({ where: { id: input.id }, data })
-    : db.coupon.create({ data });
+  return upsertTableRow("commerce", "coupon", {
+    id: input.id || crypto.randomUUID(),
+    ...data,
+  });
 }
 
 export async function catalogueProductPrices(itemIds: string[]) {
-  const products = await db.product.findMany({
-    where: { catalogueItemId: { in: itemIds }, isActive: true },
-    select: { catalogueItemId: true, price: true, variants: { where: { isActive: true }, select: { price: true } } },
-  });
-  return new Map(products.map(product => [product.catalogueItemId!, Math.min(...(product.variants.length ? product.variants.map(variant => num(variant.price ?? product.price)) : [num(product.price)]))]));
+  const idSet = new Set(itemIds);
+  const [products, variants] = await Promise.all([
+    listTableRows<Record<string, any>>("inventory", "product"),
+    listTableRows<Record<string, any>>("inventory", "product_variant"),
+  ]);
+  const activeProducts = products.filter(
+    (p) => p.isActive && p.catalogueItemId && idSet.has(String(p.catalogueItemId)),
+  );
+  return new Map(
+    activeProducts.map((product) => {
+      const pVars = variants.filter((v) => v.productId === product.id && v.isActive);
+      const prices = pVars.length
+        ? pVars.map((v) => num(v.price ?? product.price))
+        : [num(product.price)];
+      return [String(product.catalogueItemId), Math.min(...prices)];
+    }),
+  );
 }
 
 export async function storeProductForItem(catalogueItemId: string) {
-  const product = await db.product.findFirst({
-    where: { catalogueItemId, isActive: true },
-    include: {
-      variants: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
-    },
-  });
+  const [products, allVariants] = await Promise.all([
+    listTableRows<Record<string, any>>("inventory", "product"),
+    listTableRows<Record<string, any>>("inventory", "product_variant", "sort_order ASC"),
+  ]);
+  const product = products.find((p) => p.catalogueItemId === catalogueItemId && p.isActive);
   if (!product) return null;
+  const variants = allVariants
+    .filter((v) => v.productId === product.id && v.isActive)
+    .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
   const options = normalizeProductOptions(product.options) ?? [];
-  const available = await availableByItem([product.id]);
+  const available = await availableByItem([String(product.id)]);
   const left = (variantKey: string) =>
     product.trackStock
       ? (available.get(`${product.id}|${variantKey}`) ?? 0)
       : null;
   return {
-    product_id: product.id,
-    track_stock: product.trackStock,
+    product_id: String(product.id),
+    track_stock: Boolean(product.trackStock),
     options,
     price: num(product.price),
-    available: product.variants.length ? null : left(""),
-    variants: product.variants.map((v) => ({
-      id: v.id,
+    available: variants.length ? null : left(""),
+    variants: variants.map((v) => ({
+      id: String(v.id),
       values: v.optionValues,
       label_en: variantLabel(options, v.optionValues, "en"),
       label_ar: variantLabel(options, v.optionValues, "ar"),
       price: v.price == null ? num(product.price) : num(v.price),
-      available: left(v.id),
+      available: left(String(v.id)),
     })),
   };
 }
 
-async function availableByItem(
-  productIds: string[],
-  client: Tx | typeof db = db,
-) {
-  const levels = await client.stockLevel.groupBy({
-    by: ["productId", "variantKey"],
-    where: {
-      productId: { in: productIds },
-      location: { isActive: true, warehouse: { isActive: true } },
-    },
-    _sum: { onHand: true, reserved: true },
-  });
+async function availableByItem(productIds: string[], _client?: unknown) {
+  const idSet = new Set(productIds);
+  const [levels, locations, warehouses] = await Promise.all([
+    listTableRows<Record<string, any>>("inventory", "stock_level"),
+    listTableRows<Record<string, any>>("inventory", "stock_location"),
+    listTableRows<Record<string, any>>("inventory", "warehouse"),
+  ]);
+  const activeWhIds = new Set(warehouses.filter((w) => w.isActive).map((w) => String(w.id)));
+  const activeLocIds = new Set(
+    locations
+      .filter((l) => l.isActive && activeWhIds.has(String(l.warehouseId)))
+      .map((l) => String(l.id)),
+  );
+  const totals = new Map<string, { onHand: number; reserved: number }>();
+  for (const l of levels) {
+    if (!idSet.has(String(l.productId)) || !activeLocIds.has(String(l.locationId))) continue;
+    const key = `${l.productId}|${l.variantKey ?? ""}`;
+    const cur = totals.get(key) ?? { onHand: 0, reserved: 0 };
+    cur.onHand += num(l.onHand);
+    cur.reserved += num(l.reserved);
+    totals.set(key, cur);
+  }
   return new Map<string, number>(
-    levels.map((l: any) => [
-      `${l.productId}|${l.variantKey}`,
-      roundQuantity(num(l._sum.onHand) - num(l._sum.reserved)),
-    ]),
+    Array.from(totals.entries()).map(([k, v]) => [k, roundQuantity(v.onHand - v.reserved)]),
   );
 }
 
@@ -272,31 +288,36 @@ export async function quoteCart(
     address?: { area?: string; city?: string } | null;
     regionCode?: string;
   },
-  client: Tx | typeof db = db,
+  _client?: unknown,
 ) {
   const accountingCurrency = await getAccountingCurrency();
   let targetCurrency = accountingCurrency;
   let priceMultiplier = 1;
   if (input.regionCode) {
-    const region = await client.storeRegion.findUnique({
-      where: { code: input.regionCode.trim().toUpperCase() },
-    });
+    const regions = await listTableRows<Record<string, any>>("commerce", "store_region");
+    const region = regions.find(
+      (r) => String(r.code ?? "").toUpperCase() === input.regionCode!.trim().toUpperCase(),
+    );
     if (region && region.isEnabled) {
-      targetCurrency = region.currency;
+      targetCurrency = String(region.currency);
       priceMultiplier = Number(region.priceMultiplier) || 1;
     }
   }
   const cart = input.lines
     .slice(0, MAX_CART_LINES)
     .filter((l) => Number.isFinite(l.quantity) && l.quantity > 0);
-  const products = await client.product.findMany({
-    where: { id: { in: cart.map((l) => l.productId) }, isActive: true },
-    include: { variants: true },
-  });
-  const available = await availableByItem(
-    products.map((p) => p.id),
-    client,
-  );
+  const cartProductIds = new Set(cart.map((l) => l.productId));
+  const [allProducts, allVariants] = await Promise.all([
+    listTableRows<Record<string, any>>("inventory", "product"),
+    listTableRows<Record<string, any>>("inventory", "product_variant"),
+  ]);
+  const products: Array<Record<string, any>> = allProducts
+    .filter((p) => p.isActive && cartProductIds.has(String(p.id)))
+    .map((p): Record<string, any> => ({
+      ...p,
+      variants: allVariants.filter((v) => v.productId === p.id),
+    }));
+  const available = await availableByItem(products.map((p) => String(p.id)));
   const problems: {
     productId: string;
     variantId?: string;
@@ -334,14 +355,14 @@ export async function quoteCart(
       continue;
     }
     const quantity = Math.min(MAX_LINE_QUANTITY, Math.floor(line.quantity));
-    const variantKey = variant?.id ?? "";
+    const variantKey = variant?.id ? String(variant.id) : "";
     if (
       product.trackStock &&
       (available.get(`${product.id}|${variantKey}`) ?? 0) < quantity
     ) {
       problems.push({
-        productId: product.id,
-        variantId: variant?.id,
+        productId: String(product.id),
+        variantId: variant?.id ? String(variant.id) : undefined,
         problem: "out_of_stock",
       });
       continue;
@@ -357,40 +378,54 @@ export async function quoteCart(
       variant?.price != null ? num(variant.price) : num(product.price);
     const unitPrice = roundMoney(basePrice * priceMultiplier, targetCurrency);
     lines.push({
-      productId: product.id,
+      productId: String(product.id),
       variantKey,
-      sku: variant?.sku ?? product.sku,
+      sku: String(variant?.sku ?? product.sku ?? ""),
       description: [product.nameEn, variantEn].filter(Boolean).join(" · "),
-      nameEn: product.nameEn,
-      nameAr: product.nameAr,
+      nameEn: String(product.nameEn ?? ""),
+      nameAr: String(product.nameAr ?? ""),
       variantEn,
       variantAr,
-      imageUrl: product.imageUrls[0] ?? null,
+      imageUrl: (Array.isArray(product.imageUrls) ? product.imageUrls[0] : null) ?? null,
       quantity,
       unitPrice,
-      vatExempt: product.vatExempt,
-      trackStock: product.trackStock,
+      vatExempt: Boolean(product.vatExempt),
+      trackStock: Boolean(product.trackStock),
     });
   }
-  const [settings, company] = await Promise.all([
-    client.storeSettings.upsert({
-      where: { id: "default" },
-      update: {},
-      create: { id: "default" },
-    }),
+  const [settingsRows, company] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "store_settings"),
     getCompanyConfiguration().catch(() => null),
   ]);
+  const settings =
+    settingsRows.find((s) => s.id === "default") ??
+    (await upsertTableRow<Record<string, any>>("commerce", "store_settings", { id: "default" }));
+
   let coupon: {
     kind: "percent" | "fixed";
     value: number;
     minOrder: number | null;
   } | null = null;
   const code = input.couponCode?.trim().toUpperCase();
-  const goods = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.unitPrice * line.quantity, targetCurrency), 0), targetCurrency);
+  const goods = roundMoney(
+    lines.reduce((sum, line) => sum + roundMoney(line.unitPrice * line.quantity, targetCurrency), 0),
+    targetCurrency,
+  );
   if (code) {
-    const row = await client.coupon.findUnique({ where: { code } });
+    const coupons = await listTableRows<Record<string, any>>("commerce", "coupon");
+    const row = coupons.find((c) => c.code === code);
     const problem = row
-      ? couponProblem({ ...row, minOrder: numOrNull(row.minOrder) }, goods)
+      ? couponProblem(
+          {
+            isActive: Boolean(row.isActive),
+            startsAt: row.startsAt ? new Date(row.startsAt) : null,
+            endsAt: row.endsAt ? new Date(row.endsAt) : null,
+            maxUses: row.maxUses ?? null,
+            usedCount: Number(row.usedCount ?? 0),
+            minOrder: numOrNull(row.minOrder),
+          },
+          goods,
+        )
       : "invalid";
     if (problem)
       problems.push({
@@ -477,37 +512,33 @@ export interface PlaceOrderInput {
   utm?: { campaign: string; source: string; medium: string } | null;
 }
 
-async function orderContact(tx: Tx, input: PlaceOrderInput) {
+async function orderContact(input: PlaceOrderInput) {
   if (input.contactId) return input.contactId;
   if (input.customerId) {
-    const customer = await tx.customer.findUnique({
-      where: { id: input.customerId },
-      select: { crmContactId: true },
-    });
-    if (customer?.crmContactId) return customer.crmContactId;
+    const customers = await listTableRows<Record<string, any>>("commerce", "customer");
+    const customer = customers.find((c) => c.id === input.customerId);
+    if (customer?.crmContactId) return String(customer.crmContactId);
   }
   const email = input.email.trim().toLowerCase();
   if (email) {
-    const existing = await tx.crmContact.findFirst({
-      where: { emailNorm: email, contactType: { not: "vendor" } },
-      select: { id: true },
-    });
-    if (existing) return existing.id;
+    const contacts = await listTableRows<Record<string, any>>("sales", "crm_contact");
+    const existing = contacts.find(
+      (c) => c.emailNorm === email && c.contactType !== "vendor",
+    );
+    if (existing) return String(existing.id);
   }
   const [firstName, ...rest] = input.name.trim().split(/\s+/);
-  return (
-    await tx.crmContact.create({
-      data: {
-        firstName: firstName || input.name,
-        lastName: rest.join(" ") || null,
-        email: email || null,
-        emailNorm: email || null,
-        phone: input.phone ? formatPhoneE164(input.phone) : null,
-        contactType: "client",
-        clientKind: "individual",
-      },
-    })
-  ).id;
+  const created = await upsertTableRow<Record<string, any>>("sales", "crm_contact", {
+    id: crypto.randomUUID(),
+    firstName: firstName || input.name,
+    lastName: rest.join(" ") || null,
+    email: email || null,
+    emailNorm: email || null,
+    phone: input.phone ? formatPhoneE164(input.phone) : null,
+    contactType: "client",
+    clientKind: "individual",
+  });
+  return String(created.id);
 }
 
 export async function placeOrder(input: PlaceOrderInput) {
@@ -529,11 +560,10 @@ export async function placeOrder(input: PlaceOrderInput) {
     !(ORDER_PAYMENT_METHODS as readonly string[]).includes(input.paymentMethod)
   )
     throw new Error(serverMessages.storePaymentMethodInvalid);
-  const settings = await db.storeSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
+  const settingsRows = await listTableRows<Record<string, any>>("commerce", "store_settings");
+  const settings =
+    settingsRows.find((s) => s.id === "default") ??
+    (await upsertTableRow<Record<string, any>>("commerce", "store_settings", { id: "default" }));
   if (input.channel === "website") {
     if (
       input.fulfilment === "delivery"
@@ -567,9 +597,22 @@ export async function placeOrder(input: PlaceOrderInput) {
       throw new Error(serverMessages.customerAddressIncomplete);
     if (!isValidPhone(a.phone.trim()))
       throw new Error(serverMessages.invalidInput);
-    if ((a.latitude != null) !== (a.longitude != null) || (a.latitude != null && (typeof a.latitude !== "number" || !Number.isFinite(a.latitude) || Math.abs(a.latitude) > 90)) || (a.longitude != null && (typeof a.longitude !== "number" || !Number.isFinite(a.longitude) || Math.abs(a.longitude) > 180))) throw new Error(serverMessages.customerAddressIncomplete);
+    if (
+      (a.latitude != null) !== (a.longitude != null) ||
+      (a.latitude != null &&
+        (typeof a.latitude !== "number" ||
+          !Number.isFinite(a.latitude) ||
+          Math.abs(a.latitude) > 90)) ||
+      (a.longitude != null &&
+        (typeof a.longitude !== "number" ||
+          !Number.isFinite(a.longitude) ||
+          Math.abs(a.longitude) > 180))
+    )
+      throw new Error(serverMessages.customerAddressIncomplete);
     address = {
-      ...(a.latitude != null && a.longitude != null ? { latitude: a.latitude, longitude: a.longitude } : {}),
+      ...(a.latitude != null && a.longitude != null
+        ? { latitude: a.latitude, longitude: a.longitude }
+        : {}),
       name: a.name.trim().slice(0, 120),
       phone: formatPhoneE164(a.phone.trim()),
       line1: a.line1.trim().slice(0, 200),
@@ -581,33 +624,40 @@ export async function placeOrder(input: PlaceOrderInput) {
     };
   }
   const warehouse = await ensureDefaultWarehouse();
-  return db.$transaction(async (tx) => {
-    await assertCompanyCurrency(undefined, tx);
+  return runAtomicMutation(async () => {
+    await assertCompanyCurrency(undefined);
     let pickupBranch: PublicBranch | null = null;
     if (input.channel === "website") {
-      const publication = await tx.websiteContent.findUnique({ where: { id: "main" }, select: { published: true } });
+      const publications = await listTableRows<Record<string, any>>("cms", "website_content");
+      const publication = publications.find((p) => p.id === "main");
       const raw = (publication?.published as { config?: { commerce?: unknown } } | null)?.config?.commerce;
       const commerce = raw ? validateWebsiteCommerce(raw) : defaultWebsiteCommerce();
-      if (!commerce.capabilities.shop || !commerce.capabilities.ordering || !commerce.capabilities[input.fulfilment])
+      if (
+        !commerce.capabilities.shop ||
+        !commerce.capabilities.ordering ||
+        !commerce.capabilities[input.fulfilment]
+      )
         throw new Error(serverMessages.storeFulfilmentRequired);
-      if (input.fulfilment === "pickup") pickupBranch = selectedPickupBranch(commerce, input.pickupBranchId);
+      if (input.fulfilment === "pickup")
+        pickupBranch = selectedPickupBranch(commerce, input.pickupBranchId);
     }
-    const destination = pickupBranch ? {
-      name: input.locale === "ar" ? pickupBranch.nameAr : pickupBranch.nameEn,
-      phone: pickupBranch.phone,
-      line1: input.locale === "ar" ? pickupBranch.addressAr : pickupBranch.addressEn,
-      city: pickupBranch.city, country: pickupBranch.country, pickupBranch,
-    } : address;
-    const quote = await quoteCart(
-      {
-        lines: input.lines,
-        couponCode: input.couponCode,
-        fulfilment: input.fulfilment,
-        address,
-        regionCode: input.regionCode,
-      },
-      tx,
-    );
+    const destination = pickupBranch
+      ? {
+          name: input.locale === "ar" ? pickupBranch.nameAr : pickupBranch.nameEn,
+          phone: pickupBranch.phone,
+          line1: input.locale === "ar" ? pickupBranch.addressAr : pickupBranch.addressEn,
+          city: pickupBranch.city,
+          country: pickupBranch.country,
+          pickupBranch,
+        }
+      : address;
+    const quote = await quoteCart({
+      lines: input.lines,
+      couponCode: input.couponCode,
+      fulfilment: input.fulfilment,
+      address,
+      regionCode: input.regionCode,
+    });
     const problem = (p: string) => quote.problems.some((x) => x.problem === p);
     if (problem("no_delivery_zone"))
       throw new Error(serverMessages.deliveryNotCovered);
@@ -619,31 +669,44 @@ export async function placeOrder(input: PlaceOrderInput) {
           ? serverMessages.couponCannotBeUsed
           : serverMessages.storeCartChanged,
       );
+
+    const [allLevels, allLocations, allWarehouses] = await Promise.all([
+      listTableRows<Record<string, any>>("inventory", "stock_level"),
+      listTableRows<Record<string, any>>("inventory", "stock_location"),
+      listTableRows<Record<string, any>>("inventory", "warehouse"),
+    ]);
+    const activeWhIds = new Set(allWarehouses.filter((w) => w.isActive).map((w) => String(w.id)));
+    const locById = new Map(allLocations.map((l) => [String(l.id), l]));
+
     const held: { locationId: string | null }[] = [];
     for (const line of quote.lines) {
       if (!line.trackStock) {
         held.push({ locationId: null });
         continue;
       }
-      const levels = await tx.stockLevel.findMany({
-        where: {
-          productId: line.productId,
-          variantKey: line.variantKey,
-          batchKey: "",
-          location: { isActive: true, warehouse: { isActive: true } },
-        },
-        include: { location: true },
+      const levels = allLevels.filter((l) => {
+        if (
+          l.productId !== line.productId ||
+          (l.variantKey ?? "") !== line.variantKey ||
+          (l.batchKey ?? "") !== ""
+        )
+          return false;
+        const loc = locById.get(String(l.locationId));
+        return Boolean(loc?.isActive && activeWhIds.has(String(loc.warehouseId)));
       });
       const ranked = levels
-        .map((l) => ({
-          id: l.locationId,
-          free: num(l.onHand) - num(l.reserved),
-          home: l.location.warehouseId === warehouse.id,
-        }))
+        .map((l) => {
+          const loc = locById.get(String(l.locationId))!;
+          return {
+            id: String(l.locationId),
+            free: num(l.onHand) - num(l.reserved),
+            home: loc.warehouseId === warehouse.id,
+          };
+        })
         .filter((l) => l.free >= line.quantity)
         .sort((a, b) => Number(b.home) - Number(a.home) || b.free - a.free);
       if (!ranked.length) throw new Error(serverMessages.storeCartChanged);
-      await reserveStock(tx, {
+      await reserveStock(null, {
         productId: line.productId,
         variantId: line.variantKey || undefined,
         locationId: ranked[0].id,
@@ -652,66 +715,78 @@ export async function placeOrder(input: PlaceOrderInput) {
       held.push({ locationId: ranked[0].id });
     }
     if (quote.couponCode) {
-      const used =
-        await tx.$executeRaw`UPDATE "Coupon" SET "usedCount" = "usedCount" + 1 WHERE code = ${quote.couponCode} AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`;
-      if (!used) throw new Error(serverMessages.couponCannotBeUsed);
+      const coupons = await listTableRows<Record<string, any>>("commerce", "coupon");
+      const couponRow = coupons.find((c) => c.code === quote.couponCode);
+      if (
+        !couponRow ||
+        (couponRow.maxUses != null && Number(couponRow.usedCount ?? 0) >= Number(couponRow.maxUses))
+      ) {
+        throw new Error(serverMessages.couponCannotBeUsed);
+      }
+      await upsertTableRow("commerce", "coupon", {
+        id: couponRow.id,
+        usedCount: Number(couponRow.usedCount ?? 0) + 1,
+      });
     }
-    const contactId = await orderContact(tx, { ...input, email, name });
-    const number = await getNextSequenceNumber("SO", undefined, tx);
-    const order = await tx.salesOrder.create({
-      data: {
-        number,
-        customerId: input.customerId ?? null,
-        contactId,
-        email: email || null,
-        name,
-        phone: phone || null,
-        channel: input.channel,
-        paymentMethod: input.paymentMethod,
-        paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
-        fulfilment: input.fulfilment,
-        shippingAddress: destination
-          ? (destination as unknown as Database.InputJsonValue)
-          : Database.JsonNull,
-        subtotal: quote.subtotal,
-        discountAmount: quote.discount,
-        couponCode: quote.couponCode,
-        vatAmount: quote.vatAmount,
-        deliveryFee: quote.deliveryFee,
-        total: quote.total,
-        currency: quote.currency,
-        locale: isLocale(input.locale) ? input.locale : "en",
-        note: input.note?.trim().slice(0, 1000) || null,
-        warehouseId: warehouse.id,
-        createdById: input.createdById ?? null,
-        utmCampaign: input.utm?.campaign || null,
-        utmSource: input.utm?.source || null,
-        utmMedium: input.utm?.medium || null,
-        lines: {
-          create: quote.lines.map((l, index) => ({
-            productId: l.productId,
-            variantKey: l.variantKey,
-            sku: l.sku,
-            description: l.description,
-            quantity: l.quantity,
-            unitPrice: l.unitPrice,
-            vatExempt: l.vatExempt,
-            lineTotal: roundMoney(l.quantity * l.unitPrice, quote.currency),
-            locationId: held[index].locationId,
-            sortOrder: index,
-          })),
-        },
-        events: {
-          create: {
-            kind: "status",
-            status: "placed",
-            byId: input.createdById ?? null,
-          },
-        },
-      },
+    const contactId = await orderContact({ ...input, email, name });
+    const number = await getNextSequenceNumber("SO");
+    const orderId = crypto.randomUUID();
+    const order = await upsertTableRow<Record<string, any>>("commerce", "sales_order", {
+      id: orderId,
+      number,
+      customerId: input.customerId ?? null,
+      contactId,
+      email: email || null,
+      name,
+      phone: phone || null,
+      channel: input.channel,
+      paymentMethod: input.paymentMethod,
+      paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
+      fulfilment: input.fulfilment,
+      shippingAddress: destination ?? null,
+      subtotal: quote.subtotal,
+      discountAmount: quote.discount,
+      couponCode: quote.couponCode,
+      vatAmount: quote.vatAmount,
+      deliveryFee: quote.deliveryFee,
+      total: quote.total,
+      currency: quote.currency,
+      locale: isLocale(input.locale) ? input.locale : "en",
+      note: input.note?.trim().slice(0, 1000) || null,
+      warehouseId: warehouse.id,
+      createdById: input.createdById ?? null,
+      utmCampaign: input.utm?.campaign || null,
+      utmSource: input.utm?.source || null,
+      utmMedium: input.utm?.medium || null,
+      status: "placed",
+    });
+
+    for (let index = 0; index < quote.lines.length; index++) {
+      const l = quote.lines[index];
+      await upsertTableRow("commerce", "sales_order_line", {
+        id: crypto.randomUUID(),
+        orderId,
+        productId: l.productId,
+        variantKey: l.variantKey,
+        sku: l.sku,
+        description: l.description,
+        quantity: l.quantity,
+        unitPrice: l.unitPrice,
+        vatExempt: l.vatExempt,
+        lineTotal: roundMoney(l.quantity * l.unitPrice, quote.currency),
+        locationId: held[index].locationId,
+        sortOrder: index,
+      });
+    }
+    await upsertTableRow("commerce", "sales_order_event", {
+      id: crypto.randomUUID(),
+      orderId,
+      kind: "status",
+      status: "placed",
+      byId: input.createdById ?? null,
     });
     if (input.fulfilment === "delivery")
-      await createShipmentForOrder(tx, order, {
+      await createShipmentForOrder(null, order, {
         zoneId: quote.zoneId,
         slot: input.slot ?? null,
         requireSlot: input.channel === "website",
@@ -721,84 +796,82 @@ export async function placeOrder(input: PlaceOrderInput) {
 }
 
 export async function getOrder(id: string) {
-  const o = await db.salesOrder.findUnique({
-    where: { id },
-    include: {
-      lines: { orderBy: { sortOrder: "asc" } },
-      events: { orderBy: { createdAt: "asc" } },
-    },
-  });
+  const [orders, allLines, allEvents, users, invoices, attachments] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_line", "sort_order ASC"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_event", "created_at ASC"),
+    listTableRows<Record<string, any>>("identity", "user"),
+    listTableRows<Record<string, any>>("finance", "invoice"),
+    listTableRows<Record<string, any>>("notify", "attachment", "created_at ASC"),
+  ]);
+  const o = orders.find((r) => r.id === id);
   if (!o) return null;
-  const people = await db.user.findMany({
-    where: {
-      id: { in: o.events.map((e) => e.byId).filter((v): v is string => !!v) },
-    },
-    select: { id: true, fullName: true },
-  });
-  const invoice = o.invoiceId
-    ? await db.invoice.findUnique({
-        where: { id: o.invoiceId },
-        select: { id: true, invoiceNumber: true },
-      })
-    : null;
-  const files = await db.attachment.findMany({
-    where: { entityType: "sales_order", entityId: id },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, fileName: true, fileUrl: true, createdAt: true },
-  });
+  const lines = allLines
+    .filter((l) => l.orderId === id)
+    .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
+  const events = allEvents
+    .filter((e) => e.orderId === id)
+    .sort((a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime());
+  const userById = new Map(users.map((u) => [String(u.id), String(u.fullName ?? "")]));
+  const inv = o.invoiceId ? invoices.find((i) => i.id === o.invoiceId) : null;
+  const invoice = inv ? { id: String(inv.id), invoiceNumber: String(inv.invoiceNumber ?? "") } : null;
+  const files = attachments
+    .filter((f) => f.entityType === "sales_order" && f.entityId === id)
+    .sort((a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime());
+
   return {
-    id: o.id,
-    number: o.number,
-    customer_id: o.customerId,
-    contact_id: o.contactId,
+    id: String(o.id),
+    number: String(o.number ?? ""),
+    customer_id: o.customerId ?? null,
+    contact_id: o.contactId ?? null,
     email: o.email ?? "",
-    name: o.name,
+    name: String(o.name ?? ""),
     phone: o.phone ?? "",
-    channel: o.channel,
-    status: o.status,
-    payment_status: o.paymentStatus,
-    payment_method: o.paymentMethod,
-    fulfilment: o.fulfilment,
+    channel: String(o.channel ?? ""),
+    status: String(o.status ?? ""),
+    payment_status: String(o.paymentStatus ?? ""),
+    payment_method: String(o.paymentMethod ?? ""),
+    fulfilment: String(o.fulfilment ?? ""),
     address: (o.shippingAddress as OrderAddress | null) ?? null,
     pickup_branch: (o.shippingAddress as { pickupBranch?: PublicBranch } | null)?.pickupBranch ?? null,
     subtotal: num(o.subtotal),
     discount: num(o.discountAmount),
-    coupon_code: o.couponCode,
+    coupon_code: o.couponCode ?? null,
     vat_amount: num(o.vatAmount),
     delivery_fee: num(o.deliveryFee),
     total: num(o.total),
     amount_paid: num(o.amountPaid),
     amount_refunded: num(o.amountRefunded),
-    currency: o.currency,
-    locale: o.locale,
+    currency: String(o.currency ?? "BHD"),
+    locale: String(o.locale ?? "en"),
     note: o.note ?? "",
     invoice,
-    placed_at: o.placedAt.toISOString(),
-    lines: o.lines.map((l) => ({
-      id: l.id,
-      product_id: l.productId,
-      variant_key: l.variantKey,
-      sku: l.sku,
-      description: l.description,
+    placed_at: toIso(o.placedAt),
+    lines: lines.map((l) => ({
+      id: String(l.id),
+      product_id: String(l.productId),
+      variant_key: String(l.variantKey ?? ""),
+      sku: String(l.sku ?? ""),
+      description: String(l.description ?? ""),
       quantity: num(l.quantity),
       unit_price: num(l.unitPrice),
       line_total: num(l.lineTotal),
       returned: num(l.returnedQuantity),
     })),
-    events: o.events.map((e) => ({
-      id: e.id,
-      kind: e.kind,
-      status: e.status,
-      note: e.note,
+    events: events.map((e) => ({
+      id: String(e.id),
+      kind: String(e.kind ?? ""),
+      status: e.status ?? null,
+      note: e.note ?? null,
       amount: numOrNull(e.amount),
-      by: people.find((p) => p.id === e.byId)?.fullName ?? null,
-      at: e.createdAt.toISOString(),
+      by: e.byId ? (userById.get(String(e.byId)) ?? null) : null,
+      at: toIso(e.createdAt),
     })),
     files: files.map((f) => ({
-      id: f.id,
-      name: f.fileName,
-      url: f.fileUrl,
-      at: f.createdAt.toISOString(),
+      id: String(f.id),
+      name: String(f.fileName ?? ""),
+      url: String(f.fileUrl ?? ""),
+      at: toIso(f.createdAt),
     })),
   };
 }
@@ -815,110 +888,147 @@ export async function listOrders(
 ) {
   const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 100);
   const page = Math.max(query.page ?? 1, 1);
-  const search = query.search?.trim().slice(0, 80);
-  const where: Database.SalesOrderWhereInput = {
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.channel ? { channel: query.channel } : {}),
-    ...(search
-      ? {
-          OR: [
-            { number: { contains: search, mode: "insensitive" } },
-            { name: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-            ...phoneSearchVariants(search).map((v) => ({ phone: { contains: v } })),
-          ],
-        }
-      : {}),
-  };
-  const [rows, total] = await Promise.all([
-    db.salesOrder.findMany({
-      where,
-      orderBy: [{ placedAt: "desc" }, { id: "asc" }],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    db.salesOrder.count({ where }),
-  ]);
+  const search = query.search?.trim().slice(0, 80).toLowerCase() ?? "";
+  const phoneVariants = search ? phoneSearchVariants(search).map((v) => v.toLowerCase()) : [];
+
+  const allOrders = await listTableRows<Record<string, any>>("commerce", "sales_order", "placed_at DESC");
+  const filtered = allOrders.filter((o) => {
+    if (query.status && o.status !== query.status) return false;
+    if (query.channel && o.channel !== query.channel) return false;
+    if (search) {
+      const hay = [o.number, o.name, o.email]
+        .filter(Boolean)
+        .some((s) => String(s).toLowerCase().includes(search));
+      const phoneHit =
+        phoneVariants.length > 0 &&
+        phoneVariants.some((v) => String(o.phone ?? "").toLowerCase().includes(v));
+      if (!hay && !phoneHit) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    const diff = new Date(b.placedAt ?? 0).getTime() - new Date(a.placedAt ?? 0).getTime();
+    return diff !== 0 ? diff : String(a.id).localeCompare(String(b.id));
+  });
+
+  const rows = filtered.slice((page - 1) * pageSize, page * pageSize);
   return {
     rows: rows.map((o) => ({
-      id: o.id,
-      number: o.number,
-      name: o.name,
-      channel: o.channel,
-      status: o.status,
-      fulfilment: o.fulfilment,
-      payment_status: o.paymentStatus,
-      payment_method: o.paymentMethod,
+      id: String(o.id),
+      number: String(o.number ?? ""),
+      name: String(o.name ?? ""),
+      channel: String(o.channel ?? ""),
+      status: String(o.status ?? ""),
+      fulfilment: String(o.fulfilment ?? ""),
+      payment_status: String(o.paymentStatus ?? ""),
+      payment_method: String(o.paymentMethod ?? ""),
       total: num(o.total),
-      placed_at: o.placedAt.toISOString(),
+      placed_at: toIso(o.placedAt),
     })),
-    total,
+    total: filtered.length,
     page,
     pageSize,
   };
 }
 
 export async function customerOrders(customerId: string) {
-  const rows = await db.salesOrder.findMany({
-    where: { customerId },
-    orderBy: { placedAt: "desc" },
-    take: 100,
-    include: {
-      lines: { orderBy: { sortOrder: "asc" } },
-      shipments: {
-        where: { status: { not: "cancelled" } },
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { trackingToken: true },
-      },
-    },
+  const [orders, allLines, allShipments] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order", "placed_at DESC"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_line", "sort_order ASC"),
+    listTableRows<Record<string, any>>("delivery", "shipment", "created_at DESC"),
+  ]);
+  const rows = orders
+    .filter((o) => o.customerId === customerId)
+    .sort((a, b) => new Date(b.placedAt ?? 0).getTime() - new Date(a.placedAt ?? 0).getTime())
+    .slice(0, 100);
+
+  return rows.map((o) => {
+    const lines = allLines
+      .filter((l) => l.orderId === o.id)
+      .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
+    const shipment = allShipments
+      .filter((s) => s.orderId === o.id && s.status !== "cancelled")
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())[0];
+    return {
+      id: String(o.id),
+      number: String(o.number ?? ""),
+      status: String(o.status ?? ""),
+      payment_status: String(o.paymentStatus ?? ""),
+      total: num(o.total),
+      currency: String(o.currency ?? "BHD"),
+      placed_at: toIso(o.placedAt),
+      fulfilment: String(o.fulfilment ?? ""),
+      tracking_token: shipment?.trackingToken ?? null,
+      pickup_branch: (o.shippingAddress as { pickupBranch?: PublicBranch } | null)?.pickupBranch ?? null,
+      lines: lines.map((l) => ({
+        description: String(l.description ?? ""),
+        quantity: num(l.quantity),
+      })),
+    };
   });
-  return rows.map((o) => ({
-    id: o.id,
-    number: o.number,
-    status: o.status,
-    payment_status: o.paymentStatus,
-    total: num(o.total),
-    currency: o.currency,
-    placed_at: o.placedAt.toISOString(),
-    fulfilment: o.fulfilment,
-    tracking_token: o.shipments[0]?.trackingToken ?? null,
-    pickup_branch: (o.shippingAddress as { pickupBranch?: PublicBranch } | null)?.pickupBranch ?? null,
-    lines: o.lines.map((l) => ({
-      description: l.description,
-      quantity: num(l.quantity),
-    })),
-  }));
 }
 
 export async function customerOrder(customerId: string, id: string) {
-  return db.salesOrder.findFirst({
-    where: { id, customerId },
-    select: {
-      id: true, number: true, status: true, paymentStatus: true, paymentMethod: true,
-      fulfilment: true, shippingAddress: true, name: true, email: true, phone: true,
-      subtotal: true, discountAmount: true, deliveryFee: true, vatAmount: true,
-      total: true, amountPaid: true, currency: true, placedAt: true,
-      lines: { orderBy: { sortOrder: "asc" }, select: { id: true, description: true, quantity: true, unitPrice: true, lineTotal: true } },
-      shipments: { where: { status: { not: "cancelled" } }, orderBy: { createdAt: "desc" }, take: 1, select: { trackingToken: true } },
-    },
-  });
+  const [orders, allLines, allShipments] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_line", "sort_order ASC"),
+    listTableRows<Record<string, any>>("delivery", "shipment", "created_at DESC"),
+  ]);
+  const o = orders.find((r) => r.id === id && r.customerId === customerId);
+  if (!o) return null;
+  const lines = allLines
+    .filter((l) => l.orderId === id)
+    .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0))
+    .map((l) => ({
+      id: l.id,
+      description: l.description,
+      quantity: l.quantity,
+      unitPrice: l.unitPrice,
+      lineTotal: l.lineTotal,
+    }));
+  const shipments = allShipments
+    .filter((s) => s.orderId === id && s.status !== "cancelled")
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .slice(0, 1)
+    .map((s) => ({ trackingToken: s.trackingToken }));
+  return {
+    id: o.id,
+    number: o.number,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    paymentMethod: o.paymentMethod,
+    fulfilment: o.fulfilment,
+    shippingAddress: o.shippingAddress,
+    name: o.name,
+    email: o.email,
+    phone: o.phone,
+    subtotal: o.subtotal,
+    discountAmount: o.discountAmount,
+    deliveryFee: o.deliveryFee,
+    vatAmount: o.vatAmount,
+    total: o.total,
+    amountPaid: o.amountPaid,
+    currency: o.currency,
+    placedAt: o.placedAt,
+    lines,
+    shipments,
+  };
 }
 
 async function releaseReservations(
-  tx: Tx,
   order: {
     lines: {
       productId: string;
       variantKey: string;
       locationId: string | null;
-      quantity: Database.Decimal;
+      quantity: unknown;
     }[];
   },
 ) {
   for (const line of order.lines)
     if (line.locationId)
-      await reserveStock(tx, {
+      await reserveStock(null, {
         productId: line.productId,
         variantId: line.variantKey || undefined,
         locationId: line.locationId,
@@ -932,103 +1042,103 @@ export async function moveOrder(
   byId: string | null,
   note?: string,
 ) {
-  return db.$transaction((tx) => moveOrderIn(tx, id, to, byId, note, true));
+  return runAtomicMutation(() => moveOrderIn(null, id, to, byId, note, true));
 }
 
 export async function moveOrderIn(
-  tx: Tx,
+  _tx: unknown,
   id: string,
   to: OrderStatus,
   byId: string | null,
   note: string | undefined,
   followShipments: boolean,
 ) {
-  {
-    await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${id} FOR UPDATE`;
-    const order = await tx.salesOrder.findUnique({
-      where: { id },
-      include: { lines: true },
-    });
-    if (!order) throw new Error(serverMessages.procurementDocumentMissing);
-    if (!canMoveOrder(order.status, to))
-      throw new Error(serverMessages.orderStatusInvalid);
-    let low: any = [];
-    const held = (RESERVED_STATUSES as string[]).includes(order.status);
-    if (to === "cancelled" && held) await releaseReservations(tx, order);
-    if (to === "shipped") {
-      await releaseReservations(tx, order);
-      const movements: MovementInput[] = order.lines
-        .filter((l) => l.locationId)
-        .map((l) => ({
-          type: "sale",
-          productId: l.productId,
-          variantId: l.variantKey || undefined,
-          locationId: l.locationId!,
-          quantity: -num(l.quantity),
-          sourceType: "order",
-          sourceId: order.id,
-          note: order.number,
-        }));
-      low = await postMovements(tx, movements, byId);
-    }
-    if (to === "returned") {
-      const movements: MovementInput[] = order.lines
-        .filter(
-          (l) => l.locationId && num(l.quantity) > num(l.returnedQuantity),
-        )
-        .map((l) => ({
-          type: "return",
-          productId: l.productId,
-          variantId: l.variantKey || undefined,
-          locationId: l.locationId!,
-          quantity: roundQuantity(num(l.quantity) - num(l.returnedQuantity)),
-          sourceType: "order",
-          sourceId: order.id,
-          note: order.number,
-        }));
-      await postMovements(tx, movements, byId);
-      for (const l of order.lines)
-        await tx.salesOrderLine.update({
-          where: { id: l.id },
-          data: { returnedQuantity: l.quantity },
-        });
-    }
-    const now = new Date();
-    await tx.salesOrder.update({
-      where: { id },
-      data: {
-        status: to,
-        ...(to === "shipped" ? { shippedAt: now } : {}),
-        ...(to === "delivered" ? { deliveredAt: now } : {}),
-        ...(to === "cancelled" ? { cancelledAt: now } : {}),
-      },
-    });
-    await tx.salesOrderEvent.create({
-      data: {
-        orderId: id,
-        kind: "status",
-        status: to,
-        note: note?.trim().slice(0, 500) || null,
-        byId,
-      },
-    });
-    if (followShipments) await followOrderStatus(tx, id, to, byId);
-    return low;
+  const [orders, allLines] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_line"),
+  ]);
+  const rawOrder = orders.find((o) => o.id === id);
+  if (!rawOrder) throw new Error(serverMessages.procurementDocumentMissing);
+  const lines = allLines.filter((l) => l.orderId === id);
+  const order: Record<string, any> = { ...rawOrder, lines };
+  if (!canMoveOrder(String(order.status), to))
+    throw new Error(serverMessages.orderStatusInvalid);
+  let low: any = [];
+  const held = (RESERVED_STATUSES as string[]).includes(String(order.status));
+  if (to === "cancelled" && held) await releaseReservations(order as any);
+  if (to === "shipped") {
+    await releaseReservations(order as any);
+    const movements: MovementInput[] = order.lines
+      .filter((l: any) => l.locationId)
+      .map((l: any) => ({
+        type: "sale",
+        productId: String(l.productId),
+        variantId: l.variantKey || undefined,
+        locationId: String(l.locationId),
+        quantity: -num(l.quantity),
+        sourceType: "order",
+        sourceId: String(order.id),
+        note: String(order.number ?? ""),
+      }));
+    low = await postMovements(null, movements, byId);
   }
+  if (to === "returned") {
+    const movements: MovementInput[] = order.lines
+      .filter((l: any) => l.locationId && num(l.quantity) > num(l.returnedQuantity))
+      .map((l: any) => ({
+        type: "return",
+        productId: String(l.productId),
+        variantId: l.variantKey || undefined,
+        locationId: String(l.locationId),
+        quantity: roundQuantity(num(l.quantity) - num(l.returnedQuantity)),
+        sourceType: "order",
+        sourceId: String(order.id),
+        note: String(order.number ?? ""),
+      }));
+    await postMovements(null, movements, byId);
+    for (const l of order.lines)
+      await upsertTableRow("commerce", "sales_order_line", {
+        id: l.id,
+        returnedQuantity: l.quantity,
+      });
+  }
+  const nowIso = new Date().toISOString();
+  await upsertTableRow("commerce", "sales_order", {
+    id,
+    status: to,
+    ...(to === "shipped" ? { shippedAt: nowIso } : {}),
+    ...(to === "delivered" ? { deliveredAt: nowIso } : {}),
+    ...(to === "cancelled" ? { cancelledAt: nowIso } : {}),
+  });
+  await upsertTableRow("commerce", "sales_order_event", {
+    id: crypto.randomUUID(),
+    orderId: id,
+    kind: "status",
+    status: to,
+    note: note?.trim().slice(0, 500) || null,
+    byId,
+  });
+  if (followShipments) await followOrderStatus(null, id, to, byId);
+  return low;
 }
 
 export async function issueOrderInvoice(orderId: string, byId: string | null) {
-  const order = await db.salesOrder.findUnique({
-    where: { id: orderId },
-    include: { lines: { orderBy: { sortOrder: "asc" } } },
-  });
+  const [orders, allLines, users] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+    listTableRows<Record<string, any>>("commerce", "sales_order_line", "sort_order ASC"),
+    listTableRows<Record<string, any>>("identity", "user"),
+  ]);
+  const order = orders.find((o) => o.id === orderId);
   if (!order) throw new Error(serverMessages.procurementDocumentMissing);
-  if (order.invoiceId) return order.invoiceId;
+  if (order.invoiceId) return String(order.invoiceId);
+  const orderLines = allLines
+    .filter((l) => l.orderId === orderId)
+    .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
   const company = await getCompanyConfiguration().catch(() => null);
   const issueDate = new Date();
   const fee = num(order.deliveryFee);
   const lines = [
-    ...order.lines.map((l) => ({
+    ...orderLines.map((l) => ({
       descriptionEn: `${l.description} (${l.sku})`,
       quantity: num(l.quantity),
       unitPrice: num(l.unitPrice),
@@ -1045,63 +1155,61 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
         ]
       : []),
   ];
-  return db.$transaction(async (tx) => {
+  return runAtomicMutation(async () => {
     const signerUser = byId
-      ? await tx.user.findUnique({
-          where: { id: byId },
-          select: { id: true, signatureUrl: true },
-        })
-      : (await tx.user.findFirst({
-          where: { role: { in: ["super_admin", "admin"] }, isActive: true, signatureUrl: { not: null } },
-          select: { id: true, signatureUrl: true },
-        })) || (await tx.user.findFirst({
-          where: { role: { in: ["super_admin", "admin"] }, isActive: true },
-          select: { id: true, signatureUrl: true },
-        }));
+      ? users.find((u) => u.id === byId)
+      : users.find(
+          (u) =>
+            (u.role === "super_admin" || u.role === "admin") &&
+            u.isActive &&
+            u.signatureUrl != null,
+        ) ||
+        users.find((u) => (u.role === "super_admin" || u.role === "admin") && u.isActive);
     const signerId = signerUser?.id ?? byId ?? null;
     const signerSignature = signerUser?.signatureUrl ?? null;
 
-    const invoiceNumber = await allocateDocumentNumber(
-      "invoice",
-      issueDate,
-      tx,
-    );
-    const invoice = await tx.invoice.create({
-      data: {
-        invoiceNumber,
-        clientId: order.contactId,
-        issueDate,
-        dueDate: new Date(
-          issueDate.getTime() + ((company as any)?.paymentTermsDays ?? 0) * 86_400_000,
-        ),
-        subtotal: roundMoney(num(order.subtotal) + fee, order.currency),
-        discountType: num(order.discountAmount) > 0 ? "fixed" : "none",
-        discountValue: order.discountAmount,
-        discountAmount: order.discountAmount,
-        vatEnabled: num(order.vatAmount) > 0,
-        vatPercentage: (company?.vatPercentage as number) ?? 0,
-        vatAmount: order.vatAmount,
-        totalAmount: order.total,
-        currency: order.currency,
-        language: order.locale === "ar" ? "ar" : "en",
-        status: "sent",
-        approvalStatus: "approved",
-        notesEn: `Order ${order.number}`,
-        createdById: byId,
-        salesOwnerId: signerId,
-        signedById: signerId,
-        signedAt: issueDate,
-        signerSignatureUrl: signerSignature,
-        lineItems: {
-          create: lines.map((l, index) => ({ ...l, displayOrder: index + 1 })),
-        },
-      },
+    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
+    const invoiceId = crypto.randomUUID();
+    const invoice = await upsertTableRow<Record<string, any>>("finance", "invoice", {
+      id: invoiceId,
+      invoiceNumber,
+      clientId: order.contactId,
+      issueDate: issueDate.toISOString(),
+      dueDate: new Date(
+        issueDate.getTime() + ((company as any)?.paymentTermsDays ?? 0) * 86_400_000,
+      ).toISOString(),
+      subtotal: roundMoney(num(order.subtotal) + fee, String(order.currency)),
+      discountType: num(order.discountAmount) > 0 ? "fixed" : "none",
+      discountValue: order.discountAmount,
+      discountAmount: order.discountAmount,
+      vatEnabled: num(order.vatAmount) > 0,
+      vatPercentage: (company?.vatPercentage as number) ?? 0,
+      vatAmount: order.vatAmount,
+      totalAmount: order.total,
+      currency: order.currency,
+      language: order.locale === "ar" ? "ar" : "en",
+      status: "sent",
+      approvalStatus: "approved",
+      notesEn: `Order ${order.number}`,
+      createdById: byId,
+      salesOwnerId: signerId,
+      signedById: signerId,
+      signedAt: issueDate.toISOString(),
+      signerSignatureUrl: signerSignature,
     });
-    await tx.salesOrder.update({
-      where: { id: orderId },
-      data: { invoiceId: invoice.id },
+    for (let index = 0; index < lines.length; index++) {
+      await upsertTableRow("finance", "invoice_line_item", {
+        id: crypto.randomUUID(),
+        invoiceId,
+        ...lines[index],
+        displayOrder: index + 1,
+      });
+    }
+    await upsertTableRow("commerce", "sales_order", {
+      id: orderId,
+      invoiceId: invoice.id,
     });
-    return invoice.id;
+    return String(invoice.id);
   });
 }
 
@@ -1115,19 +1223,22 @@ export async function recordOrderPayment(
   byId: string | null,
 ) {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
-    const order = await db.salesOrder.findUnique({ where: { id: orderId } });
+    const orders = await listTableRows<Record<string, any>>("commerce", "sales_order");
+    const order = orders.find((o) => o.id === orderId);
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
-    await assertCompanyCurrency(order.currency);
-    if (!validMoneyAmount(input.amount, order.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    const amount = roundMoney(input.amount, order.currency);
+    const currency = String(order.currency);
+    await assertCompanyCurrency(currency);
+    if (!validMoneyAmount(input.amount, currency))
+      throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    const amount = roundMoney(input.amount, currency);
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||
-      toMinorUnits(num(order.amountPaid) + amount, order.currency) > toMinorUnits(num(order.total), order.currency)
+      toMinorUnits(num(order.amountPaid) + amount, currency) >
+        toMinorUnits(num(order.total), currency)
     )
       throw new Error(serverMessages.procurementOverpaid);
-    if (["cancelled", "returned"].includes(order.status))
+    if (["cancelled", "returned"].includes(String(order.status)))
       throw new Error(serverMessages.orderStatusInvalid);
     const invoiceId = await issueOrderInvoice(orderId, byId);
     const receipt = await createPayment({
@@ -1136,37 +1247,35 @@ export async function recordOrderPayment(
       payment_method: input.method,
       reference_number: input.reference?.slice(0, 100),
       created_by: byId ?? undefined,
-      notes: order.number,
+      notes: String(order.number ?? ""),
     });
-    const paid = roundMoney(num(order.amountPaid) + amount, order.currency);
-    const full = toMinorUnits(paid, order.currency) >= toMinorUnits(num(order.total), order.currency);
-    await db.$transaction([
-      db.salesOrder.update({
-        where: { id: orderId },
-        data: {
-          amountPaid: paid,
-          paymentStatus: full ? "paid" : "pending",
-          ...(full ? { paidAt: new Date() } : {}),
-          ...(full && order.status === "placed" ? { status: "paid" } : {}),
-        },
-      }),
-      db.salesOrderEvent.create({
-        data: {
-          orderId,
-          kind: "payment",
-          amount,
-          note: input.reference?.slice(0, 100) || input.method,
-          byId,
-        },
-      }),
-      ...(full && order.status === "placed"
-        ? [
-            db.salesOrderEvent.create({
-              data: { orderId, kind: "status", status: "paid", byId },
-            }),
-          ]
-        : []),
-    ]);
+    const paid = roundMoney(num(order.amountPaid) + amount, currency);
+    const full =
+      toMinorUnits(paid, currency) >= toMinorUnits(num(order.total), currency);
+    await upsertTableRow("commerce", "sales_order", {
+      id: orderId,
+      amountPaid: paid,
+      paymentStatus: full ? "paid" : "pending",
+      ...(full ? { paidAt: new Date().toISOString() } : {}),
+      ...(full && order.status === "placed" ? { status: "paid" } : {}),
+    });
+    await upsertTableRow("commerce", "sales_order_event", {
+      id: crypto.randomUUID(),
+      orderId,
+      kind: "payment",
+      amount,
+      note: input.reference?.slice(0, 100) || input.method,
+      byId,
+    });
+    if (full && order.status === "placed") {
+      await upsertTableRow("commerce", "sales_order_event", {
+        id: crypto.randomUUID(),
+        orderId,
+        kind: "status",
+        status: "paid",
+        byId,
+      });
+    }
     return receipt.id;
   });
 }
@@ -1177,37 +1286,37 @@ export async function recordOrderRefund(
   reason: string,
   byId: string | null,
 ) {
-  return db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
-    const order = await tx.salesOrder.findUnique({ where: { id: orderId } });
+  return runAtomicMutation(async () => {
+    const orders = await listTableRows<Record<string, any>>("commerce", "sales_order");
+    const order = orders.find((o) => o.id === orderId);
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
-    if (!validMoneyAmount(amountInput, order.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    const amount = roundMoney(amountInput, order.currency);
+    const currency = String(order.currency);
+    if (!validMoneyAmount(amountInput, currency))
+      throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    const amount = roundMoney(amountInput, currency);
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||
-      toMinorUnits(num(order.amountRefunded) + amount, order.currency) > toMinorUnits(num(order.amountPaid), order.currency)
+      toMinorUnits(num(order.amountRefunded) + amount, currency) >
+        toMinorUnits(num(order.amountPaid), currency)
     )
       throw new Error(serverMessages.orderRefundTooLarge);
-    const refunded = roundMoney(num(order.amountRefunded) + amount, order.currency);
-    await tx.salesOrder.update({
-      where: { id: orderId },
-      data: {
-        amountRefunded: refunded,
-        paymentStatus:
-          toMinorUnits(refunded, order.currency) >= toMinorUnits(num(order.amountPaid), order.currency)
-            ? "refunded"
-            : "partially_refunded",
-      },
+    const refunded = roundMoney(num(order.amountRefunded) + amount, currency);
+    await upsertTableRow("commerce", "sales_order", {
+      id: orderId,
+      amountRefunded: refunded,
+      paymentStatus:
+        toMinorUnits(refunded, currency) >= toMinorUnits(num(order.amountPaid), currency)
+          ? "refunded"
+          : "partially_refunded",
     });
-    await tx.salesOrderEvent.create({
-      data: {
-        orderId,
-        kind: "refund",
-        amount,
-        note: reason.trim().slice(0, 500) || null,
-        byId,
-      },
+    await upsertTableRow("commerce", "sales_order_event", {
+      id: crypto.randomUUID(),
+      orderId,
+      kind: "refund",
+      amount,
+      note: reason.trim().slice(0, 500) || null,
+      byId,
     });
   });
 }
@@ -1219,50 +1328,40 @@ export async function addOrderNote(
 ) {
   const text = note.trim().slice(0, 1000);
   if (!text) return;
-  await db.salesOrderEvent.create({
-    data: { orderId, kind: "note", note: text, byId },
+  await upsertTableRow("commerce", "sales_order_event", {
+    id: crypto.randomUUID(),
+    orderId,
+    kind: "note",
+    note: text,
+    byId,
   });
 }
 
 export async function saleProductOptions() {
-  const products = await db.product.findMany({
-    where: { isActive: true },
-    orderBy: { nameEn: "asc" },
-    take: 3000,
-    select: {
-      id: true,
-      sku: true,
-      barcode: true,
-      nameEn: true,
-      nameAr: true,
-      price: true,
-      options: true,
-      variants: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        select: {
-          id: true,
-          sku: true,
-          barcode: true,
-          optionValues: true,
-          price: true,
-        },
-      },
-    },
-  });
+  const [allProducts, allVariants] = await Promise.all([
+    listTableRows<Record<string, any>>("inventory", "product", "name_en ASC"),
+    listTableRows<Record<string, any>>("inventory", "product_variant", "sort_order ASC"),
+  ]);
+  const products = allProducts
+    .filter((p) => p.isActive)
+    .sort((a, b) => String(a.nameEn ?? "").localeCompare(String(b.nameEn ?? "")))
+    .slice(0, 3000);
   return products.map((p) => {
     const options = normalizeProductOptions(p.options) ?? [];
+    const variants = allVariants
+      .filter((v) => v.productId === p.id && v.isActive)
+      .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
     return {
-      id: p.id,
-      sku: p.sku,
-      barcode: p.barcode ?? "",
-      name_en: p.nameEn,
-      name_ar: p.nameAr,
+      id: String(p.id),
+      sku: String(p.sku ?? ""),
+      barcode: String(p.barcode ?? ""),
+      name_en: String(p.nameEn ?? ""),
+      name_ar: String(p.nameAr ?? ""),
       price: num(p.price),
-      variants: p.variants.map((v) => ({
-        id: v.id,
-        sku: v.sku,
-        barcode: v.barcode ?? "",
+      variants: variants.map((v) => ({
+        id: String(v.id),
+        sku: String(v.sku ?? ""),
+        barcode: String(v.barcode ?? ""),
         label_en: variantLabel(options, v.optionValues, "en"),
         label_ar: variantLabel(options, v.optionValues, "ar"),
         price: v.price == null ? num(p.price) : num(v.price),

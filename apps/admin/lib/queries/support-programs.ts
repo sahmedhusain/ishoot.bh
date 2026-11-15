@@ -1,6 +1,7 @@
 import { serverMessages } from "@platform/locales";
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listEmployees } from "../api/hr";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import {
   QUALIFICATIONS,
   SUPPORT_STATUSES,
@@ -34,16 +35,14 @@ const money = (value: number | null | undefined) => {
   return v;
 };
 
-type RuleRow = Awaited<
-  ReturnType<typeof db.supportProgramRule.findMany>
->[number];
+type RuleRow = any;
 export function toSupportRule(
   row: RuleRow,
 ): SupportRule & { id: string; notes: string | null } {
   return {
     id: row.id,
-    effectiveFrom: day(row.effectiveFrom)!,
-    effectiveTo: day(row.effectiveTo),
+    effectiveFrom: String(row.effectiveFrom).slice(0, 10),
+    effectiveTo: row.effectiveTo ? String(row.effectiveTo).slice(0, 10) : null,
     wageBasis: row.wageBasis as WageBasis,
     schedule: Array.isArray(row.schedule)
       ? (row.schedule as unknown as SupportRule["schedule"])
@@ -53,18 +52,26 @@ export function toSupportRule(
     qualificationCaps: Array.isArray(row.qualificationCaps)
       ? (row.qualificationCaps as unknown as SupportRule["qualificationCaps"])
       : [],
-    notes: row.notes,
+    notes: row.notes ?? null,
   };
 }
 
 export async function listSupportPrograms() {
-  const programs = await db.supportProgram.findMany({
-    orderBy: { createdAt: "asc" },
-    include: {
-      rules: { orderBy: { effectiveFrom: "desc" } },
-      _count: { select: { enrolments: true } },
-    },
-  });
+  const [programs, rules, enrolments] = await Promise.all([
+    listTableRows("itsm", "support_program", "created_at ASC"),
+    listTableRows("itsm", "support_program_rule", "effective_from DESC"),
+    listTableRows("hr", "employee_support"),
+  ]);
+  const rulesByProgram = new Map<string, any[]>();
+  for (const r of rules) {
+    const arr = rulesByProgram.get(r.programId) ?? [];
+    arr.push(r);
+    rulesByProgram.set(r.programId, arr);
+  }
+  const countByProgram = new Map<string, number>();
+  for (const e of enrolments) {
+    countByProgram.set(e.programId, (countByProgram.get(e.programId) ?? 0) + 1);
+  }
   return programs.map((p) => ({
     id: p.id,
     code: p.code,
@@ -74,9 +81,9 @@ export async function listSupportPrograms() {
     claimPeriodMonths: p.claimPeriodMonths,
     prorate: p.prorate,
     isActive: p.isActive,
-    notes: p.notes,
-    enrolments: p._count.enrolments,
-    rules: p.rules.map(toSupportRule),
+    notes: p.notes ?? null,
+    enrolments: countByProgram.get(p.id) ?? 0,
+    rules: (rulesByProgram.get(p.id) ?? []).map(toSupportRule),
   }));
 }
 
@@ -112,20 +119,16 @@ export async function saveSupportProgram(
     isActive: !!input.is_active,
     notes: input.notes?.trim().slice(0, 500) || null,
   };
-  if (id) return db.supportProgram.update({ where: { id }, data });
+  if (id) return upsertTableRow("itsm", "support_program", { id, ...data });
   const code =
     (input.code?.trim().toLowerCase() || nameEn.toLowerCase())
       .replace(/[^a-z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "")
       .slice(0, 40) || "programme";
-  if (
-    await db.supportProgram.findUnique({
-      where: { code },
-      select: { id: true },
-    })
-  )
+  const existing = await listTableRows("itsm", "support_program");
+  if (existing.some((p) => p.code === code))
     throw new Error(serverMessages.aProgrammeWithThatCodeAlreadyExists);
-  return db.supportProgram.create({ data: { ...data, code } });
+  return upsertTableRow("itsm", "support_program", { ...data, code });
 }
 
 export interface SupportRuleInput {
@@ -176,22 +179,24 @@ export async function scheduleSupportRule(
   )
     throw new Error(serverMessages.eachQualificationCanHaveOneCap);
   return runAtomicMutation(async () => {
-    const program = await db.supportProgram.findUnique({
-      where: { id: programId },
-      select: { id: true },
-    });
-    if (!program) throw new Error(serverMessages.programmeNotFound);
-    const versions = await db.supportProgramRule.findMany({
-      where: { programId },
-      orderBy: { effectiveFrom: "asc" },
-    });
+    const programs = await listTableRows("itsm", "support_program");
+    if (!programs.some((p) => p.id === programId))
+      throw new Error(serverMessages.programmeNotFound);
+    const allVersions = await listTableRows("itsm", "support_program_rule", "effective_from ASC");
+    const versions = allVersions
+      .filter((v) => v.programId === programId)
+      .map((v) => ({
+        ...v,
+        effectiveFrom: new Date(v.effectiveFrom),
+        effectiveTo: v.effectiveTo ? new Date(v.effectiveTo) : null,
+      }));
     if (
       versions.some(
         (v) => v.effectiveFrom.getTime() === effectiveFrom.getTime(),
       )
     )
       throw new Error(serverMessages.termsAlreadyStartOnThatDate);
-    const previous = versions
+    const previous: any = versions
       .filter((v) => v.effectiveFrom < effectiveFrom)
       .pop();
     const next = versions.find((v) => v.effectiveFrom > effectiveFrom);
@@ -199,45 +204,41 @@ export async function scheduleSupportRule(
       previous &&
       (!previous.effectiveTo || previous.effectiveTo >= effectiveFrom)
     )
-      await db.supportProgramRule.update({
-        where: { id: previous.id },
-        data: { effectiveTo: dayBefore(effectiveFrom) },
+      await upsertTableRow("itsm", "support_program_rule", {
+        id: previous.id,
+        effectiveTo: dayBefore(effectiveFrom).toISOString().slice(0, 10),
       });
-    return db.supportProgramRule.create({
-      data: {
-        programId,
-        effectiveFrom,
-        effectiveTo: next ? dayBefore(next.effectiveFrom) : null,
-        wageBasis: input.wage_basis,
-        schedule: schedule.sort(
-          (a, b) => a.year - b.year,
-        ) as unknown as Database.InputJsonValue,
-        wageCap: money(input.wage_cap),
-        monthlyCap: money(input.monthly_cap),
-        qualificationCaps: caps as unknown as Database.InputJsonValue,
-        notes: input.notes?.trim().slice(0, 500) || null,
-        createdById: actorId,
-      },
+    return upsertTableRow("itsm", "support_program_rule", {
+      programId,
+      effectiveFrom: effectiveFrom.toISOString().slice(0, 10),
+      effectiveTo: next ? dayBefore(next.effectiveFrom).toISOString().slice(0, 10) : null,
+      wageBasis: input.wage_basis,
+      schedule: schedule.sort((a, b) => a.year - b.year),
+      wageCap: money(input.wage_cap),
+      monthlyCap: money(input.monthly_cap),
+      qualificationCaps: caps,
+      notes: input.notes?.trim().slice(0, 500) || null,
+      createdById: actorId,
     });
   });
 }
 
 export async function deleteSupportRule(id: string) {
-  const rule = await db.supportProgramRule.findUnique({ where: { id } });
+  const all = await listTableRows("itsm", "support_program_rule", "effective_from DESC");
+  const rule = all.find((r) => r.id === id);
   if (!rule) throw new Error(serverMessages.termsNotFound);
   return runAtomicMutation(async () => {
-    await db.supportProgramRule.delete({ where: { id } });
-    const previous = await db.supportProgramRule.findFirst({
-      where: {
-        programId: rule.programId,
-        effectiveFrom: { lt: rule.effectiveFrom },
-      },
-      orderBy: { effectiveFrom: "desc" },
-    });
+    await deleteTableRow("itsm", "support_program_rule", id);
+    const previous = all.find(
+      (r) =>
+        r.id !== id &&
+        r.programId === rule.programId &&
+        new Date(r.effectiveFrom) < new Date(rule.effectiveFrom),
+    );
     if (previous)
-      await db.supportProgramRule.update({
-        where: { id: previous.id },
-        data: { effectiveTo: rule.effectiveTo },
+      await upsertTableRow("itsm", "support_program_rule", {
+        id: previous.id,
+        effectiveTo: rule.effectiveTo,
       });
   });
 }
@@ -258,32 +259,7 @@ export interface EmployeeSupportInput {
   notes?: string | null;
 }
 
-const enrolmentInclude = {
-  program: {
-    select: {
-      id: true,
-      code: true,
-      nameEn: true,
-      nameAr: true,
-      provider: true,
-      prorate: true,
-    },
-  },
-  employee: {
-    select: {
-      id: true,
-      employeeNumber: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      firstNameAr: true,
-      lastNameAr: true,
-    },
-  },
-  events: { orderBy: { createdAt: "desc" as const }, take: 30 },
-} satisfies Database.EmployeeSupportInclude;
-type EnrolmentRow = Database.EmployeeSupportGetPayload<{
-  include: typeof enrolmentInclude;
-}>;
+type EnrolmentRow = Record<string, any>;
 
 function mapEnrolment(row: EnrolmentRow) {
   return {
@@ -320,19 +296,46 @@ export type EmployeeSupportRecord = ReturnType<typeof mapEnrolment>;
 export async function listEmployeeSupports(
   filters: { employeeId?: string; programId?: string; status?: string } = {},
 ) {
-  const rows = await db.employeeSupport.findMany({
-    where: {
-      ...(filters.employeeId ? { employeeId: filters.employeeId } : {}),
-      ...(filters.programId ? { programId: filters.programId } : {}),
-      ...(filters.status && filters.status !== "all"
-        ? { status: filters.status }
-        : {}),
-    },
-    include: enrolmentInclude,
-    orderBy: [{ startMonth: "desc" }, { createdAt: "desc" }],
-    take: 500,
-  });
-  return rows.map(mapEnrolment);
+  const [enrolments, employees, programs, events] = await Promise.all([
+    listTableRows("hr", "employee_support", "start_month DESC, created_at DESC"),
+    listEmployees(),
+    listTableRows("itsm", "support_program"),
+    listTableRows("hr", "employee_support_event", "created_at DESC"),
+  ]);
+  const empById = new Map(employees.map((e) => [e.id, e]));
+  const progById = new Map(programs.map((p) => [p.id, p]));
+  const eventsBySupport = new Map<string, any[]>();
+  for (const ev of events) {
+    const arr = eventsBySupport.get(ev.supportId) ?? [];
+    arr.push(ev);
+    eventsBySupport.set(ev.supportId, arr);
+  }
+  return enrolments
+    .filter((r) => {
+      if (filters.employeeId && r.employeeId !== filters.employeeId) return false;
+      if (filters.programId && r.programId !== filters.programId) return false;
+      if (filters.status && filters.status !== "all" && r.status !== filters.status) return false;
+      return true;
+    })
+    .slice(0, 500)
+    .map((r) =>
+      mapEnrolment({
+        ...r,
+        appliedOn: r.appliedOn ? new Date(r.appliedOn) : null,
+        decidedOn: r.decidedOn ? new Date(r.decidedOn) : null,
+        employee: empById.get(r.employeeId) ?? {
+          id: r.employeeId,
+          employeeNumber: "",
+          firstNameEn: "",
+          lastNameEn: "",
+          firstNameAr: "",
+          lastNameAr: "",
+          hireDate: new Date(),
+        },
+        program: progById.get(r.programId) ?? { id: r.programId, code: "", nameEn: "", nameAr: "", provider: "" },
+        events: eventsBySupport.get(r.id) ?? [],
+      }),
+    );
 }
 
 function normalizeEnrolment(input: EmployeeSupportInput) {
@@ -388,13 +391,12 @@ export async function saveEmployeeSupport(
 ) {
   const data = normalizeEnrolment(input);
   return runAtomicMutation(async () => {
-    const program = await db.supportProgram.findUnique({
-      where: { id: input.program_id },
-      select: { id: true },
-    });
-    if (!program) throw new Error(serverMessages.programmeNotFound);
+    const programs = await listTableRows("itsm", "support_program");
+    if (!programs.some((p) => p.id === input.program_id))
+      throw new Error(serverMessages.programmeNotFound);
     if (id) {
-      const before = await db.employeeSupport.findUnique({ where: { id } });
+      const all = await listTableRows("hr", "employee_support");
+      const before = all.find((r) => r.id === id);
       if (!before) throw new Error(serverMessages.supportRecordNotFound);
       const changes = Object.fromEntries(
         Object.entries(data)
@@ -418,51 +420,48 @@ export async function saveEmployeeSupport(
       );
       if (!Object.keys(changes).length)
         throw new Error(serverMessages.nothingChanged);
-      const updated = await db.employeeSupport.update({ where: { id }, data });
-      await db.employeeSupportEvent.create({
-        data: {
-          supportId: id,
-          action: changes.status ? `status_${data.status}` : "updated",
-          details: JSON.parse(JSON.stringify(changes)),
-          actorId,
-        },
+      const updated = await upsertTableRow("hr", "employee_support", {
+        id,
+        ...data,
+        appliedOn: data.appliedOn ? data.appliedOn.toISOString().slice(0, 10) : null,
+        decidedOn: data.decidedOn ? data.decidedOn.toISOString().slice(0, 10) : null,
+      });
+      await upsertTableRow("hr", "employee_support_event", {
+        supportId: id,
+        action: changes.status ? `status_${data.status}` : "updated",
+        details: JSON.parse(JSON.stringify(changes)),
+        actorId,
       });
       return updated;
     }
-    const employee = await db.employee.findUnique({
-      where: { id: input.employee_id },
-      select: { id: true },
+    const employees = await listEmployees();
+    if (!employees.some((e) => e.id === input.employee_id))
+      throw new Error(serverMessages.employeeNotFound);
+    const created = await upsertTableRow("hr", "employee_support", {
+      ...data,
+      appliedOn: data.appliedOn ? data.appliedOn.toISOString().slice(0, 10) : null,
+      decidedOn: data.decidedOn ? data.decidedOn.toISOString().slice(0, 10) : null,
+      employeeId: input.employee_id,
+      programId: input.program_id,
+      createdById: actorId,
     });
-    if (!employee) throw new Error(serverMessages.employeeNotFound);
-    const created = await db.employeeSupport.create({
-      data: {
-        ...data,
-        employeeId: input.employee_id,
-        programId: input.program_id,
-        createdById: actorId,
-      },
-    });
-    await db.employeeSupportEvent.create({
-      data: {
-        supportId: created.id,
-        action: "created",
-        details: { status: data.status, startMonth: data.startMonth },
-        actorId,
-      },
+    await upsertTableRow("hr", "employee_support_event", {
+      supportId: created.id,
+      action: "created",
+      details: { status: data.status, startMonth: data.startMonth },
+      actorId,
     });
     return created;
   });
 }
 
 export async function deleteEmployeeSupport(id: string) {
-  const row = await db.employeeSupport.findUnique({
-    where: { id },
-    select: { employeeId: true, status: true },
-  });
+  const all = await listTableRows("hr", "employee_support");
+  const row = all.find((r) => r.id === id);
   if (!row) throw new Error(serverMessages.supportRecordNotFound);
   if (["approved", "partially_approved"].includes(row.status))
     throw new Error(serverMessages.endOrSuspendApprovedSupport);
-  await db.employeeSupport.delete({ where: { id } });
+  await deleteTableRow("hr", "employee_support", id);
   return row.employeeId;
 }
 
@@ -474,22 +473,32 @@ export type SupportContext = Map<
 export async function loadSupportContext(
   employeeIds: string[],
 ): Promise<SupportContext> {
-  const rows = await db.employeeSupport.findMany({
-    where: { employeeId: { in: employeeIds } },
-    include: { program: { include: { rules: true } } },
-  });
+  const empSet = new Set(employeeIds);
+  const [allEnrolments, programs, rules] = await Promise.all([
+    listTableRows("hr", "employee_support"),
+    listTableRows("itsm", "support_program"),
+    listTableRows("itsm", "support_program_rule"),
+  ]);
+  const progById = new Map(programs.map((p) => [p.id, p]));
+  const rulesByProgram = new Map<string, any[]>();
+  for (const r of rules) {
+    const arr = rulesByProgram.get(r.programId) ?? [];
+    arr.push(r);
+    rulesByProgram.set(r.programId, arr);
+  }
   const map: SupportContext = new Map();
-  for (const row of rows) {
+  for (const row of allEnrolments.filter((r) => empSet.has(r.employeeId))) {
+    const program = progById.get(row.programId) ?? { code: "", claimPeriodMonths: 6, provider: "", nameEn: "" };
     const list = map.get(row.employeeId) ?? [];
     list.push({
       enrolment: {
         id: row.id,
-        programCode: row.program.code,
-        claimPeriodMonths: row.program.claimPeriodMonths,
-        provider: row.program.provider,
-        nameEn: row.program.nameEn,
-        nameAr: row.program.nameAr,
-        prorate: row.program.prorate,
+        programCode: program.code,
+        claimPeriodMonths: program.claimPeriodMonths,
+        provider: program.provider,
+        nameEn: program.nameEn,
+        nameAr: program.nameAr ?? "",
+        prorate: Boolean(program.prorate),
         status: row.status,
         qualification: row.qualification,
         startMonth: row.startMonth,
@@ -498,7 +507,7 @@ export async function loadSupportContext(
         approvedAmount: num(row.approvedAmount),
         monthlyCap: num(row.monthlyCap),
       },
-      rules: row.program.isActive ? row.program.rules.map(toSupportRule) : [],
+      rules: program.isActive ? (rulesByProgram.get(row.programId) ?? []).map(toSupportRule) : [],
     });
     map.set(row.employeeId, list);
   }

@@ -1,7 +1,8 @@
 import { validMoneyAmount } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "./permissions";
 import { createExpense } from "./expenses";
@@ -139,15 +140,23 @@ function normalize(input: RecurringExpenseInput) {
   };
 }
 
-type Row = NonNullable<Awaited<ReturnType<typeof loadOne>>>;
-const loadOne = (id: string) =>
-  db.recurringExpense.findUnique({
-    where: { id },
-    include: {
-      category: { select: { nameEn: true, nameAr: true, color: true } },
-      _count: { select: { expenses: true } },
-    },
-  });
+type Row = any;
+
+function hydrateRecurringRow(
+  r: any,
+  catMap: Map<string, any>,
+  expenseCounts: Map<string, number>,
+) {
+  return {
+    ...r,
+    startDate: new Date(r.startDate),
+    endDate: r.endDate ? new Date(r.endDate) : null,
+    nextDueDate: new Date(r.nextDueDate),
+    lastRecordedAt: r.lastRecordedAt ? new Date(r.lastRecordedAt) : null,
+    category: r.categoryId ? catMap.get(r.categoryId) ?? null : null,
+    _count: { expenses: expenseCounts.get(r.id) ?? 0 },
+  };
+}
 
 function map(r: Row): RecurringExpenseRecord {
   const frequency = r.frequency as ExpenseFrequency;
@@ -191,14 +200,29 @@ function map(r: Row): RecurringExpenseRecord {
 export async function listRecurringExpenses(): Promise<
   RecurringExpenseRecord[]
 > {
-  const rows = await db.recurringExpense.findMany({
-    orderBy: [{ isActive: "desc" }, { nextDueDate: "asc" }],
-    include: {
-      category: { select: { nameEn: true, nameAr: true, color: true } },
-      _count: { select: { expenses: true } },
-    },
-  });
-  return rows.map(map);
+  const [rows, categories, expenses] = await Promise.all([
+    listTableRows<any>("finance", "recurring_expense"),
+    listTableRows<any>("finance", "expense_category"),
+    listTableRows<any>("finance", "expense"),
+  ]);
+  const catMap = new Map<string, any>(categories.map((c) => [c.id, c]));
+  const counts = new Map<string, number>();
+  for (const e of expenses) {
+    if (e.recurringExpenseId) {
+      counts.set(
+        e.recurringExpenseId,
+        (counts.get(e.recurringExpenseId) ?? 0) + 1,
+      );
+    }
+  }
+  return rows
+    .map((r) => hydrateRecurringRow(r, catMap, counts))
+    .sort((a, b) => {
+      if (Boolean(b.isActive) !== Boolean(a.isActive))
+        return b.isActive ? 1 : -1;
+      return a.nextDueDate.getTime() - b.nextDueDate.getTime();
+    })
+    .map(map);
 }
 
 export async function saveRecurringExpense(
@@ -210,41 +234,53 @@ export async function saveRecurringExpense(
   return runAtomicMutation(async () => {
     await assertCompanyCurrency(data.currency);
     if (data.categoryId) {
-      const category = await db.expenseCategory.findUnique({
-        where: { id: data.categoryId },
-        select: { isActive: true },
-      });
+      const categories = await listTableRows<any>("finance", "expense_category");
+      const category = categories.find((c) => c.id === data.categoryId);
       if (!category?.isActive)
         throw new Error(serverMessages.chooseAnActiveExpenseCategory);
     }
+    const payload = {
+      ...data,
+      startDate: data.startDate.toISOString(),
+      endDate: data.endDate ? data.endDate.toISOString() : null,
+    };
     if (id) {
-      const existing = await db.recurringExpense.findUnique({
-        where: { id },
-        include: { _count: { select: { expenses: true } } },
-      });
+      const [rows, expenses] = await Promise.all([
+        listTableRows<any>("finance", "recurring_expense"),
+        listTableRows<any>("finance", "expense"),
+      ]);
+      const existing = rows.find((r) => r.id === id);
       if (!existing) throw new Error(serverMessages.recurringExpenseNotFound);
+      const expenseCount = expenses.filter((e) => e.recurringExpenseId === id).length;
       const nextDueDate =
-        existing._count.expenses === 0 ? data.startDate : existing.nextDueDate;
-      return db.recurringExpense.update({
-        where: { id },
-        data: { ...data, nextDueDate },
+        expenseCount === 0
+          ? data.startDate.toISOString()
+          : existing.nextDueDate;
+      return upsertTableRow("finance", "recurring_expense", {
+        ...existing,
+        ...payload,
+        nextDueDate,
       });
     }
-    return db.recurringExpense.create({
-      data: { ...data, nextDueDate: data.startDate, createdById: actorId },
+    return upsertTableRow("finance", "recurring_expense", {
+      id: crypto.randomUUID(),
+      ...payload,
+      nextDueDate: data.startDate.toISOString(),
+      createdById: actorId,
     });
   });
 }
 
 export async function deleteRecurringExpense(id: string) {
-  const existing = await db.recurringExpense.findUnique({
-    where: { id },
-    include: { _count: { select: { expenses: true } } },
-  });
+  const [rows, expenses] = await Promise.all([
+    listTableRows<any>("finance", "recurring_expense"),
+    listTableRows<any>("finance", "expense"),
+  ]);
+  const existing = rows.find((r) => r.id === id);
   if (!existing) throw new Error(serverMessages.recurringExpenseNotFound);
-  if (existing._count.expenses)
+  if (expenses.some((e) => e.recurringExpenseId === id))
     throw new Error(serverMessages.expensesWereAlreadyRecordedFromThis);
-  await db.recurringExpense.delete({ where: { id } });
+  await deleteTableRow("finance", "recurring_expense", id);
 }
 
 function advance(r: {
@@ -272,8 +308,15 @@ export async function recordRecurringExpense(
   } = {},
 ) {
   return runAtomicMutation(async () => {
-    const r = await db.recurringExpense.findUnique({ where: { id } });
-    if (!r) throw new Error(serverMessages.recurringExpenseNotFound);
+    const rows = await listTableRows<any>("finance", "recurring_expense");
+    const rawR = rows.find((row) => row.id === id);
+    if (!rawR) throw new Error(serverMessages.recurringExpenseNotFound);
+    const r = {
+      ...rawR,
+      startDate: new Date(rawR.startDate),
+      endDate: rawR.endDate ? new Date(rawR.endDate) : null,
+      nextDueDate: new Date(rawR.nextDueDate),
+    };
     if (!r.isActive)
       throw new Error(serverMessages.thisRecurringExpenseIsPaused);
     const dueDate = iso(r.nextDueDate);
@@ -302,10 +345,14 @@ export async function recordRecurringExpense(
       },
       actorId,
     );
-    await db.expense.update({
-      where: { id: expense.id },
-      data: { recurringExpenseId: r.id },
-    });
+    const allExpenses = await listTableRows<any>("finance", "expense");
+    const createdExpense = allExpenses.find((e) => e.id === expense.id);
+    if (createdExpense) {
+      await upsertTableRow("finance", "expense", {
+        ...createdExpense,
+        recurringExpenseId: r.id,
+      });
+    }
     await submitForApproval({
       targetType: "expense",
       targetId: expense.id,
@@ -317,26 +364,39 @@ export async function recordRecurringExpense(
         recurring: r.id,
       },
     });
-    await db.recurringExpense.update({
-      where: { id },
-      data: { ...advance(r), lastRecordedAt: new Date() },
+    const next = advance(r);
+    await upsertTableRow("finance", "recurring_expense", {
+      ...rawR,
+      nextDueDate: next.nextDueDate.toISOString(),
+      isActive: next.isActive,
+      lastRecordedAt: new Date().toISOString(),
     });
     return { expenseId: expense.id, dueDate };
   });
 }
 
 export async function skipRecurringExpense(id: string) {
-  const r = await db.recurringExpense.findUnique({ where: { id } });
-  if (!r) throw new Error(serverMessages.recurringExpenseNotFound);
-  await db.recurringExpense.update({ where: { id }, data: advance(r) });
+  const rows = await listTableRows<any>("finance", "recurring_expense");
+  const rawR = rows.find((row) => row.id === id);
+  if (!rawR) throw new Error(serverMessages.recurringExpenseNotFound);
+  const r = {
+    ...rawR,
+    startDate: new Date(rawR.startDate),
+    endDate: rawR.endDate ? new Date(rawR.endDate) : null,
+    nextDueDate: new Date(rawR.nextDueDate),
+  };
+  const next = advance(r);
+  await upsertTableRow("finance", "recurring_expense", {
+    ...rawR,
+    nextDueDate: next.nextDueDate.toISOString(),
+    isActive: next.isActive,
+  });
   return iso(r.nextDueDate);
 }
 
 async function financeUsers() {
-  const users = await db.user.findMany({
-    where: { isActive: true },
-    select: { id: true, role: true, permissions: true },
-  });
+  const allUsers = await listTableRows<any>("identity", "user");
+  const users = allUsers.filter((u) => u.isActive);
   const allowed = await Promise.all(
     users.map((u) =>
       hasPermission(
@@ -354,23 +414,24 @@ export async function processRecurringExpenses() {
   const today = todayDate();
   let recorded = 0;
   let reminded = 0;
-  const due = await db.recurringExpense.findMany({
-    where: { isActive: true, autoRecord: true, nextDueDate: { lte: today } },
-  });
+  const allRows = await listTableRows<any>("finance", "recurring_expense");
+  const due = allRows
+    .map((r) => ({ ...r, nextDueDate: new Date(r.nextDueDate) }))
+    .filter((r) => r.isActive && r.autoRecord && r.nextDueDate <= today);
   const fallbackRecorder = due.some((r) => !r.createdById) ? (await financeUsers())[0] : undefined;
   for (const r of due) {
     for (let i = 0; i < 12; i++) {
-      const current = await db.recurringExpense.findUnique({
-        where: { id: r.id },
-      });
-      if (!current?.isActive || current.nextDueDate > today) break;
+      const freshRows = await listTableRows<any>("finance", "recurring_expense");
+      const current = freshRows.find((row) => row.id === r.id);
+      if (!current?.isActive || new Date(current.nextDueDate) > today) break;
       await recordRecurringExpense(r.id, current.createdById ?? fallbackRecorder!);
       recorded++;
     }
   }
-  const manual = await db.recurringExpense.findMany({
-    where: { isActive: true, autoRecord: false },
-  });
+  const latestRows = await listTableRows<any>("finance", "recurring_expense");
+  const manual = latestRows
+    .filter((r) => r.isActive && !r.autoRecord)
+    .map((r) => ({ ...r, nextDueDate: new Date(r.nextDueDate) }));
   const recipients = manual.length ? await financeUsers() : [];
   const reminders = manual.flatMap((r) => {
     const days = Math.round(
@@ -379,20 +440,20 @@ export async function processRecurringExpenses() {
     if (days > r.remindDaysBefore) return [];
     return [{ r, days, key: `recurring-expense:${r.id}:${iso(r.nextDueDate)}:${days < 0 ? "overdue" : "due"}` }];
   });
+  const existingNotifications = reminders.length
+    ? await listTableRows<any>("notify", "notification")
+    : [];
+  const reminderKeys = new Set(reminders.map((entry) => entry.key));
   const told = new Set(
-    reminders.length
-      ? (
-          await db.notification.findMany({
-            where: { eventKey: { in: reminders.map((entry) => entry.key) } },
-            select: { eventKey: true, userId: true },
-          })
-        ).map((n) => `${n.eventKey}|${n.userId}`)
-      : [],
+    existingNotifications
+      .filter((n) => reminderKeys.has(n.eventKey))
+      .map((n) => `${n.eventKey}|${n.userId}`),
   );
   for (const { r, days, key } of reminders) {
     const data = recipients
       .filter((u) => !told.has(`${key}|${u}`))
       .map((userId) => ({
+        id: crypto.randomUUID(),
         userId,
         title: days < 0 ? "Bill overdue" : "Bill due",
         message: `${r.titleEn} ${days < 0 ? "was due on" : "is due on"} ${iso(r.nextDueDate)}`,
@@ -413,7 +474,9 @@ export async function processRecurringExpenses() {
         eventKey: key,
       }));
     if (data.length) {
-      await db.notification.createMany({ data });
+      await Promise.all(
+        data.map((n) => upsertTableRow("notify", "notification", n)),
+      );
       reminded += data.length;
     }
   }

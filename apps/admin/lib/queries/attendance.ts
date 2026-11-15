@@ -4,7 +4,16 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../atomic";
+import {
+  deleteAttendanceEntryApi,
+  getEmployee,
+  listAttendanceEntries,
+  listEmployees,
+  listLeaveRequests,
+  listLeaveTypesApi,
+  listPayrollRuns,
+  recordAttendanceEntry,
+} from "../api/hr";
 import {
   dayKey,
   eachDay,
@@ -104,12 +113,12 @@ function toCell(row: {
 }
 
 export async function attendanceLockedThrough(): Promise<Date | null> {
-  const run = await db.payrollRun.findFirst({
-    where: { status: { in: ["submitted", "approved", "paid", "closed"] } },
-    orderBy: [{ year: "desc" }, { month: "desc" }],
-    select: { attendanceEnd: true, periodEnd: true },
-  });
-  return run ? (run.attendanceEnd ?? run.periodEnd) : null;
+  const runs = await listPayrollRuns().catch(() => []);
+  const locked = runs
+    .filter((r: any) => ["submitted", "approved", "paid", "closed"].includes(r.status))
+    .sort((a: any, b: any) => (b.year - a.year) || (b.month - a.month))[0] as any;
+  const raw = locked ? (locked.attendanceEnd ?? locked.periodEnd) : null;
+  return raw ? new Date(raw) : null;
 }
 
 export async function getAttendanceSheet(
@@ -138,39 +147,38 @@ export async function getAttendanceSheet(
     getHrPolicy(),
     holidaySet(start, end),
     listPublicHolidays(year),
-    db.employee.findMany({
-      where: { status: { in: ["active", "on_leave"] }, hireDate: { lte: end } },
-      select: {
-        id: true,
-        employeeNumber: true,
-        firstNameEn: true,
-        lastNameEn: true,
-        firstNameAr: true,
-        lastNameAr: true,
-        hireDate: true,
+    listEmployees().then((rows) =>
+      rows
+        .filter((e: any) => ["active", "on_leave"].includes(e.status) && new Date(e.hireDate) <= end)
+        .map((e: any) => ({ ...e, hireDate: new Date(e.hireDate) }))
+        .sort((a: any, b: any) =>
+          `${a.firstNameEn} ${a.lastNameEn}`.localeCompare(`${b.firstNameEn} ${b.lastNameEn}`),
+        ),
+    ),
+    listAttendanceEntries().then((rows) =>
+      rows
+        .map((r: any) => ({ ...r, date: new Date(r.entryDate ?? r.date) }))
+        .filter((r: any) => r.date >= start && r.date <= end),
+    ),
+    Promise.all([listLeaveRequests().catch(() => []), listLeaveTypesApi().catch(() => [])]).then(
+      ([reqs, lts]) => {
+        const ltCode = new Map<string, any>(lts.map((lt: any): [any, any] => [lt.id, lt.code]));
+        return reqs
+          .filter((l: any) => ["approved", "pending"].includes(l.status))
+          .map((l: any) => ({
+            ...l,
+            startDate: new Date(l.startDate),
+            endDate: new Date(l.endDate),
+            dayPortion: l.dayPortion ?? "full",
+            leaveType: { code: ltCode.get(l.leaveTypeId) ?? l.leaveType ?? "annual" },
+          }))
+          .filter((l: any) => l.startDate <= end && l.endDate >= start);
       },
-      orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }],
-    }),
-    db.attendanceEntry.findMany({ where: { date: { gte: start, lte: end } } }),
-    db.leaveRequest.findMany({
-      where: {
-        status: { in: ["approved", "pending"] },
-        startDate: { lte: end },
-        endDate: { gte: start },
-      },
-      select: {
-        employeeId: true,
-        startDate: true,
-        endDate: true,
-        dayPortion: true,
-        status: true,
-        leaveType: { select: { code: true } },
-      },
-    }),
+    ),
     listShiftTypes(),
     attendanceLockedThrough(),
   ]);
-  const holidayNames = new Map<string, string>(holidayRows.map((h: any) => [h.date, h.nameEn]));
+  const holidayNames = new Map<string, string>(holidayRows.map((h: any): [any, any] => [h.date, h.nameEn]));
   return {
     year,
     month,
@@ -256,11 +264,8 @@ export async function saveAttendanceEntry(
     throw new Error(serverMessages.chooseAStatus);
   const date = new Date(`${input.date}T00:00:00Z`);
   await assertUnlocked(date);
-  const employee = await db.employee.findUniqueOrThrow({
-    where: { id: input.employeeId },
-    select: { hireDate: true },
-  });
-  if (date < employee.hireDate)
+  const employee = await getEmployee(input.employeeId);
+  if (date < new Date(employee.hireDate))
     throw new Error(serverMessages.theEmployeeHadNotJoinedOnThat);
   if (date.getTime() > Date.now() + 86_400_000)
     throw new Error(serverMessages.attendanceCannotBeRecordedForFutureDays);
@@ -300,42 +305,35 @@ export async function saveAttendanceEntry(
   const autoHoliday = present && isHoliday ? worked : 0;
 
   const shiftTypeId = input.shiftTypeId || null;
-  if (shiftTypeId)
-    await db.shiftType.findUniqueOrThrow({
-      where: { id: shiftTypeId },
-      select: { id: true },
-    });
-  const toDate = (t: string | null | undefined) =>
-    t ? new Date(`${input.date}T${t}:00${LOCAL_OFFSET}`) : null;
-  const data = {
+  if (shiftTypeId) {
+    const shifts = await listShiftTypes();
+    if (!shifts.some((s) => s.id === shiftTypeId)) throw new Error("Shift type not found");
+  }
+  const row = await recordAttendanceEntry({
+    employeeId: input.employeeId,
+    entryDate: input.date,
     status: input.status,
-    checkIn: present ? toDate(input.checkIn) : null,
-    checkOut: present ? toDate(input.checkOut) : null,
+    notes: input.notes?.trim().slice(0, 500) || undefined,
+  });
+  return toCell({
+    ...row,
+    date,
+    checkIn: present && input.checkIn ? new Date(`${input.date}T${input.checkIn}:00${LOCAL_OFFSET}`) : null,
+    checkOut: present && input.checkOut ? new Date(`${input.date}T${input.checkOut}:00${LOCAL_OFFSET}`) : null,
     lateMinutes: minutes(input.lateMinutes, "Late minutes") ?? autoLate,
     overtimeMinutes: minutes(input.overtimeMinutes, "Overtime") ?? autoOvertime,
-    overtimeNightMinutes:
-      minutes(input.overtimeNightMinutes, "Night overtime") ?? 0,
-    overtimeRestDayMinutes:
-      minutes(input.overtimeRestDayMinutes, "Rest-day overtime") ?? autoRestDay,
-    overtimeHolidayMinutes:
-      minutes(input.overtimeHolidayMinutes, "Holiday overtime") ?? autoHoliday,
+    overtimeNightMinutes: minutes(input.overtimeNightMinutes, "Night overtime") ?? 0,
+    overtimeRestDayMinutes: minutes(input.overtimeRestDayMinutes, "Rest-day overtime") ?? autoRestDay,
+    overtimeHolidayMinutes: minutes(input.overtimeHolidayMinutes, "Holiday overtime") ?? autoHoliday,
     shiftTypeId: present ? shiftTypeId : null,
-    notes: input.notes?.trim().slice(0, 500) || null,
     source: "manual",
-    recordedById: actorId,
-  };
-  const row = await db.attendanceEntry.upsert({
-    where: { employeeId_date: { employeeId: input.employeeId, date } },
-    update: data,
-    create: { employeeId: input.employeeId, date, ...data },
   });
-  return toCell(row);
 }
 
 export async function deleteAttendanceEntry(employeeId: string, date: string) {
   const day = new Date(`${date}T00:00:00Z`);
   await assertUnlocked(day);
-  await db.attendanceEntry.deleteMany({ where: { employeeId, date: day } });
+  await deleteAttendanceEntryApi(employeeId, date);
 }
 
 export async function markMonthPresent(
@@ -373,8 +371,13 @@ export async function markMonthPresent(
       });
     }
   }
-  if (data.length)
-    await db.attendanceEntry.createMany({ data, skipDuplicates: true });
+  for (const item of data) {
+    await recordAttendanceEntry({
+      employeeId: item.employeeId,
+      entryDate: dayKey(item.date),
+      status: item.status,
+    });
+  }
   return { created: data.length };
 }
 
@@ -383,10 +386,15 @@ export async function attendanceForPayroll(
   start: Date,
   end: Date,
 ) {
-  const rows = await db.attendanceEntry.findMany({
-    where: { employeeId: { in: employeeIds }, date: { gte: start, lte: end } },
-    include: { shiftType: true },
-  });
+  const [allRows, shiftTypes] = await Promise.all([
+    listAttendanceEntries(),
+    listShiftTypes(),
+  ]);
+  const empSet = new Set(employeeIds);
+  const shiftById = new Map<string, any>(shiftTypes.map((s): [any, any] => [s.id, s]));
+  const rows = allRows
+    .map((r: any) => ({ ...r, date: new Date(r.entryDate ?? r.date), shiftType: r.shiftTypeId ? shiftById.get(r.shiftTypeId) ?? null : null }))
+    .filter((r: any) => empSet.has(r.employeeId) && r.date >= start && r.date <= end);
   return rows.map((row) => ({
     employeeId: row.employeeId,
     date: dayKey(row.date),

@@ -5,7 +5,8 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import {
   Invoice,
   DiscountType,
@@ -149,6 +150,37 @@ export async function getAllInvoices(options?: {
   }
 }
 
+async function hydrateInvoice(inv: any) {
+  const [contacts, deals, lineItems, taxes, payments] = await Promise.all([
+    listTableRows<any>("sales", "crm_contact").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+    listTableRows<any>("finance", "invoice_line_item").catch(() => []),
+    listTableRows<any>("finance", "document_tax").catch(() => []),
+    listTableRows<any>("finance", "payment").catch(() => []),
+  ]);
+  const contactMap = new Map<string, any>(contacts.map((c): [any, any] => [c.id, c]));
+  const deal = inv.dealId ? deals.find((d) => d.id === inv.dealId) ?? null : null;
+  return {
+    ...inv,
+    client: inv.clientId ? contactMap.get(inv.clientId) ?? null : null,
+    lineItems: lineItems
+      .filter((li) => li.invoiceId === inv.id)
+      .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0)),
+    taxes: taxes
+      .filter((t) => t.invoiceId === inv.id)
+      .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0)),
+    payments: payments
+      .filter((p) => p.invoiceId === inv.id)
+      .sort((a, b) => String(b.paymentDate ?? "").localeCompare(String(a.paymentDate ?? ""))),
+    deal: deal
+      ? {
+          ...deal,
+          contact: deal.contactId ? contactMap.get(deal.contactId) ?? null : null,
+        }
+      : null,
+  };
+}
+
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
   try {
     const { getInvoice } = await import("@platform/api-client");
@@ -161,20 +193,11 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
   }
 
   try {
-    const inv = await db.invoice.findUnique({
-      where: { id },
-      include: {
-        client: true,
-        lineItems: { orderBy: { displayOrder: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        payments: { orderBy: { paymentDate: "desc" } },
-        deal: {
-          include: { contact: true },
-        },
-      },
-    });
-    return inv ? mapDatabaseInvoiceToInvoice(inv) : null;
+    const invoices = await listTableRows<any>("finance", "invoice");
+    const raw = invoices.find((i) => i.id === id);
+    if (!raw) return null;
+    const inv = await hydrateInvoice(raw);
+    return mapDatabaseInvoiceToInvoice(inv);
   } catch (e) {
     console.error(`Error fetching invoice ${id}:`, e);
     throw e;
@@ -206,22 +229,13 @@ export async function getInvoiceByIdOrNumber(
   }
 
   try {
-    const inv = await db.invoice.findFirst({
-      where: {
-        OR: [{ id: idOrNumber }, { invoiceNumber: idOrNumber }],
-      },
-      include: {
-        client: true,
-        lineItems: { orderBy: { displayOrder: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        payments: { orderBy: { paymentDate: "desc" } },
-        deal: {
-          include: { contact: true },
-        },
-      },
-    });
-    return inv ? mapDatabaseInvoiceToInvoice(inv) : null;
+    const invoices = await listTableRows<any>("finance", "invoice");
+    const raw = invoices.find(
+      (i) => i.id === idOrNumber || i.invoiceNumber === idOrNumber,
+    );
+    if (!raw) return null;
+    const inv = await hydrateInvoice(raw);
+    return mapDatabaseInvoiceToInvoice(inv);
   } catch (e) {
     console.error(`Error fetching invoice ${idOrNumber}:`, e);
     throw e;
@@ -473,17 +487,11 @@ export async function updateInvoice(
   },
 ): Promise<Invoice | null> {
   try {
-    return await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
-      const existing = await tx.invoice.findUnique({
-        where: { id },
-        include: {
-          lineItems: true,
-          payments: true,
-          taxes: { orderBy: { displayOrder: "asc" } },
-        },
-      });
-      if (!existing) return null;
+    return await runAtomicMutation(async () => {
+      const invoices = await listTableRows<any>("finance", "invoice");
+      const rawExisting = invoices.find((i) => i.id === id);
+      if (!rawExisting) return null;
+      const existing = await hydrateInvoice(rawExisting);
       if (existing.status === "void" || existing.payments.length > 0)
         throw new Error(serverMessages.voidOrPaidInvoicesCannotBeEdited);
 
@@ -491,15 +499,15 @@ export async function updateInvoice(
       const currency = await assertCompanyCurrency(data.currency);
       const nextIssue = data.issue_date
         ? new Date(data.issue_date)
-        : existing.issueDate;
+        : new Date(existing.issueDate);
       const nextDue = data.due_date
         ? new Date(data.due_date)
-        : existing.dueDate;
+        : new Date(existing.dueDate);
       if (nextDue < nextIssue)
         throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
       const lineItemsToCalc =
         data.line_items ||
-        existing.lineItems.map((li) => ({
+        existing.lineItems.map((li: any) => ({
           service_id: li.serviceId || undefined,
           description_en: li.descriptionEn,
           description_ar: li.descriptionAr || undefined,
@@ -513,7 +521,7 @@ export async function updateInvoice(
               ? { vatEnabled: Boolean(data.vat_enabled), vatPercentage: Number(data.vat_percentage ?? existing.vatPercentage ?? 10) }
               : (existing.vatEnabled !== undefined && existing.vatEnabled !== null
                   ? { vatEnabled: Boolean(existing.vatEnabled), vatPercentage: Number(existing.vatPercentage) }
-                  : await companyVat(tx)))
+                  : await companyVat()))
           : {
               vatEnabled: Boolean(existing.vatEnabled),
               vatPercentage: Number(existing.vatPercentage),
@@ -522,10 +530,10 @@ export async function updateInvoice(
         existing.status === "draft"
           ? (existing.taxes && existing.taxes.length > 0
               ? frozenTaxes(existing.taxes)
-              : (vat.vatEnabled ? await companyTaxes("invoice", tx) : []))
+              : (vat.vatEnabled ? await companyTaxes("invoice") : []))
           : frozenTaxes(existing.taxes);
       const totals = calculateInvoiceTotals(
-        lineItemsToCalc.map((li) => ({
+        lineItemsToCalc.map((li: any) => ({
           ...li,
           line_total: lineTotal(li.quantity, li.unit_price, currency),
         })),
@@ -536,70 +544,67 @@ export async function updateInvoice(
         currency,
         otherTaxes,
       );
-      await tx.documentTax.deleteMany({ where: { invoiceId: id } });
-      await tx.documentTax.createMany({
-        data: documentTaxRows(otherTaxes, totals.taxes).map((row) => ({
-          ...row,
-          invoiceId: id,
-        })),
-      });
+      await Promise.all(
+        existing.taxes.map((t: any) => deleteTableRow("finance", "document_tax", t.id)),
+      );
+      await Promise.all(
+        documentTaxRows(otherTaxes, totals.taxes).map((row) =>
+          upsertTableRow("finance", "document_tax", {
+            id: crypto.randomUUID(),
+            ...row,
+            invoiceId: id,
+          }),
+        ),
+      );
 
       if (data.line_items) {
-        await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
+        await Promise.all(
+          existing.lineItems.map((li: any) =>
+            deleteTableRow("finance", "invoice_line_item", li.id),
+          ),
+        );
+        await Promise.all(
+          data.line_items.map((li, idx) =>
+            upsertTableRow("finance", "invoice_line_item", {
+              id: crypto.randomUUID(),
+              invoiceId: id,
+              serviceId: li.service_id || null,
+              descriptionEn: li.description_en,
+              descriptionAr: li.description_ar || null,
+              quantity: li.quantity,
+              unitPrice: li.unit_price,
+              lineTotal: lineTotal(li.quantity, li.unit_price, currency),
+              displayOrder: idx + 1,
+            }),
+          ),
+        );
       }
 
-      const updated = await tx.invoice.update({
-        where: { id },
-        data: {
-          clientId:
-            data.contact_id !== undefined ? data.contact_id : existing.clientId,
-          dealId: data.deal_id !== undefined ? data.deal_id : existing.dealId,
-          issueDate: data.issue_date
-            ? new Date(data.issue_date)
-            : existing.issueDate,
-          dueDate: data.due_date ? new Date(data.due_date) : existing.dueDate,
-          subtotal: totals.subtotal,
-          discountType: data.discount_type || existing.discountType,
-          discountValue: data.discount_value ?? existing.discountValue,
-          discountAmount: totals.discountAmount,
-          vatEnabled: vat.vatEnabled,
-          vatPercentage: vat.vatPercentage,
-          vatAmount: totals.vatAmount,
-          otherTaxAmount: totals.otherTaxAmount,
-          totalAmount: totals.totalAmount,
-          currency,
-          language: data.language || existing.language,
-          notesEn:
-            data.notes_en !== undefined ? data.notes_en : existing.notesEn,
-          notesAr:
-            data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
-          ...(data.line_items
-            ? {
-                lineItems: {
-                  create: data.line_items.map((li, idx) => ({
-                    serviceId: li.service_id || null,
-                    descriptionEn: li.description_en,
-                    descriptionAr: li.description_ar || null,
-                    quantity: li.quantity,
-                    unitPrice: li.unit_price,
-                    lineTotal: lineTotal(li.quantity, li.unit_price, currency),
-                    displayOrder: idx + 1,
-                  })),
-                },
-              }
-            : {}),
-        },
-        include: {
-          client: true,
-          lineItems: true,
-
-          taxes: { orderBy: { displayOrder: "asc" } },
-          payments: true,
-          deal: { include: { contact: true } },
-        },
+      const updatedRaw = await upsertTableRow("finance", "invoice", {
+        ...rawExisting,
+        clientId:
+          data.contact_id !== undefined ? data.contact_id : existing.clientId,
+        dealId: data.deal_id !== undefined ? data.deal_id : existing.dealId,
+        issueDate: nextIssue.toISOString(),
+        dueDate: nextDue.toISOString(),
+        subtotal: totals.subtotal,
+        discountType: data.discount_type || existing.discountType,
+        discountValue: data.discount_value ?? existing.discountValue,
+        discountAmount: totals.discountAmount,
+        vatEnabled: vat.vatEnabled,
+        vatPercentage: vat.vatPercentage,
+        vatAmount: totals.vatAmount,
+        otherTaxAmount: totals.otherTaxAmount,
+        totalAmount: totals.totalAmount,
+        currency,
+        language: data.language || existing.language,
+        notesEn:
+          data.notes_en !== undefined ? data.notes_en : existing.notesEn,
+        notesAr:
+          data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
       });
 
-      return mapDatabaseInvoiceToInvoice(updated);
+      return mapDatabaseInvoiceToInvoice(await hydrateInvoice(updatedRaw));
     });
   } catch (e) {
     console.error(`Error updating invoice ${id}:`, e);
@@ -628,12 +633,17 @@ export async function markOverdueInvoices(
   const startOfDay = new Date(
     Date.UTC(asOf.getUTCFullYear(), asOf.getUTCMonth(), asOf.getUTCDate()),
   );
-  const result = await db.invoice.updateMany({
-    where: {
-      status: { in: ["sent", "partially_paid"] },
-      dueDate: { lt: startOfDay },
-    },
-    data: { status: "overdue" },
-  });
-  return result.count;
+  const invoices = await listTableRows<any>("finance", "invoice");
+  const overdue = invoices.filter(
+    (inv) =>
+      ["sent", "partially_paid"].includes(inv.status) &&
+      inv.dueDate &&
+      new Date(inv.dueDate) < startOfDay,
+  );
+  await Promise.all(
+    overdue.map((inv) =>
+      upsertTableRow("finance", "invoice", { ...inv, status: "overdue" }),
+    ),
+  );
+  return overdue.length;
 }

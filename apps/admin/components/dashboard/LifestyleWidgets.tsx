@@ -1573,33 +1573,37 @@ export function ScratchpadNotesWidget({
   const [newTodo, setNewTodo] = React.useState("");
 
   React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SCRATCHPAD_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as {
-          note?: string;
-          todos?: ScratchpadTodo[];
-        };
+    let active = true;
+    fetch("/api/workspace/prefs", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { scratchpad?: { note?: string; todos?: ScratchpadTodo[] } } | null) => {
+        if (!active || !data?.scratchpad) return;
+        const parsed = data.scratchpad;
         if (!serverNote && typeof parsed.note === "string") {
           setNote(parsed.note);
         }
         if (Array.isArray(parsed.todos)) {
           setTodos(parsed.todos);
         }
-      }
-    } catch {
-    }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, [serverNote]);
 
-  const persistLocal = (nextNote: string, nextTodos: ScratchpadTodo[]) => {
-    try {
-      localStorage.setItem(
-        SCRATCHPAD_STORAGE_KEY,
-        JSON.stringify({ note: nextNote, todos: nextTodos }),
-      );
-    } catch {
-    }
-  };
+  const persistRemote = React.useCallback(
+    (nextNote: string, nextTodos: ScratchpadTodo[]) => {
+      fetch("/api/workspace/prefs", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scratchpad: { note: nextNote, todos: nextTodos },
+        }),
+      }).catch(() => {});
+    },
+    [],
+  );
 
   const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1611,7 +1615,7 @@ export function ScratchpadNotesWidget({
     ];
     setTodos(next);
     setNewTodo("");
-    persistLocal(note, next);
+    persistRemote(note, next);
   };
 
   const toggleTodo = (id: string) => {
@@ -1619,13 +1623,13 @@ export function ScratchpadNotesWidget({
       item.id === id ? { ...item, done: !item.done } : item,
     );
     setTodos(next);
-    persistLocal(note, next);
+    persistRemote(note, next);
   };
 
   const deleteTodo = (id: string) => {
     const next = todos.filter((item) => item.id !== id);
     setTodos(next);
-    persistLocal(note, next);
+    persistRemote(note, next);
   };
 
   const tintClass =
@@ -1686,9 +1690,9 @@ export function ScratchpadNotesWidget({
             onChange={(e) => {
               const val = e.target.value.slice(0, 600);
               setNote(val);
-              persistLocal(val, todos);
             }}
             onBlur={() => {
+              persistRemote(note, todos);
               if (note !== serverNote) {
                 onUpdateSettings?.({ note: note.slice(0, 240) });
               }
@@ -1704,7 +1708,6 @@ export function ScratchpadNotesWidget({
                 type="button"
                 onClick={() => {
                   setNote("");
-                  persistLocal("", todos);
                   onUpdateSettings?.({ note: "" });
                 }}
                 className="text-rose-500 hover:underline font-semibold"

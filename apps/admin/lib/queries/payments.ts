@@ -12,7 +12,7 @@ import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
 import { mapDocumentTaxLines } from "../finance/vat";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function toIso(val: any): string {
@@ -100,33 +100,60 @@ function mapPayment(p: any): Payment {
   };
 }
 
+async function hydratePayments(payments: any[], withInvoice = true) {
+  if (!withInvoice || !payments.length) return payments;
+  const [invoices, allPayments, taxes, contacts, deals] = await Promise.all([
+    listTableRows<any>("finance", "invoice").catch(() => []),
+    listTableRows<any>("finance", "payment").catch(() => []),
+    listTableRows<any>("finance", "document_tax").catch(() => []),
+    listTableRows<any>("sales", "crm_contact").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+  ]);
+  const contactMap = new Map<string, any>(contacts.map((c): [any, any] => [c.id, c]));
+  const dealMap = new Map<string, any>(deals.map((d): [any, any] => [d.id, d]));
+  const invMap = new Map<string, any>(
+    invoices.map((inv): [string, any] => {
+      const deal = inv.dealId ? dealMap.get(inv.dealId) ?? null : null;
+      return [
+        inv.id,
+        {
+          ...inv,
+          client: inv.clientId ? contactMap.get(inv.clientId) ?? null : null,
+          payments: allPayments.filter((p) => p.invoiceId === inv.id),
+          taxes: taxes
+            .filter((t) => t.invoiceId === inv.id)
+            .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0)),
+          deal: deal
+            ? { ...deal, contact: deal.contactId ? contactMap.get(deal.contactId) ?? null : null }
+            : null,
+        },
+      ];
+    }),
+  );
+  return payments.map((p) => ({
+    ...p,
+    invoice: p.invoiceId ? invMap.get(p.invoiceId) ?? null : null,
+  }));
+}
+
 export async function getAllPayments(options?: {
   limit?: number;
   offset?: number;
   invoiceId?: string;
 }): Promise<Payment[]> {
   try {
-    const payments = await db.payment.findMany({
-      where: options?.invoiceId ? { invoiceId: options.invoiceId } : undefined,
-      take: options?.limit,
-      skip: options?.offset,
-      include: options?.invoiceId
-        ? undefined
-        : {
-            invoice: {
-              include: {
-                client: true,
-                payments: true,
-                taxes: { orderBy: { displayOrder: "asc" } },
-                deal: {
-                  include: { contact: true },
-                },
-              },
-            },
-          },
-      orderBy: { paymentDate: "desc" },
-    });
-    return payments.map(mapPayment);
+    const allPayments = await listTableRows<any>("finance", "payment");
+    let rows = options?.invoiceId
+      ? allPayments.filter((p) => p.invoiceId === options.invoiceId)
+      : allPayments;
+    rows = rows.sort((a, b) =>
+      String(b.paymentDate ?? "").localeCompare(String(a.paymentDate ?? "")),
+    );
+    const start = options?.offset ?? 0;
+    const end = options?.limit ? start + options.limit : undefined;
+    rows = rows.slice(start, end);
+    const hydrated = await hydratePayments(rows, !options?.invoiceId);
+    return hydrated.map(mapPayment);
   } catch (e) {
     console.error("Error fetching payments from DB:", e);
     throw e;
@@ -146,28 +173,20 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
   }
 
   try {
-    const payment = await db.payment.findUnique({
-      where: { id },
-      include: {
-        invoice: {
-          include: {
-            client: true,
-            payments: true,
-            taxes: { orderBy: { displayOrder: "asc" } },
-            deal: {
-              include: { contact: true },
-            },
-          },
-        },
-      },
-    });
-    if (!payment) return null;
+    const allPayments = await listTableRows<any>("finance", "payment");
+    const raw = allPayments.find((p) => p.id === id);
+    if (!raw) return null;
+    const [payment] = await hydratePayments([raw], true);
 
-    const attachments = await db.attachment.findMany({
-      where: { entityType: "payment", entityId: payment.id },
-      include: { uploadedBy: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const [allAttachments, users] = await Promise.all([
+      listTableRows<any>("notify", "attachment").catch(() => []),
+      listTableRows<any>("identity", "user").catch(() => []),
+    ]);
+    const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, u]));
+    const attachments = allAttachments
+      .filter((a) => a.entityType === "payment" && a.entityId === payment.id)
+      .sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")))
+      .map((a) => ({ ...a, uploadedBy: a.uploadedById ? userMap.get(a.uploadedById) ?? null : null }));
 
     const mapped = mapPayment(payment);
     mapped.proof_attachments = attachments.map((a: any) => ({
@@ -208,30 +227,22 @@ export async function getPaymentByIdOrNumber(
   }
 
   try {
-    const payment = await db.payment.findFirst({
-      where: {
-        OR: [{ id: idOrNumber }, { receiptNumber: idOrNumber }],
-      },
-      include: {
-        invoice: {
-          include: {
-            client: true,
-            payments: true,
-            taxes: { orderBy: { displayOrder: "asc" } },
-            deal: {
-              include: { contact: true },
-            },
-          },
-        },
-      },
-    });
-    if (!payment) return null;
+    const allPayments = await listTableRows<any>("finance", "payment");
+    const raw = allPayments.find(
+      (p) => p.id === idOrNumber || p.receiptNumber === idOrNumber,
+    );
+    if (!raw) return null;
+    const [payment] = await hydratePayments([raw], true);
 
-    const attachments = await db.attachment.findMany({
-      where: { entityType: "payment", entityId: payment.id },
-      include: { uploadedBy: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const [allAttachments, users] = await Promise.all([
+      listTableRows<any>("notify", "attachment").catch(() => []),
+      listTableRows<any>("identity", "user").catch(() => []),
+    ]);
+    const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, u]));
+    const attachments = allAttachments
+      .filter((a) => a.entityType === "payment" && a.entityId === payment.id)
+      .sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")))
+      .map((a) => ({ ...a, uploadedBy: a.uploadedById ? userMap.get(a.uploadedById) ?? null : null }));
 
     const mapped = mapPayment(payment);
     mapped.proof_attachments = attachments.map((a: any) => ({
@@ -243,7 +254,7 @@ export async function getPaymentByIdOrNumber(
       entity_type: a.entityType,
       entity_id: a.entityId,
       uploaded_by: a.uploadedBy?.fullName || a.uploadedBy?.email || undefined,
-      created_at: a.createdAt.toISOString(),
+      created_at: toIso(a.createdAt),
     }));
 
     return mapped;
@@ -374,27 +385,29 @@ export async function deletePayment(id: string): Promise<boolean> {
 }
 
 async function reconcileInvoicePaymentStatus(
-  tx: Pick<typeof db, "invoice" | "crmDeal" | "dealPipelineStage">,
+  _tx: unknown,
   invoiceId: string,
 ): Promise<void> {
-  const invoice = await tx.invoice.findUnique({
-    where: { id: invoiceId },
-    include: { payments: true },
-  });
+  const [invoices, allPayments] = await Promise.all([
+    listTableRows<any>("finance", "invoice"),
+    listTableRows<any>("finance", "payment"),
+  ]);
+  const invoice = invoices.find((i) => i.id === invoiceId);
   if (!invoice || invoice.status === "void" || invoice.status === "draft")
     return;
+  const invPayments = allPayments.filter((p) => p.invoiceId === invoiceId);
   const paid = sumMoney(
-    invoice.payments.map((p) => p.amount),
+    invPayments.map((p) => p.amount),
     invoice.currency,
   );
   const next =
     paymentStatusFor(Number(invoice.totalAmount), paid, invoice.currency) ??
-    (invoice.dueDate < new Date() ? "overdue" : "sent");
+    (new Date(invoice.dueDate) < new Date() ? "overdue" : "sent");
   if (next !== invoice.status)
-    await tx.invoice.update({
-      where: { id: invoiceId },
-      data: { status: next },
+    await upsertTableRow("finance", "invoice", {
+      ...invoice,
+      status: next,
     });
-  if (next === "paid")
-    await advanceDealForEvent(tx, invoice.dealId, "invoice_paid");
+  if (next === "paid" && invoice.dealId)
+    await advanceDealForEvent(undefined, invoice.dealId, "invoice_paid");
 }

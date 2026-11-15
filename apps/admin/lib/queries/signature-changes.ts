@@ -3,9 +3,16 @@ import {
   formatMessage,
   serverMessages,
 } from "@platform/locales";
-
-import { db, runAtomicMutation } from "../atomic";
 import { lookupFile } from "@platform/api-client";
+import {
+  createSignatureChangeApi,
+  getAdminUserApi,
+  listAdminSignatureChangesApi,
+  listAdminUsersApi,
+  updateAdminUserFieldsApi,
+  updateSignatureChangeStatusApi,
+} from "../api/identity";
+import { runAtomicMutation } from "../api/atomic";
 import { claimUpload } from "../services/uploads";
 
 export interface SignatureChangeRow {
@@ -19,25 +26,20 @@ export interface SignatureChangeRow {
   createdAt: string;
 }
 
-const map = (c: {
-  id: string;
-  signatureUrl: string;
-  previousUrl: string | null;
-  status: string;
-  reviewNotes: string | null;
-  decidedAt: Date | null;
-  createdAt: Date;
-  reviewedBy?: { fullName: string } | null;
-}): SignatureChangeRow => ({
-  id: c.id,
-  signatureUrl: c.signatureUrl,
-  previousUrl: c.previousUrl,
-  status: c.status as SignatureChangeRow["status"],
-  reviewedBy: c.reviewedBy?.fullName ?? null,
-  reviewNotes: c.reviewNotes,
-  decidedAt: c.decidedAt ? c.decidedAt.toISOString() : null,
-  createdAt: c.createdAt.toISOString(),
-});
+const map = (c: any, usersById?: Map<string, any>): SignatureChangeRow => {
+  const reviewerId = c.reviewed_by_id ?? c.reviewedById ?? null;
+  const reviewer = reviewerId && usersById ? usersById.get(reviewerId) : null;
+  return {
+    id: c.id,
+    signatureUrl: c.signature_url ?? c.signatureUrl,
+    previousUrl: c.previous_url ?? c.previousUrl ?? null,
+    status: c.status as SignatureChangeRow["status"],
+    reviewedBy: reviewer ? (reviewer.full_name ?? reviewer.fullName ?? null) : null,
+    reviewNotes: c.review_notes ?? c.reviewNotes ?? null,
+    decidedAt: c.decided_at ?? c.decidedAt ?? null,
+    createdAt: c.created_at ?? c.createdAt ?? new Date().toISOString(),
+  };
+};
 
 export async function requestSignatureChange(userId: string, fileUrl: string) {
   return runAtomicMutation(async () => {
@@ -49,31 +51,15 @@ export async function requestSignatureChange(userId: string, fileUrl: string) {
       upload.mimeType !== "image/png"
     )
       throw new Error(serverMessages.drawYourSignatureOnThePadAnd);
-    if (
-      await db.signatureChange.findFirst({
-        where: { userId, status: "pending" },
-        select: { id: true },
-      })
-    )
+    const existing = await listAdminSignatureChangesApi();
+    if (existing.some((c) => (c.user_id ?? c.userId) === userId && c.status === "pending"))
       throw new Error(serverMessages.youAlreadyHaveASignatureChangeWaiting);
     await claimUpload(fileUrl, userId);
-    const user = await db.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { signatureUrl: true },
-    });
-    const change = await db.signatureChange.create({
-      data: { userId, signatureUrl: fileUrl, previousUrl: user.signatureUrl },
-    });
-    await db.attachment.create({
-      data: {
-        entityType: "user_signature",
-        entityId: userId,
-        fileUrl,
-        fileName: upload.fileName,
-        fileSize: upload.fileSize,
-        mimeType: upload.mimeType,
-        uploadedById: userId,
-      },
+    const user = await getAdminUserApi(userId);
+    const change = await createSignatureChangeApi({
+      userId,
+      signatureUrl: fileUrl,
+      previousUrl: user?.signature_url ?? user?.signatureUrl ?? null,
     });
     return map(change);
   });
@@ -84,23 +70,20 @@ export async function approveSignatureChange(
   deciderId: string,
   notes?: string | null,
 ) {
-  const change = await db.signatureChange.findUniqueOrThrow({ where: { id } });
+  const all = await listAdminSignatureChangesApi();
+  const change = all.find((c) => c.id === id);
+  if (!change) throw new Error(serverMessages.requestNotFound);
   if (change.status !== "pending")
     throw new Error(
       formatMessage(serverTemplates.signatureChangeIs0, { 0: change.status }),
     );
-  await db.signatureChange.update({
-    where: { id },
-    data: {
-      status: "approved",
-      reviewedById: deciderId,
-      reviewNotes: notes || null,
-      decidedAt: new Date(),
-    },
+  await updateAdminUserFieldsApi(change.user_id ?? change.userId, {
+    signatureUrl: change.signature_url ?? change.signatureUrl,
   });
-  await db.user.update({
-    where: { id: change.userId },
-    data: { signatureUrl: change.signatureUrl },
+  return updateSignatureChangeStatusApi(id, {
+    status: "approved",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
 }
 
@@ -109,59 +92,38 @@ export async function rejectSignatureChange(
   deciderId: string,
   notes?: string | null,
 ) {
-  const change = await db.signatureChange.findUniqueOrThrow({
-    where: { id },
-    select: { status: true },
-  });
+  const all = await listAdminSignatureChangesApi();
+  const change = all.find((c) => c.id === id);
+  if (!change) throw new Error(serverMessages.requestNotFound);
   if (change.status !== "pending")
     throw new Error(
       formatMessage(serverTemplates.signatureChangeIs0, { 0: change.status }),
     );
-  await db.signatureChange.update({
-    where: { id },
-    data: {
-      status: "rejected",
-      reviewedById: deciderId,
-      reviewNotes: notes || null,
-      decidedAt: new Date(),
-    },
+  return updateSignatureChangeStatusApi(id, {
+    status: "rejected",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
 }
 
 export async function cancelSignatureChange(id: string, userId: string) {
-  return runAtomicMutation(async () => {
-    const change = await db.signatureChange.findUniqueOrThrow({
-      where: { id },
-      select: { status: true, userId: true },
-    });
-    if (change.userId !== userId)
-      throw new Error(serverMessages.onlyTheOwnerCanWithdrawThisSignature);
-    if (change.status !== "pending")
-      throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
-    await db.approvalRequest.updateMany({
-      where: {
-        targetType: "signature_change",
-        targetId: id,
-        status: "pending",
-      },
-      data: { status: "cancelled" },
-    });
-    await db.signatureChange.update({
-      where: { id },
-      data: { status: "cancelled", decidedAt: new Date() },
-    });
-  });
+  const all = await listAdminSignatureChangesApi();
+  const change = all.find((c) => c.id === id && (c.user_id ?? c.userId) === userId);
+  if (!change) throw new Error(serverMessages.requestNotFound);
+  if (change.status !== "pending")
+    throw new Error(
+      formatMessage(serverTemplates.signatureChangeIs0, { 0: change.status }),
+    );
+  return updateSignatureChangeStatusApi(id, { status: "cancelled" });
 }
 
-export async function listSignatureChanges(
-  userId: string,
-  take = 20,
-): Promise<SignatureChangeRow[]> {
-  const rows = await db.signatureChange.findMany({
-    where: { userId },
-    include: { reviewedBy: { select: { fullName: true } } },
-    orderBy: { createdAt: "desc" },
-    take,
-  });
-  return rows.map(map);
+export async function listSignatureChanges(userId: string): Promise<SignatureChangeRow[]> {
+  const [all, users] = await Promise.all([
+    listAdminSignatureChangesApi(),
+    listAdminUsersApi(),
+  ]);
+  const usersById = new Map(users.map((u) => [u.id, u]));
+  return all
+    .filter((c) => (c.user_id ?? c.userId) === userId)
+    .map((c) => map(c, usersById));
 }

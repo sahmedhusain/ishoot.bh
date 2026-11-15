@@ -1,6 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
-import type { Database } from "@platform/database/decimal";
+import { listTableRows } from "../api/tables";
 import {
   MinuteOfMeetingItem,
   MomAttendee,
@@ -106,22 +105,12 @@ export async function getMinuteOfMeetingById(
   }
 
   try {
-    const mom = await db.minuteOfMeeting.findUnique({
-      where: { id },
-      include: {
-        deal: { select: { title: true } },
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        createdBy: { select: { fullName: true, signatureUrl: true } },
-        approvedBy: { select: { fullName: true, signatureUrl: true } },
-      },
-    });
-
-    return mom ? mapDatabaseMom(mom) : null;
+    const rows = await listTableRows<any>("workflow", "minute_of_meeting");
+    const mom = rows.find((r) => r.id === id || r.momNumber === id);
+    return mom ? mapApiMomToItem(mom) : null;
   } catch (error) {
     console.error(`Error fetching MOM with id ${id}:`, error);
-    throw error;
+    return null;
   }
 }
 
@@ -171,15 +160,18 @@ function mapApiMomToItem(m: any): MinuteOfMeetingItem {
   };
 }
 
-export async function getNextMomNumber(
-  client: Database.TransactionClient = db,
-): Promise<string> {
+export async function getNextMomNumber(): Promise<string> {
   const prefix = `MOM-${new Date().getFullYear()}-`;
-  const [row] = (await client.$queryRaw<Array<{ next: number }>>`
-    SELECT COALESCE(MAX(CAST(substring("momNumber" FROM '[0-9]+$') AS integer)), 0) + 1 AS next
-    FROM "MinuteOfMeeting" WHERE "momNumber" LIKE ${`${prefix}%`}
-  `) || [];
-  return `${prefix}${String(row?.next ?? 1).padStart(3, "0")}`;
+  const rows = await listTableRows<any>("workflow", "minute_of_meeting").catch(() => []);
+  let maxNum = 0;
+  for (const r of rows) {
+    const numStr = String(r.momNumber || "");
+    if (numStr.startsWith(prefix)) {
+      const m = numStr.match(/(\d+)$/);
+      if (m) maxNum = Math.max(maxNum, Number(m[1]));
+    }
+  }
+  return `${prefix}${String(maxNum + 1).padStart(3, "0")}`;
 }
 
 function mapMomPayload(data: {

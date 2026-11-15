@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
 import { submitForApproval } from "../services/approval-engine";
 import {
   getSignatureMode,

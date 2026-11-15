@@ -1,6 +1,6 @@
-import { Database } from "@platform/database/decimal";
 import { createHash } from "node:crypto";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { requireStockLocationAccess } from "./branches";
 import {
   validateStockLabelTemplate,
@@ -16,6 +16,7 @@ export interface SerialLabelInput {
   idempotencyKey: string;
   template: StockLabelTemplate;
 }
+
 export async function generateSerialLabels(
   input: SerialLabelInput,
   actorId: string,
@@ -44,130 +45,147 @@ export async function generateSerialLabels(
       ]),
     )
     .digest("hex");
+
   return runAtomicMutation(async () => {
     await requireStockLocationAccess(actorId, input.locationId, true);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`labels:${input.idempotencyKey}`}, 0))`;
-    const previous = await db.labelPrintJob.findUnique({
-      where: { idempotencyKey: input.idempotencyKey },
-    });
+    const [jobs, products, allVariants, batches, levels, serials] = await Promise.all([
+      listTableRows<Record<string, any>>("system", "label_print_job"),
+      listTableRows<Record<string, any>>("inventory", "product"),
+      listTableRows<Record<string, any>>("inventory", "product_variant"),
+      listTableRows<Record<string, any>>("inventory", "stock_batch"),
+      listTableRows<Record<string, any>>("inventory", "stock_level"),
+      listTableRows<Record<string, any>>("inventory", "stock_serial"),
+    ]);
+
+    const previous = jobs.find((j) => j.idempotencyKey === input.idempotencyKey);
     if (previous) {
       if (previous.requestHash !== requestHash)
         throw new Error("Idempotency key belongs to a different request");
-      return { id: previous.id };
+      return { id: String(previous.id) };
     }
-    const product = await db.product.findUniqueOrThrow({
-      where: { id: input.productId },
-      include: { variants: true },
-    });
+
+    const rawProduct = products.find((p) => p.id === input.productId);
+    if (!rawProduct) throw new Error("Product or variant is unavailable");
+    const variants = allVariants.filter((v) => v.productId === rawProduct.id);
     if (
-      !product.isActive ||
-      !product.trackStock ||
-      (product.variants.length
-        ? !product.variants.some(
-            (variant) => variant.id === input.variantKey && variant.isActive,
-          )
+      !rawProduct.isActive ||
+      !rawProduct.trackStock ||
+      (variants.length
+        ? !variants.some((variant) => variant.id === input.variantKey && variant.isActive)
         : !!input.variantKey)
     )
       throw new Error("Product or variant is unavailable");
-    if (product.trackBatches) {
-      const batch = await db.stockBatch.findUnique({
-        where: { id: input.batchKey },
-      });
+
+    if (rawProduct.trackBatches) {
+      const batch = batches.find((b) => b.id === input.batchKey);
       if (
         !batch ||
-        batch.productId !== product.id ||
-        batch.variantKey !== input.variantKey
+        batch.productId !== rawProduct.id ||
+        (batch.variantKey ?? "") !== input.variantKey
       )
         throw new Error("Invalid stock batch");
-    } else if (input.batchKey) throw new Error("Product does not use batches");
-    const rows = await db.$queryRaw<Array<{ onHand: { toString(): string } }>>`
-      SELECT "onHand" FROM "StockLevel" WHERE "productId"=${product.id} AND "variantKey"=${input.variantKey}
-      AND "batchKey"=${input.batchKey} AND "locationId"=${input.locationId} FOR UPDATE`;
-    const existing = await db.stockSerial.count({
-      where: {
-        productId: product.id,
-        variantKey: input.variantKey,
-        batchKey: input.batchKey,
-        locationId: input.locationId,
-        status: { not: "void" },
-      },
-    });
-    if (!rows[0] || Number(rows[0].onHand) - existing < input.quantity)
+    } else if (input.batchKey) {
+      throw new Error("Product does not use batches");
+    }
+
+    const level = levels.find(
+      (l) =>
+        l.productId === rawProduct.id &&
+        (l.variantKey ?? "") === input.variantKey &&
+        (l.batchKey ?? "") === input.batchKey &&
+        l.locationId === input.locationId,
+    );
+    const existing = serials.filter(
+      (s) =>
+        s.productId === rawProduct.id &&
+        (s.variantKey ?? "") === input.variantKey &&
+        (s.batchKey ?? "") === input.batchKey &&
+        s.locationId === input.locationId &&
+        s.status !== "void",
+    ).length;
+    if (!level || Number(level.onHand ?? 0) - existing < input.quantity)
       throw new Error("Quantity exceeds stock without assigned identifiers");
-    const generation = await db.serialGeneration.create({
-      data: {
-        idempotencyKey: input.idempotencyKey,
-        requestHash,
-        productId: product.id,
-        variantKey: input.variantKey,
-        batchKey: input.batchKey,
-        locationId: input.locationId,
-        quantity: input.quantity,
-        createdById: actorId,
-      },
+
+    const generationId = crypto.randomUUID();
+    const generation = await upsertTableRow<Record<string, any>>("system", "serial_generation", {
+      id: generationId,
+      idempotencyKey: input.idempotencyKey,
+      requestHash,
+      productId: rawProduct.id,
+      variantKey: input.variantKey,
+      batchKey: input.batchKey,
+      locationId: input.locationId,
+      quantity: input.quantity,
+      createdById: actorId,
     });
+
     const labels: any[] = [];
     for (let index = 0; index < input.quantity; index++) {
       const code = `INT-${generation.id}-${String(index + 1).padStart(4, "0")}`;
-      await db.stockSerial.create({
-        data: {
-          code,
-          generationId: generation.id,
-          productId: product.id,
-          variantKey: input.variantKey,
-          batchKey: input.batchKey,
-          locationId: input.locationId,
-          status: "reserved",
-        },
+      await upsertTableRow("inventory", "stock_serial", {
+        id: crypto.randomUUID(),
+        code,
+        generationId: generation.id,
+        productId: rawProduct.id,
+        variantKey: input.variantKey,
+        batchKey: input.batchKey,
+        locationId: input.locationId,
+        status: "reserved",
+        revision: 1,
       });
       labels.push({
         code,
-        productId: product.id,
+        productId: rawProduct.id,
         sku:
-          product.variants.find((variant) => variant.id === input.variantKey)
-            ?.sku ?? product.sku,
-        nameEn: product.nameEn,
-        nameAr: product.nameAr,
+          variants.find((variant) => variant.id === input.variantKey)?.sku ??
+          rawProduct.sku,
+        nameEn: rawProduct.nameEn,
+        nameAr: rawProduct.nameAr,
         batch: input.batchKey,
       });
     }
-    const job = await db.labelPrintJob.create({
-      data: {
-        idempotencyKey: input.idempotencyKey,
-        requestHash,
-        createdById: actorId,
-        template: { ...input.template, version: 1 },
-        labels,
+
+    const job = await upsertTableRow<Record<string, any>>("system", "label_print_job", {
+      id: crypto.randomUUID(),
+      idempotencyKey: input.idempotencyKey,
+      requestHash,
+      createdById: actorId,
+      template: { ...input.template, version: 1 },
+      labels,
+      status: "generated",
+    });
+
+    await upsertTableRow("inventory", "stock_trace_event", {
+      id: crypto.randomUUID(),
+      entityType: "serial_generation",
+      entityId: generation.id,
+      revision: 1,
+      action: "reserve_labels",
+      actorId,
+      details: {
+        jobId: job.id,
+        quantity: input.quantity,
+        locationId: input.locationId,
       },
     });
-    await db.stockTraceEvent.create({
-      data: {
-        entityType: "serial_generation",
-        entityId: generation.id,
-        revision: 1,
-        action: "reserve_labels",
-        actorId,
-        details: {
-          jobId: job.id,
-          quantity: input.quantity,
-          locationId: input.locationId,
-        },
-      },
-    });
-    return { id: job.id };
+    return { id: String(job.id) };
   });
 }
+
 export async function getSerialLabelJob(id: string, actorId: string) {
-  const job = await db.labelPrintJob.findUniqueOrThrow({ where: { id } });
+  const [jobs, generations] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "label_print_job"),
+    listTableRows<Record<string, any>>("system", "serial_generation"),
+  ]);
+  const job = jobs.find((j) => j.id === id);
+  if (!job) throw new Error("Label print job not found");
   const original = job.originalJobId
-    ? await db.labelPrintJob.findUniqueOrThrow({
-        where: { id: job.originalJobId },
-      })
+    ? jobs.find((j) => j.id === job.originalJobId)
     : job;
-  const generation = await db.serialGeneration.findUniqueOrThrow({
-    where: { idempotencyKey: original.idempotencyKey },
-  });
-  await requireStockLocationAccess(actorId, generation.locationId);
+  if (!original) throw new Error("Original label print job not found");
+  const generation = generations.find((g) => g.idempotencyKey === original.idempotencyKey);
+  if (!generation) throw new Error("Serial generation not found");
+  await requireStockLocationAccess(actorId, String(generation.locationId));
   return job;
 }
 
@@ -180,45 +198,44 @@ export async function reprintSerialLabels(
   return runAtomicMutation(async () => {
     const requested = await getSerialLabelJob(input.jobId, actorId);
     const original = requested.originalJobId
-      ? await getSerialLabelJob(requested.originalJobId, actorId)
+      ? await getSerialLabelJob(String(requested.originalJobId), actorId)
       : requested;
-    const generation = await db.serialGeneration.findUniqueOrThrow({
-      where: { idempotencyKey: original.idempotencyKey },
-    });
-    await requireStockLocationAccess(actorId, generation.locationId, true);
+    const [generations, jobs] = await Promise.all([
+      listTableRows<Record<string, any>>("system", "serial_generation"),
+      listTableRows<Record<string, any>>("system", "label_print_job"),
+    ]);
+    const generation = generations.find((g) => g.idempotencyKey === original.idempotencyKey);
+    if (!generation) throw new Error("Serial generation not found");
+    await requireStockLocationAccess(actorId, String(generation.locationId), true);
     const requestHash = createHash("sha256")
       .update(JSON.stringify(["reprint", original.id, actorId]))
       .digest("hex");
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`labels:${input.idempotencyKey}`}, 0))`;
-    const existing = await db.labelPrintJob.findUnique({
-      where: { idempotencyKey: input.idempotencyKey },
-    });
+    const existing = jobs.find((j) => j.idempotencyKey === input.idempotencyKey);
     if (existing) {
       if (existing.requestHash !== requestHash)
         throw new Error("Idempotency key belongs to a different request");
-      return { id: existing.id };
+      return { id: String(existing.id) };
     }
-    const job = await db.labelPrintJob.create({
-      data: {
-        idempotencyKey: input.idempotencyKey,
-        requestHash,
-        originalJobId: original.id,
-        template: original.template as Database.InputJsonValue,
-        labels: original.labels as Database.InputJsonValue,
-        createdById: actorId,
-      },
+    const job = await upsertTableRow<Record<string, any>>("system", "label_print_job", {
+      id: crypto.randomUUID(),
+      idempotencyKey: input.idempotencyKey,
+      requestHash,
+      originalJobId: original.id,
+      template: original.template,
+      labels: original.labels,
+      createdById: actorId,
+      status: "generated",
     });
-    await db.stockTraceEvent.create({
-      data: {
-        entityType: "label_job",
-        entityId: job.id,
-        revision: 1,
-        action: "reprint_generated",
-        actorId,
-        details: { originalJobId: original.id },
-      },
+    await upsertTableRow("inventory", "stock_trace_event", {
+      id: crypto.randomUUID(),
+      entityType: "label_job",
+      entityId: job.id,
+      revision: 1,
+      action: "reprint_generated",
+      actorId,
+      details: { originalJobId: original.id },
     });
-    return { id: job.id };
+    return { id: String(job.id) };
   });
 }
 
@@ -229,31 +246,29 @@ export async function confirmSerialLabelPrinting(
   return runAtomicMutation(async () => {
     const job = await getSerialLabelJob(jobId, actorId);
     const original = job.originalJobId
-      ? await getSerialLabelJob(job.originalJobId, actorId)
+      ? await getSerialLabelJob(String(job.originalJobId), actorId)
       : job;
-    const generation = await db.serialGeneration.findUniqueOrThrow({
-      where: { idempotencyKey: original.idempotencyKey },
-    });
-    await requireStockLocationAccess(actorId, generation.locationId, true);
-    const changed = await db.labelPrintJob.updateMany({
-      where: { id: jobId, status: "generated" },
-      data: {
+    const generations = await listTableRows<Record<string, any>>("system", "serial_generation");
+    const generation = generations.find((g) => g.idempotencyKey === original.idempotencyKey);
+    if (!generation) throw new Error("Serial generation not found");
+    await requireStockLocationAccess(actorId, String(generation.locationId), true);
+    if (job.status === "generated") {
+      await upsertTableRow("system", "label_print_job", {
+        id: jobId,
         status: "operator_confirmed",
-        confirmedAt: new Date(),
+        confirmedAt: new Date().toISOString(),
         confirmedById: actorId,
-      },
-    });
-    if (changed.count)
-      await db.stockTraceEvent.create({
-        data: {
-          entityType: "label_job",
-          entityId: jobId,
-          revision: 2,
-          action: "operator_confirmed",
-          actorId,
-          details: { generationId: generation.id },
-        },
       });
+      await upsertTableRow("inventory", "stock_trace_event", {
+        id: crypto.randomUUID(),
+        entityType: "label_job",
+        entityId: jobId,
+        revision: 2,
+        action: "operator_confirmed",
+        actorId,
+        details: { generationId: generation.id },
+      });
+    }
     return { id: jobId };
   });
 }

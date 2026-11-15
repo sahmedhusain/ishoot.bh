@@ -1,4 +1,4 @@
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { postJournal } from "../queries/accounting-ledger";
 
 export interface StandardAccounts {
@@ -28,12 +28,17 @@ export async function ensureStandardAccounts(): Promise<StandardAccounts> {
     { code: "5200", name: "Cash Over / Short", kind: "expense" },
   ];
 
+  const existing = await listTableRows<any>("system", "accounting_account");
+  const byCode = new Map<string, any>(existing.map((a) => [a.code, a]));
   const map = new Map<string, string>();
   for (const def of definitions) {
-    const account = await db.accountingAccount.upsert({
-      where: { code: def.code },
-      update: { name: def.name, kind: def.kind, isActive: true },
-      create: { code: def.code, name: def.name, kind: def.kind, isActive: true },
+    const found = byCode.get(def.code);
+    const account = await upsertTableRow<any>("system", "accounting_account", {
+      id: found?.id ?? crypto.randomUUID(),
+      code: def.code,
+      name: def.name,
+      kind: def.kind,
+      isActive: true,
     });
     map.set(def.code, account.id);
   }

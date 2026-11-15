@@ -92,7 +92,14 @@ export async function moveShipment(
   input: { to: string; note?: string; reason?: string; codCollected?: number; [key: string]: any },
   byId: string | null,
 ): Promise<any> {
-  throw new Error("moveShipment is not implemented in API");
+  const { moveShipmentStatusApi } = await import("../api/delivery");
+  return moveShipmentStatusApi(id, {
+    to: input.to,
+    note: input.note,
+    reason: input.reason,
+    codCollected: input.codCollected,
+    actorId: byId ?? undefined,
+  });
 }
 
 export async function handToAgency(
@@ -100,7 +107,13 @@ export async function handToAgency(
   input: any,
   byId: string,
 ): Promise<{ trackingNumber: string; [key: string]: any }> {
-  throw new Error("handToAgency must be implemented as a single API call in Go backend");
+  const { handToAgencyApi } = await import("../api/delivery");
+  return handToAgencyApi(shipmentId, {
+    agencyName: input?.agencyName ?? input?.agency_name,
+    trackingNumber: input?.trackingNumber ?? input?.tracking_number,
+    note: input?.note,
+    actorId: byId,
+  });
 }
 
 export async function syncAgencyTracking(limit = 100) {

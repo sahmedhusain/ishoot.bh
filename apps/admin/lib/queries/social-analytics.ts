@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { listIntegrations } from "@platform/api-client";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow, deleteTableRow } from "../api/tables";
 import {
   INTEGRATION_PROVIDERS,
   SOCIAL_PLAN_STATUSES,
@@ -182,122 +182,129 @@ export async function getSocialAnalytics(
       sourceProvider: source.provider,
       sourceAccountId: source.accountId!,
     }));
-  const [posts, previous, readings, ownerInsights] = await Promise.all([
-    db.socialPost.findMany({
-      where: { OR: trusted, publishedAt: { gte: since, lte: now } },
-      orderBy: { publishedAt: "desc" },
-    }),
-    db.socialPost.findMany({
-      where: { OR: trusted, publishedAt: { gte: previousSince, lt: since } },
-      select: {
-        likes: true,
-        comments: true,
-        shares: true,
-        saves: true,
-        views: true,
-      },
-    }),
-    Promise.all(
-      sources.map(async (source) => {
-        const available = (
-          source.config.availableMetrics as Record<string, unknown> | undefined
-        )?.[source.platform];
-        if (
-          !source.connected ||
-          !source.accountId ||
-          !Array.isArray(available) ||
-          !available.includes("followers")
-        )
-          return { latest: null, baseline: null };
-        const where = {
-          platform: source.platform,
-          sourceProvider: source.provider,
-          sourceAccountId: source.accountId,
-          metricType: "followers",
-        };
-        const [latest, baseline] = await Promise.all([
-          db.socialMetric.findFirst({
-            where: { ...where, recordedAt: { lte: now } },
-            orderBy: { recordedAt: "desc" },
-          }),
-          db.socialMetric.findFirst({
-            where: { ...where, recordedAt: { lte: since } },
-            orderBy: { recordedAt: "desc" },
-          }),
-        ]);
-        return { latest, baseline };
-      }),
-    ),
-    Promise.all(
-      sources
-        .filter(
-          (source) =>
-            source.connected &&
-            source.accountId &&
-            source.platform === "youtube",
-        )
-        .map(async (source) => {
-          const owners = source.config.ownerInsights as
-            Record<string, unknown> | undefined;
-          const owner = (owners?.[source.platform] ?? {}) as Record<
-            string,
-            unknown
-          >;
-          const validStatuses: OwnerInsightStatus[] = [
-            "auth_required",
-            "ready",
-            "no_data",
-            "permission_required",
-            "reconnect",
-            "rate_limited",
-            "error",
-          ];
-          let status: OwnerInsightStatus = validStatuses.includes(
-            owner.status as OwnerInsightStatus,
-          )
-            ? (owner.status as OwnerInsightStatus)
-            : "auth_required";
-          let error = typeof owner.error === "string" ? owner.error : null;
-          let snapshot: any = null;
-          const available =
-            Array.isArray(owner.availablePeriods) &&
-            owner.availablePeriods.includes(periodDays);
-          if (
-            status === "ready" &&
-            available &&
-            source.integration?.lastSyncedAt
-          ) {
-            const stored = await db.socialInsightSnapshot.findFirst({
-              where: {
-                platform: source.platform,
-                sourceProvider: source.provider,
-                sourceAccountId: source.accountId!,
-                periodDays,
-                recordedAt: source.integration.lastSyncedAt,
-              },
-              orderBy: { recordedAt: "desc" },
-            });
-            if (stored) {
-              const values = stored.metrics as Record<string, unknown>;
-              const metrics = Object.fromEntries(
-                SOCIAL_OWNER_METRIC_IDS.flatMap((key) =>
-                  typeof values?.[key] === "number" &&
-                  Number.isSafeInteger(values[key]) &&
-                  (values[key] as number) >= 0
-                    ? [[key, values[key]]]
-                    : [],
-                ),
-              ) as Partial<Record<SocialOwnerMetricId, number>>;
-              if (Object.keys(metrics).length)
-                snapshot = {
-                  periodStart: stored.periodStart.toISOString().slice(0, 10),
-                  periodEnd: stored.periodEnd.toISOString().slice(0, 10),
-                  timeZone: stored.timeZone,
-                  recordedAt: stored.recordedAt.toISOString(),
-                  metrics,
-                };
-            }
-            if (!snapshot) status = "no_data";
+  const [allPosts, allMetrics, allSnapshots] = await Promise.all([
+    listTableRows<any>("cms", "social_post", "published_at DESC").catch(() => []),
+    listTableRows<any>("cms", "social_metric", "recorded_at DESC").catch(() => []),
+    listTableRows<any>("cms", "social_insight_snapshot", "recorded_at DESC").catch(() => []),
+  ]);
+  const matchesTrusted = (p: any) =>
+    trusted.some(
+      (t) =>
+        p.platform === t.platform &&
+        p.sourceProvider === t.sourceProvider &&
+        p.sourceAccountId === t.sourceAccountId,
+    );
+  const posts = allPosts
+    .filter((p) => {
+      if (!matchesTrusted(p)) return false;
+      const t = new Date(p.publishedAt || 0).getTime();
+      return t >= since.getTime() && t <= now.getTime();
+    })
+    .map((p) => ({
+      ...p,
+      publishedAt: new Date(p.publishedAt || Date.now()),
+    }));
+  const previous = allPosts.filter((p) => {
+    if (!matchesTrusted(p)) return false;
+    const t = new Date(p.publishedAt || 0).getTime();
+    return t >= previousSince.getTime() && t < since.getTime();
+  });
+  const readings = sources.map((source) => {
+    const available = (
+      source.config.availableMetrics as Record<string, unknown> | undefined
+    )?.[source.platform];
+    if (
+      !source.connected ||
+      !source.accountId ||
+      !Array.isArray(available) ||
+      !available.includes("followers")
+    )
+      return { latest: null, baseline: null };
+    const matching = allMetrics
+      .filter(
+        (m) =>
+          m.platform === source.platform &&
+          m.sourceProvider === source.provider &&
+          m.sourceAccountId === source.accountId &&
+          m.metricType === "followers",
+      )
+      .map((m) => ({ ...m, recordedAt: new Date(m.recordedAt || Date.now()) }));
+    const latest = matching.find((m) => m.recordedAt.getTime() <= now.getTime()) ?? null;
+    const baseline = matching.find((m) => m.recordedAt.getTime() <= since.getTime()) ?? null;
+    return { latest, baseline };
+  });
+  const ownerInsights = sources
+    .filter(
+      (source) =>
+        source.connected &&
+        source.accountId &&
+        source.platform === "youtube",
+    )
+    .map((source) => {
+      const owners = source.config.ownerInsights as
+        Record<string, unknown> | undefined;
+      const owner = (owners?.[source.platform] ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const validStatuses: OwnerInsightStatus[] = [
+        "auth_required",
+        "ready",
+        "no_data",
+        "permission_required",
+        "reconnect",
+        "rate_limited",
+        "error",
+      ];
+      let status: OwnerInsightStatus = validStatuses.includes(
+        owner.status as OwnerInsightStatus,
+      )
+        ? (owner.status as OwnerInsightStatus)
+        : "auth_required";
+      let error = typeof owner.error === "string" ? owner.error : null;
+      let snapshot: any = null;
+      const available =
+        Array.isArray(owner.availablePeriods) &&
+        owner.availablePeriods.includes(periodDays);
+      if (
+        status === "ready" &&
+        available &&
+        source.integration?.lastSyncedAt
+      ) {
+        const lastSyncedMs = new Date(source.integration.lastSyncedAt).getTime();
+        const stored = allSnapshots.find(
+          (s) =>
+            s.platform === source.platform &&
+            s.sourceProvider === source.provider &&
+            s.sourceAccountId === source.accountId! &&
+            Number(s.periodDays) === periodDays &&
+            new Date(s.recordedAt || 0).getTime() === lastSyncedMs,
+        );
+        if (stored) {
+          const values = stored.metrics as Record<string, unknown>;
+          const metrics = Object.fromEntries(
+            SOCIAL_OWNER_METRIC_IDS.flatMap((key) =>
+              typeof values?.[key] === "number" &&
+              Number.isSafeInteger(values[key]) &&
+              (values[key] as number) >= 0
+                ? [[key, values[key]]]
+                : [],
+            ),
+          ) as Partial<Record<SocialOwnerMetricId, number>>;
+          if (Object.keys(metrics).length)
+            snapshot = {
+              periodStart: new Date(stored.periodStart || Date.now())
+                .toISOString()
+                .slice(0, 10),
+              periodEnd: new Date(stored.periodEnd || Date.now())
+                .toISOString()
+                .slice(0, 10),
+              timeZone: stored.timeZone,
+              recordedAt: new Date(stored.recordedAt || Date.now()).toISOString(),
+              metrics,
+            };
+        }
+        if (!snapshot) status = "no_data";
           } else if (status === "ready") {
             const detail = (
               owner.periodErrors as
@@ -324,10 +331,8 @@ export async function getSocialAnalytics(
                 ? owner.retryAfterAt
                 : null,
             snapshot,
-          };
-        }),
-    ),
-  ]);
+      };
+    });
   const accounts: SocialAccountSummary[] = sources.map((source, i) => {
     const { latest, baseline } = readings[i];
     return {
@@ -475,11 +480,6 @@ function validatePlan(input: SocialPlanInput) {
   };
 }
 
-const planInclude = {
-  assignee: { select: { id: true, fullName: true } },
-  createdBy: { select: { id: true, fullName: true } },
-} as const;
-
 function planView(
   plan: any,
 ): SocialPlanView {
@@ -489,24 +489,36 @@ function planView(
     caption: plan.caption,
     platforms: plan.platforms as SocialPlatformId[],
     mediaUrl: plan.mediaUrl,
-    scheduledFor: plan.scheduledFor?.toISOString() ?? null,
+    scheduledFor: plan.scheduledFor ? new Date(plan.scheduledFor).toISOString() : null,
     status: plan.status as SocialPlanStatus,
     publishedUrl: plan.publishedUrl,
-    assignee: plan.assignee,
-    createdBy: plan.createdBy,
-    updatedAt: plan.updatedAt.toISOString(),
+    assignee: plan.assignee ?? null,
+    createdBy: plan.createdBy ?? null,
+    updatedAt: new Date(plan.updatedAt || plan.createdAt || Date.now()).toISOString(),
   };
 }
 
+async function enrichPlans(plans: any[]) {
+  const users = await listTableRows<any>("identity", "user").catch(() => []);
+  const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, { id: u.id, fullName: u.fullName }]));
+  return plans.map((p) => ({
+    ...p,
+    assignee: p.assigneeId ? userMap.get(p.assigneeId) ?? null : null,
+    createdBy: p.createdById ? userMap.get(p.createdById) ?? null : null,
+  }));
+}
+
 export async function listSocialPlans(): Promise<SocialPlanView[]> {
-  const plans = await db.socialContentPlan.findMany({
-    include: planInclude,
-    orderBy: [
-      { scheduledFor: { sort: "asc", nulls: "last" } },
-      { createdAt: "desc" },
-    ],
-    take: 300,
-  });
+  const raw = await listTableRows<any>("cms", "social_content_plan").catch(() => []);
+  const sorted = [...raw]
+    .sort((a, b) => {
+      const sa = a.scheduledFor ? new Date(a.scheduledFor).getTime() : Infinity;
+      const sb = b.scheduledFor ? new Date(b.scheduledFor).getTime() : Infinity;
+      if (sa !== sb) return sa - sb;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    })
+    .slice(0, 300);
+  const plans = await enrichPlans(sorted);
   return plans.map(planView);
 }
 
@@ -515,12 +527,14 @@ export async function createSocialPlan(
   actorId: string,
 ): Promise<SocialPlanView> {
   const data = validatePlan(input);
-  return planView(
-    await db.socialContentPlan.create({
-      data: { ...data, createdById: actorId },
-      include: planInclude,
-    }),
-  );
+  const created = await upsertTableRow<any>("cms", "social_content_plan", {
+    id: crypto.randomUUID(),
+    ...data,
+    scheduledFor: data.scheduledFor ? data.scheduledFor.toISOString() : null,
+    createdById: actorId,
+  });
+  const [enriched] = await enrichPlans([created]);
+  return planView(enriched);
 }
 
 export async function updateSocialPlan(
@@ -528,15 +542,17 @@ export async function updateSocialPlan(
   input: SocialPlanInput,
 ): Promise<SocialPlanView> {
   const data = validatePlan(input);
-  return planView(
-    await db.socialContentPlan.update({
-      where: { id },
-      data,
-      include: planInclude,
-    }),
-  );
+  const existing = (await listTableRows<any>("cms", "social_content_plan")).find((p) => p.id === id);
+  const updated = await upsertTableRow<any>("cms", "social_content_plan", {
+    ...(existing || {}),
+    id,
+    ...data,
+    scheduledFor: data.scheduledFor ? data.scheduledFor.toISOString() : null,
+  });
+  const [enriched] = await enrichPlans([updated]);
+  return planView(enriched);
 }
 
 export async function deleteSocialPlan(id: string) {
-  await db.socialContentPlan.delete({ where: { id } });
+  await deleteTableRow("cms", "social_content_plan", id);
 }

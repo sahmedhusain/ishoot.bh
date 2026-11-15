@@ -1,5 +1,4 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import { assertSupportedCurrency } from "../constants/finance";
 
 const DEFAULT_FALLBACK_CURRENCY = "USD";
@@ -16,15 +15,8 @@ export async function companyCurrency(): Promise<string> {
   return DEFAULT_FALLBACK_CURRENCY;
 }
 
-export async function assertCompanyCurrency(requested?: string, connection: Pick<typeof db, "$queryRaw"> = db): Promise<string> {
-  let currency: string | undefined;
-  try {
-    const rows = await connection.$queryRaw<Array<{ defaultCurrency: string }>>`SELECT "defaultCurrency" FROM "CompanySetting" WHERE singleton = 1 FOR SHARE`;
-    currency = rows?.[0]?.defaultCurrency;
-  } catch {}
-  if (!currency) {
-    currency = await companyCurrency();
-  }
+export async function assertCompanyCurrency(requested?: string, _connection?: unknown): Promise<string> {
+  const currency = await companyCurrency();
   assertSupportedCurrency(currency);
   if (requested !== undefined && requested !== currency) throw new Error(serverMessages.companyCurrencyRequired);
   return currency;

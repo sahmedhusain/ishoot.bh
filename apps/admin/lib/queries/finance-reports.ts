@@ -2,7 +2,7 @@ import { getCurrencyDecimals } from "@platform/config/currency";
 import { roundMoney } from "../finance/money";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { getTranslations, formatMessage, isLocale } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 import { companyCurrency } from "../finance/company-currency";
 import {
   listInvoices,
@@ -75,25 +75,14 @@ export async function getFinancialSummaryReport(filters: {
            inRange(i.issueDate)
   );
 
-  let invoicedGross = currencyInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
-  let invoicedNet = currencyInvoices.reduce((sum, i) => sum + (Number(i.subtotal ?? 0) - Number(i.discount ?? 0)), 0);
-  let invoicedOutputVat = currencyInvoices.reduce((sum, i) => sum + Number(i.vatAmount ?? 0), 0);
-
-  if (typeof (db as any)?.invoice?.aggregate === "function") {
-    const { _sum: invSum } = await (db as any).invoice.aggregate({
-      _sum: { totalAmount: true, subtotal: true, discountAmount: true, vatAmount: true },
-    }).catch(() => ({ _sum: {} }));
-    if (invSum?.totalAmount !== undefined && invSum?.totalAmount !== null) {
-      invoicedGross = Number(invSum.totalAmount ?? 0);
-      invoicedNet = Number(invSum.subtotal ?? 0) - Number(invSum.discountAmount ?? 0);
-      invoicedOutputVat = Number(invSum.vatAmount ?? 0);
-    }
-  }
+  const invoicedGross = currencyInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
+  const invoicedNet = currencyInvoices.reduce((sum, i) => sum + (Number(i.subtotal ?? 0) - Number(i.discount ?? 0)), 0);
+  const invoicedOutputVat = currencyInvoices.reduce((sum, i) => sum + Number(i.vatAmount ?? 0), 0);
 
   let effectivePayments = payments || [];
-  if (effectivePayments.length === 0 && typeof (db as any)?.payment?.findMany === "function") {
-    const dbPayments = await (db as any).payment.findMany().catch(() => []);
-    if (dbPayments && dbPayments.length > 0) {
+  if (effectivePayments.length === 0) {
+    const dbPayments = await listTableRows<any>("finance", "payment").catch(() => []);
+    if (dbPayments.length > 0) {
       effectivePayments = dbPayments.map((p: any) => ({
         ...p,
         amount: Number(p.amount ?? 0),
@@ -139,37 +128,27 @@ export async function getFinancialSummaryReport(filters: {
            inRange(e.expenseDate)
   );
 
-  let totalExpensesGross = currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
-  let expensesNet = totalExpensesGross;
-  if (typeof (db as any)?.expense?.aggregate === "function") {
-    const { _sum: expSum } = await (db as any).expense.aggregate({
-      _sum: { amount: true, netAmount: true, inputVatAmount: true },
-    }).catch(() => ({ _sum: {} }));
-    if (expSum?.amount !== undefined && expSum?.amount !== null) {
-      totalExpensesGross = Number(expSum.amount ?? 0);
-      if (expSum.netAmount !== undefined && expSum.netAmount !== null) {
-        expensesNet = Number(expSum.netAmount ?? 0);
-      }
-    }
-  }
+  const totalExpensesGross = currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  const expensesNet = currencyExpenses.reduce(
+    (sum, e) => sum + Number((e as any).netAmount ?? e.amount ?? 0),
+    0,
+  );
   const inputVatTotal = 0;
   const inputVatRecoverable = 0;
   const inputVatNonRecoverable = 0;
 
-  let payrollCostsTotal = 0;
-  if (typeof (db as any)?.payrollRun?.findMany === "function") {
-    const runs = await (db as any).payrollRun.findMany().catch(() => []);
-    payrollCostsTotal = (runs || []).reduce((sum: number, r: any) => sum + Number(r.totalEmployerCost ?? 0), 0);
-  }
+  const runs = await listTableRows<any>("hr", "payroll_run").catch(() => []);
+  const payrollCostsTotal = runs.reduce(
+    (sum: number, r: any) => sum + Number(r.totalEmployerCost ?? 0),
+    0,
+  );
 
   let bankFeesTotal = 0;
   let realizedFxGainLoss = 0;
-  if (typeof (db as any)?.bankSettlement?.findMany === "function") {
-    const settlements = await (db as any).bankSettlement.findMany().catch(() => []);
-    for (const s of (settlements || [])) {
-      bankFeesTotal += Number(s.bankFeeBhd ?? s.feeAmount ?? 0);
-      realizedFxGainLoss += Number(s.fxGainLossBhd ?? s.fxGainLoss ?? 0);
-    }
+  const settlements = await listTableRows<any>("finance", "bank_settlement").catch(() => []);
+  for (const s of settlements) {
+    bankFeesTotal += Number(s.bankFeeBhd ?? s.feeAmount ?? 0);
+    realizedFxGainLoss += Number(s.fxGainLossBhd ?? s.fxGainLoss ?? 0);
   }
   const excludedForeignCurrencyDocuments = 0;
 
@@ -625,13 +604,13 @@ export async function getFinancialReportDetail(filters: {
       Array.from(dealRevenue.keys()).concat(Array.from(dealCosts.keys())),
     ),
   );
+  const allDeals = dealIds.length
+    ? await listTableRows<any>("sales", "crm_deal").catch(() => [])
+    : [];
   const dealTitles = new Map(
-    (
-      await db.crmDeal.findMany({
-        where: { id: { in: dealIds } },
-        select: { id: true, title: true },
-      })
-    ).map((d) => [d.id, d.title]),
+    allDeals
+      .filter((d) => dealIds.includes(d.id))
+      .map((d) => [d.id, d.title]),
   );
   const dealProfitability = dealIds
     .map((dealId) => {

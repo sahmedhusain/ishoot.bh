@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import {
   validateJournalLines,
@@ -16,7 +17,8 @@ export interface JournalPosting {
   lines: JournalPostingLine[];
 }
 async function requireLedgerAdministrator(actorId: string) {
-  const actor = await db.user.findUnique({ where: { id: actorId } });
+  const users = await listTableRows<any>("identity", "user");
+  const actor = users.find((u) => u.id === actorId);
   if (!actor?.isActive || actor.role !== "super_admin")
     throw new Error("Ledger administration requires a super administrator");
 }
@@ -67,10 +69,12 @@ async function postJournalRecord(
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
     if (input.branchId) await requireBranchAccess(actorId, input.branchId);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`journal:${input.sourceKey}`}, 0))`;
-    const existing = await db.journalEntry.findUnique({
-      where: { sourceKey: input.sourceKey },
-    });
+    const [entries, allPeriods, allAccounts] = await Promise.all([
+      listTableRows<any>("finance", "journal_entry"),
+      listTableRows<any>("system", "accounting_period"),
+      listTableRows<any>("system", "accounting_account"),
+    ]);
+    const existing = entries.find((e) => e.sourceKey === input.sourceKey);
     if (existing) {
       if (existing.requestHash !== hash)
         throw new Error(
@@ -79,49 +83,51 @@ async function postJournalRecord(
       return { id: existing.id };
     }
     await assertCompanyCurrency(input.currency);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('accounting-periods', 0))`;
-    const periods = await db.accountingPeriod.findMany({
-      where: { startsOn: { lte: postingDate }, endsOn: { gte: postingDate } },
-    });
+    const periods = allPeriods.filter(
+      (p) =>
+        new Date(p.startsOn) <= postingDate && new Date(p.endsOn) >= postingDate,
+    );
     if (periods.length !== 1 || periods[0].status !== "open")
       throw new Error("Posting requires exactly one open accounting period");
     const accountIds = Array.from(new Set(input.lines.map((line) => line.accountId)));
-    if (
-      (await db.accountingAccount.count({
-        where: { id: { in: accountIds }, isActive: true },
-      })) !== accountIds.length
-    )
+    const activeAccounts = allAccounts.filter(
+      (a) => accountIds.includes(a.id) && a.isActive,
+    );
+    if (activeAccounts.length !== accountIds.length)
       throw new Error("Journal contains an unavailable account");
-    const entry = await db.journalEntry.create({
-      data: {
-        sourceKey: input.sourceKey,
-        requestHash: hash,
-        periodId: periods[0].id,
-        postingDate,
-        currency: input.currency,
-        memo: input.memo.trim(),
-        branchId: input.branchId,
-        createdById: actorId,
-        reversalOfId,
-        lines: {
-          create: input.lines.map((line) => ({
-            accountId: line.accountId,
-            debit: line.debit,
-            credit: line.credit,
-            memo: line.memo,
-          })),
-        },
-      },
+    const entryId = crypto.randomUUID();
+    const entry = await upsertTableRow<any>("finance", "journal_entry", {
+      id: entryId,
+      sourceKey: input.sourceKey,
+      requestHash: hash,
+      periodId: periods[0].id,
+      postingDate: postingDate.toISOString(),
+      currency: input.currency,
+      memo: input.memo.trim(),
+      branchId: input.branchId ?? null,
+      createdById: actorId,
+      reversalOfId: reversalOfId ?? null,
     });
-    await db.activityLog.create({
-      data: {
+    await Promise.all([
+      ...input.lines.map((line) =>
+        upsertTableRow("finance", "journal_line", {
+          id: crypto.randomUUID(),
+          entryId: entry.id,
+          accountId: line.accountId,
+          debit: line.debit,
+          credit: line.credit,
+          memo: line.memo ?? null,
+        }),
+      ),
+      upsertTableRow("system", "activity_log", {
+        id: crypto.randomUUID(),
         userId: actorId,
         action: "create",
         entityType: "journal",
         entityId: entry.id,
         details: { sourceKey: input.sourceKey },
-      },
-    });
+      }),
+    ]);
     return { id: entry.id };
   });
 }
@@ -135,15 +141,17 @@ export async function createAccountingPeriod(
     throw new Error("Invalid accounting period");
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('accounting-periods', 0))`;
-    if (
-      await db.accountingPeriod.count({
-        where: { startsOn: { lte: endsOn }, endsOn: { gte: startsOn } },
-      })
-    )
-      throw new Error("Accounting periods overlap");
-    return db.accountingPeriod.create({
-      data: { name: input.name.trim(), startsOn, endsOn },
+    const periods = await listTableRows<any>("system", "accounting_period");
+    const overlaps = periods.some(
+      (p) => new Date(p.startsOn) <= endsOn && new Date(p.endsOn) >= startsOn,
+    );
+    if (overlaps) throw new Error("Accounting periods overlap");
+    return upsertTableRow("system", "accounting_period", {
+      id: crypto.randomUUID(),
+      name: input.name.trim(),
+      startsOn: startsOn.toISOString(),
+      endsOn: endsOn.toISOString(),
+      status: "open",
     });
   });
 }
@@ -151,27 +159,23 @@ export async function createAccountingPeriod(
 export async function closeAccountingPeriod(periodId: string, actorId: string) {
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('accounting-periods', 0))`;
-    const period = await db.accountingPeriod.findUniqueOrThrow({
-      where: { id: periodId },
-    });
+    const periods = await listTableRows<any>("system", "accounting_period");
+    const period = periods.find((p) => p.id === periodId);
+    if (!period) throw new Error("Accounting period not found");
     if (period.status === "closed") return period;
-    const closed = await db.accountingPeriod.update({
-      where: { id: periodId },
-      data: {
-        status: "closed",
-        closedById: actorId,
-        closedAt: new Date(),
-      },
+    const closed = await upsertTableRow("system", "accounting_period", {
+      ...period,
+      status: "closed",
+      closedById: actorId,
+      closedAt: new Date().toISOString(),
     });
-    await db.activityLog.create({
-      data: {
-        userId: actorId,
-        action: "update",
-        entityType: "accounting_period",
-        entityId: periodId,
-        details: { operation: "close" },
-      },
+    await upsertTableRow("system", "activity_log", {
+      id: crypto.randomUUID(),
+      userId: actorId,
+      action: "update",
+      entityType: "accounting_period",
+      entityId: periodId,
+      details: { operation: "close" },
     });
     return closed;
   });
@@ -190,18 +194,20 @@ export async function reverseJournal(
     throw new Error("A reversal reason is required");
   return runAtomicMutation(async () => {
     await requireLedgerAdministrator(actorId);
-    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`reversal:${input.entryId}`}, 0))`;
-    const original = await db.journalEntry.findUniqueOrThrow({
-      where: { id: input.entryId },
-      include: { lines: { orderBy: { id: "asc" } } },
-    });
+    const [entries, allLines] = await Promise.all([
+      listTableRows<any>("finance", "journal_entry"),
+      listTableRows<any>("finance", "journal_line"),
+    ]);
+    const original = entries.find((e) => e.id === input.entryId);
+    if (!original) throw new Error("Journal entry not found");
+    const originalLines = allLines
+      .filter((l) => l.entryId === original.id)
+      .sort((a, b) => String(a.id).localeCompare(String(b.id)));
     if (original.branchId)
       await requireBranchAccess(actorId, original.branchId);
     if (original.reversalOfId)
       throw new Error("A reversal cannot itself be reversed");
-    const previous = await db.journalEntry.findUnique({
-      where: { reversalOfId: original.id },
-    });
+    const previous = entries.find((e) => e.reversalOfId === original.id);
     if (previous && previous.sourceKey !== input.sourceKey)
       throw new Error("Journal has already been reversed");
     return postJournalRecord(
@@ -211,10 +217,10 @@ export async function reverseJournal(
         currency: original.currency,
         memo: `Reversal: ${input.reason.trim()}`,
         branchId: original.branchId ?? undefined,
-        lines: original.lines.map((line) => ({
+        lines: originalLines.map((line: any) => ({
           accountId: line.accountId,
-          debit: line.credit.toString(),
-          credit: line.debit.toString(),
+          debit: String(line.credit ?? 0),
+          credit: String(line.debit ?? 0),
           memo: line.memo ?? undefined,
         })),
       },

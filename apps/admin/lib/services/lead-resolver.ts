@@ -1,6 +1,7 @@
 import { slaDueFor } from "./service-sla";
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
+import { runAtomicMutation } from "../api/atomic";
 import { referencePrefixFor } from "../constants/requests";
 import { getNextSequenceNumber } from "../queries/sequence";
 import { formatPhoneE164 } from "../constants/phone";
@@ -53,17 +54,20 @@ export async function resolveIncomingLead(
   if (data.phone && !phoneE164)
     throw new Error(serverMessages.invalidPhoneNumber);
   const intent = data.intent || "inquiry";
-  return db.$transaction(async (tx) => {
+  return runAtomicMutation(async () => {
     if (data.submissionKey) {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.submissionKey}, 0))::text`;
-      const prior = await tx.inquiry.findUnique({
-        where: { submissionKey: data.submissionKey },
-      });
+      const inquiries = await listTableRows<Record<string, any>>(
+        "sales",
+        "inquiry",
+      );
+      const prior = inquiries.find(
+        (i) => i.submissionKey === data.submissionKey,
+      );
       if (prior) {
         if (prior.requestHash !== data.requestHash)
           throw new Error(serverMessages.submissionKeyAlreadyUsed);
         return {
-          customerId: prior.customerId,
+          customerId: prior.customerId ?? null,
           inquiryId: prior.id,
           reference: prior.reference,
           repeated: true,
@@ -72,25 +76,25 @@ export async function resolveIncomingLead(
         };
       }
     }
-    for (const identity of [emailNorm, phoneE164].filter(Boolean).sort()) {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${identity}, 0))::text`;
-    }
     let customerId: string | null = null;
     let resolution: ResolvedLeadResult["resolution"] = "feedback";
     if (intent === "inquiry" || intent === "quote_request") {
+      const contacts = await listTableRows<Record<string, any>>(
+        "sales",
+        "crm_contact",
+      );
       const emailMatches = emailNorm
-        ? await tx.crmContact.findMany({
-            take: 2,
-            where: {
-              OR: [
-                { emailNorm },
-                { email: { equals: emailNorm, mode: "insensitive" } },
-              ],
-            },
-          })
+        ? contacts
+            .filter(
+              (c) =>
+                c.emailNorm === emailNorm ||
+                (typeof c.email === "string" &&
+                  c.email.toLowerCase() === emailNorm.toLowerCase()),
+            )
+            .slice(0, 2)
         : [];
       const phoneMatches = phoneE164
-        ? await tx.crmContact.findMany({ where: { phoneE164 }, take: 2 })
+        ? contacts.filter((c) => c.phoneE164 === phoneE164).slice(0, 2)
         : [];
       const emailMatch = emailMatches.length === 1 ? emailMatches[0] : null;
       const phoneMatch = phoneMatches.length === 1 ? phoneMatches[0] : null;
@@ -107,8 +111,11 @@ export async function resolveIncomingLead(
           resolution = "existing_customer";
         } else {
           const [firstName, ...rest] = data.name.trim().split(/\s+/);
-          const contact = await tx.crmContact.create({
-            data: {
+          const contact = await upsertTableRow<Record<string, any>>(
+            "sales",
+            "crm_contact",
+            {
+              id: crypto.randomUUID(),
               firstName,
               lastName: rest.join(" ") || null,
               email: data.email || null,
@@ -119,18 +126,19 @@ export async function resolveIncomingLead(
               clientKind: data.companyName ? "company" : "individual",
               contactType: "client",
             },
-          });
+          );
           customerId = contact.id;
           resolution = "new_customer";
         }
       }
     }
-    const inquiry = await tx.inquiry.create({
-      data: {
+    const inquiry = await upsertTableRow<Record<string, any>>(
+      "sales",
+      "inquiry",
+      {
+        id: crypto.randomUUID(),
         reference: await getNextSequenceNumber(
           referencePrefixFor({ intent }),
-          undefined,
-          tx,
         ),
         name: data.name,
         email: data.email,
@@ -157,9 +165,9 @@ export async function resolveIncomingLead(
         orderId: data.orderId || null,
         utmCampaign: data.utmCampaign || null,
         priority: data.priority || "normal",
-        slaDueDate: await slaDueFor(data.priority, new Date(), tx),
+        slaDueDate: await slaDueFor(data.priority, new Date()),
       },
-    });
+    );
     return {
       customerId,
       inquiryId: inquiry.id,

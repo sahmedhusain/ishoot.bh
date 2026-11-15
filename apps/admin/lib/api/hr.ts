@@ -362,3 +362,64 @@ export const recordAttendanceEntry = (input: { id?: string; employeeId: string; 
 
 export const listHRUsers = (realm?: string, token?: string) =>
   hrFetch<HRIdentityUserRef[]>(`/v1/hr/users${realm ? `?realm=${encodeURIComponent(realm)}` : ""}`, {}, token);
+
+export const updateDepartment = (id: string, input: Partial<Department>, token?: string) =>
+  hrFetch<Department>(`/v1/hr/departments/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const deleteDepartmentApi = (id: string, token?: string) =>
+  hrFetch<void>(`/v1/hr/departments/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const assignUsersToDepartmentApi = (userIds: string[], departmentId: string | null, token?: string) =>
+  hrFetch<void>("/v1/hr/departments/assign-users", { method: "POST", body: JSON.stringify({ userIds, departmentId }) }, token);
+
+export const updateEmployeeApi = (id: string, input: Partial<Employee>, token?: string) =>
+  hrFetch<Employee>(`/v1/hr/employees/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const listLeaveTypesApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/leave-types", {}, token);
+
+export const listPublicHolidaysApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/public-holidays", {}, token);
+
+export const listShiftTypesApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/shift-types", {}, token);
+
+export const listGosiComponentsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/gosi/components", {}, token);
+
+export const listEmployeeGosiRecordsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/gosi/records", {}, token);
+
+export const getGosiSettingsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/gosi/settings", {}, token);
+
+export const listFinalSettlementsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/final-settlements", {}, token);
+
+export const listSalaryDocumentsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/salary-documents", {}, token);
+
+export const listSupportProgramsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/support-programs", {}, token);
+
+export const listEmployeeSupportsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/employee-supports", {}, token);
+
+export const listAllPayrollItemsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/payroll-items", {}, token);
+
+export const listLeaveAdjustmentsApi = (token?: string) =>
+  hrFetch<any[]>("/v1/hr/leave-adjustments", {}, token);
+
+export const saveShiftTypeApi = (input: Record<string, any>, token?: string) =>
+  hrFetch<any>("/v1/hr/shift-types", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const saveLeaveTypeApi = (input: Record<string, any>, token?: string) =>
+  hrFetch<any>("/v1/hr/leave-types", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const deleteAttendanceEntryApi = (employeeId: string, date: string, token?: string) =>
+  hrFetch<void>(
+    `/v1/hr/attendance?employeeId=${encodeURIComponent(employeeId)}&date=${encodeURIComponent(date)}`,
+    { method: "DELETE" },
+    token,
+  );

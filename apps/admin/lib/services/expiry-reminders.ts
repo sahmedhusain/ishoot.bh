@@ -1,4 +1,4 @@
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "../queries/permissions";
 import { listExpiringEmployeeDocuments } from "../queries/employee-credentials";
@@ -15,10 +15,8 @@ async function usersWith(
   resource: PermissionResource,
   action: PermissionAction,
 ) {
-  const users = await db.user.findMany({
-    where: { isActive: true },
-    select: { id: true, role: true, permissions: true },
-  });
+  const allUsers = await listTableRows<any>("identity", "user").catch(() => []);
+  const users = allUsers.filter((u) => u.isActive);
   const allowed = await Promise.all(
     users.map((u) =>
       hasPermission(
@@ -47,20 +45,20 @@ interface Reminder {
 async function send(reminders: Reminder[]) {
   let sent = 0;
   const pending = reminders.filter((r) => r.recipients.length);
+  const wantedKeys = new Set(pending.map((r) => r.key));
+  const existingNotifs = pending.length
+    ? await listTableRows<any>("notify", "notification").catch(() => [])
+    : [];
   const told = new Set(
-    pending.length
-      ? (
-          await db.notification.findMany({
-            where: { eventKey: { in: pending.map((r) => r.key) } },
-            select: { eventKey: true, userId: true },
-          })
-        ).map((n) => `${n.eventKey}|${n.userId}`)
-      : [],
+    existingNotifs
+      .filter((n) => n.eventKey && wantedKeys.has(n.eventKey))
+      .map((n) => `${n.eventKey}|${n.userId}`),
   );
   for (const r of pending) {
     const data = r.recipients
       .filter((id) => !told.has(`${r.key}|${id}`))
       .map((userId) => ({
+        id: crypto.randomUUID(),
         userId,
         title: r.title,
         message: r.message,
@@ -74,9 +72,10 @@ async function send(reminders: Reminder[]) {
         messageParams: r.params,
         actionUrl: r.actionUrl,
         eventKey: r.key,
+        isRead: false,
       }));
     if (data.length) {
-      await db.notification.createMany({ data });
+      await Promise.all(data.map((row) => upsertTableRow("notify", "notification", row)));
       sent += data.length;
     }
   }
@@ -85,32 +84,25 @@ async function send(reminders: Reminder[]) {
 
 export async function sendExpiryReminders() {
   const reminders: Reminder[] = [];
-  const [hr, admins, employeeDocs, companyDocs, taxes] = await Promise.all([
+  const cutoffMs = Date.now() + STAGES[0] * 86400000;
+  const [hr, admins, employeeDocs, rawCompanyDocs, rawTaxes] = await Promise.all([
     usersWith("employees", "edit"),
     usersWith("settings", "write"),
     listExpiringEmployeeDocuments(STAGES[0]),
-    db.companyDocument.findMany({
-      where: {
-        validUntil: { lte: new Date(Date.now() + STAGES[0] * 86400000) },
-      },
-      select: { id: true, titleEn: true, titleAr: true, validUntil: true },
-    }),
-    db.taxRate.findMany({
-      where: {
-        isActive: true,
-        certificateValidUntil: {
-          lte: new Date(Date.now() + STAGES[0] * 86400000),
-        },
-      },
-      select: {
-        id: true,
-        code: true,
-        nameEn: true,
-        nameAr: true,
-        certificateValidUntil: true,
-      },
-    }),
+    listTableRows<any>("system", "company_document").catch(() => []),
+    listTableRows<any>("finance", "tax_rate").catch(() => []),
   ]);
+  const companyDocs = rawCompanyDocs
+    .filter((d) => d.validUntil && new Date(d.validUntil).getTime() <= cutoffMs)
+    .map((d) => ({ ...d, validUntil: new Date(d.validUntil) }));
+  const taxes = rawTaxes
+    .filter(
+      (t) =>
+        t.isActive &&
+        t.certificateValidUntil &&
+        new Date(t.certificateValidUntil).getTime() <= cutoffMs,
+    )
+    .map((t) => ({ ...t, certificateValidUntil: new Date(t.certificateValidUntil) }));
   for (const doc of employeeDocs) {
     const stage = stageOf(doc.days);
     if (stage === null) continue;

@@ -6,7 +6,8 @@ import {
 } from "@platform/locales";
 
 import crypto from "node:crypto";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow, type ServiceSchema } from "../api/tables";
 import {
   APPROVAL_FALLBACK_ROLES,
   approvalTargetUrl,
@@ -76,36 +77,44 @@ function discountPercent(subtotal: unknown, discount: unknown): number {
   return base > 0 ? Math.round((Number(discount) / base) * 10000) / 100 : 0;
 }
 
+async function findById(
+  service: ServiceSchema,
+  table: string,
+  id: string,
+): Promise<Record<string, any> | null> {
+  const rows = await listTableRows<Record<string, any>>(service, table);
+  return rows.find((r) => r.id === id) ?? null;
+}
+
+async function updateById(
+  service: ServiceSchema,
+  table: string,
+  id: string,
+  patch: Record<string, unknown>,
+) {
+  const existing = await findById(service, table, id);
+  return upsertTableRow(service, table, {
+    ...(existing ?? {}),
+    id,
+    ...patch,
+  });
+}
+
 export async function approvalMetrics(
   targetType: string,
   targetId: string,
 ): Promise<ApprovalMetrics> {
   switch (targetType) {
     case "purchase_requisition": {
-      const r = await db.purchaseRequisition.findUnique({
-        where: { id: targetId },
-        select: { estimatedTotal: true },
-      });
+      const r = await findById("inventory", "purchase_requisition", targetId);
       return r ? { amount: Number(r.estimatedTotal) } : {};
     }
     case "purchase_order": {
-      const o = await db.purchaseOrder.findUnique({
-        where: { id: targetId },
-        select: { total: true },
-      });
+      const o = await findById("inventory", "purchase_order", targetId);
       return o ? { amount: Number(o.total) } : {};
     }
     case "quotation": {
-      const q = await db.quotation.findUnique({
-        where: { id: targetId },
-        select: {
-          totalAmount: true,
-          subtotal: true,
-          discountAmount: true,
-          currency: true,
-          effectiveRate: true,
-        },
-      });
+      const q = await findById("sales", "quotation", targetId);
       return q
         ? {
             amount: await toCompanyCurrency(
@@ -118,15 +127,7 @@ export async function approvalMetrics(
         : {};
     }
     case "invoice": {
-      const i = await db.invoice.findUnique({
-        where: { id: targetId },
-        select: {
-          totalAmount: true,
-          subtotal: true,
-          discountAmount: true,
-          currency: true,
-        },
-      });
+      const i = await findById("finance", "invoice", targetId);
       return i
         ? {
             amount: await toCompanyCurrency(Number(i.totalAmount), i.currency),
@@ -135,36 +136,24 @@ export async function approvalMetrics(
         : {};
     }
     case "expense": {
-      const e = await db.expense.findUnique({
-        where: { id: targetId },
-        select: { amount: true, currency: true },
-      });
+      const e = await findById("finance", "expense", targetId);
       return e ? { amount: await toCompanyCurrency(Number(e.amount), e.currency) } : {};
     }
     case "expense_claim": {
-      const c = await db.expenseClaim.findUnique({
-        where: { id: targetId },
-        select: { amount: true, currency: true },
-      });
+      const c = await findById("finance", "expense_claim", targetId);
       return c ? { amount: await toCompanyCurrency(Number(c.amount), c.currency) } : {};
     }
     case "payroll_run": {
-      const r = await db.payrollRun.findUnique({
-        where: { id: targetId },
-        select: { totalNet: true },
-      });
+      const r = await findById("hr", "payroll_run", targetId);
       return r ? { amount: round3(Number(r.totalNet)) } : {};
     }
     case "leave_request": {
-      const l = await db.leaveRequest.findUnique({
-        where: { id: targetId },
-        select: { startDate: true, endDate: true, fullDay: true, hours: true },
-      });
+      const l = await findById("hr", "leave_request", targetId);
       return l
         ? {
             days: leaveDaysRequested(
-              l.startDate,
-              l.endDate,
+              new Date(l.startDate),
+              new Date(l.endDate),
               l.fullDay,
               l.hours ? Number(l.hours) : null,
             ),
@@ -172,21 +161,16 @@ export async function approvalMetrics(
         : {};
     }
     case "asset_handover": {
-      const h = await db.assetHandover.findUnique({
-        where: { id: targetId },
-        select: { asset: { select: { purchaseCost: true, currency: true } } },
-      });
-      return h?.asset.purchaseCost != null
+      const h = await findById("itsm", "asset_handover", targetId);
+      const asset = h?.assetId ? await findById("itsm", "asset", h.assetId) : null;
+      return asset?.purchaseCost != null
         ? {
-            amount: await toCompanyCurrency(Number(h.asset.purchaseCost), h.asset.currency),
+            amount: await toCompanyCurrency(Number(asset.purchaseCost), asset.currency),
           }
         : {};
     }
     case "final_settlement": {
-      const f = await db.finalSettlement.findUnique({
-        where: { id: targetId },
-        select: { netAmount: true },
-      });
+      const f = await findById("system", "final_settlement", targetId);
       return f ? { amount: round3(Math.abs(Number(f.netAmount))) } : {};
     }
     default:
@@ -228,9 +212,8 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   },
   salary_document: {
     async approve(id, decider, reason) {
-      const document = await db.salaryDocument.findUniqueOrThrow({
-        where: { id },
-      });
+      const document = await findById("hr", "salary_document", id);
+      if (!document) throw new Error(serverMessages.salaryDocumentRequestHasAlreadyBeenReviewed);
       if (document.status !== "pending")
         throw new Error(
           serverMessages.salaryDocumentRequestHasAlreadyBeenReviewed,
@@ -240,25 +223,19 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
         document.kind,
         document.months as string[],
       );
-      await db.salaryDocument.update({
-        where: { id },
-        data: {
-          status: "issued",
-          reviewedById: decider,
-          reviewNotes: reason || null,
-          snapshot,
-          issuedAt: new Date(),
-        },
+      await updateById("hr", "salary_document", id, {
+        status: "issued",
+        reviewedById: decider,
+        reviewNotes: reason || null,
+        snapshot,
+        issuedAt: new Date().toISOString(),
       });
     },
     async reject(id, decider, reason) {
-      await db.salaryDocument.update({
-        where: { id },
-        data: {
-          status: "rejected",
-          reviewedById: decider,
-          reviewNotes: reason || null,
-        },
+      await updateById("hr", "salary_document", id, {
+        status: "rejected",
+        reviewedById: decider,
+        reviewNotes: reason || null,
       });
     },
   },
@@ -273,14 +250,14 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   },
   expense: {
     approve: async (id, _decider, reason) =>
-      void (await db.expense.update({
-        where: { id },
-        data: { status: "approved", reviewNotes: reason || null },
+      void (await updateById("finance", "expense", id, {
+        status: "approved",
+        reviewNotes: reason || null,
       })),
     reject: async (id, _decider, reason) =>
-      void (await db.expense.update({
-        where: { id },
-        data: { status: "rejected", reviewNotes: reason || null },
+      void (await updateById("finance", "expense", id, {
+        status: "rejected",
+        reviewNotes: reason || null,
       })),
   },
   signature_change: {
@@ -294,97 +271,75 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   },
   expense_claim: {
     async approve(id, _decider, reason) {
-      const claim = await db.expenseClaim.findUniqueOrThrow({
-        where: { id },
-        select: { status: true },
-      });
+      const claim = await findById("finance", "expense_claim", id);
+      if (!claim) throw new Error("Expense claim not found");
       if (claim.status !== "submitted")
         throw new Error(
           formatMessage(serverTemplates.claimIs0ItCanNoLonger, {
             0: claim.status,
           }),
         );
-      await db.expenseClaim.update({
-        where: { id },
-        data: { status: "approved", reviewNotes: reason || null },
+      await updateById("finance", "expense_claim", id, {
+        status: "approved",
+        reviewNotes: reason || null,
       });
     },
     async reject(id, _decider, reason) {
-      const claim = await db.expenseClaim.findUniqueOrThrow({
-        where: { id },
-        select: { status: true },
-      });
+      const claim = await findById("finance", "expense_claim", id);
+      if (!claim) throw new Error("Expense claim not found");
       if (claim.status !== "submitted")
         throw new Error(
           formatMessage(serverTemplates.claimIs0ItCanNoLonger2, {
             0: claim.status,
           }),
         );
-      await db.expenseClaim.update({
-        where: { id },
-        data: { status: "rejected", reviewNotes: reason || null },
+      await updateById("finance", "expense_claim", id, {
+        status: "rejected",
+        reviewNotes: reason || null,
       });
     },
   },
   quotation: {
     approve: async (id) =>
-      void (await db.quotation.update({
-        where: { id },
-        data: { status: "approved" },
-      })),
+      void (await updateById("sales", "quotation", id, { status: "approved" })),
     reject: async (id) =>
-      void (await db.quotation.update({
-        where: { id },
-        data: { status: "draft" },
-      })),
+      void (await updateById("sales", "quotation", id, { status: "draft" })),
   },
   invoice: {
     approve: async (id) =>
-      void (await db.invoice.update({
-        where: { id },
-        data: { approvalStatus: "approved" },
-      })),
+      void (await updateById("finance", "invoice", id, { approvalStatus: "approved" })),
     reject: async (id) =>
-      void (await db.invoice.update({
-        where: { id },
-        data: { approvalStatus: "rejected" },
-      })),
+      void (await updateById("finance", "invoice", id, { approvalStatus: "rejected" })),
   },
   payroll_run: {
     async approve(id, decider) {
-      const run = await db.payrollRun.findUniqueOrThrow({
-        where: { id },
-        select: { status: true },
-      });
+      const run = await findById("hr", "payroll_run", id);
+      if (!run) throw new Error("Payroll run not found");
       if (run.status !== "submitted")
         throw new Error(
           formatMessage(serverTemplates.payrollRunIs0ItCanNo, {
             0: run.status,
           }),
         );
-      await db.payrollRun.update({
-        where: { id },
-        data: {
-          status: "approved",
-          approvedById: decider,
-          approvedAt: new Date(),
-        },
+      await updateById("hr", "payroll_run", id, {
+        status: "approved",
+        approvedById: decider,
+        approvedAt: new Date().toISOString(),
       });
     },
     async reject(id) {
-      const run = await db.payrollRun.findUniqueOrThrow({
-        where: { id },
-        select: { status: true },
-      });
+      const run = await findById("hr", "payroll_run", id);
+      if (!run) throw new Error("Payroll run not found");
       if (run.status !== "submitted")
         throw new Error(
           formatMessage(serverTemplates.payrollRunIs0ItCanNo2, {
             0: run.status,
           }),
         );
-      await db.payrollRun.update({
-        where: { id },
-        data: { status: "draft", approvedById: null, approvedAt: null },
+      await updateById("hr", "payroll_run", id, {
+        status: "draft",
+        approvedById: null,
+        approvedAt: null,
       });
     },
   },
@@ -409,13 +364,19 @@ function finalizerFor(targetType: string): Finalizer {
 }
 
 async function activeUserIds(
-  where: Record<string, unknown>,
+  where: { id?: string | { in: string[] }; role?: string },
 ): Promise<string[]> {
-  const users = await db.user.findMany({
-    where: { ...where, isActive: true },
-    select: { id: true },
-  });
-  return users.map((u) => u.id);
+  const users = await listTableRows<Record<string, any>>("identity", "user");
+  return users
+    .filter((u) => {
+      if (!u.isActive) return false;
+      if (where.role && u.role !== where.role) return false;
+      if (typeof where.id === "string" && u.id !== where.id) return false;
+      if (where.id && typeof where.id === "object" && !where.id.in.includes(u.id))
+        return false;
+      return true;
+    })
+    .map((u) => u.id);
 }
 
 async function resolveStep(
@@ -428,20 +389,15 @@ async function resolveStep(
         ? activeUserIds({ id: requester.managerId })
         : [];
     case "department_manager": {
-      const account = await db.user.findUnique({
-        where: { id: requester.id },
-        select: {
-          departmentId: true,
-          employee: { select: { departmentId: true } },
-        },
-      });
-      let departmentId =
-        account?.departmentId ?? account?.employee?.departmentId ?? null;
+      const [account, employees, departments] = await Promise.all([
+        findById("identity", "user", requester.id),
+        listTableRows<Record<string, any>>("hr", "employee"),
+        listTableRows<Record<string, any>>("hr", "department"),
+      ]);
+      const emp = employees.find((e) => e.userId === requester.id || e.id === requester.id);
+      let departmentId = account?.departmentId ?? emp?.departmentId ?? null;
       for (let level = 0; departmentId && level < 8; level++) {
-        const department = await db.department.findUnique({
-          where: { id: departmentId },
-          select: { managerId: true, deputyId: true, parentId: true },
-        });
+        const department = departments.find((d) => d.id === departmentId);
         const leaders = [department?.managerId, department?.deputyId].filter(
           (id): id is string => !!id && id !== requester.id,
         );
@@ -463,10 +419,9 @@ async function resolveStep(
         PermissionResource,
         PermissionAction,
       ];
-      const users = await db.user.findMany({
-        where: { isActive: true },
-        select: { id: true, role: true, permissions: true },
-      });
+      const users = (await listTableRows<Record<string, any>>("identity", "user")).filter(
+        (u) => u.isActive,
+      );
       const allowed = await Promise.all(
         users.map((u) =>
           hasPermission(
@@ -525,8 +480,9 @@ async function notify(
   },
 ) {
   if (!userIds.length) return;
-  await db.notification.createMany({
-    data: userIds.map((userId) => ({
+  for (const userId of userIds) {
+    await upsertTableRow("notify", "notification", {
+      id: crypto.randomUUID(),
       userId,
       title: input.title,
       message: input.message,
@@ -536,8 +492,8 @@ async function notify(
       messageKey: input.messageKey,
       messageParams: { targetType: input.targetType },
       actionUrl: approvalTargetUrl(input.targetType, input.targetId),
-    })),
-  });
+    });
+  }
 }
 
 function hashContent(
@@ -578,29 +534,40 @@ export async function submitForApproval(
   input: SubmitForApprovalInput,
 ): Promise<ApprovalOutcome> {
   return runAtomicMutation(async () => {
-    const requester = await db.user.findUniqueOrThrow({
-      where: { id: input.requesterId },
-      select: { id: true, role: true, managerId: true },
-    });
-    const policy = await db.approvalPolicy.findUnique({
-      where: { targetType: input.targetType },
-      include: { steps: { orderBy: { order: "asc" } } },
-    });
+    const [requesterRow, policies, policySteps, existingRequests] =
+      await Promise.all([
+        findById("identity", "user", input.requesterId),
+        listTableRows<Record<string, any>>("system", "approval_policy"),
+        listTableRows<Record<string, any>>("system", "approval_policy_step"),
+        listTableRows<Record<string, any>>("workflow", "approval_request"),
+      ]);
+    if (!requesterRow) throw new Error("Requester not found");
+    const requester: Requester = {
+      id: requesterRow.id,
+      role: requesterRow.role,
+      managerId: requesterRow.managerId ?? null,
+    };
+    const policyRow = policies.find((p) => p.targetType === input.targetType);
+    const steps = policyRow
+      ? (policySteps
+          .filter((s) => s.policyId === policyRow.id)
+          .sort((a, b) => Number(a.order) - Number(b.order)) as PolicyStep[])
+      : ([] as PolicyStep[]);
+    const policy: Record<string, any> | null = policyRow ? { ...policyRow, steps } : null;
 
-    await db.approvalRequest.updateMany({
-      where: {
-        targetType: input.targetType,
-        targetId: input.targetId,
-        status: "pending",
-      },
-      data: { status: "superseded" },
-    });
-    const latest = await db.approvalRequest.findFirst({
-      where: { targetType: input.targetType, targetId: input.targetId },
-      orderBy: { revision: "desc" },
-      select: { revision: true },
-    });
-    const revision = (latest?.revision ?? 0) + 1;
+    const matchingReqs = existingRequests.filter(
+      (r) => r.targetType === input.targetType && r.targetId === input.targetId,
+    );
+    for (const pending of matchingReqs.filter((r) => r.status === "pending")) {
+      await upsertTableRow("workflow", "approval_request", {
+        ...pending,
+        status: "superseded",
+      });
+    }
+    const latest = matchingReqs.sort(
+      (a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0),
+    )[0];
+    const revision = (Number(latest?.revision ?? 0)) + 1;
     const metrics = await approvalMetrics(input.targetType, input.targetId);
     const belowThreshold =
       !!policy?.enabled &&
@@ -617,7 +584,8 @@ export async function submitForApproval(
         belowThreshold ||
         (!!policy &&
           (!policy.enabled ||
-            policy.autoApproveRoles.includes(requester.role))));
+            (Array.isArray(policy.autoApproveRoles) &&
+              policy.autoApproveRoles.includes(requester.role)))));
     const allowSelf = policy?.allowSelfApproval ?? false;
     const route = autoApprove
       ? null
@@ -637,8 +605,11 @@ export async function submitForApproval(
         ? true
         : !requiresLiveSignature && !autoApprove && approverIds.length === 0;
 
-    const created = await db.approvalRequest.create({
-      data: {
+    const created = await upsertTableRow<Record<string, any>>(
+      "workflow",
+      "approval_request",
+      {
+        id: crypto.randomUUID(),
         targetType: input.targetType,
         targetId: input.targetId,
         revision,
@@ -658,8 +629,9 @@ export async function submitForApproval(
         policySnapshot: (input.policySnapshot ?? {}) as object,
         diffPayload: (input.diffPayload ?? undefined) as object | undefined,
         discountReason: input.discountReason ?? null,
+        stepStartedAt: new Date().toISOString(),
       },
-    });
+    );
 
     if (!requiresLiveSignature && (autoApprove || selfApproved)) {
       const reason = superAdmin
@@ -671,32 +643,30 @@ export async function submitForApproval(
             : autoApprove
               ? "policy_auto"
               : "no_alternate_approver";
-      await db.approvalDecision.create({
-        data: {
-          approvalRequestId: created.id,
-          decision: "approved",
-          decidedById: requester.id,
-          reason,
-          step: created.currentStep,
-        },
+      await upsertTableRow("workflow", "approval_decision", {
+        id: crypto.randomUUID(),
+        approvalRequestId: created.id,
+        decision: "approved",
+        decidedById: requester.id,
+        reason,
+        step: created.currentStep,
       });
-      await db.approvalRequest.update({
-        where: { id: created.id },
-        data: { status: "approved" },
+      await upsertTableRow("workflow", "approval_request", {
+        ...created,
+        status: "approved",
       });
       await finalizerFor(input.targetType).approve(
         input.targetId,
         requester.id,
         reason,
       );
-      await db.activityLog.create({
-        data: {
-          userId: requester.id,
-          action: "auto_approve",
-          entityType: input.targetType,
-          entityId: input.targetId,
-          details: { approvalRequestId: created.id, reason },
-        },
+      await upsertTableRow("system", "activity_log", {
+        id: crypto.randomUUID(),
+        userId: requester.id,
+        action: "auto_approve",
+        entityType: input.targetType,
+        entityId: input.targetId,
+        details: { approvalRequestId: created.id, reason },
       });
       return {
         approvalRequestId: created.id,
@@ -762,28 +732,55 @@ export async function decideApprovalRequest(
   signature?: string | null,
 ): Promise<ApprovalOutcome> {
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "ApprovalRequest" WHERE id = ${approvalRequestId} FOR UPDATE`;
-    const request = await db.approvalRequest.findUnique({
-      where: { id: approvalRequestId },
-      include: {
-        policy: { include: { steps: { orderBy: { order: "asc" } } } },
-        decisions: { select: { decidedById: true } },
-      },
-    });
-    if (!request) throw new Error(serverMessages.approvalRequestNotFound);
+    const [requestRow, policies, policySteps, decisions, users] =
+      await Promise.all([
+        findById("workflow", "approval_request", approvalRequestId),
+        listTableRows<Record<string, any>>("system", "approval_policy"),
+        listTableRows<Record<string, any>>("system", "approval_policy_step"),
+        listTableRows<Record<string, any>>("workflow", "approval_decision"),
+        listTableRows<Record<string, any>>("identity", "user"),
+      ]);
+    if (!requestRow) throw new Error(serverMessages.approvalRequestNotFound);
+    const policyRow = requestRow.policyId
+      ? policies.find((p) => p.id === requestRow.policyId)
+      : null;
+    const steps = policyRow
+      ? (policySteps
+          .filter((s) => s.policyId === policyRow.id)
+          .sort((a, b) => Number(a.order) - Number(b.order)) as PolicyStep[])
+      : ([] as PolicyStep[]);
+    const reqDecisions = decisions.filter(
+      (d) => d.approvalRequestId === approvalRequestId,
+    );
+    const request: Record<string, any> = {
+      ...requestRow,
+      approverIds: Array.isArray(requestRow.approverIds)
+        ? requestRow.approverIds
+        : [],
+      policy: policyRow ? ({ ...policyRow, steps } as Record<string, any>) : null,
+      decisions: reqDecisions,
+    };
     if (request.status !== "pending")
       throw new Error(
         formatMessage(serverTemplates.thisRequestIsAlready0, {
           0: request.status,
         }),
       );
-    const actor = await db.user.findUniqueOrThrow({
-      where: { id: actorId },
-      select: { id: true, role: true, isActive: true },
-    });
+    const actor = users.find((u) => u.id === actorId);
+    if (!actor) throw new Error("Actor not found");
     if (!actor.isActive)
       throw new Error(serverMessages.inactiveUsersCannotDecideApprovals);
-    if (!canDecideApproval(request, actor)) {
+    if (
+      !canDecideApproval(
+        {
+          status: request.status,
+          requestedById: request.requestedById,
+          approverIds: request.approverIds,
+          selfApproved: request.selfApproved,
+        },
+        { id: actor.id, role: actor.role },
+      )
+    ) {
       throw new Error(
         request.requestedById === actorId
           ? "You cannot approve or reject your own request"
@@ -802,25 +799,27 @@ export async function decideApprovalRequest(
       }
     }
 
-    await db.approvalDecision.create({
-      data: {
-        approvalRequestId,
-        decision,
-        decidedById: actorId,
-        reason: reason?.trim() || null,
-        step: request.currentStep,
-        signatureData,
-      },
+    await upsertTableRow("workflow", "approval_decision", {
+      id: crypto.randomUUID(),
+      approvalRequestId,
+      decision,
+      decidedById: actorId,
+      reason: reason?.trim() || null,
+      step: request.currentStep,
+      signatureData,
     });
 
-    const requester = await db.user.findUniqueOrThrow({
-      where: { id: request.requestedById },
-      select: { id: true, role: true, managerId: true },
-    });
+    const requesterRow = users.find((u) => u.id === request.requestedById);
+    if (!requesterRow) throw new Error("Requester not found");
+    const requester: Requester = {
+      id: requesterRow.id,
+      role: requesterRow.role,
+      managerId: requesterRow.managerId ?? null,
+    };
 
     if (decision === "approved") {
       const alreadyDecided = new Set([
-        ...request.decisions.map((d) => d.decidedById),
+        ...request.decisions.map((d: any) => d.decidedById),
         actorId,
       ]);
       const next = await nextApprovers(
@@ -832,15 +831,13 @@ export async function decideApprovalRequest(
         (request.metrics ?? {}) as ApprovalMetrics,
       );
       if (next) {
-        await db.approvalRequest.update({
-          where: { id: approvalRequestId },
-          data: {
-            currentStep: next.step,
-            approverIds: next.approverIds,
-            stepStartedAt: new Date(),
-            remindedAt: null,
-            escalatedAt: null,
-          },
+        await upsertTableRow("workflow", "approval_request", {
+          ...requestRow,
+          currentStep: next.step,
+          approverIds: next.approverIds,
+          stepStartedAt: new Date().toISOString(),
+          remindedAt: null,
+          escalatedAt: null,
         });
         await notify(next.approverIds, {
           title:
@@ -872,9 +869,9 @@ export async function decideApprovalRequest(
       }
     }
 
-    await db.approvalRequest.update({
-      where: { id: approvalRequestId },
-      data: { status: decision },
+    await upsertTableRow("workflow", "approval_request", {
+      ...requestRow,
+      status: decision,
     });
     const finalizer = finalizerFor(request.targetType);
     if (decision === "approved")
@@ -909,55 +906,73 @@ export async function findPendingApproval(
   targetType: ApprovalTargetType,
   targetId: string,
 ) {
-  return db.approvalRequest.findFirst({
-    where: { targetType, targetId, status: "pending" },
-    orderBy: { revision: "desc" },
-    select: {
-      id: true,
-      requestedById: true,
-      approverIds: true,
-      status: true,
-      currentStep: true,
-    },
-  });
+  const rows = await listTableRows<Record<string, any>>(
+    "workflow",
+    "approval_request",
+  );
+  const found = rows
+    .filter(
+      (r) =>
+        r.targetType === targetType &&
+        r.targetId === targetId &&
+        r.status === "pending",
+    )
+    .sort((a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0))[0];
+  if (!found) return null;
+  return {
+    id: found.id,
+    requestedById: found.requestedById,
+    approverIds: Array.isArray(found.approverIds) ? found.approverIds : [],
+    status: found.status,
+    currentStep: found.currentStep,
+  };
 }
 
 export async function cancelPendingApprovals(
   targetType: ApprovalTargetType,
   targetId: string,
 ) {
-  await db.approvalRequest.updateMany({
-    where: { targetType, targetId, status: "pending" },
-    data: { status: "cancelled" },
-  });
+  const rows = await listTableRows<Record<string, any>>(
+    "workflow",
+    "approval_request",
+  );
+  for (const r of rows.filter(
+    (row) =>
+      row.targetType === targetType &&
+      row.targetId === targetId &&
+      row.status === "pending",
+  )) {
+    await upsertTableRow("workflow", "approval_request", {
+      ...r,
+      status: "cancelled",
+    });
+  }
 }
 
 export async function processApprovalTimeouts(
   now = new Date(),
 ): Promise<{ reminded: number; escalated: number }> {
-  const pending = await db.approvalRequest.findMany({
-    where: { status: "pending", policyId: { not: null } },
-    select: {
-      id: true,
-      targetType: true,
-      targetId: true,
-      currentStep: true,
-      approverIds: true,
-      requestedById: true,
-      stepStartedAt: true,
-      remindedAt: true,
-      escalatedAt: true,
-      policy: { select: { reminderAfterHours: true, steps: true } },
-    },
-  });
+  const [requests, policies, policySteps] = await Promise.all([
+    listTableRows<Record<string, any>>("workflow", "approval_request"),
+    listTableRows<Record<string, any>>("system", "approval_policy"),
+    listTableRows<Record<string, any>>("system", "approval_policy_step"),
+  ]);
+  const pending = requests.filter(
+    (r) => r.status === "pending" && r.policyId != null,
+  );
   let reminded = 0;
   let escalated = 0;
   for (const request of pending) {
-    const waitedHours =
-      (now.getTime() - request.stepStartedAt.getTime()) / 3_600_000;
-    const step = request.policy?.steps.find(
-      (s) => s.order === request.currentStep,
-    );
+    const stepStartedAt = new Date(request.stepStartedAt || request.createdAt);
+    const waitedHours = (now.getTime() - stepStartedAt.getTime()) / 3_600_000;
+    const policy = policies.find((p) => p.id === request.policyId);
+    const steps = policy
+      ? policySteps.filter((s) => s.policyId === policy.id)
+      : [];
+    const step = steps.find((s) => s.order === request.currentStep);
+    const approverIds: string[] = Array.isArray(request.approverIds)
+      ? request.approverIds
+      : [];
     if (
       step?.escalateAfterHours &&
       !request.escalatedAt &&
@@ -970,15 +985,12 @@ export async function processApprovalTimeouts(
             ? await activeUserIds({ id: step.escalateUserId })
             : [];
       const added = targets.filter(
-        (id) =>
-          id !== request.requestedById && !request.approverIds.includes(id),
+        (id) => id !== request.requestedById && !approverIds.includes(id),
       );
-      await db.approvalRequest.update({
-        where: { id: request.id },
-        data: {
-          escalatedAt: now,
-          approverIds: [...request.approverIds, ...added],
-        },
+      await upsertTableRow("workflow", "approval_request", {
+        ...request,
+        escalatedAt: now.toISOString(),
+        approverIds: [...approverIds, ...added],
       });
       await notify(added, {
         title:
@@ -1000,29 +1012,28 @@ export async function processApprovalTimeouts(
         targetId: request.targetId,
         type: "warning",
       });
-      await db.activityLog.create({
-        data: {
-          userId: request.requestedById,
-          action: "escalate",
-          entityType: request.targetType,
-          entityId: request.targetId,
-          details: {
-            approvalRequestId: request.id,
-            step: request.currentStep,
-            added,
-          },
+      await upsertTableRow("system", "activity_log", {
+        id: crypto.randomUUID(),
+        userId: request.requestedById,
+        action: "escalate",
+        entityType: request.targetType,
+        entityId: request.targetId,
+        details: {
+          approvalRequestId: request.id,
+          step: request.currentStep,
+          added,
         },
       });
       escalated++;
       continue;
     }
-    const remindAfter = request.policy?.reminderAfterHours;
+    const remindAfter = policy?.reminderAfterHours;
     if (remindAfter && !request.remindedAt && waitedHours >= remindAfter) {
-      await db.approvalRequest.update({
-        where: { id: request.id },
-        data: { remindedAt: now },
+      await upsertTableRow("workflow", "approval_request", {
+        ...request,
+        remindedAt: now.toISOString(),
       });
-      await notify(request.approverIds, {
+      await notify(approverIds, {
         title:
           getTranslations("en").admin.approvals.notifications.reminder.title,
         message: formatMessage(

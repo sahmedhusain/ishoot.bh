@@ -1,4 +1,4 @@
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 
 export interface DiscountDecision {
@@ -23,13 +23,11 @@ export async function discountDecision(
   discountAmount: number,
   options: { alwaysApprove?: boolean } = {},
 ): Promise<DiscountDecision> {
-  const [user, company] = await Promise.all([
-    db.user.findUnique({
-      where: { id: userId },
-      select: { role: true, discountLimitPercent: true },
-    }).catch(() => null),
+  const [users, company] = await Promise.all([
+    listTableRows<any>("identity", "user").catch(() => []),
     getCompanyConfiguration().catch(() => null),
   ]);
+  const user = users.find((u) => u.id === userId) ?? null;
   const percent = discountPercent(subtotal, discountAmount);
   const always =
     options.alwaysApprove ?? (company as any)?.quotationsAlwaysNeedApproval ?? false;

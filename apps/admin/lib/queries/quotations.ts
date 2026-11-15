@@ -11,7 +11,8 @@ import {
 } from "@platform/api-client";
 import { updateQuotation as updateSalesQuotation } from "../api/sales";
 
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
@@ -204,15 +205,25 @@ export async function submitQuotationForApproval(
 ): Promise<{ success: boolean; approvalRequestId: string }> {
   await assertActorNotOnLeave(actorId);
 
-  const quotation = await db.quotation.findUnique({
-    where: { id },
-    include: {
-      lineItems: { orderBy: { orderIndex: "asc" } },
-
-      taxes: { orderBy: { displayOrder: "asc" } },
-      client: true,
-    },
-  });
+  const [quotations, allLines, allTaxes, contacts] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "quotation"),
+    listTableRows<Record<string, any>>("sales", "quotation_line_item", "order_index ASC"),
+    listTableRows<Record<string, any>>("finance", "document_tax", "display_order ASC"),
+    listTableRows<Record<string, any>>("sales", "crm_contact"),
+  ]);
+  const rawQ = quotations.find((r) => r.id === id);
+  const quotation: Record<string, any> | null = rawQ
+    ? {
+        ...rawQ,
+        lineItems: allLines
+          .filter((l) => l.quotationId === id)
+          .sort((a, b) => Number(a.orderIndex ?? 0) - Number(b.orderIndex ?? 0)),
+        taxes: allTaxes
+          .filter((t) => t.quotationId === id)
+          .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0)),
+        client: rawQ.clientId ? (contacts.find((c) => c.id === rawQ.clientId) ?? null) : null,
+      }
+    : null;
 
   if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (quotation.status !== "draft") {
@@ -242,7 +253,7 @@ export async function submitQuotationForApproval(
       ? `Quotation #${quotation.quotationNumber} includes a ${discount.percent}% discount (${quotation.discountAmount} ${quotation.currency}), within the ${discount.limit ?? "unlimited"}% limit.`
       : null);
 
-  await db.quotation.update({ where: { id }, data: { status: "submitted" } });
+  await upsertTableRow("sales", "quotation", { id, status: "submitted" });
   const approvalReq = await submitForApproval({
     targetType: "quotation",
     targetId: quotation.id,
@@ -293,14 +304,8 @@ export async function issueQuotation(
 ): Promise<Quotation> {
   await assertActorNotOnLeave(actorId);
 
-  const quotation = await db.quotation.findUnique({
-    where: { id },
-    include: {
-      lineItems: true,
-      client: true,
-      taxes: { orderBy: { displayOrder: "asc" } },
-    },
-  });
+  const quotations = await listTableRows<Record<string, any>>("sales", "quotation");
+  const quotation = quotations.find((r) => r.id === id);
 
   if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
@@ -312,50 +317,19 @@ export async function issueQuotation(
   if (!quotation.signedAt)
     throw new Error(serverMessages.signAndStampThisQuotationBeforeSending);
 
-  const updated = await db.$transaction(async (tx) => {
-    const issued = await tx.quotation.update({
-      where: { id },
-      data: {
-        status: "issued",
-        deliveryChannel: deliveryChannel || null,
-        deliveredAt: new Date(),
-      },
-      include: {
-        lineItems: { orderBy: { orderIndex: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        client: true,
-        createdBy: { select: { id: true, fullName: true, email: true } },
-      },
+  await runAtomicMutation(async () => {
+    await upsertTableRow("sales", "quotation", {
+      id,
+      status: "issued",
+      deliveryChannel: deliveryChannel || null,
+      deliveredAt: new Date().toISOString(),
     });
-    await advanceDealForEvent(tx, issued.dealId, "quotation_issued");
-    return issued;
+    await advanceDealForEvent(null, quotation.dealId, "quotation_issued");
   });
 
-  return {
-    ...updated,
-    subtotal: Number(updated.subtotal),
-    discountValue: Number(updated.discountValue),
-    discountAmount: Number(updated.discountAmount),
-    vatPercentage: Number(updated.vatPercentage),
-    vatAmount: Number(updated.vatAmount),
-    otherTaxAmount: Number(updated.otherTaxAmount ?? 0),
-    taxes: mapDocumentTaxLines(updated.taxes),
-    totalAmount: Number(updated.totalAmount),
-    rawRate: updated.rawRate ? Number(updated.rawRate) : null,
-    fxMarginPercent: Number(updated.fxMarginPercent),
-    effectiveRate: updated.effectiveRate ? Number(updated.effectiveRate) : null,
-    issueDate: updated.issueDate.toISOString(),
-    validUntilDate: updated.validUntilDate.toISOString(),
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-    lineItems: updated.lineItems.map((li) => ({
-      ...li,
-      quantity: Number(li.quantity),
-      unitPrice: Number(li.unitPrice),
-      lineTotal: Number(li.lineTotal),
-    })),
-  };
+  const updated = await getQuotationById(id);
+  if (!updated) throw new Error(serverMessages.quotationNotFound);
+  return updated;
 }
 
 export async function acceptQuotation(
@@ -365,7 +339,8 @@ export async function acceptQuotation(
 ): Promise<Quotation> {
   await assertActorNotOnLeave(actorId);
 
-  const quotation = await db.quotation.findUnique({ where: { id } });
+  const quotations = await listTableRows<Record<string, any>>("sales", "quotation");
+  const quotation = quotations.find((r) => r.id === id);
   if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (quotation.status !== "issued") {
     throw new Error(
@@ -374,54 +349,23 @@ export async function acceptQuotation(
       }),
     );
   }
-  if (isQuotationExpired(quotation.validUntilDate)) {
-    await db.quotation.update({ where: { id }, data: { status: "expired" } });
+  if (isQuotationExpired(new Date(quotation.validUntilDate))) {
+    await upsertTableRow("sales", "quotation", { id, status: "expired" });
     throw new Error(serverMessages.thisQuotationHasExpiredIssueANew);
   }
 
-  const updated = await db.$transaction(async (tx) => {
-    const accepted = await tx.quotation.update({
-      where: { id },
-      data: {
-        status: "accepted",
-        acceptanceEvidence: evidence || null,
-      },
-      include: {
-        lineItems: { orderBy: { orderIndex: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        client: true,
-        createdBy: { select: { id: true, fullName: true, email: true } },
-      },
+  await runAtomicMutation(async () => {
+    await upsertTableRow("sales", "quotation", {
+      id,
+      status: "accepted",
+      acceptanceEvidence: evidence || null,
     });
-    await advanceDealForEvent(tx, accepted.dealId, "quotation_accepted");
-    return accepted;
+    await advanceDealForEvent(null, quotation.dealId, "quotation_accepted");
   });
 
-  return {
-    ...updated,
-    subtotal: Number(updated.subtotal),
-    discountValue: Number(updated.discountValue),
-    discountAmount: Number(updated.discountAmount),
-    vatPercentage: Number(updated.vatPercentage),
-    vatAmount: Number(updated.vatAmount),
-    otherTaxAmount: Number(updated.otherTaxAmount ?? 0),
-    taxes: mapDocumentTaxLines(updated.taxes),
-    totalAmount: Number(updated.totalAmount),
-    rawRate: updated.rawRate ? Number(updated.rawRate) : null,
-    fxMarginPercent: Number(updated.fxMarginPercent),
-    effectiveRate: updated.effectiveRate ? Number(updated.effectiveRate) : null,
-    issueDate: updated.issueDate.toISOString(),
-    validUntilDate: updated.validUntilDate.toISOString(),
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-    lineItems: updated.lineItems.map((li) => ({
-      ...li,
-      quantity: Number(li.quantity),
-      unitPrice: Number(li.unitPrice),
-      lineTotal: Number(li.lineTotal),
-    })),
-  };
+  const updated = await getQuotationById(id);
+  if (!updated) throw new Error(serverMessages.quotationNotFound);
+  return updated;
 }
 
 export async function rejectQuotation(
@@ -431,7 +375,8 @@ export async function rejectQuotation(
 ): Promise<Quotation> {
   await assertActorNotOnLeave(actorId);
 
-  const quotation = await db.quotation.findUnique({ where: { id } });
+  const quotations = await listTableRows<Record<string, any>>("sales", "quotation");
+  const quotation = quotations.find((r) => r.id === id);
   if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (!["issued", "accepted"].includes(quotation.status))
     throw new Error(
@@ -440,12 +385,10 @@ export async function rejectQuotation(
       }),
     );
 
-  await db.quotation.update({
-    where: { id },
-    data: {
-      status: "rejected",
-      ...(reason ? { acceptanceEvidence: `Rejected: ${reason}` } : {}),
-    },
+  await upsertTableRow("sales", "quotation", {
+    id,
+    status: "rejected",
+    ...(reason ? { acceptanceEvidence: `Rejected: ${reason}` } : {}),
   });
 
   const updated = await getQuotationById(id);
@@ -573,19 +516,37 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
     console.warn(`api-client getQuotation ${id} failed:`, e);
   }
 
-  const q = await db.quotation.findUnique({
-    where: { id },
-    include: {
-      lineItems: { orderBy: { orderIndex: "asc" } },
-
-      taxes: { orderBy: { displayOrder: "asc" } },
-      client: true,
-      createdBy: { select: { id: true, fullName: true, email: true } },
-      invoice: { select: { id: true, invoiceNumber: true, status: true } },
-    },
-  });
-
-  if (!q) return null;
+  const [quotations, allLines, allTaxes, contacts, users, invoices] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "quotation"),
+    listTableRows<Record<string, any>>("sales", "quotation_line_item", "order_index ASC"),
+    listTableRows<Record<string, any>>("finance", "document_tax", "display_order ASC"),
+    listTableRows<Record<string, any>>("sales", "crm_contact"),
+    listTableRows<Record<string, any>>("identity", "user"),
+    listTableRows<Record<string, any>>("finance", "invoice"),
+  ]);
+  const rawQ = quotations.find((r) => r.id === id);
+  if (!rawQ) return null;
+  const lineItems = allLines
+    .filter((l) => l.quotationId === id)
+    .sort((a, b) => Number(a.orderIndex ?? 0) - Number(b.orderIndex ?? 0));
+  const taxes = allTaxes
+    .filter((t) => t.quotationId === id)
+    .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0));
+  const client = rawQ.clientId ? (contacts.find((c) => c.id === rawQ.clientId) ?? null) : null;
+  const createdByUser = rawQ.createdById ? users.find((u) => u.id === rawQ.createdById) : null;
+  const linkedInvoice = invoices.find((inv) => inv.quotationId === id);
+  const q: any = {
+    ...rawQ,
+    lineItems,
+    taxes,
+    client,
+    createdBy: createdByUser
+      ? { id: createdByUser.id, fullName: createdByUser.fullName, email: createdByUser.email }
+      : null,
+    invoice: linkedInvoice
+      ? { id: linkedInvoice.id, invoiceNumber: linkedInvoice.invoiceNumber, status: linkedInvoice.status }
+      : null,
+  };
 
   return {
     ...q,

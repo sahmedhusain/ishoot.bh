@@ -1,23 +1,30 @@
-import { db } from "@platform/database";
+import { listTableRows } from "./api/tables";
+
 export async function communicationOptions() {
-  const [users, departments, roles] = await Promise.all([
-    db.user.findMany({
-      where: { isActive: true },
-      select: { id: true, fullName: true },
-      orderBy: { fullName: "asc" },
-    }),
-    db.department.findMany({
-      select: { id: true, nameEn: true, nameAr: true },
-    }),
-    db.role.findMany({ select: { id: true, nameEn: true, nameAr: true } }),
+  const [allUsers, allDepartments, allRoles] = await Promise.all([
+    listTableRows<Record<string, any>>("identity", "user"),
+    listTableRows<Record<string, any>>("hr", "department"),
+    listTableRows<Record<string, any>>("identity", "role"),
   ]);
+  const users = allUsers
+    .filter((u) => u.isActive)
+    .map((u) => ({ id: u.id, fullName: u.fullName }))
+    .sort((a, b) => String(a.fullName || "").localeCompare(String(b.fullName || "")));
+  const departments = allDepartments.map((d) => ({
+    id: d.id,
+    nameEn: d.nameEn,
+    nameAr: d.nameAr,
+  }));
+  const roles = allRoles.map((r) => ({
+    id: r.id,
+    nameEn: r.nameEn,
+    nameAr: r.nameAr,
+  }));
   return { users, departments, roles };
 }
 export async function letterEmployees() {
-  return (
-    await db.employee.findMany({
-      select: { id: true, firstNameEn: true, lastNameEn: true },
-      orderBy: { firstNameEn: "asc" },
-    })
-  ).map((e) => ({ id: e.id, name: `${e.firstNameEn} ${e.lastNameEn}` }));
+  const employees = await listTableRows<Record<string, any>>("hr", "employee");
+  return employees
+    .sort((a, b) => String(a.firstNameEn || "").localeCompare(String(b.firstNameEn || "")))
+    .map((e) => ({ id: e.id, name: `${e.firstNameEn} ${e.lastNameEn}` }));
 }

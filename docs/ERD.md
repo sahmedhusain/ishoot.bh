@@ -7,21 +7,21 @@ Complete schema reference for PostgreSQL 17 (`platform_db`) generated directly f
 | Schema | Owning Service | Tables | Columns | Foreign Keys |
 |---|---|---:|---:|---:|
 | [`audit`](#schema-audit) | `audit` | 1 | 10 | 0 |
-| [`cms`](#schema-cms) | `cms` | 19 | 208 | 0 |
-| [`commerce`](#schema-commerce) | `commerce` | 22 | 281 | 8 |
+| [`cms`](#schema-cms) | `cms` | 17 | 175 | 0 |
+| [`commerce`](#schema-commerce) | `commerce` | 17 | 209 | 7 |
 | [`delivery`](#schema-delivery) | `delivery` | 13 | 127 | 7 |
 | [`files`](#schema-files) | `files` | 2 | 27 | 2 |
 | [`finance`](#schema-finance) | `finance` | 32 | 436 | 30 |
-| [`hr`](#schema-hr) | `hr` | 26 | 318 | 24 |
+| [`hr`](#schema-hr) | `hr` | 25 | 309 | 24 |
 | [`identity`](#schema-identity) | `identity` | 26 | 197 | 24 |
 | [`inventory`](#schema-inventory) | `inventory` | 29 | 330 | 31 |
-| [`itsm`](#schema-itsm) | `itsm` | 17 | 166 | 8 |
+| [`itsm`](#schema-itsm) | `itsm` | 16 | 158 | 8 |
 | [`notify`](#schema-notify) | `notify` | 8 | 74 | 2 |
 | [`realtime`](#schema-realtime) | `realtime` | 2 | 15 | 0 |
-| [`sales`](#schema-sales) | `sales` | 17 | 289 | 12 |
-| [`system`](#schema-system) | `system` | 92 | 993 | 14 |
+| [`sales`](#schema-sales) | `sales` | 14 | 232 | 9 |
+| [`system`](#schema-system) | `system` | 70 | 713 | 7 |
 | [`workflow`](#schema-workflow) | `workflow` | 14 | 196 | 8 |
-| **Total** | **15 stateful services** | **320** | **3667** | **170** |
+| **Total** | **15 stateful services** | **286** | **3208** | **159** |
 
 ## Cross-Service Relational Event Mesh
 
@@ -109,43 +109,6 @@ erDiagram
         text seo_description_ar
         timestamptz created_at
         timestamptz updated_at
-    }
-    cms__cms_article {
-        text id PK
-        text slug
-        text title_en
-        text title_ar
-        text excerpt_en
-        text excerpt_ar
-        jsonb body_en
-        jsonb body_ar
-        text body_html_en
-        text body_html_ar
-        text cover_url
-        text category
-        text author_id
-        text author_name
-        text status
-        timestamptz publish_at
-        boolean featured
-        text seo_title_en
-        text seo_title_ar
-        text seo_description_en
-        text seo_description_ar
-        timestamptz created_at
-        timestamptz updated_at
-        boolean is_sample
-    }
-    cms__cms_page {
-        text id PK
-        text slug
-        text page_type
-        text title_en
-        text title_ar
-        text seo_title_en
-        text seo_title_ar
-        text seo_description_en
-        text seo_description_ar
     }
     cms__content_snapshot {
         text id PK
@@ -362,49 +325,6 @@ erDiagram
 | `seo_description_ar` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `cms.cms_article`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `slug` | `text` | YES |  |  |
-| `title_en` | `text` | YES |  |  |
-| `title_ar` | `text` | YES |  |  |
-| `excerpt_en` | `text` | YES |  |  |
-| `excerpt_ar` | `text` | YES |  |  |
-| `body_en` | `jsonb` | YES |  |  |
-| `body_ar` | `jsonb` | YES |  |  |
-| `body_html_en` | `text` | YES |  |  |
-| `body_html_ar` | `text` | YES |  |  |
-| `cover_url` | `text` | YES |  |  |
-| `category` | `text` | YES |  |  |
-| `author_id` | `text` | YES |  |  |
-| `author_name` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `publish_at` | `timestamp with time zone` | YES |  |  |
-| `featured` | `boolean` | YES |  |  |
-| `seo_title_en` | `text` | YES |  |  |
-| `seo_title_ar` | `text` | YES |  |  |
-| `seo_description_en` | `text` | YES |  |  |
-| `seo_description_ar` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-| `is_sample` | `boolean` | YES |  |  |
-
-#### `cms.cms_page`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `slug` | `text` | YES |  |  |
-| `page_type` | `text` | YES |  |  |
-| `title_en` | `text` | YES |  |  |
-| `title_ar` | `text` | YES |  |  |
-| `seo_title_en` | `text` | YES |  |  |
-| `seo_title_ar` | `text` | YES |  |  |
-| `seo_description_en` | `text` | YES |  |  |
-| `seo_description_ar` | `text` | YES |  |  |
 
 #### `cms.content_snapshot`
 
@@ -722,38 +642,6 @@ erDiagram
         text user_agent
         timestamptz created_at
     }
-    commerce__delivery_settings {
-        text id PK
-        text mode
-        integer sla_hours
-        text time_zone
-        integer slot_days
-        integer lead_minutes
-        boolean require_slot
-        timestamptz updated_at
-    }
-    commerce__delivery_slot {
-        text id PK
-        text zone_id
-        integer weekday
-        text start
-        text end
-        integer capacity
-        boolean is_active
-        timestamptz created_at
-    }
-    commerce__delivery_zone {
-        text id PK
-        text name_en
-        text name_ar
-        numeric fee
-        numeric min_order
-        numeric free_over
-        boolean is_active
-        integer sort_order
-        timestamptz created_at
-        timestamptz updated_at
-    }
     commerce__inbox {
         text consumer PK
         uuid event_id PK
@@ -880,56 +768,6 @@ erDiagram
         numeric returned_quantity
         integer sort_order
     }
-    commerce__shipment {
-        text id PK
-        text number
-        text order_id
-        text status
-        text method
-        text zone_id
-        text slot_id
-        timestamptz slot_date
-        text slot_start
-        text slot_end
-        timestamptz promised_by
-        text recipient_name
-        text recipient_phone
-        jsonb address
-        numeric cod_amount
-        numeric cod_collected
-        text tracking_token
-        integer attempts
-        text failure_reason
-        timestamptz out_at
-        timestamptz delivered_at
-        text driver_id
-        text vehicle_id
-        text route_sheet_id
-        integer route_stop
-        text proof_photo_url
-        text proof_signature
-        text cod_settlement_id
-        text agency_id
-        text tracking_number
-        text courier_booking_agency_id
-        text courier_booking_status
-        timestamptz courier_booking_started_at
-        text label_url
-        numeric agency_fee
-        text agency_invoice_id
-        timestamptz tracked_at
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    commerce__shipment_event {
-        text id PK
-        text shipment_id FK
-        text status
-        text reason
-        text note
-        text by_id
-        timestamptz at
-    }
     commerce__store_region {
         text id PK
         text code
@@ -978,7 +816,6 @@ erDiagram
     commerce__customer ||--o{ commerce__sales_order : "customer_id"
     commerce__sales_order ||--o{ commerce__sales_order_event : "order_id"
     commerce__sales_order ||--o{ commerce__sales_order_line : "order_id"
-    commerce__shipment ||--o{ commerce__shipment_event : "shipment_id"
 ```
 
 ### Tables & Columns
@@ -1076,47 +913,6 @@ erDiagram
 | `expires_at` | `timestamp with time zone` | YES |  |  |
 | `user_agent` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `commerce.delivery_settings`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `mode` | `text` | YES |  |  |
-| `sla_hours` | `integer` | YES |  |  |
-| `time_zone` | `text` | YES |  |  |
-| `slot_days` | `integer` | YES |  |  |
-| `lead_minutes` | `integer` | YES |  |  |
-| `require_slot` | `boolean` | YES |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `commerce.delivery_slot`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `zone_id` | `text` | YES |  |  |
-| `weekday` | `integer` | YES |  |  |
-| `start` | `text` | YES |  |  |
-| `end` | `text` | YES |  |  |
-| `capacity` | `integer` | YES |  |  |
-| `is_active` | `boolean` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `commerce.delivery_zone`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `name_en` | `text` | YES |  |  |
-| `name_ar` | `text` | YES |  |  |
-| `fee` | `numeric` | YES |  |  |
-| `min_order` | `numeric` | YES |  |  |
-| `free_over` | `numeric` | YES |  |  |
-| `is_active` | `boolean` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `commerce.inbox`
 
@@ -1267,62 +1063,6 @@ erDiagram
 | `location_id` | `text` | YES |  |  |
 | `returned_quantity` | `numeric` | NO |  |  |
 | `sort_order` | `integer` | NO |  |  |
-
-#### `commerce.shipment`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `number` | `text` | YES |  |  |
-| `order_id` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `method` | `text` | YES |  |  |
-| `zone_id` | `text` | YES |  |  |
-| `slot_id` | `text` | YES |  |  |
-| `slot_date` | `timestamp with time zone` | YES |  |  |
-| `slot_start` | `text` | YES |  |  |
-| `slot_end` | `text` | YES |  |  |
-| `promised_by` | `timestamp with time zone` | YES |  |  |
-| `recipient_name` | `text` | YES |  |  |
-| `recipient_phone` | `text` | YES |  |  |
-| `address` | `jsonb` | YES |  |  |
-| `cod_amount` | `numeric` | YES |  |  |
-| `cod_collected` | `numeric` | YES |  |  |
-| `tracking_token` | `text` | YES |  |  |
-| `attempts` | `integer` | YES |  |  |
-| `failure_reason` | `text` | YES |  |  |
-| `out_at` | `timestamp with time zone` | YES |  |  |
-| `delivered_at` | `timestamp with time zone` | YES |  |  |
-| `driver_id` | `text` | YES |  |  |
-| `vehicle_id` | `text` | YES |  |  |
-| `route_sheet_id` | `text` | YES |  |  |
-| `route_stop` | `integer` | YES |  |  |
-| `proof_photo_url` | `text` | YES |  |  |
-| `proof_signature` | `text` | YES |  |  |
-| `cod_settlement_id` | `text` | YES |  |  |
-| `agency_id` | `text` | YES |  |  |
-| `tracking_number` | `text` | YES |  |  |
-| `courier_booking_agency_id` | `text` | YES |  |  |
-| `courier_booking_status` | `text` | YES |  |  |
-| `courier_booking_started_at` | `timestamp with time zone` | YES |  |  |
-| `label_url` | `text` | YES |  |  |
-| `agency_fee` | `numeric` | YES |  |  |
-| `agency_invoice_id` | `text` | YES |  |  |
-| `tracked_at` | `timestamp with time zone` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `commerce.shipment_event`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `shipment_id` | `text` | YES | FK | `commerce.shipment.id` |
-| `status` | `text` | YES |  |  |
-| `reason` | `text` | YES |  |  |
-| `note` | `text` | YES |  |  |
-| `by_id` | `text` | YES |  |  |
-| `at` | `timestamp with time zone` | YES |  |  |
 
 #### `commerce.store_region`
 
@@ -3302,17 +3042,6 @@ erDiagram
         timestamptz paid_at
         timestamptz updated_at
     }
-    hr__retail_shift {
-        text id PK
-        text branch_id
-        text shift_number
-        text opened_by_id
-        text closed_by_id
-        timestamptz opened_at
-        timestamptz closed_at
-        text status
-        integer revision
-    }
     hr__salary_document {
         text id PK
         text employee_id FK
@@ -3769,20 +3498,6 @@ erDiagram
 | `paid_at` | `timestamp with time zone` | YES |  |  |
 | `updated_at` | `timestamp with time zone` | YES |  |  |
 
-#### `hr.retail_shift`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `branch_id` | `text` | YES |  |  |
-| `shift_number` | `text` | YES |  |  |
-| `opened_by_id` | `text` | YES |  |  |
-| `closed_by_id` | `text` | YES |  |  |
-| `opened_at` | `timestamp with time zone` | YES |  |  |
-| `closed_at` | `timestamp with time zone` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `revision` | `integer` | YES |  |  |
-
 #### `hr.salary_document`
 
 | Column | Type | Nullable | Key | References |
@@ -4069,27 +3784,27 @@ erDiagram
         text suspended_by_id
         text suspension_reason
     }
-    identity__account ||--o{ identity__account : "realm"
     identity__account ||--o{ identity__account : "reporting_to"
+    identity__account ||--o{ identity__account : "realm"
     identity__user ||--o{ identity__auth_challenge : "user_id"
     identity__branch ||--o{ identity__branch_grant : "branch_id"
     identity__user ||--o{ identity__branch_grant : "user_id"
-    identity__account ||--o{ identity__customer_provider : "realm"
     identity__account ||--o{ identity__customer_provider : "subject_id"
+    identity__account ||--o{ identity__customer_provider : "realm"
     identity__it_role ||--o{ identity__it_permission : "role_id"
     identity__it_role ||--o{ identity__it_role : "reporting_to_role"
-    identity__account ||--o{ identity__legacy_reset_challenge : "subject_id"
     identity__account ||--o{ identity__legacy_reset_challenge : "realm"
+    identity__account ||--o{ identity__legacy_reset_challenge : "subject_id"
     identity__user ||--o{ identity__mfa_recovery_code : "user_id"
-    identity__account ||--o{ identity__mfa_recovery_code : "subject_id"
     identity__account ||--o{ identity__mfa_recovery_code : "realm"
+    identity__account ||--o{ identity__mfa_recovery_code : "subject_id"
     identity__account ||--o{ identity__password_reset : "realm"
     identity__account ||--o{ identity__password_reset : "subject_id"
     identity__session_family ||--o{ identity__refresh_token : "family_id"
     identity__river_client ||--o{ identity__river_client_queue : "river_client_id"
     identity__user ||--o{ identity__session : "user_id"
-    identity__account ||--o{ identity__staff_access : "realm"
     identity__account ||--o{ identity__staff_access : "subject_id"
+    identity__account ||--o{ identity__staff_access : "realm"
     identity__staff_role ||--o{ identity__staff_permission : "role_id"
     identity__staff_role ||--o{ identity__staff_role : "reporting_to_role"
     identity__staff_role ||--o{ identity__staff_role_scope : "role_id"
@@ -5372,16 +5087,6 @@ erDiagram
         timestamptz handover_date
         text condition
     }
-    itsm__company_asset {
-        text id PK
-        text asset_key
-        text title
-        text file_url
-        text mime_type
-        integer file_size
-        timestamptz updated_at
-        timestamptz created_at
-    }
     itsm__inbox {
         text consumer PK
         uuid event_id PK
@@ -5592,19 +5297,6 @@ erDiagram
 | `status` | `text` | YES |  |  |
 | `handover_date` | `timestamp with time zone` | YES |  |  |
 | `condition` | `text` | YES |  |  |
-
-#### `itsm.company_asset`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `asset_key` | `text` | YES |  |  |
-| `title` | `text` | YES |  |  |
-| `file_url` | `text` | YES |  |  |
-| `mime_type` | `text` | YES |  |  |
-| `file_size` | `integer` | YES |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
 
 #### `itsm.inbox`
 
@@ -6343,69 +6035,6 @@ erDiagram
         text reason
         timestamptz created_at
     }
-    sales__sales_order {
-        text id PK
-        text number
-        text customer_id
-        text contact_id FK
-        text email
-        text name
-        text phone
-        text channel
-        text status
-        text payment_status
-        text payment_method
-        text fulfilment
-        jsonb shipping_address
-        numeric subtotal
-        numeric discount_amount
-        text coupon_code
-        numeric vat_amount
-        numeric delivery_fee
-        numeric total
-        numeric amount_paid
-        numeric amount_refunded
-        text currency
-        text locale
-        text note
-        text warehouse_id
-        text invoice_id
-        text created_by_id
-        timestamptz placed_at
-        timestamptz paid_at
-        timestamptz shipped_at
-        timestamptz delivered_at
-        timestamptz cancelled_at
-        text utm_campaign
-        text utm_source
-        text utm_medium
-        timestamptz updated_at
-    }
-    sales__sales_order_event {
-        text id PK
-        text order_id FK
-        text kind
-        text status
-        text note
-        numeric amount
-        text by_id
-        timestamptz created_at
-    }
-    sales__sales_order_line {
-        text id PK
-        text order_id FK
-        text product_id
-        text variant_key
-        text sku
-        text description
-        numeric quantity
-        numeric unit_price
-        boolean vat_exempt
-        numeric line_total
-        text location_id
-        numeric returned_quantity
-        integer sort_order
-    }
     sales__contact ||--o{ sales__crm_deal : "contact_id"
     sales__contact ||--o{ sales__deal : "contact_id"
     sales__deal_pipeline_stage ||--o{ sales__deal : "pipeline_stage_id"
@@ -6415,9 +6044,6 @@ erDiagram
     sales__deal ||--o{ sales__quotation : "deal_id"
     sales__quotation ||--o{ sales__quotation_item : "quotation_id"
     sales__quotation ||--o{ sales__quotation_line_item : "quotation_id"
-    sales__contact ||--o{ sales__sales_order : "contact_id"
-    sales__sales_order ||--o{ sales__sales_order_event : "order_id"
-    sales__sales_order ||--o{ sales__sales_order_line : "order_id"
 ```
 
 ### Tables & Columns
@@ -6724,78 +6350,6 @@ erDiagram
 | `reason` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 
-#### `sales.sales_order`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `number` | `text` | YES |  |  |
-| `customer_id` | `text` | YES |  |  |
-| `contact_id` | `text` | YES | FK | `sales.contact.id` |
-| `email` | `text` | YES |  |  |
-| `name` | `text` | YES |  |  |
-| `phone` | `text` | YES |  |  |
-| `channel` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `payment_status` | `text` | YES |  |  |
-| `payment_method` | `text` | YES |  |  |
-| `fulfilment` | `text` | YES |  |  |
-| `shipping_address` | `jsonb` | YES |  |  |
-| `subtotal` | `numeric` | YES |  |  |
-| `discount_amount` | `numeric` | YES |  |  |
-| `coupon_code` | `text` | YES |  |  |
-| `vat_amount` | `numeric` | YES |  |  |
-| `delivery_fee` | `numeric` | YES |  |  |
-| `total` | `numeric` | YES |  |  |
-| `amount_paid` | `numeric` | YES |  |  |
-| `amount_refunded` | `numeric` | YES |  |  |
-| `currency` | `text` | YES |  |  |
-| `locale` | `text` | YES |  |  |
-| `note` | `text` | YES |  |  |
-| `warehouse_id` | `text` | YES |  |  |
-| `invoice_id` | `text` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `placed_at` | `timestamp with time zone` | YES |  |  |
-| `paid_at` | `timestamp with time zone` | YES |  |  |
-| `shipped_at` | `timestamp with time zone` | YES |  |  |
-| `delivered_at` | `timestamp with time zone` | YES |  |  |
-| `cancelled_at` | `timestamp with time zone` | YES |  |  |
-| `utm_campaign` | `text` | YES |  |  |
-| `utm_source` | `text` | YES |  |  |
-| `utm_medium` | `text` | YES |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `sales.sales_order_event`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `order_id` | `text` | YES | FK | `sales.sales_order.id` |
-| `kind` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `note` | `text` | YES |  |  |
-| `amount` | `numeric` | YES |  |  |
-| `by_id` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `sales.sales_order_line`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `order_id` | `text` | YES | FK | `sales.sales_order.id` |
-| `product_id` | `text` | YES |  |  |
-| `variant_key` | `text` | YES |  |  |
-| `sku` | `text` | YES |  |  |
-| `description` | `text` | YES |  |  |
-| `quantity` | `numeric` | YES |  |  |
-| `unit_price` | `numeric` | YES |  |  |
-| `vat_exempt` | `boolean` | YES |  |  |
-| `line_total` | `numeric` | YES |  |  |
-| `location_id` | `text` | YES |  |  |
-| `returned_quantity` | `numeric` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-
 ---
 
 ## Schema: `system` {#schema-system}
@@ -6892,16 +6446,6 @@ erDiagram
         timestamptz created_at
         timestamptz revoked_at
     }
-    system__approval_decision {
-        text id PK
-        text approval_request_id FK
-        text decision
-        text decided_by_id
-        text reason
-        integer step
-        text signature_data
-        timestamptz decided_at
-    }
     system__approval_policy {
         text id PK
         text target_type
@@ -6927,32 +6471,6 @@ erDiagram
         text escalate_role_key
         text escalate_user_id
     }
-    system__approval_request {
-        text id PK
-        text target_type
-        text target_id
-        integer revision
-        text content_hash
-        text status
-        text requested_by_id
-        jsonb policy_snapshot
-        jsonb diff_payload
-        text discount_reason
-        text policy_id
-        integer current_step
-        boolean self_approved
-    }
-    system__attachment {
-        text id PK
-        text file_name
-        text file_url
-        integer file_size
-        text mime_type
-        text entity_type
-        text entity_id
-        text uploaded_by_id
-        timestamptz created_at
-    }
     system__backup_record {
         text id PK
         text kind
@@ -6965,19 +6483,6 @@ erDiagram
         timestamptz created_at
         timestamptz verified_at
         jsonb details
-    }
-    system__bank_settlement {
-        text id PK
-        text payment_id
-        timestamptz settlement_date
-        numeric received_amount
-        text received_currency
-        numeric settled_amount_bhd
-        numeric bank_fee_bhd
-        numeric fx_gain_loss_bhd
-        text bank_reference
-        text status
-        timestamptz created_at
     }
     system__broadcast {
         text id PK
@@ -7004,28 +6509,6 @@ erDiagram
         text status
         text error
         timestamptz sent_at
-    }
-    system__calendar_event {
-        text id PK
-        text title
-        text title_ar
-        text description
-        timestamptz start_date
-        timestamptz end_date
-        boolean all_day
-        text location
-        text color
-        text event_type
-        text deal_id
-        text created_by_id
-        text google_event_id
-        text google_calendar_id
-        text recurrence
-        jsonb reminders
-        jsonb attendees
-        text visibility
-        timestamptz created_at
-        timestamptz updated_at
     }
     system__calendar_feed_token {
         text id PK
@@ -7091,17 +6574,6 @@ erDiagram
         text created_by_id
         timestamptz created_at
     }
-    system__cod_settlement {
-        text id PK
-        text number
-        text driver_id
-        text agency_id
-        numeric expected
-        numeric received
-        text note
-        text settled_by_id
-        timestamptz settled_at
-    }
     system__communication_message {
         text id PK
         text thread_id FK
@@ -7131,7 +6603,7 @@ erDiagram
         text subject
         text status
         text contact_id
-        text inquiry_id FK
+        text inquiry_id
         text assigned_to
         timestamptz created_at
         timestamptz updated_at
@@ -7244,31 +6716,6 @@ erDiagram
         text website_domain
         text admin_domain
     }
-    system__contract {
-        text id PK
-        text contract_number
-        text deal_id
-        text contact_id
-        text template_id
-        text title_en
-        text title_ar
-        text body_html
-        text status
-        text signature_hash
-        timestamptz signed_at
-        timestamptz valid_from
-        timestamptz valid_until
-        text pdf_storage_path
-        jsonb metadata
-        text created_by_id
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    system__courier_agency {
-        text id PK
-        text name
-        text kind
-    }
     system__dashboard_layout {
         text user_id PK
     }
@@ -7352,18 +6799,6 @@ erDiagram
         text provider
         text source_evidence
         timestamptz created_at
-    }
-    system__faq {
-        text id PK
-        text question_en
-        text question_ar
-        text answer_en
-        text answer_ar
-        text category
-        boolean is_published
-        integer sort_order
-        timestamptz created_at
-        boolean is_sample
     }
     system__feature_toggle {
         text id PK
@@ -7455,40 +6890,6 @@ erDiagram
         uuid event_id PK
         timestamptz handled_at
     }
-    system__inquiry {
-        text id PK
-        text name
-        text email
-        text email_norm
-        text phone
-        text phone_e164
-        text company_name
-        text service_type
-        text budget_range
-        text timeline
-        text message
-        text status
-        text locale
-        text source
-        text customer_id
-        text intent
-        text reference
-        text submission_key
-        text request_hash
-        text project_reference
-        text location
-        text assigned_to_id
-        text team
-        text workflow_status
-        jsonb custom_assignments
-    }
-    system__inquiry_note {
-        text id PK
-        text inquiry_id FK
-        text author_id
-        text body
-        timestamptz created_at
-    }
     system__integration_setting {
         text provider PK
         boolean is_active
@@ -7545,21 +6946,6 @@ erDiagram
         text by_id
         timestamptz at
     }
-    system__letter_template {
-        text id PK
-        text key
-        text name_en
-        text name_ar
-        text subject_en
-        text subject_ar
-        text body_en
-        text body_ar
-        boolean about_employee
-        boolean is_active
-        integer display_order
-        timestamptz created_at
-        timestamptz updated_at
-    }
     system__media_contact {
         text id PK
         text name
@@ -7596,40 +6982,11 @@ erDiagram
         boolean is_quarantined
         timestamptz created_at
     }
-    system__minute_of_meeting {
-        text id PK
-        text mom_number
-        text title
-        text title_ar
-        timestamptz meeting_date
-        text start_time
-        text end_time
-        text location
-        text deal_id
-        text client_id
-        jsonb attendees
-    }
     system__module_setting {
         text module_key PK
         boolean enabled
         text updated_by
         timestamptz updated_at
-    }
-    system__notification {
-        text id PK
-        text user_id
-        text title
-        text message
-        text type
-        text entity_type
-        text entity_id
-        text message_key
-        jsonb message_params
-        text action_url
-        text event_key
-        boolean is_read
-        timestamptz hidden_at
-        timestamptz created_at
     }
     system__number_reservation {
         text caller PK
@@ -7638,33 +6995,6 @@ erDiagram
         date document_date
         text document_number
         timestamptz created_at
-    }
-    system__official_letter {
-        text id PK
-        text reference
-        text template_id
-        text employee_id
-        text recipient_name
-        text recipient_title
-        text recipient_organization
-        text recipient_address
-        text subject_en
-        text subject_ar
-        text body_en
-        text body_ar
-        timestamptz letter_date
-        text classification
-        boolean show_signature
-        boolean show_stamp
-        text status
-        text created_by_id
-        text signer_id
-        text signature_url
-        timestamptz signed_at
-        text verification_code
-        text decision_notes
-        timestamptz created_at
-        timestamptz updated_at
     }
     system__outbox {
         uuid id PK
@@ -7752,7 +7082,7 @@ erDiagram
     }
     system__request_assignment {
         text id PK
-        text inquiry_id FK
+        text inquiry_id
         text assigned_to_id
         text assigned_by_id
         text team
@@ -7762,7 +7092,7 @@ erDiagram
     }
     system__request_comment {
         text id PK
-        text inquiry_id FK
+        text inquiry_id
         text author_id
         text body
         boolean is_client_visible
@@ -7773,7 +7103,7 @@ erDiagram
     }
     system__request_event {
         text id PK
-        text inquiry_id FK
+        text inquiry_id
         text actor_id
         text event_type
         jsonb details
@@ -7789,36 +7119,6 @@ erDiagram
         text last_error
         timestamptz delivered_at
         timestamptz created_at
-    }
-    system__review {
-        text id PK
-        text client_id
-        text original_locale
-        text submission_key
-        text request_hash
-        text author_en
-        text author_ar
-        text company_en
-        text company_ar
-        text quote_en
-        text quote_ar
-        integer rating
-        boolean is_approved
-        integer sort_order
-        text year
-        timestamptz created_at
-    }
-    system__route_sheet {
-        text id PK
-        text number
-        timestamptz date
-        text driver_id
-        text vehicle_id FK
-        text status
-        text note
-        text created_by_id
-        timestamptz created_at
-        timestamptz updated_at
     }
     system__serial_generation {
         text id PK
@@ -7874,25 +7174,6 @@ erDiagram
         text updated_by_id
         timestamptz updated_at
     }
-    system__signature_request {
-        text id PK
-        text document_type
-        text document_id
-        text token_hash
-        text status
-        timestamptz expires_at
-        text recipient_email
-        text recipient_phone
-        text signer_name
-        text signature_data
-        timestamptz signed_at
-        text signed_ip
-        text signed_user_agent
-        timestamptz viewed_at
-        timestamptz revoked_at
-        text created_by_id
-        timestamptz created_at
-    }
     system__site_setting {
         boolean id PK
         text website_domain
@@ -7900,22 +7181,6 @@ erDiagram
         jsonb code
         timestamptz updated_at
         text updated_by
-    }
-    system__statistic {
-        text id PK
-        text value
-        text label_en
-        text label_ar
-        text sub_label_en
-        text sub_label_ar
-        text icon
-        integer sort_order
-        text source
-        text preset
-        integer preset_param
-        integer round_to
-        text suffix
-        boolean is_sample
     }
     system__studio_equipment {
         text id PK
@@ -7940,41 +7205,6 @@ erDiagram
         text entity_type
         timestamptz created_at
     }
-    system__upload_object {
-        text id PK
-        text file_url
-        text owner_id
-        text file_name
-        integer file_size
-        text mime_type
-        boolean is_public
-        timestamptz claimed_at
-        timestamptz expires_at
-        timestamptz created_at
-    }
-    system__vehicle {
-        text id PK
-        text plate
-        text name
-        text kind
-        text notes
-        boolean is_active
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    system__warehouse {
-        text branch_id
-        text id PK
-        text code
-        text name_en
-        text name_ar
-        text address
-        boolean is_active
-        boolean is_default
-        integer sort_order
-        timestamptz created_at
-        timestamptz updated_at
-    }
     system__wishlist_item {
         text id PK
         text customer_id
@@ -7982,19 +7212,12 @@ erDiagram
         timestamptz created_at
     }
     system__announcement ||--o{ system__announcement_receipt : "announcement_id"
-    system__approval_request ||--o{ system__approval_decision : "approval_request_id"
     system__approval_policy ||--o{ system__approval_policy_step : "policy_id"
     system__broadcast ||--o{ system__broadcast_recipient : "broadcast_id"
     system__communication_thread ||--o{ system__communication_message : "thread_id"
-    system__inquiry ||--o{ system__communication_thread : "inquiry_id"
     system__final_settlement ||--o{ system__final_settlement_line : "settlement_id"
-    system__inquiry ||--o{ system__inquiry_note : "inquiry_id"
     system__legal_matter ||--o{ system__legal_matter_event : "matter_id"
     system__communication_message ||--o{ system__message_attachment : "message_id"
-    system__inquiry ||--o{ system__request_assignment : "inquiry_id"
-    system__inquiry ||--o{ system__request_comment : "inquiry_id"
-    system__inquiry ||--o{ system__request_event : "inquiry_id"
-    system__vehicle ||--o{ system__route_sheet : "vehicle_id"
 ```
 
 ### Tables & Columns
@@ -8111,19 +7334,6 @@ erDiagram
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `revoked_at` | `timestamp with time zone` | YES |  |  |
 
-#### `system.approval_decision`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `approval_request_id` | `text` | YES | FK | `system.approval_request.id` |
-| `decision` | `text` | YES |  |  |
-| `decided_by_id` | `text` | YES |  |  |
-| `reason` | `text` | YES |  |  |
-| `step` | `integer` | YES |  |  |
-| `signature_data` | `text` | YES |  |  |
-| `decided_at` | `timestamp with time zone` | YES |  |  |
-
 #### `system.approval_policy`
 
 | Column | Type | Nullable | Key | References |
@@ -8155,38 +7365,6 @@ erDiagram
 | `escalate_role_key` | `text` | YES |  |  |
 | `escalate_user_id` | `text` | YES |  |  |
 
-#### `system.approval_request`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `target_type` | `text` | YES |  |  |
-| `target_id` | `text` | YES |  |  |
-| `revision` | `integer` | YES |  |  |
-| `content_hash` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `requested_by_id` | `text` | YES |  |  |
-| `policy_snapshot` | `jsonb` | YES |  |  |
-| `diff_payload` | `jsonb` | YES |  |  |
-| `discount_reason` | `text` | YES |  |  |
-| `policy_id` | `text` | YES |  |  |
-| `current_step` | `integer` | YES |  |  |
-| `self_approved` | `boolean` | YES |  |  |
-
-#### `system.attachment`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `file_name` | `text` | YES |  |  |
-| `file_url` | `text` | YES |  |  |
-| `file_size` | `integer` | YES |  |  |
-| `mime_type` | `text` | YES |  |  |
-| `entity_type` | `text` | YES |  |  |
-| `entity_id` | `text` | YES |  |  |
-| `uploaded_by_id` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
 #### `system.backup_record`
 
 | Column | Type | Nullable | Key | References |
@@ -8202,22 +7380,6 @@ erDiagram
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `verified_at` | `timestamp with time zone` | YES |  |  |
 | `details` | `jsonb` | NO |  |  |
-
-#### `system.bank_settlement`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `payment_id` | `text` | YES |  |  |
-| `settlement_date` | `timestamp with time zone` | YES |  |  |
-| `received_amount` | `numeric` | YES |  |  |
-| `received_currency` | `text` | YES |  |  |
-| `settled_amount_bhd` | `numeric` | YES |  |  |
-| `bank_fee_bhd` | `numeric` | YES |  |  |
-| `fx_gain_loss_bhd` | `numeric` | YES |  |  |
-| `bank_reference` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.broadcast`
 
@@ -8250,31 +7412,6 @@ erDiagram
 | `status` | `text` | YES |  |  |
 | `error` | `text` | YES |  |  |
 | `sent_at` | `timestamp with time zone` | YES |  |  |
-
-#### `system.calendar_event`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `title` | `text` | YES |  |  |
-| `title_ar` | `text` | YES |  |  |
-| `description` | `text` | YES |  |  |
-| `start_date` | `timestamp with time zone` | YES |  |  |
-| `end_date` | `timestamp with time zone` | YES |  |  |
-| `all_day` | `boolean` | YES |  |  |
-| `location` | `text` | YES |  |  |
-| `color` | `text` | YES |  |  |
-| `event_type` | `text` | YES |  |  |
-| `deal_id` | `text` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `google_event_id` | `text` | YES |  |  |
-| `google_calendar_id` | `text` | YES |  |  |
-| `recurrence` | `text` | YES |  |  |
-| `reminders` | `jsonb` | YES |  |  |
-| `attendees` | `jsonb` | YES |  |  |
-| `visibility` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.calendar_feed_token`
 
@@ -8355,20 +7492,6 @@ erDiagram
 | `created_by_id` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 
-#### `system.cod_settlement`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `number` | `text` | YES |  |  |
-| `driver_id` | `text` | YES |  |  |
-| `agency_id` | `text` | YES |  |  |
-| `expected` | `numeric` | YES |  |  |
-| `received` | `numeric` | YES |  |  |
-| `note` | `text` | YES |  |  |
-| `settled_by_id` | `text` | YES |  |  |
-| `settled_at` | `timestamp with time zone` | YES |  |  |
-
 #### `system.communication_message`
 
 | Column | Type | Nullable | Key | References |
@@ -8407,7 +7530,7 @@ erDiagram
 | `subject` | `text` | YES |  |  |
 | `status` | `text` | YES |  |  |
 | `contact_id` | `text` | YES |  |  |
-| `inquiry_id` | `text` | YES | FK | `system.inquiry.id` |
+| `inquiry_id` | `text` | YES |  |  |
 | `assigned_to` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
@@ -8532,37 +7655,6 @@ erDiagram
 | `website_domain` | `text` | YES |  |  |
 | `admin_domain` | `text` | YES |  |  |
 
-#### `system.contract`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `contract_number` | `text` | YES |  |  |
-| `deal_id` | `text` | YES |  |  |
-| `contact_id` | `text` | YES |  |  |
-| `template_id` | `text` | YES |  |  |
-| `title_en` | `text` | YES |  |  |
-| `title_ar` | `text` | YES |  |  |
-| `body_html` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `signature_hash` | `text` | YES |  |  |
-| `signed_at` | `timestamp with time zone` | YES |  |  |
-| `valid_from` | `timestamp with time zone` | YES |  |  |
-| `valid_until` | `timestamp with time zone` | YES |  |  |
-| `pdf_storage_path` | `text` | YES |  |  |
-| `metadata` | `jsonb` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.courier_agency`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `name` | `text` | YES |  |  |
-| `kind` | `text` | YES |  |  |
-
 #### `system.dashboard_layout`
 
 | Column | Type | Nullable | Key | References |
@@ -8670,21 +7762,6 @@ erDiagram
 | `provider` | `text` | YES |  |  |
 | `source_evidence` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.faq`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `question_en` | `text` | YES |  |  |
-| `question_ar` | `text` | YES |  |  |
-| `answer_en` | `text` | YES |  |  |
-| `answer_ar` | `text` | YES |  |  |
-| `category` | `text` | YES |  |  |
-| `is_published` | `boolean` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `is_sample` | `boolean` | YES |  |  |
 
 #### `system.feature_toggle`
 
@@ -8797,46 +7874,6 @@ erDiagram
 | `event_id` | `uuid` | NO | PK |  |
 | `handled_at` | `timestamp with time zone` | NO |  |  |
 
-#### `system.inquiry`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `name` | `text` | YES |  |  |
-| `email` | `text` | YES |  |  |
-| `email_norm` | `text` | YES |  |  |
-| `phone` | `text` | YES |  |  |
-| `phone_e164` | `text` | YES |  |  |
-| `company_name` | `text` | YES |  |  |
-| `service_type` | `text` | YES |  |  |
-| `budget_range` | `text` | YES |  |  |
-| `timeline` | `text` | YES |  |  |
-| `message` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `locale` | `text` | YES |  |  |
-| `source` | `text` | YES |  |  |
-| `customer_id` | `text` | YES |  |  |
-| `intent` | `text` | YES |  |  |
-| `reference` | `text` | YES |  |  |
-| `submission_key` | `text` | YES |  |  |
-| `request_hash` | `text` | YES |  |  |
-| `project_reference` | `text` | YES |  |  |
-| `location` | `text` | YES |  |  |
-| `assigned_to_id` | `text` | YES |  |  |
-| `team` | `text` | YES |  |  |
-| `workflow_status` | `text` | YES |  |  |
-| `custom_assignments` | `jsonb` | YES |  |  |
-
-#### `system.inquiry_note`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `inquiry_id` | `text` | YES | FK | `system.inquiry.id` |
-| `author_id` | `text` | YES |  |  |
-| `body` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
 #### `system.integration_setting`
 
 | Column | Type | Nullable | Key | References |
@@ -8905,24 +7942,6 @@ erDiagram
 | `by_id` | `text` | YES |  |  |
 | `at` | `timestamp with time zone` | YES |  |  |
 
-#### `system.letter_template`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `key` | `text` | YES |  |  |
-| `name_en` | `text` | YES |  |  |
-| `name_ar` | `text` | YES |  |  |
-| `subject_en` | `text` | YES |  |  |
-| `subject_ar` | `text` | YES |  |  |
-| `body_en` | `text` | YES |  |  |
-| `body_ar` | `text` | YES |  |  |
-| `about_employee` | `boolean` | YES |  |  |
-| `is_active` | `boolean` | YES |  |  |
-| `display_order` | `integer` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
 #### `system.media_contact`
 
 | Column | Type | Nullable | Key | References |
@@ -8968,22 +7987,6 @@ erDiagram
 | `is_quarantined` | `boolean` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 
-#### `system.minute_of_meeting`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `mom_number` | `text` | YES |  |  |
-| `title` | `text` | YES |  |  |
-| `title_ar` | `text` | YES |  |  |
-| `meeting_date` | `timestamp with time zone` | YES |  |  |
-| `start_time` | `text` | YES |  |  |
-| `end_time` | `text` | YES |  |  |
-| `location` | `text` | YES |  |  |
-| `deal_id` | `text` | YES |  |  |
-| `client_id` | `text` | YES |  |  |
-| `attendees` | `jsonb` | YES |  |  |
-
 #### `system.module_setting`
 
 | Column | Type | Nullable | Key | References |
@@ -8992,25 +7995,6 @@ erDiagram
 | `enabled` | `boolean` | NO |  |  |
 | `updated_by` | `text` | YES |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.notification`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `user_id` | `text` | YES |  |  |
-| `title` | `text` | YES |  |  |
-| `message` | `text` | YES |  |  |
-| `type` | `text` | YES |  |  |
-| `entity_type` | `text` | YES |  |  |
-| `entity_id` | `text` | YES |  |  |
-| `message_key` | `text` | YES |  |  |
-| `message_params` | `jsonb` | YES |  |  |
-| `action_url` | `text` | YES |  |  |
-| `event_key` | `text` | YES |  |  |
-| `is_read` | `boolean` | YES |  |  |
-| `hidden_at` | `timestamp with time zone` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.number_reservation`
 
@@ -9022,36 +8006,6 @@ erDiagram
 | `document_date` | `date` | NO |  |  |
 | `document_number` | `text` | NO |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.official_letter`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `reference` | `text` | YES |  |  |
-| `template_id` | `text` | YES |  |  |
-| `employee_id` | `text` | YES |  |  |
-| `recipient_name` | `text` | YES |  |  |
-| `recipient_title` | `text` | YES |  |  |
-| `recipient_organization` | `text` | YES |  |  |
-| `recipient_address` | `text` | YES |  |  |
-| `subject_en` | `text` | YES |  |  |
-| `subject_ar` | `text` | YES |  |  |
-| `body_en` | `text` | YES |  |  |
-| `body_ar` | `text` | YES |  |  |
-| `letter_date` | `timestamp with time zone` | YES |  |  |
-| `classification` | `text` | YES |  |  |
-| `show_signature` | `boolean` | YES |  |  |
-| `show_stamp` | `boolean` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `signer_id` | `text` | YES |  |  |
-| `signature_url` | `text` | YES |  |  |
-| `signed_at` | `timestamp with time zone` | YES |  |  |
-| `verification_code` | `text` | YES |  |  |
-| `decision_notes` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.outbox`
 
@@ -9166,7 +8120,7 @@ erDiagram
 | Column | Type | Nullable | Key | References |
 |---|---|---|---|---|
 | `id` | `text` | NO | PK |  |
-| `inquiry_id` | `text` | YES | FK | `system.inquiry.id` |
+| `inquiry_id` | `text` | YES |  |  |
 | `assigned_to_id` | `text` | YES |  |  |
 | `assigned_by_id` | `text` | YES |  |  |
 | `team` | `text` | YES |  |  |
@@ -9179,7 +8133,7 @@ erDiagram
 | Column | Type | Nullable | Key | References |
 |---|---|---|---|---|
 | `id` | `text` | NO | PK |  |
-| `inquiry_id` | `text` | YES | FK | `system.inquiry.id` |
+| `inquiry_id` | `text` | YES |  |  |
 | `author_id` | `text` | YES |  |  |
 | `body` | `text` | YES |  |  |
 | `is_client_visible` | `boolean` | YES |  |  |
@@ -9193,7 +8147,7 @@ erDiagram
 | Column | Type | Nullable | Key | References |
 |---|---|---|---|---|
 | `id` | `text` | NO | PK |  |
-| `inquiry_id` | `text` | YES | FK | `system.inquiry.id` |
+| `inquiry_id` | `text` | YES |  |  |
 | `actor_id` | `text` | YES |  |  |
 | `event_type` | `text` | YES |  |  |
 | `details` | `jsonb` | YES |  |  |
@@ -9212,42 +8166,6 @@ erDiagram
 | `last_error` | `text` | YES |  |  |
 | `delivered_at` | `timestamp with time zone` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.review`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `client_id` | `text` | YES |  |  |
-| `original_locale` | `text` | YES |  |  |
-| `submission_key` | `text` | YES |  |  |
-| `request_hash` | `text` | YES |  |  |
-| `author_en` | `text` | YES |  |  |
-| `author_ar` | `text` | YES |  |  |
-| `company_en` | `text` | YES |  |  |
-| `company_ar` | `text` | YES |  |  |
-| `quote_en` | `text` | YES |  |  |
-| `quote_ar` | `text` | YES |  |  |
-| `rating` | `integer` | YES |  |  |
-| `is_approved` | `boolean` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-| `year` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.route_sheet`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `number` | `text` | YES |  |  |
-| `date` | `timestamp with time zone` | YES |  |  |
-| `driver_id` | `text` | YES |  |  |
-| `vehicle_id` | `text` | YES | FK | `system.vehicle.id` |
-| `status` | `text` | YES |  |  |
-| `note` | `text` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.serial_generation`
 
@@ -9318,28 +8236,6 @@ erDiagram
 | `updated_by_id` | `text` | YES |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
 
-#### `system.signature_request`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `document_type` | `text` | YES |  |  |
-| `document_id` | `text` | YES |  |  |
-| `token_hash` | `text` | YES |  |  |
-| `status` | `text` | YES |  |  |
-| `expires_at` | `timestamp with time zone` | YES |  |  |
-| `recipient_email` | `text` | YES |  |  |
-| `recipient_phone` | `text` | YES |  |  |
-| `signer_name` | `text` | YES |  |  |
-| `signature_data` | `text` | YES |  |  |
-| `signed_at` | `timestamp with time zone` | YES |  |  |
-| `signed_ip` | `text` | YES |  |  |
-| `signed_user_agent` | `text` | YES |  |  |
-| `viewed_at` | `timestamp with time zone` | YES |  |  |
-| `revoked_at` | `timestamp with time zone` | YES |  |  |
-| `created_by_id` | `text` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
 #### `system.site_setting`
 
 | Column | Type | Nullable | Key | References |
@@ -9350,25 +8246,6 @@ erDiagram
 | `code` | `jsonb` | NO |  |  |
 | `updated_at` | `timestamp with time zone` | NO |  |  |
 | `updated_by` | `text` | YES |  |  |
-
-#### `system.statistic`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `value` | `text` | YES |  |  |
-| `label_en` | `text` | YES |  |  |
-| `label_ar` | `text` | YES |  |  |
-| `sub_label_en` | `text` | YES |  |  |
-| `sub_label_ar` | `text` | YES |  |  |
-| `icon` | `text` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-| `source` | `text` | YES |  |  |
-| `preset` | `text` | YES |  |  |
-| `preset_param` | `integer` | YES |  |  |
-| `round_to` | `integer` | YES |  |  |
-| `suffix` | `text` | YES |  |  |
-| `is_sample` | `boolean` | YES |  |  |
 
 #### `system.studio_equipment`
 
@@ -9398,50 +8275,6 @@ erDiagram
 | `color` | `text` | YES |  |  |
 | `entity_type` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.upload_object`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `file_url` | `text` | YES |  |  |
-| `owner_id` | `text` | YES |  |  |
-| `file_name` | `text` | YES |  |  |
-| `file_size` | `integer` | YES |  |  |
-| `mime_type` | `text` | YES |  |  |
-| `is_public` | `boolean` | YES |  |  |
-| `claimed_at` | `timestamp with time zone` | YES |  |  |
-| `expires_at` | `timestamp with time zone` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.vehicle`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `id` | `text` | NO | PK |  |
-| `plate` | `text` | YES |  |  |
-| `name` | `text` | YES |  |  |
-| `kind` | `text` | YES |  |  |
-| `notes` | `text` | YES |  |  |
-| `is_active` | `boolean` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
-
-#### `system.warehouse`
-
-| Column | Type | Nullable | Key | References |
-|---|---|---|---|---|
-| `branch_id` | `text` | YES |  |  |
-| `id` | `text` | NO | PK |  |
-| `code` | `text` | YES |  |  |
-| `name_en` | `text` | YES |  |  |
-| `name_ar` | `text` | YES |  |  |
-| `address` | `text` | YES |  |  |
-| `is_active` | `boolean` | YES |  |  |
-| `is_default` | `boolean` | YES |  |  |
-| `sort_order` | `integer` | YES |  |  |
-| `created_at` | `timestamp with time zone` | NO |  |  |
-| `updated_at` | `timestamp with time zone` | NO |  |  |
 
 #### `system.wishlist_item`
 

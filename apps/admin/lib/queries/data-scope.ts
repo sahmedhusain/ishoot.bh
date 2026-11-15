@@ -1,6 +1,11 @@
 import { getStaffAccessForAccount } from "@platform/api-client";
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import {
+  listAdminRoleDataScopesApi,
+  listAdminUsersApi,
+  setAdminRoleDataScopesApi,
+} from "../api/identity";
+import { listEmployees } from "../api/hr";
 import {
   DATA_SCOPE_AREAS,
   defaultDataScope,
@@ -17,7 +22,7 @@ export async function getRoleDataScopes(
   const rows =
     role === "super_admin"
       ? []
-      : await db.roleDataScope.findMany({ where: { role } });
+      : (await listAdminRoleDataScopesApi()).filter((r) => r.role === role);
   return Object.fromEntries(
     DATA_SCOPE_AREAS.map((area) => {
       const stored = rows.find((row) => row.area === area)?.scope;
@@ -41,15 +46,7 @@ export async function setRoleDataScopes(
     )
   )
     throw new Error(serverMessages.dataScopeInvalid);
-  await db.$transaction(
-    entries.map(([area, scope]) =>
-      db.roleDataScope.upsert({
-        where: { role_area: { role, area } },
-        create: { role, area, scope },
-        update: { scope },
-      }),
-    ),
-  );
+  await setAdminRoleDataScopesApi({ role, scopes });
 }
 
 export async function scopedUserIds(
@@ -69,16 +66,21 @@ export async function scopedUserIds(
   const own = await userDepartmentId(user.id);
   if (!own) return [user.id];
   const departments = await departmentSubtree([own]);
-  const members = await db.user.findMany({
-    where: {
-      OR: [
-        { departmentId: { in: departments } },
-        { employee: { departmentId: { in: departments } } },
-      ],
-    },
-    select: { id: true },
-  });
-  return Array.from(new Set([user.id, ...members.map((member) => member.id)]));
+  const deptSet = new Set(departments);
+  const [users, employees] = await Promise.all([
+    listAdminUsersApi(),
+    listEmployees().catch(() => []),
+  ]);
+  const empDeptByUser = new Map(
+    employees.filter((e: any) => e.userId).map((e: any) => [e.userId, e.departmentId]),
+  );
+  const memberIds = users
+    .filter((u: any) => {
+      const dep = u.department_id ?? u.departmentId ?? empDeptByUser.get(u.id);
+      return dep && deptSet.has(dep);
+    })
+    .map((u: any) => u.id);
+  return Array.from(new Set([user.id, ...memberIds]));
 }
 
 export function assertInScope(

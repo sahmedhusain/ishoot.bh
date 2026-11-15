@@ -1,13 +1,31 @@
 import { isValidEmail } from "../constants/validation";
+import { serverMessages } from "@platform/locales";
 import {
-  serverTemplates,
-  formatMessage,
-  serverMessages,
-} from "@platform/locales";
-
-import { db } from "../atomic";
+  createProfileChangeApi,
+  getAdminUserApi,
+  listAdminProfileChangesApi,
+  listAdminUsersApi,
+  updateAdminUserFieldsApi,
+  updateProfileChangeStatusApi,
+} from "../api/identity";
 import { ProfileChangeRequest } from "../types";
 import { assertActorNotOnLeave } from "./leave";
+
+function mapProfileChange(r: any): ProfileChangeRequest {
+  return {
+    id: r.id,
+    userId: r.user_id ?? r.userId,
+    requestedById: r.requested_by_id ?? r.requestedById,
+    managerId: r.manager_id ?? r.managerId ?? null,
+    status: r.status,
+    oldValues: (r.old_values ?? r.oldValues ?? {}) as any,
+    newValues: (r.new_values ?? r.newValues ?? {}) as any,
+    reviewNotes: r.review_notes ?? r.reviewNotes ?? null,
+    reviewedAt: r.reviewed_at ?? r.reviewedAt ?? null,
+    createdAt: r.created_at ?? r.createdAt ?? new Date().toISOString(),
+    updatedAt: r.updated_at ?? r.updatedAt ?? new Date().toISOString(),
+  };
+}
 
 export async function requestProfileChange(
   userId: string,
@@ -15,13 +33,11 @@ export async function requestProfileChange(
   requestedById: string,
 ): Promise<ProfileChangeRequest> {
   await assertActorNotOnLeave(requestedById);
-
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { id: true, fullName: true, email: true, managerId: true },
-  });
-
+  const user = await getAdminUserApi(userId).catch(() => null);
   if (!user) throw new Error(serverMessages.userNotFound);
+
+  const currentName = user.full_name ?? user.fullName ?? "";
+  const currentEmail = user.email ?? "";
 
   if (
     proposed.fullName !== undefined &&
@@ -30,63 +46,37 @@ export async function requestProfileChange(
     throw new Error(serverMessages.profileSecurityError7);
   if (
     proposed.email !== undefined &&
-    (!isValidEmail(proposed.email.trim()) ||
-      proposed.email.trim().length > 254)
+    (!isValidEmail(proposed.email.trim()) || proposed.email.trim().length > 254)
   )
     throw new Error(serverMessages.enterAValidEMailAddress);
   if (
-    (!proposed.fullName || proposed.fullName.trim() === user.fullName) &&
-    (!proposed.email ||
-      proposed.email.trim().toLowerCase() === user.email.toLowerCase())
+    (!proposed.fullName || proposed.fullName.trim() === currentName) &&
+    (!proposed.email || proposed.email.trim().toLowerCase() === currentEmail.toLowerCase())
   )
     throw new Error(serverMessages.profileSecurityError8);
 
   if (
     proposed.email &&
-    proposed.email.toLowerCase().trim() !== user.email.toLowerCase().trim()
+    proposed.email.toLowerCase().trim() !== currentEmail.toLowerCase().trim()
   ) {
-    const existing = await db.user.findUnique({
-      where: { email: proposed.email.toLowerCase().trim() },
-    });
-    if (existing) {
-      throw new Error(serverMessages.theProposedEmailIsAlreadyInUse);
-    }
+    const allUsers = await listAdminUsersApi();
+    const existing = allUsers.find(
+      (u) => String(u.email ?? "").toLowerCase() === proposed.email!.toLowerCase().trim(),
+    );
+    if (existing) throw new Error(serverMessages.theProposedEmailIsAlreadyInUse);
   }
 
-  const oldValues = {
-    fullName: user.fullName,
-    email: user.email,
-  };
-
-  const newValues = {
-    fullName: proposed.fullName?.trim() || user.fullName,
-    email: proposed.email?.toLowerCase().trim() || user.email,
-  };
-
-  await db.profileChangeRequest.updateMany({
-    where: { userId, status: "pending" },
-    data: { status: "cancelled" },
-  });
-
-  const request = await db.profileChangeRequest.create({
-    data: {
-      userId,
-      requestedById,
-      managerId: user.managerId || null,
-      status: "pending",
-      oldValues,
-      newValues,
+  const request = await createProfileChangeApi({
+    userId,
+    requestedById,
+    managerId: user.manager_id ?? user.managerId ?? null,
+    oldValues: { fullName: currentName, email: currentEmail },
+    newValues: {
+      fullName: proposed.fullName?.trim() || currentName,
+      email: proposed.email?.toLowerCase().trim() || currentEmail,
     },
   });
-
-  return {
-    ...request,
-    oldValues: request.oldValues as any,
-    newValues: request.newValues as any,
-    reviewedAt: request.reviewedAt?.toISOString() || null,
-    createdAt: request.createdAt.toISOString(),
-    updatedAt: request.updatedAt.toISOString(),
-  };
+  return mapProfileChange(request);
 }
 
 export async function approveProfileChange(
@@ -95,150 +85,65 @@ export async function approveProfileChange(
   notes?: string,
 ): Promise<{ success: boolean; request: ProfileChangeRequest }> {
   await assertActorNotOnLeave(deciderId);
+  const all = await listAdminProfileChangesApi();
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(serverMessages.requestNotFound);
+  if (req.status !== "pending") throw new Error("Request already processed");
 
-  const req = await db.profileChangeRequest.findUnique({
-    where: { id: requestId },
-    include: {
-      user: {
-        select: { id: true, managerId: true, fullName: true, email: true },
-      },
-    },
+  const newValues = (req.new_values ?? req.newValues ?? {}) as { fullName?: string; email?: string };
+  await updateAdminUserFieldsApi(req.user_id ?? req.userId, {
+    fullName: newValues.fullName,
+    email: newValues.email,
   });
-
-  if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
-  if (req.status !== "pending") {
-    throw new Error(
-      formatMessage(
-        serverTemplates.profileChangeRequestCannotBeApprovedCurrent,
-        { 0: req.status },
-      ),
-    );
-  }
-
-  const newVals = req.newValues as { fullName?: string; email?: string };
-
-  const updated = await db.$transaction(async (tx) => {
-    if (newVals.email && newVals.email !== req.user.email) {
-      const emailConflict = await tx.user.findFirst({
-        where: { email: newVals.email, id: { not: req.userId } },
-      });
-      if (emailConflict) {
-        throw new Error(serverMessages.emailConflictTheProposedEmailWasClaimed);
-      }
-    }
-
-    await tx.user.update({
-      where: { id: req.userId },
-      data: {
-        fullName: newVals.fullName || undefined,
-        email: newVals.email || undefined,
-      },
-    });
-
-    await tx.employee.updateMany({
-      where: { userId: req.userId },
-      data: {
-        email: newVals.email || undefined,
-      },
-    });
-
-    const approvedReq = await tx.profileChangeRequest.update({
-      where: { id: requestId },
-      data: {
-        status: "approved",
-        reviewedAt: new Date(),
-        reviewNotes: notes || null,
-      },
-    });
-
-    return approvedReq;
+  const updated = await updateProfileChangeStatusApi(requestId, {
+    status: "approved",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
-
-  return {
-    success: true,
-    request: {
-      ...updated,
-      oldValues: updated.oldValues as any,
-      newValues: updated.newValues as any,
-      reviewedAt: updated.reviewedAt?.toISOString() || null,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    },
-  };
+  return { success: true, request: mapProfileChange(updated) };
 }
 
 export async function rejectProfileChange(
   requestId: string,
   deciderId: string,
-  reason: string,
-): Promise<ProfileChangeRequest> {
+  notes?: string,
+): Promise<{ success: boolean; request: ProfileChangeRequest }> {
   await assertActorNotOnLeave(deciderId);
+  const all = await listAdminProfileChangesApi();
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(serverMessages.requestNotFound);
+  if (req.status !== "pending") throw new Error("Request already processed");
 
-  const req = await db.profileChangeRequest.findUnique({
-    where: { id: requestId },
+  const updated = await updateProfileChangeStatusApi(requestId, {
+    status: "rejected",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
-
-  if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
-  if (req.status !== "pending")
-    throw new Error(serverMessages.requestIsNotPending);
-
-  const updated = await db.profileChangeRequest.update({
-    where: { id: requestId },
-    data: {
-      status: "rejected",
-      reviewedAt: new Date(),
-      reviewNotes: reason,
-    },
-  });
-
-  return {
-    ...updated,
-    oldValues: updated.oldValues as any,
-    newValues: updated.newValues as any,
-    reviewedAt: updated.reviewedAt?.toISOString() || null,
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-  };
+  return { success: true, request: mapProfileChange(updated) };
 }
 
-export async function getPendingProfileChangesForManager(
-  managerId: string,
-): Promise<ProfileChangeRequest[]> {
-  const requests = await db.profileChangeRequest.findMany({
-    where: {
-      status: "pending",
-      OR: [{ managerId }, { user: { managerId } }],
-    },
-    include: {
-      user: { select: { id: true, fullName: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return requests.map((r) => ({
-    ...r,
-    oldValues: r.oldValues as any,
-    newValues: r.newValues as any,
-    reviewedAt: r.reviewedAt?.toISOString() || null,
-    createdAt: r.createdAt.toISOString(),
-    updatedAt: r.updatedAt.toISOString(),
-  }));
+export async function getPendingProfileChangesForManager(managerId: string) {
+  const [changes, users] = await Promise.all([
+    listAdminProfileChangesApi(),
+    listAdminUsersApi(),
+  ]);
+  const userById = new Map(users.map((u) => [u.id, u]));
+  return changes
+    .filter((r) => (r.manager_id ?? r.managerId) === managerId && r.status === "pending")
+    .map((r) => {
+      const u = userById.get(r.user_id ?? r.userId);
+      const reqBy = userById.get(r.requested_by_id ?? r.requestedById);
+      return {
+        ...mapProfileChange(r),
+        user: u ? { id: u.id, fullName: u.full_name ?? u.fullName, email: u.email, role: u.role } : null,
+        requestedBy: reqBy ? { id: reqBy.id, fullName: reqBy.full_name ?? reqBy.fullName } : null,
+      };
+    });
 }
 
-export async function getProfileChangeRequestsForUser(
-  userId: string,
-): Promise<ProfileChangeRequest[]> {
-  const requests = await db.profileChangeRequest.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return requests.map((r) => ({
-    ...r,
-    oldValues: r.oldValues as any,
-    newValues: r.newValues as any,
-    reviewedAt: r.reviewedAt?.toISOString() || null,
-    createdAt: r.createdAt.toISOString(),
-    updatedAt: r.updatedAt.toISOString(),
-  }));
+export async function getProfileChangeRequestsForUser(userId: string) {
+  const changes = await listAdminProfileChangesApi();
+  return changes
+    .filter((r) => (r.user_id ?? r.userId) === userId)
+    .map(mapProfileChange);
 }

@@ -460,28 +460,6 @@ function buildRichModuleSql({
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
-    lines.push(
-      ins(
-        "system.contract",
-        {
-          id: `ctr-${String(i).padStart(3, "0")}`,
-          contract_number: `${pfx}-CTR-2026-${String(i).padStart(2, "0")}`,
-          deal_id: `deal-${i}`,
-          contact_id: `cnt-${((i - 1) % customers.length) + 1}`,
-          title_en: `Master Service Agreement — ${cust.nameEn}`,
-          title_ar: `اتفاقية تقديم خدمات رئيسية — ${cust.nameAr}`,
-          body_html: `<p>Agreement between ${company.nameEn} and ${cust.nameEn} for ${svc.en}.</p>`,
-          status: i <= 6 ? "signed" : "pending_signature",
-          signed_at: i <= 6 ? ago(35 - i * 4) : null,
-          valid_from: dateAgo(60),
-          valid_until: dateAhead(305),
-          created_by_id: "omar-haddad",
-          created_at: ago(40 - i * 4),
-          updated_at: now,
-        },
-        "ON CONFLICT (id) DO NOTHING",
-      ),
-    );
   }
 
   // Announcements, HR Policy, Legal Matters, Media Contacts/Coverage, Canned Replies, Client Logos
@@ -2649,13 +2627,6 @@ function buildRichModuleSql({
     { id: "dz-southern", en: "Southern Governorate", ar: "المحافظة الجنوبية", fee: 3.0 },
   ];
   zones.forEach((z, idx) => {
-    lines.push(
-      ins(
-        "commerce.delivery_zone",
-        { id: z.id, name_en: z.en, name_ar: z.ar, fee: z.fee, min_order: 5, free_over: 40, is_active: company.hasStore, sort_order: idx + 1, created_at: now, updated_at: now },
-        "ON CONFLICT (id) DO NOTHING",
-      ),
-    );
     lines.push(
       ins(
         "delivery.delivery_zone",

@@ -71,7 +71,7 @@ export async function saveAccountSettingsAction(
         userId,
         input,
         actor.id,
-        reason,
+        reason ?? undefined,
       );
       const approval = await submitForApproval({
         targetType: "account_change",

@@ -1,5 +1,5 @@
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows } from "../api/tables";
 import { mapContact, mapDeal, getCRMDeals } from "./crm";
 import type { Invoice, Payment } from "../types";
 import { getClientsPage, type ClientListParameters } from "./client-profiles";
@@ -36,61 +36,40 @@ export function listParameters(input: ListParameters = {}) {
     ),
   };
 }
-const contains = (q: string) => ({ contains: q, mode: "insensitive" as const });
-export const contactListSelect = {
-  id: true,
-  firstName: true,
-  lastName: true,
-  companyName: true,
-  email: true,
-  phone: true,
-  contactType: true,
-  jobTitle: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
-const contactSearch = (q: string) => ({
-  OR: ["firstName", "lastName", "companyName", "email", "phone"].map((key) => ({
-    [key]: contains(q),
-  })),
-});
+const contactMatches = (c: any, q: string) => {
+  if (!c) return false;
+  const hay = [c.firstName, c.lastName, c.companyName, c.email, c.phone]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return hay.includes(q);
+};
 type ExportBatch = { after?: string; batchSize: number };
-async function pageQuery<T>(
-  delegate: string,
-  where: any,
-  select: any,
+function paginateRows<T extends { id: string; createdAt?: any }>(
+  filtered: T[],
   requestedPage: number,
   batch?: ExportBatch,
-): Promise<{ rows: T[]; total: number; page: number; pageSize: number }> {
-  return db.$transaction(
-    async (tx) => {
-      const model = (tx as any)?.[delegate] ?? (db as any)?.[delegate];
-      if (!model) {
-        return { rows: [], total: 0, page: 1, pageSize: 50 };
-      }
-      if (batch) {
-        const rows = (await model.findMany?.({
-          where: {
-            AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])],
-          },
-          select,
-          take: Math.min(500, batch.batchSize),
-          orderBy: { id: "asc" },
-        })) ?? [];
-        return { rows, total: 0, page: 1, pageSize: 500 };
-      }
-      const total = typeof model?.count === "function" ? (await model.count({ where })) : 0;
-      const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / 50)));
-      const rows = typeof model?.findMany === "function" ? ((await model.findMany({
-        where,
-        select,
-        take: 50,
-        skip: (page - 1) * 50,
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      })) ?? []) : [];
-      return { rows, total, page, pageSize: 50 };
-    },
-  );
+): { rows: T[]; total: number; page: number; pageSize: number } {
+  if (batch) {
+    const sorted = [...filtered].sort((a, b) => a.id.localeCompare(b.id));
+    const afterFiltered = batch.after ? sorted.filter((r) => r.id > batch.after!) : sorted;
+    return {
+      rows: afterFiltered.slice(0, Math.min(500, batch.batchSize)),
+      total: 0,
+      page: 1,
+      pageSize: 500,
+    };
+  }
+  const sorted = [...filtered].sort((a, b) => {
+    const ta = new Date(a.createdAt || 0).getTime();
+    const tb = new Date(b.createdAt || 0).getTime();
+    if (tb !== ta) return tb - ta;
+    return b.id.localeCompare(a.id);
+  });
+  const total = sorted.length;
+  const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / 50)));
+  const rows = sorted.slice((page - 1) * 50, page * 50);
+  return { rows, total, page, pageSize: 50 };
 }
 export async function getDealsPage(
   input: ListParameters,
@@ -98,35 +77,23 @@ export async function getDealsPage(
   scope?: string[] | null,
 ) {
   const f = listParameters(input);
-  const where = {
-    ...(scope ? { assignedTo: { in: scope } } : {}),
-    ...(f.contactId ? { contactId: f.contactId } : {}),
-    ...(f.status !== "all" ? { dealStage: f.status } : {}),
-    ...(f.q
-      ? { OR: [{ title: contains(f.q) }, { contact: contactSearch(f.q) }] }
-      : {}),
-  };
-  const result = await pageQuery<any>(
-    "crmDeal",
-    where,
-    {
-      id: true,
-      contactId: true,
-      title: true,
-      dealStage: true,
-      dealValue: true,
-      currency: true,
-      probability: true,
-      expectedCloseDate: true,
-      shootDate: true,
-      assignedTo: true,
-      createdAt: true,
-      updatedAt: true,
-      contact: { select: contactListSelect },
-    } satisfies Database.CrmDealSelect,
-    f.page,
-    batch,
-  );
+  const q = f.q.toLowerCase();
+  const scopeSet = scope ? new Set(scope) : null;
+  const [rawDeals, rawContacts] = await Promise.all([
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+    listTableRows<any>("sales", "crm_contact").catch(() => []),
+  ]);
+  const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+  const filtered = rawDeals
+    .map((d) => ({ ...d, contact: d.contactId ? contactMap.get(d.contactId) || null : null }))
+    .filter((d) => {
+      if (scopeSet && (!d.assignedTo || !scopeSet.has(d.assignedTo))) return false;
+      if (f.contactId && d.contactId !== f.contactId) return false;
+      if (f.status !== "all" && d.dealStage !== f.status) return false;
+      if (q && !String(d.title || "").toLowerCase().includes(q) && !contactMatches(d.contact, q)) return false;
+      return true;
+    });
+  const result = paginateRows(filtered, f.page, batch);
   let items = (result.rows || []).map(mapDeal);
   let total = result.total;
   if (!items.length) {
@@ -136,7 +103,7 @@ export async function getDealsPage(
       listContacts().catch(() => []),
     ]);
     if (apiDeals.length) {
-      const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+      const contactMap = new Map<string, any>((apiContacts || []).map((c: any): [any, any] => [c.id || c.ID, c] as [string, any]));
       items = apiDeals.map((d: any) => {
         const contactObj = d.contact_id ? contactMap.get(d.contact_id) : undefined;
         return {
@@ -175,53 +142,48 @@ export async function getInvoicesPage(
 ) {
   return runAtomicMutation(async () => {
     const f = listParameters(input);
-    const where = {
-      ...(f.dealId ? { dealId: f.dealId } : {}),
-      ...(f.clientId ? { clientId: f.clientId } : {}),
-      ...(f.status !== "all" ? { status: f.status } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { invoiceNumber: contains(f.q) },
-              { client: contactSearch(f.q) },
-              { deal: { contact: contactSearch(f.q) } },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "invoice",
-      where,
-      {
-        id: true,
-        invoiceNumber: true,
-        issueDate: true,
-        dueDate: true,
-        status: true,
-        currency: true,
-        totalAmount: true,
-        client: { select: contactListSelect },
-        deal: { select: { contact: { select: contactListSelect } } },
-      } satisfies Database.InvoiceSelect,
-      f.page,
-      batch,
-    );
-    const paid = await db.payment.groupBy({
-      by: ["invoiceId", "currency"],
-      where: { invoiceId: { in: result.rows.map((r) => r.id) } },
-      _sum: { amount: true },
+    const q = f.q.toLowerCase();
+    const [rawInvoices, rawPayments, rawContacts, rawDeals] = await Promise.all([
+      listTableRows<any>("finance", "invoice").catch(() => []),
+      listTableRows<any>("finance", "payment").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+      listTableRows<any>("sales", "crm_deal").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+    const enriched = rawInvoices.map((inv) => {
+      const deal = inv.dealId ? dealMap.get(inv.dealId) || null : null;
+      const dealContact = deal?.contactId ? contactMap.get(deal.contactId) || null : null;
+      const client = inv.clientId ? contactMap.get(inv.clientId) || null : null;
+      return { ...inv, client, deal: deal ? { ...deal, contact: dealContact } : null };
     });
+    const filtered = enriched.filter((inv) => {
+      if (f.dealId && inv.dealId !== f.dealId) return false;
+      if (f.clientId && inv.clientId !== f.clientId) return false;
+      if (f.status !== "all" && inv.status !== f.status) return false;
+      if (
+        q &&
+        !String(inv.invoiceNumber || "").toLowerCase().includes(q) &&
+        !contactMatches(inv.client, q) &&
+        !contactMatches(inv.deal?.contact, q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
+    const paidMap = new Map<string, number>();
+    for (const p of rawPayments) {
+      const k = `${p.invoiceId}:${p.currency}`;
+      paidMap.set(k, (paidMap.get(k) ?? 0) + Number(p.amount ?? 0));
+    }
     let items: InvoiceListRow[] = result.rows.map((r) => {
-      const amountPaid = Number(
-        paid.find((p) => p.invoiceId === r.id && p.currency === r.currency)
-          ?._sum.amount || 0,
-      );
+      const amountPaid = paidMap.get(`${r.id}:${r.currency}`) ?? 0;
       return {
         id: r.id,
         contact_id: r.client?.id || r.deal?.contact?.id || "",
         invoice_number: r.invoiceNumber,
-        issue_date: r.issueDate.toISOString().slice(0, 10),
-        due_date: r.dueDate.toISOString().slice(0, 10),
+        issue_date: new Date(r.issueDate || Date.now()).toISOString().slice(0, 10),
+        due_date: new Date(r.dueDate || Date.now()).toISOString().slice(0, 10),
         status: r.status,
         currency: r.currency,
         total_amount: Number(r.totalAmount),
@@ -242,7 +204,7 @@ export async function getInvoicesPage(
       ]);
       if (apiInvoices.length) {
         const todayStr = new Date().toISOString().slice(0, 10);
-        const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        const contactMap = new Map<string, any>((apiContacts || []).map((c: any): [any, any] => [c.id || c.ID, c] as [string, any]));
         const fallbackCur = await companyCurrency().catch(() => "USD");
         items = apiInvoices.map((inv: any) => {
           const cid = inv.contactId || inv.ContactID || "";
@@ -283,65 +245,52 @@ export async function getPaymentsPage(
 ) {
   return runAtomicMutation(async () => {
     const f = listParameters(input);
-    const where = {
-      ...(f.dealId ? { invoice: { dealId: f.dealId } } : {}),
-      ...(f.clientId ? { invoice: { clientId: f.clientId } } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { receiptNumber: contains(f.q) },
-              { invoice: { invoiceNumber: contains(f.q) } },
-              { invoice: { client: contactSearch(f.q) } },
-              { invoice: { deal: { contact: contactSearch(f.q) } } },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "payment",
-      where,
-      {
-        id: true,
-        invoiceId: true,
-        receiptNumber: true,
-        paymentDate: true,
-        amount: true,
-        currency: true,
-        paymentMethod: true,
-        invoice: {
-          select: {
-            invoiceNumber: true,
-            client: {
-              select: { firstName: true, lastName: true, companyName: true },
-            },
-            deal: {
-              select: {
-                contact: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    companyName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      } satisfies Database.PaymentSelect,
-      f.page,
-      batch,
+    const q = f.q.toLowerCase();
+    const [rawPayments, rawInvoices, rawContacts, rawDeals] = await Promise.all([
+      listTableRows<any>("finance", "payment").catch(() => []),
+      listTableRows<any>("finance", "invoice").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+      listTableRows<any>("sales", "crm_deal").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+    const invoiceMap = new Map<string, any>(
+      rawInvoices.map((inv): [string, any] => {
+        const deal = inv.dealId ? dealMap.get(inv.dealId) || null : null;
+        const dealContact = deal?.contactId ? contactMap.get(deal.contactId) || null : null;
+        const client = inv.clientId ? contactMap.get(inv.clientId) || null : null;
+        return [inv.id, { ...inv, client, deal: deal ? { ...deal, contact: dealContact } : null }];
+      }),
     );
+    const enriched = rawPayments.map((p) => ({
+      ...p,
+      invoice: invoiceMap.get(p.invoiceId) || { invoiceNumber: "", client: null, deal: null },
+    }));
+    const filtered = enriched.filter((p) => {
+      if (f.dealId && p.invoice?.dealId !== f.dealId) return false;
+      if (f.clientId && p.invoice?.clientId !== f.clientId) return false;
+      if (
+        q &&
+        !String(p.receiptNumber || "").toLowerCase().includes(q) &&
+        !String(p.invoice?.invoiceNumber || "").toLowerCase().includes(q) &&
+        !contactMatches(p.invoice?.client, q) &&
+        !contactMatches(p.invoice?.deal?.contact, q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
     let items: PaymentListRow[] = result.rows.map((r) => {
-      const c = r.invoice.client || r.invoice.deal?.contact;
+      const c = r.invoice?.client || r.invoice?.deal?.contact;
       return {
         id: r.id,
         invoice_id: r.invoiceId,
         receipt_number: r.receiptNumber,
-        payment_date: r.paymentDate.toISOString().slice(0, 10),
+        payment_date: new Date(r.paymentDate || Date.now()).toISOString().slice(0, 10),
         amount: Number(r.amount),
         currency: r.currency,
         payment_method: r.paymentMethod,
-        invoiceNumber: r.invoice.invoiceNumber,
+        invoiceNumber: r.invoice?.invoiceNumber || "",
         customerName:
           c?.companyName ||
           [c?.firstName, c?.lastName].filter(Boolean).join(" "),
@@ -356,8 +305,8 @@ export async function getPaymentsPage(
         listContacts().catch(() => []),
       ]);
       if (apiPayments.length) {
-        const invoiceMap = new Map<string, any>((apiInvoices || []).map((i: any) => [i.id || i.ID, i] as [string, any]));
-        const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        const invoiceMap = new Map<string, any>((apiInvoices || []).map((i: any): [any, any] => [i.id || i.ID, i] as [string, any]));
+        const contactMap = new Map<string, any>((apiContacts || []).map((c: any): [any, any] => [c.id || c.ID, c] as [string, any]));
         const fallbackCur = await companyCurrency().catch(() => "USD");
         items = apiPayments.map((p: any) => {
           const invId = p.invoiceId || p.InvoiceID;
@@ -385,19 +334,16 @@ export async function getPaymentsPage(
       }
     }
     const fallbackCur = await companyCurrency().catch(() => "USD");
-    const [totals, receiptCount, invoiceCount] = batch
-      ? [[], 0, 0]
-      : await Promise.all([
-          db.payment.groupBy({ by: ["currency"], _sum: { amount: true } }),
-          db.payment.count(),
-          db.$queryRaw<
-            Array<{ count: bigint }>
-          >`SELECT count(DISTINCT "invoiceId") count FROM "Payment"`.then((r) =>
-            Number(r?.[0]?.count ?? 0),
-          ),
-        ]);
-    const finalTotals = totals.length
-      ? totals.map((t) => ({ currency: t.currency, amount: Number(t._sum?.amount ?? 0) }))
+    const totalsByCurrency = new Map<string, number>();
+    const invoiceIds = new Set<string>();
+    if (!batch) {
+      for (const p of rawPayments) {
+        totalsByCurrency.set(p.currency, (totalsByCurrency.get(p.currency) ?? 0) + Number(p.amount ?? 0));
+        if (p.invoiceId) invoiceIds.add(p.invoiceId);
+      }
+    }
+    const finalTotals = totalsByCurrency.size
+      ? Array.from(totalsByCurrency.entries()).map(([currency, amount]) => ({ currency, amount }))
       : [{ currency: fallbackCur, amount: items.reduce((acc, p) => acc + (p.currency === fallbackCur ? p.amount : 0), 0) }];
     return {
       ...result,
@@ -406,8 +352,8 @@ export async function getPaymentsPage(
       rows: undefined,
       filters: f,
       totals: finalTotals,
-      receiptCount: receiptCount || items.length,
-      invoiceCount: invoiceCount || (items.length ? 1 : 0),
+      receiptCount: rawPayments.length || items.length,
+      invoiceCount: invoiceIds.size || (items.length ? 1 : 0),
     };
   });
 }
@@ -419,49 +365,33 @@ export async function getCalendarPage(
   return runAtomicMutation(async () => {
     const { mapEvent } = await import("./calendar");
     const f = listParameters(input);
-    const where = {
-      ...(f.dealId ? { dealId: f.dealId } : {}),
-      ...(f.contactId ? { deal: { contactId: f.contactId } } : {}),
-      ...(f.clientId ? { deal: { contactId: f.clientId } } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { title: contains(f.q) },
-              { titleAr: contains(f.q) },
-              { description: contains(f.q) },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "calendarEvent",
-      where,
-      {
-        id: true,
-        title: true,
-        titleAr: true,
-        description: true,
-        startDate: true,
-        endDate: true,
-        allDay: true,
-        location: true,
-        color: true,
-        eventType: true,
-        dealId: true,
-        createdById: true,
-        googleEventId: true,
-        googleCalendarId: true,
-        recurrence: true,
-        reminders: true,
-        attendees: true,
-        createdAt: true,
-        updatedAt: true,
-        deal: true,
-      },
-      f.page,
-      batch,
-    );
-    const count = batch ? 0 : await db.calendarEvent.count();
+    const q = f.q.toLowerCase();
+    const [rawEvents, rawDeals] = await Promise.all([
+      listTableRows<any>("workflow", "calendar_event").catch(() => []),
+      listTableRows<any>("sales", "crm_deal").catch(() => []),
+    ]);
+    const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+    const enriched = rawEvents.map((e) => ({
+      ...e,
+      deal: e.dealId ? dealMap.get(e.dealId) || null : null,
+    }));
+    const filtered = enriched.filter((e) => {
+      if (f.dealId && e.dealId !== f.dealId) return false;
+      if (f.contactId && e.deal?.contactId !== f.contactId) return false;
+      if (f.clientId && e.deal?.contactId !== f.clientId) return false;
+      if (
+        q &&
+        ![e.title, e.titleAr, e.description]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
+    const count = batch ? 0 : rawEvents.length;
     return {
       ...result,
       items: result.rows.map(mapEvent),
@@ -476,63 +406,47 @@ export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
   return runAtomicMutation(async () => {
     const { mapDatabaseMom } = await import("./moms");
     const f = listParameters(input);
-    const where = {
-      ...(f.dealId ? { dealId: f.dealId } : {}),
-      ...(f.contactId ? { clientId: f.contactId } : {}),
-      ...(f.clientId ? { clientId: f.clientId } : {}),
-      ...(f.status !== "all" ? { status: f.status } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { momNumber: contains(f.q) },
-              { title: contains(f.q) },
-              { titleAr: contains(f.q) },
-              { agenda: contains(f.q) },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "minuteOfMeeting",
-      where,
-      {
-        id: true,
-        momNumber: true,
-        title: true,
-        titleAr: true,
-        meetingDate: true,
-        startTime: true,
-        endTime: true,
-        location: true,
-        dealId: true,
-        clientId: true,
-        attendees: true,
-        agenda: true,
-        discussionPoints: true,
-        actionItems: true,
-        decisions: true,
-        notes: true,
-        status: true,
-        createdById: true,
-        approvedById: true,
-        signatureUrl: true,
-        pdfStoragePath: true,
-        createdAt: true,
-        updatedAt: true,
-        deal: { select: { title: true } },
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        createdBy: { select: { fullName: true } },
-        approvedBy: { select: { fullName: true } },
-      },
-      f.page,
-      batch,
-    );
-    const count = batch ? 0 : await db.minuteOfMeeting.count();
+    const q = f.q.toLowerCase();
+    const [rawMoms, rawDeals, rawContacts, rawUsers] = await Promise.all([
+      listTableRows<any>("workflow", "minute_of_meeting").catch(() => []),
+      listTableRows<any>("sales", "crm_deal").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+      listTableRows<any>("identity", "user").catch(() => []),
+    ]);
+    const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const userMap = new Map<string, any>(rawUsers.map((u): [any, any] => [u.id, u]));
+    const filtered = rawMoms.filter((m) => {
+      if (f.dealId && m.dealId !== f.dealId) return false;
+      if (f.contactId && m.clientId !== f.contactId) return false;
+      if (f.clientId && m.clientId !== f.clientId) return false;
+      if (f.status !== "all" && m.status !== f.status) return false;
+      if (
+        q &&
+        ![m.momNumber, m.title, m.titleAr, m.agenda]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
+    const enrichedRows = result.rows.map((m) => ({
+      ...m,
+      meetingDate: new Date(m.meetingDate || Date.now()),
+      createdAt: new Date(m.createdAt || Date.now()),
+      updatedAt: new Date(m.updatedAt || m.createdAt || Date.now()),
+      deal: m.dealId ? dealMap.get(m.dealId) || null : null,
+      client: m.clientId ? contactMap.get(m.clientId) || null : null,
+      createdBy: m.createdById ? userMap.get(m.createdById) || null : null,
+      approvedBy: m.approvedById ? userMap.get(m.approvedById) || null : null,
+    }));
+    const count = batch ? 0 : rawMoms.length;
     return {
       ...result,
-      items: result.rows.map(mapDatabaseMom),
+      items: enrichedRows.map(mapDatabaseMom),
       rows: undefined,
       filters: f,
       count,
@@ -547,41 +461,23 @@ export async function getCompanyDocumentsPage(
   return runAtomicMutation(async () => {
     const { mapCompanyDocument } = await import("./company-documents");
     const f = listParameters(input);
-    const where = {
-      ...(f.status !== "all" ? { category: f.status } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { titleEn: contains(f.q) },
-              { titleAr: contains(f.q) },
-              { documentNumber: contains(f.q) },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "companyDocument",
-      where,
-      {
-        id: true,
-        titleEn: true,
-        titleAr: true,
-        category: true,
-        documentNumber: true,
-        fileUrl: true,
-        fileSize: true,
-        mimeType: true,
-        validFrom: true,
-        validUntil: true,
-        notes: true,
-        uploadedById: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      f.page,
-      batch,
-    );
-    const count = batch ? 0 : await db.companyDocument.count();
+    const q = f.q.toLowerCase();
+    const rawDocs = await listTableRows<any>("system", "company_document").catch(() => []);
+    const filtered = rawDocs.filter((d) => {
+      if (f.status !== "all" && d.category !== f.status) return false;
+      if (
+        q &&
+        ![d.titleEn, d.titleAr, d.documentNumber]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
+    const count = batch ? 0 : rawDocs.length;
     return {
       ...result,
       items: result.rows.map(mapCompanyDocument),
@@ -633,40 +529,35 @@ export async function getAttachmentsPage(
   batch?: ExportBatch,
 ) {
   const f = listParameters(input);
-  const { Database } = await import("@platform/database/decimal");
   const { getAllAttachments } = await import("./attachments");
-  const { runAtomicMutation } = await import("../atomic");
-  const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
-  const condition = Database.sql`WHERE (${f.q}='' OR a."fileName" ILIKE ${pattern} OR a."entityId" ILIKE ${pattern} OR u."fullName" ILIKE ${pattern} OR c."companyName" ILIKE ${pattern} OR concat(c."firstName",' ',c."lastName") ILIKE ${pattern} OR i."invoiceNumber" ILIKE ${pattern} OR d.title ILIKE ${pattern} OR p."receiptNumber" ILIKE ${pattern}) AND (${f.status}='all' OR a."entityType"=${f.status})`;
-  const joins = Database.sql`FROM "Attachment" a LEFT JOIN "User" u ON u.id=a."uploadedById" LEFT JOIN "CrmContact" c ON c.id=a."entityId" AND a."entityType" IN ('contact','customer_vault') LEFT JOIN "Invoice" i ON i.id=a."entityId" AND a."entityType"='invoice' LEFT JOIN "CrmDeal" d ON d.id=a."entityId" AND a."entityType"='deal' LEFT JOIN "Payment" p ON p.id=a."entityId" AND a."entityType"='payment'`;
   return runAtomicMutation(async () => {
-    const countRows = batch
-      ? [{ count: BigInt(0) }]
-      : (await db.$queryRaw<Array<{ count: bigint }>>(
-          Database.sql`SELECT count(*) ${joins} ${condition}`,
-        )) || [];
-    const total = Number(countRows[0]?.count ?? 0),
-      page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
-    const ids = (await db.$queryRaw<Array<{ id: string }>>(
-      batch
-        ? Database.sql`SELECT a.id ${joins} ${condition} AND a.id > ${batch.after || ""} ORDER BY a.id ASC LIMIT ${Math.min(500, batch.batchSize)}`
-        : Database.sql`SELECT a.id ${joins} ${condition} ORDER BY a."createdAt" DESC,a.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`,
-    )) || [];
-    const fetched = await getAllAttachments({ ids: ids.map((r) => r.id) });
-    const positions = new Map(ids.map((row, index) => [row.id, index]));
-    const items = fetched.sort(
-      (a, b) => (positions.get(a.id) ?? 0) - (positions.get(b.id) ?? 0),
-    );
-    const groups = batch
-      ? []
-      : await db.attachment.groupBy({ by: ["entityType"], _count: true });
+    const all = await getAllAttachments({}).catch(() => []);
+    const q = f.q.toLowerCase();
+    const filtered = all.filter((a: any) => {
+      if (f.status !== "all" && a.entity_type !== f.status) return false;
+      if (q) {
+        const hay = [a.file_name, a.entity_id, a.entity_label, a.uploaded_by_name]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const paged = paginateRows(filtered as any[], f.page, batch);
+    const counts: Record<string, number> = {};
+    if (!batch) {
+      for (const a of all as any[]) {
+        counts[a.entity_type] = (counts[a.entity_type] ?? 0) + 1;
+      }
+    }
     return {
-      items,
-      total,
-      page,
+      items: paged.rows,
+      total: paged.total,
+      page: paged.page,
       pageSize: 50,
       filters: f,
-      counts: Object.fromEntries(groups.map((g) => [g.entityType, g._count])),
+      counts,
     };
   });
 }
@@ -678,76 +569,54 @@ export async function getExpensesPage(
   return runAtomicMutation(async () => {
     const { mapExpense } = await import("./expenses");
     const f = listParameters(input);
-    const where = {
-      ...(scope ? { createdById: { in: scope } } : {}),
-      ...(f.status !== "all" ? { categoryId: f.status } : {}),
-      ...(f.q
-        ? {
-            OR: [
-              { descriptionEn: contains(f.q) },
-              { descriptionAr: contains(f.q) },
-              { vendorName: contains(f.q) },
-              { client: { companyName: contains(f.q) } },
-              { deal: { title: contains(f.q) } },
-            ],
-          }
-        : {}),
-    };
-    const result = await pageQuery<any>(
-      "expense",
-      where,
-      {
-        id: true,
-        categoryId: true,
-        dealId: true,
-        clientId: true,
-        scope: true,
-        status: true,
-        paymentMethod: true,
-        receiptUrl: true,
-        inputVatAmount: true,
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        deal: { select: { title: true } },
-        descriptionEn: true,
-        descriptionAr: true,
-        amount: true,
-        currency: true,
-        expenseDate: true,
-        vendorName: true,
-        isBillable: true,
-        isRecurring: true,
-        createdAt: true,
-        category: {
-          select: {
-            id: true,
-            slug: true,
-            nameEn: true,
-            nameAr: true,
-            color: true,
-            displayOrder: true,
-            kind: true,
-            isSystem: true,
-            isActive: true,
-          },
-        },
-      } satisfies Database.ExpenseSelect,
-      f.page,
-      batch,
-    );
-    const [totals, count, byScope] = batch
-      ? [[], 0, []]
-      : await Promise.all([
-          db.expense.groupBy({ by: ["currency"], _sum: { amount: true } }),
-          db.expense.count(),
-          db.expense.groupBy({ by: ["scope"], _count: { _all: true } }),
-        ]);
+    const q = f.q.toLowerCase();
+    const scopeSet = scope ? new Set(scope) : null;
+    const [rawExpenses, rawCategories, rawContacts, rawDeals] = await Promise.all([
+      listTableRows<any>("finance", "expense").catch(() => []),
+      listTableRows<any>("finance", "expense_category").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+      listTableRows<any>("sales", "crm_deal").catch(() => []),
+    ]);
+    const catMap = new Map<string, any>(rawCategories.map((c): [any, any] => [c.id, c]));
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+    const enriched = rawExpenses.map((e) => ({
+      ...e,
+      category: e.categoryId ? catMap.get(e.categoryId) || null : null,
+      client: e.clientId ? contactMap.get(e.clientId) || null : null,
+      deal: e.dealId ? dealMap.get(e.dealId) || null : null,
+      expenseDate: new Date(e.expenseDate || Date.now()),
+      createdAt: new Date(e.createdAt || Date.now()),
+      updatedAt: new Date(e.updatedAt || e.createdAt || Date.now()),
+    }));
+    const filtered = enriched.filter((e) => {
+      if (scopeSet && (!e.createdById || !scopeSet.has(e.createdById))) return false;
+      if (f.status !== "all" && e.categoryId !== f.status) return false;
+      if (
+        q &&
+        ![e.descriptionEn, e.descriptionAr, e.vendorName, e.client?.companyName, e.deal?.title]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
+        return false;
+      return true;
+    });
+    const result = paginateRows(filtered, f.page, batch);
+    const totalsByCurrency = new Map<string, number>();
+    const byScopeMap = new Map<string, number>();
+    if (!batch) {
+      for (const e of rawExpenses) {
+        totalsByCurrency.set(e.currency, (totalsByCurrency.get(e.currency) ?? 0) + Number(e.amount ?? 0));
+        byScopeMap.set(e.scope, (byScopeMap.get(e.scope) ?? 0) + 1);
+      }
+    }
     let items = (result.rows || []).map(mapExpense);
-    let totalCount = count;
-    let finalTotals = (totals || []).map((t) => ({
-      currency: t.currency,
-      amount: Number(t._sum?.amount ?? 0),
+    let totalCount = rawExpenses.length;
+    let finalTotals = Array.from(totalsByCurrency.entries()).map(([currency, amount]) => ({
+      currency,
+      amount,
     }));
     if (!items.length) {
       const { listExpenses, listExpenseCategories } = await import("@platform/api-client");
@@ -756,7 +625,7 @@ export async function getExpensesPage(
         listExpenseCategories().catch(() => []),
       ]);
       if (apiExpenses.length) {
-        const catMap = new Map<string, any>((apiCategories || []).map((c: any) => [c.id, c] as [string, any]));
+        const catMap = new Map<string, any>((apiCategories || []).map((c: any): [any, any] => [c.id, c] as [string, any]));
         items = apiExpenses.map((e: any) => {
           const cat = e.categoryId ? catMap.get(e.categoryId) : undefined;
           return mapExpense({
@@ -784,9 +653,7 @@ export async function getExpensesPage(
     }
     return {
       ...result,
-      scopeCounts: Object.fromEntries(
-        (byScope || []).map((g) => [g.scope, g._count?._all ?? 0]),
-      ) as Record<string, number>,
+      scopeCounts: Object.fromEntries(byScopeMap.entries()) as Record<string, number>,
       items,
       rows: undefined,
       filters: f,

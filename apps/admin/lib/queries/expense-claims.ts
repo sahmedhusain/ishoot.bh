@@ -1,7 +1,8 @@
 import { roundMoney, validMoneyAmount } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import {
   EXPENSE_PAYMENT_METHODS,
 } from "../constants/finance";
@@ -53,6 +54,34 @@ const claimInclude = {
   paidBy: { select: { fullName: true } },
 } as const;
 
+const toIsoStr = (v: any): string =>
+  v instanceof Date ? v.toISOString() : v ? String(v) : "";
+
+async function hydrateClaims(claims: any[]) {
+  if (!claims.length) return [];
+  const [users, categories, deals, invoices, events] = await Promise.all([
+    listTableRows<any>("identity", "user").catch(() => []),
+    listTableRows<any>("finance", "expense_category").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+    listTableRows<any>("finance", "invoice").catch(() => []),
+    listTableRows<any>("workflow", "calendar_event").catch(() => []),
+  ]);
+  const userMap = new Map<string, any>(users.map((u): [any, any] => [u.id, u]));
+  const catMap = new Map<string, any>(categories.map((c): [any, any] => [c.id, c]));
+  const dealMap = new Map<string, any>(deals.map((d): [any, any] => [d.id, d]));
+  const invMap = new Map<string, any>(invoices.map((i): [any, any] => [i.id, i]));
+  const evtMap = new Map<string, any>(events.map((e): [any, any] => [e.id, e]));
+  return claims.map((c) => ({
+    ...c,
+    claimant: c.claimantId ? userMap.get(c.claimantId) ?? null : null,
+    paidBy: c.paidById ? userMap.get(c.paidById) ?? null : null,
+    category: c.categoryId ? catMap.get(c.categoryId) ?? null : null,
+    deal: c.dealId ? dealMap.get(c.dealId) ?? null : null,
+    invoice: c.invoiceId ? invMap.get(c.invoiceId) ?? null : null,
+    calendarEvent: c.calendarEventId ? evtMap.get(c.calendarEventId) ?? null : null,
+  }));
+}
+
 function mapClaim(c: any): ExpenseClaimRow {
   return {
     id: c.id,
@@ -61,7 +90,7 @@ function mapClaim(c: any): ExpenseClaimRow {
     claimantName: c.claimant?.fullName ?? "",
     amount: Number(c.amount),
     currency: c.currency,
-    expenseDate: c.expenseDate.toISOString().slice(0, 10),
+    expenseDate: toIsoStr(c.expenseDate).slice(0, 10),
     reason: c.reason,
     categoryId: c.categoryId,
     categoryName: c.category
@@ -75,21 +104,21 @@ function mapClaim(c: any): ExpenseClaimRow {
       ? {
           id: c.calendarEvent.id,
           title: c.calendarEvent.title,
-          startDate: c.calendarEvent.startDate.toISOString(),
+          startDate: toIsoStr(c.calendarEvent.startDate),
         }
       : null,
     receiptUrl: c.receiptUrl,
     status: c.status,
     reviewNotes: c.reviewNotes,
     scheduledForDate: c.scheduledForDate
-      ? c.scheduledForDate.toISOString().slice(0, 10)
+      ? toIsoStr(c.scheduledForDate).slice(0, 10)
       : null,
-    paidAt: c.paidAt ? c.paidAt.toISOString() : null,
+    paidAt: c.paidAt ? toIsoStr(c.paidAt) : null,
     paidByName: c.paidBy?.fullName ?? null,
     paymentMethod: c.paymentMethod,
     paymentReference: c.paymentReference,
     expenseId: c.expenseId,
-    createdAt: c.createdAt.toISOString(),
+    createdAt: toIsoStr(c.createdAt) || new Date().toISOString(),
   };
 }
 
@@ -125,75 +154,70 @@ export async function createExpenseClaim(
     await assertCompanyCurrency(currency);
     if (
       input.categoryId &&
-      !(await db.expenseCategory.findFirst({
-        where: { id: input.categoryId, isActive: true },
-        select: { id: true },
-      }))
+      !(await listTableRows<any>("finance", "expense_category")).some(
+        (c) => c.id === input.categoryId && c.isActive,
+      )
     )
       throw new Error(serverMessages.chooseAnActiveExpenseCategory);
     if (
       input.dealId &&
-      !(await db.crmDeal.findUnique({
-        where: { id: input.dealId },
-        select: { id: true },
-      }))
+      !(await listTableRows<any>("sales", "crm_deal")).some(
+        (d) => d.id === input.dealId,
+      )
     )
       throw new Error(serverMessages.dealNotFound);
     if (
       input.invoiceId &&
-      !(await db.invoice.findUnique({
-        where: { id: input.invoiceId },
-        select: { id: true },
-      }))
+      !(await listTableRows<any>("finance", "invoice")).some(
+        (i) => i.id === input.invoiceId,
+      )
     )
       throw new Error(serverMessages.invoiceNotFound);
     if (
       input.calendarEventId &&
-      !(await db.calendarEvent.findUnique({
-        where: { id: input.calendarEventId },
-        select: { id: true },
-      }))
+      !(await listTableRows<any>("workflow", "calendar_event")).some(
+        (e) => e.id === input.calendarEventId,
+      )
     )
       throw new Error(serverMessages.meetingNotFound);
     const upload = await claimUploadOrLink(input.receiptUrl, claimantId);
-    const claim = await db.expenseClaim.create({
-      data: {
-        claimNumber: await getNextSequenceNumber("CLM", date.getUTCFullYear()),
-        claimantId,
-        amount: roundMoney(input.amount, currency),
-        currency,
-        expenseDate: date,
-        reason,
-        categoryId: input.categoryId || null,
-        dealId: input.dealId || null,
-        invoiceId: input.invoiceId || null,
-        calendarEventId: input.calendarEventId || null,
-        receiptUrl: input.receiptUrl,
-      },
-      include: claimInclude,
+    const claim = await upsertTableRow<any>("finance", "expense_claim", {
+      id: crypto.randomUUID(),
+      claimNumber: await getNextSequenceNumber("CLM", date.getUTCFullYear()),
+      claimantId,
+      amount: roundMoney(input.amount, currency),
+      currency,
+      expenseDate: date.toISOString(),
+      reason,
+      categoryId: input.categoryId || null,
+      dealId: input.dealId || null,
+      invoiceId: input.invoiceId || null,
+      calendarEventId: input.calendarEventId || null,
+      receiptUrl: input.receiptUrl,
+      status: "submitted",
     });
     if (upload)
-      await db.attachment.create({
-        data: {
-          entityType: "expense_claim",
-          entityId: claim.id,
-          fileName: upload.fileName,
-          fileUrl: upload.fileUrl,
-          fileSize: upload.fileSize,
-          mimeType: upload.mimeType,
-          uploadedById: claimantId,
-        },
+      await upsertTableRow("notify", "attachment", {
+        id: crypto.randomUUID(),
+        entityType: "expense_claim",
+        entityId: claim.id,
+        fileName: upload.fileName,
+        fileUrl: upload.fileUrl,
+        fileSize: upload.fileSize,
+        mimeType: upload.mimeType,
+        uploadedById: claimantId,
       });
-    return mapClaim(claim);
+    const [hydrated] = await hydrateClaims([claim]);
+    return mapClaim(hydrated);
   });
 }
 
 export async function getExpenseClaim(id: string) {
-  const claim = await db.expenseClaim.findUnique({
-    where: { id },
-    include: claimInclude,
-  });
-  return claim ? mapClaim(claim) : null;
+  const claims = await listTableRows<any>("finance", "expense_claim");
+  const claim = claims.find((c) => c.id === id);
+  if (!claim) return null;
+  const [hydrated] = await hydrateClaims([claim]);
+  return mapClaim(hydrated);
 }
 
 export interface ExpenseClaimListResult {
@@ -226,40 +250,45 @@ export async function listExpenseClaims(options: {
   const monthStart = new Date(
     Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1),
   );
-  const [rows, grouped, paidThisMonth, outstanding] = await Promise.all([
-    db.expenseClaim.findMany({
-      where,
-      include: claimInclude,
-      orderBy: [{ createdAt: "desc" }],
-      take: options.take ?? 200,
-    }),
-    db.expenseClaim.groupBy({
-      by: ["status"],
-      where: base,
-      _count: { _all: true },
-    }),
-    db.expenseClaim.count({
-      where: { ...base, status: "paid", paidAt: { gte: monthStart } },
-    }),
-    db.expenseClaim.groupBy({
-      by: ["currency"],
-      where: { ...base, status: { in: ["approved", "scheduled"] } },
-      _sum: { amount: true },
-    }),
-  ]);
+  const allClaims = await listTableRows<any>("finance", "expense_claim");
+  const baseRows = allClaims.filter((c) => {
+    if (options.claimantId) return c.claimantId === options.claimantId;
+    if (options.claimantIds) return options.claimantIds.includes(c.claimantId);
+    return true;
+  });
+  const rows = baseRows
+    .filter(
+      (c) => !options.status || options.status === "all" || c.status === options.status,
+    )
+    .sort((a, b) =>
+      String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")),
+    )
+    .slice(0, options.take ?? 200);
+  const hydrated = await hydrateClaims(rows);
   const count = (status: string) =>
-    grouped.find((g) => g.status === status)?._count._all ?? 0;
+    baseRows.filter((c) => c.status === status).length;
+  const paidThisMonth = baseRows.filter(
+    (c) => c.status === "paid" && c.paidAt && new Date(c.paidAt) >= monthStart,
+  ).length;
+  const outByCurrency = new Map<string, number>();
+  for (const c of baseRows) {
+    if (["approved", "scheduled"].includes(c.status)) {
+      outByCurrency.set(
+        c.currency,
+        (outByCurrency.get(c.currency) ?? 0) + Number(c.amount ?? 0),
+      );
+    }
+  }
   return {
-    items: rows.map(mapClaim),
+    items: hydrated.map(mapClaim),
     stats: {
       submitted: count("submitted"),
       approved: count("approved"),
       scheduled: count("scheduled"),
       paidThisMonth,
-      outstanding: outstanding.map((o) => ({
-        currency: o.currency,
-        amount: Number(o._sum.amount ?? 0),
-      })),
+      outstanding: Array.from(outByCurrency.entries()).map(
+        ([currency, amount]) => ({ currency, amount }),
+      ),
     },
   };
 }
@@ -270,27 +299,23 @@ export async function scheduleExpenseClaim(
   payOn?: string | null,
 ) {
   return runAtomicMutation(async () => {
-    const claim = await db.expenseClaim.findUniqueOrThrow({
-      where: { id },
-      select: { status: true },
-    });
+    const claims = await listTableRows<any>("finance", "expense_claim");
+    const claim = claims.find((c) => c.id === id);
+    if (!claim) throw new Error("Claim not found");
     if (claim.status !== "approved")
       throw new Error(serverMessages.onlyApprovedClaimsCanBeScheduledFor);
     const date = payOn ? new Date(payOn) : null;
     if (date && Number.isNaN(date.getTime()))
       throw new Error(serverMessages.invalidPaymentDate);
-    return mapClaim(
-      await db.expenseClaim.update({
-        where: { id },
-        data: {
-          status: "scheduled",
-          scheduledAt: new Date(),
-          scheduledById: actorId,
-          scheduledForDate: date,
-        },
-        include: claimInclude,
-      }),
-    );
+    const updated = await upsertTableRow("finance", "expense_claim", {
+      ...claim,
+      status: "scheduled",
+      scheduledAt: new Date().toISOString(),
+      scheduledById: actorId,
+      scheduledForDate: date ? date.toISOString() : null,
+    });
+    const [hydrated] = await hydrateClaims([updated]);
+    return mapClaim(hydrated);
   });
 }
 
@@ -306,79 +331,91 @@ export async function payExpenseClaim(
   if (!(EXPENSE_PAYMENT_METHODS as readonly string[]).includes(payment.method))
     throw new Error(serverMessages.chooseHowTheClaimWasPaid);
   return runAtomicMutation(async () => {
-    const claim = await db.expenseClaim.findUniqueOrThrow({
-      where: { id },
-      include: {
-        claimant: { select: { fullName: true } },
-        deal: { select: { contactId: true } },
-      },
-    });
-    if (!["approved", "scheduled"].includes(claim.status))
+    const [claims, users, deals] = await Promise.all([
+      listTableRows<any>("finance", "expense_claim"),
+      listTableRows<any>("identity", "user"),
+      listTableRows<any>("sales", "crm_deal"),
+    ]);
+    const rawClaim = claims.find((c) => c.id === id);
+    if (!rawClaim) throw new Error("Claim not found");
+    const claimant = users.find((u) => u.id === rawClaim.claimantId);
+    const deal = rawClaim.dealId
+      ? deals.find((d) => d.id === rawClaim.dealId)
+      : null;
+    if (!["approved", "scheduled"].includes(rawClaim.status))
       throw new Error(serverMessages.onlyApprovedClaimsCanBePaid);
-    const categoryId = payment.categoryId || claim.categoryId;
+    const categoryId = payment.categoryId || rawClaim.categoryId;
     if (!categoryId)
       throw new Error(serverMessages.chooseTheExpenseCategoryBeforePaying);
-    const expense = await db.expense.create({
-      data: {
-        categoryId,
-        dealId: claim.dealId,
-        clientId: claim.deal?.contactId ?? null,
-        scope: claim.dealId ? "deal" : "internal",
-        descriptionEn: `${claim.claimNumber} · ${claim.reason}`.slice(0, 500),
-        amount: claim.amount,
-        netAmount: claim.amount,
-        inputVatAmount: 0,
-        isVatRecoverable: false,
-        currency: claim.currency,
-        expenseDate: claim.expenseDate,
-        vendorName: claim.claimant.fullName,
-        receiptUrl: claim.receiptUrl,
-        paymentMethod: "staff_reimbursement",
-        notes: payment.reference
-          ? `Reimbursed via ${payment.method}: ${payment.reference}`
-          : `Reimbursed via ${payment.method}`,
-        status: "approved",
-        createdById: actorId,
-      },
+    const expense = await upsertTableRow<any>("finance", "expense", {
+      id: crypto.randomUUID(),
+      categoryId,
+      dealId: rawClaim.dealId,
+      clientId: deal?.contactId ?? null,
+      scope: rawClaim.dealId ? "deal" : "internal",
+      descriptionEn: `${rawClaim.claimNumber} · ${rawClaim.reason}`.slice(0, 500),
+      amount: rawClaim.amount,
+      netAmount: rawClaim.amount,
+      inputVatAmount: 0,
+      isVatRecoverable: false,
+      currency: rawClaim.currency,
+      expenseDate: rawClaim.expenseDate,
+      vendorName: claimant?.fullName ?? "",
+      receiptUrl: rawClaim.receiptUrl,
+      paymentMethod: "staff_reimbursement",
+      notes: payment.reference
+        ? `Reimbursed via ${payment.method}: ${payment.reference}`
+        : `Reimbursed via ${payment.method}`,
+      status: "approved",
+      createdById: actorId,
     });
-    return mapClaim(
-      await db.expenseClaim.update({
-        where: { id },
-        data: {
-          status: "paid",
-          paidAt: new Date(),
-          paidById: actorId,
-          paymentMethod: payment.method,
-          paymentReference: payment.reference?.trim() || null,
-          categoryId,
-          expenseId: expense.id,
-        },
-        include: claimInclude,
-      }),
-    );
+    const updated = await upsertTableRow("finance", "expense_claim", {
+      ...rawClaim,
+      status: "paid",
+      paidAt: new Date().toISOString(),
+      paidById: actorId,
+      paymentMethod: payment.method,
+      paymentReference: payment.reference?.trim() || null,
+      categoryId,
+      expenseId: expense.id,
+    });
+    const [hydrated] = await hydrateClaims([updated]);
+    return mapClaim(hydrated);
   });
 }
 
 export async function cancelExpenseClaim(id: string, actorId: string) {
   return runAtomicMutation(async () => {
-    const claim = await db.expenseClaim.findUniqueOrThrow({
-      where: { id },
-      select: { status: true, claimantId: true },
-    });
+    const [claims, approvals] = await Promise.all([
+      listTableRows<any>("finance", "expense_claim"),
+      listTableRows<any>("workflow", "approval_request"),
+    ]);
+    const claim = claims.find((c) => c.id === id);
+    if (!claim) throw new Error("Claim not found");
     if (claim.claimantId !== actorId)
       throw new Error(serverMessages.onlyTheClaimantCanWithdrawThisClaim);
     if (claim.status !== "submitted")
       throw new Error(serverMessages.onlyClaimsAwaitingApprovalCanBeWithdrawn);
-    await db.approvalRequest.updateMany({
-      where: { targetType: "expense_claim", targetId: id, status: "pending" },
-      data: { status: "cancelled" },
-    });
-    return mapClaim(
-      await db.expenseClaim.update({
-        where: { id },
-        data: { status: "cancelled" },
-        include: claimInclude,
-      }),
+    await Promise.all(
+      approvals
+        .filter(
+          (a) =>
+            a.targetType === "expense_claim" &&
+            a.targetId === id &&
+            a.status === "pending",
+        )
+        .map((a) =>
+          upsertTableRow("workflow", "approval_request", {
+            ...a,
+            status: "cancelled",
+          }),
+        ),
     );
+    const updated = await upsertTableRow("finance", "expense_claim", {
+      ...claim,
+      status: "cancelled",
+    });
+    const [hydrated] = await hydrateClaims([updated]);
+    return mapClaim(hydrated);
   });
 }

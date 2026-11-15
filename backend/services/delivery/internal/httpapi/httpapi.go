@@ -46,6 +46,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/shipments/:id/events", h.listShipmentEvents)
 	g.GET("/drivers-ref", h.listDriverRefs)
 	g.GET("/orders-ref", h.listOrderRefs)
+	h.extrasRoutes(g)
 	e.GET("/v1/delivery/track/:token", h.trackShipment)
 }
 func (h *handler) getDeliverySettings(c echo.Context) error {

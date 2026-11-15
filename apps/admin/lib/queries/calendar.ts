@@ -6,7 +6,7 @@ import {
 } from "@platform/locales";
 
 import crypto from "crypto";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow, deleteTableRow } from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import type {
   CalendarEvent,
@@ -44,9 +44,9 @@ export function mapEvent(e: any): CalendarEvent {
     title: e.title,
     title_ar: e.titleAr || undefined,
     description: e.description || undefined,
-    start_date: e.startDate.toISOString(),
-    end_date: e.endDate.toISOString(),
-    all_day: e.allDay,
+    start_date: new Date(e.startDate || e.startTime || Date.now()).toISOString(),
+    end_date: new Date(e.endDate || e.endTime || e.startDate || Date.now()).toISOString(),
+    all_day: !!e.allDay,
     location: e.location || undefined,
     color: e.color || ACCENT,
     event_type: e.eventType as any,
@@ -57,8 +57,8 @@ export function mapEvent(e: any): CalendarEvent {
     recurrence: e.recurrence || undefined,
     reminders: (e.reminders as any) || undefined,
     attendees: (e.attendees as any) || undefined,
-    created_at: e.createdAt.toISOString(),
-    updated_at: e.updatedAt.toISOString(),
+    created_at: new Date(e.createdAt || Date.now()).toISOString(),
+    updated_at: new Date(e.updatedAt || e.createdAt || Date.now()).toISOString(),
     visibility: (e.visibility ?? "company") as CalendarVisibility,
     audience_user_ids: e.audienceUserIds ?? [],
     audience_department_ids: e.audienceDepartmentIds ?? [],
@@ -68,12 +68,12 @@ export function mapEvent(e: any): CalendarEvent {
       ? {
           id: e.deal.id,
           title: e.deal.title,
-          value: Number(e.deal.dealValue),
+          value: Number(e.deal.dealValue ?? 0),
           currency: e.deal.currency as any,
           stage: e.deal.dealStage as any,
           probability: e.deal.probability,
-          created_at: e.deal.createdAt.toISOString(),
-          updated_at: e.deal.updatedAt.toISOString(),
+          created_at: new Date(e.deal.createdAt || Date.now()).toISOString(),
+          updated_at: new Date(e.deal.updatedAt || e.deal.createdAt || Date.now()).toISOString(),
         }
       : undefined,
   };
@@ -95,17 +95,14 @@ export interface CalendarViewer extends Person {
 
 export async function calendarViewer(userId: string): Promise<CalendarViewer> {
   const [users, employees] = await Promise.all([
-    db.user.findMany({
-      select: { id: true, role: true, managerId: true, permissions: true },
-    }),
-    db.employee.findMany({
-      where: { userId: { not: null } },
-      select: { userId: true, departmentId: true },
-    }),
+    listTableRows<any>("identity", "user").catch(() => []),
+    listTableRows<any>("hr", "employee").catch(() => []),
   ]);
-  const department = new Map(employees.map((e) => [e.userId!, e.departmentId]));
+  const department = new Map(
+    employees.filter((e) => e.userId).map((e): [any, any] => [e.userId!, e.departmentId]),
+  );
   const people = new Map<string, Person>(
-    users.map((u) => [
+    users.map((u): [string, Person] => [
       u.id,
       {
         id: u.id,
@@ -299,17 +296,22 @@ async function systemEvents(
     ar: `${e.firstNameAr} ${e.lastNameAr}`,
   });
 
+  const inRange = (d: Date | string | null | undefined) => {
+    if (!d) return false;
+    const t = new Date(d).getTime();
+    return t >= start.getTime() && t <= end.getTime();
+  };
+
   if (layers.has("holidays")) {
-    for (const h of await db.publicHoliday.findMany({
-      where: { date: { gte: start, lte: end } },
-    }))
+    const holidays = await listTableRows<any>("system", "public_holiday").catch(() => []);
+    for (const h of holidays.filter((row) => inRange(row.date)))
       out.push(
         allDayItem({
           id: h.id,
           layer: "holidays",
           title: h.nameEn,
           titleAr: h.nameAr,
-          date: h.date,
+          date: new Date(h.date),
           type: "reminder",
         }),
       );
@@ -317,36 +319,39 @@ async function systemEvents(
 
   if (layers.has("leave")) {
     const everyone = can("employees:read");
-    const leave = await db.leaveRequest.findMany({
-      where: {
-        status: "approved",
-        startDate: { lte: end },
-        endDate: { gte: start },
-        ...(everyone ? {} : { employee: { userId: { in: team } } }),
-      },
-      include: {
-        leaveType: { select: { nameEn: true, nameAr: true } },
-        employee: {
-          select: {
-            firstNameEn: true,
-            lastNameEn: true,
-            firstNameAr: true,
-            lastNameAr: true,
-          },
-        },
-      },
-      take: 500,
-    });
+    const teamSet = new Set(team);
+    const [leaveReqs, leaveTypes, emps] = await Promise.all([
+      listTableRows<any>("hr", "leave_request").catch(() => []),
+      listTableRows<any>("hr", "leave_type").catch(() => []),
+      listTableRows<any>("hr", "employee").catch(() => []),
+    ]);
+    const ltMap = new Map<string, any>(leaveTypes.map((lt): [any, any] => [lt.id, lt]));
+    const empMap = new Map<string, any>(emps.map((e): [any, any] => [e.id, e]));
+    const leave = leaveReqs
+      .filter((l) => {
+        if (l.status !== "approved") return false;
+        const s = new Date(l.startDate).getTime();
+        const e = new Date(l.endDate).getTime();
+        if (!(s <= end.getTime() && e >= start.getTime())) return false;
+        if (!everyone) {
+          const emp = empMap.get(l.employeeId);
+          if (!emp?.userId || !teamSet.has(emp.userId)) return false;
+        }
+        return true;
+      })
+      .slice(0, 500);
     for (const l of leave) {
-      const n = name(l.employee);
+      const emp = empMap.get(l.employeeId) || { firstNameEn: "", lastNameEn: "", firstNameAr: "", lastNameAr: "" };
+      const lt = ltMap.get(l.leaveTypeId) || { nameEn: "", nameAr: "" };
+      const n = name(emp);
       out.push(
         allDayItem({
           id: l.id,
           layer: "leave",
-          title: `${n.en} · ${l.leaveType.nameEn}`,
-          titleAr: `${n.ar} · ${l.leaveType.nameAr}`,
-          date: l.startDate,
-          endDate: l.endDate,
+          title: `${n.en} · ${lt.nameEn}`,
+          titleAr: `${n.ar} · ${lt.nameAr}`,
+          date: new Date(l.startDate),
+          endDate: new Date(l.endDate),
           href: ROUTES.approvalItem("leave_request", l.id),
           type: "reminder",
         }),
@@ -356,27 +361,24 @@ async function systemEvents(
 
   if (layers.has("sales") && can("deals:read")) {
     const all = can("deals:delete");
+    const teamSet = new Set(team);
     const activity = (
       await getCompanyConfiguration().catch(() => null)
     )?.businessActivity;
-    const deals = await db.crmDeal.findMany({
-      where: {
-        dealStage: { notIn: ["closed_lost"] },
-        OR: [
-          { shootDate: { gte: start, lte: end } },
-          { expectedCloseDate: { gte: start, lte: end } },
-        ],
-        ...(all ? {} : { assignedTo: { in: team } }),
-      },
-      select: {
-        id: true,
-        title: true,
-        shootDate: true,
-        expectedCloseDate: true,
-        dealStage: true,
-      },
-      take: 500,
-    });
+    const rawDeals = await listTableRows<any>("sales", "crm_deal").catch(() => []);
+    const deals = rawDeals
+      .filter((d) => {
+        if (d.dealStage === "closed_lost") return false;
+        if (!inRange(d.shootDate) && !inRange(d.expectedCloseDate)) return false;
+        if (!all && (!d.assignedTo || !teamSet.has(d.assignedTo))) return false;
+        return true;
+      })
+      .slice(0, 500)
+      .map((d) => ({
+        ...d,
+        shootDate: d.shootDate ? new Date(d.shootDate) : null,
+        expectedCloseDate: d.expectedCloseDate ? new Date(d.expectedCloseDate) : null,
+      }));
     for (const d of deals) {
       if (d.shootDate && d.shootDate >= start && d.shootDate <= end)
         out.push(
@@ -423,22 +425,16 @@ async function systemEvents(
 
   if (layers.has("sales") && can("quotations:read")) {
     const all = can("quotations:issue_send");
-    const quotes = await db.quotation.findMany({
-      where: {
-        status: { in: ["issued", "approved"] },
-        validUntilDate: { gte: start, lte: end },
-        ...(all
-          ? {}
-          : {
-              OR: [
-                { salesOwnerId: { in: team } },
-                { createdById: { in: team } },
-              ],
-            }),
-      },
-      select: { id: true, quotationNumber: true, validUntilDate: true },
-      take: 300,
-    });
+    const teamSet = new Set(team);
+    const rawQuotes = await listTableRows<any>("sales", "quotation").catch(() => []);
+    const quotes = rawQuotes
+      .filter((q) => {
+        if (!["issued", "approved"].includes(q.status)) return false;
+        if (!inRange(q.validUntilDate)) return false;
+        if (!all && !teamSet.has(q.salesOwnerId) && !teamSet.has(q.createdById)) return false;
+        return true;
+      })
+      .slice(0, 300);
     for (const q of quotes)
       out.push(
         allDayItem({
@@ -452,21 +448,21 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.quotationExpiry,
             { number: q.quotationNumber },
           ),
-          date: q.validUntilDate,
+          date: new Date(q.validUntilDate),
           href: ROUTES.quotations.detail(q.id),
         }),
       );
   }
 
   if (layers.has("finance") && can("invoices:read")) {
-    const invoices = await db.invoice.findMany({
-      where: {
-        status: { in: ["sent", "partially_paid", "overdue"] },
-        dueDate: { gte: start, lte: end },
-      },
-      select: { id: true, invoiceNumber: true, dueDate: true },
-      take: 300,
-    });
+    const rawInvoices = await listTableRows<any>("finance", "invoice").catch(() => []);
+    const invoices = rawInvoices
+      .filter(
+        (i) =>
+          ["sent", "partially_paid", "overdue"].includes(i.status) &&
+          inRange(i.dueDate),
+      )
+      .slice(0, 300);
     for (const i of invoices)
       out.push(
         allDayItem({
@@ -480,18 +476,17 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.invoiceDue,
             { number: i.invoiceNumber },
           ),
-          date: i.dueDate,
+          date: new Date(i.dueDate),
           href: ROUTES.invoices.detail(i.id),
         }),
       );
   }
 
   if (layers.has("finance") && can("expenses:read")) {
-    const bills = await db.recurringExpense.findMany({
-      where: { isActive: true, nextDueDate: { gte: start, lte: end } },
-      select: { id: true, titleEn: true, titleAr: true, nextDueDate: true },
-      take: 200,
-    });
+    const rawBills = await listTableRows<any>("finance", "recurring_expense").catch(() => []);
+    const bills = rawBills
+      .filter((b) => b.isActive && inRange(b.nextDueDate))
+      .slice(0, 200);
     for (const b of bills)
       out.push(
         allDayItem({
@@ -505,17 +500,15 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.billDue,
             { title: b.titleAr || b.titleEn },
           ),
-          date: b.nextDueDate,
+          date: new Date(b.nextDueDate),
           href: ROUTES.expenses.recurring,
         }),
       );
   }
 
   if (layers.has("payroll") && can("payroll:read")) {
-    const runs = await db.payrollRun.findMany({
-      where: { payDate: { gte: start, lte: end } },
-      select: { id: true, year: true, month: true, payDate: true },
-    });
+    const rawRuns = await listTableRows<any>("hr", "payroll_run").catch(() => []);
+    const runs = rawRuns.filter((r) => inRange(r.payDate));
     for (const r of runs)
       out.push(
         allDayItem({
@@ -529,7 +522,7 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.payrollPaid,
             { period: `${r.year}-${String(r.month).padStart(2, "0")}` },
           ),
-          date: r.payDate!,
+          date: new Date(r.payDate!),
           href: ROUTES.hr.payroll({ highlight: r.id }),
         }),
       );
@@ -537,31 +530,35 @@ async function systemEvents(
 
   if (layers.has("hr")) {
     const everyone = can("employees:read");
-    const employees = await db.employee.findMany({
-      where: {
-        status: { not: "terminated" },
-        ...(everyone ? {} : { userId: viewer.id }),
-        OR: [
-          { passportExpiryDate: { gte: start, lte: end } },
-          { cprExpiryDate: { gte: start, lte: end } },
-          { credentials: { some: { expiryDate: { gte: start, lte: end } } } },
-        ],
-      },
-      select: {
-        id: true,
-        firstNameEn: true,
-        lastNameEn: true,
-        firstNameAr: true,
-        lastNameAr: true,
-        passportExpiryDate: true,
-        cprExpiryDate: true,
-        credentials: {
-          where: { expiryDate: { gte: start, lte: end } },
-          select: { id: true, kind: true, label: true, expiryDate: true },
-        },
-      },
-      take: 300,
-    });
+    const [rawEmps, rawCreds] = await Promise.all([
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("hr", "employee_credential").catch(() => []),
+    ]);
+    const credsByEmp = new Map<string, any[]>();
+    for (const c of rawCreds) {
+      if (inRange(c.expiryDate)) {
+        const arr = credsByEmp.get(c.employeeId) || [];
+        arr.push({ ...c, expiryDate: new Date(c.expiryDate) });
+        credsByEmp.set(c.employeeId, arr);
+      }
+    }
+    const employees = rawEmps
+      .filter((e) => {
+        if (e.status === "terminated") return false;
+        if (!everyone && e.userId !== viewer.id) return false;
+        return (
+          inRange(e.passportExpiryDate) ||
+          inRange(e.cprExpiryDate) ||
+          (credsByEmp.get(e.id)?.length ?? 0) > 0
+        );
+      })
+      .slice(0, 300)
+      .map((e) => ({
+        ...e,
+        passportExpiryDate: e.passportExpiryDate ? new Date(e.passportExpiryDate) : null,
+        cprExpiryDate: e.cprExpiryDate ? new Date(e.cprExpiryDate) : null,
+        credentials: credsByEmp.get(e.id) || [],
+      }));
     for (const e of employees) {
       const n = name(e);
       if (
@@ -639,11 +636,8 @@ async function systemEvents(
         );
     }
     if (can("settings:read")) {
-      for (const d of await db.companyDocument.findMany({
-        where: { validUntil: { gte: start, lte: end } },
-        select: { id: true, titleEn: true, titleAr: true, validUntil: true },
-        take: 100,
-      }))
+      const docs = await listTableRows<any>("system", "company_document").catch(() => []);
+      for (const d of docs.filter((row) => inRange(row.validUntil)).slice(0, 100))
         out.push(
           allDayItem({
             id: d.id,
@@ -658,7 +652,7 @@ async function systemEvents(
                 .companyDocumentExpiry,
               { title: d.titleAr || d.titleEn },
             ),
-            date: d.validUntil!,
+            date: new Date(d.validUntil!),
             href: ROUTES.archive,
           }),
         );
@@ -666,11 +660,8 @@ async function systemEvents(
   }
 
   if (layers.has("meetings") && can("moms:read")) {
-    const moms = await db.minuteOfMeeting.findMany({
-      where: { meetingDate: { gte: start, lte: end } },
-      select: { id: true, title: true, titleAr: true, meetingDate: true },
-      take: 200,
-    });
+    const rawMoms = await listTableRows<any>("workflow", "minute_of_meeting").catch(() => []);
+    const moms = rawMoms.filter((m) => inRange(m.meetingDate)).slice(0, 200);
     for (const m of moms)
       out.push(
         allDayItem({
@@ -684,7 +675,7 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.meeting,
             { title: m.titleAr || m.title },
           ),
-          date: m.meetingDate,
+          date: new Date(m.meetingDate),
           href: ROUTES.moms.detail(m.id),
           type: "meeting",
         }),
@@ -692,21 +683,17 @@ async function systemEvents(
   }
 
   if (layers.has("requests") && can("requests:read")) {
-    const requests = await db.inquiry.findMany({
-      where: {
-        slaDueDate: { gte: start, lte: end },
-        workflowStatus: { notIn: ["resolved", "rejected"] },
-        ...(can("requests:assign") ? {} : { assignedToId: { in: team } }),
-      },
-      select: {
-        id: true,
-        reference: true,
-        projectReference: true,
-        name: true,
-        slaDueDate: true,
-      },
-      take: 200,
-    });
+    const teamSet = new Set(team);
+    const canAssign = can("requests:assign");
+    const rawRequests = await listTableRows<any>("sales", "inquiry").catch(() => []);
+    const requests = rawRequests
+      .filter((r) => {
+        if (!inRange(r.slaDueDate)) return false;
+        if (["resolved", "rejected"].includes(r.workflowStatus)) return false;
+        if (!canAssign && (!r.assignedToId || !teamSet.has(r.assignedToId))) return false;
+        return true;
+      })
+      .slice(0, 200);
     for (const r of requests)
       out.push(
         allDayItem({
@@ -720,7 +707,7 @@ async function systemEvents(
             getTranslations("ar").admin.calendarMessages.requestDue,
             { title: r.projectReference || r.name },
           ),
-          date: r.slaDueDate!,
+          date: new Date(r.slaDueDate!),
           href: ROUTES.requests.detail(r.id),
         }),
       );
@@ -736,12 +723,25 @@ export async function getCalendarFor(
 ): Promise<CalendarEvent[]> {
   const viewer = await calendarViewer(userId);
   const wanted = new Set(layers);
-  const rows = await db.calendarEvent.findMany({
-    where: { startDate: { lte: end }, endDate: { gte: start } },
-    include: { deal: true, createdBy: { select: { fullName: true } } },
-    orderBy: { startDate: "asc" },
-    take: 2000,
-  });
+  const [rawEvents, rawDeals, rawUsers] = await Promise.all([
+    listTableRows<any>("workflow", "calendar_event", "start_date ASC").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+    listTableRows<any>("identity", "user").catch(() => []),
+  ]);
+  const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+  const userMap = new Map<string, any>(rawUsers.map((u): [any, any] => [u.id, u]));
+  const rows = rawEvents
+    .filter((row) => {
+      const s = new Date(row.startDate || row.startTime || 0).getTime();
+      const e = new Date(row.endDate || row.endTime || row.startDate || 0).getTime();
+      return s <= end.getTime() && e >= start.getTime();
+    })
+    .slice(0, 2000)
+    .map((row) => ({
+      ...row,
+      deal: row.dealId ? dealMap.get(row.dealId) || null : null,
+      createdBy: row.createdById ? userMap.get(row.createdById) || null : null,
+    }));
   let events = rows
     .filter((row) => canSeeEvent(row, viewer))
     .map((row) => {
@@ -758,7 +758,7 @@ export async function getCalendarFor(
     const { listCalendarEvents } = await import("../api/workflow");
     const apiEvents = await listCalendarEvents().catch(() => []);
     if (apiEvents && apiEvents.length) {
-      events = apiEvents.map((ev: any) => ({
+      events = apiEvents.map((ev: any): any => ({
         id: ev.id || ev.ID || "",
         title: ev.title || ev.Title || "",
         description: ev.description || ev.Description || undefined,
@@ -801,30 +801,33 @@ export async function getCalendarEvents(
   endDate?: Date,
   limit?: number,
 ): Promise<CalendarEvent[]> {
-  const where: any = {};
-  if (startDate && endDate) {
-    where.startDate = { lte: endDate };
-    where.endDate = { gte: startDate };
-  } else if (startDate) {
-    where.endDate = { gte: startDate };
-  }
-  const events = await db.calendarEvent.findMany({
-    where,
-    take: limit,
-    include: { deal: true },
-    orderBy: { startDate: "asc" },
+  const [rawEvents, rawDeals] = await Promise.all([
+    listTableRows<any>("workflow", "calendar_event", "start_date ASC").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+  ]);
+  const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));
+  let events = rawEvents.filter((row) => {
+    const s = new Date(row.startDate || row.startTime || 0).getTime();
+    const e = new Date(row.endDate || row.endTime || row.startDate || 0).getTime();
+    if (startDate && endDate) return s <= endDate.getTime() && e >= startDate.getTime();
+    if (startDate) return e >= startDate.getTime();
+    return true;
   });
-  return events.map(mapEvent);
+  if (limit) events = events.slice(0, limit);
+  return events.map((ev) => mapEvent({ ...ev, deal: ev.dealId ? dealMap.get(ev.dealId) || null : null }));
 }
 
 export async function getCalendarEventById(
   id: string,
 ): Promise<CalendarEvent | null> {
-  const event = await db.calendarEvent.findUnique({
-    where: { id },
-    include: { deal: true },
-  });
-  return event ? mapEvent(event) : null;
+  const [rawEvents, rawDeals] = await Promise.all([
+    listTableRows<any>("workflow", "calendar_event").catch(() => []),
+    listTableRows<any>("sales", "crm_deal").catch(() => []),
+  ]);
+  const event = rawEvents.find((e) => e.id === id);
+  if (!event) return null;
+  const deal = event.dealId ? rawDeals.find((d) => d.id === event.dealId) || null : null;
+  return mapEvent({ ...event, deal });
 }
 
 export interface CalendarAudienceInput {
@@ -877,24 +880,22 @@ export async function createCalendarEvent(
     google_calendar_id?: string;
   } & CalendarAudienceInput,
 ): Promise<CalendarEvent> {
-  const created = await db.calendarEvent.create({
-    data: {
-      title: data.title,
-      titleAr: data.title_ar || null,
-      description: data.description || null,
-      startDate: new Date(data.start_date),
-      endDate: new Date(data.end_date),
-      allDay: data.all_day ?? false,
-      location: data.location || null,
-      color: data.color || null,
-      eventType: data.event_type || "meeting",
-      dealId: data.deal_id || null,
-      createdById: data.created_by || null,
-      googleEventId: data.google_event_id || null,
-      googleCalendarId: data.google_calendar_id || null,
-      ...normalizeAudience(data),
-    },
-    include: { deal: true },
+  const created = await upsertTableRow<any>("workflow", "calendar_event", {
+    id: crypto.randomUUID(),
+    title: data.title,
+    titleAr: data.title_ar || null,
+    description: data.description || null,
+    startDate: new Date(data.start_date).toISOString(),
+    endDate: new Date(data.end_date).toISOString(),
+    allDay: data.all_day ?? false,
+    location: data.location || null,
+    color: data.color || null,
+    eventType: data.event_type || "meeting",
+    dealId: data.deal_id || null,
+    createdById: data.created_by || null,
+    googleEventId: data.google_event_id || null,
+    googleCalendarId: data.google_calendar_id || null,
+    ...normalizeAudience(data),
   });
   return mapEvent(created);
 }
@@ -903,14 +904,16 @@ export async function updateCalendarEvent(
   id: string,
   data: Partial<CalendarEvent> & CalendarAudienceInput,
 ): Promise<CalendarEvent | null> {
-  const updateData: any = {};
+  const existing = (await listTableRows<any>("workflow", "calendar_event")).find((e) => e.id === id);
+  if (!existing) return null;
+  const updateData: any = { ...existing, id };
   if (data.title !== undefined) updateData.title = data.title;
   if (data.title_ar !== undefined) updateData.titleAr = data.title_ar || null;
   if (data.description !== undefined)
     updateData.description = data.description || null;
   if (data.start_date !== undefined)
-    updateData.startDate = new Date(data.start_date);
-  if (data.end_date !== undefined) updateData.endDate = new Date(data.end_date);
+    updateData.startDate = new Date(data.start_date).toISOString();
+  if (data.end_date !== undefined) updateData.endDate = new Date(data.end_date).toISOString();
   if (data.all_day !== undefined) updateData.allDay = data.all_day;
   if (data.location !== undefined) updateData.location = data.location || null;
   if (data.color !== undefined) updateData.color = data.color;
@@ -922,16 +925,12 @@ export async function updateCalendarEvent(
     updateData.googleCalendarId = data.google_calendar_id;
   if (data.visibility !== undefined)
     Object.assign(updateData, normalizeAudience(data));
-  const updated = await db.calendarEvent.update({
-    where: { id },
-    data: updateData,
-    include: { deal: true },
-  });
+  const updated = await upsertTableRow<any>("workflow", "calendar_event", updateData);
   return mapEvent(updated);
 }
 
 export async function deleteCalendarEvent(id: string): Promise<boolean> {
-  await db.calendarEvent.delete({ where: { id } });
+  await deleteTableRow("workflow", "calendar_event", id);
   return true;
 }
 
@@ -939,15 +938,13 @@ const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
 export async function getCalendarFeedInfo(userId: string) {
-  const row = await db.calendarFeedToken.findUnique({
-    where: { userId },
-    select: { layers: true, createdAt: true, lastUsedAt: true },
-  });
+  const rows = await listTableRows<any>("system", "calendar_feed_token").catch(() => []);
+  const row = rows.find((r) => r.userId === userId);
   return row
     ? {
         layers: row.layers as CalendarLayer[],
-        createdAt: row.createdAt.toISOString(),
-        lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
+        createdAt: new Date(row.createdAt || Date.now()).toISOString(),
+        lastUsedAt: row.lastUsedAt ? new Date(row.lastUsedAt).toISOString() : null,
       }
     : null;
 }
@@ -962,15 +959,16 @@ export async function createCalendarFeedToken(
   if (!chosen.length)
     throw new Error(serverMessages.chooseWhatYourCalendarLinkIncludes);
   const token = crypto.randomBytes(32).toString("base64url");
-  await db.calendarFeedToken.upsert({
-    where: { userId },
-    update: {
-      tokenHash: hashToken(token),
-      layers: chosen,
-      lastUsedAt: null,
-      createdAt: new Date(),
-    },
-    create: { userId, tokenHash: hashToken(token), layers: chosen },
+  const rows = await listTableRows<any>("system", "calendar_feed_token").catch(() => []);
+  const existing = rows.find((r) => r.userId === userId);
+  await upsertTableRow("system", "calendar_feed_token", {
+    ...(existing || {}),
+    id: existing?.id ?? crypto.randomUUID(),
+    userId,
+    tokenHash: hashToken(token),
+    layers: chosen,
+    lastUsedAt: null,
+    createdAt: new Date().toISOString(),
   });
   return token;
 }
@@ -984,36 +982,43 @@ export async function updateCalendarFeedLayers(
   );
   if (!chosen.length)
     throw new Error(serverMessages.chooseWhatYourCalendarLinkIncludes);
-  await db.calendarFeedToken.update({
-    where: { userId },
-    data: { layers: chosen },
-  });
+  const rows = await listTableRows<any>("system", "calendar_feed_token");
+  const existing = rows.find((r) => r.userId === userId);
+  if (existing) {
+    await upsertTableRow("system", "calendar_feed_token", {
+      ...existing,
+      layers: chosen,
+    });
+  }
 }
 
 export async function revokeCalendarFeedToken(userId: string) {
-  await db.calendarFeedToken.deleteMany({ where: { userId } });
+  const rows = await listTableRows<any>("system", "calendar_feed_token").catch(() => []);
+  for (const r of rows.filter((row) => row.userId === userId)) {
+    await deleteTableRow("system", "calendar_feed_token", r.id);
+  }
 }
 
 export async function resolveCalendarFeedToken(token: string) {
   if (typeof token !== "string" || token.length < 30 || token.length > 100)
     return null;
-  const row = await db.calendarFeedToken.findUnique({
-    where: { tokenHash: hashToken(token) },
-    include: {
-      user: {
-        select: { id: true, isActive: true, role: true, permissions: true },
-      },
-    },
-  });
-  if (!row || !row.user.isActive) return null;
-  await db.calendarFeedToken.update({
-    where: { id: row.id },
-    data: { lastUsedAt: new Date() },
+  const [rows, users] = await Promise.all([
+    listTableRows<any>("system", "calendar_feed_token").catch(() => []),
+    listTableRows<any>("identity", "user").catch(() => []),
+  ]);
+  const tokenHash = hashToken(token);
+  const row = rows.find((r) => r.tokenHash === tokenHash);
+  if (!row) return null;
+  const user = users.find((u) => u.id === row.userId);
+  if (!user || !user.isActive) return null;
+  await upsertTableRow("system", "calendar_feed_token", {
+    ...row,
+    lastUsedAt: new Date().toISOString(),
   });
   return {
     userId: row.userId,
     layers: row.layers as CalendarLayer[],
-    role: row.user.role,
-    permissions: row.user.permissions as Record<string, boolean> | null,
+    role: user.role,
+    permissions: user.permissions as Record<string, boolean> | null,
   };
 }

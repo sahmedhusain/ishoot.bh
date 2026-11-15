@@ -1,21 +1,22 @@
-import type { Database } from "@platform/database/decimal";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 
 export async function slaDueFor(
   priority: string | null | undefined,
   from = new Date(),
-  client: Database.TransactionClient | typeof db = db,
+  _client?: unknown,
 ) {
-  const settings = await client.serviceSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
+  const rows = await listTableRows<Record<string, any>>("system", "service_settings");
+  let settings = rows.find((s) => s.id === "default");
+  if (!settings) {
+    settings = await upsertTableRow("system", "service_settings", {
+      id: "default",
+    });
+  }
   const hours =
     priority === "urgent"
-      ? settings.slaUrgentHours
+      ? Number(settings?.slaUrgentHours ?? 4)
       : priority === "high"
-        ? settings.slaHighHours
-        : settings.slaNormalHours;
+        ? Number(settings?.slaHighHours ?? 24)
+        : Number(settings?.slaNormalHours ?? 72);
   return new Date(from.getTime() + hours * 3_600_000);
 }

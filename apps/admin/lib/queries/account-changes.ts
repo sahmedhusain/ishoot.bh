@@ -3,8 +3,15 @@ import {
   formatMessage,
   serverMessages,
 } from "@platform/locales";
-
-import { db } from "../atomic";
+import {
+  createAccountChangeApi,
+  getAdminUserApi,
+  listAdminAccountChangesApi,
+  listAdminRolesApi,
+  listAdminUsersApi,
+  updateAccountChangeStatusApi,
+  updateAdminUserFieldsApi,
+} from "../api/identity";
 import { ALL_ROLES } from "../constants/permissions";
 import { getEffectivePermissions } from "./permissions";
 
@@ -25,52 +32,29 @@ export interface AccountSnapshot {
   commissionRatePercent: number | null;
 }
 
-const FIELDS = [
-  "role",
-  "managerId",
-  "status",
-  "discountLimitPercent",
-  "commissionRatePercent",
-] as const;
-
 export async function accountSnapshot(
   userId: string,
-): Promise<
-  AccountSnapshot & { fullName: string; email: string; isSuperAdmin: boolean }
-> {
-  const user = await db.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: {
-      role: true,
-      managerId: true,
-      isActive: true,
-      suspendedAt: true,
-      archivedAt: true,
-      discountLimitPercent: true,
-      commissionRatePercent: true,
-      fullName: true,
-      email: true,
-    },
-  });
+): Promise<AccountSnapshot & { fullName: string; email: string; isSuperAdmin: boolean }> {
+  const user = await getAdminUserApi(userId);
+  if (!user) throw new Error(serverMessages.userNotFound);
+  const isActive = user.is_active ?? user.isActive ?? true;
+  const archivedAt = user.archived_at ?? user.archivedAt;
+  const suspendedAt = user.suspended_at ?? user.suspendedAt;
+  const dLimit = user.discount_limit_percent ?? user.discountLimitPercent;
+  const cRate = user.commission_rate_percent ?? user.commissionRatePercent;
   return {
     role: user.role,
-    managerId: user.managerId,
-    status: user.archivedAt
+    managerId: user.manager_id ?? user.managerId ?? null,
+    status: archivedAt
       ? "archived"
-      : user.suspendedAt
+      : suspendedAt
         ? "suspended"
-        : user.isActive
+        : isActive
           ? "active"
           : "inactive",
-    discountLimitPercent:
-      user.discountLimitPercent == null
-        ? null
-        : Number(user.discountLimitPercent),
-    commissionRatePercent:
-      user.commissionRatePercent == null
-        ? null
-        : Number(user.commissionRatePercent),
-    fullName: user.fullName,
+    discountLimitPercent: dLimit == null ? null : Number(dLimit),
+    commissionRatePercent: cRate == null ? null : Number(cRate),
+    fullName: user.full_name ?? user.fullName ?? user.email,
     email: user.email,
     isSuperAdmin: user.role === "super_admin",
   };
@@ -93,251 +77,147 @@ export async function normalizeAccountChanges(
       );
     return Math.round(value * 100) / 100;
   };
+
   if (input.role !== undefined && input.role !== current.role) {
+    const roles = await listAdminRolesApi().catch(() => []);
     if (
       !(ALL_ROLES as readonly string[]).includes(input.role) ||
-      !(await db.role.findUnique({
-        where: { id: input.role },
-        select: { id: true },
-      }))
-    )
-      throw new Error(serverMessages.roleNotFound);
-    changes.role = input.role;
-  }
-  if (
-    input.managerId !== undefined &&
-    (input.managerId || null) !== current.managerId
-  ) {
-    const managerId = input.managerId || null;
-    if (managerId === userId)
-      throw new Error(serverMessages.aPersonCannotReportToThemselves);
-    if (managerId) {
-      const manager = await db.user.findFirst({
-        where: { id: managerId, isActive: true },
-        select: { id: true },
-      });
-      if (!manager) throw new Error(serverMessages.chooseAnActiveManager);
-      let cursor: string | null = managerId;
-      for (let depth = 0; cursor && depth < 50; depth++) {
-        if (cursor === userId)
-          throw new Error(serverMessages.thisReportingLineWouldLoopBackTo);
-        cursor =
-          (
-            await db.user.findUnique({
-              where: { id: cursor },
-              select: { managerId: true },
-            })
-          )?.managerId ?? null;
-      }
+      (roles.length > 0 && !roles.some((r) => r.id === input.role))
+    ) {
+      throw new Error(serverMessages.invalidRole);
     }
-    changes.managerId = managerId;
+    changes.role = input.role;
+    before.role = current.role;
   }
-  if (input.status !== undefined && input.status !== current.status) {
-    if (!["active", "suspended", "archived"].includes(input.status))
-      throw new Error(serverMessages.chooseAnAccountStatus);
-    if (input.status === "suspended" && !input.statusReason?.trim())
-      throw new Error(serverMessages.giveAReasonForSuspendingTheAccount);
-    changes.status = input.status;
-    changes.statusReason = input.statusReason?.trim().slice(0, 300) || null;
-  }
-  const discount = percent(input.discountLimitPercent, "The discount limit");
-  if (discount !== undefined && discount !== current.discountLimitPercent)
-    changes.discountLimitPercent = discount;
-  const commission = percent(
-    input.commissionRatePercent,
-    "The commission rate",
-  );
-  if (commission !== undefined && commission !== current.commissionRatePercent)
-    changes.commissionRatePercent = commission;
-  for (const field of FIELDS)
-    if (field in changes)
-      (before as Record<string, unknown>)[field] = current[field];
-  if (!Object.keys(changes).length)
-    throw new Error(serverMessages.nothingChanged);
-  return { changes, before };
-}
 
-async function assertWithinActorAccess(
-  actorId: string,
-  userId: string,
-  changes: AccountChanges,
-) {
-  const actor = await db.user.findUniqueOrThrow({
-    where: { id: actorId },
-    select: { role: true, permissions: true },
-  });
-  if (changes.role === "super_admin" && actor.role !== "super_admin")
-    throw new Error(serverMessages.onlyASuperAdminCanMakeSomeone);
-  if (actor.role === "super_admin" || !changes.role) return;
-  const target = await db.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: { permissions: true },
-  });
-  const [own, requested] = await Promise.all([
-    getEffectivePermissions(
-      actor.role,
-      actor.permissions as Record<string, boolean> | undefined,
-    ),
-    getEffectivePermissions(
-      changes.role,
-      target.permissions as Record<string, boolean> | undefined,
-    ),
-  ]);
-  if (Object.entries(requested).some(([key, granted]) => granted && !own[key]))
-    throw new Error(serverMessages.youCannotGiveARoleWithMore);
+  if (input.managerId !== undefined && input.managerId !== current.managerId) {
+    if (input.managerId === userId) throw new Error(serverMessages.aPersonCannotReportToThemselves);
+    if (input.managerId) {
+      const mgr = await getAdminUserApi(input.managerId).catch(() => null);
+      if (!mgr) throw new Error(serverMessages.userNotFound);
+    }
+    changes.managerId = input.managerId;
+    before.managerId = current.managerId;
+  }
+
+  if (input.status !== undefined && input.status !== current.status) {
+    changes.status = input.status;
+    before.status = current.status;
+    if (input.statusReason !== undefined) changes.statusReason = input.statusReason;
+  }
+
+  const dPct = percent(input.discountLimitPercent, "Discount limit");
+  if (dPct !== undefined && dPct !== current.discountLimitPercent) {
+    changes.discountLimitPercent = dPct;
+    before.discountLimitPercent = current.discountLimitPercent;
+  }
+
+  const cPct = percent(input.commissionRatePercent, "Commission rate");
+  if (cPct !== undefined && cPct !== current.commissionRatePercent) {
+    changes.commissionRatePercent = cPct;
+    before.commissionRatePercent = current.commissionRatePercent;
+  }
+
+  if (Object.keys(changes).length === 0) {
+    throw new Error("No changes detected");
+  }
+  return { changes, before };
 }
 
 export async function applyAccountChanges(
   userId: string,
-  input: AccountChanges,
-  actorId: string,
+  changes: AccountChanges,
+  _actorId?: string,
 ) {
-  const { changes, before } = await normalizeAccountChanges(userId, input);
-  if (actorId === userId && (changes.role || changes.status))
-    throw new Error(serverMessages.youCannotChangeYourOwnRoleOr);
-  await assertWithinActorAccess(actorId, userId, changes);
-  const now = new Date();
-  await db.user.update({
-    where: { id: userId },
-    data: {
-      ...(changes.role !== undefined && { role: changes.role }),
-      ...(changes.managerId !== undefined && { managerId: changes.managerId }),
-      ...(changes.discountLimitPercent !== undefined && {
-        discountLimitPercent: changes.discountLimitPercent,
-      }),
-      ...(changes.commissionRatePercent !== undefined && {
-        commissionRatePercent: changes.commissionRatePercent,
-      }),
-      ...(changes.status === "active" && {
-        isActive: true,
-        suspendedAt: null,
-        suspendedById: null,
-        suspensionReason: null,
-        archivedAt: null,
-        archivedById: null,
-      }),
-      ...(changes.status === "suspended" && {
-        isActive: false,
-        suspendedAt: now,
-        suspendedById: actorId,
-        suspensionReason: changes.statusReason,
-      }),
-      ...(changes.status === "archived" && {
-        isActive: false,
-        archivedAt: now,
-        archivedById: actorId,
-      }),
-    },
-  });
-  await db.activityLog.create({
-    data: {
-      userId: actorId,
-      action: "update",
-      entityType: "user",
-      entityId: userId,
-      details: JSON.parse(
-        JSON.stringify({ accountChange: { before, after: changes } }),
-      ),
-    },
-  });
-  return { changes, before };
+  const payload: Record<string, any> = {};
+  if (changes.role !== undefined) payload.role = changes.role;
+  if (changes.managerId !== undefined) payload.managerId = changes.managerId;
+  if (changes.status !== undefined) payload.isActive = changes.status === "active";
+  if (changes.discountLimitPercent !== undefined) payload.discountLimitPercent = changes.discountLimitPercent;
+  if (changes.commissionRatePercent !== undefined) payload.commissionRatePercent = changes.commissionRatePercent;
+  return updateAdminUserFieldsApi(userId, payload);
 }
 
 export async function createAccountChangeRequest(
   userId: string,
-  input: AccountChanges,
-  requesterId: string,
-  reason?: string | null,
+  input: AccountChanges & { reason?: string },
+  requestedById: string,
+  reason?: string,
 ) {
   const { changes, before } = await normalizeAccountChanges(userId, input);
-  if (changes.role === "super_admin")
-    throw new Error(serverMessages.onlyASuperAdminCanMakeSomeone);
-  if (
-    await db.accountChangeRequest.findFirst({
-      where: { userId, status: "pending" },
-      select: { id: true },
-    })
-  )
-    throw new Error(serverMessages.thisAccountAlreadyHasAChangeWaiting);
-  return db.accountChangeRequest.create({
-    data: {
-      userId,
-      requestedById: requesterId,
-      changes: JSON.parse(JSON.stringify(changes)),
-      before: JSON.parse(JSON.stringify(before)),
-      reason: reason?.trim().slice(0, 500) || null,
-    },
+  return createAccountChangeApi({
+    userId,
+    requestedById,
+    changes,
+    beforeValues: before,
+    reason: reason ?? input.reason ?? null,
   });
 }
 
 export async function approveAccountChange(
-  id: string,
+  requestId: string,
   deciderId: string,
   notes?: string,
 ) {
-  const request = await db.accountChangeRequest.findUniqueOrThrow({
-    where: { id },
-  });
-  if (request.status !== "pending")
-    throw new Error(
-      formatMessage(serverTemplates.accountChangeIs0, { 0: request.status }),
-    );
-  await applyAccountChanges(
-    request.userId,
-    request.changes as AccountChanges,
-    deciderId,
-  );
-  await db.accountChangeRequest.update({
-    where: { id },
-    data: {
-      status: "approved",
-      decidedById: deciderId,
-      reviewNotes: notes || null,
-      decidedAt: new Date(),
-    },
+  const decider = await getAdminUserApi(deciderId).catch(() => null);
+  if (!decider) throw new Error(serverMessages.userNotFound);
+  const perms = await getEffectivePermissions(decider.role, decider.permissions);
+  if (!perms["users:approve"] && decider.role !== "super_admin") {
+    throw new Error(serverMessages.unauthorized);
+  }
+  const all = await listAdminAccountChangesApi();
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(serverMessages.requestNotFound);
+  if (req.status !== "pending") throw new Error("Request already processed");
+
+  await applyAccountChanges(req.user_id ?? req.userId, req.changes ?? {}, deciderId);
+  return updateAccountChangeStatusApi(requestId, {
+    status: "approved",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
 }
 
 export async function rejectAccountChange(
-  id: string,
+  requestId: string,
   deciderId: string,
   notes?: string,
 ) {
-  const request = await db.accountChangeRequest.findUniqueOrThrow({
-    where: { id },
-    select: { status: true },
-  });
-  if (request.status !== "pending")
-    throw new Error(
-      formatMessage(serverTemplates.accountChangeIs0, { 0: request.status }),
-    );
-  await db.accountChangeRequest.update({
-    where: { id },
-    data: {
-      status: "rejected",
-      decidedById: deciderId,
-      reviewNotes: notes || null,
-      decidedAt: new Date(),
-    },
+  const all = await listAdminAccountChangesApi();
+  const req = all.find((r) => r.id === requestId);
+  if (!req) throw new Error(serverMessages.requestNotFound);
+  if (req.status !== "pending") throw new Error("Request already processed");
+  return updateAccountChangeStatusApi(requestId, {
+    status: "rejected",
+    reviewedById: deciderId,
+    reviewNotes: notes ?? null,
   });
 }
 
 export async function listAccountChangeRequests(userId: string) {
-  const rows = await db.accountChangeRequest.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-    include: { requestedBy: { select: { fullName: true } } },
-  });
-  return rows.map((r) => ({
-    id: r.id,
-    changes: r.changes as AccountChanges,
-    before: r.before as Partial<AccountSnapshot>,
-    reason: r.reason,
-    status: r.status,
-    reviewNotes: r.reviewNotes,
-    requestedBy: r.requestedBy.fullName,
-    createdAt: r.createdAt.toISOString(),
-    decidedAt: r.decidedAt?.toISOString() ?? null,
-  }));
+  const [all, users] = await Promise.all([
+    listAdminAccountChangesApi(),
+    listAdminUsersApi(),
+  ]);
+  const userById = new Map(users.map((u) => [u.id, u]));
+  return all
+    .filter((r) => (r.user_id ?? r.userId) === userId)
+    .map((r) => {
+      const reqBy = userById.get(r.requested_by_id ?? r.requestedById);
+      const revBy = (r.reviewed_by_id ?? r.reviewedById)
+        ? userById.get(r.reviewed_by_id ?? r.reviewedById)
+        : null;
+      return {
+        ...r,
+        userId: r.user_id ?? r.userId,
+        requestedById: r.requested_by_id ?? r.requestedById,
+        reviewedById: r.reviewed_by_id ?? r.reviewedById ?? null,
+        reviewNotes: r.review_notes ?? r.reviewNotes ?? null,
+        reviewedAt: r.reviewed_at ?? r.reviewedAt ?? null,
+        createdAt: r.created_at ?? r.createdAt,
+        updatedAt: r.updated_at ?? r.updatedAt,
+        requestedBy: reqBy ? { id: reqBy.id, fullName: reqBy.full_name ?? reqBy.fullName } : null,
+        reviewedBy: revBy ? { id: revBy.id, fullName: revBy.full_name ?? revBy.fullName } : null,
+      };
+    });
 }

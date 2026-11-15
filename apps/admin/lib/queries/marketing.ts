@@ -1,8 +1,8 @@
 import { isValidEmail } from "../constants/validation";
 import crypto from "node:crypto";
-import { Database } from "@platform/database/decimal";
 import { getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
+import { runAtomicMutation } from "../api/atomic";
 import {
   CAMPAIGN_CHANNELS,
   CAMPAIGN_STATUSES,
@@ -14,11 +14,13 @@ import {
 } from "../constants/outreach";
 import { getNextSequenceNumber } from "./sequence";
 
-const num = (value: { toString(): string } | null | undefined) =>
-  value == null ? 0 : Number(value.toString());
+const num = (value: unknown) => (value == null ? 0 : Number(value));
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
-const dateOnly = (value: Date | null) =>
-  value ? value.toISOString().slice(0, 10) : null;
+const dateOnly = (value: Date | string | null | undefined) => {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+};
 const parseDate = (text: string) => {
   if (!text) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text))
@@ -34,26 +36,13 @@ async function campaignResults(
       string,
       { orders: number; revenue: number; requests: number }
     >();
-  const keys = campaigns.map((c) => c.utmCampaign);
-  const coupons = campaigns
-    .map((c) => c.couponCode)
-    .filter((c): c is string => !!c);
-  const [orders, requests] = await Promise.all([
-    db.salesOrder.findMany({
-      where: {
-        status: { notIn: ["cancelled"] },
-        OR: [
-          { utmCampaign: { in: keys } },
-          ...(coupons.length ? [{ couponCode: { in: coupons } }] : []),
-        ],
-      },
-      select: { utmCampaign: true, couponCode: true, total: true },
-    }),
-    db.inquiry.groupBy({
-      by: ["utmCampaign"],
-      where: { utmCampaign: { in: keys } },
-      _count: { _all: true },
-    }),
+  const keys = new Set(campaigns.map((c) => c.utmCampaign));
+  const coupons = new Set(
+    campaigns.map((c) => c.couponCode).filter((c): c is string => !!c),
+  );
+  const [orders, inquiries] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+    listTableRows<Record<string, any>>("sales", "inquiry"),
   ]);
   const results = new Map(
     campaigns.map((c) => [
@@ -62,6 +51,9 @@ async function campaignResults(
     ]),
   );
   for (const o of orders) {
+    if (o.status === "cancelled") continue;
+    if (!keys.has(o.utmCampaign) && !(o.couponCode && coupons.has(o.couponCode)))
+      continue;
     const campaign =
       campaigns.find((c) => c.utmCampaign === o.utmCampaign) ??
       campaigns.find((c) => c.couponCode && c.couponCode === o.couponCode);
@@ -70,39 +62,48 @@ async function campaignResults(
     r.orders += 1;
     r.revenue = round3(r.revenue + num(o.total));
   }
-  for (const q of requests)
-    if (q.utmCampaign && results.has(q.utmCampaign))
-      results.get(q.utmCampaign)!.requests = q._count._all;
+  for (const q of inquiries) {
+    if (q.utmCampaign && results.has(String(q.utmCampaign))) {
+      results.get(String(q.utmCampaign))!.requests += 1;
+    }
+  }
   return results;
 }
 
 export async function listCampaigns() {
-  const rows = await db.campaign.findMany({
-    orderBy: [
-      { status: "asc" },
-      { startDate: { sort: "desc", nulls: "last" } },
-      { createdAt: "desc" },
-    ],
-    take: 200,
-  });
-  const results = await campaignResults(rows);
+  const rows = (await listTableRows<Record<string, any>>("sales", "campaign"))
+    .sort((a, b) => {
+      const sCmp = String(a.status ?? "").localeCompare(String(b.status ?? ""));
+      if (sCmp !== 0) return sCmp;
+      const aStart = a.startDate ? new Date(a.startDate).getTime() : -Infinity;
+      const bStart = b.startDate ? new Date(b.startDate).getTime() : -Infinity;
+      if (bStart !== aStart) return bStart - aStart;
+      return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+    })
+    .slice(0, 200);
+  const results = await campaignResults(
+    rows.map((c) => ({
+      utmCampaign: String(c.utmCampaign ?? ""),
+      couponCode: c.couponCode ?? null,
+    })),
+  );
   return rows.map((c) => {
-    const r = results.get(c.utmCampaign) ?? {
+    const r = results.get(String(c.utmCampaign)) ?? {
       orders: 0,
       revenue: 0,
       requests: 0,
     };
     return {
-      id: c.id,
-      code: c.code,
-      name: c.name,
-      channel: c.channel,
-      status: c.status,
+      id: String(c.id),
+      code: String(c.code ?? ""),
+      name: String(c.name ?? ""),
+      channel: String(c.channel ?? ""),
+      status: String(c.status ?? ""),
       start_date: dateOnly(c.startDate),
       end_date: dateOnly(c.endDate),
       budget: num(c.budget),
       spend: num(c.spend),
-      utm_campaign: c.utmCampaign,
+      utm_campaign: String(c.utmCampaign ?? ""),
       coupon_code: c.couponCode ?? "",
       notes: c.notes ?? "",
       owner_id: c.ownerId ?? "",
@@ -147,10 +148,10 @@ export async function saveCampaign(input: CampaignInput, userId: string) {
     60,
   );
   if (!isUtmSlug(utm)) throw new Error(serverMessages.campaignUtmInvalid);
-  const clash = await db.campaign.findFirst({
-    where: { utmCampaign: utm, ...(input.id ? { id: { not: input.id } } : {}) },
-    select: { id: true },
-  });
+  const existingCampaigns = await listTableRows<Record<string, any>>("sales", "campaign");
+  const clash = existingCampaigns.find(
+    (c) => c.utmCampaign === utm && (!input.id || c.id !== input.id),
+  );
   if (clash) throw new Error(serverMessages.campaignUtmTaken);
   const startDate = parseDate(input.startDate);
   const endDate = parseDate(input.endDate);
@@ -161,8 +162,8 @@ export async function saveCampaign(input: CampaignInput, userId: string) {
     name,
     channel: input.channel,
     status: input.status,
-    startDate,
-    endDate,
+    startDate: startDate ? startDate.toISOString() : null,
+    endDate: endDate ? endDate.toISOString() : null,
     budget: money(input.budget),
     spend: money(input.spend),
     utmCampaign: utm,
@@ -170,17 +171,17 @@ export async function saveCampaign(input: CampaignInput, userId: string) {
     notes: input.notes.trim().slice(0, 5000) || null,
     ownerId: input.ownerId || null,
   };
-  if (input.id) return db.campaign.update({ where: { id: input.id }, data });
-  return db.campaign.create({
-    data: {
-      ...data,
-      code: await getNextSequenceNumber("MKT"),
-      createdById: userId,
-    },
+  if (input.id)
+    return upsertTableRow("sales", "campaign", { id: input.id, ...data });
+  return upsertTableRow("sales", "campaign", {
+    id: crypto.randomUUID(),
+    ...data,
+    code: await getNextSequenceNumber("MKT"),
+    createdById: userId,
   });
 }
 
-function readRules(value: Database.JsonValue): SegmentRules {
+function readRules(value: unknown): SegmentRules {
   const v = (
     value && typeof value === "object" && !Array.isArray(value) ? value : {}
   ) as Record<string, unknown>;
@@ -198,35 +199,48 @@ function readRules(value: Database.JsonValue): SegmentRules {
 }
 
 async function segmentMembers(rules: SegmentRules, now = new Date()) {
-  const customers = await db.customer.findMany({
-    select: {
-      id: true,
-      email: true,
-      locale: true,
-      marketingOptIn: true,
-      addresses: { select: { city: true } },
-      orders: {
-        where: { status: { not: "cancelled" } },
-        select: { total: true, placedAt: true, shippingAddress: true },
-      },
-    },
-  });
+  const [customers, addresses, orders] = await Promise.all([
+    listTableRows<Record<string, any>>("commerce", "customer"),
+    listTableRows<Record<string, any>>("commerce", "customer_address"),
+    listTableRows<Record<string, any>>("commerce", "sales_order"),
+  ]);
+  const addrByCustomer = new Map<string, string[]>();
+  for (const a of addresses) {
+    const cid = String(a.customerId ?? "");
+    if (!cid || !a.city) continue;
+    const list = addrByCustomer.get(cid) ?? [];
+    list.push(String(a.city));
+    addrByCustomer.set(cid, list);
+  }
+  const ordersByCustomer = new Map<string, Record<string, any>[]>();
+  for (const o of orders) {
+    if (o.status === "cancelled" || !o.customerId) continue;
+    const cid = String(o.customerId);
+    const list = ordersByCustomer.get(cid) ?? [];
+    list.push(o);
+    ordersByCustomer.set(cid, list);
+  }
   return customers.filter((c) => {
+    const cid = String(c.id);
+    const custOrders = ordersByCustomer.get(cid) ?? [];
     const cities = [
-      ...c.addresses.map((a) => a.city),
-      ...c.orders.map((o) =>
+      ...(addrByCustomer.get(cid) ?? []),
+      ...custOrders.map((o) =>
         String((o.shippingAddress as { city?: string } | null)?.city ?? ""),
       ),
     ].filter(Boolean);
-    const lastOrderAt: Date | null = (c.orders || []).reduce(
-      (latest: any, o: any) => (!latest || o.placedAt > latest ? o.placedAt : latest),
+    const lastOrderAt: Date | null = custOrders.reduce(
+      (latest: Date | null, o: any) => {
+        const d = o.placedAt ? new Date(o.placedAt) : null;
+        return !latest || (d && d > latest) ? d : latest;
+      },
       null,
     );
     return matchesSegment(
       rules,
       {
-        orders: c.orders.length,
-        spent: c.orders.reduce((sum, o) => sum + num(o.total), 0),
+        orders: custOrders.length,
+        spent: custOrders.reduce((sum, o) => sum + num(o.total), 0),
         lastOrderAt,
         cities,
       },
@@ -236,17 +250,21 @@ async function segmentMembers(rules: SegmentRules, now = new Date()) {
 }
 
 export async function listSegments() {
-  const rows = await db.customerSegment.findMany({ orderBy: { name: "asc" } });
+  const rows = await listTableRows<Record<string, any>>(
+    "commerce",
+    "customer_segment",
+    "name ASC",
+  );
   return Promise.all(
     rows.map(async (s) => {
       const rules = readRules(s.rules);
       const members = await segmentMembers(rules);
       return {
-        id: s.id,
-        name: s.name,
+        id: String(s.id),
+        name: String(s.name ?? ""),
         rules,
         size: members.length,
-        reachable: members.filter((m) => m.marketingOptIn).length,
+        reachable: members.filter((m) => Boolean(m.marketingOptIn)).length,
       };
     }),
   );
@@ -280,51 +298,52 @@ export async function saveSegment(input: SegmentInput) {
     notOrderedForDays: whole(input.notOrderedForDays),
     city: input.city.trim().slice(0, 80) || undefined,
   };
-  const stored = JSON.parse(JSON.stringify(rules)) as Database.InputJsonObject;
+  const stored = JSON.parse(JSON.stringify(rules));
   return input.id
-    ? db.customerSegment.update({
-        where: { id: input.id },
-        data: { name, rules: stored },
+    ? upsertTableRow("commerce", "customer_segment", {
+        id: input.id,
+        name,
+        rules: stored,
       })
-    : db.customerSegment.create({ data: { name, rules: stored } });
+    : upsertTableRow("commerce", "customer_segment", {
+        id: crypto.randomUUID(),
+        name,
+        rules: stored,
+      });
 }
 
 export async function listBroadcasts() {
-  const rows = await db.broadcast.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      segment: { select: { name: true } },
-      campaign: { select: { name: true } },
-    },
-  });
-  const counts = rows.length
-    ? await db.broadcastRecipient.groupBy({
-        by: ["broadcastId", "status"],
-        where: { broadcastId: { in: rows.map((r) => r.id) } },
-        _count: { _all: true },
-      })
-    : [];
+  const [allBroadcasts, segments, campaigns, recipients] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "broadcast", "created_at DESC"),
+    listTableRows<Record<string, any>>("commerce", "customer_segment"),
+    listTableRows<Record<string, any>>("sales", "campaign"),
+    listTableRows<Record<string, any>>("system", "broadcast_recipient"),
+  ]);
+  const rows = allBroadcasts
+    .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    .slice(0, 50);
+  const segById = new Map(segments.map((s) => [String(s.id), String(s.name ?? "")]));
+  const campById = new Map(campaigns.map((c) => [String(c.id), String(c.name ?? "")]));
   return rows.map((b) => {
+    const bid = String(b.id);
     const of = (status: string) =>
-      counts.find((c) => c.broadcastId === b.id && c.status === status)?._count
-        ._all ?? 0;
+      recipients.filter((r) => r.broadcastId === bid && r.status === status).length;
     return {
-      id: b.id,
-      name: b.name,
-      status: b.status,
-      segment: b.segment?.name ?? "",
-      segment_id: b.segmentId ?? "",
-      campaign: b.campaign?.name ?? "",
-      campaign_id: b.campaignId ?? "",
-      subject_en: b.subjectEn,
-      subject_ar: b.subjectAr,
-      body_en: b.bodyEn,
-      body_ar: b.bodyAr,
+      id: bid,
+      name: String(b.name ?? ""),
+      status: String(b.status ?? "draft"),
+      segment: b.segmentId ? (segById.get(String(b.segmentId)) ?? "") : "",
+      segment_id: String(b.segmentId ?? ""),
+      campaign: b.campaignId ? (campById.get(String(b.campaignId)) ?? "") : "",
+      campaign_id: String(b.campaignId ?? ""),
+      subject_en: String(b.subjectEn ?? ""),
+      subject_ar: String(b.subjectAr ?? ""),
+      body_en: String(b.bodyEn ?? ""),
+      body_ar: String(b.bodyAr ?? ""),
       pending: of("pending"),
       sent: of("sent"),
       failed: of("failed"),
-      sent_at: b.sentAt?.toISOString() ?? null,
+      sent_at: b.sentAt ? new Date(b.sentAt).toISOString() : null,
     };
   });
 }
@@ -364,46 +383,62 @@ export async function saveBroadcast(input: BroadcastInput, userId: string) {
     bodyAr: bodyAr || bodyEn,
   };
   if (input.id) {
-    const updated = await db.broadcast.updateMany({
-      where: { id: input.id, status: "draft" },
-      data,
-    });
-    if (!updated.count) throw new Error(serverMessages.broadcastAlreadySent);
+    const broadcasts = await listTableRows<Record<string, any>>("system", "broadcast");
+    const existing = broadcasts.find((b) => b.id === input.id && b.status === "draft");
+    if (!existing) throw new Error(serverMessages.broadcastAlreadySent);
+    await upsertTableRow("system", "broadcast", { id: input.id, ...data });
     return { id: input.id };
   }
-  return db.broadcast.create({ data: { ...data, createdById: userId } });
+  return upsertTableRow("system", "broadcast", {
+    id: crypto.randomUUID(),
+    ...data,
+    status: "draft",
+    createdById: userId,
+  });
 }
 
 export async function queueBroadcast(id: string) {
-  const broadcast = await db.broadcast.findUnique({
-    where: { id },
-    include: { segment: true },
-  });
+  const [broadcasts, segments] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "broadcast"),
+    listTableRows<Record<string, any>>("commerce", "customer_segment"),
+  ]);
+  const broadcast = broadcasts.find((b) => b.id === id);
   if (!broadcast || broadcast.status !== "draft")
     throw new Error(serverMessages.broadcastAlreadySent);
-  if (!broadcast.segment) throw new Error(serverMessages.broadcastInvalid);
-  const members = (
-    await segmentMembers(readRules(broadcast.segment.rules))
-  ).filter(
-    (m) => m.marketingOptIn && isValidEmail(m.email),
+  const segment = segments.find((s) => s.id === broadcast.segmentId);
+  if (!segment) throw new Error(serverMessages.broadcastInvalid);
+  const members = (await segmentMembers(readRules(segment.rules))).filter(
+    (m) => Boolean(m.marketingOptIn) && isValidEmail(String(m.email ?? "")),
   );
   if (!members.length) throw new Error(serverMessages.broadcastNoRecipients);
-  await db.$transaction([
-    db.broadcastRecipient.createMany({
-      data: members.map((m) => ({
+  return runAtomicMutation(async () => {
+    const existingRecipients = await listTableRows<Record<string, any>>(
+      "system",
+      "broadcast_recipient",
+    );
+    const existingKeys = new Set(
+      existingRecipients
+        .filter((r) => r.broadcastId === id)
+        .map((r) => String(r.customerId)),
+    );
+    for (const m of members) {
+      if (existingKeys.has(String(m.id))) continue;
+      await upsertTableRow("system", "broadcast_recipient", {
+        id: crypto.randomUUID(),
         broadcastId: id,
         customerId: m.id,
         email: m.email,
         locale: m.locale === "en" ? "en" : "ar",
-      })),
-      skipDuplicates: true,
-    }),
-    db.broadcast.update({
-      where: { id },
-      data: { status: "sending", queuedAt: new Date() },
-    }),
-  ]);
-  return members.length;
+        status: "pending",
+      });
+    }
+    await upsertTableRow("system", "broadcast", {
+      id,
+      status: "sending",
+      queuedAt: new Date().toISOString(),
+    });
+    return members.length;
+  });
 }
 
 function unsubscribeSecret() {
@@ -431,9 +466,9 @@ export async function unsubscribeCustomer(token: string) {
     !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
   )
     return false;
-  await db.customer.updateMany({
-    where: { id: customerId },
-    data: { marketingOptIn: false },
+  await upsertTableRow("commerce", "customer", {
+    id: customerId,
+    marketingOptIn: false,
   });
   return true;
 }
@@ -457,65 +492,60 @@ export async function sendBroadcastBatch(
   siteUrl: string,
   batch = 50,
 ) {
-  const active = await db.broadcast.findMany({
-    where: { status: "sending" },
-    take: 10,
-  });
+  const [broadcasts, allRecipients, customers] = await Promise.all([
+    listTableRows<Record<string, any>>("system", "broadcast"),
+    listTableRows<Record<string, any>>("system", "broadcast_recipient"),
+    listTableRows<Record<string, any>>("commerce", "customer"),
+  ]);
+  const active = broadcasts.filter((b) => b.status === "sending").slice(0, 10);
+  const optedInCustomers = new Set(
+    customers.filter((c) => Boolean(c.marketingOptIn)).map((c) => String(c.id)),
+  );
   let sent = 0;
   for (const broadcast of active) {
-    const recipients = await db.broadcastRecipient.findMany({
-      where: { broadcastId: broadcast.id, status: "pending" },
-      take: batch,
-    });
-    const optedIn = new Set(
-      (
-        await db.customer.findMany({
-          where: {
-            id: { in: recipients.map((r) => r.customerId) },
-            marketingOptIn: true,
-          },
-          select: { id: true },
-        })
-      ).map((c) => c.id),
-    );
-    const unsubscribed = recipients.filter((r) => !optedIn.has(r.customerId)).map((r) => r.id);
-    if (unsubscribed.length)
-      await db.broadcastRecipient.updateMany({
-        where: { id: { in: unsubscribed } },
-        data: { status: "failed", error: "unsubscribed" },
-      });
+    const recipients = allRecipients
+      .filter((r) => r.broadcastId === broadcast.id && r.status === "pending")
+      .slice(0, batch);
     for (const r of recipients) {
-      if (!optedIn.has(r.customerId)) continue;
+      if (!optedInCustomers.has(String(r.customerId))) {
+        await upsertTableRow("system", "broadcast_recipient", {
+          id: r.id,
+          status: "failed",
+          error: "unsubscribed",
+        });
+        continue;
+      }
       const ar = r.locale !== "en";
       const copy = getTranslations(ar ? "ar" : "en").admin.marketing;
-      const link = `${siteUrl.replace(/\/$/, "")}/${ar ? "ar" : "en"}/unsubscribe/${unsubscribeToken(r.customerId)}`;
-      const body = (ar ? broadcast.bodyAr : broadcast.bodyEn)
+      const link = `${siteUrl.replace(/\/$/, "")}/${ar ? "ar" : "en"}/unsubscribe/${unsubscribeToken(String(r.customerId))}`;
+      const body = String(ar ? broadcast.bodyAr : broadcast.bodyEn)
         .split(/\n{2,}/)
         .map((p) => `<p style="white-space:pre-line">${escape(p)}</p>`)
         .join("");
       const ok = await send({
-        to: r.email,
-        subject: ar ? broadcast.subjectAr : broadcast.subjectEn,
+        to: String(r.email),
+        subject: String(ar ? broadcast.subjectAr : broadcast.subjectEn),
         html: `<div dir="${ar ? "rtl" : "ltr"}">${body}<p style="color:#64748b;font-size:12px"><a href="${escape(link)}">${escape(copy.unsubscribe)}</a></p></div>`,
         idempotencyKey: `broadcast:${broadcast.id}:${r.customerId}`,
       }).catch(() => false);
-      await db.broadcastRecipient.update({
-        where: { id: r.id },
-        data: ok
-          ? { status: "sent", sentAt: new Date() }
-          : { status: "failed", error: "not_sent" },
+      await upsertTableRow("system", "broadcast_recipient", {
+        id: r.id,
+        ...(ok
+          ? { status: "sent", sentAt: new Date().toISOString() }
+          : { status: "failed", error: "not_sent" }),
       });
       if (ok) sent++;
     }
-    if (
-      !(await db.broadcastRecipient.count({
-        where: { broadcastId: broadcast.id, status: "pending" },
-      }))
-    )
-      await db.broadcast.update({
-        where: { id: broadcast.id },
-        data: { status: "sent", sentAt: new Date() },
+    const remainingPending = (
+      await listTableRows<Record<string, any>>("system", "broadcast_recipient")
+    ).some((r) => r.broadcastId === broadcast.id && r.status === "pending");
+    if (!remainingPending) {
+      await upsertTableRow("system", "broadcast", {
+        id: broadcast.id,
+        status: "sent",
+        sentAt: new Date().toISOString(),
       });
+    }
   }
   return sent;
 }

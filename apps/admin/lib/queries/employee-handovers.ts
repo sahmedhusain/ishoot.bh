@@ -4,8 +4,8 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import {
   REQUEST_CLOSED_STATUSES,
@@ -58,8 +58,8 @@ type ChecklistEntry = {
   at: string | null;
 };
 
-const iso = (d: Date | null | undefined) =>
-  d ? d.toISOString().slice(0, 10) : undefined;
+const iso = (d: Date | string | null | undefined) =>
+  d ? (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10) : undefined;
 const clean = (v: unknown, max = 500) =>
   typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
 const day = (value: unknown) => {
@@ -92,41 +92,40 @@ export async function openEmployeeHandover(
   if (returnDate && returnDate < effectiveDate)
     throw new Error(serverMessages.theReturnDateCannotBeBeforeTheStartDate);
   return runAtomicMutation(async () => {
-    const employee = await db.employee.findUnique({
-      where: { id: input.employee_id },
-      select: { id: true, status: true },
-    });
+    const [employees, handovers] = await Promise.all([
+      listTableRows<any>("hr", "employee"),
+      listTableRows<any>("hr", "employee_handover"),
+    ]);
+    const employee = employees.find((e) => e.id === input.employee_id);
     if (!employee) throw new Error(serverMessages.employeeNotFound);
     if (employee.status === "terminated")
       throw new Error(serverMessages.thisEmployeeHasAlreadyLeft);
     if (input.kind === "exit") {
-      const open = await db.employeeHandover.findFirst({
-        where: {
-          employeeId: employee.id,
-          kind: "exit",
-          status: { in: ["open", "pending_approval"] },
-        },
-        select: { id: true },
-      });
+      const open = handovers.find(
+        (h) =>
+          h.employeeId === employee.id &&
+          h.kind === "exit" &&
+          ["open", "pending_approval"].includes(h.status),
+      );
       if (open)
         throw new Error(
           serverMessages.thisEmployeeAlreadyHasAnExitHandoverInProgress,
         );
     }
-    const handover = await db.employeeHandover.create({
-      data: {
-        reference: await getNextSequenceNumber("EHO"),
-        employeeId: employee.id,
-        kind: input.kind,
-        leaveRequestId: leaveRequestId ?? null,
-        effectiveDate,
-        returnDate,
-        reason: clean(input.reason),
-        checklist: freshChecklist(
-          input.kind,
-        ) as unknown as Database.InputJsonValue,
-        createdById: actorId,
-      },
+    const handover = await upsertTableRow<any>("hr", "employee_handover", {
+      id: crypto.randomUUID(),
+      reference: await getNextSequenceNumber("EHO"),
+      employeeId: employee.id,
+      kind: input.kind,
+      status: "open",
+      leaveRequestId: leaveRequestId ?? null,
+      effectiveDate: effectiveDate.toISOString(),
+      returnDate: returnDate ? returnDate.toISOString() : null,
+      reason: clean(input.reason),
+      checklist: freshChecklist(input.kind),
+      casesMode: "manual",
+      teamUserIds: [],
+      createdById: actorId,
     });
     await refreshHandoverCases(handover.id);
     return handover;
@@ -134,35 +133,33 @@ export async function openEmployeeHandover(
 }
 
 export async function refreshHandoverCases(handoverId: string) {
-  const h = await db.employeeHandover.findUniqueOrThrow({
-    where: { id: handoverId },
-    include: { employee: { select: { userId: true } }, cases: true },
-  });
-  const userId = h.employee.userId;
+  const [handovers, employees, cases] = await Promise.all([
+    listTableRows<any>("hr", "employee_handover"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("hr", "employee_handover_case"),
+  ]);
+  const h = handovers.find((row) => row.id === handoverId);
+  if (!h) throw new Error(serverMessages.handoverNotFound);
+  const emp = employees.find((e) => e.id === h.employeeId);
+  const hCases = cases.filter((c) => c.handoverId === handoverId);
+  const userId = emp?.userId;
   const live: Array<{ caseType: string; caseId: string; label: string }> = [];
   if (userId) {
     const [requests, deals, approvals] = await Promise.all([
-      db.inquiry.findMany({
-        where: {
-          assignedToId: userId,
-          workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
-          status: { notIn: [...REQUEST_CLOSED_STATUSES] },
-        },
-        select: { id: true, reference: true, name: true, companyName: true },
-      }),
-      db.crmDeal.findMany({
-        where: { assignedTo: userId },
-        select: { id: true, title: true, dealStage: true },
-      }),
-      db.approvalRequest.findMany({
-        where: { status: "pending", approverIds: { has: userId } },
-        select: { id: true, targetType: true, targetId: true },
-      }),
+      listTableRows<any>("sales", "inquiry"),
+      listTableRows<any>("sales", "crm_deal"),
+      listTableRows<any>("workflow", "approval_request"),
     ]);
     for (const r of requests) {
-      const ref = /^[A-Z]+-\d/.test(r.reference)
+      if (
+        r.assignedToId !== userId ||
+        (REQUEST_CLOSED_STATUSES as readonly string[]).includes(r.workflowStatus) ||
+        (REQUEST_CLOSED_STATUSES as readonly string[]).includes(r.status)
+      )
+        continue;
+      const ref = /^[A-Z]+-\d/.test(r.reference ?? "")
         ? r.reference
-        : `#${r.reference.slice(-6).toUpperCase()}`;
+        : `#${String(r.reference ?? "").slice(-6).toUpperCase()}`;
       live.push({
         caseType: "request",
         caseId: r.id,
@@ -170,29 +167,39 @@ export async function refreshHandoverCases(handoverId: string) {
       });
     }
     for (const d of deals)
-      if (isActiveDealStage(d.dealStage))
+      if (d.assignedTo === userId && isActiveDealStage(d.dealStage))
         live.push({
           caseType: "deal",
           caseId: d.id,
-          label: d.title.slice(0, 200),
+          label: String(d.title ?? "").slice(0, 200),
         });
     for (const a of approvals)
-      live.push({
-        caseType: "approval",
-        caseId: a.id,
-        label: `${a.targetType}:${a.targetId}`.slice(0, 200),
-      });
+      if (
+        a.status === "pending" &&
+        Array.isArray(a.approverIds) &&
+        a.approverIds.includes(userId)
+      )
+        live.push({
+          caseType: "approval",
+          caseId: a.id,
+          label: `${a.targetType}:${a.targetId}`.slice(0, 200),
+        });
   }
-  const known = new Map(h.cases.map((c) => [`${c.caseType}:${c.caseId}`, c]));
+  const known = new Map(hCases.map((c) => [`${c.caseType}:${c.caseId}`, c]));
   const liveKeys = new Set(live.map((c) => `${c.caseType}:${c.caseId}`));
   for (const c of live)
     if (!known.has(`${c.caseType}:${c.caseId}`))
-      await db.employeeHandoverCase.create({ data: { handoverId, ...c } });
-  for (const c of h.cases)
+      await upsertTableRow("hr", "employee_handover_case", {
+        id: crypto.randomUUID(),
+        handoverId,
+        status: "pending",
+        ...c,
+      });
+  for (const c of hCases)
     if (c.status === "pending" && !liveKeys.has(`${c.caseType}:${c.caseId}`))
-      await db.employeeHandoverCase.update({
-        where: { id: c.id },
-        data: { status: "closed" },
+      await upsertTableRow("hr", "employee_handover_case", {
+        ...c,
+        status: "closed",
       });
 }
 
@@ -200,41 +207,40 @@ export async function setHandoverCaseMode(
   handoverId: string,
   input: { mode: string; delegate_user_id?: string; team_user_ids?: string[] },
 ) {
-  const h = await db.employeeHandover.findUnique({
-    where: { id: handoverId },
-    include: { employee: { select: { userId: true } } },
-  });
+  const [handovers, employees, users] = await Promise.all([
+    listTableRows<any>("hr", "employee_handover"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("identity", "user"),
+  ]);
+  const h = handovers.find((row) => row.id === handoverId);
   if (!h) throw new Error(serverMessages.handoverNotFound);
   if (h.status !== "open")
     throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
   if (!(CASE_MODES as readonly string[]).includes(input.mode))
     throw new Error(serverMessages.invalidInput);
+  const emp = employees.find((e) => e.id === h.employeeId);
   const team = Array.from(new Set(input.team_user_ids ?? []))
-    .filter((id) => id !== h.employee.userId)
+    .filter((id) => id !== emp?.userId)
     .slice(0, 30);
   if (input.mode === "delegate" && !input.delegate_user_id)
     throw new Error(serverMessages.chooseWhoTakesOverTheCases);
   if (input.mode === "spread" && team.length < 1)
     throw new Error(serverMessages.chooseTheTeamMembersWhoShareTheCases);
-  if (input.delegate_user_id && input.delegate_user_id === h.employee.userId)
+  if (input.delegate_user_id && input.delegate_user_id === emp?.userId)
     throw new Error(serverMessages.chooseSomeoneOtherThanTheEmployee);
   const ids = [
     ...(input.delegate_user_id ? [input.delegate_user_id] : []),
     ...team,
   ];
-  const active = await db.user.count({
-    where: { id: { in: ids }, isActive: true },
-  });
+  const active = users.filter((u) => ids.includes(u.id) && u.isActive).length;
   if (active !== ids.length)
     throw new Error(serverMessages.chooseActiveTeamMembers);
-  await db.employeeHandover.update({
-    where: { id: handoverId },
-    data: {
-      casesMode: input.mode,
-      delegateUserId:
-        input.mode === "delegate" ? input.delegate_user_id! : null,
-      teamUserIds: input.mode === "spread" ? team : [],
-    },
+  await upsertTableRow("hr", "employee_handover", {
+    ...h,
+    casesMode: input.mode,
+    delegateUserId:
+      input.mode === "delegate" ? input.delegate_user_id! : null,
+    teamUserIds: input.mode === "spread" ? team : [],
   });
 }
 
@@ -245,10 +251,8 @@ async function reassignCase(
   reason: string,
 ) {
   if (c.caseType === "request") {
-    const request = await db.inquiry.findUnique({
-      where: { id: c.caseId },
-      select: { workflowStatus: true, assignedToId: true },
-    });
+    const requests = await listTableRows<any>("sales", "inquiry");
+    const request = requests.find((r) => r.id === c.caseId);
     if (!request) return;
     if (
       canTransitionRequest(request.workflowStatus, "assign") ||
@@ -262,53 +266,62 @@ async function reassignCase(
         reason,
       );
     } else {
-      await db.inquiry.update({
-        where: { id: c.caseId },
-        data: { assignedToId: toUserId },
+      await upsertTableRow("sales", "inquiry", {
+        ...request,
+        assignedToId: toUserId,
       });
-      await db.requestEvent.create({
-        data: {
-          inquiryId: c.caseId,
-          actorId,
-          eventType: "assignment",
-          details: {
-            previousAssigneeId: request.assignedToId,
-            newAssigneeId: toUserId,
-            reason,
-          },
+      await upsertTableRow("system", "request_event", {
+        id: crypto.randomUUID(),
+        inquiryId: c.caseId,
+        actorId,
+        eventType: "assignment",
+        details: {
+          previousAssigneeId: request.assignedToId,
+          newAssigneeId: toUserId,
+          reason,
         },
       });
     }
   } else if (c.caseType === "deal") {
-    await db.crmDeal.update({
-      where: { id: c.caseId },
-      data: { assignedTo: toUserId },
-    });
+    const deals = await listTableRows<any>("sales", "crm_deal");
+    const deal = deals.find((d) => d.id === c.caseId);
+    if (deal) {
+      await upsertTableRow("sales", "crm_deal", {
+        ...deal,
+        assignedTo: toUserId,
+      });
+    }
   } else {
-    const approval = await db.approvalRequest.findUnique({
-      where: { id: c.caseId },
-      select: { approverIds: true, status: true, requestedById: true },
-    });
+    const [approvals, cases, handovers, employees] = await Promise.all([
+      listTableRows<any>("workflow", "approval_request"),
+      listTableRows<any>("hr", "employee_handover_case"),
+      listTableRows<any>("hr", "employee_handover"),
+      listTableRows<any>("hr", "employee"),
+    ]);
+    const approval = approvals.find((a) => a.id === c.caseId);
     if (!approval || approval.status !== "pending") return;
-    const from = await db.employeeHandoverCase.findFirst({
-      where: { caseId: c.caseId },
-      select: {
-        handover: { select: { employee: { select: { userId: true } } } },
-      },
-    });
-    const leaving = from?.handover.employee.userId;
+    const fromCase = cases.find((row) => row.caseId === c.caseId);
+    const fromHandover = fromCase
+      ? handovers.find((row) => row.id === fromCase.handoverId)
+      : undefined;
+    const fromEmployee = fromHandover
+      ? employees.find((row) => row.id === fromHandover.employeeId)
+      : undefined;
+    const leaving = fromEmployee?.userId;
     if (toUserId === approval.requestedById)
       throw new Error(
         serverMessages.anApprovalCannotGoToThePersonWhoRequestedIt,
       );
     const approverIds = Array.from(
       new Set(
-        approval.approverIds.filter((id) => id !== leaving).concat(toUserId),
+        (Array.isArray(approval.approverIds) ? approval.approverIds : [])
+          .filter((id: string) => id !== leaving)
+          .concat(toUserId),
       ),
     );
-    await db.approvalRequest.update({
-      where: { id: c.caseId },
-      data: { approverIds },
+    await upsertTableRow("workflow", "approval_request", {
+      ...approval,
+      approverIds,
     });
   }
 }
@@ -320,36 +333,42 @@ export async function applyHandoverCases(
 ) {
   return runAtomicMutation(async () => {
     await refreshHandoverCases(handoverId);
-    const h = await db.employeeHandover.findUniqueOrThrow({
-      where: { id: handoverId },
-      include: {
-        cases: { where: { status: "pending" }, orderBy: { createdAt: "asc" } },
-      },
-    });
+    const [handovers, allCases] = await Promise.all([
+      listTableRows<any>("hr", "employee_handover"),
+      listTableRows<any>("hr", "employee_handover_case"),
+    ]);
+    const h = handovers.find((row) => row.id === handoverId);
+    if (!h) throw new Error(serverMessages.handoverNotFound);
     if (h.status !== "open")
       throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
+    const pendingCases = allCases
+      .filter((c) => c.handoverId === handoverId && c.status === "pending")
+      .sort((a, b) =>
+        String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? "")),
+      );
     const reason =
       h.kind === "exit"
         ? `Handover ${h.reference}: employee leaving`
         : `Handover ${h.reference}: employee on leave`;
+    const teamUserIds: string[] = Array.isArray(h.teamUserIds)
+      ? h.teamUserIds
+      : [];
     let index = 0;
     let moved = 0;
-    for (const c of h.cases) {
+    for (const c of pendingCases) {
       const target =
         h.casesMode === "delegate"
           ? h.delegateUserId
           : h.casesMode === "spread"
-            ? h.teamUserIds[index++ % Math.max(1, h.teamUserIds.length)]
+            ? teamUserIds[index++ % Math.max(1, teamUserIds.length)]
             : choices[c.id];
       if (!target) continue;
       await reassignCase(c, target, actorId, reason);
-      await db.employeeHandoverCase.update({
-        where: { id: c.id },
-        data: {
-          toUserId: target,
-          status: "reassigned",
-          reassignedAt: new Date(),
-        },
+      await upsertTableRow("hr", "employee_handover_case", {
+        ...c,
+        toUserId: target,
+        status: "reassigned",
+        reassignedAt: new Date().toISOString(),
       });
       moved++;
     }
@@ -363,7 +382,8 @@ export async function updateHandoverChecklist(
   input: { done: boolean; not_applicable: boolean; note?: string },
   actorId: string,
 ) {
-  const h = await db.employeeHandover.findUnique({ where: { id: handoverId } });
+  const handovers = await listTableRows<any>("hr", "employee_handover");
+  const h = handovers.find((row) => row.id === handoverId);
   if (!h) throw new Error(serverMessages.handoverNotFound);
   if (h.status !== "open")
     throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
@@ -382,34 +402,36 @@ export async function updateHandoverChecklist(
     byId: actorId,
     at: new Date().toISOString(),
   });
-  await db.employeeHandover.update({
-    where: { id: handoverId },
-    data: { checklist: list as unknown as Database.InputJsonValue },
+  await upsertTableRow("hr", "employee_handover", {
+    ...h,
+    checklist: list,
   });
 }
 
 export async function handoverBlockers(handoverId: string) {
-  const h = await db.employeeHandover.findUniqueOrThrow({
-    where: { id: handoverId },
-    include: { cases: true },
-  });
-  const [held, openReturns] = await Promise.all([
-    db.asset.count({ where: { holderEmployeeId: h.employeeId } }),
-    db.assetHandover.count({
-      where: {
-        employeeId: h.employeeId,
-        kind: "return",
-        status: { in: ["awaiting_employee", "pending_approval"] },
-      },
-    }),
+  const [handovers, cases, assets, assetHandovers] = await Promise.all([
+    listTableRows<any>("hr", "employee_handover"),
+    listTableRows<any>("hr", "employee_handover_case"),
+    listTableRows<any>("itsm", "asset"),
+    listTableRows<any>("itsm", "asset_handover"),
   ]);
+  const h = handovers.find((row) => row.id === handoverId);
+  if (!h) throw new Error(serverMessages.handoverNotFound);
+  const hCases = cases.filter((c) => c.handoverId === handoverId);
+  const held = assets.filter((a) => a.holderEmployeeId === h.employeeId).length;
+  const openReturns = assetHandovers.filter(
+    (a) =>
+      a.employeeId === h.employeeId &&
+      a.kind === "return" &&
+      ["awaiting_employee", "pending_approval"].includes(a.status),
+  ).length;
   const list = (Array.isArray(h.checklist)
     ? h.checklist
     : []) as unknown as ChecklistEntry[];
   return {
     assetsHeld: h.kind === "exit" ? held : 0,
     returnsInProgress: openReturns,
-    casesPending: h.cases.filter((c) => c.status === "pending").length,
+    casesPending: hCases.filter((c) => c.status === "pending").length,
     checklistOpen: list.filter((e) => !e.done && !e.notApplicable).length,
   };
 }
@@ -420,10 +442,8 @@ export async function submitEmployeeHandover(
 ) {
   return runAtomicMutation(async () => {
     await refreshHandoverCases(handoverId);
-    const h = await db.employeeHandover.findUnique({
-      where: { id: handoverId },
-      include: { employee: { select: { userId: true } } },
-    });
+    const handovers = await listTableRows<any>("hr", "employee_handover");
+    const h = handovers.find((row) => row.id === handoverId);
     if (!h) throw new Error(serverMessages.handoverNotFound);
     if (h.status !== "open")
       throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
@@ -434,9 +454,9 @@ export async function submitEmployeeHandover(
       throw new Error(serverMessages.reassignEveryOpenCaseFirst);
     if (b.checklistOpen)
       throw new Error(serverMessages.completeEveryChecklistItemFirst);
-    await db.employeeHandover.update({
-      where: { id: handoverId },
-      data: { status: "pending_approval" },
+    await upsertTableRow("hr", "employee_handover", {
+      ...h,
+      status: "pending_approval",
     });
     await submitForApproval({
       targetType: "employee_handover",
@@ -448,44 +468,55 @@ export async function submitEmployeeHandover(
 }
 
 export async function cancelEmployeeHandover(handoverId: string) {
-  const h = await db.employeeHandover.findUnique({
-    where: { id: handoverId },
-    select: { status: true },
-  });
+  const handovers = await listTableRows<any>("hr", "employee_handover");
+  const h = handovers.find((row) => row.id === handoverId);
   if (!h) throw new Error(serverMessages.handoverNotFound);
   if (!["open", "pending_approval"].includes(h.status))
     throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
   await cancelPendingApprovals("employee_handover", handoverId);
-  await db.employeeHandover.update({
-    where: { id: handoverId },
-    data: { status: "cancelled", decidedAt: new Date() },
+  await upsertTableRow("hr", "employee_handover", {
+    ...h,
+    status: "cancelled",
+    decidedAt: new Date().toISOString(),
   });
 }
 
 registerApprovalFinalizer("employee_handover", {
   async approve(id, _decider, reason) {
-    const h = await db.employeeHandover.findUniqueOrThrow({ where: { id } });
+    const [handovers, employees] = await Promise.all([
+      listTableRows<any>("hr", "employee_handover"),
+      listTableRows<any>("hr", "employee"),
+    ]);
+    const h = handovers.find((row) => row.id === id);
+    if (!h) throw new Error(serverMessages.handoverNotFound);
     if (h.status !== "pending_approval")
       throw new Error(serverMessages.thisHandoverIsNotWaitingFor2);
-    await db.employeeHandover.update({
-      where: { id },
-      data: {
-        status: "completed",
-        decidedAt: new Date(),
-        decisionNotes: reason || null,
-      },
+    await upsertTableRow("hr", "employee_handover", {
+      ...h,
+      status: "completed",
+      decidedAt: new Date().toISOString(),
+      decisionNotes: reason || null,
     });
-    if (h.kind === "exit")
-      await db.employee.update({
-        where: { id: h.employeeId },
-        data: { status: "terminated" },
-      });
+    if (h.kind === "exit") {
+      const emp = employees.find((e) => e.id === h.employeeId);
+      if (emp) {
+        await upsertTableRow("hr", "employee", {
+          ...emp,
+          status: "terminated",
+        });
+      }
+    }
   },
   async reject(id, _decider, reason) {
-    await db.employeeHandover.update({
-      where: { id },
-      data: { status: "open", decisionNotes: reason || null },
-    });
+    const handovers = await listTableRows<any>("hr", "employee_handover");
+    const h = handovers.find((row) => row.id === id);
+    if (h) {
+      await upsertTableRow("hr", "employee_handover", {
+        ...h,
+        status: "open",
+        decisionNotes: reason || null,
+      });
+    }
   },
 });
 
@@ -493,28 +524,19 @@ export async function openLeaveHandoverIfNeeded(
   leaveRequestId: string,
   actorId: string,
 ) {
-  const leave = await db.leaveRequest.findUnique({
-    where: { id: leaveRequestId },
-    include: {
-      leaveType: { select: { requiresHandover: true } },
-      employee: {
-        select: {
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-        },
-      },
-    },
-  });
-  if (!leave?.leaveType.requiresHandover) return null;
-  if (
-    await db.employeeHandover.findUnique({
-      where: { leaveRequestId },
-      select: { id: true },
-    })
-  )
-    return null;
+  const [leaves, leaveTypes, employees, handovers, users] = await Promise.all([
+    listTableRows<any>("hr", "leave_request"),
+    listTableRows<any>("hr", "leave_type"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("hr", "employee_handover"),
+    listTableRows<any>("identity", "user"),
+  ]);
+  const leave = leaves.find((l) => l.id === leaveRequestId);
+  if (!leave) return null;
+  const leaveType = leaveTypes.find((t) => t.id === leave.leaveTypeId);
+  if (!leaveType?.requiresHandover) return null;
+  if (handovers.find((h) => h.leaveRequestId === leaveRequestId)) return null;
+  const emp = employees.find((e) => e.id === leave.employeeId);
   const handover = await openEmployeeHandover(
     {
       employee_id: leave.employeeId,
@@ -525,38 +547,43 @@ export async function openLeaveHandoverIfNeeded(
     actorId,
     leaveRequestId,
   );
-  const hr = await db.user.findMany({
-    where: { isActive: true, role: { in: ["admin", "super_admin"] } },
-    select: { id: true },
-  });
-  if (hr.length)
-    await db.notification.createMany({
-      data: hr.map((u) => ({
-        userId: u.id,
-        title:
-          getTranslations("en").admin.employeeHandovers.notifications
-            .leaveOpened.title,
-        message: formatMessage(
-          getTranslations("en").admin.employeeHandovers.notifications
-            .leaveOpened.message,
-          {
-            name: `${leave.employee.firstNameEn} ${leave.employee.lastNameEn}`,
-            date: iso(leave.startDate),
+  const hr = users.filter(
+    (u) => u.isActive && ["admin", "super_admin"].includes(u.role),
+  );
+  if (hr.length) {
+    const nameEn = emp ? `${emp.firstNameEn} ${emp.lastNameEn}` : leave.employeeId;
+    const nameAr = emp ? `${emp.firstNameAr} ${emp.lastNameAr}` : leave.employeeId;
+    await Promise.all(
+      hr.map((u) =>
+        upsertTableRow("notify", "notification", {
+          id: crypto.randomUUID(),
+          userId: u.id,
+          title:
+            getTranslations("en").admin.employeeHandovers.notifications
+              .leaveOpened.title,
+          message: formatMessage(
+            getTranslations("en").admin.employeeHandovers.notifications
+              .leaveOpened.message,
+            {
+              name: nameEn,
+              date: iso(leave.startDate),
+            },
+          ),
+          type: "action",
+          entityType: "employee_handover",
+          entityId: handover.id,
+          messageKey: "employeeHandovers.notifications.leaveOpened",
+          messageParams: {
+            nameEn,
+            nameAr,
+            date: iso(leave.startDate)!,
           },
-        ),
-        type: "action",
-        entityType: "employee_handover",
-        entityId: handover.id,
-        messageKey: "employeeHandovers.notifications.leaveOpened",
-        messageParams: {
-          nameEn: `${leave.employee.firstNameEn} ${leave.employee.lastNameEn}`,
-          nameAr: `${leave.employee.firstNameAr} ${leave.employee.lastNameAr}`,
-          date: iso(leave.startDate)!,
-        },
-        actionUrl: ROUTES.hr.handover(handover.id),
-        eventKey: `employee-handover-open:${handover.id}`,
-      })),
-    });
+          actionUrl: ROUTES.hr.handover(handover.id),
+          eventKey: `employee-handover-open:${handover.id}`,
+        }),
+      ),
+    );
+  }
   return handover;
 }
 
@@ -604,79 +631,64 @@ export async function listEmployeeHandovers(
 }
 
 export async function getEmployeeHandover(id: string) {
-  const h = await db.employeeHandover.findUnique({
-    where: { id },
-    include: {
-      employee: {
-        select: {
-          id: true,
-          userId: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-          jobTitleEn: true,
-          jobTitleAr: true,
-        },
-      },
-      cases: { orderBy: [{ status: "asc" }, { createdAt: "asc" }] },
-    },
-  });
+  const [handovers, employees, allCases] = await Promise.all([
+    listTableRows<any>("hr", "employee_handover"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("hr", "employee_handover_case"),
+  ]);
+  const h = handovers.find((row) => row.id === id);
   if (!h) return null;
-  const userIds = Array.from(
-    new Set(
-      [
-        h.createdById,
-        h.delegateUserId,
-        ...h.teamUserIds,
-        ...h.cases.map((c) => c.toUserId),
-      ].filter(Boolean) as string[],
-    ),
-  );
+  const emp = employees.find((e) => e.id === h.employeeId) ?? {};
+  const hCases = allCases
+    .filter((c) => c.handoverId === id)
+    .sort((a, b) => {
+      const sCmp = String(a.status ?? "").localeCompare(String(b.status ?? ""));
+      return sCmp !== 0
+        ? sCmp
+        : String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? ""));
+    });
   const checklist = (Array.isArray(h.checklist)
     ? h.checklist
     : []) as unknown as ChecklistEntry[];
-  const [users, blockers, returns, approval] = await Promise.all([
-    db.user.findMany({
-      where: {
-        id: {
-          in: [
-            ...userIds,
-            ...(checklist.map((c) => c.byId).filter(Boolean) as string[]),
-          ],
-        },
-      },
-      select: { id: true, fullName: true },
-    }),
-    handoverBlockers(id),
-    db.assetHandover.findMany({
-      where: {
-        employeeId: h.employeeId,
-        kind: "return",
-        createdAt: { gte: h.createdAt },
-      },
-      select: {
-        id: true,
-        reference: true,
-        status: true,
-        asset: { select: { assetTag: true, name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.approvalRequest.findFirst({
-      where: { targetType: "employee_handover", targetId: id },
-      orderBy: { createdAt: "desc" },
-      include: {
-        decisions: {
-          orderBy: { decidedAt: "asc" },
-          include: { decidedBy: { select: { fullName: true } } },
-        },
-      },
-    }),
-  ]);
+  const [users, blockers, assetHandovers, assets, approvals, decisions] =
+    await Promise.all([
+      listTableRows<any>("identity", "user"),
+      handoverBlockers(id),
+      listTableRows<any>("itsm", "asset_handover"),
+      listTableRows<any>("itsm", "asset"),
+      listTableRows<any>("workflow", "approval_request"),
+      listTableRows<any>("workflow", "approval_decision"),
+    ]);
   const nameOf = (uid?: string | null) =>
     users.find((u) => u.id === uid)?.fullName;
+  const returns = assetHandovers
+    .filter(
+      (r) =>
+        r.employeeId === h.employeeId &&
+        r.kind === "return" &&
+        (!h.createdAt || String(r.createdAt ?? "") >= String(h.createdAt)),
+    )
+    .sort((a, b) =>
+      String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")),
+    );
+  const assetMap = new Map<string, any>(assets.map((a) => [a.id, a]));
+  const approval = approvals
+    .filter(
+      (a) => a.targetType === "employee_handover" && a.targetId === id,
+    )
+    .sort((a, b) =>
+      String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")),
+    )[0];
+  const approvalDecisions = approval
+    ? decisions
+        .filter((d) => d.approvalRequestId === approval.id)
+        .sort((a, b) =>
+          String(a.decidedAt ?? "").localeCompare(String(b.decidedAt ?? "")),
+        )
+    : [];
+  const teamUserIds: string[] = Array.isArray(h.teamUserIds)
+    ? h.teamUserIds
+    : [];
   return {
     id: h.id,
     reference: h.reference,
@@ -687,42 +699,45 @@ export async function getEmployeeHandover(id: string) {
     reason: h.reason ?? undefined,
     cases_mode: h.casesMode,
     delegate_user_id: h.delegateUserId ?? undefined,
-    team_user_ids: h.teamUserIds,
+    team_user_ids: teamUserIds,
     created_by: nameOf(h.createdById) ?? "",
     decision_notes: h.decisionNotes ?? undefined,
     employee: {
-      id: h.employee.id,
-      user_id: h.employee.userId,
-      number: h.employee.employeeNumber,
-      name_en: `${h.employee.firstNameEn} ${h.employee.lastNameEn}`,
-      name_ar: `${h.employee.firstNameAr} ${h.employee.lastNameAr}`,
-      job_title_en: h.employee.jobTitleEn,
-      job_title_ar: h.employee.jobTitleAr,
+      id: emp.id ?? h.employeeId,
+      user_id: emp.userId ?? null,
+      number: emp.employeeNumber ?? "",
+      name_en: `${emp.firstNameEn ?? ""} ${emp.lastNameEn ?? ""}`.trim(),
+      name_ar: `${emp.firstNameAr ?? ""} ${emp.lastNameAr ?? ""}`.trim(),
+      job_title_en: emp.jobTitleEn ?? "",
+      job_title_ar: emp.jobTitleAr ?? "",
     },
-    cases: h.cases.map((c) => ({
+    cases: hCases.map((c) => ({
       id: c.id,
       type: c.caseType,
       case_id: c.caseId,
       label: c.label,
       status: c.status,
       to: nameOf(c.toUserId),
-      reassigned_at: c.reassignedAt?.toISOString(),
+      reassigned_at: c.reassignedAt ? String(c.reassignedAt) : undefined,
     })),
     checklist: checklist.map((e) => ({ ...e, by: nameOf(e.byId) })),
     blockers,
-    returns: returns.map((r) => ({
-      id: r.id,
-      reference: r.reference,
-      status: r.status,
-      asset: `${r.asset.assetTag} · ${r.asset.name}`,
-    })),
+    returns: returns.map((r) => {
+      const asset = assetMap.get(r.assetId);
+      return {
+        id: r.id,
+        reference: r.reference,
+        status: r.status,
+        asset: asset ? `${asset.assetTag} · ${asset.name}` : r.assetId,
+      };
+    }),
     approval: approval
       ? {
           status: approval.status,
-          decisions: approval.decisions.map((d) => ({
+          decisions: approvalDecisions.map((d) => ({
             decision: d.decision,
-            name: d.decidedBy.fullName,
-            at: d.decidedAt.toISOString(),
+            name: nameOf(d.decidedById) ?? "",
+            at: String(d.decidedAt ?? ""),
             note: d.reason ?? undefined,
           })),
         }

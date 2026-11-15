@@ -329,3 +329,21 @@ export const updateCampaign = (id: string, input: Partial<Campaign>, token?: str
 
 export const deleteCampaign = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/campaigns/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listCannedReplies = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/canned-replies", {}, token);
+
+export const listRequestEvents = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/request-events", {}, token);
+
+export const listRequestComments = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/request-comments", {}, token);
+
+export const listRequestAssignments = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/request-assignments", {}, token);
+
+export const listSalesAttributionChanges = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/attribution-changes", {}, token);
+
+export const listClientContacts = (token?: string) =>
+  salesFetch<any[]>("/v1/sales/client-contacts", {}, token);

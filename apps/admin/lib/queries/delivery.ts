@@ -196,11 +196,38 @@ export interface DeliverySlotInput {
 }
 
 export async function saveDeliverySlot(input: DeliverySlotInput) {
-  throw new Error("saveDeliverySlot is not implemented in API");
+  const { createDeliverySlotApi, updateDeliverySlotApi } = await import("../api/delivery");
+  const capacity = Number(input.capacity) || 10;
+  if (input.id) {
+    await updateDeliverySlotApi(input.id, {
+      weekday: input.weekdays[0] ?? 0,
+      slotStart: input.start,
+      slotEnd: input.end,
+      capacity,
+      isActive: true,
+    });
+    return { id: input.id };
+  }
+  if (!input.zoneId) {
+    throw new Error("zoneId is required when creating a delivery slot");
+  }
+  const created = await Promise.all(
+    (input.weekdays.length ? input.weekdays : [0]).map((weekday) =>
+      createDeliverySlotApi(input.zoneId!, {
+        weekday,
+        slotStart: input.start,
+        slotEnd: input.end,
+        capacity,
+        isActive: true,
+      }),
+    ),
+  );
+  return created[0];
 }
 
 export async function deleteDeliverySlot(id: string) {
-  throw new Error("deleteDeliverySlot is not implemented in API");
+  const { deleteDeliverySlotApi } = await import("../api/delivery");
+  await deleteDeliverySlotApi(id);
 }
 
 export async function activeZoneTerms() {

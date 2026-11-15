@@ -3,8 +3,7 @@ import {
   isApiError,
   type NewNotification,
 } from "@platform/api-client";
-import { Database } from "@platform/database/decimal";
-import { db } from "../atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 
 type PendingRow = {
   id: string;
@@ -15,12 +14,12 @@ type PendingRow = {
   entityType: string | null;
   entityId: string | null;
   messageKey: string | null;
-  messageParams: Database.JsonValue | null;
+  messageParams: Record<string, unknown> | null;
   actionUrl: string | null;
   eventKey: string | null;
   isRead: boolean;
-  hiddenAt: Date | null;
-  createdAt: Date;
+  hiddenAt: Date | string | null;
+  createdAt: Date | string;
 };
 
 const cut = (text: string, max: number) =>
@@ -36,59 +35,49 @@ export function toNewNotification(row: PendingRow): NewNotification {
   }
   const actionUrl =
     row.actionUrl && row.actionUrl.startsWith("/") && !row.actionUrl.startsWith("//") ? row.actionUrl : undefined;
+  const createdIso = new Date(row.createdAt || Date.now()).toISOString();
   return {
     id: row.id,
     realm: "staff",
     recipient: row.userId,
     priority: row.type === "warning" ? "high" : undefined,
-    title: cut(row.title.trim() || row.messageKey || "Notification", 300),
-    body: cut(row.message, 2000),
+    title: cut((row.title || "").trim() || row.messageKey || "Notification", 300),
+    body: cut(row.message || "", 2000),
     messageKey: row.messageKey && /^[A-Za-z0-9_.-]{1,200}$/.test(row.messageKey) ? row.messageKey : undefined,
     messageParams: params,
     actionUrl: actionUrl && actionUrl.length <= 1000 ? actionUrl : undefined,
     entityType: row.entityType ? cut(row.entityType, 100) : undefined,
     entityId: row.entityId ? cut(row.entityId, 100) : undefined,
     dedupeKey: row.eventKey ? cut(row.eventKey, 200) : undefined,
-    createdAt: row.createdAt.toISOString(),
-    readAt: row.isRead ? row.createdAt.toISOString() : null,
-    archivedAt: row.hiddenAt ? row.hiddenAt.toISOString() : null,
+    createdAt: createdIso,
+    readAt: row.isRead ? createdIso : null,
+    archivedAt: row.hiddenAt ? new Date(row.hiddenAt).toISOString() : null,
   };
 }
 
 export async function handOverNotifications(limit = 200): Promise<number> {
-  return db.$transaction(
-    async (tx) => {
-      const rows = await tx.$queryRaw<PendingRow[]>`
-        SELECT "id", "userId", "title", "message", "type", "entityType", "entityId", "messageKey", "messageParams",
-               "actionUrl", "eventKey", "isRead", "hiddenAt", "createdAt"
-        FROM "Notification"
-        WHERE "handedOverAt" IS NULL
-        ORDER BY "createdAt"
-        LIMIT ${limit}
-        FOR UPDATE SKIP LOCKED`;
-      if (!rows.length) return 0;
-      const items = rows.map(toNewNotification);
+  const allRows = await listTableRows<any>("notify", "notification", "created_at ASC").catch(() => []);
+  const rows = allRows.filter((r) => !r.handedOverAt).slice(0, limit);
+  if (!rows.length) return 0;
+  const items = rows.map(toNewNotification);
+  try {
+    await deliverNotifications(items);
+  } catch (error) {
+    if (!isApiError(error) || error.status !== 422) throw error;
+    for (const item of items) {
       try {
-        await deliverNotifications(items);
-      } catch (error) {
-        if (!isApiError(error) || error.status !== 422) throw error;
-        for (const item of items) {
-          try {
-            await deliverNotifications([item]);
-          } catch (single) {
-            if (!isApiError(single) || single.status !== 422) throw single;
-            console.error(`notify refused notification ${item.id}; it is not handed over again`, single.code);
-          }
-        }
+        await deliverNotifications([item]);
+      } catch (single) {
+        if (!isApiError(single) || single.status !== 422) throw single;
+        console.error(`notify refused notification ${item.id}; it is not handed over again`, single.code);
       }
-      await tx.notification.updateMany({
-        where: { id: { in: rows.map((r) => r.id) } },
-        data: { handedOverAt: new Date() },
-      });
-      return rows.length;
-    },
-    { timeout: 60_000, maxWait: 10_000 },
+    }
+  }
+  const nowIso = new Date().toISOString();
+  await Promise.all(
+    rows.map((r) => upsertTableRow("notify", "notification", { ...r, handedOverAt: nowIso })),
   );
+  return rows.length;
 }
 
 let running: Promise<void> | undefined;
@@ -96,7 +85,8 @@ let running: Promise<void> | undefined;
 export function flushNotifications(): Promise<void> {
   running ??= (async () => {
     try {
-      const pending = await db.notification.findFirst({ where: { handedOverAt: null }, select: { id: true } });
+      const allRows = await listTableRows<any>("notify", "notification").catch(() => []);
+      const pending = allRows.find((r) => !r.handedOverAt);
       if (!pending) return;
       while ((await handOverNotifications()) === 200);
     } finally {

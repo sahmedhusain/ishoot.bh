@@ -1,29 +1,26 @@
-import { db } from "../atomic";
-
-type SequenceClient = Pick<typeof db, "referenceSequence">;
+import { listTableRows, upsertTableRow } from "../api/tables";
 
 export async function getNextSequenceNumber(
   prefix: string,
   year?: number,
-  client: any = db,
+  _client?: any,
 ): Promise<string> {
   const currentYear = year || new Date().getFullYear();
   const sequenceId = `${prefix}_${currentYear}`;
 
-  const result = await client.referenceSequence.upsert({
-    where: { id: sequenceId },
-    update: {
-      lastNumber: { increment: 1 },
-      updatedAt: new Date(),
-    },
-    create: {
-      id: sequenceId,
-      prefix,
-      year: currentYear,
-      lastNumber: 1,
-    },
+  const rows = await listTableRows<any>("system", "reference_sequence").catch(() => []);
+  const existing = rows.find((r) => r.id === sequenceId);
+  const nextNumber = (existing ? Number(existing.lastNumber ?? 0) : 0) + 1;
+
+  await upsertTableRow("system", "reference_sequence", {
+    ...(existing || {}),
+    id: sequenceId,
+    prefix,
+    year: currentYear,
+    lastNumber: nextNumber,
+    updatedAt: new Date().toISOString(),
   });
 
-  const paddedNumber = String(result.lastNumber).padStart(6, "0");
+  const paddedNumber = String(nextNumber).padStart(6, "0");
   return `${prefix}-${currentYear}-${paddedNumber}`;
 }

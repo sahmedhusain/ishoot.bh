@@ -66,6 +66,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.POST("/portfolio", h.createPortfolioItem)
 	desk.PUT("/portfolio/id/:id", h.updatePortfolioItem)
 	desk.DELETE("/portfolio/id/:id", h.deletePortfolioItem)
+	h.extrasRoutes(desk)
 }
 func (h *handler) getPageBySlug(c echo.Context) error {
 	p, err := h.svc.GetPageBySlug(c.Request().Context(), c.Param("slug"))

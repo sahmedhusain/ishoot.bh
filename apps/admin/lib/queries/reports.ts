@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
+import { listTableRows } from "../api/tables";
 import {
   reportDefinition,
   previousPeriod,
@@ -8,7 +8,7 @@ import {
 import { listCampaigns } from "./marketing";
 
 type Row = Record<string, string | number | null>;
-const num = (value: { toString(): string } | null | undefined) =>
+const num = (value: { toString(): string } | number | string | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 const pct = (part: number, whole: number) =>
@@ -33,39 +33,34 @@ export interface ReportParams {
 }
 
 async function soldLines(from: string, to: string) {
-  const orders = await db.salesOrder.findMany({
-    where: {
-      placedAt: { gte: day(from), lte: day(to, true) },
-      status: { notIn: ["cancelled"] },
-    },
-    select: {
-      id: true,
-      channel: true,
-      createdById: true,
-      contactId: true,
-      name: true,
-      email: true,
-      total: true,
-      placedAt: true,
-      status: true,
-      lines: {
-        select: {
-          productId: true,
-          quantity: true,
-          lineTotal: true,
-          returnedQuantity: true,
-        },
-      },
-    },
-  });
-  const costs = await db.stockMovement.findMany({
-    where: {
-      type: "sale",
-      sourceType: "order",
-      sourceId: { in: orders.map((o) => o.id) },
-    },
-    select: { sourceId: true, productId: true, quantity: true, unitCost: true },
-  });
+  const fromMs = day(from).getTime();
+  const toMs = day(to, true).getTime();
+  const [rawOrders, rawLines, rawMovements] = await Promise.all([
+    listTableRows<any>("commerce", "sales_order").catch(() => []),
+    listTableRows<any>("commerce", "sales_order_line").catch(() => []),
+    listTableRows<any>("inventory", "stock_movement").catch(() => []),
+  ]);
+  const linesByOrder = new Map<string, any[]>();
+  for (const l of rawLines) {
+    const arr = linesByOrder.get(l.orderId) || [];
+    arr.push(l);
+    linesByOrder.set(l.orderId, arr);
+  }
+  const orders = rawOrders
+    .filter((o) => {
+      if (o.status === "cancelled") return false;
+      const t = new Date(o.placedAt || o.createdAt || 0).getTime();
+      return t >= fromMs && t <= toMs;
+    })
+    .map((o) => ({
+      ...o,
+      placedAt: new Date(o.placedAt || o.createdAt || Date.now()),
+      lines: linesByOrder.get(o.id) || [],
+    }));
+  const orderIds = new Set(orders.map((o) => o.id));
+  const costs = rawMovements.filter(
+    (m) => m.type === "sale" && m.sourceType === "order" && orderIds.has(m.sourceId),
+  );
   const costOf = new Map<string, number>();
   for (const c of costs)
     costOf.set(
@@ -97,10 +92,8 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
         t.cost = round3(t.cost + (costOf.get(`${o.id}|${l.productId}`) ?? 0));
         totals.set(l.productId, t);
       }
-    const products = await db.product.findMany({
-      where: { id: { in: Array.from(totals.keys()) } },
-      select: { id: true, sku: true, nameEn: true, nameAr: true },
-    });
+    const allProducts = await listTableRows<any>("inventory", "product").catch(() => []);
+    const products = allProducts.filter((p) => totals.has(p.id));
     return products.map((p) => {
       const t = totals.get(p.id)!;
       const margin = round3(t.revenue - t.cost);
@@ -118,13 +111,15 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
   },
   async sales_by_category(params) {
     const rows = await RUNNERS.sales_by_product(params);
-    const products = await db.product.findMany({
-      where: { id: { in: rows.map((r) => String(r.key)) } },
-      select: {
-        id: true,
-        category: { select: { id: true, nameEn: true, nameAr: true } },
-      },
-    });
+    const wantedIds = new Set(rows.map((r) => String(r.key)));
+    const [allProducts, allCats] = await Promise.all([
+      listTableRows<any>("inventory", "product").catch(() => []),
+      listTableRows<any>("inventory", "product_category").catch(() => []),
+    ]);
+    const catMap = new Map<string, any>(allCats.map((c): [any, any] => [c.id, c]));
+    const products = allProducts
+      .filter((p) => wantedIds.has(p.id))
+      .map((p) => ({ ...p, category: p.categoryId ? catMap.get(p.categoryId) || null : null }));
     const groups = new Map<
       string,
       { name: string; quantity: number; revenue: number; margin: number }
@@ -213,12 +208,9 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
       g.revenue = round3(g.revenue + num(o.total));
       groups.set(key, g);
     }
-    const users = await db.user.findMany({
-      where: {
-        id: { in: Array.from(groups.keys()).filter((k) => k !== "website") },
-      },
-      select: { id: true, fullName: true },
-    });
+    const wantedUserIds = new Set(Array.from(groups.keys()).filter((k) => k !== "website"));
+    const allUsers = wantedUserIds.size ? await listTableRows<any>("identity", "user").catch(() => []) : [];
+    const users = allUsers.filter((u) => wantedUserIds.has(u.id));
     return Array.from(groups.entries()).map(([key, g]) => ({
       key,
       name:
@@ -230,14 +222,12 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async order_funnel({ from, to, labels }) {
-    const orders = await db.salesOrder.findMany({
-      where: { placedAt: { gte: day(from), lte: day(to, true) } },
-      select: {
-        status: true,
-        paidAt: true,
-        shippedAt: true,
-        deliveredAt: true,
-      },
+    const fromMs = day(from).getTime();
+    const toMs = day(to, true).getTime();
+    const allOrders = await listTableRows<any>("commerce", "sales_order").catch(() => []);
+    const orders = allOrders.filter((o) => {
+      const t = new Date(o.placedAt || o.createdAt || 0).getTime();
+      return t >= fromMs && t <= toMs;
     });
     const total = orders.length;
     const steps = [
@@ -256,19 +246,25 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async stock_on_hand({ locale }) {
-    const [levels, items, products] = await Promise.all([
-      db.stockLevel.groupBy({
-        by: ["productId", "variantKey"],
-        _sum: { onHand: true, reserved: true },
-      }),
-      db.stockItem.findMany({
-        select: { productId: true, variantKey: true, averageCost: true },
-      }),
-      db.product.findMany({
-        where: { trackStock: true },
-        select: { id: true, sku: true, nameEn: true, nameAr: true },
-      }),
+    const [rawLevels, items, allProducts] = await Promise.all([
+      listTableRows<any>("inventory", "stock_level").catch(() => []),
+      listTableRows<any>("inventory", "stock_item").catch(() => []),
+      listTableRows<any>("inventory", "product").catch(() => []),
     ]);
+    const levelMap = new Map<string, { productId: string; variantKey: string; onHand: number; reserved: number }>();
+    for (const l of rawLevels) {
+      const k = `${l.productId}|${l.variantKey || ""}`;
+      const cur = levelMap.get(k) || { productId: l.productId, variantKey: l.variantKey || "", onHand: 0, reserved: 0 };
+      cur.onHand += num(l.onHand);
+      cur.reserved += num(l.reserved);
+      levelMap.set(k, cur);
+    }
+    const levels = Array.from(levelMap.values()).map((l) => ({
+      productId: l.productId,
+      variantKey: l.variantKey,
+      _sum: { onHand: l.onHand, reserved: l.reserved },
+    }));
+    const products = allProducts.filter((p) => p.trackStock);
     return products.map((p) => {
       const mine = levels.filter((l) => l.productId === p.id);
       const onHand = round3(mine.reduce((s, l) => s + num(l._sum.onHand), 0));
@@ -301,21 +297,34 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     });
   },
   async stock_movers({ from, to, locale }) {
-    const [sold, stock] = await Promise.all([
-      db.stockMovement.groupBy({
-        by: ["productId"],
-        where: {
-          type: "sale",
-          createdAt: { gte: day(from), lte: day(to, true) },
-        },
-        _sum: { quantity: true },
-      }),
-      db.stockLevel.groupBy({ by: ["productId"], _sum: { onHand: true } }),
+    const fromMs = day(from).getTime();
+    const toMs = day(to, true).getTime();
+    const [rawMovements, rawLevels, allProducts] = await Promise.all([
+      listTableRows<any>("inventory", "stock_movement").catch(() => []),
+      listTableRows<any>("inventory", "stock_level").catch(() => []),
+      listTableRows<any>("inventory", "product").catch(() => []),
     ]);
-    const products = await db.product.findMany({
-      where: { trackStock: true },
-      select: { id: true, sku: true, nameEn: true, nameAr: true },
-    });
+    const soldMap = new Map<string, number>();
+    for (const m of rawMovements) {
+      if (m.type !== "sale") continue;
+      const t = new Date(m.createdAt || 0).getTime();
+      if (t >= fromMs && t <= toMs) {
+        soldMap.set(m.productId, (soldMap.get(m.productId) ?? 0) + num(m.quantity));
+      }
+    }
+    const stockMap = new Map<string, number>();
+    for (const l of rawLevels) {
+      stockMap.set(l.productId, (stockMap.get(l.productId) ?? 0) + num(l.onHand));
+    }
+    const sold = Array.from(soldMap.entries()).map(([productId, quantity]) => ({
+      productId,
+      _sum: { quantity },
+    }));
+    const stock = Array.from(stockMap.entries()).map(([productId, onHand]) => ({
+      productId,
+      _sum: { onHand },
+    }));
+    const products = allProducts.filter((p) => p.trackStock);
     const days = Math.max(
       1,
       Math.round((day(to).getTime() - day(from).getTime()) / 86_400_000) + 1,
@@ -336,27 +345,27 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     });
   },
   async count_variance({ from, to, locale }) {
-    const lines = await db.stockCountLine.findMany({
-      where: {
-        counted: { not: null },
-        count: {
-          status: "approved",
-          approvedAt: { gte: day(from), lte: day(to, true) },
-        },
-      },
-      include: { count: { select: { number: true } } },
-    });
-    const variances = lines.filter((l) => num(l.counted) !== num(l.expected));
-    const [products, items] = await Promise.all([
-      db.product.findMany({
-        where: { id: { in: variances.map((l) => l.productId) } },
-        select: { id: true, sku: true, nameEn: true, nameAr: true },
-      }),
-      db.stockItem.findMany({
-        where: { productId: { in: variances.map((l) => l.productId) } },
-        select: { productId: true, variantKey: true, averageCost: true },
-      }),
+    const fromMs = day(from).getTime();
+    const toMs = day(to, true).getTime();
+    const [rawLines, rawCounts, allProducts, allItems] = await Promise.all([
+      listTableRows<any>("inventory", "stock_count_line").catch(() => []),
+      listTableRows<any>("inventory", "stock_count").catch(() => []),
+      listTableRows<any>("inventory", "product").catch(() => []),
+      listTableRows<any>("inventory", "stock_item").catch(() => []),
     ]);
+    const countMap = new Map<string, any>(rawCounts.map((c): [any, any] => [c.id, c]));
+    const lines = rawLines
+      .map((l) => ({ ...l, count: countMap.get(l.countId) }))
+      .filter((l) => {
+        if (l.counted === null || l.counted === undefined) return false;
+        if (!l.count || l.count.status !== "approved") return false;
+        const t = new Date(l.count.approvedAt || 0).getTime();
+        return t >= fromMs && t <= toMs;
+      });
+    const variances = lines.filter((l) => num(l.counted) !== num(l.expected));
+    const wantedIds = new Set(variances.map((l) => l.productId));
+    const products = allProducts.filter((p) => wantedIds.has(p.id));
+    const items = allItems.filter((i) => wantedIds.has(i.productId));
     return variances.map((l) => {
       const p = products.find((x) => x.id === l.productId);
       const variance = round3(num(l.counted) - num(l.expected));
@@ -364,7 +373,7 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
         key: l.id,
         name: p ? nameOf(p.nameEn, p.nameAr, locale) : "—",
         sku: p?.sku ?? "",
-        count: l.count.number,
+        count: l.count?.number ?? "",
         expected: num(l.expected),
         counted: num(l.counted),
         variance,
@@ -381,22 +390,20 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     });
   },
   async spend_by_supplier({ from, to }) {
-    const bills = await db.supplierBill.findMany({
-      where: {
-        status: { in: ["approved", "partially_paid", "paid"] },
-        billDate: { gte: day(from), lte: day(to, true) },
-      },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            companyName: true,
-          },
-        },
-      },
-    });
+    const fromMs = day(from).getTime();
+    const toMs = day(to, true).getTime();
+    const [rawBills, rawContacts] = await Promise.all([
+      listTableRows<any>("finance", "supplier_bill").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const bills = rawBills
+      .filter((b) => {
+        if (!["approved", "partially_paid", "paid"].includes(b.status)) return false;
+        const t = new Date(b.billDate || b.createdAt || 0).getTime();
+        return t >= fromMs && t <= toMs;
+      })
+      .map((b) => ({ ...b, supplier: contactMap.get(b.supplierId) || null }));
     const groups = new Map<
       string,
       { name: string; bills: number; spend: number; paid: number }
@@ -420,17 +427,26 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async open_purchase_orders({ labels }) {
-    const orders = await db.purchaseOrder.findMany({
-      where: { status: { in: ["approved", "sent", "partially_received"] } },
-      include: {
-        supplier: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        lines: {
-          select: { quantity: true, receivedQuantity: true, unitPrice: true },
-        },
-      },
-    });
+    const [rawOrders, rawLines, rawContacts] = await Promise.all([
+      listTableRows<any>("inventory", "purchase_order").catch(() => []),
+      listTableRows<any>("inventory", "purchase_order_line").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const linesByPo = new Map<string, any[]>();
+    for (const l of rawLines) {
+      const arr = linesByPo.get(l.purchaseOrderId) || [];
+      arr.push(l);
+      linesByPo.set(l.purchaseOrderId, arr);
+    }
+    const orders = rawOrders
+      .filter((o) => ["approved", "sent", "partially_received"].includes(o.status))
+      .map((o) => ({
+        ...o,
+        supplier: o.supplierId ? contactMap.get(o.supplierId) || null : null,
+        lines: linesByPo.get(o.id) || [],
+        expectedDate: o.expectedDate ? new Date(o.expectedDate) : null,
+      }));
     return orders.map((o) => ({
       key: o.id,
       name: o.number,
@@ -440,7 +456,7 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
       total: num(o.total),
       open_value: round3(
         o.lines.reduce(
-          (s, l) =>
+          (s: number, l: any) =>
             s +
             Math.max(0, num(l.quantity) - num(l.receivedQuantity)) *
               num(l.unitPrice),
@@ -450,35 +466,37 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async purchase_price_changes({ from, to, locale }) {
-    const lines = await db.purchaseOrderLine.findMany({
-      where: {
-        productId: { not: null },
-        purchaseOrder: {
-          status: { notIn: ["draft", "cancelled"] },
-          orderDate: { lte: day(to, true) },
-        },
-      },
-      select: {
-        productId: true,
-        unitPrice: true,
-        purchaseOrder: { select: { orderDate: true } },
-      },
-      orderBy: { purchaseOrder: { orderDate: "asc" } },
-    });
+    const toMs = day(to, true).getTime();
+    const [rawLines, rawOrders, allProducts] = await Promise.all([
+      listTableRows<any>("inventory", "purchase_order_line").catch(() => []),
+      listTableRows<any>("inventory", "purchase_order").catch(() => []),
+      listTableRows<any>("inventory", "product").catch(() => []),
+    ]);
+    const orderMap = new Map<string, any>(rawOrders.map((o): [any, any] => [o.id, o]));
+    const lines = rawLines
+      .map((l) => ({ ...l, purchaseOrder: orderMap.get(l.purchaseOrderId) }))
+      .filter((l) => {
+        if (!l.productId || !l.purchaseOrder) return false;
+        if (["draft", "cancelled"].includes(l.purchaseOrder.status)) return false;
+        return new Date(l.purchaseOrder.orderDate || l.purchaseOrder.createdAt || 0).getTime() <= toMs;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.purchaseOrder.orderDate || a.purchaseOrder.createdAt || 0).getTime() -
+          new Date(b.purchaseOrder.orderDate || b.purchaseOrder.createdAt || 0).getTime(),
+      );
     const byProduct = new Map<string, { date: Date; price: number }[]>();
     for (const l of lines)
       byProduct.set(l.productId!, [
         ...(byProduct.get(l.productId!) ?? []),
-        { date: l.purchaseOrder.orderDate, price: num(l.unitPrice) },
+        { date: new Date(l.purchaseOrder.orderDate || l.purchaseOrder.createdAt), price: num(l.unitPrice) },
       ]);
     const changed = Array.from(byProduct.entries()).filter(
       ([, prices]) =>
         prices.length >= 2 && prices[prices.length - 1].date >= day(from),
     );
-    const products = await db.product.findMany({
-      where: { id: { in: changed.map(([id]) => id) } },
-      select: { id: true, sku: true, nameEn: true, nameAr: true },
-    });
+    const changedIds = new Set(changed.map(([id]) => id));
+    const products = allProducts.filter((p) => changedIds.has(p.id));
     return changed
       .map(([id, prices]) => {
         const latest = prices[prices.length - 1].price;
@@ -498,17 +516,38 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
       .filter((r) => r.change !== 0);
   },
   async delivery_performance({ from, to, locale, labels }) {
-    const shipments = await db.shipment.findMany({
-      where: {
-        createdAt: { gte: day(from), lte: day(to, true) },
-        status: { not: "cancelled" },
-      },
-      include: {
-        zone: { select: { nameEn: true, nameAr: true } },
-        agency: { select: { name: true } },
-        events: { where: { status: "failed" }, select: { id: true } },
-      },
-    });
+    const fromMs = day(from).getTime();
+    const toMs = day(to, true).getTime();
+    const [rawShipments, rawZones, rawAgencies, rawEvents] = await Promise.all([
+      listTableRows<any>("delivery", "shipment").catch(() => []),
+      listTableRows<any>("delivery", "delivery_zone").catch(() => []),
+      listTableRows<any>("delivery", "courier_agency").catch(() => []),
+      listTableRows<any>("delivery", "shipment_event").catch(() => []),
+    ]);
+    const zoneMap = new Map<string, any>(rawZones.map((z): [any, any] => [z.id, z]));
+    const agencyMap = new Map<string, any>(rawAgencies.map((a): [any, any] => [a.id, a]));
+    const failedByShipment = new Map<string, any[]>();
+    for (const ev of rawEvents) {
+      if (ev.status === "failed") {
+        const arr = failedByShipment.get(ev.shipmentId) || [];
+        arr.push(ev);
+        failedByShipment.set(ev.shipmentId, arr);
+      }
+    }
+    const shipments = rawShipments
+      .filter((s) => {
+        if (s.status === "cancelled") return false;
+        const t = new Date(s.createdAt || 0).getTime();
+        return t >= fromMs && t <= toMs;
+      })
+      .map((s) => ({
+        ...s,
+        zone: s.zoneId ? zoneMap.get(s.zoneId) || null : null,
+        agency: s.agencyId ? agencyMap.get(s.agencyId) || null : null,
+        events: failedByShipment.get(s.id) || [],
+        deliveredAt: s.deliveredAt ? new Date(s.deliveredAt) : null,
+        promisedBy: s.promisedBy ? new Date(s.promisedBy) : null,
+      }));
     const groups = new Map<
       string,
       {
@@ -540,7 +579,7 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
       g.shipments++;
       if (s.status === "delivered") {
         g.delivered++;
-        if (s.deliveredAt && s.deliveredAt <= s.promisedBy) g.onTime++;
+        if (s.deliveredAt && s.promisedBy && s.deliveredAt <= s.promisedBy) g.onTime++;
         if (!s.codSettlementId && s.driverId)
           g.cod = round3(g.cod + num(s.codCollected));
       }
@@ -560,20 +599,26 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async receivables_aging() {
-    const invoices = await db.invoice.findMany({
-      where: { status: { in: ["sent", "partially_paid", "overdue"] } },
-      include: {
-        client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            companyName: true,
-          },
-        },
-        payments: { select: { amount: true } },
-      },
-    });
+    const [rawInvoices, rawContacts, rawPayments] = await Promise.all([
+      listTableRows<any>("finance", "invoice").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+      listTableRows<any>("finance", "payment").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const paymentsByInv = new Map<string, any[]>();
+    for (const p of rawPayments) {
+      const arr = paymentsByInv.get(p.invoiceId) || [];
+      arr.push(p);
+      paymentsByInv.set(p.invoiceId, arr);
+    }
+    const invoices = rawInvoices
+      .filter((i) => ["sent", "partially_paid", "overdue"].includes(i.status))
+      .map((i) => ({
+        ...i,
+        client: i.clientId ? contactMap.get(i.clientId) || null : null,
+        payments: paymentsByInv.get(i.id) || [],
+        dueDate: new Date(i.dueDate || i.issueDate || Date.now()),
+      }));
     return aging(
       invoices.map((i) => ({
         key: i.clientId ?? "none",
@@ -581,20 +626,25 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
         due: i.dueDate,
         owed: round3(
           num(i.totalAmount) -
-            i.payments.reduce((s, p) => s + num(p.amount), 0),
+            i.payments.reduce((s: number, p: any) => s + num(p.amount), 0),
         ),
       })),
     );
   },
   async payables_aging() {
-    const bills = await db.supplierBill.findMany({
-      where: { status: { in: ["approved", "partially_paid"] } },
-      include: {
-        supplier: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-      },
-    });
+    const [rawBills, rawContacts] = await Promise.all([
+      listTableRows<any>("finance", "supplier_bill").catch(() => []),
+      listTableRows<any>("sales", "crm_contact").catch(() => []),
+    ]);
+    const contactMap = new Map<string, any>(rawContacts.map((c): [any, any] => [c.id, c]));
+    const bills = rawBills
+      .filter((b) => ["approved", "partially_paid"].includes(b.status))
+      .map((b) => ({
+        ...b,
+        supplier: b.supplierId ? contactMap.get(b.supplierId) || null : null,
+        dueDate: b.dueDate ? new Date(b.dueDate) : null,
+        billDate: new Date(b.billDate || b.createdAt || Date.now()),
+      }));
     return aging(
       bills.map((b) => ({
         key: b.supplierId,
@@ -617,19 +667,15 @@ const RUNNERS: Record<string, (p: ReportParams) => Promise<Row[]>> = {
     }));
   },
   async headcount_by_department({ from, to, locale, labels }) {
-    const [employees, departments] = await Promise.all([
-      db.employee.findMany({
-        select: {
-          departmentId: true,
-          status: true,
-          hireDate: true,
-          updatedAt: true,
-        },
-      }),
-      db.department.findMany({
-        select: { id: true, nameEn: true, nameAr: true },
-      }),
+    const [rawEmployees, departments] = await Promise.all([
+      listTableRows<any>("hr", "employee").catch(() => []),
+      listTableRows<any>("hr", "department").catch(() => []),
     ]);
+    const employees = rawEmployees.map((e) => ({
+      ...e,
+      hireDate: new Date(e.hireDate || e.createdAt || Date.now()),
+      updatedAt: new Date(e.updatedAt || e.createdAt || Date.now()),
+    }));
     const groups = new Map<
       string,
       { headcount: number; joined: number; left: number }

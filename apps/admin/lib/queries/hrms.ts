@@ -78,17 +78,20 @@ export async function listDepartments(): Promise<Department[]> {
 }
 
 export async function createDepartment(data: any): Promise<Department> {
-  return { id: "dept-1", ...data } as Department;
+  const { createDepartment: createDepartmentApi } = await import("../api/hr");
+  return (await createDepartmentApi(data)) as any;
 }
 
 export async function updateDepartment(id: string, data: any): Promise<Department> {
-  return { id, ...data } as Department;
+  const { updateDepartment: updateDepartmentApi } = await import("../api/hr");
+  return (await updateDepartmentApi(id, data)) as any;
 }
 
 export async function updateEmployee(
   id: string,
   data: any,
-  actorId: string,
+  _actorId: string,
 ): Promise<Employee> {
-  throw new Error("updateEmployee is not implemented in API");
+  const { updateEmployeeApi } = await import("../api/hr");
+  return (await updateEmployeeApi(id, data)) as any;
 }

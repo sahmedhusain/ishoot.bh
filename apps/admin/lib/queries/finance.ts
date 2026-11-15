@@ -2,7 +2,6 @@ import { getCurrencyDecimals } from "@platform/config/currency";
 import { roundMoney } from "../finance/money";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import { FinancialSummary } from "../types";
 import {
   listInvoices,

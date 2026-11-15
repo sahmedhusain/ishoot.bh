@@ -144,3 +144,12 @@ export const saveITAssetHandover = (input: Partial<ITAssetHandover>, token?: str
     { method: input.id ? "PUT" : "POST", body: JSON.stringify(input) },
     token,
   );
+
+export const listAssetCategories = (token?: string) =>
+  serviceFetch<any[]>("/v1/itsm/requests/asset-categories", {}, token);
+
+export const listSupportProgramsItsmApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/itsm/requests/support-programs", {}, token);
+
+export const listSupportReimbursementsItsmApi = (token?: string) =>
+  serviceFetch<any[]>("/v1/itsm/requests/support-reimbursements", {}, token);

@@ -2,8 +2,8 @@ import { isLocale } from "@platform/locales/registry";
 import { countryIso } from "../constants/phone";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164, phoneSearchVariants } from "../constants/phone";
 import {
@@ -25,7 +25,8 @@ const MAX_CONTACT_PERSONS = 20;
 const clean = (value: unknown, max = 200): string | null => {
   if (typeof value !== "string") return null;
   const text = value.trim();
-  if (text.length > max || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text)) throw new Error(serverMessages.invalidInput);
+  if (text.length > max || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text))
+    throw new Error(serverMessages.invalidInput);
   return text || null;
 };
 const oneOf = <T extends readonly string[]>(
@@ -79,10 +80,9 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
   const nationality = clean(input.nationality, 2);
   if (nationality && !isCountryCode(nationality))
     throw new Error(serverMessages.chooseACountryFromTheList);
-  const preferredLanguage =
-    isLocale(input.preferred_language)
-      ? input.preferred_language
-      : null;
+  const preferredLanguage = isLocale(input.preferred_language)
+    ? input.preferred_language
+    : null;
   const terms = input.payment_terms_days;
   if (
     terms !== undefined &&
@@ -201,6 +201,15 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
     throw new Error(serverMessages.enterAValidEMailAddress);
   const contactEmail = rawContactEmail ? normalizeEmail(rawContactEmail) : null;
 
+  const crExpiryStr =
+    kind === "company" &&
+    companyOrigin === "local" &&
+    clean(input.cr_expiry_date, 10)
+      ? `${clean(input.cr_expiry_date, 10)}T00:00:00Z`
+      : null;
+  if (crExpiryStr && Number.isNaN(new Date(crExpiryStr).getTime()))
+    throw new Error(serverMessages.invalidDate);
+
   const data = {
     clientKind: kind,
     firstName,
@@ -215,12 +224,7 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
     companyOrigin,
     legalForm: kind === "company" ? clean(input.legal_form, 100) : null,
     crNumber,
-    crExpiryDate:
-      kind === "company" &&
-      companyOrigin === "local" &&
-      clean(input.cr_expiry_date, 10)
-        ? new Date(`${clean(input.cr_expiry_date, 10)}T00:00:00Z`)
-        : null,
+    crExpiryDate: crExpiryStr,
     registrationNumber,
     registrationCountry,
     governmentType:
@@ -254,41 +258,58 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
     addressPostalCode: clean(address.postal_code, 20),
     addressPoBox: clean(address.po_box, 20),
   };
-  if (data.crExpiryDate && Number.isNaN(data.crExpiryDate.getTime()))
-    throw new Error(serverMessages.invalidDate);
   return { data, persons: persons.map(({ ...p }) => p) };
 }
 
 async function assertUniqueCr(crNumber: string | null, exceptId?: string) {
   if (!crNumber) return;
-  const other = await db.crmContact.findFirst({
-    where: { crNumber, ...(exceptId ? { id: { not: exceptId } } : {}) },
-    select: { id: true },
-  });
+  const contacts = await listTableRows<Record<string, any>>("sales", "crm_contact");
+  const other = contacts.find(
+    (c) => c.crNumber === crNumber && (!exceptId || c.id !== exceptId),
+  );
   if (other)
     throw new Error(serverMessages.anotherClientIsAlreadyRegisteredWith);
 }
 
 export async function getClientProfile(id: string): Promise<CRMContact | null> {
-  const row = await db.crmContact.findUnique({
-    where: { id },
-    include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
-  });
-  return row ? mapContact(row) : null;
+  const [contacts, persons] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "crm_contact"),
+    listTableRows<Record<string, any>>("system", "client_contact_person", "display_order ASC"),
+  ]);
+  const row = contacts.find((c) => c.id === id);
+  if (!row) return null;
+  const contactPersons = persons
+    .filter((p) => p.contactId === id)
+    .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0));
+  return mapContact({ ...row, contactPersons });
 }
 
 export async function createClientProfile(
   input: ClientProfileInput,
 ): Promise<CRMContact> {
   const company = await getCompanyConfiguration().catch(() => null);
-  const { data, persons } = normalizeClientProfile(input, countryIso(company?.country) ?? company?.country ?? undefined);
+  const { data, persons } = normalizeClientProfile(
+    input,
+    countryIso(company?.country) ?? company?.country ?? undefined,
+  );
   return runAtomicMutation(async () => {
     await assertUniqueCr(data.crNumber);
-    const created = await db.crmContact.create({
-      data: { ...data, contactPersons: { create: persons } },
-      include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
+    const id = crypto.randomUUID();
+    const created = await upsertTableRow<Record<string, any>>("sales", "crm_contact", {
+      id,
+      ...data,
     });
-    return mapContact(created);
+    const createdPersons: Record<string, any>[] = [];
+    for (const p of persons) {
+      createdPersons.push(
+        await upsertTableRow<Record<string, any>>("system", "client_contact_person", {
+          id: crypto.randomUUID(),
+          contactId: id,
+          ...p,
+        }),
+      );
+    }
+    return mapContact({ ...created, contactPersons: createdPersons });
   });
 }
 
@@ -311,15 +332,32 @@ export async function updateClientProfile(
       merged.last_name = undefined;
     }
     const company = await getCompanyConfiguration().catch(() => null);
-    const { data, persons } = normalizeClientProfile(merged, countryIso(company?.country) ?? company?.country ?? undefined);
+    const { data, persons } = normalizeClientProfile(
+      merged,
+      countryIso(company?.country) ?? company?.country ?? undefined,
+    );
     await assertUniqueCr(data.crNumber, id);
-    await db.clientContactPerson.deleteMany({ where: { contactId: id } });
-    const updated = await db.crmContact.update({
-      where: { id },
-      data: { ...data, contactPersons: { create: persons } },
-      include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
+    const existingPersons = (
+      await listTableRows<Record<string, any>>("system", "client_contact_person")
+    ).filter((p) => p.contactId === id);
+    for (const p of existingPersons) {
+      await deleteTableRow("system", "client_contact_person", String(p.id));
+    }
+    const updated = await upsertTableRow<Record<string, any>>("sales", "crm_contact", {
+      id,
+      ...data,
     });
-    return mapContact(updated);
+    const createdPersons: Record<string, any>[] = [];
+    for (const p of persons) {
+      createdPersons.push(
+        await upsertTableRow<Record<string, any>>("system", "client_contact_person", {
+          id: crypto.randomUUID(),
+          contactId: id,
+          ...p,
+        }),
+      );
+    }
+    return mapContact({ ...updated, contactPersons: createdPersons });
   });
 }
 
@@ -360,176 +398,160 @@ export function clientListParameters(input: ClientListParameters = {}) {
 }
 export type ClientListFilters = ReturnType<typeof clientListParameters>;
 
-function standingSql(baseCurrency: string) {
-  const convert = (expr: Database.Sql) =>
-    Database.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} ELSE 0 END`;
-  return Database.sql`
-    inv AS (
-      SELECT COALESCE(i."clientId", d."contactId") AS cid, i.id, i.currency, i."totalAmount" AS total, i."dueDate", i."issueDate"
-      FROM "Invoice" i LEFT JOIN "CrmDeal" d ON d.id = i."dealId"
-      WHERE i.status NOT IN ('draft', 'void') AND COALESCE(i."clientId", d."contactId") IS NOT NULL
-    ),
-    paid AS (
-      SELECT p."invoiceId", SUM(p.amount) AS amount, MAX(p."paymentDate") AS last
-      FROM "Payment" p JOIN inv ON inv.id = p."invoiceId" AND p.currency = inv.currency
-      GROUP BY p."invoiceId"
-    ),
-    standing AS (
-      SELECT inv.cid,
-        SUM(${convert(Database.sql`inv.total`)}) AS billed,
-        SUM(${convert(Database.sql`LEAST(inv.total, COALESCE(paid.amount, 0))`)}) AS collected,
-        SUM(${convert(Database.sql`GREATEST(0, inv.total - COALESCE(paid.amount, 0))`)}) AS outstanding,
-        BOOL_OR(inv.total > COALESCE(paid.amount, 0) AND inv."dueDate" < CURRENT_DATE) AS overdue,
-        COUNT(*)::int AS invoice_count,
-        GREATEST(MAX(inv."issueDate"), MAX(paid.last)) AS last_billing
-      FROM inv LEFT JOIN paid ON paid."invoiceId" = inv.id
-      GROUP BY inv.cid
-    ),
-    ranked AS (
-      SELECT cid, billed,
-        ROW_NUMBER() OVER (ORDER BY billed DESC, cid) AS rank,
-        SUM(billed) OVER (ORDER BY billed DESC, cid ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS billed_before,
-        SUM(billed) OVER () AS grand
-      FROM standing WHERE billed > 0
-    ),
-    deals AS (
-      SELECT "contactId" AS cid, COUNT(*) FILTER (WHERE "dealStage" = 'closed_won')::int AS won, MAX("updatedAt") AS last
-      FROM "CrmDeal" WHERE "contactId" IS NOT NULL GROUP BY "contactId"
-    ),
-    requests AS (
-      SELECT "customerId" AS cid, MAX("createdAt") AS last FROM "Inquiry" WHERE "customerId" IS NOT NULL GROUP BY "customerId"
-    ),
-    persons AS (
-      SELECT "contactId" AS cid, COUNT(*)::int AS n FROM "ClientContactPerson" GROUP BY "contactId"
-    ),
-    client_rows AS (
-      SELECT c.id,
-        COALESCE(s.billed, 0) AS billed, COALESCE(s.collected, 0) AS collected, COALESCE(s.outstanding, 0) AS outstanding,
-        COALESCE(s.overdue, false) AS overdue, COALESCE(s.invoice_count, 0) AS invoice_count, s.invoice_count IS NULL AS never_billed,
-        rk.rank,
-        CASE WHEN rk.rank IS NULL THEN 'none'
-             WHEN COALESCE(rk.billed_before, 0) < rk.grand * 0.80 THEN 'A'
-             WHEN COALESCE(rk.billed_before, 0) < rk.grand * 0.95 THEN 'B'
-             ELSE 'C' END AS tier,
-        COALESCE(dl.won, 0) AS deals_won,
-        COALESCE(pc.n, 0) AS persons,
-        GREATEST(c."createdAt", s.last_billing::timestamp, dl.last, rq.last) AS last_activity
-      FROM "CrmContact" c
-      LEFT JOIN standing s ON s.cid = c.id
-      LEFT JOIN ranked rk ON rk.cid = c.id
-      LEFT JOIN deals dl ON dl.cid = c.id
-      LEFT JOIN requests rq ON rq.cid = c.id
-      LEFT JOIN persons pc ON pc.cid = c.id
-    )`;
-}
-
-function filterSql(f: ClientListFilters, extra: Database.Sql[] = []) {
-  const and: Database.Sql[] = [...extra];
-  if (f.q) {
-    const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
-    const variants = phoneSearchVariants(f.q);
-    const phoneSql =
-      variants.length > 0
-        ? Database.sql`OR ${Database.join(
-            variants.map((v) => {
-              const vPat = `%${v}%`;
-              return Database.sql`c.phone ILIKE ${vPat} OR c."phoneE164" ILIKE ${vPat} OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id AND p.phone ILIKE ${vPat})`;
-            }),
-            " OR ",
-          )}`
-        : Database.empty;
-    and.push(Database.sql`(
-      c."firstName" ILIKE ${pattern} OR c."lastName" ILIKE ${pattern} OR CONCAT_WS(' ', c."firstName", c."lastName") ILIKE ${pattern}
-      OR c."companyName" ILIKE ${pattern} OR c."companyNameAr" ILIKE ${pattern} OR c.email ILIKE ${pattern} OR c.phone ILIKE ${pattern}
-      OR c."crNumber" ILIKE ${pattern} OR c."vatNumber" ILIKE ${pattern} OR c."registrationNumber" ILIKE ${pattern} OR c."addressCity" ILIKE ${pattern}
-      OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id
-        AND (p."fullName" ILIKE ${pattern} OR p.email ILIKE ${pattern} OR p.phone ILIKE ${pattern} OR p.department ILIKE ${pattern}))
-      ${phoneSql}
-    )`);
-  }
-  if (f.kind !== "all") and.push(Database.sql`c."clientKind" = ${f.kind}`);
-  if (f.type !== "all") and.push(Database.sql`c."contactType" = ${f.type}`);
-  if (f.origin !== "all") and.push(Database.sql`c."companyOrigin" = ${f.origin}`);
-  if (f.country !== "all")
-    and.push(
-      Database.sql`(c."addressCountry" = ${f.country} OR c."registrationCountry" = ${f.country} OR c.nationality = ${f.country})`,
-    );
-  if (f.tier !== "all") and.push(Database.sql`x.tier = ${f.tier}`);
-  if (f.balance === "outstanding") and.push(Database.sql`x.outstanding > 0`);
-  if (f.balance === "overdue") and.push(Database.sql`x.overdue`);
-  if (f.balance === "settled")
-    and.push(Database.sql`NOT x.never_billed AND x.outstanding <= 0`);
-  if (f.balance === "never_billed") and.push(Database.sql`x.never_billed`);
-  const dormantSince = new Date(Date.now() - CLIENT_DORMANT_DAYS * 86400000);
-  if (f.activity === "active")
-    and.push(Database.sql`x.last_activity >= ${dormantSince}`);
-  if (f.activity === "dormant")
-    and.push(Database.sql`x.last_activity < ${dormantSince}`);
-  return and.length
-    ? Database.sql`WHERE ${Database.join(and, " AND ")}`
-    : Database.empty;
-}
-
-const SORT_SQL: Record<ClientSort, Database.Sql> = {
-  newest: Database.sql`c."createdAt" DESC, c.id DESC`,
-  oldest: Database.sql`c."createdAt" ASC, c.id ASC`,
-  name_asc: Database.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) ASC, c.id`,
-  name_desc: Database.sql`LOWER(COALESCE(NULLIF(c."companyName", ''), CONCAT_WS(' ', c."firstName", c."lastName"))) DESC, c.id`,
-  rank: Database.sql`x.rank ASC NULLS LAST, c."createdAt" DESC, c.id`,
-  revenue_desc: Database.sql`x.billed DESC, c.id`,
-  revenue_asc: Database.sql`x.billed ASC, c.id`,
-  outstanding_desc: Database.sql`x.outstanding DESC, c.id`,
-  activity_desc: Database.sql`x.last_activity DESC NULLS LAST, c.id`,
-  activity_asc: Database.sql`x.last_activity ASC NULLS LAST, c.id`,
-};
-
-type StandingRow = {
-  id: string;
-  billed: unknown;
-  collected: unknown;
-  outstanding: unknown;
-  overdue: boolean;
-  invoice_count: number;
-  rank: bigint | null;
-  tier: "A" | "B" | "C" | "none";
-  deals_won: number;
-  persons: number;
-  last_activity: Date | null;
-};
-
 async function baseCurrency() {
   const accountingCurrency = await getAccountingCurrency();
   const settings = await getCompanyConfiguration().catch(() => null);
   return settings?.defaultCurrency || accountingCurrency;
 }
 
-async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {
-  const contacts = await db.crmContact.findMany({
-    where: { id: { in: rows.map((r) => r.id) } },
-    include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
+interface ComputedStanding {
+  id: string;
+  billed: number;
+  collected: number;
+  outstanding: number;
+  overdue: boolean;
+  invoice_count: number;
+  never_billed: boolean;
+  rank: number | null;
+  tier: "A" | "B" | "C" | "none";
+  deals_won: number;
+  persons: number;
+  last_activity: number;
+}
+
+async function computeAllStandings(currency: string) {
+  const [contacts, persons, invoices, payments, deals, inquiries] = await Promise.all([
+    listTableRows<Record<string, any>>("sales", "crm_contact"),
+    listTableRows<Record<string, any>>("system", "client_contact_person"),
+    listTableRows<Record<string, any>>("finance", "invoice"),
+    listTableRows<Record<string, any>>("finance", "payment"),
+    listTableRows<Record<string, any>>("sales", "crm_deal"),
+    listTableRows<Record<string, any>>("sales", "inquiry"),
+  ]);
+
+  const dealById = new Map(deals.map((d) => [String(d.id), d]));
+  const personsByContact = new Map<string, Record<string, any>[]>();
+  for (const p of persons) {
+    const cid = String(p.contactId ?? "");
+    if (!cid) continue;
+    const list = personsByContact.get(cid) ?? [];
+    list.push(p);
+    personsByContact.set(cid, list);
+  }
+
+  const paidByInvoice = new Map<string, { amount: number; lastMs: number }>();
+  for (const p of payments) {
+    if (!p.invoiceId) continue;
+    const iid = String(p.invoiceId);
+    const cur = paidByInvoice.get(iid) ?? { amount: 0, lastMs: 0 };
+    cur.amount += Number(p.amount ?? 0);
+    const ms = p.paymentDate ? new Date(p.paymentDate).getTime() : 0;
+    if (ms > cur.lastMs) cur.lastMs = ms;
+    paidByInvoice.set(iid, cur);
+  }
+
+  const todayMs = new Date(new Date().toISOString().slice(0, 10)).getTime();
+  const invStatsByContact = new Map<
+    string,
+    {
+      billed: number;
+      collected: number;
+      outstanding: number;
+      overdue: boolean;
+      count: number;
+      lastMs: number;
+    }
+  >();
+
+  for (const inv of invoices) {
+    if (inv.status === "draft" || inv.status === "void") continue;
+    const cid =
+      inv.clientId ??
+      (inv.dealId ? dealById.get(String(inv.dealId))?.contactId : null);
+    if (!cid) continue;
+    const key = String(cid);
+    const st = invStatsByContact.get(key) ?? {
+      billed: 0,
+      collected: 0,
+      outstanding: 0,
+      overdue: false,
+      count: 0,
+      lastMs: 0,
+    };
+    st.count += 1;
+    const total = Number(inv.totalAmount ?? 0);
+    const paidInfo = paidByInvoice.get(String(inv.id));
+    const paid = paidInfo?.amount ?? 0;
+    if (inv.currency === currency) {
+      st.billed += total;
+      st.collected += Math.min(total, paid);
+      st.outstanding += Math.max(0, total - paid);
+    }
+    const dueMs = inv.dueDate ? new Date(inv.dueDate).getTime() : Infinity;
+    if (total > paid && dueMs < todayMs) st.overdue = true;
+    const issueMs = inv.issueDate ? new Date(inv.issueDate).getTime() : 0;
+    st.lastMs = Math.max(st.lastMs, issueMs, paidInfo?.lastMs ?? 0);
+    invStatsByContact.set(key, st);
+  }
+
+  const dealStatsByContact = new Map<string, { won: number; lastMs: number }>();
+  for (const d of deals) {
+    if (!d.contactId) continue;
+    const key = String(d.contactId);
+    const st = dealStatsByContact.get(key) ?? { won: 0, lastMs: 0 };
+    if (d.dealStage === "closed_won") st.won += 1;
+    const ms = d.updatedAt ? new Date(d.updatedAt).getTime() : 0;
+    if (ms > st.lastMs) st.lastMs = ms;
+    dealStatsByContact.set(key, st);
+  }
+
+  const reqLastByContact = new Map<string, number>();
+  for (const q of inquiries) {
+    if (!q.customerId) continue;
+    const key = String(q.customerId);
+    const ms = q.createdAt ? new Date(q.createdAt).getTime() : 0;
+    reqLastByContact.set(key, Math.max(reqLastByContact.get(key) ?? 0, ms));
+  }
+
+  const positive = Array.from(invStatsByContact.entries())
+    .filter(([, s]) => s.billed > 0)
+    .sort((a, b) => b[1].billed - a[1].billed || a[0].localeCompare(b[0]));
+  const grand = positive.reduce((sum, [, s]) => sum + s.billed, 0);
+  const rankMap = new Map<string, { rank: number; tier: "A" | "B" | "C" }>();
+  let running = 0;
+  positive.forEach(([cid, s], idx) => {
+    const tier: "A" | "B" | "C" =
+      running < grand * 0.8 ? "A" : running < grand * 0.95 ? "B" : "C";
+    rankMap.set(cid, { rank: idx + 1, tier });
+    running += s.billed;
   });
-  const byId = new Map(contacts.map((c) => [c.id, c]));
-  return rows.flatMap((r) => {
-    const contact = byId.get(r.id);
-    if (!contact) return [];
-    const mapped = mapContact(contact);
-    delete (mapped as any).notes;
-    return [
-      {
-        ...mapped,
-        rank: r.rank === null ? null : Number(r.rank),
-        tier: r.tier,
-        billed: Number(r.billed),
-        collected: Number(r.collected),
-        outstanding: Number(r.outstanding),
-        overdue: r.overdue,
-        invoice_count: r.invoice_count,
-        deals_won: r.deals_won,
-        contact_persons_count: r.persons,
-        last_activity: (r.last_activity ?? (contact as any).createdAt ?? new Date()).toISOString(),
-      },
-    ];
-  });
+
+  const standings = new Map<string, ComputedStanding>();
+  for (const c of contacts) {
+    const cid = String(c.id);
+    const invSt = invStatsByContact.get(cid);
+    const rk = rankMap.get(cid);
+    const dlSt = dealStatsByContact.get(cid);
+    const rqLast = reqLastByContact.get(cid) ?? 0;
+    const pList = personsByContact.get(cid) ?? [];
+    const createdMs = c.createdAt ? new Date(c.createdAt).getTime() : 0;
+    standings.set(cid, {
+      id: cid,
+      billed: invSt?.billed ?? 0,
+      collected: invSt?.collected ?? 0,
+      outstanding: invSt?.outstanding ?? 0,
+      overdue: invSt?.overdue ?? false,
+      invoice_count: invSt?.count ?? 0,
+      never_billed: !invSt,
+      rank: rk?.rank ?? null,
+      tier: rk?.tier ?? "none",
+      deals_won: dlSt?.won ?? 0,
+      persons: pList.length,
+      last_activity: Math.max(createdMs, invSt?.lastMs ?? 0, dlSt?.lastMs ?? 0, rqLast),
+    });
+  }
+
+  return { contacts, personsByContact, standings, rankedCount: positive.length };
 }
 
 export async function getClientsPage(
@@ -538,152 +560,185 @@ export async function getClientsPage(
 ) {
   const f = clientListParameters(input);
   const currency = await baseCurrency();
-  return runAtomicMutation(async () => {
-    const withSql = Database.sql`WITH ${standingSql(currency)}`;
-    const from = Database.sql`FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${filterSql(f)}`;
-    if (batch) {
-      const where = filterSql(
-        f,
-        batch.after ? [Database.sql`c.id > ${batch.after}`] : [],
+  const { contacts, personsByContact, standings } = await computeAllStandings(currency);
+
+  const dormantSinceMs = Date.now() - CLIENT_DORMANT_DAYS * 86400000;
+  const qLower = f.q.toLowerCase();
+  const phoneVariants = f.q ? phoneSearchVariants(f.q).map((v) => v.toLowerCase()) : [];
+
+  const filtered = contacts.filter((c) => {
+    const cid = String(c.id);
+    const x = standings.get(cid)!;
+    const pList = personsByContact.get(cid) ?? [];
+    if (batch?.after && cid <= batch.after) return false;
+
+    if (f.q) {
+      const hay = [
+        c.firstName,
+        c.lastName,
+        `${c.firstName ?? ""} ${c.lastName ?? ""}`,
+        c.companyName,
+        c.companyNameAr,
+        c.email,
+        c.phone,
+        c.crNumber,
+        c.vatNumber,
+        c.registrationNumber,
+        c.addressCity,
+      ]
+        .filter(Boolean)
+        .map((s) => String(s).toLowerCase());
+      const personMatch = pList.some((p) =>
+        [p.fullName, p.email, p.phone, p.department]
+          .filter(Boolean)
+          .some((s) => String(s).toLowerCase().includes(qLower)),
       );
-      const rows = await db.$queryRaw<StandingRow[]>(Database.sql`${withSql}
-        SELECT x.* FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${where}
-        ORDER BY c.id ASC LIMIT ${Math.min(500, batch.batchSize)}`);
-      return {
-        items: await hydrate(rows),
-        total: 0,
-        page: 1,
-        pageSize: 500,
-        filters: f,
-        summary: null,
-        currency,
-      };
-    }
-    const countRows = await db.$queryRaw<Array<{ count: bigint }>>(
-      Database.sql`${withSql} SELECT COUNT(*) AS count ${from}`,
-    );
-    const total = Number(countRows?.[0]?.count ?? 0);
-    const page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
-    const rows = await db.$queryRaw<StandingRow[]>(Database.sql`${withSql}
-      SELECT x.* ${from} ORDER BY ${SORT_SQL[f.sort]} LIMIT 50 OFFSET ${(page - 1) * 50}`);
-    const [summary] = (await db.$queryRaw<
-      Array<Record<string, bigint | unknown>>
-    >(Database.sql`${withSql}
-      SELECT COUNT(*) AS total,
-        COUNT(*) FILTER (WHERE c."clientKind" = 'company') AS companies,
-        COUNT(*) FILTER (WHERE c."clientKind" = 'government') AS government,
-        COUNT(*) FILTER (WHERE c."clientKind" = 'individual') AS individuals,
-        COUNT(*) FILTER (WHERE x.tier = 'A') AS tier_a,
-        COUNT(*) FILTER (WHERE x.outstanding > 0) AS with_balance,
-        COALESCE(SUM(x.outstanding), 0) AS outstanding,
-        COALESCE(SUM(x.billed), 0) AS billed
-      FROM "CrmContact" c JOIN client_rows x ON x.id = c.id`)) || [];
-    let items = await hydrate(rows || []);
-    let finalTotal = total;
-    if (!items.length) {
-      const { listContacts, listInvoices } = await import("@platform/api-client");
-      const [contacts, apiInvoices] = await Promise.all([
-        listContacts().catch(() => []),
-        listInvoices().catch(() => []),
-      ]);
-      if (contacts.length) {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        items = contacts.map((c: any, index: number) => {
-          const mapped = mapContact(c);
-          delete (mapped as any).notes;
-          const clientInvoices = (apiInvoices || []).filter(
-            (inv: any) => (inv.contactId || inv.ContactID) === c.id,
-          );
-          const billed = clientInvoices.reduce(
-            (sum: number, inv: any) => sum + Number(inv.total || inv.Total || inv.totalAmount || 0),
-            0,
-          );
-          const collected = clientInvoices.reduce(
-            (sum: number, inv: any) => sum + Number(inv.amountPaid || inv.AmountPaid || 0),
-            0,
-          );
-          const outstanding = clientInvoices.reduce(
-            (sum: number, inv: any) => sum + Number(inv.balanceDue || inv.BalanceDue || 0),
-            0,
-          );
-          const isOverdue = clientInvoices.some(
-            (inv: any) =>
-              inv.status === "overdue" ||
-              (Number(inv.balanceDue || inv.BalanceDue || 0) > 0 &&
-                (inv.dueDate || inv.DueDate || todayStr).slice(0, 10) < todayStr),
-          );
-          return {
-            ...mapped,
-            rank: index + 1,
-            tier: (index === 0 ? "A" : index < 3 ? "B" : "C") as "A" | "B" | "C",
-            billed,
-            collected,
-            outstanding,
-            overdue: isOverdue,
-            invoice_count: clientInvoices.length,
-            deals_won: 0,
-            contact_persons_count: 0,
-            last_activity: typeof c.createdAt === "string" ? c.createdAt : new Date().toISOString(),
-          };
-        });
-        finalTotal = items.length;
+      const phoneMatch =
+        phoneVariants.length > 0 &&
+        phoneVariants.some(
+          (v) =>
+            String(c.phone ?? "").toLowerCase().includes(v) ||
+            String(c.phoneE164 ?? "").toLowerCase().includes(v) ||
+            pList.some((p) => String(p.phone ?? "").toLowerCase().includes(v)),
+        );
+      if (!hay.some((s) => s.includes(qLower)) && !personMatch && !phoneMatch) {
+        return false;
       }
     }
-    const computedSummary = {
-      total: finalTotal,
-      companies: items.filter((i) => i.client_kind === "company" || i.company).length,
-      government: items.filter((i) => i.client_kind === "government").length,
-      individuals: items.filter((i) => i.client_kind === "individual" && !i.company).length,
-      tier_a: items.filter((i) => i.tier === "A").length,
-      with_balance: items.filter((i) => (i.outstanding || 0) > 0).length,
-      outstanding: items.reduce((acc, i) => acc + (i.outstanding || 0), 0),
-      billed: items.reduce((acc, i) => acc + (i.billed || 0), 0),
-    };
-    const summaryEntries = Object.entries(summary || {})
-      .filter(([_, v]) => v != null && !isNaN(Number(v)))
-      .map(([k, v]) => [k, Number(v)]);
-    const finalSummary = {
-      ...computedSummary,
-      ...Object.fromEntries(summaryEntries),
-    };
+    if (f.kind !== "all" && c.clientKind !== f.kind) return false;
+    if (f.type !== "all" && c.contactType !== f.type) return false;
+    if (f.origin !== "all" && c.companyOrigin !== f.origin) return false;
+    if (
+      f.country !== "all" &&
+      c.addressCountry !== f.country &&
+      c.registrationCountry !== f.country &&
+      c.nationality !== f.country
+    )
+      return false;
+    if (f.tier !== "all" && x.tier !== f.tier) return false;
+    if (f.balance === "outstanding" && !(x.outstanding > 0)) return false;
+    if (f.balance === "overdue" && !x.overdue) return false;
+    if (f.balance === "settled" && (x.never_billed || x.outstanding > 0)) return false;
+    if (f.balance === "never_billed" && !x.never_billed) return false;
+    if (f.activity === "active" && !(x.last_activity >= dormantSinceMs)) return false;
+    if (f.activity === "dormant" && !(x.last_activity < dormantSinceMs)) return false;
+    return true;
+  });
+
+  const displayName = (c: Record<string, any>) =>
+    (c.companyName || `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim()).toLowerCase();
+
+  if (batch) {
+    filtered.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  } else {
+    filtered.sort((a, b) => {
+      const xa = standings.get(String(a.id))!;
+      const xb = standings.get(String(b.id))!;
+      const aCr = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bCr = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      switch (f.sort) {
+        case "oldest":
+          return aCr - bCr || String(a.id).localeCompare(String(b.id));
+        case "name_asc":
+          return displayName(a).localeCompare(displayName(b)) || String(a.id).localeCompare(String(b.id));
+        case "name_desc":
+          return displayName(b).localeCompare(displayName(a)) || String(a.id).localeCompare(String(b.id));
+        case "rank":
+          return (xa.rank ?? Infinity) - (xb.rank ?? Infinity) || bCr - aCr || String(a.id).localeCompare(String(b.id));
+        case "revenue_desc":
+          return xb.billed - xa.billed || String(a.id).localeCompare(String(b.id));
+        case "revenue_asc":
+          return xa.billed - xb.billed || String(a.id).localeCompare(String(b.id));
+        case "outstanding_desc":
+          return xb.outstanding - xa.outstanding || String(a.id).localeCompare(String(b.id));
+        case "activity_desc":
+          return xb.last_activity - xa.last_activity || String(a.id).localeCompare(String(b.id));
+        case "activity_asc":
+          return xa.last_activity - xb.last_activity || String(a.id).localeCompare(String(b.id));
+        case "newest":
+        default:
+          return bCr - aCr || String(b.id).localeCompare(String(a.id));
+      }
+    });
+  }
+
+  const total = filtered.length;
+  const page = batch ? 1 : Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
+  const pageSize = batch ? Math.min(500, batch.batchSize) : 50;
+  const slice = batch
+    ? filtered.slice(0, pageSize)
+    : filtered.slice((page - 1) * 50, page * 50);
+
+  const items: ClientListRow[] = slice.map((c) => {
+    const cid = String(c.id);
+    const x = standings.get(cid)!;
+    const mapped = mapContact({
+      ...c,
+      contactPersons: (personsByContact.get(cid) ?? []).sort(
+        (a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0),
+      ),
+    });
+    delete (mapped as any).notes;
     return {
-      items,
-      total: finalTotal,
-      page,
-      pageSize: 50,
-      filters: f,
-      currency,
-      summary: finalSummary as Record<
-        | "total"
-        | "companies"
-        | "government"
-        | "individuals"
-        | "tier_a"
-        | "with_balance"
-        | "outstanding"
-        | "billed",
-        number
-      >,
+      ...mapped,
+      rank: x.rank,
+      tier: x.tier,
+      billed: x.billed,
+      collected: x.collected,
+      outstanding: x.outstanding,
+      overdue: x.overdue,
+      invoice_count: x.invoice_count,
+      deals_won: x.deals_won,
+      contact_persons_count: x.persons,
+      last_activity: new Date(x.last_activity || Date.now()).toISOString(),
     };
   });
+
+  if (batch) {
+    return {
+      items,
+      total: 0,
+      page: 1,
+      pageSize: 500,
+      filters: f,
+      summary: null,
+      currency,
+    };
+  }
+
+  const summary = {
+    total: contacts.length,
+    companies: contacts.filter((c) => c.clientKind === "company").length,
+    government: contacts.filter((c) => c.clientKind === "government").length,
+    individuals: contacts.filter((c) => c.clientKind === "individual").length,
+    tier_a: contacts.filter((c) => standings.get(String(c.id))?.tier === "A").length,
+    with_balance: contacts.filter((c) => (standings.get(String(c.id))?.outstanding ?? 0) > 0).length,
+    outstanding: contacts.reduce((s, c) => s + (standings.get(String(c.id))?.outstanding ?? 0), 0),
+    billed: contacts.reduce((s, c) => s + (standings.get(String(c.id))?.billed ?? 0), 0),
+  };
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: 50,
+    filters: f,
+    currency,
+    summary,
+  };
 }
 
 export async function getClientStanding(id: string) {
   const currency = await baseCurrency();
-  const rows = await db.$queryRaw<StandingRow[]>(
-    Database.sql`WITH ${standingSql(currency)} SELECT x.* FROM client_rows x WHERE x.id = ${id}`,
-  );
-  const r = rows[0];
+  const { standings, rankedCount } = await computeAllStandings(currency);
+  const r = standings.get(id);
   if (!r) return null;
-  const rankedRows = await db.$queryRaw<Array<{ ranked: bigint }>>(
-    Database.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`,
-  );
   return {
-    rank: r.rank === null ? null : Number(r.rank),
-    rankedClients: Number(rankedRows?.[0]?.ranked ?? 0),
+    rank: r.rank,
+    rankedClients: rankedCount,
     tier: r.tier,
-    billed: Number(r.billed),
-    outstanding: Number(r.outstanding),
+    billed: r.billed,
+    outstanding: r.outstanding,
     overdue: r.overdue,
     currency,
   };

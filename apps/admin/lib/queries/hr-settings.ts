@@ -6,8 +6,19 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../atomic";
-import { Database } from "@platform/database/decimal";
+import {
+  listLeaveTypesApi,
+  listShiftTypesApi,
+  saveLeaveTypeApi,
+  saveShiftTypeApi,
+} from "../api/hr";
+import {
+  deleteSystemPublicHolidayApi,
+  listSystemHrPoliciesApi,
+  listSystemPublicHolidaysApi,
+  saveSystemHrPolicyApi,
+  saveSystemPublicHolidayApi,
+} from "../api/system-workspace";
 import {
   DEFAULT_HR_POLICY,
   type HrPolicyRules,
@@ -15,24 +26,26 @@ import {
 } from "../hr/payroll-engine";
 
 export async function getHrPolicy(): Promise<HrPolicyRules> {
-  const row = await db.hrPolicy.findUnique({ where: { id: "default" } });
+  const rows = await listSystemHrPoliciesApi().catch(() => []);
+  const row = rows.find((r) => r.id === "default") ?? rows[0];
   const currency = await companyCurrency();
   if (!row) return { ...DEFAULT_HR_POLICY, currency };
   return {
+    ...DEFAULT_HR_POLICY,
     currency,
-    visaExemptCountries: row.visaExemptCountries,
-    salaryTiming: row.salaryTiming as HrPolicyRules["salaryTiming"],
-    payDay: row.payDay,
-    attendanceCutoffDay: row.attendanceCutoffDay,
-    weekendDays: row.weekendDays,
-    workdayHours: Number(row.workdayHours),
-    workdayStart: row.workdayStart,
-    dailyRateBasis: row.dailyRateBasis as HrPolicyRules["dailyRateBasis"],
-    deductionBase: row.deductionBase as HrPolicyRules["deductionBase"],
-    overtimeBase: row.overtimeBase as HrPolicyRules["overtimeBase"],
-    overtimeRate: Number(row.overtimeRate),
-    overtimeNightRate: Number(row.overtimeNightRate),
-    overtimeRestDayRate: Number(row.overtimeRestDayRate),
+    visaExemptCountries: row.visa_exempt_countries ?? row.visaExemptCountries ?? DEFAULT_HR_POLICY.visaExemptCountries,
+    salaryTiming: (row.salary_timing ?? row.salaryTiming ?? DEFAULT_HR_POLICY.salaryTiming) as HrPolicyRules["salaryTiming"],
+    payDay: row.pay_day ?? row.payDay ?? DEFAULT_HR_POLICY.payDay,
+    attendanceCutoffDay: row.attendance_cutoff_day ?? row.attendanceCutoffDay ?? DEFAULT_HR_POLICY.attendanceCutoffDay,
+    weekendDays: row.weekend_days ?? row.weekendDays ?? DEFAULT_HR_POLICY.weekendDays,
+    workdayHours: Number(row.workday_hours ?? row.workdayHours ?? DEFAULT_HR_POLICY.workdayHours),
+    workdayStart: row.workday_start ?? row.workdayStart ?? DEFAULT_HR_POLICY.workdayStart,
+    dailyRateBasis: (row.daily_rate_basis ?? row.dailyRateBasis ?? DEFAULT_HR_POLICY.dailyRateBasis) as HrPolicyRules["dailyRateBasis"],
+    deductionBase: (row.deduction_base ?? row.deductionBase ?? DEFAULT_HR_POLICY.deductionBase) as HrPolicyRules["deductionBase"],
+    overtimeBase: (row.overtime_base ?? row.overtimeBase ?? DEFAULT_HR_POLICY.overtimeBase) as HrPolicyRules["overtimeBase"],
+    overtimeRate: Number(row.overtime_rate ?? row.overtimeRate ?? DEFAULT_HR_POLICY.overtimeRate),
+    overtimeNightRate: Number(row.overtime_night_rate ?? row.overtimeNightRate ?? DEFAULT_HR_POLICY.overtimeNightRate),
+    overtimeRestDayRate: Number(row.overtime_rest_day_rate ?? row.overtimeRestDayRate ?? DEFAULT_HR_POLICY.overtimeRestDayRate),
     overtimeHolidayRate: Number(row.overtimeHolidayRate),
     lateGraceMinutes: row.lateGraceMinutes,
     deductLateness: row.deductLateness,
@@ -108,43 +121,55 @@ export function validateHrPolicy(input: HrPolicyRules): HrPolicyRules {
 
 export async function updateHrPolicy(
   input: HrPolicyRules,
-  actorId: string,
+  _actorId: string,
 ): Promise<HrPolicyRules> {
   const { currency: _currency, ...data } = validateHrPolicy(input);
-  await db.hrPolicy.upsert({
-    where: { id: "default" },
-    update: { ...data, updatedById: actorId },
-    create: { id: "default", ...data, updatedById: actorId },
+  await saveSystemHrPolicyApi({
+    id: "default",
+    salary_timing: data.salaryTiming,
+    pay_day: data.payDay,
+    attendance_cutoff_day: data.attendanceCutoffDay,
+    workday_hours: data.workdayHours,
+    workday_start: data.workdayStart,
+    daily_rate_basis: data.dailyRateBasis,
+    deduction_base: data.deductionBase,
+    overtime_base: data.overtimeBase,
+    overtime_rate: data.overtimeRate,
+    overtime_night_rate: data.overtimeNightRate,
+    overtime_rest_day_rate: data.overtimeRestDayRate,
+    overtime_holiday_rate: data.overtimeHolidayRate,
+    late_grace_minutes: data.lateGraceMinutes,
+    deduct_lateness: data.deductLateness,
+    unmarked_days: data.unmarkedDays,
+    prorate_joiners: data.prorateJoiners,
+    commission_in_payroll: data.commissionInPayroll,
+    gratuity_rules: (data as any).gratuityRules as any,
   });
   return getHrPolicy();
 }
 
 export async function listPublicHolidays(year?: number) {
-  const rows = await db.publicHoliday.findMany({
-    where: year
-      ? {
-          date: {
-            gte: new Date(Date.UTC(year, 0, 1)),
-            lte: new Date(Date.UTC(year, 11, 31)),
-          },
-        }
-      : undefined,
-    orderBy: { date: "asc" },
-  });
-  return rows.map((h) => ({
-    id: h.id,
-    date: h.date.toISOString().slice(0, 10),
-    nameEn: h.nameEn,
-    nameAr: h.nameAr,
-  }));
+  const rows = await listSystemPublicHolidaysApi().catch(() => []);
+  return rows
+    .map((h) => ({
+      id: h.id,
+      date: String(h.date).slice(0, 10),
+      nameEn: h.name_en ?? h.nameEn,
+      nameAr: h.name_ar ?? h.nameAr,
+    }))
+    .filter((h) => (!year ? true : h.date.startsWith(`${year}-`)))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export async function holidaySet(start: Date, end: Date): Promise<Set<string>> {
-  const rows = await db.publicHoliday.findMany({
-    where: { date: { gte: start, lte: end } },
-    select: { date: true },
-  });
-  return new Set(rows.map((h) => h.date.toISOString().slice(0, 10)));
+  const startStr = start.toISOString().slice(0, 10);
+  const endStr = end.toISOString().slice(0, 10);
+  const rows = await listPublicHolidays();
+  return new Set(
+    rows
+      .filter((h) => h.date >= startStr && h.date <= endStr)
+      .map((h) => h.date),
+  );
 }
 
 export async function savePublicHoliday(input: {
@@ -159,19 +184,20 @@ export async function savePublicHoliday(input: {
   const nameAr = input.nameAr.trim() || nameEn;
   if (!nameEn || nameEn.length > 120 || nameAr.length > 120)
     throw new Error(serverMessages.giveTheHolidayAName);
-  const data = { date: new Date(`${input.date}T00:00:00Z`), nameEn, nameAr };
-  const clash = await db.publicHoliday.findUnique({
-    where: { date: data.date },
-  });
+  const existing = await listPublicHolidays();
+  const clash = existing.find((h) => h.date === input.date);
   if (clash && clash.id !== input.id)
     throw new Error(serverMessages.thereIsAlreadyAHolidayOnThat);
-  return input.id
-    ? db.publicHoliday.update({ where: { id: input.id }, data })
-    : db.publicHoliday.create({ data });
+  return saveSystemPublicHolidayApi({
+    id: input.id,
+    date: input.date,
+    nameEn,
+    nameAr,
+  });
 }
 
 export async function deletePublicHoliday(id: string) {
-  await db.publicHoliday.delete({ where: { id } });
+  await deleteSystemPublicHolidayApi(id);
 }
 
 export interface ShiftTypeView {
@@ -185,11 +211,15 @@ export interface ShiftTypeView {
 }
 
 export async function listShiftTypes(): Promise<ShiftTypeView[]> {
-  const rows = await db.shiftType.findMany({ orderBy: { nameEn: "asc" } });
+  const rows = await listShiftTypesApi().catch(() => []);
   return rows.map((s) => ({
-    ...s,
-    allowanceMode: s.allowanceMode as "fixed" | "percent",
-    allowanceValue: Number(s.allowanceValue),
+    id: s.id,
+    code: s.code,
+    nameEn: s.name_en ?? s.nameEn,
+    nameAr: s.name_ar ?? s.nameAr,
+    allowanceMode: (s.allowance_mode ?? s.allowanceMode) as "fixed" | "percent",
+    allowanceValue: Number(s.allowance_value ?? s.allowanceValue ?? 0),
+    isActive: Boolean(s.is_active ?? s.isActive ?? true),
   }));
 }
 
@@ -211,17 +241,15 @@ export async function saveShiftType(
     input.allowanceValue > 100000
   )
     throw new Error(serverMessages.enterAValidAllowance);
-  const data = {
+  return saveShiftTypeApi({
+    id: input.id ?? "",
     code,
     nameEn: input.nameEn.trim(),
     nameAr: input.nameAr.trim() || input.nameEn.trim(),
     allowanceMode: input.allowanceMode,
     allowanceValue: Math.round(input.allowanceValue * 1000) / 1000,
     isActive: input.isActive,
-  };
-  return input.id
-    ? db.shiftType.update({ where: { id: input.id }, data })
-    : db.shiftType.create({ data });
+  });
 }
 
 export interface LeaveTypeView extends LeaveTypeRules {
@@ -234,43 +262,43 @@ export interface LeaveTypeView extends LeaveTypeRules {
   sortOrder: number;
 }
 
-type LeaveTypeRow = Awaited<ReturnType<typeof db.leaveType.findFirstOrThrow>>;
+type LeaveTypeRow = any;
 
 export function toLeaveTypeRules(row: LeaveTypeRow): LeaveTypeView {
   return {
     id: row.id,
     code: row.code,
-    nameEn: row.nameEn,
-    nameAr: row.nameAr,
-    isPaid: row.isPaid,
-    payPercent: row.payPercent,
+    nameEn: row.name_en ?? row.nameEn,
+    nameAr: row.name_ar ?? row.nameAr,
+    isPaid: Boolean(row.is_paid ?? row.isPaid),
+    payPercent: Number(row.pay_percent ?? row.payPercent ?? 100),
     payTiers: Array.isArray(row.payTiers)
       ? (row.payTiers as Array<{ upToDays: number; percent: number }>)
       : null,
-    accrual: row.accrual as LeaveTypeRules["accrual"],
-    daysAllowedPerYear: Number(row.daysAllowedPerYear),
-    eligibleAfterMonths: row.eligibleAfterMonths,
-    maxCarryOverDays: Number(row.maxCarryOverDays),
+    accrual: (row.accrual ?? "annual") as LeaveTypeRules["accrual"],
+    daysAllowedPerYear: Number(row.days_allowed_per_year ?? row.daysAllowedPerYear ?? 0),
+    eligibleAfterMonths: Number(row.eligible_after_months ?? row.eligibleAfterMonths ?? 0),
+    maxCarryOverDays: Number(row.max_carry_over_days ?? row.maxCarryOverDays ?? 0),
     maxDaysPerRequest:
-      row.maxDaysPerRequest == null ? null : Number(row.maxDaysPerRequest),
-    allowHalfDay: row.allowHalfDay,
-    allowHours: row.allowHours,
-    countCalendarDays: row.countCalendarDays,
-    requiresAttachment: row.requiresAttachment,
-    requiresHandover: row.requiresHandover,
-    isActive: row.isActive,
-    sortOrder: row.sortOrder,
+      (row.max_days_per_request ?? row.maxDaysPerRequest) == null
+        ? null
+        : Number(row.max_days_per_request ?? row.maxDaysPerRequest),
+    allowHalfDay: Boolean(row.allow_half_day ?? row.allowHalfDay ?? true),
+    allowHours: Boolean(row.allow_hours ?? row.allowHours ?? false),
+    countCalendarDays: Boolean(row.count_calendar_days ?? row.countCalendarDays ?? false),
+    requiresAttachment: Boolean(row.requires_attachment ?? row.requiresAttachment ?? false),
+    requiresHandover: Boolean(row.requires_handover ?? row.requiresHandover ?? false),
+    isActive: Boolean(row.is_active ?? row.isActive ?? true),
+    sortOrder: Number(row.sort_order ?? row.sortOrder ?? 0),
   };
 }
 
 export async function listLeaveTypeRules(
   options: { activeOnly?: boolean } = {},
 ): Promise<LeaveTypeView[]> {
-  const rows = await db.leaveType.findMany({
-    where: options.activeOnly ? { isActive: true } : undefined,
-    orderBy: [{ sortOrder: "asc" }, { nameEn: "asc" }],
-  });
-  return rows.map(toLeaveTypeRules);
+  const rows = await listLeaveTypesApi().catch(() => []);
+  const mapped = rows.map(toLeaveTypeRules);
+  return options.activeOnly ? mapped.filter((r) => r.isActive) : mapped;
 }
 
 export type LeaveTypeInput = Omit<LeaveTypeView, "id" | "isPaid"> & {
@@ -329,7 +357,7 @@ export async function saveLeaveType(input: LeaveTypeInput) {
     nameAr: input.nameAr.trim() || input.nameEn.trim(),
     payPercent: input.payPercent,
     isPaid: tiers ? tiers.some((t) => t.percent > 0) : input.payPercent > 0,
-    payTiers: (tiers ?? undefined) as Database.InputJsonValue | undefined,
+    payTiers: tiers ?? undefined,
     accrual: input.accrual,
     daysAllowedPerYear: input.daysAllowedPerYear,
     eligibleAfterMonths: input.eligibleAfterMonths,
@@ -343,17 +371,17 @@ export async function saveLeaveType(input: LeaveTypeInput) {
     isActive: input.isActive,
     sortOrder: input.sortOrder,
   };
-  const clash = await db.leaveType.findUnique({ where: { code } });
+  const existing = await listLeaveTypeRules();
+  const clash = existing.find((lt) => lt.code === code);
   if (clash && clash.id !== input.id)
     throw new Error(serverMessages.anotherLeaveTypeUsesThisCode);
-  if (input.id) {
-    return db.leaveType.update({
-      where: { id: input.id },
-      data: {
-        ...data,
-        payTiers: tiers ? (tiers as Database.InputJsonValue) : Database.DbNull,
-      },
-    });
-  }
-  return db.leaveType.create({ data });
+  return saveLeaveTypeApi({
+    id: input.id ?? "",
+    code,
+    nameEn: data.nameEn,
+    nameAr: data.nameAr,
+    daysAllowedPerYear: data.daysAllowedPerYear,
+    isPaid: data.isPaid,
+    payPercent: data.payPercent,
+  });
 }

@@ -6,8 +6,12 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import type { Database } from "@platform/database/decimal";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import {
+  deleteTableRow,
+  listTableRows,
+  upsertTableRow,
+} from "../api/tables";
 import { ROUTES } from "../constants/routes";
 import {
   calculateContributions,
@@ -79,10 +83,8 @@ export interface SettlementRules {
 }
 
 export async function getSettlementRules(): Promise<SettlementRules> {
-  const row = await db.hrPolicy.findUnique({
-    where: { id: "default" },
-    select: { gratuityRules: true, leaveEncashmentBase: true },
-  });
+  const rows = await listTableRows<any>("system", "hr_policy");
+  const row = rows.find((r) => r.id === "default") ?? rows[0];
   return {
     gratuity: parseGratuityRules(row?.gratuityRules),
     leaveEncashmentBase:
@@ -97,19 +99,13 @@ export async function updateSettlementRules(
   const gratuity = validateGratuityRules(input.gratuity);
   if (!["basic", "fixed"].includes(input.leaveEncashmentBase))
     throw new Error(serverMessages.chooseThePayUnusedLeaveIsPaidAt);
-  await db.hrPolicy.upsert({
-    where: { id: "default" },
-    update: {
-      gratuityRules: gratuity as unknown as Database.InputJsonValue,
-      leaveEncashmentBase: input.leaveEncashmentBase,
-      updatedById: actorId,
-    },
-    create: {
-      id: "default",
-      gratuityRules: gratuity as unknown as Database.InputJsonValue,
-      leaveEncashmentBase: input.leaveEncashmentBase,
-      updatedById: actorId,
-    },
+  const rows = await listTableRows<any>("system", "hr_policy");
+  const existing = rows.find((r) => r.id === "default");
+  await upsertTableRow("system", "hr_policy", {
+    ...(existing ?? { id: "default" }),
+    gratuityRules: gratuity,
+    leaveEncashmentBase: input.leaveEncashmentBase,
+    updatedById: actorId,
   });
   return getSettlementRules();
 }
@@ -162,17 +158,32 @@ export async function calculateSettlement(
 ) {
   const accountingCurrency = await getAccountingCurrency();
   const r3 = (value: number) => roundMoney(value, accountingCurrency);
-  const employee = await db.employee.findUnique({
-    where: { id: employeeId },
-    include: {
-      user: { select: { id: true, commissionRatePercent: true } },
-      employmentRecords: {
-        where: { effectiveFrom: { lte: lastWorkingDay } },
-        orderBy: { effectiveFrom: "desc" },
-      },
-    },
-  });
-  if (!employee) throw new Error(serverMessages.employeeNotFound);
+  const [employees, users, allRecords] = await Promise.all([
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("identity", "user"),
+    listTableRows<any>("system", "employment_record"),
+  ]);
+  const rawEmp = employees.find((e) => e.id === employeeId);
+  if (!rawEmp) throw new Error(serverMessages.employeeNotFound);
+  const empUser = rawEmp.userId
+    ? users.find((u) => u.id === rawEmp.userId) ?? null
+    : null;
+  const empRecords = allRecords
+    .filter(
+      (r) =>
+        r.employeeId === employeeId &&
+        new Date(r.effectiveFrom) <= lastWorkingDay,
+    )
+    .map((r) => ({ ...r, effectiveFrom: new Date(r.effectiveFrom) }))
+    .sort((a, b) => b.effectiveFrom.getTime() - a.effectiveFrom.getTime());
+  const employee = {
+    ...rawEmp,
+    hireDate: new Date(rawEmp.hireDate),
+    user: empUser
+      ? { id: empUser.id, commissionRatePercent: empUser.commissionRatePercent }
+      : null,
+    employmentRecords: empRecords,
+  };
   if (lastWorkingDay < employee.hireDate)
     throw new Error(serverMessages.theLastWorkingDayCannotBeBeforeThe);
   const record = employee.employmentRecords[0];
@@ -197,26 +208,22 @@ export async function calculateSettlement(
     lastWorkingDay.getUTCMonth() + 1,
   );
 
-  const items = await db.payrollItem.findMany({
-    where: {
-      employeeId,
-      payrollRun: {
-        OR: [
-          { year: { lt: lastWorkingDay.getUTCFullYear() } },
-          {
-            year: lastWorkingDay.getUTCFullYear(),
-            month: { lte: lastWorkingDay.getUTCMonth() + 1 },
-          },
-        ],
-      },
-    },
-    select: {
-      id: true,
-      netSalary: true,
-      paymentStatus: true,
-      payrollRun: { select: { year: true, month: true, status: true } },
-    },
-  });
+  const [allItems, allRuns] = await Promise.all([
+    listTableRows<any>("hr", "payroll_item"),
+    listTableRows<any>("hr", "payroll_run"),
+  ]);
+  const runMap = new Map<string, any>(allRuns.map((r) => [r.id, r]));
+  const lwdYear = lastWorkingDay.getUTCFullYear();
+  const lwdMonth = lastWorkingDay.getUTCMonth() + 1;
+  const items = allItems
+    .filter((i) => i.employeeId === employeeId)
+    .map((i) => ({ ...i, payrollRun: runMap.get(i.payrollRunId) }))
+    .filter(
+      (i) =>
+        i.payrollRun &&
+        (i.payrollRun.year < lwdYear ||
+          (i.payrollRun.year === lwdYear && i.payrollRun.month <= lwdMonth)),
+    );
   const covered = new Set(
     items
       .filter((i) =>
@@ -258,19 +265,27 @@ export async function calculateSettlement(
   for (let m = lastMonth; m >= first; m = addMonth(m, -1))
     if (!covered.has(m)) unpaidMonths.unshift(m);
 
-  const typeRows = await db.leaveType.findMany();
+  const [typeRows, allLeaveRows] = await Promise.all([
+    listTableRows<any>("hr", "leave_type"),
+    listTableRows<any>("hr", "leave_request"),
+  ]);
   const leaveRows = unpaidMonths.length
-    ? await db.leaveRequest.findMany({
-        where: {
-          employeeId,
-          status: "approved",
-          startDate: {
-            gte: utcDay(monthStart(unpaidMonths[0]).getUTCFullYear(), 0, 1),
-            lte: lastWorkingDay,
-          },
-        },
-        orderBy: { startDate: "asc" },
-      })
+    ? allLeaveRows
+        .filter((l) => {
+          if (l.employeeId !== employeeId || l.status !== "approved")
+            return false;
+          const s = new Date(l.startDate);
+          return (
+            s >= utcDay(monthStart(unpaidMonths[0]).getUTCFullYear(), 0, 1) &&
+            s <= lastWorkingDay
+          );
+        })
+        .map((l) => ({
+          ...l,
+          startDate: new Date(l.startDate),
+          endDate: new Date(l.endDate),
+        }))
+        .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
     : [];
   for (const month of unpaidMonths) {
     const start = monthStart(month);
@@ -408,9 +423,10 @@ export async function calculateSettlement(
       });
   }
 
-  const recurring = await db.employeeRecurringPay.findMany({
-    where: { employeeId, isActive: true },
-  });
+  const allRecurring = await listTableRows<any>("hr", "employee_recurring_pay");
+  const recurring = allRecurring.filter(
+    (r) => r.employeeId === employeeId && r.isActive,
+  );
   for (const r of recurring) {
     const months = unpaidMonths.filter(
       (m) => m >= r.startMonth && (!r.endMonth || m <= r.endMonth),
@@ -477,11 +493,10 @@ export async function calculateSettlement(
       const earned = (
         await commissionsForRange({ gte: from, lt: to }, [employee.user.id])
       ).get(employee.user.id);
-      const paid = await db.commissionPayout.findUnique({
-        where: {
-          userId_periodMonth: { userId: employee.user.id, periodMonth: month },
-        },
-      });
+      const allPayouts = await listTableRows<any>("finance", "commission_payout");
+      const paid = allPayouts.find(
+        (p) => p.userId === employee.user!.id && p.periodMonth === month,
+      );
       const paidAmount = Number(paid?.amount ?? 0);
       const basis = r3(earned?.net ?? 0);
       const amount = r3(commissionAmount(basis, rate, accountingCurrency) - paidAmount);
@@ -507,40 +522,34 @@ export async function calculateSettlement(
   if (annual) {
     const rulesForType = toLeaveTypeRules(annual);
     const year = lastWorkingDay.getUTCFullYear();
-    const [taken, adjustments] = await Promise.all([
-      db.leaveRequest.aggregate({
-        where: {
-          employeeId,
-          leaveTypeId: annual.id,
-          status: "approved",
-          startDate: { gte: utcDay(year, 0, 1), lte: lastWorkingDay },
-        },
-        _sum: { days: true },
-      }),
-      db.leaveAdjustment.aggregate({
-        where: { employeeId, leaveTypeId: annual.id, year },
-        _sum: { days: true },
-      }),
-    ]);
     const lastYear = year - 1;
-    const [takenLast, adjLast] = await Promise.all([
-      db.leaveRequest.aggregate({
-        where: {
-          employeeId,
-          leaveTypeId: annual.id,
-          status: "approved",
-          startDate: {
-            gte: utcDay(lastYear, 0, 1),
-            lte: utcDay(lastYear, 11, 31),
-          },
-        },
-        _sum: { days: true },
-      }),
-      db.leaveAdjustment.aggregate({
-        where: { employeeId, leaveTypeId: annual.id, year: lastYear },
-        _sum: { days: true },
-      }),
-    ]);
+    const allLeaveAdjustments = await listTableRows<any>("hr", "leave_adjustment");
+    const sumLeaveDays = (from: Date, to: Date) =>
+      allLeaveRows
+        .filter(
+          (l) =>
+            l.employeeId === employeeId &&
+            l.leaveTypeId === annual.id &&
+            l.status === "approved" &&
+            new Date(l.startDate) >= from &&
+            new Date(l.startDate) <= to,
+        )
+        .reduce((acc, l) => acc + Number(l.days ?? 0), 0);
+    const sumAdjDays = (y: number) =>
+      allLeaveAdjustments
+        .filter(
+          (a) =>
+            a.employeeId === employeeId &&
+            a.leaveTypeId === annual.id &&
+            a.year === y,
+        )
+        .reduce((acc, a) => acc + Number(a.days ?? 0), 0);
+    const taken = { _sum: { days: sumLeaveDays(utcDay(year, 0, 1), lastWorkingDay) } };
+    const adjustments = { _sum: { days: sumAdjDays(year) } };
+    const takenLast = {
+      _sum: { days: sumLeaveDays(utcDay(lastYear, 0, 1), utcDay(lastYear, 11, 31)) },
+    };
+    const adjLast = { _sum: { days: sumAdjDays(lastYear) } };
     const lastYearEntitled =
       employee.hireDate <= utcDay(lastYear, 11, 31)
         ? accruedLeaveToDate({
@@ -612,12 +621,12 @@ export async function calculateSettlement(
   }
 
   if (employee.user) {
-    const claims = await db.expenseClaim.findMany({
-      where: {
-        claimantId: employee.user.id,
-        status: { in: ["approved", "scheduled"] },
-      },
-    });
+    const allClaims = await listTableRows<any>("finance", "expense_claim");
+    const claims = allClaims.filter(
+      (c) =>
+        c.claimantId === employee.user!.id &&
+        ["approved", "scheduled"].includes(c.status),
+    );
     for (const claim of claims) {
       if (claim.currency !== accountingCurrency) {
         warnings.push(`foreign_currency_claim:${claim.claimNumber}`);
@@ -632,9 +641,9 @@ export async function calculateSettlement(
         details: { claimId: claim.id },
       });
     }
-    const pendingClaims = await db.expenseClaim.count({
-      where: { claimantId: employee.user.id, status: "submitted" },
-    });
+    const pendingClaims = allClaims.filter(
+      (c) => c.claimantId === employee.user!.id && c.status === "submitted",
+    ).length;
     if (pendingClaims)
       warnings.push(`claims_awaiting_approval:${pendingClaims}`);
   }
@@ -665,17 +674,22 @@ export async function calculateSettlement(
       details: { ...indemnity, category, rules: rules.gratuity },
     });
 
-  const [assetsHeld, openHandovers, pendingLeave] = await Promise.all([
-    db.asset.count({ where: { holderEmployeeId: employeeId } }),
-    db.employeeHandover.count({
-      where: {
-        employeeId,
-        kind: "exit",
-        status: { in: ["open", "pending_approval"] },
-      },
-    }),
-    db.leaveRequest.count({ where: { employeeId, status: "pending" } }),
+  const [allAssets, allHandovers] = await Promise.all([
+    listTableRows<any>("itsm", "asset"),
+    listTableRows<any>("hr", "employee_handover"),
   ]);
+  const assetsHeld = allAssets.filter(
+    (a) => a.holderEmployeeId === employeeId,
+  ).length;
+  const openHandovers = allHandovers.filter(
+    (h) =>
+      h.employeeId === employeeId &&
+      h.kind === "exit" &&
+      ["open", "pending_approval"].includes(h.status),
+  ).length;
+  const pendingLeave = allLeaveRows.filter(
+    (l) => l.employeeId === employeeId && l.status === "pending",
+  ).length;
   if (assetsHeld) warnings.push(`assets_held:${assetsHeld}`);
   if (openHandovers) warnings.push("exit_handover_open");
   if (pendingLeave) warnings.push(`leave_pending:${pendingLeave}`);
@@ -724,35 +738,43 @@ async function writeAutoLines(
   lastWorkingDay: Date,
 ) {
   const result = await calculateSettlement(employeeId, lastWorkingDay);
-  await db.finalSettlementLine.deleteMany({
-    where: { settlementId, source: "auto" },
-  });
+  const existingLines = await listTableRows<any>("system", "final_settlement_line");
+  await Promise.all(
+    existingLines
+      .filter((l) => l.settlementId === settlementId && l.source === "auto")
+      .map((l) => deleteTableRow("system", "final_settlement_line", l.id)),
+  );
   if (result.lines.length)
-    await db.finalSettlementLine.createMany({
-      data: result.lines.map((l, i) => ({
-        settlementId,
-        kind: l.kind,
-        category: l.category,
-        labelEn: l.labelEn,
-        labelAr: l.labelAr,
-        amount: l.amount,
-        source: "auto",
-        details: (l.details ?? null) as Database.InputJsonValue,
-        displayOrder: i,
-      })),
-    });
-  const all = await db.finalSettlementLine.findMany({
-    where: { settlementId },
-  });
-  await db.finalSettlement.update({
-    where: { id: settlementId },
-    data: {
+    await Promise.all(
+      result.lines.map((l, i) =>
+        upsertTableRow("system", "final_settlement_line", {
+          id: crypto.randomUUID(),
+          settlementId,
+          kind: l.kind,
+          category: l.category,
+          labelEn: l.labelEn,
+          labelAr: l.labelAr,
+          amount: l.amount,
+          source: "auto",
+          details: l.details ?? null,
+          displayOrder: i,
+        }),
+      ),
+    );
+  const all = (await listTableRows<any>("system", "final_settlement_line")).filter(
+    (l) => l.settlementId === settlementId,
+  );
+  const settlements = await listTableRows<any>("system", "final_settlement");
+  const current = settlements.find((s) => s.id === settlementId);
+  if (current) {
+    await upsertTableRow("system", "final_settlement", {
+      ...current,
       ...totalsOf(all),
       employerContributions: result.employerContributions,
-      calculation: result.calculation as unknown as Database.InputJsonValue,
-      calculatedAt: new Date(),
-    },
-  });
+      calculation: result.calculation,
+      calculatedAt: new Date().toISOString(),
+    });
+  }
 }
 
 const parseDay = (value: string, message: string) => {
@@ -785,36 +807,43 @@ export async function createFinalSettlement(
     "Choose the last working day",
   );
   return runAtomicMutation(async () => {
-    const open = await db.finalSettlement.findFirst({
-      where: {
-        employeeId: input.employee_id,
-        status: { in: ["draft", "submitted", "approved"] },
-      },
-      select: { id: true },
-    });
+    const settlements = await listTableRows<any>("system", "final_settlement");
+    const open = settlements.find(
+      (s) =>
+        s.employeeId === input.employee_id &&
+        ["draft", "submitted", "approved"].includes(s.status),
+    );
     if (open) throw new Error(serverMessages.thisEmployeeAlreadyHasASettlement);
-    const created = await db.finalSettlement.create({
-      data: {
-        reference: await getNextSequenceNumber(
-          "FST",
-          lastWorkingDay.getUTCFullYear(),
-        ),
-        employeeId: input.employee_id,
-        currency: await assertCompanyCurrency(),
-        handoverId: input.handover_id || null,
-        reason: input.reason,
-        lastWorkingDay,
-        notes: input.notes?.trim().slice(0, 2000) || null,
-        createdById: actorId,
-      },
+    const created = await upsertTableRow<any>("system", "final_settlement", {
+      id: crypto.randomUUID(),
+      reference: await getNextSequenceNumber(
+        "FST",
+        lastWorkingDay.getUTCFullYear(),
+      ),
+      employeeId: input.employee_id,
+      currency: await assertCompanyCurrency(),
+      handoverId: input.handover_id || null,
+      reason: input.reason,
+      status: "draft",
+      lastWorkingDay: lastWorkingDay.toISOString(),
+      notes: input.notes?.trim().slice(0, 2000) || null,
+      createdById: actorId,
+      totalAdditions: 0,
+      totalDeductions: 0,
+      netAmount: 0,
     });
     await writeAutoLines(created.id, input.employee_id, lastWorkingDay);
-    return db.finalSettlement.findUniqueOrThrow({ where: { id: created.id } });
+    const updated = (await listTableRows<any>("system", "final_settlement")).find(
+      (s) => s.id === created.id,
+    );
+    if (!updated) throw new Error(serverMessages.settlementNotFound);
+    return updated;
   });
 }
 
 async function editable(id: string) {
-  const settlement = await db.finalSettlement.findUnique({ where: { id } });
+  const settlements = await listTableRows<any>("system", "final_settlement");
+  const settlement = settlements.find((s) => s.id === id);
   if (!settlement) throw new Error(serverMessages.settlementNotFound);
   await assertCompanyCurrency(settlement.currency);
   if (!["draft", "rejected"].includes(settlement.status))
@@ -834,22 +863,20 @@ export async function recalculateFinalSettlement(
     const settlement = await editable(id);
     const lastWorkingDay = input?.last_working_day
       ? parseDay(input.last_working_day, "Choose the last working day")
-      : settlement.lastWorkingDay;
+      : new Date(settlement.lastWorkingDay);
     if (
       input?.reason &&
       !(SETTLEMENT_REASONS as readonly string[]).includes(input.reason)
     )
       throw new Error(serverMessages.chooseWhyTheEmployeeIsLeaving);
-    await db.finalSettlement.update({
-      where: { id },
-      data: {
-        lastWorkingDay,
-        status: "draft",
-        ...(input?.reason ? { reason: input.reason } : {}),
-        ...(input?.notes !== undefined
-          ? { notes: input.notes?.trim().slice(0, 2000) || null }
-          : {}),
-      },
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      lastWorkingDay: lastWorkingDay.toISOString(),
+      status: "draft",
+      ...(input?.reason ? { reason: input.reason } : {}),
+      ...(input?.notes !== undefined
+        ? { notes: input.notes?.trim().slice(0, 2000) || null }
+        : {}),
     });
     await writeAutoLines(id, settlement.employeeId, lastWorkingDay);
   });
@@ -902,30 +929,39 @@ export async function setFinalSettlementManualLines(
     };
   });
   return runAtomicMutation(async () => {
-    await editable(id);
-    await db.finalSettlementLine.deleteMany({
-      where: { settlementId: id, source: "manual" },
-    });
+    const settlement = await editable(id);
+    const existingLines = await listTableRows<any>("system", "final_settlement_line");
+    await Promise.all(
+      existingLines
+        .filter((l) => l.settlementId === id && l.source === "manual")
+        .map((l) => deleteTableRow("system", "final_settlement_line", l.id)),
+    );
     if (drafts.length)
-      await db.finalSettlementLine.createMany({
-        data: drafts.map((d) => ({
-          ...d,
-          details: (d.details ?? null) as Database.InputJsonValue,
-        })),
-      });
-    const all = await db.finalSettlementLine.findMany({
-      where: { settlementId: id },
+      await Promise.all(
+        drafts.map((d) =>
+          upsertTableRow("system", "final_settlement_line", {
+            id: crypto.randomUUID(),
+            ...d,
+            details: d.details ?? null,
+          }),
+        ),
+      );
+    const all = (await listTableRows<any>("system", "final_settlement_line")).filter(
+      (l) => l.settlementId === id,
+    );
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      ...totalsOf(all),
     });
-    await db.finalSettlement.update({ where: { id }, data: totalsOf(all) });
   });
 }
 
 export async function submitFinalSettlement(id: string, actorId: string) {
   return runAtomicMutation(async () => {
     const settlement = await editable(id);
-    await db.finalSettlement.update({
-      where: { id },
-      data: { status: "submitted" },
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      status: "submitted",
     });
     return submitForApproval({
       targetType: "final_settlement",
@@ -946,10 +982,8 @@ export async function submitFinalSettlement(id: string, actorId: string) {
 
 export async function cancelFinalSettlement(id: string) {
   return runAtomicMutation(async () => {
-    const settlement = await db.finalSettlement.findUnique({
-      where: { id },
-      select: { status: true },
-    });
+    const settlements = await listTableRows<any>("system", "final_settlement");
+    const settlement = settlements.find((s) => s.id === id);
     if (!settlement) throw new Error(serverMessages.settlementNotFound);
     if (
       !["draft", "submitted", "rejected", "approved"].includes(
@@ -958,9 +992,9 @@ export async function cancelFinalSettlement(id: string) {
     )
       throw new Error(serverMessages.onlyAnUnpaidSettlementCanBeCancelled);
     await cancelPendingApprovals("final_settlement", id);
-    await db.finalSettlement.update({
-      where: { id },
-      data: { status: "cancelled" },
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      status: "cancelled",
     });
   });
 }
@@ -973,20 +1007,16 @@ export async function signFinalSettlementAsEmployee(
   const signerName = input.signer_name?.trim().slice(0, 120);
   if (!signerName || signerName.length < 2)
     throw new Error(serverMessages.enterYourFullName);
-  const settlement = await db.finalSettlement.findUnique({
-    where: { id },
-    select: { status: true },
-  });
+  const settlements = await listTableRows<any>("system", "final_settlement");
+  const settlement = settlements.find((s) => s.id === id);
   if (!settlement) throw new Error(serverMessages.settlementNotFound);
   if (!["approved", "paid"].includes(settlement.status))
     throw new Error(serverMessages.theEmployeeSignsOnceTheSettlement);
-  return db.finalSettlement.update({
-    where: { id },
-    data: {
-      employeeSignature: input.signature,
-      employeeSignerName: signerName,
-      employeeSignedAt: new Date(),
-    },
+  return upsertTableRow("system", "final_settlement", {
+    ...settlement,
+    employeeSignature: input.signature,
+    employeeSignerName: signerName,
+    employeeSignedAt: new Date().toISOString(),
   });
 }
 
@@ -1007,62 +1037,92 @@ export async function payFinalSettlement(
   )
     throw new Error(serverMessages.chooseAPaymentDateThatIsNot);
   return runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "FinalSettlement" WHERE id = ${id} FOR UPDATE`;
-    const settlement = await db.finalSettlement.findUniqueOrThrow({
-      where: { id },
-      include: { lines: true },
-    });
+    const [
+      settlements,
+      allLines,
+      allItems,
+      allRuns,
+      allPayouts,
+      allClaims,
+      allCategories,
+      allRecurring,
+      allSupports,
+      allGosi,
+      allEmployees,
+    ] = await Promise.all([
+      listTableRows<any>("system", "final_settlement"),
+      listTableRows<any>("system", "final_settlement_line"),
+      listTableRows<any>("hr", "payroll_item"),
+      listTableRows<any>("hr", "payroll_run"),
+      listTableRows<any>("finance", "commission_payout"),
+      listTableRows<any>("finance", "expense_claim"),
+      listTableRows<any>("finance", "expense_category"),
+      listTableRows<any>("hr", "employee_recurring_pay"),
+      listTableRows<any>("hr", "employee_support"),
+      listTableRows<any>("hr", "employee_gosi_record"),
+      listTableRows<any>("hr", "employee"),
+    ]);
+    const rawSettlement = settlements.find((s) => s.id === id);
+    if (!rawSettlement) throw new Error(serverMessages.settlementNotFound);
+    const settlement = {
+      ...rawSettlement,
+      lastWorkingDay: new Date(rawSettlement.lastWorkingDay),
+      lines: allLines.filter((l) => l.settlementId === id),
+    };
     if (settlement.status !== "approved")
       throw new Error(
         formatMessage(serverTemplates.theSettlementCanBePaidOnceItIsApproved, {
           0: settlement.status,
         }),
       );
-    const detail = (line: (typeof settlement.lines)[number], key: string) =>
+    const detail = (line: any, key: string) =>
       (line.details as Record<string, unknown> | null)?.[key] as
         string | undefined;
     const reference =
       input.reference?.trim().slice(0, 120) || settlement.reference;
+    const paidAtIso = paidAt.toISOString();
     for (const line of settlement.lines) {
       const payrollItemId = detail(line, "payrollItemId");
       if (payrollItemId) {
-        await db.$queryRaw`SELECT id FROM "PayrollItem" WHERE id = ${payrollItemId} FOR UPDATE`;
-        const item = await db.payrollItem.findUnique({
-          where: { id: payrollItemId },
-          include: { payrollRun: true },
-        });
+        const rawItem = allItems.find((i) => i.id === payrollItemId);
+        const payrollRun = rawItem
+          ? allRuns.find((r) => r.id === rawItem.payrollRunId)
+          : null;
         if (
-          !item ||
-          item.paymentStatus === "paid" ||
-          item.payrollRun.status !== "approved" ||
-          Number(item.netSalary) !== Number(line.amount)
+          !rawItem ||
+          !payrollRun ||
+          rawItem.paymentStatus === "paid" ||
+          payrollRun.status !== "approved" ||
+          Number(rawItem.netSalary) !== Number(line.amount)
         )
           throw new Error(serverMessages.settlementPaymentChanged);
-        await db.payrollItem.updateMany({
-          where: { id: payrollItemId, paymentStatus: { not: "paid" } },
-          data: {
-            paymentStatus: "paid",
-            paidAt,
-            paidById: actorId,
-            paymentMethod: input.method,
-            paymentReference: reference,
-          },
+        await upsertTableRow("hr", "payroll_item", {
+          ...rawItem,
+          paymentStatus: "paid",
+          paidAt: paidAtIso,
+          paidById: actorId,
+          paymentMethod: input.method,
+          paymentReference: reference,
         });
       }
       if (line.category === "commission" && detail(line, "userId")) {
         const userId = detail(line, "userId")!;
         const periodMonth = detail(line, "month")!;
-        await db.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
         const details = line.details as Record<string, number | string>;
-        const current = await db.commissionPayout.findUnique({
-          where: { userId_periodMonth: { userId, periodMonth } },
-        });
+        const current = allPayouts.find(
+          (p) => p.userId === userId && p.periodMonth === periodMonth,
+        );
         if (Number(current?.amount ?? 0) !== Number(details.paidAmount ?? 0))
           throw new Error(serverMessages.settlementPaymentChanged);
-        await db.commissionPayout.upsert({
-          where: { userId_periodMonth: { userId, periodMonth } },
-          update: { amount: { increment: line.amount }, recordedById: actorId },
-          create: {
+        if (current) {
+          await upsertTableRow("finance", "commission_payout", {
+            ...current,
+            amount: Number(current.amount ?? 0) + Number(line.amount),
+            recordedById: actorId,
+          });
+        } else {
+          await upsertTableRow("finance", "commission_payout", {
+            id: crypto.randomUUID(),
             userId,
             currency: settlement.currency,
             periodMonth,
@@ -1070,16 +1130,12 @@ export async function payFinalSettlement(
             basisAmount: Number(details.basis),
             ratePercent: Number(details.ratePercent),
             recordedById: actorId,
-          },
-        });
+          });
+        }
       }
       const claimId = detail(line, "claimId");
       if (claimId) {
-        await db.$queryRaw`SELECT id FROM "ExpenseClaim" WHERE id = ${claimId} FOR UPDATE`;
-        const claim = await db.expenseClaim.findUnique({
-          where: { id: claimId },
-          select: { status: true, categoryId: true, amount: true },
-        });
+        const claim = allClaims.find((c) => c.id === claimId);
         if (
           !claim ||
           !["approved", "scheduled"].includes(claim.status) ||
@@ -1087,16 +1143,10 @@ export async function payFinalSettlement(
         )
           throw new Error(serverMessages.settlementPaymentChanged);
         {
-          const categoryId =
-            claim.categoryId ??
-            (
-              await db.expenseCategory.findFirst({
-                where: { isActive: true, kind: "operating" },
-                orderBy: { displayOrder: "asc" },
-                select: { id: true },
-              })
-            )?.id ??
-            null;
+          const fallbackCategory = allCategories
+            .filter((c) => c.isActive && c.kind === "operating")
+            .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0))[0];
+          const categoryId = claim.categoryId ?? fallbackCategory?.id ?? null;
           await payExpenseClaim(claimId, actorId, {
             method: input.method === "wps" ? "bank_transfer" : input.method,
             reference,
@@ -1109,83 +1159,93 @@ export async function payFinalSettlement(
       settlement.lastWorkingDay.getUTCFullYear(),
       settlement.lastWorkingDay.getUTCMonth() + 1,
     );
-    await db.employeeRecurringPay.updateMany({
-      where: { employeeId: settlement.employeeId, isActive: true },
-      data: { isActive: false },
-    });
-    await db.employeeSupport.updateMany({
-      where: {
-        employeeId: settlement.employeeId,
-        status: {
-          in: ["applied", "approved", "partially_approved", "suspended"],
-        },
-      },
-      data: { status: "ended", endMonth: lastMonth },
-    });
-    await db.employeeGosiRecord.updateMany({
-      where: {
-        employeeId: settlement.employeeId,
-        OR: [
-          { effectiveTo: null },
-          { effectiveTo: { gt: settlement.lastWorkingDay } },
-        ],
-        effectiveFrom: { lte: settlement.lastWorkingDay },
-      },
-      data: { effectiveTo: settlement.lastWorkingDay },
-    });
-    await db.employee.update({
-      where: { id: settlement.employeeId },
-      data: { status: "terminated" },
-    });
-    return db.finalSettlement.update({
-      where: { id },
-      data: {
-        status: "paid",
-        paidAt,
-        paidById: actorId,
-        paymentMethod: input.method,
-        paymentReference: input.reference?.trim().slice(0, 120) || null,
-      },
+    await Promise.all([
+      ...allRecurring
+        .filter((r) => r.employeeId === settlement.employeeId && r.isActive)
+        .map((r) =>
+          upsertTableRow("hr", "employee_recurring_pay", {
+            ...r,
+            isActive: false,
+          }),
+        ),
+      ...allSupports
+        .filter(
+          (s) =>
+            s.employeeId === settlement.employeeId &&
+            ["applied", "approved", "partially_approved", "suspended"].includes(
+              s.status,
+            ),
+        )
+        .map((s) =>
+          upsertTableRow("hr", "employee_support", {
+            ...s,
+            status: "ended",
+            endMonth: lastMonth,
+          }),
+        ),
+      ...allGosi
+        .filter(
+          (g) =>
+            g.employeeId === settlement.employeeId &&
+            new Date(g.effectiveFrom) <= settlement.lastWorkingDay &&
+            (!g.effectiveTo ||
+              new Date(g.effectiveTo) > settlement.lastWorkingDay),
+        )
+        .map((g) =>
+          upsertTableRow("hr", "employee_gosi_record", {
+            ...g,
+            effectiveTo: settlement.lastWorkingDay.toISOString(),
+          }),
+        ),
+    ]);
+    const emp = allEmployees.find((e) => e.id === settlement.employeeId);
+    if (emp) {
+      await upsertTableRow("hr", "employee", {
+        ...emp,
+        status: "terminated",
+      });
+    }
+    return upsertTableRow("system", "final_settlement", {
+      ...rawSettlement,
+      status: "paid",
+      paidAt: paidAtIso,
+      paidById: actorId,
+      paymentMethod: input.method,
+      paymentReference: input.reference?.trim().slice(0, 120) || null,
     });
   });
 }
 
 registerApprovalFinalizer("final_settlement", {
   async approve(id, decider) {
-    const settlement = await db.finalSettlement.findUniqueOrThrow({
-      where: { id },
-      include: {
-        employee: {
-          select: { userId: true, firstNameEn: true, lastNameEn: true },
-        },
-      },
-    });
+    const settlements = await listTableRows<any>("system", "final_settlement");
+    const settlement = settlements.find((s) => s.id === id);
+    if (!settlement) throw new Error(serverMessages.settlementNotFound);
     if (settlement.status !== "submitted")
       throw new Error(serverMessages.thisSettlementIsNotWaitingForApproval);
-    await db.finalSettlement.update({
-      where: { id },
-      data: { status: "approved", approvedAt: new Date() },
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      status: "approved",
+      approvedAt: new Date().toISOString(),
     });
-    await db.activityLog.create({
-      data: {
-        userId: decider,
-        action: "approve",
-        entityType: "final_settlement",
-        entityId: id,
-        details: { reference: settlement.reference },
-      },
+    await upsertTableRow("system", "activity_log", {
+      id: crypto.randomUUID(),
+      userId: decider,
+      action: "approve",
+      entityType: "final_settlement",
+      entityId: id,
+      details: { reference: settlement.reference },
     });
   },
   async reject(id) {
-    const settlement = await db.finalSettlement.findUniqueOrThrow({
-      where: { id },
-      select: { status: true },
-    });
+    const settlements = await listTableRows<any>("system", "final_settlement");
+    const settlement = settlements.find((s) => s.id === id);
+    if (!settlement) throw new Error(serverMessages.settlementNotFound);
     if (settlement.status !== "submitted")
       throw new Error(serverMessages.thisSettlementIsNotWaitingForApproval);
-    await db.finalSettlement.update({
-      where: { id },
-      data: { status: "rejected" },
+    await upsertTableRow("system", "final_settlement", {
+      ...settlement,
+      status: "rejected",
     });
   },
 });
@@ -1193,152 +1253,146 @@ registerApprovalFinalizer("final_settlement", {
 export async function listFinalSettlements(
   filters: { status?: string; q?: string } = {},
 ) {
-  const q = filters.q?.trim().slice(0, 80);
-  const rows = await db.finalSettlement.findMany({
-    where: {
-      ...(filters.status && filters.status !== "all"
-        ? { status: filters.status }
-        : {}),
-      ...(q
-        ? {
-            OR: [
-              { reference: { contains: q, mode: "insensitive" } },
-              {
-                employee: {
-                  OR: [
-                    { firstNameEn: { contains: q, mode: "insensitive" } },
-                    { lastNameEn: { contains: q, mode: "insensitive" } },
-                    { employeeNumber: { contains: q, mode: "insensitive" } },
-                  ],
-                },
-              },
-            ],
-          }
-        : {}),
-    },
-    include: {
+  const q = filters.q?.trim().slice(0, 80).toLowerCase();
+  const [settlements, employees] = await Promise.all([
+    listTableRows<any>("system", "final_settlement"),
+    listTableRows<any>("hr", "employee"),
+  ]);
+  const empMap = new Map<string, any>(employees.map((e) => [e.id, e]));
+  const rows = settlements
+    .filter((s) => {
+      if (filters.status && filters.status !== "all" && s.status !== filters.status)
+        return false;
+      if (q) {
+        const emp = empMap.get(s.employeeId);
+        const matchesRef = String(s.reference ?? "").toLowerCase().includes(q);
+        const matchesEmp =
+          emp &&
+          (String(emp.firstNameEn ?? "").toLowerCase().includes(q) ||
+            String(emp.lastNameEn ?? "").toLowerCase().includes(q) ||
+            String(emp.employeeNumber ?? "").toLowerCase().includes(q));
+        if (!matchesRef && !matchesEmp) return false;
+      }
+      return true;
+    })
+    .sort((a, b) =>
+      String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")),
+    )
+    .slice(0, 200);
+  return rows.map((s) => {
+    const emp = empMap.get(s.employeeId) ?? {};
+    return {
+      id: s.id,
+      reference: s.reference,
+      status: s.status,
+      reason: s.reason,
+      lastWorkingDay: dayKey(new Date(s.lastWorkingDay)),
+      netAmount: Number(s.netAmount ?? 0),
+      currency: s.currency,
       employee: {
-        select: {
-          id: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-        },
+        id: emp.id ?? s.employeeId,
+        number: emp.employeeNumber ?? "",
+        nameEn: `${emp.firstNameEn ?? ""} ${emp.lastNameEn ?? ""}`.trim(),
+        nameAr: `${emp.firstNameAr ?? ""} ${emp.lastNameAr ?? ""}`.trim(),
       },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 200,
+      createdAt: String(s.createdAt ?? new Date().toISOString()),
+    };
   });
-  return rows.map((s) => ({
-    id: s.id,
-    reference: s.reference,
-    status: s.status,
-    reason: s.reason,
-    lastWorkingDay: dayKey(s.lastWorkingDay),
-    netAmount: Number(s.netAmount),
-    currency: s.currency,
-    employee: {
-      id: s.employee.id,
-      number: s.employee.employeeNumber,
-      nameEn: `${s.employee.firstNameEn} ${s.employee.lastNameEn}`,
-      nameAr: `${s.employee.firstNameAr} ${s.employee.lastNameAr}`,
-    },
-    createdAt: s.createdAt.toISOString(),
-  }));
 }
 
 export async function getFinalSettlement(id: string) {
-  const s = await db.finalSettlement.findUnique({
-    where: { id },
-    include: {
-      lines: { orderBy: [{ displayOrder: "asc" }] },
-      employee: {
-        select: {
-          id: true,
-          userId: true,
-          employeeNumber: true,
-          firstNameEn: true,
-          lastNameEn: true,
-          firstNameAr: true,
-          lastNameAr: true,
-          jobTitleEn: true,
-          jobTitleAr: true,
-          hireDate: true,
-          nationality: true,
-          cprNumber: true,
-          department: { select: { nameEn: true, nameAr: true } },
-        },
-      },
-    },
-  });
-  if (!s) return null;
-  const [createdBy, paidBy, approval] = await Promise.all([
-    db.user.findUnique({
-      where: { id: s.createdById },
-      select: { fullName: true },
-    }),
-    s.paidById
-      ? db.user.findUnique({
-          where: { id: s.paidById },
-          select: { fullName: true },
-        })
-      : null,
-    db.approvalRequest.findFirst({
-      where: { targetType: "final_settlement", targetId: id },
-      orderBy: { revision: "desc" },
-      include: {
-        decisions: {
-          orderBy: { decidedAt: "asc" },
-          include: {
-            decidedBy: {
-              select: {
-                fullName: true,
-                signatureUrl: true,
-                employee: {
-                  select: {
-                    firstNameEn: true,
-                    lastNameEn: true,
-                    firstNameAr: true,
-                    lastNameAr: true,
-                    jobTitleEn: true,
-                    jobTitleAr: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
+  const [
+    settlements,
+    allLines,
+    employees,
+    departments,
+    users,
+    approvals,
+    decisions,
+  ] = await Promise.all([
+    listTableRows<any>("system", "final_settlement"),
+    listTableRows<any>("system", "final_settlement_line"),
+    listTableRows<any>("hr", "employee"),
+    listTableRows<any>("hr", "department"),
+    listTableRows<any>("identity", "user"),
+    listTableRows<any>("workflow", "approval_request"),
+    listTableRows<any>("workflow", "approval_decision"),
   ]);
+  const rawS = settlements.find((row) => row.id === id);
+  if (!rawS) return null;
+  const emp = employees.find((e) => e.id === rawS.employeeId) ?? {};
+  const dept = emp.departmentId
+    ? departments.find((d) => d.id === emp.departmentId) ?? null
+    : null;
+  const lines = allLines
+    .filter((l) => l.settlementId === id)
+    .sort((a, b) => Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0));
+  const createdBy = users.find((u) => u.id === rawS.createdById) ?? null;
+  const paidBy = rawS.paidById
+    ? users.find((u) => u.id === rawS.paidById) ?? null
+    : null;
+  const approvalRaw = approvals
+    .filter((a) => a.targetType === "final_settlement" && a.targetId === id)
+    .sort((a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0))[0];
+  const approval = approvalRaw
+    ? {
+        ...approvalRaw,
+        decisions: decisions
+          .filter((d) => d.approvalRequestId === approvalRaw.id)
+          .sort((a, b) =>
+            String(a.decidedAt ?? "").localeCompare(String(b.decidedAt ?? "")),
+          )
+          .map((d) => {
+            const deciderUser = users.find((u) => u.id === d.decidedById);
+            const deciderEmp = deciderUser
+              ? employees.find((e) => e.userId === deciderUser.id) ?? null
+              : null;
+            return {
+              ...d,
+              decidedAt: new Date(d.decidedAt),
+              decidedBy: {
+                fullName: deciderUser?.fullName ?? "",
+                signatureUrl: deciderUser?.signatureUrl ?? null,
+                employee: deciderEmp,
+              },
+            };
+          }),
+      }
+    : null;
+  const s = {
+    ...rawS,
+    lines,
+    employee: {
+      ...emp,
+      department: dept ? { nameEn: dept.nameEn, nameAr: dept.nameAr } : null,
+    },
+  };
   return {
     id: s.id,
     reference: s.reference,
     status: s.status,
     reason: s.reason,
-    lastWorkingDay: dayKey(s.lastWorkingDay),
+    lastWorkingDay: dayKey(new Date(s.lastWorkingDay)),
     currency: s.currency,
-    totalAdditions: Number(s.totalAdditions),
-    totalDeductions: Number(s.totalDeductions),
-    netAmount: Number(s.netAmount),
-    employerContributions: Number(s.employerContributions),
+    totalAdditions: Number(s.totalAdditions ?? 0),
+    totalDeductions: Number(s.totalDeductions ?? 0),
+    netAmount: Number(s.netAmount ?? 0),
+    employerContributions: Number(s.employerContributions ?? 0),
     calculation: s.calculation as Record<string, unknown>,
     notes: s.notes,
     handoverId: s.handoverId,
     createdBy: createdBy?.fullName ?? "",
-    createdAt: s.createdAt.toISOString(),
-    calculatedAt: s.calculatedAt?.toISOString() ?? null,
-    approvedAt: s.approvedAt?.toISOString() ?? null,
-    paidAt: s.paidAt?.toISOString() ?? null,
+    createdAt: String(s.createdAt ?? new Date().toISOString()),
+    calculatedAt: s.calculatedAt ? String(s.calculatedAt) : null,
+    approvedAt: s.approvedAt ? String(s.approvedAt) : null,
+    paidAt: s.paidAt ? String(s.paidAt) : null,
     paidBy: paidBy?.fullName ?? null,
     paymentMethod: s.paymentMethod,
     paymentReference: s.paymentReference,
     employeeSignature: s.employeeSignature,
     employeeSignerName: s.employeeSignerName,
-    employeeSignedAt: s.employeeSignedAt?.toISOString() ?? null,
-    lines: s.lines.map((l) => ({
+    employeeSignedAt: s.employeeSignedAt ? String(s.employeeSignedAt) : null,
+    lines: s.lines.map((l: any) => ({
       id: l.id,
       kind: l.kind as "addition" | "deduction",
       category: l.category,
@@ -1356,7 +1410,7 @@ export async function getFinalSettlement(id: string) {
       nameAr: `${s.employee.firstNameAr} ${s.employee.lastNameAr}`,
       jobTitleEn: s.employee.jobTitleEn,
       jobTitleAr: s.employee.jobTitleAr,
-      hireDate: dayKey(s.employee.hireDate),
+      hireDate: dayKey(new Date(s.employee.hireDate)),
       cprNumber: s.employee.cprNumber,
       departmentEn: s.employee.department?.nameEn ?? null,
       departmentAr: s.employee.department?.nameAr ?? null,

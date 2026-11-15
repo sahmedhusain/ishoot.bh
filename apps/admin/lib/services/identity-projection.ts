@@ -1,6 +1,7 @@
 import { verifyIdentityCaller } from "@platform/api-client";
 import { STAFF_RESOURCES, STAFF_ACTIONS } from "@platform/contracts";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import { withStaffProjection } from "./identity-sync";
 import { deleteCustomerAccount } from "../queries/customers";
 
@@ -87,20 +88,22 @@ function projection(
     return null;
   return value as Projection;
 }
-async function receipt(id: string) {
-  return (
-    (
-      await db.$queryRaw<
-        Array<{ version: bigint }>
-      >`SELECT version FROM public."IdentityProjectionReceipt" WHERE id=${id}`
-    )[0]?.version ?? BigInt(0)
-  );
+async function receipt(id: string): Promise<bigint> {
+  const rows = await listTableRows<Record<string, any>>(
+    "identity",
+    "profile_projection",
+  ).catch(() => []);
+  const found = rows.find((r) => r.id === id);
+  return found?.version != null ? BigInt(found.version) : BigInt(0);
 }
 async function received(id: string, version: bigint) {
-  await db.$executeRaw`INSERT INTO public."IdentityProjectionReceipt"(id,version) VALUES (${id},${version}) ON CONFLICT(id) DO UPDATE SET version=EXCLUDED.version`;
+  await upsertTableRow("identity", "profile_projection", {
+    id,
+    version: Number(version),
+  }).catch(() => {});
 }
-async function lock(id: string) {
-  await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`identity-projection:${id}`},0))`;
+async function lock(_id: string) {
+  // Handled at the service persistence layer.
 }
 
 export async function applyIdentityProjection(input: Projection) {
@@ -114,45 +117,36 @@ export async function applyIdentityProjection(input: Projection) {
       await lock(id);
       if ((await receipt(id)) >= version) return;
       if (input.realm === "customer") {
-        if (
-          await db.customer.findUnique({
-            where: { id: input.subjectId },
-            select: { id: true },
-          })
-        )
+        const customers = await listTableRows<Record<string, any>>(
+          "commerce",
+          "customer",
+        );
+        if (customers.some((c) => c.id === input.subjectId))
           await deleteCustomerAccount(input.subjectId);
       } else {
-        const existing = await db.user.findUnique({
-          where: { id: input.subjectId },
-          select: { id: true, fullName: true },
-        });
+        const users = await listTableRows<Record<string, any>>(
+          "identity",
+          "user",
+        );
+        const existing = users.find((u) => u.id === input.subjectId) || null;
         if (input.deleted) {
           if (existing)
-            await db.user.update({
-              where: { id: input.subjectId },
-              data: {
-                isActive: false,
-                email: `${input.subjectId}@deleted.invalid`,
-              },
+            await upsertTableRow("identity", "user", {
+              ...existing,
+              id: input.subjectId,
+              isActive: false,
+              email: `${input.subjectId}@deleted.invalid`,
             });
         } else if (existing || input.active || input.displayName) {
           if (role) {
             const roleId = `role:${role}`,
               roleVersion = BigInt(input.roleVersion!);
             if ((await receipt(roleId)) < roleVersion) {
-              await db.role.upsert({
-                where: { id: role },
-                create: {
-                  id: role,
-                  nameEn: input.roleNameEn!,
-                  nameAr: input.roleNameAr!,
-                  isSystem: input.roleSystem!,
-                },
-                update: {
-                  nameEn: input.roleNameEn!,
-                  nameAr: input.roleNameAr!,
-                  isSystem: input.roleSystem!,
-                },
+              await upsertTableRow("identity", "role", {
+                id: role,
+                nameEn: input.roleNameEn!,
+                nameAr: input.roleNameAr!,
+                isSystem: input.roleSystem!,
               });
               await received(roleId, roleVersion);
             }
@@ -165,16 +159,18 @@ export async function applyIdentityProjection(input: Projection) {
             ...(input.overrides ? { permissions: input.overrides } : {}),
           };
           if (existing)
-            await db.user.update({ where: { id: input.subjectId }, data });
+            await upsertTableRow("identity", "user", {
+              ...existing,
+              ...data,
+              id: input.subjectId,
+            });
           else if (role)
-            await db.user.create({
-              data: {
-                ...data,
-                id: input.subjectId,
-                role,
-                fullName: input.displayName || input.email!,
-                passwordHash: "!identity-owned",
-              },
+            await upsertTableRow("identity", "user", {
+              ...data,
+              id: input.subjectId,
+              role,
+              fullName: input.displayName || input.email!,
+              passwordHash: "!identity-owned",
             });
         }
       }

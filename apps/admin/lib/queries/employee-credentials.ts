@@ -2,7 +2,11 @@ import { companyCurrency } from "../finance/company-currency";
 import { roundMoney, validMoneyAmount } from "../finance/money";
 import { serverMessages } from "@platform/locales";
 import { claimUploadOrLink } from "../services/uploads";
-import { db, runAtomicMutation } from "../atomic";
+import { runAtomicMutation } from "../api/atomic";
+import {
+  listEmployeeCredentials as listEmployeeCredentialsApi,
+  listEmployees,
+} from "../api/hr";
 import { isCountryCode } from "../constants/clients";
 import {
   COST_FREQUENCIES,
@@ -184,9 +188,7 @@ export function normalizeEmployeeCredential(input: EmployeeCredentialInput) {
   };
 }
 
-type CredentialRow = Awaited<
-  ReturnType<typeof db.employeeCredential.findMany>
->[number];
+type CredentialRow = any;
 export function mapEmployeeCredential(
   c: CredentialRow,
 ): EmployeeCredentialRecord {
@@ -330,30 +332,16 @@ export async function deleteEmployeeCredential(id: string) {
 
 export async function listExpiringEmployeeDocuments(days = 60) {
   const until = new Date(Date.now() + days * 86400000);
-  const employees = await db.employee.findMany({
-    where: {
-      status: { not: "terminated" },
-      OR: [
-        { passportExpiryDate: { lte: until } },
-        { cprExpiryDate: { lte: until } },
-        { credentials: { some: { expiryDate: { lte: until } } } },
-      ],
-    },
-    select: {
-      id: true,
-      employeeNumber: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      firstNameAr: true,
-      lastNameAr: true,
-      passportExpiryDate: true,
-      cprExpiryDate: true,
-      credentials: {
-        where: { expiryDate: { lte: until } },
-        select: { id: true, kind: true, label: true, expiryDate: true },
-      },
-    },
-  });
+  const [employees, credentials] = await Promise.all([
+    listEmployees(),
+    listEmployeeCredentialsApi().catch(() => []),
+  ]);
+  const credsByEmp = new Map<string, any[]>();
+  for (const c of credentials) {
+    const arr = credsByEmp.get(c.employeeId) ?? [];
+    arr.push(c);
+    credsByEmp.set(c.employeeId, arr);
+  }
   const rows: Array<{
     employeeId: string;
     employeeNumber: string;
@@ -365,6 +353,7 @@ export async function listExpiringEmployeeDocuments(days = 60) {
     days: number;
   }> = [];
   for (const e of employees) {
+    if (e.status === "terminated") continue;
     const base = {
       employeeId: e.id,
       employeeNumber: e.employeeNumber,
@@ -373,10 +362,12 @@ export async function listExpiringEmployeeDocuments(days = 60) {
     };
     const push = (
       document: string,
-      date: Date | null,
+      rawDate: string | Date | null | undefined,
       label?: string | null,
     ) => {
-      if (!date || date > until) return;
+      if (!rawDate) return;
+      const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
+      if (Number.isNaN(date.getTime()) || date > until) return;
       rows.push({
         ...base,
         document,
@@ -385,9 +376,11 @@ export async function listExpiringEmployeeDocuments(days = 60) {
         days: expiryStatus(date).days!,
       });
     };
-    push("passport", e.passportExpiryDate);
-    push("cpr", e.cprExpiryDate);
-    for (const c of e.credentials) push(c.kind, c.expiryDate, c.label);
+    push("passport", (e as any).passportExpiryDate);
+    push("cpr", (e as any).cprExpiryDate);
+    for (const c of credsByEmp.get(e.id) ?? []) {
+      push(c.kind, c.expiryDate, c.label);
+    }
   }
   return rows.sort((a, b) => a.days - b.days);
 }

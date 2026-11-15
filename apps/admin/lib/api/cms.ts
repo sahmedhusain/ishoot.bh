@@ -267,3 +267,21 @@ export const updatePortfolioItem = (token: string, id: string, input: Partial<CM
 
 export const deletePortfolioItem = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/portfolio/id/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listSocialPlans = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/plans", {}, token);
+
+export const listSocialPosts = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/posts", {}, token);
+
+export const listSocialMetrics = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/metrics", {}, token);
+
+export const listSocialSnapshots = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/snapshots", {}, token);
+
+export const listSocialPostSnapshots = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/post-snapshots", {}, token);
+
+export const listSocialLinks = (token?: string) =>
+  cmsFetch<any[]>("/v1/cms/desk/social/links", {}, token);
