@@ -40,6 +40,10 @@ func Open(ctx context.Context, cfg Config, logger *slog.Logger) (*pgxpool.Pool, 
 	poolCfg.MaxConnLifetime = cfg.MaxConnLifetime
 	poolCfg.MaxConnIdleTime = cfg.MaxConnIdleTime
 	poolCfg.HealthCheckPeriod = cfg.HealthCheckPeriod
+	// Use unnamed extended-protocol statements with cached Describe metadata so
+	// PgBouncer transaction pooling never collides on stmtcache_* names (SQLSTATE 08P01)
+	// while preserving parameter type OIDs (e.g. json/jsonb for River).
+	poolCfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
 	poolCfg.ConnConfig.RuntimeParams["statement_timeout"] = strconv.FormatInt(cfg.StatementTimeout.Milliseconds(), 10)
 	tracers := []pgx.QueryTracer{otelpgx.NewTracer()}
 	if cfg.LogQueries {
