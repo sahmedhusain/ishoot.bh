@@ -267,6 +267,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cms/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List portfolio items
+         * @description List portfolio items
+         */
+        get: operations["listPortfolioItems"];
+        put?: never;
+        /**
+         * Create portfolio item
+         * @description Create portfolio item
+         */
+        post: operations["createPortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cms/portfolio-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List portfolio categories
+         * @description List portfolio categories
+         */
+        get: operations["listPortfolioCategories"];
+        put?: never;
+        /**
+         * Create portfolio category
+         * @description Create portfolio category
+         */
+        post: operations["createPortfolioCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cms/portfolio-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update portfolio category
+         * @description Update portfolio category
+         */
+        put: operations["updatePortfolioCategory"];
+        post?: never;
+        /**
+         * Delete portfolio category
+         * @description Delete portfolio category
+         */
+        delete: operations["deletePortfolioCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cms/portfolio/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get portfolio item by slug
+         * @description Get portfolio item by slug
+         */
+        get: operations["getPortfolioItemBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cms/portfolio/id/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update portfolio item
+         * @description Update portfolio item
+         */
+        put: operations["updatePortfolioItem"];
+        post?: never;
+        /**
+         * Delete portfolio item
+         * @description Delete portfolio item
+         */
+        delete: operations["deletePortfolioItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cms/reviews": {
         parameters: {
             query?: never;
@@ -5842,6 +5958,29 @@ export interface components {
             subtotal?: string;
             total: string;
         };
+        PortfolioCategory: {
+            displayOrder?: number | null;
+            id: string;
+            nameAr?: string | null;
+            nameEn?: string | null;
+            slug?: string | null;
+        };
+        PortfolioItem: {
+            categoryId?: string | null;
+            clientName?: string | null;
+            externalUrl?: string | null;
+            id: string;
+            location?: string | null;
+            price?: number | null;
+            priceNoteAr?: string | null;
+            priceNoteEn?: string | null;
+            slug?: string | null;
+            subtitleAr?: string | null;
+            subtitleEn?: string | null;
+            titleAr?: string | null;
+            titleEn?: string | null;
+            year?: number | null;
+        };
         Preferences: {
             categories: {
                 category: string;
@@ -6454,6 +6593,29 @@ export interface components {
         UploadRef: {
             fileUrl: string;
             ownerId: string;
+        };
+        UpsertPortfolioCategoryRequest: {
+            displayOrder?: number | null;
+            id?: string;
+            nameAr?: string | null;
+            nameEn?: string | null;
+            slug?: string | null;
+        };
+        UpsertPortfolioItemRequest: {
+            categoryId?: string | null;
+            clientName?: string | null;
+            externalUrl?: string | null;
+            id?: string;
+            location?: string | null;
+            price?: number | null;
+            priceNoteAr?: string | null;
+            priceNoteEn?: string | null;
+            slug?: string | null;
+            subtitleAr?: string | null;
+            subtitleEn?: string | null;
+            titleAr?: string | null;
+            titleEn?: string | null;
+            year?: number | null;
         };
         Vehicle: {
             id: string;
@@ -7297,6 +7459,217 @@ export interface operations {
         };
     };
     deletePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listPortfolioItems: {
+        parameters: {
+            query?: {
+                categorySlug?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of portfolio items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItem"][];
+                };
+            };
+        };
+    };
+    createPortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertPortfolioItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Created portfolio item */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listPortfolioCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of portfolio categories */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCategory"][];
+                };
+            };
+        };
+    };
+    createPortfolioCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertPortfolioCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Created portfolio category */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updatePortfolioCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertPortfolioCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated portfolio category */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deletePortfolioCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getPortfolioItemBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Portfolio item details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updatePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertPortfolioItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated portfolio item */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deletePortfolioItem: {
         parameters: {
             query?: never;
             header?: never;

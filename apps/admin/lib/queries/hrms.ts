@@ -8,9 +8,26 @@ import { Employee, Department } from "../types";
 
 export async function createEmployee(
   data: any,
-  actorId: string,
+  actorId?: string,
 ): Promise<Employee> {
-  return createEmployeeApi(data) as any;
+  const hireDateStr = typeof data.hireDate === "string"
+    ? data.hireDate.slice(0, 10)
+    : data.hireDate instanceof Date
+      ? data.hireDate.toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+
+  const payload = {
+    ...data,
+    firstNameAr: data.firstNameAr || data.firstNameEn,
+    lastNameAr: data.lastNameAr || data.lastNameEn,
+    jobTitleAr: data.jobTitleAr || data.jobTitleEn,
+    basicSalary: Number(data.basicSalary) || 0,
+    housingAllowance: Number(data.housingAllowance) || 0,
+    transportAllowance: Number(data.transportAllowance) || 0,
+    otherAllowances: Number(data.otherAllowances) || 0,
+    hireDate: hireDateStr,
+  };
+  return createEmployeeApi(payload) as any;
 }
 
 export async function listEmployees(filters: any = {}): Promise<{ items: Employee[]; total: number }> {

@@ -230,3 +230,57 @@ func (s *Service) PublishContent(ctx context.Context, id string) (postgres.Conte
 	})
 	return published, err
 }
+
+func (s *Service) ListPortfolioCategories(ctx context.Context) ([]postgres.PortfolioCategory, error) {
+	return s.store.ListPortfolioCategories(ctx)
+}
+func (s *Service) CreatePortfolioCategory(ctx context.Context, in postgres.PortfolioCategory) (postgres.PortfolioCategory, error) {
+	if in.ID == "" {
+		in.ID = uuid.NewString()
+	}
+	return s.store.CreatePortfolioCategory(ctx, in)
+}
+func (s *Service) UpdatePortfolioCategory(ctx context.Context, in postgres.PortfolioCategory) (postgres.PortfolioCategory, error) {
+	out, err := s.store.UpdatePortfolioCategory(ctx, in)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return postgres.PortfolioCategory{}, ErrNotFound
+	}
+	return out, err
+}
+func (s *Service) DeletePortfolioCategory(ctx context.Context, id string) error {
+	err := s.store.DeletePortfolioCategory(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}
+func (s *Service) ListPortfolioItems(ctx context.Context, categorySlug string) ([]postgres.PortfolioItem, error) {
+	return s.store.ListPortfolioItems(ctx, categorySlug)
+}
+func (s *Service) GetPortfolioItemBySlug(ctx context.Context, slug string) (postgres.PortfolioItem, error) {
+	it, err := s.store.GetPortfolioItemBySlug(ctx, slug)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return postgres.PortfolioItem{}, ErrNotFound
+	}
+	return it, err
+}
+func (s *Service) CreatePortfolioItem(ctx context.Context, in postgres.PortfolioItem) (postgres.PortfolioItem, error) {
+	if in.ID == "" {
+		in.ID = uuid.NewString()
+	}
+	return s.store.CreatePortfolioItem(ctx, in)
+}
+func (s *Service) UpdatePortfolioItem(ctx context.Context, in postgres.PortfolioItem) (postgres.PortfolioItem, error) {
+	out, err := s.store.UpdatePortfolioItem(ctx, in)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return postgres.PortfolioItem{}, ErrNotFound
+	}
+	return out, err
+}
+func (s *Service) DeletePortfolioItem(ctx context.Context, id string) error {
+	err := s.store.DeletePortfolioItem(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}

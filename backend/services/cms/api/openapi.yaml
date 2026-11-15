@@ -13,6 +13,7 @@ tags:
   - name: faqs
   - name: statistics
   - name: snapshots
+  - name: portfolio
 paths:
   /v1/cms/pages:
     get:
@@ -485,6 +486,165 @@ paths:
               schema: { $ref: "#/components/schemas/ContentSnapshot" }
         default: { $ref: "#/components/responses/Problem" }
 
+  /v1/cms/portfolio-categories:
+    get:
+      tags: [portfolio]
+      operationId: listPortfolioCategories
+      summary: List portfolio categories
+      responses:
+        "200":
+          description: List of portfolio categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PortfolioCategory" }
+    post:
+      tags: [portfolio]
+      operationId: createPortfolioCategory
+      summary: Create portfolio category
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertPortfolioCategoryRequest" }
+      responses:
+        "201":
+          description: Created portfolio category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortfolioCategory" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/portfolio-categories/{id}:
+    put:
+      tags: [portfolio]
+      operationId: updatePortfolioCategory
+      summary: Update portfolio category
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertPortfolioCategoryRequest" }
+      responses:
+        "200":
+          description: Updated portfolio category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortfolioCategory" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [portfolio]
+      operationId: deletePortfolioCategory
+      summary: Delete portfolio category
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/portfolio:
+    get:
+      tags: [portfolio]
+      operationId: listPortfolioItems
+      summary: List portfolio items
+      parameters:
+        - name: categorySlug
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of portfolio items
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PortfolioItem" }
+    post:
+      tags: [portfolio]
+      operationId: createPortfolioItem
+      summary: Create portfolio item
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertPortfolioItemRequest" }
+      responses:
+        "201":
+          description: Created portfolio item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortfolioItem" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/portfolio/{slug}:
+    get:
+      tags: [portfolio]
+      operationId: getPortfolioItemBySlug
+      summary: Get portfolio item by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Portfolio item details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortfolioItem" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/portfolio/id/{id}:
+    put:
+      tags: [portfolio]
+      operationId: updatePortfolioItem
+      summary: Update portfolio item
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertPortfolioItemRequest" }
+      responses:
+        "200":
+          description: Updated portfolio item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PortfolioItem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [portfolio]
+      operationId: deletePortfolioItem
+      summary: Delete portfolio item
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
 components:
   securitySchemes:
     staffToken:
@@ -755,3 +915,59 @@ components:
         revision: { type: integer }
         publishedAt: { type: string, format: date-time, nullable: true }
         updatedAt: { type: string, format: date-time }
+
+    PortfolioCategory:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string }
+        slug: { type: string, nullable: true }
+        nameEn: { type: string, nullable: true }
+        nameAr: { type: string, nullable: true }
+        displayOrder: { type: integer, nullable: true }
+
+    UpsertPortfolioCategoryRequest:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string, nullable: true }
+        nameEn: { type: string, nullable: true }
+        nameAr: { type: string, nullable: true }
+        displayOrder: { type: integer, nullable: true }
+
+    PortfolioItem:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string }
+        categoryId: { type: string, nullable: true }
+        slug: { type: string, nullable: true }
+        titleEn: { type: string, nullable: true }
+        titleAr: { type: string, nullable: true }
+        clientName: { type: string, nullable: true }
+        year: { type: integer, nullable: true }
+        subtitleEn: { type: string, nullable: true }
+        subtitleAr: { type: string, nullable: true }
+        price: { type: number, nullable: true }
+        priceNoteEn: { type: string, nullable: true }
+        priceNoteAr: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        externalUrl: { type: string, nullable: true }
+
+    UpsertPortfolioItemRequest:
+      type: object
+      properties:
+        id: { type: string }
+        categoryId: { type: string, nullable: true }
+        slug: { type: string, nullable: true }
+        titleEn: { type: string, nullable: true }
+        titleAr: { type: string, nullable: true }
+        clientName: { type: string, nullable: true }
+        year: { type: integer, nullable: true }
+        subtitleEn: { type: string, nullable: true }
+        subtitleAr: { type: string, nullable: true }
+        price: { type: number, nullable: true }
+        priceNoteEn: { type: string, nullable: true }
+        priceNoteAr: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        externalUrl: { type: string, nullable: true }

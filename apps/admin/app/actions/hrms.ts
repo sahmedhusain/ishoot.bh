@@ -62,48 +62,71 @@ export async function createEmployeeAction(data: {
   credentials?: EmployeeCredentialInput[];
 }) {
   return measureOperation("action:createEmployeeAction", async () => {
-    const actor = await requirePermission("employees", "create");
-    validateActionArguments("createEmployeeAction", { data });
-    await requirePayAccessFor(data);
+    try {
+      const actor = await requirePermission("employees", "create");
+      validateActionArguments("createEmployeeAction", { data });
+      await requirePayAccessFor(data);
 
-    const { employee } = await runAtomicMutation(async () => {
-      const { identity, credentials, ...employeeData } = data;
-      const employee = await createEmployee(
-        {
-          ...employeeData,
-          firstNameAr: data.firstNameAr || data.firstNameEn,
-          lastNameAr: data.lastNameAr || data.lastNameEn,
-          jobTitleAr: data.jobTitleAr || data.jobTitleEn,
-          basicSalary: data.basicSalary || 0,
-          hireDate: data.hireDate ? new Date(data.hireDate) : new Date(),
-        },
-        actor.id,
-      );
+      const hireDateStr = data.hireDate
+        ? String(data.hireDate).slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
 
-      if (identity)
-        await updateEmployeeIdentity(employee.id, {
-          ...identity,
-          cpr_number: identity.cpr_number ?? data.cprNumber ?? undefined,
-        });
-      for (const credential of credentials ?? [])
-        await saveEmployeeCredential(employee.id, credential, actor.id);
+      const { employee } = await runAtomicMutation(async () => {
+        const { identity, credentials, ...employeeData } = data;
+        const employee = await createEmployee(
+          {
+            ...employeeData,
+            firstNameAr: data.firstNameAr || data.firstNameEn,
+            lastNameAr: data.lastNameAr || data.lastNameEn,
+            jobTitleAr: data.jobTitleAr || data.jobTitleEn,
+            basicSalary: data.basicSalary || 0,
+            hireDate: hireDateStr,
+          },
+          actor.id,
+        );
 
-      await createActivityLog({
-        user_id: actor.id,
-        action: "create",
-        entity_type: "employee",
-        entity_id: employee.id,
-        details: {
-          employeeNumber: employee.employeeNumber,
-          name: `${data.firstNameEn} ${data.lastNameEn}`,
-        },
+        if (identity) {
+          try {
+            await updateEmployeeIdentity(employee.id, {
+              ...identity,
+              cpr_number: identity.cpr_number ?? data.cprNumber ?? undefined,
+            });
+          } catch (e) {
+            console.error("Failed to update employee identity:", e);
+          }
+        }
+        for (const credential of credentials ?? []) {
+          try {
+            await saveEmployeeCredential(employee.id, credential, actor.id);
+          } catch (e) {
+            console.error("Failed to save employee credential:", e);
+          }
+        }
+
+        try {
+          await createActivityLog({
+            user_id: actor.id,
+            action: "create",
+            entity_type: "employee",
+            entity_id: employee.id,
+            details: {
+              employeeNumber: employee.employeeNumber,
+              name: `${data.firstNameEn} ${data.lastNameEn}`,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to create activity log:", e);
+        }
+
+        return { employee };
       });
 
-      return { employee };
-    });
-
-    revalidatePath(ROUTES.hr.employees);
-    return { success: true, employee };
+      revalidatePath(ROUTES.hr.employees);
+      return { success: true, employee };
+    } catch (err: any) {
+      console.error("createEmployeeAction error:", err);
+      return { success: false, error: err?.message || "Failed to create employee" };
+    }
   });
 }
 

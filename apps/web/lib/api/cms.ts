@@ -94,6 +94,31 @@ export type CMSContentSnapshot = {
   updatedAt: string;
 };
 
+export type CMSPortfolioCategory = {
+  id: string;
+  slug?: string | null;
+  nameEn?: string | null;
+  nameAr?: string | null;
+  displayOrder?: number | null;
+};
+
+export type CMSPortfolioItem = {
+  id: string;
+  categoryId?: string | null;
+  slug?: string | null;
+  titleEn?: string | null;
+  titleAr?: string | null;
+  clientName?: string | null;
+  year?: number | null;
+  subtitleEn?: string | null;
+  subtitleAr?: string | null;
+  price?: number | null;
+  priceNoteEn?: string | null;
+  priceNoteAr?: string | null;
+  location?: string | null;
+  externalUrl?: string | null;
+};
+
 async function cmsFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -211,3 +236,34 @@ export const saveContentDraft = (token: string, id: string, draft: any) =>
 
 export const publishContentSnapshot = (token: string, id: string) =>
   cmsFetch<CMSContentSnapshot>(`/v1/cms/snapshots/${encodeURIComponent(id)}/publish`, { method: "POST" }, token);
+
+export const listPortfolioCategories = () =>
+  cmsFetch<CMSPortfolioCategory[]>("/v1/cms/portfolio-categories");
+
+export const createPortfolioCategory = (token: string, input: Partial<CMSPortfolioCategory>) =>
+  cmsFetch<CMSPortfolioCategory>("/v1/cms/portfolio-categories", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updatePortfolioCategory = (token: string, id: string, input: Partial<CMSPortfolioCategory>) =>
+  cmsFetch<CMSPortfolioCategory>(`/v1/cms/portfolio-categories/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const deletePortfolioCategory = (token: string, id: string) =>
+  cmsFetch<void>(`/v1/cms/portfolio-categories/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
+
+export const listPortfolioItems = (categorySlug?: string) =>
+  cmsFetch<CMSPortfolioItem[]>(
+    categorySlug && categorySlug !== "all"
+      ? `/v1/cms/portfolio?categorySlug=${encodeURIComponent(categorySlug)}`
+      : "/v1/cms/portfolio",
+  );
+
+export const getPortfolioItemBySlug = (slug: string) =>
+  cmsFetch<CMSPortfolioItem>(`/v1/cms/portfolio/${encodeURIComponent(slug)}`);
+
+export const createPortfolioItem = (token: string, input: Partial<CMSPortfolioItem>) =>
+  cmsFetch<CMSPortfolioItem>("/v1/cms/portfolio", { method: "POST", body: JSON.stringify(input) }, token);
+
+export const updatePortfolioItem = (token: string, id: string, input: Partial<CMSPortfolioItem>) =>
+  cmsFetch<CMSPortfolioItem>(`/v1/cms/portfolio/id/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
+export const deletePortfolioItem = (token: string, id: string) =>
+  cmsFetch<void>(`/v1/cms/portfolio/id/${encodeURIComponent(id)}`, { method: "DELETE" }, token);

@@ -64,7 +64,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
   ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
-  const fullNavigation = navLinks.length <= 6;
+  const fullNavigation = navLinks.length <= 8;
   return (
     <SiteRegion region="header">
       <header
@@ -108,7 +108,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
             })}
           </nav>
 
-          <div className={`site-nav-tools hidden items-center gap-2 xl:gap-3 ${fullNavigation ? "lg:flex" : ""}`}>
+          <div className="site-nav-tools hidden lg:flex items-center gap-2 xl:gap-3">
             {site?.commerce?.search !== false && (
               <form action={site ? collectionHref(site, locale) : `/${locale}/works`} method="get" className="hidden xl:block">
                 <input

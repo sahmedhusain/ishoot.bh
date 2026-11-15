@@ -37,6 +37,9 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	public.GET("/faqs", h.listFAQs)
 	public.GET("/statistics", h.listStatistics)
 	public.GET("/snapshots/:id", h.getContentSnapshot)
+	public.GET("/portfolio-categories", h.listPortfolioCategories)
+	public.GET("/portfolio", h.listPortfolioItems)
+	public.GET("/portfolio/:slug", h.getPortfolioItemBySlug)
 	authMiddleware := authn.Require(opts.Verifier, authn.RealmService)
 	desk := e.Group("/v1/cms", authMiddleware, authz.ServiceCallers(opts.Readers, opts.Writers))
 	desk.POST("/pages", h.createPage)
@@ -57,6 +60,12 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.DELETE("/statistics/:id", h.deleteStatistic)
 	desk.PUT("/snapshots/:id/draft", h.saveDraft)
 	desk.POST("/snapshots/:id/publish", h.publishSnapshot)
+	desk.POST("/portfolio-categories", h.createPortfolioCategory)
+	desk.PUT("/portfolio-categories/:id", h.updatePortfolioCategory)
+	desk.DELETE("/portfolio-categories/:id", h.deletePortfolioCategory)
+	desk.POST("/portfolio", h.createPortfolioItem)
+	desk.PUT("/portfolio/id/:id", h.updatePortfolioItem)
+	desk.DELETE("/portfolio/id/:id", h.deletePortfolioItem)
 }
 func (h *handler) getPageBySlug(c echo.Context) error {
 	p, err := h.svc.GetPageBySlug(c.Request().Context(), c.Param("slug"))
@@ -829,4 +838,113 @@ func formatSnapshot(s postgres.ContentSnapshot) snapshotJSON {
 		PublishedAt:	s.PublishedAt,
 		UpdatedAt:	s.UpdatedAt,
 	}
+}
+
+func (h *handler) listPortfolioCategories(c echo.Context) error {
+	items, err := h.svc.ListPortfolioCategories(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	if items == nil {
+		items = []postgres.PortfolioCategory{}
+	}
+	return c.JSON(http.StatusOK, items)
+}
+
+func (h *handler) createPortfolioCategory(c echo.Context) error {
+	var body postgres.PortfolioCategory
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	created, err := h.svc.CreatePortfolioCategory(c.Request().Context(), body)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+
+func (h *handler) updatePortfolioCategory(c echo.Context) error {
+	var body postgres.PortfolioCategory
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	body.ID = c.Param("id")
+	updated, err := h.svc.UpdatePortfolioCategory(c.Request().Context(), body)
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+
+func (h *handler) deletePortfolioCategory(c echo.Context) error {
+	if err := h.svc.DeletePortfolioCategory(c.Request().Context(), c.Param("id")); err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *handler) listPortfolioItems(c echo.Context) error {
+	items, err := h.svc.ListPortfolioItems(c.Request().Context(), c.QueryParam("categorySlug"))
+	if err != nil {
+		return err
+	}
+	if items == nil {
+		items = []postgres.PortfolioItem{}
+	}
+	return c.JSON(http.StatusOK, items)
+}
+
+func (h *handler) getPortfolioItemBySlug(c echo.Context) error {
+	it, err := h.svc.GetPortfolioItemBySlug(c.Request().Context(), c.Param("slug"))
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, it)
+}
+
+func (h *handler) createPortfolioItem(c echo.Context) error {
+	var body postgres.PortfolioItem
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	created, err := h.svc.CreatePortfolioItem(c.Request().Context(), body)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, created)
+}
+
+func (h *handler) updatePortfolioItem(c echo.Context) error {
+	var body postgres.PortfolioItem
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	body.ID = c.Param("id")
+	updated, err := h.svc.UpdatePortfolioItem(c.Request().Context(), body)
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+
+func (h *handler) deletePortfolioItem(c echo.Context) error {
+	if err := h.svc.DeletePortfolioItem(c.Request().Context(), c.Param("id")); err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

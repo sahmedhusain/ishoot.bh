@@ -6,6 +6,7 @@ import {
   listDeals,
   listEmployees,
   listInvoices,
+  listPortfolioItems,
   listReviews,
   listStatistics,
   upsertStatistic,
@@ -124,8 +125,10 @@ async function countPreset(
     }
     case "portfolio_projects": {
       const snap = await getContentSnapshot("main").catch(() => null);
-      const items = snap?.published?.portfolio ?? snap?.draft?.portfolio;
-      return Array.isArray(items) ? items.length : 0;
+      const snapItems = snap?.published?.portfolio ?? snap?.draft?.portfolio;
+      if (Array.isArray(snapItems) && snapItems.length > 0) return snapItems.length;
+      const items = await listPortfolioItems().catch(() => []);
+      return items.length;
     }
     case "five_star_reviews": {
       const reviews = await listReviews(false).catch(() => []);

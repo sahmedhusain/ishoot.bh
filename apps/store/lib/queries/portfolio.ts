@@ -1,5 +1,18 @@
 import { randomUUID } from "node:crypto";
-import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
+import {
+  listPortfolioCategories,
+  createPortfolioCategory as apiCreatePortfolioCategory,
+  updatePortfolioCategory as apiUpdatePortfolioCategory,
+  deletePortfolioCategory as apiDeletePortfolioCategory,
+  listPortfolioItems,
+  createPortfolioItem as apiCreatePortfolioItem,
+  updatePortfolioItem as apiUpdatePortfolioItem,
+  deletePortfolioItem as apiDeletePortfolioItem,
+  getContentSnapshot,
+  saveContentDraft,
+  type CMSPortfolioCategory,
+  type CMSPortfolioItem,
+} from "@platform/api-client";
 import { PortfolioCategory, PortfolioItem } from "../types";
 
 async function getDraftSnapshot(): Promise<{ draft: any; revision: number }> {
@@ -13,7 +26,65 @@ async function getDraftSnapshot(): Promise<{ draft: any; revision: number }> {
   }
 }
 
+function mapCategory(c: CMSPortfolioCategory, idx = 0): PortfolioCategory {
+  return {
+    id: c.id,
+    slug: c.slug ?? c.id,
+    name_en: c.nameEn ?? c.slug ?? "",
+    name_ar: c.nameAr ?? c.nameEn ?? c.slug ?? "",
+    display_order: c.displayOrder ?? idx,
+  };
+}
+
+function mapItem(
+  it: CMSPortfolioItem,
+  categoryMap: Map<string, PortfolioCategory>,
+  metaMap: Record<string, Partial<PortfolioItem>>,
+  idx = 0,
+): PortfolioItem {
+  const meta = metaMap[it.id] ?? {};
+  return {
+    id: it.id,
+    category_id: it.categoryId ?? undefined,
+    category: it.categoryId ? categoryMap.get(it.categoryId) : undefined,
+    slug: it.slug ?? it.id,
+    title_en: it.titleEn ?? "",
+    title_ar: it.titleAr ?? it.titleEn ?? "",
+    client_name: it.clientName ?? "",
+    year: it.year ?? undefined,
+    subtitle_en: it.subtitleEn ?? undefined,
+    subtitle_ar: it.subtitleAr ?? undefined,
+    price: it.price ?? undefined,
+    price_note_en: it.priceNoteEn ?? undefined,
+    price_note_ar: it.priceNoteAr ?? undefined,
+    location: it.location ?? undefined,
+    external_url: it.externalUrl ?? undefined,
+    attributes: Array.isArray(meta.attributes) ? meta.attributes : [],
+    aspect_ratio: meta.aspect_ratio ?? "16:9",
+    thumbnail_url: meta.thumbnail_url ?? "",
+    preview_video_url: meta.preview_video_url,
+    full_video_url: meta.full_video_url,
+    gallery_urls: Array.isArray(meta.gallery_urls) ? meta.gallery_urls : [],
+    description_en: meta.description_en,
+    description_ar: meta.description_ar,
+    credits: meta.credits ?? {},
+    is_featured: meta.is_featured ?? false,
+    display_order: meta.display_order ?? idx,
+    created_at: meta.created_at ?? "",
+  };
+}
+
 export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
+  try {
+    const remote = await listPortfolioCategories();
+    if (Array.isArray(remote) && remote.length > 0) {
+      return remote
+        .map((c, idx) => mapCategory(c, idx))
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
+  } catch (e) {
+    console.error("Error fetching portfolio categories:", e);
+  }
   const { draft } = await getDraftSnapshot();
   const list: PortfolioCategory[] = Array.isArray(draft.categories)
     ? draft.categories
@@ -27,55 +98,65 @@ export async function createPortfolioCategory(data: {
   name_ar: string;
   display_order?: number;
 }): Promise<PortfolioCategory> {
-  const { draft } = await getDraftSnapshot();
-  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
-    ? [...draft.categories]
-    : [];
-  const created: PortfolioCategory = {
+  const created = await apiCreatePortfolioCategory("", {
     id: randomUUID(),
     slug: data.slug,
-    name_en: data.name_en,
-    name_ar: data.name_ar,
-    display_order: data.display_order ?? categories.length,
-  };
-  categories.push(created);
-  draft.categories = categories;
-  await saveContentDraft("", "main", draft);
-  return created;
+    nameEn: data.name_en,
+    nameAr: data.name_ar,
+    displayOrder: data.display_order ?? 0,
+  });
+  return mapCategory(created);
 }
 
 export async function updatePortfolioCategory(
   id: string,
   data: Partial<PortfolioCategory>,
 ): Promise<PortfolioCategory | null> {
-  const { draft } = await getDraftSnapshot();
-  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
-    ? [...draft.categories]
-    : [];
-  const index = categories.findIndex((c) => c.id === id);
-  if (index === -1) return null;
-  const updated = { ...categories[index], ...data };
-  categories[index] = updated;
-  draft.categories = categories;
-  await saveContentDraft("", "main", draft);
-  return updated;
+  try {
+    const updated = await apiUpdatePortfolioCategory("", id, {
+      slug: data.slug,
+      nameEn: data.name_en,
+      nameAr: data.name_ar,
+      displayOrder: data.display_order,
+    });
+    return mapCategory(updated);
+  } catch {
+    return null;
+  }
 }
 
 export async function deletePortfolioCategory(id: string): Promise<boolean> {
-  const { draft } = await getDraftSnapshot();
-  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
-    ? [...draft.categories]
-    : [];
-  const filtered = categories.filter((c) => c.id !== id);
-  if (filtered.length === categories.length) return false;
-  draft.categories = filtered;
-  await saveContentDraft("", "main", draft);
-  return true;
+  try {
+    await apiDeletePortfolioCategory("", id);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function getPortfolioItems(
   categorySlug?: string,
 ): Promise<PortfolioItem[]> {
+  try {
+    const [remoteItems, categories, { draft }] = await Promise.all([
+      listPortfolioItems(categorySlug),
+      getPortfolioCategories(),
+      getDraftSnapshot(),
+    ]);
+    if (Array.isArray(remoteItems) && remoteItems.length > 0) {
+      const categoryMap = new Map(categories.map((c) => [c.id, c]));
+      const metaMap =
+        draft.portfolioMeta && typeof draft.portfolioMeta === "object"
+          ? (draft.portfolioMeta as Record<string, Partial<PortfolioItem>>)
+          : {};
+      return remoteItems
+        .map((it, idx) => mapItem(it, categoryMap, metaMap, idx))
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
+  } catch (e) {
+    console.error("Error fetching portfolio items:", e);
+  }
+
   const { draft } = await getDraftSnapshot();
   const items: PortfolioItem[] = Array.isArray(draft.portfolio)
     ? draft.portfolio
@@ -136,25 +217,30 @@ export async function createPortfolioItem(data: {
   is_featured?: boolean;
   display_order?: number;
 }): Promise<PortfolioItem> {
-  const { draft } = await getDraftSnapshot();
-  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
-    ? [...draft.portfolio]
-    : [];
-  const created: PortfolioItem = {
-    id: randomUUID(),
-    category_id: data.category_id || "",
+  const id = randomUUID();
+  const created = await apiCreatePortfolioItem("", {
+    id,
+    categoryId: data.category_id || undefined,
     slug: data.slug,
-    title_en: data.title_en,
-    title_ar: data.title_ar,
-    client_name: data.client_name ?? "",
+    titleEn: data.title_en,
+    titleAr: data.title_ar,
+    clientName: data.client_name ?? "",
     year: data.year,
-    subtitle_en: data.subtitle_en,
-    subtitle_ar: data.subtitle_ar,
+    subtitleEn: data.subtitle_en,
+    subtitleAr: data.subtitle_ar,
     price: data.price,
-    price_note_en: data.price_note_en,
-    price_note_ar: data.price_note_ar,
+    priceNoteEn: data.price_note_en,
+    priceNoteAr: data.price_note_ar,
     location: data.location,
-    external_url: data.external_url,
+    externalUrl: data.external_url,
+  });
+
+  const { draft } = await getDraftSnapshot();
+  const metaMap =
+    draft.portfolioMeta && typeof draft.portfolioMeta === "object"
+      ? { ...draft.portfolioMeta }
+      : {};
+  const meta: Partial<PortfolioItem> = {
     attributes: data.attributes || [],
     aspect_ratio: (data.aspect_ratio as any) || "16:9",
     thumbnail_url: data.thumbnail_url,
@@ -165,40 +251,68 @@ export async function createPortfolioItem(data: {
     description_ar: data.description_ar,
     credits: data.credits || {},
     is_featured: data.is_featured ?? false,
-    display_order: data.display_order ?? portfolio.length,
+    display_order: data.display_order ?? 0,
     created_at: new Date().toISOString(),
   };
-  portfolio.push(created);
-  draft.portfolio = portfolio;
-  await saveContentDraft("", "main", draft);
-  return created;
+  metaMap[created.id] = meta;
+  draft.portfolioMeta = metaMap;
+  await saveContentDraft("", "main", draft).catch(() => null);
+
+  return mapItem(created, new Map(), metaMap);
 }
 
 export async function updatePortfolioItem(
   id: string,
   data: Partial<PortfolioItem>,
 ): Promise<PortfolioItem | null> {
-  const { draft } = await getDraftSnapshot();
-  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
-    ? [...draft.portfolio]
-    : [];
-  const index = portfolio.findIndex((it) => it.id === id);
-  if (index === -1) return null;
-  const updated = { ...portfolio[index], ...data };
-  portfolio[index] = updated;
-  draft.portfolio = portfolio;
-  await saveContentDraft("", "main", draft);
-  return updated;
+  try {
+    const updated = await apiUpdatePortfolioItem("", id, {
+      categoryId: data.category_id,
+      slug: data.slug,
+      titleEn: data.title_en,
+      titleAr: data.title_ar,
+      clientName: data.client_name,
+      year: data.year,
+      subtitleEn: data.subtitle_en,
+      subtitleAr: data.subtitle_ar,
+      price: data.price,
+      priceNoteEn: data.price_note_en,
+      priceNoteAr: data.price_note_ar,
+      location: data.location,
+      externalUrl: data.external_url,
+    });
+    const { draft } = await getDraftSnapshot();
+    const metaMap =
+      draft.portfolioMeta && typeof draft.portfolioMeta === "object"
+        ? { ...draft.portfolioMeta }
+        : {};
+    metaMap[id] = {
+      ...(metaMap[id] ?? {}),
+      ...(data.attributes !== undefined ? { attributes: data.attributes } : {}),
+      ...(data.aspect_ratio !== undefined ? { aspect_ratio: data.aspect_ratio } : {}),
+      ...(data.thumbnail_url !== undefined ? { thumbnail_url: data.thumbnail_url } : {}),
+      ...(data.preview_video_url !== undefined ? { preview_video_url: data.preview_video_url } : {}),
+      ...(data.full_video_url !== undefined ? { full_video_url: data.full_video_url } : {}),
+      ...(data.gallery_urls !== undefined ? { gallery_urls: data.gallery_urls } : {}),
+      ...(data.description_en !== undefined ? { description_en: data.description_en } : {}),
+      ...(data.description_ar !== undefined ? { description_ar: data.description_ar } : {}),
+      ...(data.credits !== undefined ? { credits: data.credits } : {}),
+      ...(data.is_featured !== undefined ? { is_featured: data.is_featured } : {}),
+      ...(data.display_order !== undefined ? { display_order: data.display_order } : {}),
+    };
+    draft.portfolioMeta = metaMap;
+    await saveContentDraft("", "main", draft).catch(() => null);
+    return mapItem(updated, new Map(), metaMap);
+  } catch {
+    return null;
+  }
 }
 
 export async function deletePortfolioItem(id: string): Promise<boolean> {
-  const { draft } = await getDraftSnapshot();
-  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
-    ? [...draft.portfolio]
-    : [];
-  const filtered = portfolio.filter((it) => it.id !== id);
-  if (filtered.length === portfolio.length) return false;
-  draft.portfolio = filtered;
-  await saveContentDraft("", "main", draft);
-  return true;
+  try {
+    await apiDeletePortfolioItem("", id);
+    return true;
+  } catch {
+    return false;
+  }
 }

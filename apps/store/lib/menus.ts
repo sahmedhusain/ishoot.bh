@@ -93,9 +93,19 @@ export function siteMenus(
     ...(hasArticles ? [articles()] : []),
   ];
   const marked = (key: "in_header" | "in_footer") =>
-    visible.filter((page) => page[key]).map((page) => pageLink(page.id)!);
+    visible
+      .filter((page) => page[key] && page.id !== home?.id)
+      .map((page) => pageLink(page.id)!);
+  const dedupe = (items: MenuLink[]) => {
+    const seen = new Set<string>();
+    return items.filter((item) => {
+      if (seen.has(item.href)) return false;
+      seen.add(item.href);
+      return true;
+    });
+  };
   return {
-    header: [...start, ...extras, ...marked("in_header")],
-    footer: [...start, ...extras, ...marked("in_footer")],
+    header: dedupe([...start, ...extras, ...marked("in_header")]),
+    footer: dedupe([...start, ...extras, ...marked("in_footer")]),
   };
 }
