@@ -8,6 +8,7 @@ import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createExpense,
+  updateExpense,
   deleteExpense,
   createExpenseCategory,
   updateExpenseCategory,
@@ -67,6 +68,45 @@ export async function createExpenseAction(data: {
         details: { amount: data.amount, description: data.description_en },
       });
       return { expense };
+    });
+
+    if (expense.deal_id) revalidatePath(ROUTES.crm.deal(expense.deal_id));
+    if (expense.client_id)
+      revalidatePath(ROUTES.crm.customer(expense.client_id));
+    revalidatePath(ROUTES.expenses.list());
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
+    return { success: true, expense };
+  });
+}
+
+export async function updateExpenseAction(
+  id: string,
+  data: {
+    description_en?: string;
+    description_ar?: string;
+    vendor_name?: string;
+    amount?: number;
+    category_id?: string;
+    expense_date?: string;
+    notes?: string;
+  },
+) {
+  return measureOperation("action:updateExpenseAction", async () => {
+    await requireFeatureEnabled("invoicing");
+    const user = await requirePermission("expenses", "write");
+    validateActionArguments("updateExpenseAction", { id, data });
+    const expense = await runAtomicMutation(async () => {
+      const updated = await updateExpense(id, data);
+      if (!updated) throw new Error("Expense not found");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "expense",
+        entity_id: id,
+        details: { after: updated },
+      });
+      return updated;
     });
 
     if (expense.deal_id) revalidatePath(ROUTES.crm.deal(expense.deal_id));

@@ -121,6 +121,9 @@ export function ProductEditorView({ product, categories, currency, languages, ca
 
   const save = () =>
     run(async () => {
+      if (!form.nameEn.trim() || !form.sku.trim()) {
+        throw new Error("Product name and SKU are required");
+      }
       if (nextImage.trim()) throw new Error(copy.pendingImage);
       if (!options) throw new Error(t.serverErrors.messages.productOptionsInvalid);
       const result = await saveProductAction({

@@ -16,6 +16,7 @@ import {
 import { formatPhoneE164, isValidPhone } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { getPortfolioItems } from "./portfolio";
+import { getStoreCatalog } from "./store";
 import { resolveIncomingLead } from "../services/lead-resolver";
 
 export const normalizeCustomerEmail = (email: string) => normalizeEmail(email);
@@ -329,7 +330,7 @@ export async function toggleWishlist(
     existing.delete(catalogueItemId);
     return false;
   }
-  const items = await getPortfolioItems();
+  const { items } = await getStoreCatalog(await getPortfolioItems(), []);
   const exists = items.some((item) => item.id === catalogueItemId);
   if (!exists) throw new Error(serverMessages.customerItemMissing);
 
@@ -342,7 +343,7 @@ export async function toggleWishlist(
 export async function listWishlist(customerId: string) {
   const set = customerWishlists.get(customerId);
   if (!set || set.size === 0) return [];
-  const items = await getPortfolioItems();
+  const { items } = await getStoreCatalog(await getPortfolioItems(), []);
   return items
     .filter((item) => set.has(item.id))
     .map((item) => ({

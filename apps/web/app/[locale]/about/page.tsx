@@ -19,7 +19,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
   const page = findPage(website?.pages, { type: "about" }, isPreview);
   if (page === null) notFound();
-  if (page) return <CmsPageView page={page} locale={locale} />;
+  if (page && page.blocks.length > 0) return <CmsPageView page={page} locale={locale} />;
 
   const pageVisible =
     website?.config?.pages?.find((p) => p.id === "about")?.visible ?? true;

@@ -295,6 +295,15 @@ func (s *Service) UpdateQuotationStatus(ctx context.Context, id string, status s
 	})
 	return updated, err
 }
+func (s *Service) UpdateQuotation(ctx context.Context, in sqlcdb.UpdateQuotationParams) (postgres.Quotation, error) {
+	var updated postgres.Quotation
+	err := s.change(ctx, EventQuotationUpserted, map[string]string{"quotationId": in.ID}, func(st *postgres.Store) error {
+		var txErr error
+		updated, txErr = st.UpdateQuotation(ctx, in)
+		return txErr
+	})
+	return updated, err
+}
 func (s *Service) DeleteQuotation(ctx context.Context, id string) error {
 	return s.change(ctx, EventQuotationDeleted, map[string]string{"quotationId": id}, func(st *postgres.Store) error {
 		return st.DeleteQuotation(ctx, id)

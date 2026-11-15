@@ -139,7 +139,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
       return;
     }
     const saved = addresses.find((a) => a.id === addressId);
-    const destination = fulfilment === "pickup" ? null : saved ? { name: saved.name, phone: saved.phone, line1: saved.line1, line2: saved.line2, area: saved.area, city: saved.city, country: saved.country, postalCode: saved.postal_code } : address;
+    const destination = fulfilment === "pickup" ? null : saved ? { name: saved.name || contact.name, phone: saved.phone || contact.phone, line1: saved.line1, line2: saved.line2, area: saved.area, city: saved.city, country: saved.country, postalCode: saved.postal_code } : address;
     if (destination && !isValidPhone(destination.phone)) {
       setError(uiCopy.invalidPhone);
       return;

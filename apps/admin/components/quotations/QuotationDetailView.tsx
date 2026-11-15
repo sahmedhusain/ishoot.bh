@@ -31,8 +31,10 @@ import {
   User,
   Check,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import {
+  updateQuotationAction,
   submitQuotationForApprovalAction,
   issueQuotationAction,
   acceptQuotationAction,
@@ -112,6 +114,42 @@ export function QuotationDetailView({
   const declineId = React.useId();
   const [showAcceptModal, setShowAcceptModal] = React.useState(false);
   const [acceptanceEvidence, setAcceptanceEvidence] = React.useState("");
+
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editTermsEn, setEditTermsEn] = React.useState(quotation.termsEn || "");
+  const [editDiscountType, setEditDiscountType] = React.useState<"none" | "percentage" | "fixed">(
+    (quotation.discountType as "none" | "percentage" | "fixed") || "none",
+  );
+  const [editDiscountValue, setEditDiscountValue] = React.useState(String(quotation.discountValue ?? 0));
+  const [editVatPercentage, setEditVatPercentage] = React.useState(String(quotation.vatPercentage ?? 10));
+
+  const openEditModal = () => {
+    setEditTermsEn(quotation.termsEn || "");
+    setEditDiscountType((quotation.discountType as "none" | "percentage" | "fixed") || "none");
+    setEditDiscountValue(String(quotation.discountValue ?? 0));
+    setEditVatPercentage(String(quotation.vatPercentage ?? 10));
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    setLoadingAction("edit");
+    const toastId = toast.loading(t.actions.save);
+    try {
+      await updateQuotationAction(quotation.id, {
+        termsEn: editTermsEn.trim() || null,
+        discountType: editDiscountType,
+        discountValue: editDiscountType === "none" ? 0 : Math.max(0, Number(editDiscountValue) || 0),
+        vatPercentage: Math.max(0, Number(editVatPercentage) || 0),
+      });
+      toast.success(t.actions.save, { id: toastId });
+      setShowEditModal(false);
+      router.refresh();
+    } catch (err: unknown) {
+      toast.error(errorMessage(err, t, t.actions.save), { id: toastId });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
   const isCreator = quotation.createdById === currentUserId;
   const hasDiscount = Number(quotation.discountAmount) > 0;
@@ -290,6 +328,18 @@ export function QuotationDetailView({
         pdf={{ type: "quotation", id: quotation.id, number: quotation.quotationNumber }}
         actions={
           <>
+            {quotation.status === "draft" && canEdit && (
+              <Button
+                variant="outline"
+                onClick={openEditModal}
+                disabled={loadingAction === "edit"}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-sm font-medium"
+              >
+                <Pencil className="w-4 h-4" />
+                <span>{t.actions.edit}</span>
+              </Button>
+            )}
+
             {quotation.status === "draft" && (
               <Button
                 onClick={() => {
@@ -631,6 +681,68 @@ export function QuotationDetailView({
             className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
           />
         </label>
+      </QuotationActionDialog>
+
+      <QuotationActionDialog
+        open={showEditModal}
+        busy={loadingAction === "edit"}
+        onClose={() => setShowEditModal(false)}
+        title={t.actions.edit}
+        description={qdT.commercialQuotation}
+        confirmLabel={t.actions.save}
+        confirmVariant="primary"
+        confirmDisabled={loadingAction === "edit"}
+        onConfirm={handleSaveEdit}
+      >
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-xs font-medium text-ink">
+              {qdT.discount}
+              <select
+                value={editDiscountType}
+                onChange={(e) => setEditDiscountType(e.target.value as "none" | "percentage" | "fixed")}
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
+              >
+                <option value="none">None</option>
+                <option value="percentage">%</option>
+                <option value="fixed">Fixed</option>
+              </select>
+            </label>
+            <label className="block text-xs font-medium text-ink">
+              Value
+              <input
+                type="number"
+                step="0.001"
+                min="0"
+                disabled={editDiscountType === "none"}
+                value={editDiscountValue}
+                onChange={(e) => setEditDiscountValue(e.target.value)}
+                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1 disabled:opacity-50"
+              />
+            </label>
+          </div>
+          <label className="block text-xs font-medium text-ink">
+            VAT (%)
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="100"
+              value={editVatPercentage}
+              onChange={(e) => setEditVatPercentage(e.target.value)}
+              className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
+            />
+          </label>
+          <label className="block text-xs font-medium text-ink">
+            {t.quotationDetail.englishTerms}
+            <Textarea
+              rows={3}
+              value={editTermsEn}
+              onChange={(e) => setEditTermsEn(e.target.value)}
+              className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
+            />
+          </label>
+        </div>
       </QuotationActionDialog>
     </div>
   );

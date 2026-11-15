@@ -6,6 +6,7 @@ import { Input, Select } from "@platform/ui";
 import type { ResolvedWebsiteConfig } from "@platform/database/website-config";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { defaultAdminTranslations } from "../../lib/translations";
 
 const COPY_FIELDS = [
   ["nav", "home", "home"], ["nav", "about", "about"], ["nav", "works", "catalogue"], ["nav", "contact", "contact"],
@@ -16,7 +17,7 @@ const COPY_FIELDS = [
 
 export function WebsiteLanguageFields({ config, onChange, languages }: { config: ResolvedWebsiteConfig; onChange: (config: ResolvedWebsiteConfig) => void; languages: readonly ContentLanguage[] }) {
   const { t } = useAdminLocale();
-  const copy = t.websiteLanguages;
+  const copy = t?.websiteLanguages ?? defaultAdminTranslations.websiteLanguages;
   const enabled = config.interfaceLanguages ?? [...languages];
   const primary = config.primaryInterfaceLanguage ?? enabled[0];
   return <section className="space-y-4 rounded-xl border border-outline-variant p-4 sm:p-5">

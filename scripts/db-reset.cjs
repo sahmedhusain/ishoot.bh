@@ -1,4 +1,4 @@
-// Run: pnpm db:reset [--company <slug>] [--empty] [--yes]
+// Run: npm db:reset [--company <slug>] [--empty] [--yes]
 // Local development only: wipes the local service volumes, re-applies every service migration,
 // and initializes an empty database by default (or seeds a selected company from seeds/<slug>/).
 // Refuses to run against anything but a database on this machine, or with NODE_ENV=production.

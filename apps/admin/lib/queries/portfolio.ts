@@ -83,7 +83,9 @@ export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
         .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
   } catch (e) {
-    console.error("Error fetching portfolio categories:", e);
+    if ((e as { status?: number })?.status !== 404) {
+      console.error("Error fetching portfolio categories:", e);
+    }
   }
   const { draft } = await getDraftSnapshot();
   const list: PortfolioCategory[] = Array.isArray(draft.categories)
@@ -154,7 +156,9 @@ export async function getPortfolioItems(
         .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
   } catch (e) {
-    console.error("Error fetching portfolio items:", e);
+    if ((e as { status?: number })?.status !== 404) {
+      console.error("Error fetching portfolio items:", e);
+    }
   }
 
   const { draft } = await getDraftSnapshot();

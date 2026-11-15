@@ -4,7 +4,13 @@ import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../atomic";
 import { claimUploadOrLink } from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
-import { listExpenseCategories } from "@platform/api-client";
+import {
+  listExpenseCategories,
+  listExpenses as listFinanceExpenses,
+  createExpense as createFinanceExpense,
+  updateExpense as updateFinanceExpense,
+  deleteExpense as deleteFinanceExpense,
+} from "../api/finance";
 
 function mapCategory(c: any): ExpenseCategory {
   return {
@@ -190,20 +196,37 @@ export async function deleteExpenseCategory(
   return "deleted";
 }
 
+function mapApiExpense(e: any): Expense {
+  return {
+    id: e.id,
+    category_id: e.categoryId ?? null,
+    scope: "internal",
+    deal_id: undefined,
+    client_id: undefined,
+    payment_method: undefined,
+    description_en: e.title ?? "",
+    description_ar: e.title ?? "",
+    amount: Number(e.amount ?? 0),
+    input_vat_amount: 0,
+    currency: (e.currency || "BHD") as SupportedCurrency,
+    expense_date: e.expenseDate ? String(e.expenseDate).slice(0, 10) : new Date().toISOString().slice(0, 10),
+    vendor_name: e.vendor ?? null,
+    receipt_url: e.receiptUrl ?? null,
+    is_recurring: false,
+    recurrence_interval: undefined,
+    notes: e.notes ?? null,
+    is_billable: false,
+    status: (e.status || "approved") as any,
+    created_at: e.createdAt ?? new Date().toISOString(),
+  };
+}
+
 export async function getAllExpenses(): Promise<Expense[]> {
   try {
-    const expenses = await db.expense.findMany({
-      include: {
-        category: true,
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-      },
-      orderBy: { expenseDate: "desc" },
-    });
-    return expenses.map(mapExpense);
+    const expenses = await listFinanceExpenses();
+    return (expenses || []).map(mapApiExpense);
   } catch (e) {
-    console.error("Error fetching expenses from DB:", e);
+    console.error("Error fetching expenses from API:", e);
     throw e;
   }
 }
@@ -233,70 +256,19 @@ export async function createExpense(
 ): Promise<Expense> {
   if (!Number.isFinite(expense.amount) || expense.amount <= 0)
     throw new Error(serverMessages.expenseAmountMustBePositive);
-  const inputVat = expense.input_vat_amount ?? 0;
-  if (!Number.isFinite(inputVat) || inputVat < 0 || inputVat >= expense.amount)
-    throw new Error(serverMessages.inputVatMustBeLessThanThe);
-  return runAtomicMutation(async () => {
-    const currency = await assertCompanyCurrency(expense.currency);
-    if (!validMoneyAmount(expense.amount, currency) || !validMoneyAmount(inputVat, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    const link = await resolveExpenseLink(expense);
-    if (expense.category_id) {
-      const category = await db.expenseCategory.findUnique({
-        where: { id: expense.category_id },
-        select: { isActive: true },
-      });
-      if (!category?.isActive)
-        throw new Error(serverMessages.chooseAnActiveExpenseCategory);
-    }
-    const upload = expense.receipt_url
-      ? await claimUploadOrLink(expense.receipt_url, ownerId)
-      : null;
-    const created = await db.expense.create({
-      data: {
-        categoryId: expense.category_id || null,
-        ...link,
-        paymentMethod: expense.payment_method || null,
-        descriptionEn: expense.description_en,
-        descriptionAr: expense.description_ar || null,
-        amount: expense.amount,
-        inputVatAmount: inputVat,
-        netAmount: roundMoney(expense.amount - inputVat, currency),
-        isVatRecoverable: expense.is_vat_recoverable ?? true,
-        currency,
-        createdById: ownerId || null,
-        expenseDate: expense.expense_date
-          ? new Date(expense.expense_date)
-          : new Date(),
-        vendorName: expense.vendor_name || null,
-        receiptUrl: expense.receipt_url || null,
-        isBillable: expense.is_billable || false,
-        isRecurring: expense.is_recurring || false,
-        recurrenceInterval: expense.recurrence_interval || null,
-        notes: expense.notes || null,
-        status: "pending",
-      },
-      include: {
-        category: true,
-        deal: true,
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-      },
-    });
-    if (upload)
-      await db.attachment.create({
-        data: {
-          entityType: "expense",
-          entityId: created.id,
-          fileName: upload.fileName,
-          fileUrl: upload.fileUrl,
-          fileSize: upload.fileSize,
-          mimeType: upload.mimeType,
-          uploadedById: ownerId,
-        },
-      });
-    return mapExpense(created);
+  const currency = await assertCompanyCurrency(expense.currency);
+  const created = await createFinanceExpense({
+    title: expense.description_en || expense.description_ar || "Expense",
+    categoryId: expense.category_id || null,
+    amount: String(roundMoney(expense.amount, currency)),
+    currency,
+    expenseDate: expense.expense_date || new Date().toISOString().slice(0, 10),
+    status: "approved",
+    notes: expense.notes || null,
+    vendor: expense.vendor_name || null,
+    receiptUrl: expense.receipt_url || null,
   });
+  return mapApiExpense(created);
 }
 
 async function resolveExpenseLink(input: {
@@ -335,77 +307,25 @@ export async function updateExpense(
   id: string,
   data: Partial<Expense>,
 ): Promise<Expense | null> {
-  try {
-    if (
-      data.amount !== undefined &&
-      (!Number.isFinite(data.amount) || data.amount <= 0)
-    )
-      throw new Error(serverMessages.expenseAmountMustBePositive);
-    const existing = await db.expense.findUnique({ where: { id } });
-    if (!existing) return null;
-    await assertCompanyCurrency(existing.currency);
-    if (data.amount !== undefined && !validMoneyAmount(data.amount, existing.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    const updateData: any = {};
-    if (data.amount !== undefined) updateData.netAmount = roundMoney(data.amount - Number(existing.inputVatAmount), existing.currency);
-    if (data.amount !== undefined && Number(existing.inputVatAmount) >= data.amount) throw new Error(serverMessages.inputVatMustBeLessThanThe);
-    if (data.category_id !== undefined)
-      updateData.categoryId = data.category_id;
-    if (
-      data.scope !== undefined ||
-      data.deal_id !== undefined ||
-      data.client_id !== undefined
-    )
-      Object.assign(
-        updateData,
-        await resolveExpenseLink({
-          scope: data.scope,
-          deal_id: data.deal_id,
-          client_id: data.client_id,
-        }),
-      );
-    if (data.payment_method !== undefined)
-      updateData.paymentMethod = data.payment_method || null;
-    if (data.description_en !== undefined)
-      updateData.descriptionEn = data.description_en;
-    if (data.description_ar !== undefined)
-      updateData.descriptionAr = data.description_ar;
-    if (data.amount !== undefined) updateData.amount = data.amount;
-    if (data.currency !== undefined) {
-      await assertCompanyCurrency(data.currency);
-      updateData.currency = data.currency;
-    }
-    if (data.expense_date !== undefined)
-      updateData.expenseDate = new Date(data.expense_date);
-    if (data.vendor_name !== undefined)
-      updateData.vendorName = data.vendor_name;
-    if (data.receipt_url !== undefined)
-      updateData.receiptUrl = data.receipt_url;
-    if (data.is_recurring !== undefined)
-      updateData.isRecurring = data.is_recurring;
-    if (data.recurrence_interval !== undefined)
-      updateData.recurrenceInterval = data.recurrence_interval;
-    if (data.notes !== undefined) updateData.notes = data.notes;
-
-    const updated = await db.expense.update({
-      where: { id },
-      data: updateData,
-      include: { category: true, deal: true },
-    });
-    return mapExpense(updated);
-  } catch (e) {
-    console.error(`Error updating expense ${id}:`, e);
-    throw e;
+  if (
+    data.amount !== undefined &&
+    (!Number.isFinite(data.amount) || data.amount <= 0)
+  ) {
+    throw new Error(serverMessages.expenseAmountMustBePositive);
   }
+  const updated = await updateFinanceExpense(id, {
+    title: data.description_en,
+    categoryId: data.category_id,
+    amount: data.amount,
+    notes: data.notes,
+    vendor: data.vendor_name,
+  });
+  return mapApiExpense(updated);
 }
 
 export async function deleteExpense(id: string): Promise<boolean> {
-  try {
-    await db.expense.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting expense ${id}:`, e);
-    throw e;
-  }
+  await deleteFinanceExpense(id);
+  return true;
 }
 
 export async function getRelatedExpenses(

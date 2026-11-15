@@ -1,7 +1,10 @@
 package httpapi
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
@@ -203,16 +206,86 @@ func (h *handler) getOrder(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, order)
 }
+type flexNumeric struct {
+	pgtype.Numeric
+}
+
+func (n *flexNumeric) UnmarshalJSON(b []byte) error {
+	s := strings.TrimSpace(string(b))
+	if s == "" || s == "null" {
+		n.Numeric = pgtype.Numeric{}
+		return nil
+	}
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		var unquoted string
+		if err := json.Unmarshal(b, &unquoted); err != nil {
+			return err
+		}
+		s = strings.TrimSpace(unquoted)
+	}
+	if s == "" {
+		n.Numeric = pgtype.Numeric{}
+		return nil
+	}
+	return n.Numeric.Scan(s)
+}
+
+func numericOrZero(n pgtype.Numeric) pgtype.Numeric {
+	if !n.Valid {
+		_ = n.Scan("0")
+	}
+	return n
+}
+
+type placeOrderOrderInput struct {
+	sqlcdb.CreateOrderParams
+	ShippingAddress	json.RawMessage	`json:"shippingAddress"`
+	Subtotal	flexNumeric	`json:"subtotal"`
+	DiscountAmount	flexNumeric	`json:"discountAmount"`
+	VatAmount	flexNumeric	`json:"vatAmount"`
+	DeliveryFee	flexNumeric	`json:"deliveryFee"`
+	Total		flexNumeric	`json:"total"`
+	AmountPaid	flexNumeric	`json:"amountPaid"`
+	AmountRefunded	flexNumeric	`json:"amountRefunded"`
+}
+type placeOrderLineInput struct {
+	sqlcdb.CreateOrderLineParams
+	Quantity		flexNumeric	`json:"quantity"`
+	UnitPrice		flexNumeric	`json:"unitPrice"`
+	LineTotal		flexNumeric	`json:"lineTotal"`
+	ReturnedQuantity	flexNumeric	`json:"returnedQuantity"`
+}
 type placeOrderInput struct {
-	Order	sqlcdb.CreateOrderParams	`json:"order"`
-	Lines	[]sqlcdb.CreateOrderLineParams	`json:"lines"`
+	Order	placeOrderOrderInput	`json:"order"`
+	Lines	[]placeOrderLineInput	`json:"lines"`
 }
 func (h *handler) placeOrder(c echo.Context) error {
 	var in placeOrderInput
 	if err := c.Bind(&in); err != nil {
 		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 	}
-	res, err := h.svc.PlaceOrder(c.Request().Context(), in.Order, in.Lines)
+	order := in.Order.CreateOrderParams
+	if len(in.Order.ShippingAddress) > 0 && string(in.Order.ShippingAddress) != "null" {
+		order.ShippingAddress = in.Order.ShippingAddress
+	}
+	order.Subtotal = numericOrZero(in.Order.Subtotal.Numeric)
+	order.DiscountAmount = numericOrZero(in.Order.DiscountAmount.Numeric)
+	order.VatAmount = numericOrZero(in.Order.VatAmount.Numeric)
+	order.DeliveryFee = numericOrZero(in.Order.DeliveryFee.Numeric)
+	order.Total = numericOrZero(in.Order.Total.Numeric)
+	order.AmountPaid = numericOrZero(in.Order.AmountPaid.Numeric)
+	order.AmountRefunded = numericOrZero(in.Order.AmountRefunded.Numeric)
+
+	lines := make([]sqlcdb.CreateOrderLineParams, len(in.Lines))
+	for i, l := range in.Lines {
+		line := l.CreateOrderLineParams
+		line.Quantity = numericOrZero(l.Quantity.Numeric)
+		line.UnitPrice = numericOrZero(l.UnitPrice.Numeric)
+		line.LineTotal = numericOrZero(l.LineTotal.Numeric)
+		line.ReturnedQuantity = numericOrZero(l.ReturnedQuantity.Numeric)
+		lines[i] = line
+	}
+	res, err := h.svc.PlaceOrder(c.Request().Context(), order, lines)
 	if err != nil {
 		return err
 	}

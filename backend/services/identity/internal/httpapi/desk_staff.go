@@ -136,6 +136,40 @@ func RegisterDeskStaff(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaf
 		return c.NoContent(http.StatusNoContent)
 	}, authz.Require(catalog.ITAccess, "staff_roles", "delete"))
 }
+func RegisterDeskStaffService(e *echo.Echo, verifier *authn.Verifier, svc *app.DeskStaff) {
+	g := e.Group("/v1/identity/staff/accounts", authn.Require(verifier, authn.RealmService), func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("Cache-Control", "no-store")
+			p, _ := authn.PrincipalFrom(c.Request().Context())
+			if p.Subject != "admin" {
+				return problem.Forbidden("")
+			}
+			return next(c)
+		}
+	})
+	g.GET("", func(c echo.Context) error {
+		n := 50
+		if raw := c.QueryParam("limit"); raw != "" {
+			parsed, err := strconv.Atoi(raw)
+			if err != nil || parsed < 1 || parsed > 200 {
+				return problem.Validation()
+			}
+			n = parsed
+		}
+		out, err := svc.ListForService(c.Request().Context(), c.QueryParam("cursor"), int32(n))
+		if err != nil {
+			return staffDeskError(c, err)
+		}
+		return c.JSON(http.StatusOK, out)
+	})
+	g.GET("/:id", func(c echo.Context) error {
+		out, err := svc.ReadForService(c.Request().Context(), c.Param("id"))
+		if err != nil {
+			return staffDeskError(c, err)
+		}
+		return c.JSON(http.StatusOK, out)
+	})
+}
 func staffDeskError(c echo.Context, err error) error {
 	switch {
 	case errors.Is(err, accounts.ErrForbidden):

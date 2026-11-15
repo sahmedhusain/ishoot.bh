@@ -202,6 +202,9 @@ function validateProductImageUrl(url: string): boolean {
 }
 
 export async function saveProduct(input: ProductInput, userId: string | null) {
+  if (!input.nameEn?.trim() || !input.sku?.trim()) {
+    throw new Error("Product name and SKU are required");
+  }
   if (input.imageUrls.length > 12 || !input.imageUrls.every(validateProductImageUrl)) {
     throw new Error(serverMessages.productImagesInvalid);
   }
@@ -209,10 +212,19 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
   if (parsedOptions === null) {
     throw new Error(serverMessages.productOptionsInvalid);
   }
+  const costValue = Number(input.cost || 0);
+  const priceValue = Number(input.price || 0);
   const cleanedInput = {
     ...input,
+    nameAr: input.nameAr?.trim() || input.nameEn.trim(),
+    descriptionEn: input.descriptionEn ?? "",
+    descriptionAr: input.descriptionAr ?? "",
     imageUrls: input.imageUrls.map((u) => u.trim()),
-    cost: Number(input.cost || 0) as any,
+    cost: costValue as any,
+    costPrice: (Number.isFinite(costValue) ? costValue : 0).toFixed(3),
+    sellingPrice: (Number.isFinite(priceValue) ? priceValue : 0).toFixed(3),
+    trackInventory: input.trackStock ?? true,
+    currency: "BHD",
   };
   if (cleanedInput.id) {
     return updateProduct(cleanedInput.id, cleanedInput);
@@ -221,15 +233,29 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
 }
 
 export async function deleteProduct(id: string) {
-  throw new Error("deleteProduct is not implemented in API");
+  const existing = await getProductApi(id);
+  if (!existing) throw new Error("Product not found");
+  await updateProduct(id, { ...existing, isActive: false } as any);
+  return true;
 }
 
 export async function setProductsActive(ids: string[], isActive: boolean) {
-  throw new Error("setProductsActive is not implemented in API");
+  let count = 0;
+  for (const id of ids) {
+    const existing = await getProductApi(id);
+    if (!existing) continue;
+    await updateProduct(id, { ...existing, isActive } as any);
+    count += 1;
+  }
+  return count;
 }
 
 export async function setProductOnWebsite(id: string, onWebsite: boolean) {
-  throw new Error("setProductOnWebsite is not implemented in API");
+  const existing = await getProductApi(id);
+  if (!existing) throw new Error("Product not found");
+  const catalogueItemId = onWebsite ? ((existing as any).catalogueItemId || id) : null;
+  await updateProduct(id, { ...existing, catalogueItemId } as any);
+  return catalogueItemId;
 }
 
 export async function listProductCategories(): Promise<

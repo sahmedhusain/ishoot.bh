@@ -48,7 +48,8 @@ export function mapCompanyDocument(att: any): CompanyDocument {
 export async function getCompanyDocuments(
   category?: string,
 ): Promise<CompanyDocument[]> {
-  const docs = await listEntityAttachments({ entityType: "company_document" }).catch(() => []);
+  const raw = await listEntityAttachments({ entityType: "company_document" }).catch(() => []);
+  const docs = Array.isArray(raw) ? raw : ((raw as { items?: any[] } | null)?.items ?? []);
   return docs
     .filter((d) => !category || d.category === category)
     .map(mapCompanyDocument);

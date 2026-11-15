@@ -1,7 +1,9 @@
 package httpapi
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
@@ -45,6 +47,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.GET("/quotations", h.listQuotations)
 	g.POST("/quotations", h.createQuotation)
 	g.GET("/quotations/:id", h.getQuotation)
+	g.PUT("/quotations/:id", h.updateQuotation)
 	g.PUT("/quotations/:id/status", h.updateQuotationStatus)
 	g.DELETE("/quotations/:id", h.deleteQuotation)
 	g.GET("/campaigns", h.listCampaigns)
@@ -281,6 +284,72 @@ func (h *handler) createQuotation(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusCreated, created)
+}
+type updateQuotationBody struct {
+	Terms   *string  `json:"terms"`
+	TermsEn *string  `json:"termsEn"`
+	Notes   *string  `json:"notes"`
+	VatRate *float64 `json:"vatPercentage"`
+	Discount *float64 `json:"discountValue"`
+	Currency *string `json:"currency"`
+}
+func (h *handler) updateQuotation(c echo.Context) error {
+	ctx := c.Request().Context()
+	id := c.Param("id")
+	existing, err := h.svc.GetQuotation(ctx, id)
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	var body updateQuotationBody
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	params := sqlcdb.UpdateQuotationParams{
+		ID:         existing.ID,
+		DealID:     existing.DealID,
+		ContactID:  existing.ContactID,
+		Status:     existing.Status,
+		Subtotal:   existing.Subtotal,
+		Discount:   existing.Discount,
+		VatRate:    existing.VatRate,
+		VatAmount:  existing.VatAmount,
+		Total:      existing.Total,
+		Currency:   existing.Currency,
+		ValidUntil: existing.ValidUntil,
+		Terms:      existing.Terms,
+		Notes:      existing.Notes,
+	}
+	if body.TermsEn != nil {
+		params.Terms = body.TermsEn
+	} else if body.Terms != nil {
+		params.Terms = body.Terms
+	}
+	if body.Notes != nil {
+		params.Notes = body.Notes
+	}
+	if body.Currency != nil && *body.Currency != "" {
+		params.Currency = *body.Currency
+	}
+	if body.VatRate != nil {
+		var r pgtype.Numeric
+		if err := r.Scan(fmt.Sprintf("%.2f", *body.VatRate)); err == nil {
+			params.VatRate = r
+		}
+	}
+	if body.Discount != nil {
+		var d pgtype.Numeric
+		if err := d.Scan(fmt.Sprintf("%.3f", *body.Discount)); err == nil {
+			params.Discount = d
+		}
+	}
+	updated, err := h.svc.UpdateQuotation(ctx, params)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
 }
 func (h *handler) updateQuotationStatus(c echo.Context) error {
 	var body statusBody

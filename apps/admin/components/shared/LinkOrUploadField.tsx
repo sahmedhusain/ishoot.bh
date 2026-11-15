@@ -155,7 +155,7 @@ export function LinkOrUploadField({
       ) : null}
 
       {mode === "upload" ? (
-        <div className="flex flex-wrap items-center gap-2">
+        <div key="upload" className="flex flex-wrap items-center gap-2">
           <input
             ref={fileRef}
             id={fieldId}
@@ -198,7 +198,7 @@ export function LinkOrUploadField({
           ) : null}
         </div>
       ) : (
-        <div className="flex items-stretch gap-2">
+        <div key="link" className="flex items-stretch gap-2">
           <input
             id={fieldId}
             type="url"

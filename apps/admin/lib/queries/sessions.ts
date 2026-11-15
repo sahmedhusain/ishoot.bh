@@ -69,8 +69,10 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
         updated_at: new Date().toISOString(),
       };
     }
-  } catch {
-    //
+  } catch (err: any) {
+    if (err && typeof err === "object" && (err.status === 502 || err.status === 503 || err.status === 504)) {
+      throw err;
+    }
   }
 
   return null;

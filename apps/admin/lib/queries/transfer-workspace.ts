@@ -4,6 +4,15 @@ import { getEffectivePermissions } from "./permissions";
 
 export async function getTransferWorkspace(actorId: string) {
   const actor = await db.user.findUniqueOrThrow({ where: { id: actorId } });
+  if (!actor) {
+    return {
+      canEdit: false,
+      canApprove: false,
+      hasMore: false,
+      locations: [],
+      transfers: [],
+    };
+  }
   const permissions = await getEffectivePermissions(
     actor.role,
     actor.permissions as Record<string, boolean> | undefined,

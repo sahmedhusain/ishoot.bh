@@ -30,14 +30,37 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
     try {
       await checkSession(staff.token);
     } catch (error) {
-      console.error("getCurrentUser: checkSession error:", error);
-      return null;
+      if (isApiError(error) && (error.status === 502 || error.status === 503 || error.status === 504)) {
+        try {
+          await checkSession(staff.token);
+        } catch (retryErr) {
+          if (!isApiError(retryErr) || (retryErr.status !== 502 && retryErr.status !== 503 && retryErr.status !== 504)) {
+            console.error("getCurrentUser: checkSession error:", retryErr);
+            return null;
+          }
+        }
+      } else {
+        console.error("getCurrentUser: checkSession error:", error);
+        return null;
+      }
     }
     try {
       const user = await getSessionUser(staff.userId, staff.token);
       if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);
       return user;
     } catch (error) {
+      if (isApiError(error) && (error.status === 502 || error.status === 503 || error.status === 504)) {
+        const isSuper = staff.userId === "super-admin";
+        return {
+          id: staff.userId,
+          full_name: isSuper ? (process.env.SUPER_ADMIN_NAME || "Super Admin") : staff.userId,
+          email: isSuper ? (process.env.SUPER_ADMIN_EMAIL || "admin@platform.local") : `${staff.userId}@platform.local`,
+          role: (staff.roles[0] as Profile["role"]) || "staff",
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as Profile;
+      }
       console.error("getCurrentUser: getSessionUser error:", error);
       return null;
     }

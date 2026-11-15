@@ -5819,6 +5819,28 @@
       }
     }
   },
+  "updateExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "description_en": { "kind": "string", "optional": true },
+          "description_ar": { "kind": "string", "optional": true },
+          "vendor_name": { "kind": "string", "optional": true },
+          "amount": { "kind": "number", "optional": true },
+          "category_id": { "kind": "string", "optional": true },
+          "expense_date": { "kind": "string", "optional": true },
+          "notes": { "kind": "string", "optional": true }
+        },
+        "optional": false
+      }
+    }
+  },
   "updateExpenseCategoryAction": {
     "kind": "object",
     "fields": {

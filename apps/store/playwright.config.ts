@@ -12,7 +12,7 @@ export const cronSecret = process.env.CRON_SECRET || "e2e-cron-secret";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: "architecture-ux.spec.ts",
+  testMatch: "**/*.spec.ts",
   outputDir: "./tests/.results/playwright",
   fullyParallel: false,
   workers: 1,

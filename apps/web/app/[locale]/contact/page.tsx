@@ -15,7 +15,7 @@ export default async function ContactPage({
   const contact = <ContactBody locale={locale} query={query} />;
   const page = findPage(website?.pages, { type: "contact" }, isPreview);
   if (page === null) notFound();
-  if (page) return <CmsPageView page={page} locale={locale} contact={contact} />;
+  if (page && page.blocks.length > 0) return <CmsPageView page={page} locale={locale} contact={contact} />;
   const pageVisible = website?.config?.pages?.find((p) => p.id === "contact")?.visible ?? true;
   if (!pageVisible && !isPreview) notFound();
   return contact;

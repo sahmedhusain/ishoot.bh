@@ -17,7 +17,7 @@ import (
 	"platform.local/backend/services/identity/internal/tokens"
 )
 func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *tokens.Issuer, svc *app.CustomerCodes, callers []string, limit int64) {
-	g := e.Group("/v1/identity/customer", authn.Require(verifier, authn.RealmService), func(next echo.HandlerFunc) echo.HandlerFunc {
+	requireCaller := func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Response().Header().Set("Cache-Control", "no-store")
 			p, ok := authn.PrincipalFrom(c.Request().Context())
@@ -26,8 +26,9 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 			}
 			return next(c)
 		}
-	})
-	g.POST("/sign-in-codes", func(c echo.Context) error {
+	}
+	mw := []echo.MiddlewareFunc{authn.Require(verifier, authn.RealmService), requireCaller}
+	e.POST("/v1/identity/customer/sign-in-codes", func(c echo.Context) error {
 		var in struct {
 			Email		string	`json:"email" validate:"required,max=254"`
 			ClientIP	string	`json:"clientIp" validate:"max=45"`
@@ -40,8 +41,8 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 			return codeError(c, err)
 		}
 		return c.JSON(http.StatusCreated, out)
-	})
-	g.POST("/sessions/code", func(c echo.Context) error {
+	}, mw...)
+	e.POST("/v1/identity/customer/sessions/code", func(c echo.Context) error {
 		var in struct {
 			Email		string	`json:"email" validate:"required,max=254"`
 			Code		string	`json:"code" validate:"required,len=6,numeric"`
@@ -68,7 +69,7 @@ func RegisterCustomerCodes(e *echo.Echo, verifier *authn.Verifier, issuer *token
 			refreshResponse:	refreshResponse{SessionID: f.ID, SubjectID: f.SubjectID, Realm: f.Realm, ExpiresAt: f.ExpiresAt, RefreshToken: result.Credential.Token},
 			AccessToken:		token, Roles: result.Account.Roles,
 		}})
-	})
+	}, mw...)
 }
 func codeError(c echo.Context, err error) error {
 	var limited *guard.Limited

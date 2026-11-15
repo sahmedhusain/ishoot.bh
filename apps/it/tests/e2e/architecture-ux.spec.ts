@@ -41,7 +41,7 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
       password: string;
       secret: string;
     };
-    const rootUsername = account.username || account.email.split("@")[0];
+    const rootUsername = account.username || process.env.IT_ADMIN_USERNAME || "BA0001";
 
     await page.goto("/login");
     const usernameInput = page.locator('input[name="username"]');

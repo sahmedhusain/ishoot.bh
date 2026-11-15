@@ -9,6 +9,7 @@ import {
   createQuotation as createSalesQuotation,
   updateQuotationStatus as updateSalesQuotationStatus,
 } from "@platform/api-client";
+import { updateQuotation as updateSalesQuotation } from "../api/sales";
 
 import { db, runAtomicMutation } from "../atomic";
 import { getCompanyConfiguration } from "../api/company";
@@ -173,10 +174,7 @@ export async function updateQuotation(
 ): Promise<Quotation> {
   await assertActorNotOnLeave(actorId);
 
-  const existing = await db.quotation.findUnique({
-    where: { id },
-    include: { lineItems: true, taxes: { orderBy: { displayOrder: "asc" } } },
-  });
+  const existing = await getQuotationById(id);
   if (!existing) throw new Error(serverMessages.quotationNotFound);
   if (existing.status !== "draft") {
     throw new Error(
@@ -186,96 +184,12 @@ export async function updateQuotation(
     );
   }
 
-  await assertCompanyCurrency(existing.currency);
-  const currency = await assertCompanyCurrency(data.currency);
-
-  const { vatEnabled, vatPercentage } = await companyVat();
-  const otherTaxes = await companyTaxes("quotation");
-  const discountType = data.discountType || existing.discountType;
-  const discountValue =
-    data.discountValue !== undefined
-      ? data.discountValue
-      : Number(existing.discountValue);
-
-  const lines =
-    data.lineItems ||
-    existing.lineItems.map((l) => ({
-      serviceId: null,
-      descriptionEn: l.descriptionEn,
-      descriptionAr: l.descriptionAr,
-      quantity: Number(l.quantity),
-      unitPrice: Number(l.unitPrice),
-      sortOrder: l.orderIndex,
-    }));
-
-  const {
-    subtotal,
-    discountAmount,
-    vatAmount,
-    taxes,
-    otherTaxAmount,
-    totalAmount,
-  } = calculateInvoiceTotals(
-    lines.map((item) => ({
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-      line_total: lineTotal(item.quantity, item.unitPrice, currency),
-      description_en: item.descriptionEn,
-    })) as never,
-    discountType as "none" | "percentage" | "fixed",
-    discountValue,
-    vatEnabled,
-    vatPercentage,
-    currency as never,
-    otherTaxes,
-  );
-
-  await db.$transaction(async (tx) => {
-    if (data.lineItems) {
-      await tx.quotationLineItem.deleteMany({ where: { quotationId: id } });
-      await tx.quotationLineItem.createMany({
-        data: data.lineItems.map((item, idx) => ({
-          quotationId: id,
-          descriptionEn: item.descriptionEn,
-          descriptionAr: item.descriptionAr || null,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          lineTotal: lineTotal(item.quantity, item.unitPrice, currency),
-          orderIndex: item.sortOrder ?? idx,
-        })),
-      });
-    }
-
-    await tx.documentTax.deleteMany({ where: { quotationId: id } });
-    await tx.documentTax.createMany({
-      data: documentTaxRows(otherTaxes, taxes).map((row) => ({
-        ...row,
-        quotationId: id,
-      })),
-    });
-    await tx.quotation.update({
-      where: { id },
-      data: {
-        validUntilDate: data.validUntilDate || undefined,
-        currency,
-        language: data.language || undefined,
-        subtotal,
-        discountType,
-        discountValue,
-        discountAmount,
-        vatEnabled,
-        vatPercentage,
-        vatAmount,
-        otherTaxAmount,
-        totalAmount,
-        rawRate: null,
-        fxMarginPercent: 0,
-        effectiveRate: null,
-        termsEn: data.termsEn !== undefined ? data.termsEn : undefined,
-        termsAr: data.termsAr !== undefined ? data.termsAr : undefined,
-        revision: { increment: 1 },
-      },
-    });
+  await updateSalesQuotation(id, {
+    termsEn: data.termsEn,
+    terms: data.termsEn,
+    vatPercentage: data.vatPercentage,
+    discountValue: data.discountValue,
+    currency: data.currency,
   });
 
   const updated = await getQuotationById(id);

@@ -135,6 +135,45 @@ func (s *DeskStaff) List(ctx context.Context, actor authn.Principal, cursor stri
 	})
 	return out, err
 }
+func (s *DeskStaff) ListForService(ctx context.Context, cursor string, limit int32) (StaffDeskPage, error) {
+	out := StaffDeskPage{Items: []StaffDeskAccount{}}
+	if len(cursor) > 200 || limit < 1 || limit > 200 {
+		return out, ErrValidation
+	}
+	err := db.WithTx(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
+		q := sqlcdb.New(tx)
+		rows, err := q.ListStaffAccounts(ctx, sqlcdb.ListStaffAccountsParams{Cursor: cursor, RowLimit: limit + 1})
+		if err != nil {
+			return err
+		}
+		if len(rows) > int(limit) {
+			rows = rows[:limit]
+			out.NextCursor = rows[len(rows)-1].SubjectID
+		}
+		for _, row := range rows {
+			name := ""
+			if row.DisplayName != nil {
+				name = *row.DisplayName
+			}
+			out.Items = append(out.Items, StaffDeskAccount{ITAccount: ITAccount{ID: row.SubjectID, Email: row.Email, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, CreatedAt: row.CreatedAt, LastLoginAt: row.LastLoginAt}, DisplayName: name})
+		}
+		return nil
+	})
+	return out, err
+}
+func (s *DeskStaff) ReadForService(ctx context.Context, id string) (StaffDraft, error) {
+	var out StaffDraft
+	if !validID(id) {
+		return out, ErrValidation
+	}
+	err := db.WithTx(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
+		q := sqlcdb.New(tx)
+		var err error
+		out, err = staffDraft(ctx, q, id)
+		return err
+	})
+	return out, err
+}
 func (s *DeskStaff) Read(ctx context.Context, actor authn.Principal, id string) (StaffDraft, error) {
 	var out StaffDraft
 	if !validID(id) {

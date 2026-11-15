@@ -302,6 +302,13 @@ export const listPipelineStages = (token?: string) =>
 export const listSalesCatalog = (kind?: string, token?: string) =>
   salesFetch<SalesCatalogItemRef[]>(`/v1/sales/catalog${buildQuery({ kind })}`, {}, token);
 
+export const updateQuotation = (
+  id: string,
+  input: { termsEn?: string | null; terms?: string | null; notes?: string | null; vatPercentage?: number; discountValue?: number; currency?: string },
+  token?: string,
+) =>
+  salesFetch<Quotation>(`/v1/sales/quotations/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(input) }, token);
+
 export const updateQuotationStatus = (id: string, status: string, token?: string) =>
   salesFetch<Quotation>(`/v1/sales/quotations/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify({ status }) }, token);
 

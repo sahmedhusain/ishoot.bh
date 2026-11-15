@@ -268,6 +268,24 @@ export const createExpense = (input: any, token?: string) =>
     token,
   );
 
+export const updateExpense = (
+  id: string,
+  input: { title?: string; categoryId?: string | null; amount?: number; notes?: string | null; vendor?: string | null },
+  token?: string,
+) =>
+  financeFetch<Expense>(
+    `/v1/finance/expenses/${encodeURIComponent(id)}`,
+    { method: "PUT", body: JSON.stringify(input) },
+    token,
+  );
+
+export const deleteExpense = (id: string, token?: string) =>
+  financeFetch<void>(
+    `/v1/finance/expenses/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+    token,
+  );
+
 export const approveExpense = (
   id: string,
   approvedBy: string,

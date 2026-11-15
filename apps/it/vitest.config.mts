@@ -13,6 +13,7 @@ export default defineConfig({
       "@platform/config": path.resolve(__dirname, "./lib/config"),
       "@platform/api-client": path.resolve(__dirname, "./lib/api"),
       "@platform/ui": path.resolve(__dirname, "./components/ui"),
+      "@material/material-color-utilities": path.resolve(__dirname, "./node_modules/@material/material-color-utilities/index.js"),
       "@": path.resolve(__dirname, "./"),
     },
   },

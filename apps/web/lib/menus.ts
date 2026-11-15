@@ -34,7 +34,10 @@ export function siteMenus(
     if (!page) return null;
     return {
       id: page.id,
-      href: page.slug ? `/${locale}/${page.slug}` : `/${locale}`,
+      href:
+        page.page_type === "home" || !page.slug
+          ? `/${locale}`
+          : `/${locale}/${page.slug}`,
       label:
         label ||
         (ar ? page.title_ar || page.title_en : page.title_en || page.title_ar),

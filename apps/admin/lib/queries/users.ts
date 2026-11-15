@@ -41,11 +41,39 @@ function mapUser(u: any): Profile {
 }
 
 import { serviceToken } from "../api/service-token";
+import { apiTimeoutMs, apiUrl } from "../api/config";
+
+async function listStaffAccountsForAdmin(cursor?: string): Promise<{ items: any[] }> {
+  const token = await serviceToken();
+  const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  const res = await fetch(`${apiUrl()}/v1/identity/staff/accounts${qs}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (!res.ok) {
+    throw new Error(`staff-accounts ${res.status}`);
+  }
+  return res.json();
+}
+
+async function getStaffAccountForAdmin(id: string): Promise<any> {
+  const token = await serviceToken();
+  const res = await fetch(`${apiUrl()}/v1/identity/staff/accounts/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(apiTimeoutMs()),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`staff-account ${res.status}`);
+  }
+  return res.json();
+}
 
 export async function getAllUsers(): Promise<Profile[]> {
   try {
-    const token = await serviceToken();
-    const res = await listStaffAccountsForIT(token);
+    const res = await listStaffAccountsForAdmin();
     return (res.items || []).map(mapUser);
   } catch (e) {
     console.error("Error fetching users:", e);
@@ -55,8 +83,7 @@ export async function getAllUsers(): Promise<Profile[]> {
 
 export async function getUserById(id: string): Promise<Profile | null> {
   try {
-    const token = await serviceToken();
-    const user = await getStaffAccountForIT(token, id);
+    const user = await getStaffAccountForAdmin(id);
     return user ? mapUser(user) : null;
   } catch (e) {
     console.error(`Error fetching user ${id}:`, e);
@@ -167,8 +194,7 @@ export interface UserListFilters {
 }
 
 export async function getUsersPage(filters: UserListFilters) {
-  const token = await serviceToken();
-  const res = await listStaffAccountsForIT(token);
+  const res = await listStaffAccountsForAdmin();
   let list = res.items || [];
   if (filters.q) {
     const q = filters.q.toLowerCase();

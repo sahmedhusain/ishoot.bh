@@ -196,7 +196,9 @@ func run(command string) error {
 			}
 			modules = systemclient.New(cfg.Access.SystemURL, signer.Transport(nil)).Load
 		}
-		httpapi.RegisterDeskStaff(e, issuer.Verifier(), app.NewDeskStaff(pool, modules), cfg.Session.JSONBodyLimit)
+		deskStaff := app.NewDeskStaff(pool, modules)
+		httpapi.RegisterDeskStaff(e, issuer.Verifier(), deskStaff, cfg.Session.JSONBodyLimit)
+		httpapi.RegisterDeskStaffService(e, verifier, deskStaff)
 		staffPolicy := app.NewStaffAccess(pool, modules)
 		httpapi.RegisterStaffAccess(e, issuer.Verifier(), verifier, staffPolicy)
 		httpapi.RegisterStaffAccessService(e, verifier, staffPolicy)

@@ -1,7 +1,9 @@
 package httpapi
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
@@ -38,6 +40,8 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	g.DELETE("/payments/:id", h.deletePayment)
 	g.GET("/expenses", h.listExpenses)
 	g.POST("/expenses", h.createExpense)
+	g.PUT("/expenses/:id", h.updateExpense)
+	g.DELETE("/expenses/:id", h.deleteExpense)
 	g.PUT("/expenses/:id/approve", h.approveExpense)
 	g.GET("/expense-categories", h.listExpenseCategories)
 	g.POST("/expense-categories", h.createExpenseCategory)
@@ -187,6 +191,74 @@ func (h *handler) createExpense(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusCreated, expense)
+}
+type updateExpenseBody struct {
+	Title      *string  `json:"title"`
+	CategoryID *string  `json:"categoryId"`
+	Amount     *float64 `json:"amount"`
+	Notes      *string  `json:"notes"`
+	Vendor     *string  `json:"vendor"`
+}
+func (h *handler) updateExpense(c echo.Context) error {
+	ctx := c.Request().Context()
+	id := c.Param("id")
+	existing, err := h.svc.GetExpense(ctx, id)
+	if err != nil {
+		if errors.Is(err, app.ErrNotFound) {
+			return problem.NotFound("")
+		}
+		return err
+	}
+	var body updateExpenseBody
+	if err := c.Bind(&body); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	params := sqlcdb.UpdateExpenseParams{
+		ID:          existing.ID,
+		Title:       existing.Title,
+		CategoryID:  existing.CategoryID,
+		Amount:      existing.Amount,
+		Currency:    existing.Currency,
+		ExpenseDate: existing.ExpenseDate,
+		Status:      existing.Status,
+		Notes:       existing.Notes,
+		Vendor:      existing.Vendor,
+		ReceiptUrl:  existing.ReceiptUrl,
+		ApprovedBy:  existing.ApprovedBy,
+	}
+	if body.Title != nil && *body.Title != "" {
+		params.Title = *body.Title
+	}
+	if body.CategoryID != nil {
+		if *body.CategoryID == "" {
+			params.CategoryID = nil
+		} else {
+			params.CategoryID = body.CategoryID
+		}
+	}
+	if body.Amount != nil && *body.Amount > 0 {
+		var amt pgtype.Numeric
+		if err := amt.Scan(fmt.Sprintf("%.3f", *body.Amount)); err == nil {
+			params.Amount = amt
+		}
+	}
+	if body.Notes != nil {
+		params.Notes = body.Notes
+	}
+	if body.Vendor != nil {
+		params.Vendor = body.Vendor
+	}
+	updated, err := h.svc.UpdateExpense(ctx, params)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+func (h *handler) deleteExpense(c echo.Context) error {
+	if err := h.svc.DeleteExpense(c.Request().Context(), c.Param("id")); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 type approveBody struct {
 	ApprovedBy string `json:"approvedBy"`

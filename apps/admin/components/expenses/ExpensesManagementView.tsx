@@ -5,11 +5,11 @@ import * as React from "react";
 import Link from "next/link";
 import type { Expense, ExpenseCategory } from "@platform/database/types";
 import { Card, CurrencyDisplay, DateDisplay, ConfirmDialog, StatusBadge } from "@platform/ui";
-import { Plus, Receipt, Tag, TrendingDown, Trash2, Briefcase, UserRound, Building2, Paperclip, Settings2, Repeat } from "lucide-react";
+import { Plus, Receipt, Tag, TrendingDown, Trash2, Pencil, Briefcase, UserRound, Building2, Paperclip, Settings2, Repeat } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { deleteExpenseAction } from "../../app/actions/finance";
+import { deleteExpenseAction, updateExpenseAction } from "../../app/actions/finance";
 import { PageHeader } from "../layout/PageHeader";
 
 interface ExpensesManagementViewProps {
@@ -26,6 +26,47 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
   const { can } = usePermissions();
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
+  const [editDesc, setEditDesc] = React.useState("");
+  const [editVendor, setEditVendor] = React.useState("");
+  const [editAmount, setEditAmount] = React.useState("");
+  const [editCategoryId, setEditCategoryId] = React.useState("");
+  const [editNotes, setEditNotes] = React.useState("");
+  const [savingEdit, setSavingEdit] = React.useState(false);
+
+  const openEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setEditDesc(expense.description_en || "");
+    setEditVendor(expense.vendor_name || "");
+    setEditAmount(String(expense.amount ?? ""));
+    setEditCategoryId(expense.category_id || "");
+    setEditNotes(expense.notes || "");
+  };
+
+  const handleSaveEditExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExpense) return;
+    const numAmount = Number(editAmount);
+    if (!editDesc.trim() || !Number.isFinite(numAmount) || numAmount <= 0) return;
+    setSavingEdit(true);
+    try {
+      const res = await updateExpenseAction(editingExpense.id, {
+        description_en: editDesc.trim(),
+        vendor_name: editVendor.trim() || undefined,
+        amount: numAmount,
+        category_id: editCategoryId || undefined,
+        notes: editNotes.trim() || undefined,
+      });
+      if (res.expense) {
+        setExpenses((prev) => prev.map((item) => (item.id === editingExpense.id ? res.expense : item)));
+      }
+      setEditingExpense(null);
+    } catch (err) {
+      console.error("Failed to update expense:", err);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleDeleteExpense = async (id: string) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
@@ -182,16 +223,30 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
                   <CurrencyDisplay amount={Number(expense.amount)} currency={expense.currency} />
                 </td>
                 <td className="p-4 text-end">
-                  {can("expenses", "delete") && (
-                    <button
-                      onClick={() => setDeleteTargetId(expense.id)}
-                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
-                      title={t.actions.delete}
-                      aria-label={t.actions.delete}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <div className="inline-flex items-center gap-1.5">
+                    {can("expenses", "write") && (
+                      <button
+                        type="button"
+                        onClick={() => openEditExpense(expense)}
+                        className="p-1.5 rounded-lg bg-ink/5 hover:bg-ink/10 text-ink transition-colors inline-flex"
+                        title={t.actions.edit}
+                        aria-label={t.actions.edit}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {can("expenses", "delete") && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTargetId(expense.id)}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
+                        title={t.actions.delete}
+                        aria-label={t.actions.delete}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -213,6 +268,87 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
         confirmLabel={t.actions.delete}
         cancelLabel={t.actions.cancel}
       />
+
+      {editingExpense && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label={t.actions.edit}>
+          <form onSubmit={handleSaveEditExpense} className="w-full max-w-md rounded-xl border border-outline-variant bg-surface p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-ink">{t.actions.edit}</h3>
+            <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesNew.descriptionEnLabel ?? "Description"}</label>
+              <input
+                type="text"
+                required
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.vendor}</label>
+                <input
+                  type="text"
+                  value={editVendor}
+                  onChange={(e) => setEditVendor(e.target.value)}
+                  className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.amount}</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0.001"
+                  required
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(e.target.value)}
+                  className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.category}</label>
+              <select
+                value={editCategoryId}
+                onChange={(e) => setEditCategoryId(e.target.value)}
+                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+              >
+                <option value="">—</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {locale === "ar" ? cat.name_ar : cat.name_en}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesNew.notesLabel ?? "Notes"}</label>
+              <textarea
+                rows={2}
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingExpense(null)}
+                className="px-4 py-2 rounded-lg border border-outline-variant text-sm text-ink hover:bg-ink/5"
+              >
+                {t.actions.cancel}
+              </button>
+              <button
+                type="submit"
+                disabled={savingEdit}
+                className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent-hover disabled:opacity-50"
+              >
+                {savingEdit ? "..." : t.actions.save}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
