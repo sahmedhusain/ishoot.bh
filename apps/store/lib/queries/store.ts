@@ -464,7 +464,9 @@ export async function quoteCart(
             nameAr: v.nameAr,
             isActive: v.isActive,
             price: v.sellingPrice,
-            optionValues: v.attributes ?? {},
+            optionValues: Array.isArray(v.attributes)
+              ? v.attributes.filter((x): x is string => typeof x === "string")
+              : Object.values(v.attributes ?? {}).filter((x): x is string => typeof x === "string"),
           })),
         };
       }),
@@ -528,10 +530,10 @@ export async function quoteCart(
     }
     const options = normalizeProductOptions(product.options) ?? [];
     const variantEn = variant
-      ? variantLabel(options, variant.optionValues, "en")
+      ? variantLabel(options, variant.optionValues, "en") || variant.nameEn || ""
       : "";
     const variantAr = variant
-      ? variantLabel(options, variant.optionValues, "ar")
+      ? variantLabel(options, variant.optionValues, "ar") || variant.nameAr || ""
       : "";
     const basePrice =
       variant?.price != null ? num(variant.price) : num(product.price);

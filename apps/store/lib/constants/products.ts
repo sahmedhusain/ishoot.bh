@@ -100,10 +100,15 @@ export function variantCombinations(options: ProductOption[]): string[][] {
 
 export function variantLabel(
   options: ProductOption[],
-  values: string[],
+  values: string[] | Record<string, unknown> | null | undefined,
   locale: string,
 ) {
-  return values
+  const list = Array.isArray(values)
+    ? values
+    : values && typeof values === "object"
+      ? Object.values(values).filter((v): v is string => typeof v === "string")
+      : [];
+  return list
     .map((value, index) => {
       const match = options[index]?.values.find((v) => v.en === value);
       return match ? (locale === "ar" ? match.ar : match.en) : value;
