@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   RotateCcw,
 } from "lucide-react";
+import { Select } from "@platform/ui";
+import { CURRENCY_CODES, getCurrencyLabel } from "@platform/config/currency";
 import type {
   CompanyConfiguration,
   CompanyConfigurationPatch,
@@ -99,7 +101,7 @@ export function CompanyView({
   canComplete: boolean;
   canCompleteAction?: boolean;
 }) {
-  const { copy, date } = useCopy();
+  const { copy, date, locale } = useCopy();
   const c = copy.company;
   const router = useRouter();
 
@@ -637,14 +639,20 @@ export function CompanyView({
                   <label className="block space-y-1 sm:col-span-2">
                     <span className="font-bold text-ink-muted">{c.fields.defaultCurrency}</span>
                     <div className="flex items-center gap-2">
-                      <input
+                      <Select
                         disabled={company.currencyLocked}
                         value={formData.defaultCurrency ?? ""}
                         onChange={(e) =>
-                          update({ defaultCurrency: e.target.value.toUpperCase() })
+                          update({ defaultCurrency: e.target.value })
                         }
-                        className="it-field-sunken w-32 font-mono uppercase"
-                      />
+                        className="w-48"
+                      >
+                        {CURRENCY_CODES.map((code) => (
+                          <option key={code} value={code}>
+                            {code} · {getCurrencyLabel(code, locale === "ar")}
+                          </option>
+                        ))}
+                      </Select>
                       {company.currencyLocked && (
                         <span className="flex items-center gap-1 text-[11px] font-mono text-amber-700 dark:text-amber-400">
                           <Lock className="h-3.5 w-3.5" />

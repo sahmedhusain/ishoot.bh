@@ -15,6 +15,8 @@ COPY . .
 RUN test -n "$SERVICE" || (echo "SERVICE build argument is required" && exit 1)
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/app ${PACKAGE:-./services/${SERVICE}/cmd/${COMMAND}}
+# Distroless has no shell to create mount target directories at runtime.
+RUN mkdir -p /out/config /out/keys && touch /out/config/service-keys.json /out/keys/service-keys.json
 
 FROM ${RUNTIME_IMAGE}
 ARG SERVICE
@@ -22,6 +24,8 @@ ARG VERSION=dev
 LABEL org.opencontainers.image.title="${SERVICE}" org.opencontainers.image.version="${VERSION}"
 ENV SERVICE_NAME=${SERVICE} SERVICE_VERSION=${VERSION}
 COPY --from=build /out/app /app
+COPY --from=build --chown=nonroot:nonroot /out/config /config
+COPY --from=build --chown=nonroot:nonroot /out/keys /keys
 USER nonroot:nonroot
 EXPOSE 8080 9090
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 CMD ["/app", "healthcheck"]

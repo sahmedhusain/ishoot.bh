@@ -31,6 +31,23 @@ func quoteIdent(s string) string {
 	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
 }
 
+func primaryKeyColumn(ctx context.Context, pool *pgxpool.Pool, schema, table string) string {
+	var col string
+	err := pool.QueryRow(ctx, `
+		SELECT a.attname
+		FROM pg_index i
+		JOIN pg_class c ON c.oid = i.indrelid
+		JOIN pg_namespace n ON n.oid = c.relnamespace
+		JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = i.indkey[0]
+		WHERE n.nspname = $1 AND c.relname = $2 AND i.indisprimary AND array_length(i.indkey, 1) = 1
+		LIMIT 1
+	`, schema, table).Scan(&col)
+	if err == nil && col != "" {
+		return col
+	}
+	return "id"
+}
+
 func ListJSONRows(ctx context.Context, pool *pgxpool.Pool, schema, table string, allowed map[string]bool, orderBy string) (json.RawMessage, error) {
 	if !allowed[table] {
 		return nil, fmt.Errorf("table %q not allowed", table)
@@ -91,11 +108,12 @@ func UpsertJSONRow(ctx context.Context, pool *pgxpool.Pool, schema, table string
 		}
 	}
 
-	idVal, _ := normalized["id"].(string)
-	if idVal != "" {
+	pkCol := primaryKeyColumn(ctx, pool, schema, table)
+	pkVal, _ := normalized[pkCol].(string)
+	if pkVal != "" {
 		var sets []string
 		for col := range normalized {
-			if col == "id" {
+			if col == pkCol {
 				continue
 			}
 			sets = append(sets, quoteIdent(col)+` = rec.`+quoteIdent(col))
@@ -111,19 +129,20 @@ func UpsertJSONRow(ctx context.Context, pool *pgxpool.Pool, schema, table string
 				return nil, err
 			}
 			q := fmt.Sprintf(
-				`UPDATE %s.%s AS t SET %s FROM jsonb_populate_record(NULL::%s.%s, $1::jsonb) AS rec WHERE t.id = $2 RETURNING row_to_json(t.*)`,
+				`UPDATE %s.%s AS t SET %s FROM jsonb_populate_record(NULL::%s.%s, $1::jsonb) AS rec WHERE t.%s = $2 RETURNING row_to_json(t.*)`,
 				quoteIdent(schema), quoteIdent(table),
 				strings.Join(sets, ", "),
 				quoteIdent(schema), quoteIdent(table),
+				quoteIdent(pkCol),
 			)
 			var out []byte
-			if err := pool.QueryRow(ctx, q, string(normBytes), idVal).Scan(&out); err == nil {
+			if err := pool.QueryRow(ctx, q, string(normBytes), pkVal).Scan(&out); err == nil {
 				return json.RawMessage(out), nil
 			}
 		}
 	}
 
-	if idVal == "" && validCols["id"] {
+	if pkCol == "id" && pkVal == "" && validCols["id"] {
 		normalized["id"] = uuid.NewString()
 	}
 	if validCols["created_at"] {
@@ -137,21 +156,30 @@ func UpsertJSONRow(ctx context.Context, pool *pgxpool.Pool, schema, table string
 		}
 	}
 
-	var cols, exprs []string
+	var cols, exprs, conflictSets []string
 	for col := range normalized {
-		cols = append(cols, quoteIdent(col))
-		exprs = append(exprs, `rec.`+quoteIdent(col))
+		qCol := quoteIdent(col)
+		cols = append(cols, qCol)
+		exprs = append(exprs, `rec.`+qCol)
+		if col != pkCol {
+			conflictSets = append(conflictSets, qCol+` = EXCLUDED.`+qCol)
+		}
 	}
 	normBytes, err := json.Marshal(normalized)
 	if err != nil {
 		return nil, err
 	}
+	onConflict := ""
+	if validCols[pkCol] && normalized[pkCol] != nil && len(conflictSets) > 0 {
+		onConflict = fmt.Sprintf(` ON CONFLICT (%s) DO UPDATE SET %s`, quoteIdent(pkCol), strings.Join(conflictSets, ", "))
+	}
 	q := fmt.Sprintf(
-		`INSERT INTO %s.%s (%s) SELECT %s FROM jsonb_populate_record(NULL::%s.%s, $1::jsonb) AS rec RETURNING row_to_json(%s.%s.*)`,
+		`INSERT INTO %s.%s (%s) SELECT %s FROM jsonb_populate_record(NULL::%s.%s, $1::jsonb) AS rec%s RETURNING row_to_json(%s.%s.*)`,
 		quoteIdent(schema), quoteIdent(table),
 		strings.Join(cols, ", "),
 		strings.Join(exprs, ", "),
 		quoteIdent(schema), quoteIdent(table),
+		onConflict,
 		quoteIdent(schema), quoteIdent(table),
 	)
 	var out []byte
@@ -167,6 +195,7 @@ func DeleteJSONRow(ctx context.Context, pool *pgxpool.Pool, schema, table string
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	_, err := pool.Exec(ctx, fmt.Sprintf(`DELETE FROM %s.%s WHERE id = $1`, quoteIdent(schema), quoteIdent(table)), id)
+	pkCol := primaryKeyColumn(ctx, pool, schema, table)
+	_, err := pool.Exec(ctx, fmt.Sprintf(`DELETE FROM %s.%s WHERE %s = $1`, quoteIdent(schema), quoteIdent(table), quoteIdent(pkCol)), id)
 	return err
 }

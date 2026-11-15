@@ -85,19 +85,22 @@ export function countryDialCode(value?: string | null): string {
 
 function parse(phone: string, fallback?: string) {
   const clean = phone.trim().replace(/^00/, "+");
+  if (!clean) return undefined;
+  if (clean.startsWith("+")) {
+    return parsePhoneNumberFromString(clean, { extract: false });
+  }
   const iso = countryIso(fallback);
-  const international = parsePhoneNumberFromString(
-    clean.startsWith("+") ? clean : `+${clean}`,
-    { extract: false },
-  );
-  if (international?.isValid()) return international;
-  return parsePhoneNumberFromString(clean, {
-    defaultCountry: iso,
-    defaultCallingCode: fallback?.startsWith("+")
-      ? fallback.slice(1)
-      : undefined,
-    extract: false,
-  });
+  const callingCode = fallback?.startsWith("+")
+    ? fallback.slice(1)
+    : undefined;
+  if (iso || callingCode) {
+    return parsePhoneNumberFromString(clean, {
+      defaultCountry: iso,
+      defaultCallingCode: callingCode,
+      extract: false,
+    });
+  }
+  return undefined;
 }
 
 export function splitPhoneNumber(phone?: string | null, fallback = "") {
@@ -113,6 +116,47 @@ export function splitPhoneNumber(phone?: string | null, fallback = "") {
     nationalNumber: parseDigits(phone ?? ""),
     country: countryIso(fallback),
   };
+}
+
+export function splitPhoneParts(phone?: string | null, fallback = ""): {
+  countryCode: string;
+  mobileNumber: string;
+} {
+  const parsed = phone ? parse(phone, fallback) : undefined;
+  if (parsed) {
+    const dialCode = `+${parsed.countryCallingCode}`;
+    const iso =
+      parsed.country ??
+      COUNTRY_DIAL_CODES.find(
+        (c) => c.iso === countryIso(fallback) && c.dialCode === dialCode,
+      )?.iso ??
+      COUNTRY_DIAL_CODES.find((c) => c.dialCode === dialCode)?.iso ??
+      "";
+    return {
+      countryCode: iso,
+      mobileNumber: String(parsed.nationalNumber),
+    };
+  }
+  return {
+    countryCode: countryIso(fallback) ?? "",
+    mobileNumber: parseDigits(phone ?? ""),
+  };
+}
+
+export function combinePhoneParts(
+  countryCode?: string | null,
+  mobileNumber?: string | null,
+): string {
+  const digits = parseDigits(mobileNumber ?? "");
+  if (!digits) return "";
+  const iso = countryIso(countryCode);
+  const dial = iso
+    ? `+${getCountryCallingCode(iso)}`
+    : countryCode?.startsWith("+")
+      ? countryCode
+      : "";
+  if (!dial) return "";
+  return formatPhoneE164(dial, digits, iso) || `${dial}${digits}`;
 }
 
 export function formatPhoneE164(

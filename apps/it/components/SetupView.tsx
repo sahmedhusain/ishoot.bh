@@ -22,7 +22,8 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Button, Card, Input, Select } from "@platform/ui";
+import { CURRENCY_CODES, getCurrencyLabel } from "@platform/config/currency";
 import { itAllowed } from "@platform/contracts";
 import type {
   CompanyConfiguration,
@@ -279,10 +280,17 @@ export function SetupView({
               </label>
               <label className="block space-y-1 text-sm">
                 <span>{s.currency}</span>
-                <Input
+                <Select
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                />
+                  onChange={(e) => setCurrency(e.target.value)}
+                >
+                  <option value="">{s.currency}</option>
+                  {CURRENCY_CODES.map((code) => (
+                    <option key={code} value={code}>
+                      {code} · {getCurrencyLabel(code, locale === "ar")}
+                    </option>
+                  ))}
+                </Select>
               </label>
             </div>
           </div>

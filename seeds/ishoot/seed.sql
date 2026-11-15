@@ -6953,4 +6953,41 @@ INSERT INTO cms.statistic (id, metric_value, label_en, label_ar, sort_order) VAL
   ('stat-4', '24/7', 'Client Support', 'دعم العملاء', 4)
 ON CONFLICT (id) DO NOTHING;
 
+
+-- Backfill country_code and mobile_number
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  FOR rec IN SELECT * FROM (VALUES
+    ('identity', 'user', 'phone', 'country_code', 'mobile_number'),
+    ('commerce', 'customer', 'phone', 'country_code', 'mobile_number'),
+    ('commerce', 'customer_address', 'phone', 'country_code', 'mobile_number'),
+    ('commerce', 'sales_order', 'phone', 'country_code', 'mobile_number'),
+    ('delivery', 'shipment', 'recipient_phone', 'recipient_country_code', 'recipient_mobile_number'),
+    ('delivery', 'courier_agency', 'phone', 'country_code', 'mobile_number'),
+    ('delivery', 'order_ref', 'recipient_phone', 'recipient_country_code', 'recipient_mobile_number'),
+    ('finance', 'contact_ref', 'phone', 'country_code', 'mobile_number'),
+    ('hr', 'employee', 'phone', 'country_code', 'mobile_number'),
+    ('sales', 'contact', 'phone', 'country_code', 'mobile_number'),
+    ('sales', 'crm_contact', 'phone', 'country_code', 'mobile_number'),
+    ('sales', 'inquiry', 'requester_phone', 'requester_country_code', 'requester_mobile_number'),
+    ('system', 'company_setting', 'phone', 'country_code', 'mobile_number'),
+    ('system', 'company_setting', 'whatsapp_phone', 'whatsapp_country_code', 'whatsapp_mobile_number'),
+    ('system', 'client_contact_person', 'phone', 'country_code', 'mobile_number'),
+    ('system', 'media_contact', 'phone', 'country_code', 'mobile_number')
+  ) AS t(sch, tbl, pcol, ccol, mcol)
+  LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = rec.sch AND table_name = rec.tbl AND column_name = rec.ccol) THEN
+      EXECUTE format(
+        'UPDATE %I.%I SET %I = COALESCE(%I, CASE WHEN %I LIKE ''+973%%'' THEN ''BH'' WHEN %I LIKE ''+966%%'' THEN ''SA'' WHEN %I LIKE ''+971%%'' THEN ''AE'' WHEN %I LIKE ''+974%%'' THEN ''QA'' WHEN %I LIKE ''+965%%'' THEN ''KW'' WHEN %I LIKE ''+968%%'' THEN ''OM'' WHEN %I LIKE ''+962%%'' THEN ''JO'' WHEN %I LIKE ''+20%%'' THEN ''EG'' WHEN %I LIKE ''+44%%'' THEN ''GB'' WHEN %I LIKE ''+1%%'' THEN ''US'' ELSE NULL END), %I = COALESCE(%I, CASE WHEN %I ~ ''^\+(973|966|971|974|965|968|962)'' THEN regexp_replace(substr(%I, 5), ''\D'', '''', ''g'') WHEN %I ~ ''^\+(20|44)'' THEN regexp_replace(substr(%I, 4), ''\D'', '''', ''g'') WHEN %I LIKE ''+1%%'' THEN regexp_replace(substr(%I, 3), ''\D'', '''', ''g'') ELSE NULLIF(regexp_replace(%I, ''\D'', '''', ''g''), '''') END) WHERE %I IS NOT NULL AND %I <> '''' AND (%I IS NULL OR %I IS NULL)',
+        rec.sch, rec.tbl, rec.ccol, rec.ccol,
+        rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol,
+        rec.mcol, rec.mcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol, rec.pcol,
+        rec.pcol, rec.pcol, rec.ccol, rec.mcol
+      );
+    END IF;
+  END LOOP;
+END $$;
+
 COMMIT;

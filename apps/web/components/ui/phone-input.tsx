@@ -18,13 +18,17 @@ export function useCompanyCountry() { const raw = React.useContext(PhoneCountryC
 export interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "defaultValue" | "type"> {
   value?: string;
   defaultValue?: string;
+  countryCode?: string;
+  mobileNumber?: string;
+  countryCodeName?: string;
   onChange?: (value: string) => void;
+  onPartsChange?: (parts: { countryCode: string; mobileNumber: string; e164: string }) => void;
   defaultCountryCode?: string;
   "data-testid"?: string;
 }
 
 export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(function PhoneInput(
-  { value, defaultValue = "", onChange, defaultCountryCode, name, id, required, disabled, placeholder, className, "data-testid": testId, ...props }, ref,
+  { value, defaultValue = "", countryCode, mobileNumber, countryCodeName, onChange, onPartsChange, defaultCountryCode, name, id, required, disabled, placeholder, className, "data-testid": testId, ...props }, ref,
 ) {
   const companyCountry = React.useContext(PhoneCountryContext);
   const fallback = defaultCountryCode ?? companyCountry ?? "";
@@ -54,18 +58,27 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
     ],
     [countries, copy.countryCode],
   );
-  const parts = (phone: string) => {
+  const parts = (phone: string, cc?: string, mobile?: string) => {
+    if (cc !== undefined || mobile !== undefined) {
+      const iso = countryIso(cc) ?? "";
+      const nat = (mobile ?? "").replace(/\D/g, "");
+      if (iso || nat) return { iso: iso || (countryIso(fallback) ?? ""), national: nat };
+    }
     const parsed = splitPhoneNumber(phone, fallback);
     return { iso: parsed.country ?? countries.find((country) => country.iso === countryIso(fallback) && country.dialCode === parsed.countryCode)?.iso ?? countries.find((country) => country.dialCode === parsed.countryCode)?.iso ?? "", national: parsed.nationalNumber };
   };
-  const [entry, setEntry] = React.useState(() => parts(value ?? defaultValue));
+  const [entry, setEntry] = React.useState(() => parts(value ?? defaultValue, countryCode, mobileNumber));
   const lastEmitted = React.useRef<string | undefined>(undefined);
   const input = React.useRef<HTMLInputElement>(null);
   React.useImperativeHandle(ref, () => input.current!, []);
   React.useEffect(() => {
+    if (countryCode !== undefined || mobileNumber !== undefined) {
+      setEntry(parts(value ?? defaultValue, countryCode, mobileNumber));
+      return;
+    }
     if (value !== undefined && value === lastEmitted.current) return;
     setEntry(parts(value ?? defaultValue));
-  }, [value, defaultValue, fallback]);
+  }, [value, defaultValue, fallback, countryCode, mobileNumber]);
   const code = COUNTRY_DIAL_CODES.find((country) => country.iso === entry.iso)?.dialCode ?? "";
   const rawCombined = entry.national ? `${code || "+"}${entry.national}` : "";
   const combined = formatPhoneE164(rawCombined) || rawCombined;
@@ -78,6 +91,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
     const raw = next.national ? `${dial || "+"}${next.national}` : "";
     lastEmitted.current = formatPhoneE164(raw) || raw;
     onChange?.(lastEmitted.current);
+    onPartsChange?.({ countryCode: next.iso, mobileNumber: next.national, e164: lastEmitted.current });
   };
   const isInvalid = Boolean(entry.national && (!entry.iso || !isValidPhone(combined)));
   return (
@@ -125,6 +139,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
           else update({ ...entry, national: raw.replace(/[\u0660-\u0669]/g, (digit) => String(digit.charCodeAt(0) - 1632)).replace(/[\u06F0-\u06F9]/g, (digit) => String(digit.charCodeAt(0) - 1776)).replace(/\D/g, "") });
         }}
       />
+      {(name || countryCodeName) && <input type="hidden" data-phone-country-code name={countryCodeName ?? "country_code"} value={entry.iso} disabled={disabled} />}
       {name && <input type="hidden" data-phone-combined name={`${name}_full`} value={combined} disabled={disabled} />}
     </div>
   );

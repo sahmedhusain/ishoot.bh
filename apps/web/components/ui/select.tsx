@@ -431,6 +431,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               ref={refs.setFloating}
               style={{ ...floatingStyles, ...palette }}
               data-select-popup
+              data-lenis-prevent
               dir={direction}
               data-dialog-scope-owner={owner.current}
               className="m3-select-popup"

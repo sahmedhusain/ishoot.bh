@@ -1,0 +1,56 @@
+-- +goose Up
+ALTER TABLE sales.contact ADD COLUMN IF NOT EXISTS country_code TEXT;
+ALTER TABLE sales.contact ADD COLUMN IF NOT EXISTS mobile_number TEXT;
+ALTER TABLE sales.crm_contact ADD COLUMN IF NOT EXISTS country_code TEXT;
+ALTER TABLE sales.crm_contact ADD COLUMN IF NOT EXISTS mobile_number TEXT;
+ALTER TABLE sales.inquiry ADD COLUMN IF NOT EXISTS requester_country_code TEXT;
+ALTER TABLE sales.inquiry ADD COLUMN IF NOT EXISTS requester_mobile_number TEXT;
+
+UPDATE sales.contact
+SET
+  country_code = COALESCE(country_code, CASE
+    WHEN phone LIKE '+973%' THEN 'BH' WHEN phone LIKE '+966%' THEN 'SA'
+    WHEN phone LIKE '+971%' THEN 'AE' WHEN phone LIKE '+974%' THEN 'QA'
+    WHEN phone LIKE '+965%' THEN 'KW' WHEN phone LIKE '+968%' THEN 'OM'
+    WHEN phone LIKE '+962%' THEN 'JO' WHEN phone LIKE '+20%' THEN 'EG'
+    WHEN phone LIKE '+44%' THEN 'GB' WHEN phone LIKE '+1%' THEN 'US'
+    ELSE NULL END),
+  mobile_number = COALESCE(mobile_number, CASE
+    WHEN phone ~ '^\+(973|966|971|974|965|968|962)' THEN regexp_replace(substr(phone, 5), '\D', '', 'g')
+    WHEN phone ~ '^\+(20|44)' THEN regexp_replace(substr(phone, 4), '\D', '', 'g')
+    WHEN phone LIKE '+1%' THEN regexp_replace(substr(phone, 3), '\D', '', 'g')
+    ELSE NULLIF(regexp_replace(phone, '\D', '', 'g'), '') END)
+WHERE phone IS NOT NULL AND phone <> '' AND (country_code IS NULL OR mobile_number IS NULL);
+
+UPDATE sales.crm_contact
+SET
+  country_code = COALESCE(country_code, CASE
+    WHEN phone LIKE '+973%' THEN 'BH' WHEN phone LIKE '+966%' THEN 'SA'
+    WHEN phone LIKE '+971%' THEN 'AE' WHEN phone LIKE '+974%' THEN 'QA'
+    WHEN phone LIKE '+965%' THEN 'KW' WHEN phone LIKE '+968%' THEN 'OM'
+    WHEN phone LIKE '+962%' THEN 'JO' WHEN phone LIKE '+20%' THEN 'EG'
+    WHEN phone LIKE '+44%' THEN 'GB' WHEN phone LIKE '+1%' THEN 'US'
+    ELSE NULL END),
+  mobile_number = COALESCE(mobile_number, CASE
+    WHEN phone ~ '^\+(973|966|971|974|965|968|962)' THEN regexp_replace(substr(phone, 5), '\D', '', 'g')
+    WHEN phone ~ '^\+(20|44)' THEN regexp_replace(substr(phone, 4), '\D', '', 'g')
+    WHEN phone LIKE '+1%' THEN regexp_replace(substr(phone, 3), '\D', '', 'g')
+    ELSE NULLIF(regexp_replace(phone, '\D', '', 'g'), '') END)
+WHERE phone IS NOT NULL AND phone <> '' AND (country_code IS NULL OR mobile_number IS NULL);
+
+UPDATE sales.inquiry
+SET
+  requester_country_code = COALESCE(requester_country_code, CASE
+    WHEN requester_phone LIKE '+973%' THEN 'BH' WHEN requester_phone LIKE '+966%' THEN 'SA' WHEN requester_phone LIKE '+971%' THEN 'AE'
+    WHEN requester_phone LIKE '+974%' THEN 'QA' WHEN requester_phone LIKE '+965%' THEN 'KW' WHEN requester_phone LIKE '+968%' THEN 'OM'
+    WHEN requester_phone LIKE '+962%' THEN 'JO' WHEN requester_phone LIKE '+20%' THEN 'EG' WHEN requester_phone LIKE '+44%' THEN 'GB' WHEN requester_phone LIKE '+1%' THEN 'US'
+    ELSE NULL END),
+  requester_mobile_number = COALESCE(requester_mobile_number, CASE
+    WHEN requester_phone ~ '^\+(973|966|971|974|965|968|962)' THEN regexp_replace(substr(requester_phone, 5), '\D', '', 'g')
+    WHEN requester_phone ~ '^\+(20|44)' THEN regexp_replace(substr(requester_phone, 4), '\D', '', 'g')
+    WHEN requester_phone LIKE '+1%' THEN regexp_replace(substr(requester_phone, 3), '\D', '', 'g')
+    ELSE NULLIF(regexp_replace(requester_phone, '\D', '', 'g'), '') END)
+WHERE requester_phone IS NOT NULL AND requester_phone <> '' AND (requester_country_code IS NULL OR requester_mobile_number IS NULL);
+
+-- +goose Down
+SELECT 1;
