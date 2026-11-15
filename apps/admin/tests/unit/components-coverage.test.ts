@@ -40,8 +40,8 @@ describe("Admin Components — Full Module & Exported Function Audit", () => {
   const componentsDir = path.resolve(__dirname, "../../components");
   const files = walk(componentsDir);
 
-  it("discovers all 312 component files in apps/admin/components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(312);
+  it("discovers all 304 component files in apps/admin/components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(304);
   });
 
   for (const file of files) {

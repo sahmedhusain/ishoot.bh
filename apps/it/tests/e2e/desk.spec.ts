@@ -5,7 +5,7 @@ import { createTicket } from "@platform/api-client";
 import { ports } from "../../playwright.config";
 import t from "@platform/locales/ar.json";
 import { watchErrors } from "./helpers/helpers";
-import { totp } from "../../totp";
+import { totp } from "./helpers/totp";
 
 const accountFile = path.resolve(
   process.env.E2E_IT_ACCOUNT_FILE ||

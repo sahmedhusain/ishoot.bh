@@ -8,17 +8,16 @@ const mocks = vi.hoisted(() => ({
   status: vi.fn(),
   move: vi.fn(),
 }));
-vi.mock("../../lib/atomic", () => ({
-  db: {
-    paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
-    salesOrder: { findUnique: mocks.order },
-  },
-}));
-vi.mock("../../lib/db", () => ({
-  db: {
-    paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
-    salesOrder: { findUnique: mocks.order },
-  },
+vi.mock("../../lib/api/tables", () => ({
+  listTableRows: vi.fn(async (_service: string, table: string) => {
+    if (table === "payment_attempt") return mocks.attempts();
+    if (table === "sales_order") {
+      const order = await mocks.order();
+      return order ? [order] : [];
+    }
+    return [];
+  }),
+  upsertTableRow: mocks.expire,
 }));
 vi.mock("../../lib/payments/active", () => ({
   activePaymentGateway: vi.fn(),
@@ -43,6 +42,7 @@ beforeEach(() => {
       orderId: "order",
       gateway: "hyperpay",
       sessionId: "session",
+      status: "pending",
       createdAt: new Date("2026-10-25T00:00:00Z"),
     },
   ]);

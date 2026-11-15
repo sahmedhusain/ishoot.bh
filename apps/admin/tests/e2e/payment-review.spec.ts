@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import enLocale from "./helpers/locales/en.json";
-import arLocale from "./helpers/locales/ar.json";
-import { en as webEn } from "./helpers/locales";
-import { ar as webAr } from "./helpers/locales";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
+import { en as webEn } from "../../locales";
+import { ar as webAr } from "../../locales";
 import { paymentLinkToken } from "../../lib/services/payment-links";
-import { serverMessages } from "./helpers/locales";
+import { serverMessages } from "../../locales";
 import { ports } from "../../playwright.config";
 import { testDatabase } from "./helpers/helpers";
 const en = enLocale.admin;

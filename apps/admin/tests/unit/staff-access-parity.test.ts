@@ -13,18 +13,19 @@ const mocks = vi.hoisted(() => ({
   grants: vi.fn(),
   scopes: vi.fn(),
   modules: vi.fn(),
+  role: "",
 }));
-vi.mock("@platform/database/atomic", () => ({
-  db: {
-    permission: { findMany: mocks.grants },
-    roleDataScope: { findMany: mocks.scopes },
+vi.mock("@platform/api-client/identity", () => ({
+  listAdminPermissionsApi: async () => {
+    const rows = (await mocks.grants()) ?? [];
+    return rows.map((r: Record<string, unknown>) => ({ role: mocks.role, ...r }));
   },
-}));
-vi.mock("@platform/database/db", () => ({
-  db: {
-    permission: { findMany: mocks.grants },
-    roleDataScope: { findMany: mocks.scopes },
+  listAdminRoleDataScopesApi: async () => {
+    const rows = (await mocks.scopes()) ?? [];
+    return rows.map((r: Record<string, unknown>) => ({ role: mocks.role, ...r }));
   },
+  listAdminUsersApi: vi.fn(),
+  setAdminRoleDataScopesApi: vi.fn(),
 }));
 vi.mock("@platform/database/queries/features", () => ({
   getFeatureToggles: mocks.modules,
@@ -58,6 +59,7 @@ function storedGrants(stored: Record<string, boolean>) {
 }
 
 test.each(vectors as Vector[])("staff policy parity: $name", async (vector) => {
+  mocks.role = vector.role;
   mocks.grants.mockResolvedValue(storedGrants(vector.stored || {}));
   mocks.modules.mockResolvedValue(
     Object.entries(vector.modules || {}).map(([moduleKey, isEnabled]) => ({
@@ -89,6 +91,7 @@ test.each(vectors as Vector[])("staff policy parity: $name", async (vector) => {
 });
 
 test.each(ALL_ROLES)("provisioned staff template: %s", async (role) => {
+  mocks.role = role;
   const stored = Object.fromEntries(
     ALL_RESOURCES.flatMap((resource) =>
       ALL_ACTIONS.map((action) => [

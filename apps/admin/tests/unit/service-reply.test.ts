@@ -6,8 +6,25 @@ const db = vi.hoisted(() => ({
   companySetting: { findFirst: vi.fn() },
   requestComment: { create: vi.fn() },
 }));
-vi.mock("../../lib/atomic", () => ({ db }));
-vi.mock("../../lib/db", () => ({ db }));
+vi.mock("../../lib/api/tables", () => ({
+  listTableRows: vi.fn(async (_service: string, table: string) => {
+    if (table === "inquiry") {
+      const row = await db.inquiry.findUnique();
+      return row ? [row] : [];
+    }
+    return [];
+  }),
+  upsertTableRow: vi.fn(
+    async (_service: string, table: string, row: Record<string, unknown>) => {
+      if (table === "request_comment") return db.requestComment.create(row);
+      if (table === "inquiry") return db.inquiry.update(row);
+      return row;
+    },
+  ),
+}));
+vi.mock("../../lib/api/company", () => ({
+  getCompanyConfiguration: () => db.companySetting.findFirst(),
+}));
 const api = vi.hoisted(() => ({
   queueMessage: vi.fn(),
   getMessageStatus: vi.fn(),

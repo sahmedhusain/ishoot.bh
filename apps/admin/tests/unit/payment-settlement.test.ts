@@ -14,37 +14,44 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   currency: vi.fn(),
 }));
-vi.mock("../../lib/atomic", () => ({
-  db: {
-    $queryRaw: mocks.currency,
-    paymentAttempt: {
-      findUnique: mocks.attempt,
-      update: mocks.update,
-      updateMany: mocks.update,
-      findFirst: mocks.used,
-      count: mocks.count,
-      create: vi.fn(),
-    },
-    salesOrder: { findUnique: mocks.order, findUniqueOrThrow: mocks.order },
-    paymentWebhookEvent: { createMany: mocks.events },
-  },
+vi.mock("../../lib/api/atomic", () => ({
   runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
 }));
-vi.mock("../../lib/db", () => ({
-  db: {
-    $queryRaw: mocks.currency,
-    paymentAttempt: {
-      findUnique: mocks.attempt,
-      update: mocks.update,
-      updateMany: mocks.update,
-      findFirst: mocks.used,
-      count: mocks.count,
-      create: vi.fn(),
+vi.mock("../../lib/api/tables", () => ({
+  listTableRows: vi.fn(async (_service: string, table: string) => {
+    if (table === "payment_attempt") {
+      const primary = await mocks.attempt();
+      const used = await mocks.used();
+      const rows = primary ? [primary] : [];
+      if (used) {
+        rows.push({
+          gateway: primary?.gateway ?? "stripe",
+          gatewayPaymentId: "provider-capture",
+          ...used,
+        });
+      }
+      return rows;
+    }
+    if (table === "sales_order") {
+      const orderRow = await mocks.order();
+      return orderRow ? [orderRow] : [];
+    }
+    if (table === "payment_webhook_event") return [];
+    return [];
+  }),
+  upsertTableRow: vi.fn(
+    async (_service: string, table: string, row: Record<string, unknown>) => {
+      if (table === "payment_attempt") return mocks.update({ data: row });
+      if (table === "payment_webhook_event") return mocks.events(row);
+      return row;
     },
-    salesOrder: { findUnique: mocks.order, findUniqueOrThrow: mocks.order },
-    paymentWebhookEvent: { createMany: mocks.events },
+  ),
+}));
+vi.mock("../../lib/queries/company-settings", () => ({
+  getCompanySettings: async () => {
+    const rows = await mocks.currency();
+    return { default_currency: rows?.[0]?.defaultCurrency ?? "USD" };
   },
-  runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
 }));
 vi.mock("../../lib/queries/store", () => ({
   recordOrderPayment: mocks.receipt,

@@ -12,7 +12,7 @@ import ar from "@platform/locales/ar.json";
 import en from "@platform/locales/en.json";
 import { ports } from "../../playwright.config";
 import { selectOption } from "./helpers/select-option";
-import { totp } from "../../totp";
+import { totp } from "./helpers/totp";
 
 test("IT lists, filters and revokes sessions with bilingual confirmation and live invalidation", async ({
   page,

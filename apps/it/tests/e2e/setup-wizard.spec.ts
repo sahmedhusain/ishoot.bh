@@ -7,7 +7,7 @@ import {
   themeVariable,
   watchErrors,
 } from "./helpers/helpers";
-import { t } from "../helpers/locale";
+import { t } from "./helpers/locale";
 import { selectOption } from "./helpers/select-option";
 
 test.describe.configure({ mode: "serial", retries: 0 });

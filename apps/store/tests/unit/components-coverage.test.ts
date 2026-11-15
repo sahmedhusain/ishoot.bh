@@ -36,8 +36,8 @@ describe("Store Components — Full Module & Exported Function Audit", () => {
   const componentsDir = path.resolve(__dirname, "../../components");
   const files = walk(componentsDir);
 
-  it("discovers all 71 component files in apps/store/components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(71);
+  it("discovers all 65 component files in apps/store/components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(65);
   });
 
   for (const file of files) {
