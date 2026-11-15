@@ -88,13 +88,19 @@ All log output is structured JSON containing standard correlation fields:
 
 ## 5. Local Telemetry Stack Execution
 
-To launch the local Grafana/Prometheus/Loki/Tempo stack:
+To launch the local Grafana, Prometheus, Loki, Tempo, Alloy, and OpenTelemetry Collector stack (configs in `backend/deploy/observability/`):
 
 ```bash
-# Launch telemetry containers
-docker compose --profile observability up -d
+# Launch telemetry containers (via run.sh or docker compose)
+./run.sh services observability
+# or: docker compose --profile observability up -d
 
 # Open Grafana dashboard in browser
 open http://localhost:3300
+
+# Open Prometheus UI in browser
+open http://localhost:9099
 ```
-* **Default Credentials**: Username `admin`, Password `GRAFANA_ADMIN_PASSWORD` (configured in `.env`).
+* **Grafana**: `http://localhost:3300` — Username `admin`, Password `GRAFANA_ADMIN_PASSWORD` (configured in `.env`).
+* **Prometheus**: `http://localhost:9099` — Metrics store & query UI.
+* **OTel Collector**: `http://127.0.0.1:4318` — OTLP/HTTP trace receiver (`OTEL_EXPORTER_OTLP_ENDPOINT`).

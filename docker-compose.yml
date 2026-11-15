@@ -931,7 +931,7 @@ services:
     restart: unless-stopped
     command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
-      - ./deploy/observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - ./backend/deploy/observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
     ports:
       - "127.0.0.1:4318:4318"
 
@@ -941,7 +941,7 @@ services:
     restart: unless-stopped
     command: ["-config.file=/etc/tempo.yaml"]
     volumes:
-      - ./deploy/observability/tempo.yaml:/etc/tempo.yaml:ro
+      - ./backend/deploy/observability/tempo.yaml:/etc/tempo.yaml:ro
 
   loki:
     image: grafana/loki:3.4.2
@@ -955,7 +955,7 @@ services:
     restart: unless-stopped
     command: ["run", "/etc/alloy/config.alloy"]
     volumes:
-      - ./deploy/observability/config.alloy:/etc/alloy/config.alloy:ro
+      - ./backend/deploy/observability/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   prometheus:
@@ -968,7 +968,7 @@ services:
         "--web.enable-remote-write-receiver",
       ]
     volumes:
-      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./backend/deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-9099}:9090"
 
@@ -981,7 +981,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
-      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./backend/deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-3300}:3000"
 

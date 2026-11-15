@@ -123,7 +123,7 @@ Included packages cover all **23 core business activities**, 1 multi-business gr
 ```bash
 ./run.sh db reset
 ```
-`db reset` drops all microservice schemas, re-runs Goose migrations, resets SeaweedFS S3 storage buckets, and initializes a clean empty database via `seeds/bootstrap/seed_bootstrap.sql` (pass `--seed <company>` or run `./run.sh db seed <company>` afterwards to load a seed company).
+`db reset` drops all microservice schemas, re-runs Goose migrations, resets SeaweedFS S3 storage buckets, and initializes a clean empty database via `seeds/bootstrap/seed_bootstrap.sql` (pass `--company <slug>` or run `./run.sh db seed <company>` afterwards to load a seed company).
 
 ### Backup & Restore Commands
 ```bash

@@ -1,0 +1,73 @@
+name: Infrastructure (Terraform & Kubernetes)
+
+on:
+  pull_request:
+    paths:
+      - infra/**
+      - backend/deploy/helm/**
+      - .github/workflows/infra.yml
+  push:
+    branches: [main]
+    paths:
+      - infra/**
+      - backend/deploy/helm/**
+      - .github/workflows/infra.yml
+  workflow_dispatch:
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform fmt & validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: Check formatting
+        run: terraform fmt -check -recursive
+      - name: Initialize (backend disabled)
+        run: terraform init -backend=false
+      - name: Validate configuration
+        run: terraform validate
+
+  kubernetes:
+    name: Kubernetes manifests (kubeconform)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate raw Kubernetes manifests
+        run: >
+          docker run --rm -v "${{ github.workspace }}/infra/k8s:/k8s"
+          ghcr.io/yannh/kubeconform:v0.6.7 -strict -summary /k8s/
+
+  helm:
+    name: Helm chart lint & schema validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend/deploy/helm/platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.1
+      - name: Helm lint
+        run: helm lint --strict .
+      - name: Validate rendered templates (default, staging, production)
+        run: |
+          for f in "" "-f values-staging.yaml" "-f values-production.yaml"; do
+            helm template ci . $f | docker run --rm -i ghcr.io/yannh/kubeconform:v0.6.7 -strict -summary -ignore-missing-schemas -
+          done

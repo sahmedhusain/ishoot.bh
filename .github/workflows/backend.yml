@@ -4,8 +4,6 @@ on:
   pull_request:
     paths:
       - backend/**
-      - contracts/**
-      - deploy/**
       - docker-compose.yml
       - .github/workflows/backend.yml
       - .github/actions/backend-stack/**
@@ -13,8 +11,6 @@ on:
     branches: [main]
     paths:
       - backend/**
-      - contracts/**
-      - deploy/**
       - docker-compose.yml
       - .github/workflows/backend.yml
       - .github/actions/backend-stack/**
@@ -133,10 +129,11 @@ jobs:
         with:
           version: v3.17.1
       - run: helm lint --strict .
-      - name: Validate against Kubernetes schemas
-        run: >
-          helm template ci . |
-          docker run --rm -i ghcr.io/yannh/kubeconform:v0.6.7 -strict -summary -ignore-missing-schemas -
+      - name: Validate against Kubernetes schemas (default, staging, production)
+        run: |
+          for f in "" "-f values-staging.yaml" "-f values-production.yaml"; do
+            helm template ci . $f | docker run --rm -i ghcr.io/yannh/kubeconform:v0.6.7 -strict -summary -ignore-missing-schemas -
+          done
 
   stack:
     name: Local stack smoke test

@@ -160,9 +160,10 @@ menu_guides() {
     echo "  ${GREEN}[6]${RESET} Read Testing Strategy & Playwright Setup (TESTING.md)"
     echo "  ${GREEN}[7]${RESET} Read Integrations & Payment Gateways (INTEGRATIONS.md)"
     echo "  ${GREEN}[8]${RESET} Read API Reference Catalog (API_REFERENCE.md)"
+    echo "  ${GREEN}[9]${RESET} Read Master CLI Command Guide (CLI_GUIDE.md)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-8]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-9]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) [ -f docs/ARCHITECTURE.md ] && less docs/ARCHITECTURE.md || warn "File not found."; pause_prompt ;;
@@ -173,6 +174,7 @@ menu_guides() {
       6) [ -f docs/TESTING.md ] && less docs/TESTING.md || warn "File not found."; pause_prompt ;;
       7) [ -f docs/INTEGRATIONS.md ] && less docs/INTEGRATIONS.md || warn "File not found."; pause_prompt ;;
       8) [ -f docs/API_REFERENCE.md ] && less docs/API_REFERENCE.md || warn "File not found."; pause_prompt ;;
+      9) [ -f docs/CLI_GUIDE.md ] && less docs/CLI_GUIDE.md || warn "File not found."; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -184,35 +186,31 @@ menu_quickstart() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== 🚀 Quick Start & Environment Initialization ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Empty Setup (--empty)              - Clean DB for IT Setup Wizard (Default)"
-    echo "  ${GREEN}[2]${RESET} Seeded Setup (--seed zayed-group)  - Full Multi-Business Suite"
-    echo "  ${GREEN}[3]${RESET} Seeded Setup (--seed ishoot)       - Media Production Studio (No Store)"
-    echo "  ${GREEN}[4]${RESET} Media Preset (--media)             - Media Production Preset"
-    echo "  ${GREEN}[5]${RESET} Products Preset (--products)       - Products & Inventory Preset"
-    echo "  ${GREEN}[6]${RESET} Commerce Preset (--commerce)       - Online Store & Delivery Preset"
-    echo "  ${GREEN}[7]${RESET} Services Preset (--services)       - Professional Services Preset"
-    echo "  ${GREEN}[8]${RESET} Food Preset (--food)               - Food & Hospitality Preset"
-    echo "  ${GREEN}[9]${RESET} Agency Preset (--agency)           - Creative Agency Preset"
-    echo "  ${GREEN}[10]${RESET} Install Dependencies & Build All Go Binaries"
-    echo "  ${GREEN}[11]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
-    echo "  ${GREEN}[12]${RESET} Show Service Endpoint URLs & Network Ports"
+    echo "  ${GREEN}[1]${RESET} Empty Setup (--empty)                - Clean DB for IT Setup Wizard (Default)"
+    echo "  ${GREEN}[2]${RESET} Seeded Setup (--company zayed-group) - Full Multi-Business Suite"
+    echo "  ${GREEN}[3]${RESET} Seeded Setup (--company ishoot)      - Media Production Studio (No Store)"
+    echo "  ${GREEN}[4]${RESET} Seeded Setup (Custom Company Slug)   - Choose from 25 seeds under seeds/"
+    echo "  ${GREEN}[5]${RESET} Install Dependencies & Build All Go Binaries"
+    echo "  ${GREEN}[6]${RESET} Upgrade Repository (git pull, npm install, migrations, build)"
+    echo "  ${GREEN}[7]${RESET} Show Service Endpoint URLs & Network Ports"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-12]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-7]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_setup --empty; pause_prompt ;;
-      2) cmd_setup --seed zayed-group; pause_prompt ;;
-      3) cmd_setup --seed ishoot; pause_prompt ;;
-      4) cmd_setup --media; pause_prompt ;;
-      5) cmd_setup --products; pause_prompt ;;
-      6) cmd_setup --commerce; pause_prompt ;;
-      7) cmd_setup --services; pause_prompt ;;
-      8) cmd_setup --food; pause_prompt ;;
-      9) cmd_setup --agency; pause_prompt ;;
-      10) cmd_install; pause_prompt ;;
-      11) cmd_upgrade; pause_prompt ;;
-      12) cmd_urls; pause_prompt ;;
+      2) cmd_setup --company zayed-group; pause_prompt ;;
+      3) cmd_setup --company ishoot; pause_prompt ;;
+      4)
+        echo "Available seed companies:"
+        cmd_company list
+        printf "Enter company slug: "; read -r c_slug
+        [ -n "$c_slug" ] && cmd_setup --company "$c_slug"
+        pause_prompt
+        ;;
+      5) cmd_install; pause_prompt ;;
+      6) cmd_upgrade; pause_prompt ;;
+      7) cmd_urls; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -321,13 +319,13 @@ menu_services() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== 🐳 Local Stack & Docker Container Operations ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Start Local Infrastructure Stack (Postgres, Valkey, SeaweedFS, NATS)"
+    echo "  ${GREEN}[1]${RESET} Start Local Infrastructure Stack (Postgres, Valkey, SeaweedFS, NATS, Mailpit, pgAdmin & Microservices)"
     echo "  ${GREEN}[2]${RESET} Stop Local Infrastructure Stack"
     echo "  ${GREEN}[3]${RESET} Restart Infrastructure Stack"
     echo "  ${GREEN}[4]${RESET} Check Container Status & Health"
     echo "  ${GREEN}[5]${RESET} Tail Live Container Logs (docker compose logs -f)"
-    echo "  ${GREEN}[6]${RESET} Start Observability Stack (Grafana, Prometheus, Loki, Tempo)"
-    echo "  ${GREEN}[7]${RESET} Start Management Tools (pgAdmin & Redis UI)"
+    echo "  ${GREEN}[6]${RESET} Start Observability Stack (Grafana, Prometheus, Loki, Tempo, Alloy, OTel Collector)"
+    echo "  ${GREEN}[7]${RESET} Start Scheduled Backup Service (--profile backup)"
     echo "  ${GREEN}[8]${RESET} Prune Unused Docker Containers & Images"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
@@ -340,7 +338,7 @@ menu_services() {
       4) cmd_services status; pause_prompt ;;
       5) cmd_services logs; pause_prompt ;;
       6) cmd_services observability; pause_prompt ;;
-      7) run compose --profile tools up -d; pause_prompt ;;
+      7) run compose --profile backup up -d; pause_prompt ;;
       8) docker system prune -f; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
@@ -407,7 +405,7 @@ menu_rebuild() {
     echo "${GREEN}${BOLD}=== 🔄 Rebuild & Reset Platform Stack ===${RESET}"
     echo ""
     echo "  ${GREEN}[1]${RESET} Rebuild Everything (All Microservices, Frontends & Reset DB)"
-    echo "  ${GREEN}[2]${RESET} Rebuild Frontend Apps Docker Images (Web, Admin, IT)"
+    echo "  ${GREEN}[2]${RESET} Rebuild Frontend Apps Docker Images (Web, Admin, IT, Store)"
     echo "  ${GREEN}[3]${RESET} Rebuild Backend Microservices Docker Images (16 Go Services)"
     echo "  ${GREEN}[4]${RESET} Rebuild & Reset Database Engine (Wipe volumes, re-migrate, re-seed)"
     echo "  ${GREEN}[5]${RESET} Rebuild Specific Service or App Container"
@@ -421,7 +419,7 @@ menu_rebuild() {
       3) cmd_rebuild services; pause_prompt ;;
       4) cmd_rebuild db; pause_prompt ;;
       5)
-        printf "Enter container service name (web|admin|it|gateway|identity|...): "; read -r r_svc
+        printf "Enter container service name (web|admin|it|store|gateway|identity|...): "; read -r r_svc
         cmd_rebuild single "$r_svc"
         pause_prompt
         ;;
@@ -461,7 +459,7 @@ menu_tests() {
     echo "${GREEN}${BOLD}=== 🧪 Testing Suite & Quality Assurance ===${RESET}"
     echo ""
     echo "  ${GREEN}[1]${RESET} Run All Static Checks (Lint, Type-Check, Tests)"
-    echo "  ${GREEN}[2]${RESET} Run Unit Tests (Web, Admin, IT, Backend)"
+    echo "  ${GREEN}[2]${RESET} Run Unit Tests (Web, Admin, IT, Store, Backend)"
     echo "  ${GREEN}[3]${RESET} Run Playwright End-to-End Tests (e2e)"
     echo "  ${GREEN}[4]${RESET} Open Interactive Playwright UI Test Runner"
     echo "  ${GREEN}[5]${RESET} Run Code Coverage Analysis (HTML & Summary)"
@@ -575,7 +573,7 @@ usage() {
 ${BOLD}Platform Management CLI: ./run.sh <command> [options]${RESET}
 
 ${BOLD}Getting Started & Quick Control${RESET}
-  setup [--empty|--seed <company>] Install, prepare .env, spin up local services & build DB
+  setup [--empty|--company <slug>] Install, prepare .env, spin up local services & build DB
   doctor                           Check runtime binaries (Node, Go, Docker), .env, services & ports
   install                          Install npm dependencies & compile Go microservices
   upgrade                          Pull latest repository changes, migrate schemas & rebuild
@@ -612,10 +610,10 @@ ${BOLD}Environment & Security (.env)${RESET}
   env edit                         Open .env file in default system editor
 
 ${BOLD}Docker Infrastructure${RESET}
-  services up | down | restart     Control container stack (Postgres, Valkey, NATS, SeaweedFS)
+  services up | down | restart     Control container stack (Postgres, PgBouncer, Valkey, NATS, SeaweedFS, Mailpit, pgAdmin & Microservices)
   services status                  Inspect container state and service readiness
   services logs [service]          Tail live container logs
-  services observability           Spin up Grafana, Prometheus, Loki & Tempo (http://localhost:3300)
+  services observability           Spin up Grafana (3300), Prometheus (9099), Loki, Tempo, Alloy & OTel Collector (4318)
 
 ${BOLD}Database Engine & Migrations${RESET}
   db migrate                       Run Goose migrations across all 15 stateful service schemas
@@ -631,7 +629,7 @@ ${BOLD}Database Engine & Migrations${RESET}
 
 ${BOLD}Quality Assurance & Testing${RESET}
   check                            Run full static suite (Lint, TypeScript, Unit Tests)
-  test [all|admin|it|web|backend]  Execute targeted unit tests
+  test [all|admin|it|web|store|backend] Execute targeted unit tests
   test e2e                         Execute Playwright E2E browser tests
   test coverage                    Generate code coverage statistics
   test race                        Run Go race detector on microservices
@@ -678,7 +676,7 @@ cmd_setup() {
   fi
   if [ -n "${SUPER_ADMIN_PASSWORD:-}" ]; then
     case "$mode" in
-      --company)
+      --company | --seed)
         local target_company="${2:-}"
         [ -n "$target_company" ] || die "Usage: ./run.sh setup --company <slug>"
         YES=1 cmd_db reset --company "$target_company"
@@ -704,7 +702,7 @@ cmd_doctor() {
     [ "$major" -ge 22 ] || { warn "Node $major is older than 22"; failures=$((failures + 1)); }
   fi
   check_tool npm "Node package manager" required
-  check_tool go "Go 1.22+ for backend microservices"
+  check_tool go "Go 1.25+ for backend microservices"
   check_tool docker "needed for the local stack" required
   check_tool git
   check_tool psql "optional: brew install libpq"
@@ -734,7 +732,7 @@ cmd_doctor() {
   fi
   step "Checking Required Network Ports"
   local port
-  for port in 3000 3001 3002 3003 8080 5432 8333 6379 4222; do
+  for port in 3000 3001 3002 3003 8080 9080 8082 5432 6432 6379 4222 8222 8333 1025 8025 8095 5050 3300 9099 4318; do
     if lsof -ti ":$port" >/dev/null 2>&1; then ok "Port $port in use"; else printf '  Port %s free\n' "$port"; fi
   done
   [ "$failures" -eq 0 ] && ok "No blocking issues detected." || die "$failures blocking issue(s) found."
@@ -866,7 +864,7 @@ cmd_rebuild() {
       ;;
     single)
       local target="${1:-}"
-      [ -n "$target" ] || die "Usage: ./run.sh rebuild single <service_name|web|admin|it>"
+      [ -n "$target" ] || die "Usage: ./run.sh rebuild single <service_name|web|admin|it|store>"
       step "Rebuilding Docker container image for $target"
       run compose build --no-cache "$target"
       run compose up -d --no-deps "$target"
@@ -886,23 +884,28 @@ cmd_services() {
   case "$sub" in
     up | start)
       node scripts/env-tool.cjs service-keys >/dev/null
-      step "Starting local container stack (Postgres, Valkey, SeaweedFS, NATS, Mailpit & Backend Gateway)"
+      step "Starting local container stack (Postgres, PgBouncer, Valkey, SeaweedFS, NATS, Mailpit, pgAdmin, WhatsApp Sandbox & Microservices)"
       local svc
       for svc in db-roles whatsapp-sandbox "${SERVICES_LIST[@]}" web admin it store; do
         compose build "$svc"
       done
       run compose up -d --wait
       ok "Backend Gateway running at http://127.0.0.1:${GATEWAY_PORT:-8080}"
+      ok "Mailpit UI: http://localhost:${MAILPIT_UI_PORT:-8025} | WhatsApp Sandbox: http://localhost:${WHATSAPP_SANDBOX_PORT:-8095} | pgAdmin: http://localhost:${PGADMIN_PORT:-5050}"
       cmd_db migrate
       ;;
-    down | stop) step "Stopping local container stack"; run compose --profile observability --profile tools down ;;
+    down | stop) step "Stopping local container stack"; run compose --profile observability --profile backup down ;;
     restart) cmd_services down; cmd_services up ;;
     status)
       compose ps
       cmd_backend_health
       ;;
     logs) run compose logs -f "$@" ;;
-    observability) run compose --profile observability up -d; ok "Grafana available at http://localhost:${GRAFANA_PORT:-3300}" ;;
+    observability)
+      run compose --profile observability up -d
+      ok "Grafana available at http://localhost:${GRAFANA_PORT:-3300}"
+      ok "Prometheus available at http://localhost:${PROMETHEUS_PORT:-9099} | OTel Collector OTLP/HTTP at http://127.0.0.1:4318"
+      ;;
     import-supabase) services_import_supabase "$@" ;;
     *) die "Unknown: services $sub (up, down, restart, status, logs, observability, import-supabase)" ;;
   esac
@@ -1267,16 +1270,36 @@ cmd_audit() {
 }
 
 cmd_urls() {
+  [ -f .env ] && load_env 2>/dev/null || true
   cat <<EOF
-  Web App           http://localhost:3000   (/en, /ar)
+${BOLD}Frontend Applications (Browser):${RESET}
+  Web App           http://localhost:3000                         (/en, /ar)
   Admin App         http://localhost:3001
   IT Dashboard      http://localhost:3002
-  Store App         http://localhost:3003   (/en, /ar)
-  Backend Gateway   http://127.0.0.1:8080   (Health/Metrics: port 9080)
-  Postgres DB       127.0.0.1:5432
-  S3 Storage        http://127.0.0.1:8333   (SeaweedFS)
-  Grafana           http://localhost:3300   (./run.sh services observability)
-  pgAdmin           http://localhost:5050   (docker compose --profile tools up -d)
+  Store App         http://localhost:3003                         (/en, /ar)
+
+${BOLD}Developer & Operations UIs (Browser):${RESET}
+  Mailpit UI        http://localhost:${MAILPIT_UI_PORT:-8025}                         (Local SMTP catcher: 127.0.0.1:${MAILPIT_SMTP_PORT:-1025})
+  WhatsApp Sandbox  http://localhost:${WHATSAPP_SANDBOX_PORT:-8095}                         (Local WhatsApp Cloud API mock)
+  pgAdmin           http://localhost:${PGADMIN_PORT:-5050}                         (PostgreSQL Web UI)
+  NATS Monitor      http://127.0.0.1:${NATS_MONITOR_PORT:-8222}                         (JetStream HTTP monitoring)
+  Grafana           http://localhost:${GRAFANA_PORT:-3300}                         (./run.sh services observability)
+  Prometheus        http://localhost:${PROMETHEUS_PORT:-9099}                         (./run.sh services observability)
+
+${BOLD}API & Infrastructure Endpoints:${RESET}
+  API Gateway       http://127.0.0.1:${GATEWAY_PORT:-8080}                         (Health/Metrics: :${GATEWAY_ADMIN_PORT:-9080})
+  Identity API      http://127.0.0.1:${IDENTITY_PORT:-8082}                         (Health/Metrics: :${IDENTITY_ADMIN_PORT:-9082})
+  PostgreSQL 17     127.0.0.1:${POSTGRES_PORT:-5432}
+  PgBouncer         127.0.0.1:${PGBOUNCER_PORT:-6432}
+  Valkey (Redis)    127.0.0.1:${VALKEY_PORT:-6379}
+  SeaweedFS S3      http://127.0.0.1:${S3_PORT:-8333}
+  NATS JetStream    nats://127.0.0.1:${NATS_PORT:-4222}
+  OTel Collector    http://127.0.0.1:4318                         (OTLP/HTTP, --profile observability)
+
+${BOLD}Microservice Health & Metrics (:9080–:9095):${RESET}
+  gateway:${GATEWAY_ADMIN_PORT:-9080}  files:${FILES_ADMIN_PORT:-9081}  identity:${IDENTITY_ADMIN_PORT:-9082}  itsm:${ITSM_ADMIN_PORT:-9083}  system:${SYSTEM_ADMIN_PORT:-9084}  audit:${AUDIT_ADMIN_PORT:-9085}
+  notify:${NOTIFY_ADMIN_PORT:-9086}   realtime:${REALTIME_ADMIN_PORT:-9087}  cms:9088       commerce:9089  delivery:9090  finance:9091
+  hr:9092       inventory:9093 sales:9094      workflow:9095
 EOF
 }
 

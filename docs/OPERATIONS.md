@@ -1,6 +1,6 @@
 # Operations & Deployment Runbook
 
-This runbook covers system environment variables, local Docker services, background background workers, domain management, deployment procedures, and production setup.
+This runbook covers system environment variables, local Docker services, background workers, domain management, deployment procedures, and production setup.
 
 ---
 
@@ -46,21 +46,28 @@ To manage environment variables locally:
 
 ## 2. Local Stack Port Mapping
 
-When executing `./run.sh services up`, the local Docker Compose stack exposes the following services:
+When executing `./run.sh services up` (and `./run.sh services observability` for the telemetry stack), the local Docker Compose stack binds to `127.0.0.1` and exposes the following services:
 
-| Component / Service | Address / URL | Internal Container Port | Description |
-|---|---|---|---|
-| **Web Application** | `http://localhost:3000` | 3000 | Public marketing & services website |
-| **Admin Application** | `http://localhost:3001` | 3001 | Enterprise business system |
-| **IT Dashboard** | `http://localhost:3002` | 3002 | Infrastructure & operations desk |
-| **Store Application** | `http://localhost:3003` | 3003 | Customer e-commerce storefront |
-| **API Gateway** | `http://localhost:8080` | 8080 | Single public entry point |
-| **PostgreSQL 17** | `127.0.0.1:5432` | 5432 | Service database cluster |
-| **Valkey / Redis** | `127.0.0.1:6379` | 6379 | Rate limits & presence cache |
-| **NATS JetStream** | `127.0.0.1:4222` | 4222 / 8222 | Event bus & monitoring |
-| **SeaweedFS S3** | `http://localhost:8333` | 8333 | S3 object storage |
-| **Mailpit** | `http://localhost:8025` | 8025 / 1025 | Local email testing interface |
-| **WhatsApp Sandbox** | `http://localhost:8095` | 8095 | Local messaging mock server |
+| Component / Service | Address / URL | Internal Container Port | Profile / Access | Description |
+|---|---|---|---|---|
+| **Web Application** | `http://localhost:3000` | 3000 | Default (Browser) | Public marketing & services website (`/en`, `/ar`) |
+| **Admin Application** | `http://localhost:3001` | 3001 | Default (Browser) | Enterprise business system |
+| **IT Dashboard** | `http://localhost:3002` | 3002 | Default (Browser) | Infrastructure & operations desk |
+| **Store Application** | `http://localhost:3003` | 3003 | Default (Browser) | Customer e-commerce storefront (`/en`, `/ar`) |
+| **Mailpit UI / SMTP** | `http://localhost:8025` / `127.0.0.1:1025` | 8025 / 1025 | Default (Browser) | Local email inbox & SMTP testing catcher |
+| **WhatsApp Sandbox** | `http://localhost:8095` | 8080 | Default (Browser) | Local mock server for WhatsApp Cloud API |
+| **pgAdmin** | `http://localhost:5050` | 80 | Default (Browser) | PostgreSQL web administration UI |
+| **NATS Monitor / Broker** | `http://127.0.0.1:8222` / `127.0.0.1:4222` | 8222 / 4222 | Default (Browser) | JetStream monitoring UI & event broker |
+| **Grafana** | `http://localhost:3300` | 3000 | `observability` (Browser) | Metrics, logs & trace dashboards (`./run.sh services observability`) |
+| **Prometheus** | `http://localhost:9099` | 9090 | `observability` (Browser) | Metrics store & query UI (`./run.sh services observability`) |
+| **API Gateway** | `http://127.0.0.1:8080` | 8080 | Default (API) | Single public HTTP reverse proxy entry point |
+| **Identity API** | `http://127.0.0.1:8082` | 8080 | Default (API) | Direct tri-realm authentication & JWKS service |
+| **PostgreSQL 17** | `127.0.0.1:5432` | 5432 | Default (TCP) | Direct database cluster (migrations & admin) |
+| **PgBouncer** | `127.0.0.1:6432` | 6432 | Default (TCP) | Transaction-mode connection pooler (`DATABASE_URL`) |
+| **Valkey / Redis** | `127.0.0.1:6379` | 6379 | Default (TCP) | Rate limits & presence cache |
+| **SeaweedFS S3** | `http://127.0.0.1:8333` | 8333 | Default (HTTP) | S3-compatible object storage |
+| **OTel Collector** | `http://127.0.0.1:4318` | 4318 | `observability` (OTLP) | OpenTelemetry OTLP/HTTP trace receiver |
+| **Microservice Probes** | `127.0.0.1:9080–9095` | 9090 | Default (Internal) | `/livez`, `/readyz`, `/metrics` (`gateway:9080` … `workflow:9095`) |
 
 ---
 

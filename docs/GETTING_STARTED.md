@@ -9,7 +9,7 @@ This guide takes you from a fresh repository clone to a fully operational system
 Before setting up the project, ensure your workstation has the following installed:
 
 * **Node.js**: v22.0.0 or newer
-* **Go**: v1.24.0 or newer
+* **Go**: v1.25.0 or newer
 * **Docker & Docker Compose**: v2.20+
 * **npm**: v10.0+
 
@@ -49,7 +49,7 @@ This generates `.env` from `.env.example`, generating secure database passwords,
 ./run.sh services up
 ./run.sh services status
 ```
-This launches PostgreSQL 17 (port 5432), Valkey (port 6379), NATS JetStream (port 4222), SeaweedFS S3 (port 8333), Mailpit (port 8025), API Gateway (port 8080), and Go backend services.
+This launches PostgreSQL 17 (port 5432), PgBouncer (port 6432), Valkey (port 6379), NATS JetStream (port 4222 / monitor 8222), SeaweedFS S3 (port 8333), Mailpit (UI 8025 / SMTP 1025), WhatsApp Sandbox (port 8095), pgAdmin (port 5050), API Gateway (port 8080), and Go backend services. To also launch Grafana (port 3300), Prometheus (port 9099), Loki, Tempo, Alloy, and OTel Collector (port 4318), run `./run.sh services observability`.
 
 ---
 
