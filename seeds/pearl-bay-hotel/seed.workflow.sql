@@ -395,5 +395,7 @@ INSERT INTO workflow.outbox (id, subject, payload, headers, attempts, next_try_a
 INSERT INTO workflow.inbox (consumer, event_id, handled_at) VALUES ('workflow-worker', '8fa8468f-5db0-4377-aed8-6e0963ae53dd', now() - interval '1 hour') ON CONFLICT (consumer, event_id) DO NOTHING;
 INSERT INTO workflow.outbox (id, subject, payload, headers, attempts, next_try_at, last_error, created_at, published_at) VALUES ('2af207a7-e802-44f7-a170-a616e18eb586', 'workflow.entity.seeded', '{"company":"pearl-bay-hotel","seq":5}'::jsonb, '{"source":"seed"}'::jsonb, 1, now() - interval '1 hour', NULL, now() - interval '2 hours', now() - interval '1 hour') ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.inbox (consumer, event_id, handled_at) VALUES ('workflow-worker', '2af207a7-e802-44f7-a170-a616e18eb586', now() - interval '1 hour') ON CONFLICT (consumer, event_id) DO NOTHING;
+INSERT INTO workflow.outbox (id, subject, payload, headers, attempts, next_try_at, last_error, created_at, published_at) VALUES ('5ca938f2-f18d-4949-acf8-3d932aa75064', 'workflow.entity.seeded', '{"company":"pearl-bay-hotel","seq":6}'::jsonb, '{"source":"seed"}'::jsonb, 2, now() - interval '1 hour', 'Initial relay timeout — published after backoff', now() - interval '2 hours', now() - interval '1 hour') ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.inbox (consumer, event_id, handled_at) VALUES ('workflow-worker', '5ca938f2-f18d-4949-acf8-3d932aa75064', now() - interval '1 hour') ON CONFLICT (consumer, event_id) DO NOTHING;
 
 COMMIT;

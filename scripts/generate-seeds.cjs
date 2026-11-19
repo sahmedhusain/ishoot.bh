@@ -831,6 +831,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
   lines.push(buildRichModuleSql({
     company,
     companyJson,
+    themeJson,
     domainHost,
     staffRoster: STAFF_ROSTER,
     customers: CUSTOMERS,
@@ -959,7 +960,7 @@ function writePerServiceSeeds(company, dir, seedSql) {
     if (trimmed.endsWith(";")) {
       const stmt = buf.join("\n");
       buf = [];
-      const m = stmt.match(/^INSERT INTO\s+([a-z_]+)\./i);
+      const m = stmt.match(/^(?:INSERT INTO|UPDATE)\s+([a-z_]+)\./i);
       if (m && buckets[m[1]]) {
         buckets[m[1]].push(stmt);
       }

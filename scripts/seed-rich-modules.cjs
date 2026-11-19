@@ -12,6 +12,7 @@ const { getActivityCatalog } = require("./lib/activity-catalogs.cjs");
 function buildRichModuleSql({
   company,
   companyJson,
+  themeJson = {},
   domainHost,
   staffRoster,
   customers,
@@ -231,7 +232,7 @@ function buildRichModuleSql({
         business_activity: company.activity,
         default_discount_limit_percent: 15,
         quotations_always_need_approval: false,
-        theme: companyJson.company.theme,
+        theme: themeJson || companyJson.company.theme || {},
         setup_completed_at: "2026-01-01T00:00:00Z",
         website_domain: domainHost,
         admin_domain: `admin.${domainHost}`,
@@ -3271,7 +3272,26 @@ function buildRichModuleSql({
     lines.push(
       ins(
         "commerce.coupon",
-        { id: "cpn-welcome10", code: "WELCOME10", discount_type: "percent", discount_value: 10, kind: "percent", value: 10, min_order_amount: 15, is_active: true, created_at: now },
+        {
+          id: "cpn-welcome10",
+          code: "WELCOME10",
+          discount_type: "percent",
+          discount_value: 10,
+          kind: "percent",
+          value: 10,
+          min_order_amount: 15,
+          max_discount_amount: 50,
+          starts_at: ago(60),
+          expires_at: ahead(180),
+          usage_limit: 500,
+          usage_count: 14,
+          min_order: 15,
+          ends_at: ahead(180),
+          max_uses: 500,
+          used_count: 14,
+          is_active: true,
+          created_at: now,
+        },
         "ON CONFLICT (id) DO NOTHING",
       ),
     );
@@ -3383,7 +3403,7 @@ function buildRichModuleSql({
 
   if (hasLogistics) {
     // Delivery Cross-Service Driver & Order Projections + Slots + Route Sheets + Shipments + COD Settlements
-    for (const drvId of ["tariq-saleh", "noor-hamdan", "karim-fawzi", "hassan-al-bahrani", "rashid-darwish"]) {
+    for (const drvId of ["tariq-saleh", "noor-hamdan", "karim-fawzi", "rashid-qahtani", "salman-bader", "jassim-hilal"]) {
       const drv = staffRoster.find((x) => x.id === drvId);
       if (drv) {
         lines.push(
@@ -3683,8 +3703,8 @@ function buildRichModuleSql({
     const rawTitle = ticketTopics[(i - 1) % (ticketTopics.length || 1)] || defaultTicketTitles[(i - 1) % defaultTicketTitles.length];
     const tStatus = i <= 12 ? "closed" : i <= 16 ? "resolved" : i <= 20 ? "in_progress" : "open";
     const tCreatedAgo = Math.max(2, 48 - i * 2);
-    const itAssignee = ["it-eng-001", "it-sup-001", "it-mgr-001"][(i - 1) % 3];
-    const itAssigneeName = itAssignee === "it-eng-001" ? "IT Engineer" : itAssignee === "it-sup-001" ? "IT Support Desk" : "IT Service Manager";
+    const itAssignee = ["it-eng-001", "it-supp-001", "it-manager-001"][(i - 1) % 3];
+    const itAssigneeName = itAssignee === "it-eng-001" ? "IT Systems Engineer" : itAssignee === "it-supp-001" ? "IT Support Specialist" : "IT Operations Manager";
     lines.push(
       ins(
         "itsm.ticket",

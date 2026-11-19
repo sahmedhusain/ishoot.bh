@@ -803,18 +803,24 @@ function getActivityCatalog(company) {
   const act = ACTIVITY_CATALOGS[company.activity] || ACTIVITY_CATALOGS.services;
   const pfx = company.prefix || "CMP";
 
+  const seenSvcCodes = new Set();
   const services = mergeUniqueBy(
     company.services,
     act.services,
     (s) => s.en.toLowerCase(),
     10,
-  ).map((s, idx) => ({
-    ...s,
-    code: s.code || `${pfx}-SVC-${String(idx + 1).padStart(2, "0")}`,
-    unit: s.unit || "engagement",
-    cat: s.cat || "Core",
-    rate: Number(s.rate || 150),
-  }));
+  ).map((s, idx) => {
+    let code = s.code || `${pfx}-SVC-${String(idx + 1).padStart(2, "0")}`;
+    if (seenSvcCodes.has(code)) code = `${pfx}-SVC-${String(idx + 1).padStart(2, "0")}`;
+    seenSvcCodes.add(code);
+    return {
+      ...s,
+      code,
+      unit: s.unit || "engagement",
+      cat: s.cat || "Core",
+      rate: Number(s.rate || 150),
+    };
+  });
 
   const normalizedExtraProducts = (act.products || []).map((p, idx) => ({
     sku: p.sku.includes("-") ? `${pfx}-${p.sku.split("-").slice(1).join("-")}` : `${pfx}-PRD-${idx + 1}`,
@@ -825,18 +831,24 @@ function getActivityCatalog(company) {
     price: Number(p.price || 60),
   }));
 
+  const seenSkus = new Set();
   const products = mergeUniqueBy(
     company.products,
     normalizedExtraProducts,
     (p) => p.en.toLowerCase(),
     12,
-  ).map((p, idx) => ({
-    ...p,
-    sku: p.sku || `${pfx}-SKU-${String(idx + 1).padStart(3, "0")}`,
-    cat: p.cat || "Catalog",
-    cost: Number(p.cost || 20),
-    price: Number(p.price || 55),
-  }));
+  ).map((p, idx) => {
+    let sku = p.sku || `${pfx}-SKU-${String(idx + 1).padStart(3, "0")}`;
+    if (seenSkus.has(sku)) sku = `${pfx}-SKU-${String(idx + 1).padStart(3, "0")}`;
+    seenSkus.add(sku);
+    return {
+      ...p,
+      sku,
+      cat: p.cat || "Catalog",
+      cost: Number(p.cost || 20),
+      price: Number(p.price || 55),
+    };
+  });
 
   const portfolioThemes = [
     ...(act.portfolio || []),
