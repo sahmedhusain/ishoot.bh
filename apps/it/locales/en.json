@@ -47,7 +47,8 @@
     "staffAccounts": "Staff accounts",
     "staffRoles": "Staff roles",
     "apiTester": "API Tester & Runner",
-    "deployments": "Deployments & Environment"
+    "deployments": "Deployments & Environment",
+    "qa": "QA & Diagnostics"
   },
   "navGroups": {
     "workspace": "Service desk",
@@ -124,7 +125,7 @@
   },
   "overview": {
     "title": "Overview",
-    "description": "Open IT work at a glance.",
+    "description": "Operations command center: helpdesk queues, platform health, backups, and QA gates.",
     "open": "Open tickets",
     "breached": "Past their SLA",
     "unassigned": "Not assigned",
@@ -132,7 +133,20 @@
     "byPriority": "Open by priority",
     "latest": "Latest open tickets",
     "viewQueue": "Open the queue",
-    "unavailable": "The ticket service is not reachable right now."
+    "unavailable": "The ticket service is not reachable right now.",
+    "nocHealth": "Platform Services",
+    "healthyServices": "{healthy}/{total} healthy",
+    "nocOutbox": "Outbox Lag",
+    "pendingEvents": "{count} pending CDC",
+    "nocBackups": "Latest Backup",
+    "noBackups": "No backups yet",
+    "nocQa": "QA Log Audit",
+    "noAudit": "Not audited yet",
+    "errorsCount": "{count} errors",
+    "quickActions": "Operations Quick Actions",
+    "openQa": "QA & Diagnostics",
+    "openHealth": "System Health",
+    "openLogs": "Logs & Traces"
   },
   "tickets": {
     "title": "Ticket queue",
@@ -1443,8 +1457,17 @@
     "refreshed": "Database metrics refreshed",
     "maintenanceSuccess": "Maintenance completed: {title}",
     "maintenanceFailed": "Database maintenance command failed",
-    "safetyViolation": "Safety Violation: Only read-only diagnostic queries (SELECT, EXPLAIN) are permitted.",
-    "queryFailed": "Query execution failed"
+    "safetyViolation": "Safety Violation: Only read-only diagnostic queries (SELECT, WITH, EXPLAIN) are permitted.",
+    "queryFailed": "Query execution failed",
+    "presetsTitle": "Diagnostic Query Presets",
+    "presetTableSizes": "Table Sizes & Live Tuples",
+    "presetConnections": "Active Connections (pg_stat_activity)",
+    "presetMigrations": "Schema Goose Versions",
+    "presetPendingOutbox": "Pending System Outbox Events",
+    "exportCsv": "Export CSV",
+    "analyzeTitle": "Analyze Statistics",
+    "analyzeDesc": "Runs ANALYZE across core system tables to refresh PostgreSQL query planner statistics without blocking.",
+    "runAnalyze": "Run ANALYZE…"
   },
   "jobs": {
     "title": "Jobs & Queues",
@@ -1850,5 +1873,72 @@
     "regionCurrency": "Currency",
     "regionMultiplier": "Multiplier",
     "regionEnabled": "Enabled"
+  },
+  "qa": {
+    "title": "QA & Diagnostics Center",
+    "description": "Execute full-stack test suites, inspect codebase manifest coverage, and audit 4-tier platform runtime logs.",
+    "disabledBanner": "QA test execution is disabled in this environment (set IT_QA_RUNNER_ENABLED=true to enable).",
+    "readOnlyBanner": "You have read-only access to QA diagnostics (backups:execute permission required to launch tests).",
+    "refresh": "Refresh Status",
+    "tabs": {
+      "runner": "Test Runner",
+      "manifest": "Coverage Manifest",
+      "audit": "4-Tier Log Audit",
+      "history": "Run History"
+    },
+    "suitesTitle": "Allowlisted Test Suites",
+    "runSuite": "Run Suite",
+    "running": "Running…",
+    "cancel": "Cancel Run",
+    "copyLog": "Copy Terminal",
+    "clearLog": "Clear Output",
+    "terminalTitle": "Live Execution Output",
+    "noOutput": "Select a suite above and click Run Suite to stream live output over SSE.",
+    "status": {
+      "running": "Running",
+      "passed": "Passed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "manifest": {
+      "title": "Codebase Coverage Manifest",
+      "generatedAt": "Last indexed",
+      "refreshBtn": "Refresh Manifest",
+      "searchPlaceholder": "Filter pages, API routes, or components…",
+      "allApps": "All apps",
+      "pages": "Pages",
+      "apiRoutes": "API Routes",
+      "serverActions": "Server Actions",
+      "components": "Components",
+      "exports": "Exports",
+      "backendRoutes": "Go Echo Routes",
+      "backendTables": "jsoncrud Tables",
+      "notFound": "No .local/qa-manifest.json found yet. Click Refresh Manifest to generate."
+    },
+    "audit": {
+      "title": "4-Tier Full-Stack Log Audit",
+      "runAudit": "Run Strict Log Audit",
+      "rotateLogs": "Rotate Logs & Reset Baseline",
+      "rotateTitle": "Rotate logs and reset audit baseline?",
+      "rotateDesc": "This truncates .local/qa-logs/app-*.log, removes stale browser JSONL traces, and resets run-started-at.txt to the current UTC timestamp.",
+      "rotateConfirm": "ROTATE",
+      "browser": "Browser Runtime & HTTP",
+      "nextjs": "Next.js App Server Logs",
+      "docker": "Docker Services & Infra",
+      "sandboxes": "Mailpit & WhatsApp Sandboxes",
+      "passedBadge": "0 ERRORS · PASSED",
+      "failedBadge": "{count} ERRORS DETECTED",
+      "noReport": "No log audit report generated yet. Click Run Strict Log Audit.",
+      "noErrors": "Zero errors recorded across all 4 stack tiers."
+    },
+    "history": {
+      "title": "Recent QA Runs",
+      "empty": "No QA runs recorded yet.",
+      "suite": "Suite",
+      "triggeredBy": "Triggered By",
+      "result": "Result",
+      "duration": "Duration",
+      "viewOutput": "Inspect Log"
+    }
   }
 }

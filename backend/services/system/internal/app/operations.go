@@ -315,3 +315,11 @@ func (s *Service) VerifyBackup(ctx context.Context, id string) error {
 		Details:	details,
 	})
 }
+
+func (s *Service) RunReadOnlyQuery(ctx context.Context, sql string) (postgres.DatabaseQueryResult, error) {
+	return s.store.RunReadOnlyQuery(ctx, sql)
+}
+
+func (s *Service) RunDatabaseMaintenance(ctx context.Context, action string) (postgres.DatabaseMaintenanceResult, error) {
+	return s.store.RunDatabaseMaintenance(ctx, action)
+}

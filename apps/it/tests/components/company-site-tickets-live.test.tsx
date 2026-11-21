@@ -148,6 +148,16 @@ describe("IT Company, Site, Tickets, Shell & Live Presence Components", () => {
             byPriority: { high: 2 },
           }}
           latest={[makeTicket()]}
+          noc={{
+            healthyServices: 16,
+            totalServices: 16,
+            pendingOutbox: 0,
+            latestBackupStatus: "verified",
+            latestBackupAt: "2026-05-01T10:00:00Z",
+            auditPassed: true,
+            auditErrors: 0,
+            qaEnabled: true,
+          }}
         />
         <QueueView
           query={{ open: true }}
@@ -159,6 +169,8 @@ describe("IT Company, Site, Tickets, Shell & Live Presence Components", () => {
     );
 
     expect(screen.getAllByText(/VPN client certificate renewal/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/16\/16/)).toBeInTheDocument();
+    expect(screen.getByText(/0 errors/i)).toBeInTheDocument();
     const commentBox = screen.getByPlaceholderText(enCopy.tickets.replyPlaceholder);
     await user.type(commentBox, "Adding updated diagnostics note");
     fireEvent.submit(commentBox.closest("form")!);

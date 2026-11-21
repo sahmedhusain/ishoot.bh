@@ -6,25 +6,45 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Database,
+  Download,
+  Layers,
+  Play,
   RefreshCw,
   Send,
   Wrench,
-  Play,
-  Layers,
 } from "lucide-react";
-import type { DatabaseStats } from "@platform/api-client";
+import type { DatabaseQueryResult, DatabaseStats } from "@platform/api-client";
+import {
+  runDatabaseMaintenanceAction,
+  runDatabaseQueryAction,
+} from "../app/(desk)/database/actions";
 import { useCopy } from "./CopyProvider";
-import { PageTitle } from "./ticket-ui";
 import { CriticalActionModal } from "./CriticalActionModal";
+import { PageTitle } from "./ticket-ui";
 
-export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
+function escapeCsvCell(val: string | number | boolean | null): string {
+  const raw = val == null ? "" : String(val);
+  const formulaSafe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  if (/[",\n\r]/.test(formulaSafe)) {
+    return `"${formulaSafe.replace(/"/g, '""')}"`;
+  }
+  return formulaSafe;
+}
+
+export function DatabaseView({
+  stats,
+  canExecute = true,
+}: {
+  stats: DatabaseStats | null;
+  canExecute?: boolean;
+}) {
   const { copy, date } = useCopy();
   const dbCopy = copy.database;
   const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const [maintenanceAction, setMaintenanceAction] = React.useState<{
-    type: "vacuum" | "reindex" | "purge_outbox";
+    type: "analyze" | "purge_outbox";
     title: string;
     description: string;
     impact: string[];
@@ -32,24 +52,29 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
   const [maintenanceBusy, setMaintenanceBusy] = React.useState(false);
 
   const [queryInput, setQueryInput] = React.useState(
-    "SELECT schemaname, tablename, n_live_tup, n_dead_tup, last_vacuum FROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 5;"
+    "SELECT schemaname, relname AS table_name, n_live_tup, n_dead_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC LIMIT 10;",
   );
   const [queryRunning, setQueryRunning] = React.useState(false);
-  const [queryResult, setQueryResult] = React.useState<{
-    columns: string[];
-    rows: (string | number | null)[][];
-    durationMs: number;
-  } | null>({
-    columns: ["schemaname", "tablename", "n_live_tup", "n_dead_tup", "last_vacuum"],
-    rows: [
-      ["system", "company", 1, 0, "2026-11-08 18:00:00"],
-      ["identity", "account", 14, 2, "2026-11-08 19:15:00"],
-      ["itsm", "ticket", 48, 5, "2026-11-08 19:30:00"],
-      ["notify", "message", 120, 12, "2026-11-08 20:00:00"],
-      ["audit", "event", 412, 18, "2026-11-08 20:45:00"],
-    ],
-    durationMs: 14,
-  });
+  const [queryResult, setQueryResult] = React.useState<DatabaseQueryResult | null>(null);
+
+  const presets: Array<{ label: string; sql: string }> = [
+    {
+      label: dbCopy.presetTableSizes,
+      sql: "SELECT schemaname, relname AS table_name, n_live_tup, n_dead_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC LIMIT 20;",
+    },
+    {
+      label: dbCopy.presetConnections,
+      sql: "SELECT pid, usename, state, wait_event_type, left(query, 80) AS query FROM pg_stat_activity WHERE datname = current_database() ORDER BY backend_start DESC LIMIT 20;",
+    },
+    {
+      label: dbCopy.presetMigrations,
+      sql: "SELECT version_id, is_applied, tstamp FROM system.goose_db_version ORDER BY id DESC LIMIT 10;",
+    },
+    {
+      label: dbCopy.presetPendingOutbox,
+      sql: "SELECT id, subject, attempts, created_at, published_at FROM system.outbox ORDER BY created_at DESC LIMIT 20;",
+    },
+  ];
 
   const refresh = () => {
     setRefreshing(true);
@@ -61,58 +86,78 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
   };
 
   const handleExecuteMaintenance = async () => {
-    if (!maintenanceAction) return;
+    if (!maintenanceAction || !canExecute) return;
     setMaintenanceBusy(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(formatMessage(dbCopy.maintenanceSuccess, { title: maintenanceAction.title }));
+      const res = await runDatabaseMaintenanceAction(maintenanceAction.type);
+      const label =
+        maintenanceAction.type === "purge_outbox"
+          ? `${maintenanceAction.title} (${res.value.affectedRows} rows)`
+          : maintenanceAction.title;
+      toast.success(formatMessage(dbCopy.maintenanceSuccess, { title: label }));
       setMaintenanceAction(null);
       router.refresh();
-    } catch {
-      toast.error(dbCopy.maintenanceFailed);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : dbCopy.maintenanceFailed);
     } finally {
       setMaintenanceBusy(false);
     }
   };
 
-  const handleRunQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = queryInput.trim();
+  const executeSql = async (sqlText: string) => {
+    const q = sqlText.trim();
     if (!q) return;
 
     const destructive = /\b(drop|delete|truncate|alter|update|insert|grant|revoke)\b/i;
-    if (destructive.test(q)) {
+    if (destructive.test(q) && !/^(select|with|explain)\b/i.test(q.replace(/'.*?'/g, ""))) {
+      toast.error(dbCopy.safetyViolation);
+      return;
+    }
+    if (/^\s*(delete|drop|truncate|alter|update|insert|grant|revoke)\b/i.test(q)) {
       toast.error(dbCopy.safetyViolation);
       return;
     }
 
     setQueryRunning(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setQueryResult({
-        columns: ["schema", "relation", "heap_blks_read", "heap_blks_hit", "cache_hit_pct"],
-        rows: [
-          ["system", "company", 12, 1420, "99.16%"],
-          ["identity", "account", 44, 3810, "98.86%"],
-          ["itsm", "ticket", 82, 5912, "98.63%"],
-        ],
-        durationMs: 18,
-      });
+      const res = await runDatabaseQueryAction(q);
+      setQueryResult(res.result);
       toast.success(dbCopy.refreshed);
-    } catch {
-      toast.error(dbCopy.queryFailed);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : dbCopy.queryFailed);
     } finally {
       setQueryRunning(false);
     }
   };
 
+  const handleRunQuery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeSql(queryInput);
+  };
+
+  const handleExportCsv = () => {
+    if (!queryResult) return;
+    const header = queryResult.columns.map(escapeCsvCell).join(",");
+    const lines = queryResult.rows.map((r) => r.map(escapeCsvCell).join(","));
+    const csv = [header, ...lines].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `db-diagnostic-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const totalPendingOutbox = stats?.outboxLag?.reduce((acc, curr) => acc + curr.pending, 0) ?? 0;
+  const totalRiverQueued = stats?.riverStats?.reduce((acc, curr) => acc + curr.count, 0) ?? 0;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <PageTitle
-          title={dbCopy.title}
-          description={dbCopy.description}
-        />
+        <PageTitle title={dbCopy.title} description={dbCopy.description} />
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -128,29 +173,27 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 font-mono text-xs">
         <div className="it-card p-3 border-l-4 border-l-emerald-600 space-y-1">
-          <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.activeConnections}</div>
-          <div className="text-base font-bold text-ink">14 / 40</div>
-          <div className="text-[10px] text-emerald-700 dark:text-emerald-400">POOL UTILIZATION: 35%</div>
+          <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.migrationsTitle}</div>
+          <div className="text-base font-bold text-ink">{stats?.schemas?.length ?? 0}</div>
+          <div className="text-[10px] text-emerald-700 dark:text-emerald-400">SERVICE SCHEMAS</div>
         </div>
 
         <div className="it-card p-3 border-l-4 border-l-sky-600 space-y-1">
-          <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.cacheHitRatio}</div>
-          <div className="text-base font-bold text-sky-700 dark:text-sky-400">99.4%</div>
-          <div className="text-[10px] text-ink-muted">BUFFER CACHE HEALTHY</div>
+          <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.riverTitle}</div>
+          <div className="text-base font-bold text-sky-700 dark:text-sky-400">{totalRiverQueued}</div>
+          <div className="text-[10px] text-ink-muted">RIVER JOB COUNTERS</div>
         </div>
 
         <div className="it-card p-3 border-l-4 border-l-amber-600 space-y-1">
           <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.outboxLagLabel}</div>
-          <div className="text-base font-bold text-ink">
-            {stats?.outboxLag?.reduce((acc, curr) => acc + curr.pending, 0) ?? 0}
-          </div>
+          <div className="text-base font-bold text-ink">{totalPendingOutbox}</div>
           <div className="text-[10px] text-ink-muted">PENDING CDC EVENTS</div>
         </div>
 
         <div className="it-card p-3 border-l-4 border-l-indigo-600 space-y-1">
           <div className="text-[10px] text-ink-muted uppercase font-bold">{dbCopy.postgresEngine}</div>
-          <div className="text-base font-bold text-ink">v16.3 (REL)</div>
-          <div className="text-[10px] text-indigo-700 dark:text-indigo-400">WAL ARCHIVING: ON</div>
+          <div className="text-base font-bold text-ink">READ-ONLY TX</div>
+          <div className="text-[10px] text-indigo-700 dark:text-indigo-400">TIMEOUT: 5000MS · MAX 200 ROWS</div>
         </div>
       </div>
 
@@ -171,80 +214,51 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           {dbCopy.maintenanceDesc}
         </p>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 font-mono text-xs">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 font-mono text-xs">
           <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface space-y-2">
-            <div className="font-bold text-ink uppercase">{dbCopy.vacuumTitle}</div>
-            <p className="text-[11px] text-ink-muted font-sans">
-              {dbCopy.vacuumDesc}
-            </p>
+            <div className="font-bold text-ink uppercase">{dbCopy.analyzeTitle}</div>
+            <p className="text-[11px] text-ink-muted font-sans">{dbCopy.analyzeDesc}</p>
             <button
               type="button"
+              disabled={!canExecute}
               onClick={() =>
                 setMaintenanceAction({
-                  type: "vacuum",
-                  title: "Trigger VACUUM ANALYZE (All Schemas)",
+                  type: "analyze",
+                  title: "ANALYZE System Tables",
                   description:
-                    "This operation will scan table pages across system, identity, itsm, and audit schemas to reclaim dead rows and update optimizer cost stats.",
+                    "Runs PostgreSQL ANALYZE across system.outbox, system.company, system.backup_record, system.module_setting, and system.integration_setting.",
                   impact: [
-                    "Temporary I/O spike while reading heap pages.",
-                    "No locks taken on normal reads or writes (online operation).",
-                    "Recommended run time: off-peak or maintenance windows.",
+                    "Updates PostgreSQL planner statistics immediately.",
+                    "Non-blocking read/write operation (SHARE UPDATE EXCLUSIVE).",
                   ],
                 })
               }
-              className="it-btn-3d w-full py-1 text-xs font-bold text-sky-800 dark:text-sky-300"
+              className="it-btn-3d w-full py-1 text-xs font-bold text-sky-800 dark:text-sky-300 disabled:opacity-50"
             >
-              {dbCopy.runVacuum}
-            </button>
-          </div>
-
-          <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface space-y-2">
-            <div className="font-bold text-ink uppercase">{dbCopy.reindexTitle}</div>
-            <p className="text-[11px] text-ink-muted font-sans">
-              {dbCopy.reindexDesc}
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                setMaintenanceAction({
-                  type: "reindex",
-                  title: "Reindex System & Identity Indices",
-                  description:
-                    "This operation invokes REINDEX CONCURRENTLY across all primary and foreign key indices.",
-                  impact: [
-                    "Increases CPU usage during index construction.",
-                    "Runs concurrently without blocking client transactions.",
-                    "Cleans up B-Tree fragmentation.",
-                  ],
-                })
-              }
-              className="it-btn-3d w-full py-1 text-xs font-bold text-amber-800 dark:text-amber-300"
-            >
-              {dbCopy.runReindex}
+              {dbCopy.runAnalyze}
             </button>
           </div>
 
           <div className="p-3 border border-slate-300 dark:border-slate-700 bg-surface space-y-2">
             <div className="font-bold text-ink uppercase">{dbCopy.purgeOutboxTitle}</div>
-            <p className="text-[11px] text-ink-muted font-sans">
-              {dbCopy.purgeOutboxDesc}
-            </p>
+            <p className="text-[11px] text-ink-muted font-sans">{dbCopy.purgeOutboxDesc}</p>
             <button
               type="button"
+              disabled={!canExecute}
               onClick={() =>
                 setMaintenanceAction({
                   type: "purge_outbox",
-                  title: "Purge Delivered Outbox Events (>30 Days)",
+                  title: "Purge Delivered Outbox Events (>7 Days)",
                   description:
-                    "Deletes historical events from system.outbox, identity.outbox, and itsm.outbox that have already been acknowledged by worker subscribers.",
+                    "Deletes delivered events from system.outbox where published_at is older than 7 days.",
                   impact: [
-                    "Permanently drops expired CDC outbox events.",
-                    "Frees disk space in pg_wal and heap storage.",
+                    "Permanently drops acknowledged historical CDC outbox rows older than 7 days.",
+                    "Reclaims table heap storage without affecting pending events.",
                     "Cannot be undone once purged.",
                   ],
                 })
               }
-              className="it-btn-3d w-full py-1 text-xs font-bold text-rose-700 dark:text-rose-400"
+              className="it-btn-3d w-full py-1 text-xs font-bold text-rose-700 dark:text-rose-400 disabled:opacity-50"
             >
               {dbCopy.runPurge}
             </button>
@@ -253,7 +267,6 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-
         <div className="it-card p-3 space-y-2 font-mono text-xs">
           <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-1.5">
             <Database className="h-4 w-4 text-sky-600" />
@@ -275,13 +288,9 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
               <tbody>
                 {stats?.schemas?.map((s) => (
                   <tr key={s.schema}>
-                    <td className="font-bold uppercase text-ink">
-                      [{s.schema}]
-                    </td>
+                    <td className="font-bold uppercase text-ink">[{s.schema}]</td>
                     <td className="text-sky-700 dark:text-sky-400 font-bold">{s.version}</td>
-                    <td className="text-ink-muted text-[11px]">
-                      {date(s.appliedAt)}
-                    </td>
+                    <td className="text-ink-muted text-[11px]">{date(s.appliedAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -312,9 +321,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
                   const isClean = lag.pending === 0;
                   return (
                     <tr key={lag.schema}>
-                      <td className="font-bold uppercase text-ink">
-                        [{lag.schema}]
-                      </td>
+                      <td className="font-bold uppercase text-ink">[{lag.schema}]</td>
                       <td className="font-bold">{lag.pending}</td>
                       <td>
                         <span
@@ -337,7 +344,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
       </div>
 
       <div className="it-card p-4 space-y-3 font-mono text-xs">
-        <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
           <div className="flex items-center gap-2">
             <Layers className="h-4 w-4 text-sky-600" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
@@ -347,6 +354,26 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           <span className="border border-emerald-400 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.5 text-[10px] font-bold">
             READ-ONLY SANDBOX
           </span>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{dbCopy.presetsTitle}</div>
+          <div className="flex flex-wrap gap-2">
+            {presets.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                disabled={queryRunning}
+                onClick={() => {
+                  setQueryInput(preset.sql);
+                  void executeSql(preset.sql);
+                }}
+                className="it-btn-3d px-2.5 py-1 text-[11px] font-semibold text-sky-800 dark:text-sky-300"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <form onSubmit={handleRunQuery} className="space-y-3 font-mono text-xs">
@@ -359,9 +386,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           />
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] text-ink-muted">
-              {dbCopy.diagnosticDesc}
-            </span>
+            <span className="text-[11px] text-ink-muted">{dbCopy.diagnosticDesc}</span>
 
             <button
               type="submit"
@@ -376,14 +401,26 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
 
         {queryResult && (
           <div className="space-y-2 pt-2 border-t border-slate-300 dark:border-slate-700 font-mono text-xs">
-            <div className="flex items-center justify-between text-[11px] text-ink-muted">
-              <span>RESULT: {queryResult.rows.length} ROWS</span>
-              <span>EXECUTION TIME: {queryResult.durationMs}ms</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted">
+              <span>
+                RESULT: {queryResult.rows.length} ROWS{queryResult.truncated ? " (TRUNCATED AT 200)" : ""}
+              </span>
+              <div className="flex items-center gap-3">
+                <span>EXECUTION TIME: {queryResult.durationMs}ms</span>
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  className="it-btn-3d px-2.5 py-0.5 text-[11px] inline-flex items-center gap-1 text-sky-700 dark:text-sky-300"
+                >
+                  <Download className="size-3" />
+                  <span>{dbCopy.exportCsv}</span>
+                </button>
+              </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-80 overflow-y-auto">
               <table className="it-table w-full">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr>
                     {queryResult.columns.map((col) => (
                       <th key={col}>{col}</th>
@@ -394,7 +431,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
                   {queryResult.rows.map((row, rIdx) => (
                     <tr key={rIdx}>
                       {row.map((cell, cIdx) => (
-                        <td key={cIdx}>{cell ?? "NULL"}</td>
+                        <td key={cIdx}>{cell == null ? "NULL" : String(cell)}</td>
                       ))}
                     </tr>
                   ))}

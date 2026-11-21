@@ -14,6 +14,7 @@ import { IntegrationsView } from "../../components/IntegrationsView";
 import { JobsView } from "../../components/JobsView";
 import { LogsView } from "../../components/LogsView";
 import { ModulesView } from "../../components/ModulesView";
+import { QaDiagnosticsView } from "../../components/QaDiagnosticsView";
 import {
   NotificationDetail,
   NotificationsView,
@@ -130,7 +131,160 @@ describe("IT Infrastructure, Ops, Logs, Backups & Integrations Components", () =
     await waitFor(() => {
       expect(itActionMocks.retryJobAction).toHaveBeenCalledWith("default");
     });
-    expect(itActionMocks.setMaintenanceAction).toBeDefined();
+
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.database.presetMigrations, "i") }));
+    await waitFor(() => {
+      expect(itActionMocks.runDatabaseQueryAction).toHaveBeenCalled();
+    });
+
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.database.runAnalyze, "i") }));
+    await user.type(screen.getByPlaceholderText(/CONFIRM/i), "CONFIRM");
+    const execBtns = screen.getAllByRole("button", { name: new RegExp(enCopy.database.executeSql, "i") });
+    await user.click(execBtns[execBtns.length - 1]);
+    await waitFor(() => {
+      expect(itActionMocks.runDatabaseMaintenanceAction).toHaveBeenCalledWith("analyze");
+    });
+  });
+
+  it("QaDiagnosticsView streams suite runs over SSE, explores coverage manifest & 4-tier log audit cleanly", async () => {
+    const user = userEvent.setup();
+    const initialRun = {
+      id: "run-1",
+      suiteKey: "vitest:it" as const,
+      suiteLabel: "IT Console Vitest Suite",
+      category: "unit" as const,
+      status: "running" as const,
+      triggeredBy: "it@example.test",
+      startedAt: "2026-05-01T10:00:00Z",
+      finishedAt: null,
+      durationMs: null,
+      exitCode: null,
+      passedCount: null,
+      failedCount: null,
+      lines: [],
+    };
+    const manifest = {
+      generatedAt: "2026-05-01T10:00:00Z",
+      apps: {
+        it: {
+          counts: {
+            pages: 31,
+            apiRoutes: 13,
+            apiHandlers: 14,
+            serverActionFiles: 14,
+            serverActions: 66,
+            componentFiles: 71,
+            clientComponents: 61,
+            componentExports: 106,
+          },
+          items: [
+            { kind: "page" as const, label: "/qa", detail: "apps/it/app/(desk)/qa/page.tsx", meta: "0 calls" },
+          ],
+        },
+      },
+      backend: {
+        servicesCount: 16,
+        routesCount: 620,
+        tablesCount: 257,
+        services: [{ name: "system", routes: 40, tables: 71 }],
+      },
+    };
+    const logAudit = {
+      auditedAt: "2026-05-01T10:00:00Z",
+      since: "2026-05-01T09:50:00Z",
+      browser: { files: 1, requests: 20, errors: [], unexpectedHttpErrors: [] },
+      nextjs: { files: 4, errors: [] },
+      docker: { servicesChecked: 25, errors: [], warnings: [] },
+      sandboxes: { mailpitReachable: true, mailpitMessages: 2, whatsappReachable: true, whatsappMessages: 0 },
+      summary: { totalErrors: 0, passed: true },
+    };
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "/api/qa/status") {
+        return new Response(
+          JSON.stringify({
+            enabled: true,
+            canExecute: true,
+            activeRunId: null,
+            suites: [{ key: "vitest:it", label: "IT Console Vitest Suite", description: "IT tests", category: "unit" }],
+            manifest,
+            logAudit,
+            history: [{ ...initialRun, status: "passed", finishedAt: "2026-05-01T10:00:05Z", durationMs: 5000, exitCode: 0 }],
+          }),
+          { status: 200 },
+        );
+      }
+      if (url === "/api/qa/runs" && init?.method === "POST") {
+        return new Response(JSON.stringify({ run: initialRun }), { status: 201 });
+      }
+      if (url.includes("/api/qa/runs/") && url.endsWith("/cancel")) {
+        return new Response(JSON.stringify({ ok: true, run: { ...initialRun, status: "cancelled" } }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    });
+
+    render(
+      <ItTestProviders>
+        <QaDiagnosticsView
+          enabled
+          canExecute
+          initialActiveRunId={null}
+          suites={[
+            { key: "vitest:it", label: "IT Console Vitest Suite", description: "Run IT tests", category: "unit" },
+            { key: "log:audit", label: "4-Tier Strict Log Audit", description: "Run audit", category: "logs" },
+          ]}
+          initialManifest={manifest}
+          initialLogAudit={logAudit}
+          initialHistory={[]}
+        />
+      </ItTestProviders>,
+    );
+
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.qa.refresh, "i") }));
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith("/api/qa/status", expect.objectContaining({ cache: "no-store" }));
+    });
+
+    const runBtns = screen.getAllByRole("button", { name: new RegExp(enCopy.qa.runSuite, "i") });
+    await user.click(runBtns[0]);
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/qa/runs",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    const esClass = (globalThis as unknown as {
+      EventSource: { instances: Array<{ emitEvent: (type: string, data: unknown) => void }> };
+    }).EventSource;
+    expect(esClass.instances.length).toBeGreaterThanOrEqual(1);
+    esClass.instances[esClass.instances.length - 1].emitEvent("line", { line: "✓ 38 passed (38)" });
+
+    await waitFor(() => {
+      expect(screen.getByText(/✓ 38 passed \(38\)/)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.qa.cancel, "i") }));
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining("/api/qa/runs/run-1/cancel"),
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    esClass.instances[esClass.instances.length - 1].emitEvent("done", {
+      run: { ...initialRun, status: "cancelled", finishedAt: "2026-05-01T10:00:02Z", durationMs: 2000 },
+    });
+
+    await user.click(screen.getByRole("tab", { name: enCopy.qa.tabs.manifest }));
+    expect(screen.getByText("/qa")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: enCopy.qa.tabs.audit }));
+    expect(screen.getByText(enCopy.qa.audit.noErrors)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: enCopy.qa.tabs.history }));
+    expect(screen.getAllByText(/IT Console Vitest Suite/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("LogsView fetches GET /api/logs?... and manages debug toggles via setDebugToggleAction / removeDebugToggleAction", async () => {

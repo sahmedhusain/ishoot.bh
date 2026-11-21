@@ -32,6 +32,7 @@ import {
   Server,
   Plus,
   ExternalLink,
+  FlaskConical,
 } from "lucide-react";
 import { itAllowed } from "@platform/contracts";
 import { signOutAction } from "../app/actions";
@@ -87,6 +88,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: "/backups", icon: Archive, label: "backups", resource: "backups" },
       { href: "/deployments", icon: Server, label: "deployments", resource: "system_health" },
       { href: "/api-tester", icon: PlaySquare, label: "apiTester", resource: "system_health" },
+      { href: "/qa", icon: FlaskConical, label: "qa", resource: "system_health" },
       { href: "/api-keys", icon: Key, label: "apiKeys", resource: "api_keys" },
       { href: "/notifications", icon: Bell, label: "notifications", resource: "notifications" },
     ],
@@ -180,6 +182,9 @@ export function Shell({
       key: "/api-keys",
       keys: "/api-keys",
       api: "/api-tester",
+      qa: "/qa",
+      test: "/qa",
+      tests: "/qa",
       settings: "/settings",
       setup: "/setup",
     };

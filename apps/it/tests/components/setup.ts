@@ -159,6 +159,20 @@ export const itActionMocks = {
   forgotPasswordAction: vi.fn(async () => ({ ok: true })),
   resetPasswordAction: vi.fn(async () => ({ ok: true })),
   setMaintenanceAction: vi.fn(async () => ({ ok: true, active: true })),
+  runDatabaseQueryAction: vi.fn(async () => ({
+    ok: true as const,
+    result: {
+      columns: ["ok"],
+      rows: [[1]],
+      rowCount: 1,
+      truncated: false,
+      durationMs: 4,
+    },
+  })),
+  runDatabaseMaintenanceAction: vi.fn(async (action: "analyze" | "purge_outbox") => ({
+    ok: true as const,
+    value: { action, affectedRows: action === "purge_outbox" ? 2 : 0, durationMs: 12 },
+  })),
   inboxAction: vi.fn(async () => ({ ok: true })),
   savePreferencesAction: vi.fn(async () => ({ ok: true })),
   muteRecordAction: vi.fn(async () => ({ ok: true })),
@@ -224,6 +238,8 @@ vi.mock("../../app/(desk)/staff-roles/actions", () => ({
 }));
 vi.mock("../../app/(desk)/database/actions", () => ({
   setMaintenanceAction: itActionMocks.setMaintenanceAction,
+  runDatabaseQueryAction: itActionMocks.runDatabaseQueryAction,
+  runDatabaseMaintenanceAction: itActionMocks.runDatabaseMaintenanceAction,
 }));
 vi.mock("../../app/actions", () => ({
   signInAction: itActionMocks.signInAction,
@@ -291,6 +307,7 @@ if (typeof window !== "undefined") {
     onopen: ((ev: Event) => void) | null = null;
     onmessage: ((ev: MessageEvent) => void) | null = null;
     onerror: ((ev: Event) => void) | null = null;
+    private listeners = new Map<string, Set<(ev: Event) => void>>();
     constructor(url: string) {
       this.url = url;
       EventSourceMock.instances.push(this);
@@ -299,8 +316,19 @@ if (typeof window !== "undefined") {
     emit(data: unknown) {
       this.onmessage?.(new MessageEvent("message", { data: JSON.stringify(data) }));
     }
-    addEventListener = vi.fn();
-    removeEventListener = vi.fn();
+    emitEvent(type: string, data: unknown) {
+      const msg = new MessageEvent(type, { data: JSON.stringify(data) });
+      for (const fn of this.listeners.get(type) ?? []) {
+        fn(msg);
+      }
+    }
+    addEventListener = vi.fn((type: string, fn: (ev: Event) => void) => {
+      if (!this.listeners.has(type)) this.listeners.set(type, new Set());
+      this.listeners.get(type)!.add(fn);
+    });
+    removeEventListener = vi.fn((type: string, fn: (ev: Event) => void) => {
+      this.listeners.get(type)?.delete(fn);
+    });
     close = vi.fn();
   }
   vi.stubGlobal("EventSource", EventSourceMock);

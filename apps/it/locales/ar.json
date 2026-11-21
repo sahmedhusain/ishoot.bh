@@ -47,7 +47,8 @@
     "staffAccounts": "حسابات الموظفين",
     "staffRoles": "أدوار الموظفين",
     "apiTester": "فاحص واجهات البرمجة API",
-    "deployments": "النشر وبيئة النظام"
+    "deployments": "النشر وبيئة النظام",
+    "qa": "الجودة والاختبارات QA"
   },
   "navGroups": {
     "workspace": "مكتب الخدمة",
@@ -124,7 +125,7 @@
   },
   "overview": {
     "title": "نظرة عامة",
-    "description": "أعمال تقنية المعلومات المفتوحة في لمحة.",
+    "description": "مركز قيادة العمليات: قوائم التذاكر، صحة الخدمات، النسخ الاحتياطي، وفحوصات الجودة.",
     "open": "التذاكر المفتوحة",
     "breached": "تجاوزت مستوى الخدمة",
     "unassigned": "غير مُسندة",
@@ -132,7 +133,20 @@
     "byPriority": "المفتوحة حسب الأولوية",
     "latest": "أحدث التذاكر المفتوحة",
     "viewQueue": "فتح القائمة",
-    "unavailable": "تعذر الوصول إلى خدمة التذاكر حالياً."
+    "unavailable": "تعذر الوصول إلى خدمة التذاكر حالياً.",
+    "nocHealth": "خدمات المنصة",
+    "healthyServices": "{healthy}/{total} تعمل بكفاءة",
+    "nocOutbox": "تأخر الصادر",
+    "pendingEvents": "{count} أحداث معلقة",
+    "nocBackups": "آخر نسخة احتياطية",
+    "noBackups": "لا توجد نسخ احتياطية",
+    "nocQa": "تدقيق سجلات الجودة",
+    "noAudit": "لم يتم التدقيق بعد",
+    "errorsCount": "{count} أخطاء",
+    "quickActions": "إجراءات العمليات السريعة",
+    "openQa": "الجودة والاختبارات QA",
+    "openHealth": "صحة النظام",
+    "openLogs": "السجلات والتتبعات"
   },
   "tickets": {
     "title": "قائمة التذاكر",
@@ -1443,8 +1457,17 @@
     "refreshed": "تم تحديث مقاييس قاعدة البيانات",
     "maintenanceSuccess": "اكتملت الصيانة بنجاح: {title}",
     "maintenanceFailed": "فشل تنفيذ أمر صيانة قاعدة البيانات",
-    "safetyViolation": "انتهاك أمان: يُسمح فقط بالاستعلامات التشخيصية للقراءة فقط (SELECT, EXPLAIN).",
-    "queryFailed": "فشل تنفيذ الاستعلام"
+    "safetyViolation": "انتهاك أمان: يُسمح فقط بالاستعلامات التشخيصية للقراءة فقط (SELECT, WITH, EXPLAIN).",
+    "queryFailed": "فشل تنفيذ الاستعلام",
+    "presetsTitle": "استعلامات تشخيصية جاهزة",
+    "presetTableSizes": "أحجام الجداول وعدد الصفوف",
+    "presetConnections": "الاتصالات النشطة (pg_stat_activity)",
+    "presetMigrations": "إصدارات ترحيلات المخططات",
+    "presetPendingOutbox": "أحداث صندوق الصادر المعلقة",
+    "exportCsv": "تصدير CSV",
+    "analyzeTitle": "تحليل الإحصائيات (ANALYZE)",
+    "analyzeDesc": "تشغيل ANALYZE على الجداول الأساسية لتحديث إحصائيات مخطط استعلامات PostgreSQL دون قفل الجداول.",
+    "runAnalyze": "تشغيل ANALYZE…"
   },
   "jobs": {
     "title": "المهام وقوائم الانتظار",
@@ -1850,5 +1873,72 @@
     "regionCurrency": "العملة",
     "regionMultiplier": "المعامل",
     "regionEnabled": "مفعّل"
+  },
+  "qa": {
+    "title": "مركز الجودة والاختبارات QA",
+    "description": "تشغيل حزم الاختبارات الآلية، استعراض تغطية الكود، وتدقيق السجلات عبر الطبقات الأربع للمنصة.",
+    "disabledBanner": "تشغيل اختبارات الجودة معطل في هذه البيئة (اضبط IT_QA_RUNNER_ENABLED=true للتفعيل).",
+    "readOnlyBanner": "لديك صلاحية قراءة فقط (يتطلب صلاحية backups:execute لتشغيل الاختبارات).",
+    "refresh": "تحديث الحالة",
+    "tabs": {
+      "runner": "مشغّل الاختبارات",
+      "manifest": "مصفوفة التغطية",
+      "audit": "تدقيق السجلات (4 طبقات)",
+      "history": "سجل التشغيلات"
+    },
+    "suitesTitle": "حزم الاختبار المعتمدة",
+    "runSuite": "تشغيل الحزمة",
+    "running": "جارٍ التشغيل…",
+    "cancel": "إيقاف التشغيل",
+    "copyLog": "نسخ المخرجات",
+    "clearLog": "مسح الطرفية",
+    "terminalTitle": "المخرجات الحية للتشغيل",
+    "noOutput": "اختر حزمة واضغط تشغيل لمتابعة البث المباشر عبر SSE.",
+    "status": {
+      "running": "قيد التشغيل",
+      "passed": "ناجح",
+      "failed": "فاشل",
+      "cancelled": "ملغى"
+    },
+    "manifest": {
+      "title": "مصفوفة تغطية الكود والمكونات",
+      "generatedAt": "آخر فهرسة",
+      "refreshBtn": "تحديث المصفوفة",
+      "searchPlaceholder": "تصفية الصفحات، واجهات API، أو المكونات…",
+      "allApps": "كل التطبيقات",
+      "pages": "الصفحات",
+      "apiRoutes": "مسارات API",
+      "serverActions": "إجراءات الخادم",
+      "components": "المكونات",
+      "exports": "التصديرات",
+      "backendRoutes": "مسارات Go Echo",
+      "backendTables": "جداول jsoncrud",
+      "notFound": "لم يتم العثور على .local/qa-manifest.json بعد. اضغط تحديث المصفوفة."
+    },
+    "audit": {
+      "title": "تدقيق السجلات الشامل (4 طبقات)",
+      "runAudit": "تشغيل التدقيق الصارم",
+      "rotateLogs": "تصفير السجلات وتحديث خط الأساس",
+      "rotateTitle": "هل تريد تصفير السجلات وتحديث خط الأساس؟",
+      "rotateDesc": "سيتم تفريغ ملفات .local/qa-logs/app-*.log وحذف تتبعات المتصفح القديمة وتحديث run-started-at.txt إلى الوقت الحالي UTC.",
+      "rotateConfirm": "ROTATE",
+      "browser": "المتصفح وشبكة HTTP",
+      "nextjs": "سجلات خوادم Next.js",
+      "docker": "حاويات Docker والخدمات",
+      "sandboxes": "صناديق Mailpit و WhatsApp",
+      "passedBadge": "0 أخطاء · ناجح",
+      "failedBadge": "تم رصد {count} أخطاء",
+      "noReport": "لم يتم إنشاء تقرير تدقيق بعد. اضغط تشغيل التدقيق الصارم.",
+      "noErrors": "لا توجد أخطاء مسجلة عبر جميع الطبقات الأربع."
+    },
+    "history": {
+      "title": "آخر تشغيلات الاختبارات",
+      "empty": "لا توجد تشغيلات مسجلة بعد.",
+      "suite": "الحزمة",
+      "triggeredBy": "المشغّل",
+      "result": "النتيجة",
+      "duration": "المدة",
+      "viewOutput": "عرض السجل"
+    }
   }
 }

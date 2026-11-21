@@ -107,7 +107,19 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
     await gotoStrict(page, "/deployments", observer);
     await expect(page.getByRole("heading", { name: t.deployments.title, exact: true })).toBeVisible();
 
-    // 9. Assert full 30-route coverage against .local/qa-manifest.json
+    // 9. /qa: verify Test Runner, Coverage Manifest, 4-Tier Log Audit & Run History tabs + /api/qa/status
+    await gotoStrict(page, "/qa", observer);
+    await expect(page.getByRole("heading", { name: t.qa.title, exact: true })).toBeVisible();
+    await page.getByRole("button", { name: t.qa.refresh }).click();
+    await page.getByRole("tab", { name: t.qa.tabs.manifest }).click();
+    await expect(page.getByText(t.qa.manifest.title)).toBeVisible();
+    await page.getByRole("tab", { name: t.qa.tabs.audit }).click();
+    await expect(page.getByText(t.qa.audit.title)).toBeVisible();
+    await page.getByRole("tab", { name: t.qa.tabs.history }).click();
+    await expect(page.getByText(t.qa.history.title)).toBeVisible();
+    await page.getByRole("tab", { name: t.qa.tabs.runner }).click();
+
+    // 10. Assert full 31-route coverage against .local/qa-manifest.json
     const manifest = loadManifest();
     const itManifestRoutes: string[] = (manifest.apps.it.pages as Array<{ route?: string } | string>).map((entry) =>
       typeof entry === "string" ? entry : entry.route || "",
@@ -128,6 +140,7 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
       "/modules",
       "/notifications",
       "/notifications/[id]",
+      "/qa",
       "/sessions",
       "/settings",
       "/setup",
@@ -144,7 +157,7 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
       "/login/forgot",
       "/login/reset",
     ]);
-    expect(itManifestRoutes.length).toBe(30);
+    expect(itManifestRoutes.length).toBe(31);
     for (const r of itManifestRoutes) {
       expect(coveredRoutes.has(r), `Missing IT route in exhaustive suite: ${r}`).toBe(true);
     }

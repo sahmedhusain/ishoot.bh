@@ -1,13 +1,17 @@
 package httpapi
 import (
+	"errors"
 	"net/http"
 	"time"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/httpx"
+	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/system/internal/app"
+	"platform.local/backend/services/system/internal/postgres"
 )
 func (h *handler) operationsRoutes(e *echo.Echo) {
 	desk := e.Group("/v1/system/desk", authn.Require(h.opts.Verifier, authn.RealmIT))
@@ -78,6 +82,42 @@ func (h *handler) operationsRoutes(e *echo.Echo) {
 		}
 		return c.JSON(http.StatusOK, stats)
 	}, authz.Require(catalog.ITAccess, "database", "read"))
+	desk.POST("/database/query", func(c echo.Context) error {
+		var in struct {
+			SQL string `json:"sql" validate:"required,max=8000"`
+		}
+		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+			return err
+		}
+		res, err := h.svc.RunReadOnlyQuery(c.Request().Context(), in.SQL)
+		if err != nil {
+			if errors.Is(err, postgres.ErrSQLValidation) {
+				return problem.BadRequest(err.Error())
+			}
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				return problem.BadRequest(pgErr.Message)
+			}
+			return err
+		}
+		return c.JSON(http.StatusOK, res)
+	}, authz.Require(catalog.ITAccess, "database", "read"))
+	desk.POST("/database/maintenance", func(c echo.Context) error {
+		var in struct {
+			Action string `json:"action" validate:"required,oneof=analyze purge_outbox"`
+		}
+		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+			return err
+		}
+		res, err := h.svc.RunDatabaseMaintenance(c.Request().Context(), in.Action)
+		if err != nil {
+			if errors.Is(err, postgres.ErrSQLValidation) {
+				return problem.BadRequest(err.Error())
+			}
+			return err
+		}
+		return c.JSON(http.StatusOK, res)
+	}, authz.Require(catalog.ITAccess, "backups", "execute"))
 	desk.GET("/backups", func(c echo.Context) error {
 		rows, err := h.svc.ListBackups(c.Request().Context())
 		if err != nil {

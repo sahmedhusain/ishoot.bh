@@ -42,6 +42,20 @@ export type DatabaseStats = {
   }>;
 };
 
+export type DatabaseQueryResult = {
+  columns: string[];
+  rows: (string | number | boolean | null)[][];
+  rowCount: number;
+  truncated: boolean;
+  durationMs: number;
+};
+
+export type DatabaseMaintenanceResult = {
+  action: "analyze" | "purge_outbox";
+  affectedRows: number;
+  durationMs: number;
+};
+
 export type BackupRecord = {
   id: string;
   kind: "database" | "bucket" | "full";
@@ -112,6 +126,26 @@ export const removeDebugToggleForIT = (token: string, service: string) =>
 
 export const getDatabaseStatsForIT = (token: string): Promise<DatabaseStats> =>
   unwrap(userClient<any>(token).GET("/v1/system/desk/database", {}));
+
+export const runDatabaseQueryForIT = (
+  token: string,
+  sql: string
+): Promise<DatabaseQueryResult> =>
+  unwrap(
+    userClient<any>(token).POST("/v1/system/desk/database/query", {
+      body: { sql },
+    })
+  );
+
+export const runDatabaseMaintenanceForIT = (
+  token: string,
+  action: "analyze" | "purge_outbox"
+): Promise<DatabaseMaintenanceResult> =>
+  unwrap(
+    userClient<any>(token).POST("/v1/system/desk/database/maintenance", {
+      body: { action },
+    })
+  );
 
 export const listBackupsForIT = async (token: string): Promise<BackupRecord[]> => {
   const res = await unwrap(

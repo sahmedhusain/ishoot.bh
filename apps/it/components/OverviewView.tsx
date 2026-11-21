@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { formatMessage } from "@platform/locales";
 import { TICKET_OPEN_STATUSES, TICKET_PRIORITIES } from "@platform/contracts";
 import type { Ticket } from "@platform/api-client";
-import { ArrowRight, Inbox, Clock, AlertTriangle, UserX } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Archive,
+  ArrowRight,
+  Database,
+  FlaskConical,
+  Inbox,
+  Terminal,
+  UserX,
+} from "lucide-react";
 import { useCopy } from "./CopyProvider";
 import { OverdueBadge, PageTitle, StatusBadge } from "./ticket-ui";
 
@@ -15,12 +26,25 @@ type Stats = {
   byPriority: Record<string, number>;
 };
 
+export interface OverviewNocSummary {
+  healthyServices: number;
+  totalServices: number;
+  pendingOutbox: number;
+  latestBackupStatus: string | null;
+  latestBackupAt: string | null;
+  auditPassed: boolean | null;
+  auditErrors: number | null;
+  qaEnabled: boolean;
+}
+
 export function OverviewView({
   stats,
   latest,
+  noc = null,
 }: {
   stats: Stats | null;
   latest: Ticket[] | null;
+  noc?: OverviewNocSummary | null;
 }) {
   const { copy, priority, status, number, date } = useCopy();
   const o = copy.overview;
@@ -29,10 +53,7 @@ export function OverviewView({
     return (
       <div className="space-y-4">
         <PageTitle title={o.title} description={o.description} />
-        <div
-          role="alert"
-          className="it-card p-8 text-center text-xs text-slate-500"
-        >
+        <div role="alert" className="it-card p-8 text-center text-xs text-slate-500">
           {o.unavailable}
         </div>
       </div>
@@ -47,7 +68,6 @@ export function OverviewView({
       icon: Inbox,
       color: "text-sky-600 dark:text-sky-400",
       bgColor: "bg-sky-50 dark:bg-sky-950/40",
-      borderColor: "border-sky-100 dark:border-sky-900/40",
     },
     {
       label: o.breached,
@@ -56,7 +76,6 @@ export function OverviewView({
       icon: AlertTriangle,
       color: "text-rose-600 dark:text-rose-400",
       bgColor: "bg-rose-50 dark:bg-rose-950/40",
-      borderColor: "border-rose-100 dark:border-rose-900/40",
     },
     {
       label: o.unassigned,
@@ -65,7 +84,6 @@ export function OverviewView({
       icon: UserX,
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-50 dark:bg-amber-950/40",
-      borderColor: "border-amber-100 dark:border-amber-900/40",
     },
   ];
 
@@ -75,15 +93,117 @@ export function OverviewView({
         title={o.title}
         description={o.description}
         actions={
-          <Link
-            href="/tickets?open=true"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#0070d2] hover:bg-[#005fb2] text-white text-xs font-semibold shadow-sm transition-colors"
-          >
-            <span>{o.viewQueue}</span>
-            <ArrowRight className="size-3.5" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/qa"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
+            >
+              <FlaskConical className="size-3.5 text-emerald-600" />
+              <span>{o.openQa}</span>
+            </Link>
+            <Link
+              href="/tickets?open=true"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#0070d2] hover:bg-[#005fb2] text-white text-xs font-semibold shadow-sm transition-colors"
+            >
+              <span>{o.viewQueue}</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
         }
       />
+
+      {noc && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+          <Link
+            href="/system-health"
+            className="it-card p-3 border-l-4 border-l-emerald-500 hover:border-slate-400 transition block space-y-1"
+          >
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-muted">
+              <span>{o.nocHealth}</span>
+              <Activity className="size-3.5 text-emerald-600" />
+            </div>
+            <div className="text-base font-bold text-ink">
+              {formatMessage(o.healthyServices, {
+                healthy: noc.healthyServices,
+                total: noc.totalServices,
+              })}
+            </div>
+          </Link>
+
+          <Link
+            href="/database"
+            className="it-card p-3 border-l-4 border-l-sky-500 hover:border-slate-400 transition block space-y-1"
+          >
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-muted">
+              <span>{o.nocOutbox}</span>
+              <Database className="size-3.5 text-sky-600" />
+            </div>
+            <div className="text-base font-bold text-ink">
+              {formatMessage(o.pendingEvents, { count: noc.pendingOutbox })}
+            </div>
+          </Link>
+
+          <Link
+            href="/backups"
+            className="it-card p-3 border-l-4 border-l-indigo-500 hover:border-slate-400 transition block space-y-1"
+          >
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-muted">
+              <span>{o.nocBackups}</span>
+              <Archive className="size-3.5 text-indigo-600" />
+            </div>
+            <div className="text-base font-bold text-ink uppercase">
+              {noc.latestBackupStatus ?? o.noBackups}
+            </div>
+            {noc.latestBackupAt && (
+              <div className="text-[10px] text-ink-muted">{date(noc.latestBackupAt)}</div>
+            )}
+          </Link>
+
+          <Link
+            href="/qa"
+            className={`it-card p-3 border-l-4 ${
+              noc.auditPassed === false ? "border-l-rose-500" : "border-l-emerald-500"
+            } hover:border-slate-400 transition block space-y-1`}
+          >
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-muted">
+              <span>{o.nocQa}</span>
+              <FlaskConical className="size-3.5 text-emerald-600" />
+            </div>
+            <div className="text-base font-bold text-ink">
+              {noc.auditErrors == null
+                ? o.noAudit
+                : formatMessage(o.errorsCount, { count: noc.auditErrors })}
+            </div>
+          </Link>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-mono text-[10px] uppercase font-bold text-ink-muted">
+          {o.quickActions}:
+        </span>
+        <Link
+          href="/system-health"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium"
+        >
+          <Activity className="size-3 text-emerald-600" />
+          <span>{o.openHealth}</span>
+        </Link>
+        <Link
+          href="/logs"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium"
+        >
+          <Terminal className="size-3 text-sky-600" />
+          <span>{o.openLogs}</span>
+        </Link>
+        <Link
+          href="/qa"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium"
+        >
+          <FlaskConical className="size-3 text-indigo-600" />
+          <span>{o.openQa}</span>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {kpis.map((kpi) => {
@@ -111,7 +231,6 @@ export function OverviewView({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         <div className="space-y-6">
           <Breakdown
             title={o.byPriority}
@@ -143,9 +262,7 @@ export function OverviewView({
           </div>
 
           {!latest?.length ? (
-            <div className="p-12 text-center text-xs text-slate-500">
-              {copy.tickets.empty}
-            </div>
+            <div className="p-12 text-center text-xs text-slate-500">{copy.tickets.empty}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
@@ -164,18 +281,12 @@ export function OverviewView({
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <td className="py-3 px-4 font-mono font-medium text-slate-500">
-                        <Link
-                          href={`/tickets/${t.id}`}
-                          className="hover:text-sky-600 font-semibold"
-                        >
+                        <Link href={`/tickets/${t.id}`} className="hover:text-sky-600 font-semibold">
                           {number(t.number)}
                         </Link>
                       </td>
                       <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100 max-w-[300px] truncate">
-                        <Link
-                          href={`/tickets/${t.id}`}
-                          className="hover:underline"
-                        >
+                        <Link href={`/tickets/${t.id}`} className="hover:underline">
                           {t.title}
                         </Link>
                       </td>
@@ -227,18 +338,13 @@ function Breakdown({
           return (
             <li key={key} className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-300 font-medium">
-                  {label(key)}
-                </span>
+                <span className="text-slate-600 dark:text-slate-300 font-medium">{label(key)}</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100">
                   {n} <span className="text-slate-400 font-normal">({pct}%)</span>
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[#0070d2]"
-                  style={{ width: `${pct}%` }}
-                />
+                <div className="h-full rounded-full bg-[#0070d2]" style={{ width: `${pct}%` }} />
               </div>
             </li>
           );
