@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { formatMessage } from "@platform/locales";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -15,11 +16,8 @@ import {
   Search,
   Filter,
   Download,
-  ShieldAlert,
-  Info,
-  AlertTriangle,
-  XCircle,
   FileCode,
+  Radio,
   X,
 } from "lucide-react";
 import { Button, Card, Input } from "@platform/ui";
@@ -64,7 +62,47 @@ export function LogsView({
   const [sortDir, setSortDir] = React.useState<SortDirection>("desc");
 
   const [autoRefreshInterval, setAutoRefreshInterval] = React.useState<number>(0);
+  const [liveTail, setLiveTail] = React.useState(false);
   const [inspectLog, setInspectLog] = React.useState<LogEntry | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const initialSearch = sp.get("search") || sp.get("traceId");
+    if (initialSearch) setSearchQuery(initialSearch);
+  }, []);
+
+  React.useEffect(() => {
+    if (!liveTail || typeof EventSource === "undefined") return;
+    const es = new EventSource("/api/logs/stream");
+    const onLog = (ev: MessageEvent) => {
+      try {
+        const entry = JSON.parse(ev.data) as LogEntry;
+        if (selectedLevel !== "ALL" && entry.level !== selectedLevel) return;
+        if (selectedService !== "all" && entry.service !== selectedService) return;
+        if (selectedUser.trim() && !entry.user.toLowerCase().includes(selectedUser.trim().toLowerCase())) return;
+        if (searchQuery.trim()) {
+          const q = searchQuery.trim().toLowerCase();
+          const hit =
+            entry.message.toLowerCase().includes(q) ||
+            entry.action.toLowerCase().includes(q) ||
+            entry.user.toLowerCase().includes(q) ||
+            entry.service.toLowerCase().includes(q) ||
+            Boolean(entry.traceId && entry.traceId.toLowerCase().includes(q));
+          if (!hit) return;
+        }
+        setLogs((prev) => [entry, ...prev.filter((p) => p.id !== entry.id)].slice(0, 250));
+        setBufferSize((prev) => prev + 1);
+      } catch {
+        // ignore malformed frame
+      }
+    };
+    es.addEventListener("log", onLog as EventListener);
+    return () => {
+      es.removeEventListener("log", onLog as EventListener);
+      es.close();
+    };
+  }, [liveTail, selectedLevel, selectedService, selectedUser, searchQuery]);
 
   const [toggleService, setToggleService] = React.useState("identity");
   const [toggleLevel, setToggleLevel] = React.useState("debug");
@@ -118,17 +156,35 @@ export function LogsView({
     toast.success(l.exportedJson);
   };
 
+  const exportNdjson = () => {
+    const ndjson = logs.map((item) => JSON.stringify(item)).join("\n");
+    const blob = new Blob([ndjson], { type: "application/x-ndjson" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `it_system_logs_${timeRange}_${new Date().toISOString().substring(0, 19)}.ndjson`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(l.exportedNdjson);
+  };
+
+  const csvCell = (val: unknown) => {
+    const s = val === null || val === undefined ? "" : String(val);
+    const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+
   const exportCsv = () => {
     const headers = ["Timestamp", "Level", "Service", "User", "Action", "DurationMs", "TraceId", "Message"];
     const rows = logs.map((item) => [
-      item.timestamp,
-      item.level,
-      item.service,
-      `"${item.user}"`,
-      `"${item.action}"`,
+      csvCell(item.timestamp),
+      csvCell(item.level),
+      csvCell(item.service),
+      csvCell(item.user),
+      csvCell(item.action),
       item.durationMs ?? 0,
-      `"${item.traceId ?? ""}"`,
-      `"${(item.message || "").replace(/"/g, '""')}"`,
+      csvCell(item.traceId ?? ""),
+      csvCell(item.message || ""),
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -196,6 +252,19 @@ export function LogsView({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            onClick={() => setLiveTail((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-semibold transition-colors shadow-sm ${
+              liveTail
+                ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            <Radio className={`h-3.5 w-3.5 ${liveTail ? "animate-pulse text-emerald-600" : ""}`} />
+            <span>{liveTail ? l.liveTailStop : l.liveTailStart}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={fetchLogs}
             disabled={loading}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
@@ -211,6 +280,15 @@ export function LogsView({
           >
             <Download className="h-3.5 w-3.5" />
             <span>{l.exportJson}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={exportNdjson}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shadow-sm"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>{l.exportNdjson}</span>
           </button>
 
           <button
@@ -583,25 +661,49 @@ export function LogsView({
               </div>
             </div>
 
-            <div className="border-t border-outline-variant bg-surface p-3 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(inspectLog, null, 2));
-                  toast.success("Log copied to clipboard");
-                }}
-              >
-                Copy JSON
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => setInspectLog(null)}
-              >
-                Close
-              </Button>
+            <div className="border-t border-outline-variant bg-surface p-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {inspectLog.user && (
+                  <Link
+                    href={`/audit?actor=${encodeURIComponent(inspectLog.user)}`}
+                    className="it-btn-3d px-2.5 py-1 text-xs font-mono"
+                  >
+                    {l.correlateAudit}
+                  </Link>
+                )}
+                {inspectLog.traceId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery(inspectLog.traceId || "");
+                      setInspectLog(null);
+                    }}
+                    className="it-btn-3d px-2.5 py-1 text-xs font-mono"
+                  >
+                    {l.filterByTrace}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(inspectLog, null, 2));
+                    toast.success("Log copied to clipboard");
+                  }}
+                >
+                  Copy JSON
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setInspectLog(null)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
           </div>
         </div>

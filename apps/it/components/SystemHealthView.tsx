@@ -2,12 +2,20 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, AlertTriangle, RefreshCw, Search, Filter, X } from "lucide-react";
+import { CheckCircle2, AlertTriangle, RefreshCw, Search, Filter, X, Server } from "lucide-react";
+import { formatMessage } from "@platform/locales";
 import type { ServiceHealth } from "@platform/api-client";
+import type { PlatformProbeItem } from "../lib/infra-probes";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
-export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
+export function SystemHealthView({
+  items,
+  topology = [],
+}: {
+  items: ServiceHealth[];
+  topology?: PlatformProbeItem[];
+}) {
   const { copy, date } = useCopy();
   const h = copy.systemHealth;
   const router = useRouter();
@@ -15,12 +23,32 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedStatus, setSelectedStatus] = React.useState("");
+  const [autoIntervalSec, setAutoIntervalSec] = React.useState<number>(0);
+  const [countdown, setCountdown] = React.useState<number>(0);
 
-  const refresh = () => {
+  const refresh = React.useCallback(() => {
     setRefreshing(true);
     router.refresh();
     setTimeout(() => setRefreshing(false), 500);
-  };
+  }, [router]);
+
+  React.useEffect(() => {
+    if (autoIntervalSec <= 0) {
+      setCountdown(0);
+      return;
+    }
+    setCountdown(autoIntervalSec);
+    const tick = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          refresh();
+          return autoIntervalSec;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [autoIntervalSec, refresh]);
 
   const allHealthy = items.length > 0 && items.every((i) => i.status === "healthy");
 
@@ -39,11 +67,51 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
     });
   }, [items, searchQuery, selectedStatus]);
 
+  const filteredTopology = React.useMemo(() => {
+    return topology.filter((probe) => {
+      if (
+        searchQuery.trim() &&
+        !probe.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !probe.category.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+      if (selectedStatus === "healthy" && probe.status !== "healthy") return false;
+      if (selectedStatus === "degraded" && probe.status === "healthy") return false;
+      return true;
+    });
+  }, [topology, searchQuery, selectedStatus]);
+
+  const categoryLabel = (category: PlatformProbeItem["category"]) => {
+    if (category === "app") return h.categoryApp;
+    if (category === "infra") return h.categoryInfra;
+    return h.categorySandbox;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={h.title} description={h.description} />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          <label className="flex items-center gap-1.5">
+            <span className="text-ink-muted font-bold">{h.autoRefresh}:</span>
+            <select
+              aria-label={h.autoRefresh}
+              value={autoIntervalSec}
+              onChange={(e) => setAutoIntervalSec(Number(e.target.value))}
+              className="it-field-sunken py-1 text-xs font-mono"
+            >
+              <option value={0}>{h.autoOff}</option>
+              <option value={15}>15s</option>
+              <option value={30}>30s</option>
+              <option value={60}>60s</option>
+            </select>
+          </label>
+          {autoIntervalSec > 0 && countdown > 0 && (
+            <span className="it-badge it-badge-neutral">
+              {formatMessage(h.nextRefreshIn, { seconds: countdown })}
+            </span>
+          )}
           <button
             type="button"
             onClick={refresh}
@@ -170,6 +238,56 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
           })
         )}
       </div>
+
+      {filteredTopology.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-ink">
+            <Server className="h-4 w-4 text-sky-600" />
+            <h2>{h.topologyTitle}</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 font-mono text-xs">
+            {filteredTopology.map((probe) => {
+              const isHealthy = probe.status === "healthy";
+              return (
+                <div
+                  key={`${probe.category}:${probe.name}`}
+                  className={`it-card p-3 space-y-2 ${isHealthy ? "border-l-4 border-l-sky-600" : "border-l-4 border-l-rose-600"}`}
+                >
+                  <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
+                    <div>
+                      <span className="font-bold uppercase tracking-wider text-ink">{probe.name}</span>
+                      <span className="ms-2 text-[10px] text-ink-muted">[{categoryLabel(probe.category)}]</span>
+                    </div>
+                    <span
+                      className={`border px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                        isHealthy
+                          ? "border-emerald-400 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          : "border-rose-400 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                      }`}
+                    >
+                      {isHealthy ? "✔ " + h.healthy : "⚠ " + h.unhealthy}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-[11px] text-ink-muted">
+                    <div className="flex justify-between">
+                      <span>{h.latency}:</span>
+                      <span className="font-bold text-ink">{probe.latencyMs} {h.milliseconds}</span>
+                    </div>
+                    <div className="truncate" dir="ltr" title={probe.target}>
+                      {probe.target}
+                    </div>
+                    {probe.detail && (
+                      <div className={isHealthy ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
+                        {probe.detail}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

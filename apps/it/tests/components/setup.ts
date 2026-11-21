@@ -116,6 +116,13 @@ export const itActionMocks = {
   deleteItSocialLinkAction: vi.fn(async () => ({ ok: true })),
   publishItWebsiteSnapshotAction: vi.fn(async () => ({ ok: true, revision: 2 })),
   revalidatePublicSiteFromItAction: vi.fn(async () => ({ ok: true })),
+  revalidateFrontendCacheAction: vi.fn(async () => ({
+    results: [
+      { target: "web", url: "http://127.0.0.1:3000/api/revalidate", ok: true, status: 200, durationMs: 18 },
+      { target: "store", url: "http://127.0.0.1:3003/api/revalidate", ok: true, status: 200, durationMs: 21 },
+    ],
+    triggeredAt: "2026-05-01T10:00:00Z",
+  })),
   copyStaffAccessAction: vi.fn(async () => ({ ok: true, overrides: { "crm:read": true }, dataScopes: { crm: "all" } })),
   previewStaffAccessAction: vi.fn(async () => ({ ok: true, preview: { subjectId: "st-1", role: "admin", permissions: { "crm:read": true }, dataScopes: { crm: "all" } } })),
   saveStaffAccountAction: vi.fn(async () => ({ ok: true })),
@@ -240,6 +247,9 @@ vi.mock("../../app/(desk)/database/actions", () => ({
   setMaintenanceAction: itActionMocks.setMaintenanceAction,
   runDatabaseQueryAction: itActionMocks.runDatabaseQueryAction,
   runDatabaseMaintenanceAction: itActionMocks.runDatabaseMaintenanceAction,
+}));
+vi.mock("../../app/(desk)/deployments/actions", () => ({
+  revalidateFrontendCacheAction: itActionMocks.revalidateFrontendCacheAction,
 }));
 vi.mock("../../app/actions", () => ({
   signInAction: itActionMocks.signInAction,

@@ -327,6 +327,141 @@ describe("IT Infrastructure, Ops, Logs, Backups & Integrations Components", () =
     await waitFor(() => {
       expect(itActionMocks.removeDebugToggleAction).toHaveBeenCalledWith("gateway");
     });
+
+    // SSE Live Tail + NDJSON export
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.logs.liveTailStart, "i") }));
+    const esClass = (globalThis as unknown as {
+      EventSource: { instances: Array<{ url: string; emitEvent: (type: string, data: unknown) => void }> };
+    }).EventSource;
+    const streamInst = esClass.instances.find((i) => i.url === "/api/logs/stream");
+    expect(streamInst).toBeDefined();
+    streamInst?.emitEvent("log", {
+      id: "log-sse-1",
+      timestamp: "2026-05-01T10:01:00Z",
+      level: "WARN",
+      service: "system",
+      user: "it@example.test",
+      action: "SSE_PING",
+      message: "Live SSE stream entry received",
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/Live SSE stream entry received/)).toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: new RegExp(enCopy.logs.exportNdjson, "i") })).toBeInTheDocument();
+  });
+
+  it("Phase 3: ApiTesterView OpenAPI explorer, SystemHealthView auto-refresh/topology, AuditView links & DeploymentsView cache revalidation", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    render(
+      <ItTestProviders>
+        <ApiTesterView
+          token="tok-p3"
+          endpoints={[
+            {
+              method: "GET",
+              path: "/v1/commerce/orders",
+              service: "commerce",
+              summary: "List orders",
+              description: "List commerce orders",
+              operationId: "listOrders",
+              tags: ["Commerce"],
+            },
+          ]}
+        />
+        <AuditView
+          filter={{ subject: "", actor: "", from: "", to: "", cursor: "" }}
+          page={{
+            items: [
+              {
+                id: "ev-p3",
+                subject: "itsm.ticket.updated",
+                actor: "it:admin",
+                occurredAt: "2026-05-01T10:00:00Z",
+                traceId: "trace-xyz-99",
+                payload: { ticketId: "11111111-1111-4111-8111-111111111111" },
+              },
+            ],
+          }}
+          subjects={[{ subject: "itsm.ticket.updated", events: 1 }]}
+        />
+        <SystemHealthView
+          items={makeServiceHealth()}
+          topology={[
+            {
+              name: "web-app",
+              category: "app",
+              status: "healthy",
+              latencyMs: 12,
+              target: "http://127.0.0.1:3000/",
+              detail: "HTTP 200",
+              checkedAt: "2026-05-01T10:00:00Z",
+            },
+            {
+              name: "postgres",
+              category: "infra",
+              status: "healthy",
+              latencyMs: 3,
+              target: "127.0.0.1:5432",
+              detail: "TCP OK",
+              checkedAt: "2026-05-01T10:00:00Z",
+            },
+          ]}
+        />
+        <DeploymentsView
+          services={makeServiceHealth()}
+          runtime={{
+            environment: "DEVELOPMENT",
+            orchestrator: "LOCAL NODE",
+            hostname: "localhost",
+            gitSha: "0d82791f",
+            gitBranch: "feat/go-backend",
+            memoryMb: 128,
+            uptimeMinutes: 10,
+            checkedAt: "2026-05-01T10:00:00Z",
+          }}
+          envAudit={[{ key: "REVALIDATION_SECRET", isSecret: true, present: true, redacted: "••••" }]}
+          parityChecks={[{ key: "REVALIDATION_SECRET", status: "ok", detail: "Configured" }]}
+          canRevalidate
+        />
+      </ItTestProviders>,
+    );
+
+    // ApiTesterView OpenAPI Explorer selection
+    await user.click(screen.getByRole("button", { name: /\/v1\/commerce\/orders/i }));
+    expect(screen.getByDisplayValue("/v1/commerce/orders")).toBeInTheDocument();
+
+    // AuditView correlation links + export
+    expect(screen.getByRole("button", { name: enCopy.audit.exportJson })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: new RegExp(enCopy.audit.inspectInLogs, "i") }).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("link", { name: enCopy.audit.openTicket })).toHaveAttribute(
+      "href",
+      "/tickets/11111111-1111-4111-8111-111111111111",
+    );
+
+    // SystemHealthView topology & auto-refresh
+    expect(screen.getByText("web-app")).toBeInTheDocument();
+    expect(screen.getByText("postgres")).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText(enCopy.systemHealth.autoRefresh), "15");
+    expect(screen.getByText(/Next in 15s/i)).toBeInTheDocument();
+
+    // DeploymentsView parity + one-click cache revalidation
+    expect(screen.getByText("feat/go-backend")).toBeInTheDocument();
+    expect(screen.getByText(enCopy.deployments.parityTitle)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: enCopy.deployments.revalidateAll }));
+    await waitFor(() => {
+      expect(itActionMocks.revalidateFrontendCacheAction).toHaveBeenCalledWith(
+        "all",
+        ["/"],
+        ["website", "company"],
+      );
+    });
   });
 
   it("ModulesView & NotificationsView + NotificationDetail execute setModuleAction, retryMessageAction & sendTestMessageAction", async () => {

@@ -81,9 +81,28 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
     // 8. /system-health, /logs, /database (read-only SELECT 1 diagnostic), /jobs, /backups, /deployments
     await gotoStrict(page, "/system-health", observer);
     await expect(page.getByRole("heading", { name: t.systemHealth.title, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t.systemHealth.topologyTitle })).toBeVisible();
+    await expect(page.getByText("web-app")).toBeVisible();
+    await page.getByLabel(t.systemHealth.autoRefresh).selectOption("15");
+    await expect(page.getByText(/Next in 1[0-5]s/i)).toBeVisible();
+    await page.getByLabel(t.systemHealth.autoRefresh).selectOption("0");
 
     await gotoStrict(page, "/logs", observer);
     await expect(page.getByRole("heading", { name: t.logs.title, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.logs.liveTailStart })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.logs.exportNdjson })).toBeVisible();
+
+    await gotoStrict(page, "/audit", observer);
+    await expect(page.getByRole("heading", { name: t.audit.title, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.audit.exportJson })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.audit.exportCsv })).toBeVisible();
+
+    await gotoStrict(page, "/api-tester", observer);
+    await expect(page.getByRole("heading", { name: t.apiTester.title, exact: true })).toBeVisible();
+    await expect(page.getByText(new RegExp(t.apiTester.openApiExplorer))).toBeVisible();
+    await page.locator('input[placeholder*="operationId"]').fill("/v1/audit/desk/events");
+    await page.getByRole("button", { name: /\/v1\/audit\/desk\/events/i }).first().click();
+    await expect(page.locator('input[placeholder="/v1/service/endpoint"]')).toHaveValue("/v1/audit/desk/events");
 
     await gotoStrict(page, "/database", observer);
     await expect(page.getByRole("heading", { name: t.database.title, exact: true })).toBeVisible();
@@ -106,6 +125,10 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
 
     await gotoStrict(page, "/deployments", observer);
     await expect(page.getByRole("heading", { name: t.deployments.title, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t.deployments.parityTitle })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t.deployments.revalidationTitle })).toBeVisible();
+    await page.getByRole("button", { name: t.deployments.revalidateAll }).click();
+    await expect(page.getByText(/HTTP 200/).first()).toBeVisible({ timeout: 15_000 });
 
     // 9. /qa: verify Test Runner, Coverage Manifest, 4-Tier Log Audit & Run History tabs + /api/qa/status
     await gotoStrict(page, "/qa", observer);

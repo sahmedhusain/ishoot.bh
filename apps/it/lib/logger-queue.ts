@@ -18,7 +18,23 @@ export interface LogEntry {
 }
 
 const MAX_BUFFER_SIZE = 3000;
-const logStore: LogEntry[] = [];
+
+type LogListener = (entry: LogEntry) => void;
+
+const globalLogState = globalThis as unknown as {
+  __itLogStore?: LogEntry[];
+  __itLogListeners?: Set<LogListener>;
+};
+
+const logStore: LogEntry[] = (globalLogState.__itLogStore ??= []);
+const logListeners: Set<LogListener> = (globalLogState.__itLogListeners ??= new Set());
+
+export function subscribeLogs(listener: LogListener): () => void {
+  logListeners.add(listener);
+  return () => {
+    logListeners.delete(listener);
+  };
+}
 
 export function getLogs(params?: {
   timeRange?: "15m" | "1h" | "24h" | "7d" | "all";
@@ -113,6 +129,13 @@ export function pushLogs(entries: Omit<LogEntry, "id">[]) {
     logStore.unshift(newEntry);
     if (logStore.length > MAX_BUFFER_SIZE) {
       logStore.pop();
+    }
+    for (const listener of logListeners) {
+      try {
+        listener(newEntry);
+      } catch {
+        // ignore broken SSE subscriber
+      }
     }
   }
 }
