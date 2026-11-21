@@ -39,6 +39,17 @@ export function StaffRolesView({
   const [busy, setBusy] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [showMatrix, setShowMatrix] = React.useState(false);
+
+  const matrixPermissions = React.useMemo(() => {
+    const keys = new Set<string>();
+    for (const role of page.items) {
+      for (const perm of Object.keys(role.grants ?? {})) {
+        if (role.grants?.[perm]) keys.add(perm);
+      }
+    }
+    return Array.from(keys).sort();
+  }, [page.items]);
 
   const editable = initial ? canEdit : canCreate;
   const run = async (work: () => Promise<void>) => {
@@ -65,7 +76,62 @@ export function StaffRolesView({
 
   return (
     <div className="space-y-4">
-      <PageTitle title={n.title} description={n.description} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageTitle title={n.title} description={n.description} />
+        {page.items.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowMatrix((prev) => !prev)}
+            className="it-btn-3d py-1.5 px-3 text-xs font-mono font-bold text-sky-800 dark:text-sky-300"
+          >
+            {showMatrix ? n.hideMatrix : n.showMatrix}
+          </button>
+        )}
+      </div>
+
+      {showMatrix && page.items.length > 0 && (
+        <div className="it-card p-4 space-y-3 font-mono text-xs overflow-x-auto">
+          <div className="font-bold uppercase tracking-wider text-ink border-b border-slate-300 dark:border-slate-700 pb-2">
+            {n.compareMatrix} ({page.items.length})
+          </div>
+          <table className="it-table w-full text-xs">
+            <thead>
+              <tr>
+                <th className="text-start">{n.permissionKey}</th>
+                {page.items.map((r) => (
+                  <th key={r.id} className="text-center whitespace-nowrap">
+                    {locale === "ar" ? r.nameAr : r.nameEn}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {matrixPermissions.length === 0 ? (
+                <tr>
+                  <td colSpan={page.items.length + 1} className="text-center py-3 text-ink-muted">
+                    {n.none}
+                  </td>
+                </tr>
+              ) : (
+                matrixPermissions.map((perm) => (
+                  <tr key={perm}>
+                    <td className="font-bold text-ink" dir="ltr">{perm}</td>
+                    {page.items.map((r) => (
+                      <td key={`${r.id}:${perm}`} className="text-center">
+                        {r.grants?.[perm] ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">✔</span>
+                        ) : (
+                          <span className="text-ink-muted">—</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] font-mono text-xs">
 

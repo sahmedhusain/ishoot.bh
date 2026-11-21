@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Filter, RotateCcw, ArrowRight } from "lucide-react";
+import { Filter, RotateCcw, ArrowRight, CheckSquare } from "lucide-react";
+import { toast } from "sonner";
+import { formatMessage } from "@platform/locales";
 import type { TicketPage } from "@platform/api-client";
 import {
   TICKET_CATEGORIES,
@@ -11,8 +13,21 @@ import {
   TICKET_STATUSES,
   ticketCategory,
 } from "@platform/contracts";
+import { transitionAction } from "../app/actions";
 import { useCopy } from "./CopyProvider";
 import { OverdueBadge, PageTitle, RemindedBadge, StatusBadge } from "./ticket-ui";
+
+function formatSlaCountdown(deadlineIso?: string | null): string | null {
+  if (!deadlineIso) return null;
+  const diffMs = Date.parse(deadlineIso) - Date.now();
+  if (Number.isNaN(diffMs)) return null;
+  if (diffMs <= 0) return "0m";
+  const mins = Math.floor(diffMs / 60_000);
+  const hours = Math.floor(mins / 60);
+  if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+  if (hours > 0) return `${hours}h ${mins % 60}m`;
+  return `${mins}m`;
+}
 
 export type QueueQuery = {
   status: string;
@@ -53,6 +68,44 @@ export function QueueView({
   const [selectedCategory, setSelectedCategory] = React.useState<string>(query.category || "");
   const [selectedStatus, setSelectedStatus] = React.useState<string>(query.status || "");
   const [selectedPriority, setSelectedPriority] = React.useState<string>(query.priority || "");
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = React.useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const toggleAllVisible = () => {
+    const visibleIds = (page?.items ?? []).map((item) => item.id);
+    if (selectedIds.length === visibleIds.length && visibleIds.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(visibleIds);
+    }
+  };
+
+  const runBulkTransition = async (action: "assign" | "start") => {
+    if (!page || selectedIds.length === 0) return;
+    setBulkBusy(true);
+    let ok = 0;
+    try {
+      for (const id of selectedIds) {
+        const ticket = page.items.find((x) => x.id === id);
+        if (!ticket) continue;
+        const res = await transitionAction(ticket.id, ticket.status, action);
+        if (res.ok) ok++;
+      }
+      toast.success(formatMessage(t.bulkUpdated, { ok, total: selectedIds.length }));
+      setSelectedIds([]);
+      router.refresh();
+    } catch {
+      toast.error(t.failed);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleApplyFilters = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,9 +135,18 @@ export function QueueView({
       <PageTitle title={t.title} description={t.description} />
 
       <div className="it-card p-4 space-y-3">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          <Filter className="size-3.5 text-sky-600" />
-          <span>{t.filtersTitle}</span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <Filter className="size-3.5 text-sky-600" />
+            <span>{t.filtersTitle}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+            <span className="text-ink-muted uppercase text-[10px]">{t.savedViews}:</span>
+            <Link href="/tickets" className="it-btn-3d px-2 py-0.5">{t.openOnly}</Link>
+            <Link href="/tickets?mine=true" className="it-btn-3d px-2 py-0.5">{t.mine}</Link>
+            <Link href="/tickets?priority=urgent" className="it-btn-3d px-2 py-0.5 text-rose-700 dark:text-rose-400">{t.viewUrgent}</Link>
+            <Link href="/tickets?open=false" className="it-btn-3d px-2 py-0.5">{t.everything}</Link>
+          </div>
         </div>
 
         <form
@@ -180,6 +242,40 @@ export function QueueView({
         </form>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="it-card p-3 flex flex-wrap items-center justify-between gap-2 border-l-4 border-l-sky-600 bg-sky-50/60 dark:bg-sky-950/30 font-mono text-xs">
+          <div className="flex items-center gap-2 font-bold text-sky-800 dark:text-sky-300">
+            <CheckSquare className="h-4 w-4" />
+            <span>{formatMessage(t.bulkSelected, { count: selectedIds.length })}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => void runBulkTransition("assign")}
+              className="it-btn-3d py-1 px-3 text-xs font-bold text-emerald-800 dark:text-emerald-300"
+            >
+              {t.bulkAssignMe}
+            </button>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => void runBulkTransition("start")}
+              className="it-btn-3d py-1 px-3 text-xs font-bold text-sky-800 dark:text-sky-300"
+            >
+              {t.bulkStart}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="it-btn-3d py-1 px-2 text-xs"
+            >
+              {t.filterReset}
+            </button>
+          </div>
+        </div>
+      )}
+
       {!page ? (
         <div className="it-card p-12 text-center text-xs text-slate-500">
           {copy.overview.unavailable}
@@ -194,6 +290,14 @@ export function QueueView({
             <table className="w-full text-xs text-left">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 text-slate-500 uppercase text-[11px] font-semibold">
+                  <th className="py-2.5 px-3 w-8">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all tickets"
+                      checked={page.items.length > 0 && selectedIds.length === page.items.length}
+                      onChange={toggleAllVisible}
+                    />
+                  </th>
                   <th className="py-2.5 px-4 w-24">#</th>
                   <th className="py-2.5 px-4 w-24">Priority</th>
                   <th className="py-2.5 px-4 w-28">Status</th>
@@ -214,6 +318,14 @@ export function QueueView({
                       key={ticket.id}
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
+                      <td className="py-3 px-3">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ticket ${ticket.number}`}
+                          checked={selectedIds.includes(ticket.id)}
+                          onChange={() => toggleSelect(ticket.id)}
+                        />
+                      </td>
                       <td className="py-3 px-4 font-mono font-medium text-sky-700 dark:text-sky-400">
                         <Link
                           href={`/tickets/${ticket.id}`}
@@ -234,8 +346,12 @@ export function QueueView({
                         ) : ticket.remindedAt ? (
                           <RemindedBadge />
                         ) : (
-                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                            On Track
+                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium font-mono">
+                            {formatSlaCountdown(ticket.resolveBy)
+                              ? formatMessage(t.slaRemaining, {
+                                  time: formatSlaCountdown(ticket.resolveBy)!,
+                                })
+                              : "On Track"}
                           </span>
                         )}
                       </td>

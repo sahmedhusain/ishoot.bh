@@ -88,7 +88,12 @@
     "failed": "Could not end the session. Try again.",
     "empty": "No sessions match these filters.",
     "first": "First page",
-    "next": "Next page"
+    "next": "Next page",
+    "anomalyMulti": "Multi-session ({count})",
+    "revokeAllForAccount": "Revoke All ({count})",
+    "bulkConfirmTitle": "Revoke all active sessions for this account?",
+    "bulkConfirmBody": "This signs the account out across all other active devices immediately.",
+    "bulkEnded": "Ended {count} active sessions."
   },
   "login": {
     "title": "Console",
@@ -214,7 +219,17 @@
     "allStatuses": "All Statuses",
     "allPriorities": "All Priorities",
     "filterApply": "Apply Filter",
-    "filterReset": "Reset Filters"
+    "filterReset": "Reset Filters",
+    "savedViews": "Quick Views",
+    "viewUrgent": "Urgent & High",
+    "bulkSelected": "{count} selected",
+    "bulkAssignMe": "Assign Selected to Me",
+    "bulkStart": "Start Selected",
+    "bulkUpdated": "Updated {ok}/{total} selected tickets",
+    "cannedReplies": "Canned Replies",
+    "cannedPlaceholder": "Insert quick reply template...",
+    "slaRemaining": "{time} left",
+    "slaDueNow": "Due now"
   },
   "sla": {
     "title": "SLA targets",
@@ -1070,7 +1085,11 @@
     "roleCount": "ROLES ({count})",
     "deleteModalTitle": "Delete Staff Role",
     "deleteModalDesc": "Are you sure you want to delete this staff role? Any staff members currently holding this role will lose its privileges.",
-    "systemRoleNotice": "System roles cannot be deleted."
+    "systemRoleNotice": "System roles cannot be deleted.",
+    "compareMatrix": "RBAC Comparison Matrix",
+    "showMatrix": "Show RBAC Matrix",
+    "hideMatrix": "Hide RBAC Matrix",
+    "permissionKey": "Permission / Scope"
   },
   "company": {
     "title": "Company settings",
@@ -1505,8 +1524,14 @@
     "filterAll": "All Queues",
     "searchPlaceholder": "Search queues...",
     "retryAll": "Retry Discarded",
+    "purgeDiscarded": "Purge Discarded",
+    "bulkRetryAll": "Bulk Retry All Failed",
     "retryConfirmTitle": "Retry Discarded Jobs",
-    "retryConfirmDesc": "This marks all discarded or failed jobs in this queue as available for worker pickup immediately."
+    "retryConfirmDesc": "This marks all discarded or failed jobs in this queue as available for worker pickup immediately.",
+    "purgeConfirmTitle": "Purge Discarded Jobs",
+    "purgeConfirmDesc": "Permanently deletes discarded dead-letter jobs from this queue.",
+    "inspectQueue": "Inspect Payload",
+    "cronRegistryTitle": "Scheduled Worker & Cron Registry"
   },
   "backups": {
     "title": "Backups & Recovery",
@@ -1535,7 +1560,12 @@
     "searchPlaceholder": "Search archives...",
     "triggerModalTitle": "Confirm Immediate Backup",
     "triggerModalDesc": "This initiates an immediate manual snapshot. During archive generation, slight disk I/O elevation may occur.",
-    "triggerModalImpact": "Snapshot saved to secure storage; WAL files archived."
+    "triggerModalImpact": "Snapshot saved to secure storage; WAL files archived.",
+    "retentionTitle": "Retention Policy & Storage Telemetry",
+    "retentionPolicy": "30d DB · 7d S3 · Daily 02:00 UTC",
+    "verifiedRatio": "Verified Archives",
+    "totalStorage": "Total Archive Size",
+    "checksum": "SHA-256"
   },
   "apiKeys": {
     "title": "API keys",
@@ -1575,7 +1605,11 @@
     "searchPlaceholder": "Search by key name...",
     "revokeModalTitle": "Revoke API Key",
     "revokeModalDesc": "Are you sure you want to revoke this API key? Any applications, scripts, or external clients using it will immediately be rejected.",
-    "revokeModalImpact": "Permanent token revocation; cannot be undone."
+    "revokeModalImpact": "Permanent token revocation; cannot be undone.",
+    "hygieneActive": "Active Keys",
+    "hygieneUnused": "Never Used",
+    "hygieneHighRate": "High Limit (>500/m)",
+    "neverUsedBadge": "UNUSED"
   },
   "itSupport": {
     "notifications": {

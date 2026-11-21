@@ -464,6 +464,44 @@ describe("IT Infrastructure, Ops, Logs, Backups & Integrations Components", () =
     });
   });
 
+  it("Phase 4: JobsView bulk retry/purge & cron registry + BackupsView retention telemetry", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItTestProviders>
+        <JobsView stats={makeDatabaseStats()} canExecute />
+        <BackupsView backups={makeBackups()} canExecute />
+      </ItTestProviders>,
+    );
+
+    // Cron registry + queue inspector
+    expect(screen.getByText(enCopy.jobs.cronRegistryTitle)).toBeInTheDocument();
+    expect(screen.getByText("outbox-relay")).toBeInTheDocument();
+
+    // Bulk retry all failed queues
+    const bulkBtn = screen.getByRole("button", { name: new RegExp(enCopy.jobs.bulkRetryAll, "i") });
+    await user.click(bulkBtn);
+    await waitFor(() => {
+      expect(itActionMocks.retryJobAction).toHaveBeenCalled();
+    });
+
+    // Purge discarded jobs via CriticalActionModal -> discardJobAction
+    const purgeBtns = screen.getAllByRole("button", { name: new RegExp(enCopy.jobs.purgeDiscarded, "i") });
+    await user.click(purgeBtns[0]);
+    await user.type(screen.getByPlaceholderText(/PURGE/i), "PURGE");
+    await user.click(screen.getByRole("button", { name: /EXECUTE CRITICAL ACTION/i }));
+    await waitFor(() => {
+      expect(itActionMocks.discardJobAction).toHaveBeenCalled();
+    });
+
+    // Inspect payload snapshot
+    await user.click(screen.getAllByRole("button", { name: new RegExp(enCopy.jobs.inspectQueue, "i") })[0]);
+    expect(screen.getByText(/QUEUE SNAPSHOT:/i)).toBeInTheDocument();
+
+    // Backups retention strip
+    expect(screen.getByText(enCopy.backups.retentionTitle)).toBeInTheDocument();
+    expect(screen.getByText(enCopy.backups.retentionPolicy)).toBeInTheDocument();
+  });
+
   it("ModulesView & NotificationsView + NotificationDetail execute setModuleAction, retryMessageAction & sendTestMessageAction", async () => {
     const user = userEvent.setup();
     render(

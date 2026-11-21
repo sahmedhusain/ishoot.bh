@@ -88,7 +88,12 @@
     "failed": "تعذّر إنهاء الجلسة. حاول مجددًا.",
     "empty": "لا توجد جلسات تطابق عوامل التصفية.",
     "first": "الصفحة الأولى",
-    "next": "الصفحة التالية"
+    "next": "الصفحة التالية",
+    "anomalyMulti": "جلسات متعددة ({count})",
+    "revokeAllForAccount": "إنهاء الكل ({count})",
+    "bulkConfirmTitle": "إنهاء جميع الجلسات النشطة لهذا الحساب؟",
+    "bulkConfirmBody": "سيتم تسجيل خروج الحساب من جميع الأجهزة النشطة الأخرى فوراً.",
+    "bulkEnded": "تم إنهاء {count} جلسات نشطة."
   },
   "login": {
     "title": "Console",
@@ -214,7 +219,17 @@
     "allStatuses": "كافة الحالات",
     "allPriorities": "كافة الأولويات",
     "filterApply": "تطبيق التصفية",
-    "filterReset": "إعادة ضبط التصفية"
+    "filterReset": "إعادة ضبط التصفية",
+    "savedViews": "طرق عرض سريعة",
+    "viewUrgent": "عاجلة وعالية",
+    "bulkSelected": "تم تحديد {count}",
+    "bulkAssignMe": "إسناد المحدد إلي",
+    "bulkStart": "بدء المحدد",
+    "bulkUpdated": "تم تحديث {ok}/{total} تذاكر محددة",
+    "cannedReplies": "ردود جاهزة",
+    "cannedPlaceholder": "إدراج قالب رد سريع...",
+    "slaRemaining": "متبقي {time}",
+    "slaDueNow": "مستحق الآن"
   },
   "sla": {
     "title": "أهداف مستوى الخدمة",
@@ -1070,7 +1085,11 @@
     "roleCount": "الأدوار ({count})",
     "deleteModalTitle": "حذف دور الموظف",
     "deleteModalDesc": "هل أنت متأكد من حذف هذا الدور المخصص؟ سيفقد أي موظف تم تعيين هذا الدور له الصلاحيات المرتبطة به.",
-    "systemRoleNotice": "لا يمكن حذف أدوار النظام الأساسية."
+    "systemRoleNotice": "لا يمكن حذف أدوار النظام الأساسية.",
+    "compareMatrix": "مصفوفة مقارنة صلاحيات الأدوار",
+    "showMatrix": "عرض مصفوفة RBAC",
+    "hideMatrix": "إخفاء مصفوفة RBAC",
+    "permissionKey": "الصلاحية / النطاق"
   },
   "company": {
     "title": "إعدادات الشركة",
@@ -1505,8 +1524,14 @@
     "filterAll": "جميع القوائم",
     "searchPlaceholder": "بحث في قوائم الانتظار...",
     "retryAll": "إعادة محاولة المهام الملغاة",
+    "purgeDiscarded": "مسح المهام الملغاة",
+    "bulkRetryAll": "إعادة محاولة كافة الفاشلة",
     "retryConfirmTitle": "إعادة محاولة المهام الملغاة",
-    "retryConfirmDesc": "سيؤدي هذا إلى إعادة جدولة جميع المهام الملغاة أو الفاشلة في قائمة الانتظار هذه لتنفيذها فورا."
+    "retryConfirmDesc": "سيؤدي هذا إلى إعادة جدولة جميع المهام الملغاة أو الفاشلة في قائمة الانتظار هذه لتنفيذها فورا.",
+    "purgeConfirmTitle": "مسح المهام الملغاة نهائياً",
+    "purgeConfirmDesc": "يحذف المهام الملغاة بشكل دائم من قائمة الانتظار هذه.",
+    "inspectQueue": "فحص الحمولة",
+    "cronRegistryTitle": "سجل المهام المجدولة والعاملين (Cron)"
   },
   "backups": {
     "title": "النسخ الاحتياطي والاستعادة",
@@ -1535,7 +1560,12 @@
     "searchPlaceholder": "بحث في الأرشيفات...",
     "triggerModalTitle": "تأكيد النسخ الاحتياطي الفوري",
     "triggerModalDesc": "يؤدي هذا إلى بدء لقطة يدوية فورية لقاعدة البيانات. قد يحدث ارتفاع مؤقت في عمليات الإدخال/الإخراج.",
-    "triggerModalImpact": "سيتم حفظ اللقطة في وحدة تخزين آمنة وأرشفة ملفات WAL."
+    "triggerModalImpact": "سيتم حفظ اللقطة في وحدة تخزين آمنة وأرشفة ملفات WAL.",
+    "retentionTitle": "سياسة الاحتفاظ وإحصائيات التخزين",
+    "retentionPolicy": "30 يوم قاعدة بيانات · 7 أيام S3 · يومياً 02:00 UTC",
+    "verifiedRatio": "الأرشيفات المتحقق منها",
+    "totalStorage": "إجمالي حجم الأرشيف",
+    "checksum": "بصمة SHA-256"
   },
   "apiKeys": {
     "title": "مفاتيح API",
@@ -1575,7 +1605,11 @@
     "searchPlaceholder": "بحث باسم المفتاح...",
     "revokeModalTitle": "إلغاء مفتاح API",
     "revokeModalDesc": "هل أنت متأكد من إلغاء مفتاح API هذا؟ سيتم رفض أي تطبيقات أو نصوص برمجية أو عملاء خارجيين يستخدمونه على الفور.",
-    "revokeModalImpact": "إلغاء دائم للرمز السري؛ لا يمكن التراجع عنه."
+    "revokeModalImpact": "إلغاء دائم للرمز السري؛ لا يمكن التراجع عنه.",
+    "hygieneActive": "مفاتيح نشطة",
+    "hygieneUnused": "لم تُستخدم أبداً",
+    "hygieneHighRate": "حد مرتفع (>500/د)",
+    "neverUsedBadge": "غير مستخدم"
   },
   "itSupport": {
     "notifications": {

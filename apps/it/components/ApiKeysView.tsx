@@ -232,6 +232,27 @@ export function ApiKeysView({
         </div>
       )}
 
+      <div className="grid grid-cols-3 gap-3 font-mono text-xs">
+        <div className="it-card p-3 border-l-4 border-l-emerald-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{k.hygieneActive}</div>
+          <div className="text-base font-bold text-emerald-700 dark:text-emerald-400">
+            {list.filter((item) => !item.revokedAt).length}
+          </div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-amber-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{k.hygieneUnused}</div>
+          <div className="text-base font-bold text-amber-700 dark:text-amber-400">
+            {list.filter((item) => !item.revokedAt && !item.lastUsedAt).length}
+          </div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-sky-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{k.hygieneHighRate}</div>
+          <div className="text-base font-bold text-ink">
+            {list.filter((item) => !item.revokedAt && item.rateLimit > 500).length}
+          </div>
+        </div>
+      </div>
+
       <div className="it-card p-0 overflow-x-auto">
         <div className="p-2 border-b border-slate-300 dark:border-slate-700 bg-surface flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase font-mono text-ink">{k.existingKeys}</h2>
@@ -322,7 +343,13 @@ export function ApiKeysView({
                     </td>
                     <td className="text-xs font-mono">{item.rateLimit}/min</td>
                     <td className="text-xs text-ink-muted">
-                      {item.lastUsedAt ? date(item.lastUsedAt) : "—"}
+                      {item.lastUsedAt ? (
+                        date(item.lastUsedAt)
+                      ) : !isRevoked ? (
+                        <span className="it-badge it-badge-warn text-[9px]">{k.neverUsedBadge}</span>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>
                       <span

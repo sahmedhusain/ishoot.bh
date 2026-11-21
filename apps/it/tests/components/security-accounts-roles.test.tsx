@@ -235,4 +235,71 @@ describe("IT Security, Accounts, Sessions & Roles Components", () => {
     expect(itActionMocks.saveStaffRoleAction).toBeDefined();
     expect(itActionMocks.deleteStaffRoleAction).toBeDefined();
   });
+
+  it("Phase 4: SessionsView multi-session anomaly & bulk revoke, ApiKeysView hygiene strip & StaffRolesView RBAC matrix", async () => {
+    const user = userEvent.setup();
+    render(
+      <ItTestProviders>
+        <SessionsView
+          page={{
+            items: [
+              {
+                id: "sess-a",
+                subjectId: "subj-multi",
+                email: "multi@example.test",
+                realm: "it",
+                createdAt: "2026-05-01T08:00:00Z",
+                expiresAt: "2026-12-01T08:00:00Z",
+              },
+              {
+                id: "sess-b",
+                subjectId: "subj-multi",
+                email: "multi@example.test",
+                realm: "it",
+                createdAt: "2026-05-01T09:00:00Z",
+                expiresAt: "2026-12-01T09:00:00Z",
+              },
+            ],
+          }}
+          filter={{ realm: "", subjectId: "", cursor: "" }}
+          currentSessionId="sess-current"
+          now={Date.parse("2026-05-02T00:00:00Z")}
+          canRevoke
+        />
+        <ApiKeysView
+          keys={[
+            {
+              id: "k-unused",
+              name: "Unused Webhook Key",
+              keyPrefix: "sk_unused_",
+              scopes: ["orders:read"],
+              rateLimit: 600,
+              createdAt: "2026-05-01T00:00:00Z",
+            },
+          ]}
+          canCreate
+          canDelete
+        />
+        <StaffRolesView
+          page={makeStaffRolesPage()}
+          cursor=""
+          canCreate
+          canEdit
+          canDelete
+        />
+      </ItTestProviders>,
+    );
+
+    // Multi-session anomaly badge
+    expect(screen.getAllByText(/Multi-session \(2\)/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole("button", { name: /Revoke All \(2\)/i }).length).toBeGreaterThanOrEqual(1);
+
+    // API key hygiene
+    expect(screen.getByText(enCopy.apiKeys.hygieneUnused)).toBeInTheDocument();
+    expect(screen.getByText(enCopy.apiKeys.neverUsedBadge)).toBeInTheDocument();
+
+    // StaffRoles RBAC matrix toggle
+    await user.click(screen.getByRole("button", { name: enCopy.staffRoles.showMatrix }));
+    expect(screen.getByText(new RegExp(enCopy.staffRoles.compareMatrix))).toBeInTheDocument();
+  });
 });

@@ -4,8 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Archive,
-  CheckCircle2,
+  Copy,
   ShieldCheck,
   Plus,
   Loader2,
@@ -133,6 +132,25 @@ export function BackupsView({
         </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 font-mono text-xs">
+        <div className="it-card p-3 border-l-4 border-l-sky-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{b.retentionTitle}</div>
+          <div className="text-xs font-bold text-ink mt-1">{b.retentionPolicy}</div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-emerald-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{b.verifiedRatio}</div>
+          <div className="text-base font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
+            {(backups ?? []).filter((x) => x.status === "verified").length} / {backups?.length ?? 0}
+          </div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-indigo-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{b.totalStorage}</div>
+          <div className="text-base font-bold text-ink mt-0.5">
+            {formatSize((backups ?? []).reduce((sum, x) => sum + (Number(x.fileSize) || 0), 0))}
+          </div>
+        </div>
+      </div>
+
       <div className="it-card p-0 overflow-x-auto">
         <div className="p-2 border-b border-slate-300 dark:border-slate-700 bg-surface flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase font-mono text-ink">{b.historyTitle}</h2>
@@ -213,6 +231,7 @@ export function BackupsView({
                 <th className="text-start">{b.fileName}</th>
                 <th className="text-start">{b.kind}</th>
                 <th className="text-start">{b.size}</th>
+                <th className="text-start">{b.checksum}</th>
                 <th className="text-start">{b.status}</th>
                 <th className="text-start">{b.createdAt}</th>
                 <th className="text-start">{b.verifiedAt}</th>
@@ -228,6 +247,24 @@ export function BackupsView({
                     <td className="text-xs uppercase font-bold">{rec.kind}</td>
                     <td className="font-mono text-xs">
                       {formatSize(rec.fileSize)}
+                    </td>
+                    <td className="font-mono text-[11px] text-ink-muted">
+                      {rec.checksum ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(rec.checksum);
+                            toast.success("SHA-256 copied");
+                          }}
+                          className="inline-flex items-center gap-1 hover:text-sky-600"
+                          title={rec.checksum}
+                        >
+                          <span>{rec.checksum.slice(0, 12)}…</span>
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>
                       <span

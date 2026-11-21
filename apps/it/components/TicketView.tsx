@@ -15,6 +15,26 @@ import { OverdueBadge, RemindedBadge, StatusBadge } from "./ticket-ui";
 const MAX_TICKET_ATTACHMENTS = 10;
 const MAX_TICKET_ATTACHMENT_SIZE_MB = 10;
 
+const CANNED_REPLIES: Array<{ label: string; body: string; internal?: boolean }> = [
+  {
+    label: "Acknowledge & investigating",
+    body: "We have received your request and an IT engineer is actively investigating. We will update you shortly.",
+  },
+  {
+    label: "Request screenshot / details",
+    body: "Could you please share a screenshot of the error message and the approximate time it occurred so we can trace it?",
+  },
+  {
+    label: "Resolved — please verify",
+    body: "We have applied a fix for this issue. Please verify on your end and let us know if anything else is needed.",
+  },
+  {
+    label: "Internal: Escalated to backend",
+    body: "Internal note: Reproduced the issue and escalated with trace ID to platform engineering.",
+    internal: true,
+  },
+];
+
 export interface StaffOption {
   id: string;
   name: string;
@@ -532,28 +552,50 @@ export function TicketView({
                   accept="image/*,application/pdf,text/plain,text/csv,.docx,.xlsx"
                 />
 
-                <div className="flex items-center gap-3 font-mono text-xs">
-                  <span className="font-bold uppercase text-[10px] text-ink-muted">TYPE:</span>
-                  <label className="flex items-center gap-1 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="commentType"
-                      checked={!internal}
-                      onChange={() => setInternal(false)}
-                      className="size-3.5"
-                    />
-                    <span>{t.reply}</span>
-                  </label>
-                  <label className="flex items-center gap-1 cursor-pointer text-amber-800 dark:text-amber-300 font-bold">
-                    <input
-                      type="radio"
-                      name="commentType"
-                      checked={internal}
-                      onChange={() => setInternal(true)}
-                      className="size-3.5"
-                    />
-                    <span>{t.note}</span>
-                  </label>
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold uppercase text-[10px] text-ink-muted">TYPE:</span>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="commentType"
+                        checked={!internal}
+                        onChange={() => setInternal(false)}
+                        className="size-3.5"
+                      />
+                      <span>{t.reply}</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer text-amber-800 dark:text-amber-300 font-bold">
+                      <input
+                        type="radio"
+                        name="commentType"
+                        checked={internal}
+                        onChange={() => setInternal(true)}
+                        className="size-3.5"
+                      />
+                      <span>{t.note}</span>
+                    </label>
+                  </div>
+                  <select
+                    aria-label={t.cannedReplies}
+                    defaultValue=""
+                    onChange={(e) => {
+                      const idx = Number(e.target.value);
+                      if (Number.isNaN(idx) || !CANNED_REPLIES[idx]) return;
+                      const tpl = CANNED_REPLIES[idx];
+                      setMessage((prev) => (prev.trim() ? `${prev}\n${tpl.body}` : tpl.body));
+                      if (tpl.internal !== undefined) setInternal(tpl.internal);
+                      e.currentTarget.value = "";
+                    }}
+                    className="it-field-sunken py-0.5 px-2 text-[11px] font-mono"
+                  >
+                    <option value="">{t.cannedPlaceholder}</option>
+                    {CANNED_REPLIES.map((tpl, idx) => (
+                      <option key={tpl.label} value={idx}>
+                        {tpl.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <textarea

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button, Card, ConfirmDialog, Input, Select } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import type { IdentitySessionPage, Realm } from "@platform/api-client";
 import { revokeSessionAction } from "../app/(desk)/sessions/actions";
 import { useCopy } from "./CopyProvider";
@@ -37,7 +38,21 @@ export function SessionsView({
   const { copy, date } = useCopy();
   const n = copy.sessions;
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [bulkSubject, setBulkSubject] = React.useState<{ subjectId: string; sessionIds: string[] } | null>(null);
   const [ended, setEnded] = React.useState(false);
+  const [bulkEndedCount, setBulkEndedCount] = React.useState<number | null>(null);
+
+  const activeSessionsBySubject = React.useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const s of page.items) {
+      const isActive = !s.revokedAt && Date.parse(s.expiresAt) > now;
+      if (!isActive) continue;
+      const arr = map.get(s.subjectId) ?? [];
+      arr.push(s.id);
+      map.set(s.subjectId, arr);
+    }
+    return map;
+  }, [page.items, now]);
   return (
     <>
       <PageTitle title={n.title} description={n.description} />
@@ -87,6 +102,11 @@ export function SessionsView({
           ✔ {n.ended}
         </div>
       )}
+      {bulkEndedCount !== null && (
+        <div role="status" className="p-2 mb-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-mono">
+          ✔ {formatMessage(n.bulkEnded, { count: bulkEndedCount })}
+        </div>
+      )}
       <div className="it-card p-0 overflow-x-auto">
         {page.items.length === 0 ? (
           <p className="p-6 text-xs font-mono text-ink-muted">{n.empty}</p>
@@ -126,9 +146,18 @@ export function SessionsView({
                       data-testid={`identity-session-${session.id}`}
                     >
                       <td>
-                        <span dir="ltr" className="font-semibold text-ink">
-                          {session.email || session.subjectId}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span dir="ltr" className="font-semibold text-ink">
+                            {session.email || session.subjectId}
+                          </span>
+                          {(activeSessionsBySubject.get(session.subjectId)?.length ?? 0) >= 2 && state === "active" && (
+                            <span className="it-badge it-badge-warn text-[9px]">
+                              {formatMessage(n.anomalyMulti, {
+                                count: activeSessionsBySubject.get(session.subjectId)?.length ?? 0,
+                              })}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-ink-muted" dir="ltr">
                           {session.subjectId}
                         </div>
@@ -159,16 +188,38 @@ export function SessionsView({
                       </td>
                       <td className="text-center">
                         {canRevoke && state === "active" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEnded(false);
-                              setSelected(session.id);
-                            }}
-                            className="it-btn-3d py-0.5 px-2 text-[10px] text-rose-700 dark:text-rose-400 font-bold"
-                          >
-                            {n.revoke}
-                          </button>
+                          <div className="flex flex-wrap items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEnded(false);
+                                setBulkEndedCount(null);
+                                setSelected(session.id);
+                              }}
+                              className="it-btn-3d py-0.5 px-2 text-[10px] text-rose-700 dark:text-rose-400 font-bold"
+                            >
+                              {n.revoke}
+                            </button>
+                            {(() => {
+                              const others = (activeSessionsBySubject.get(session.subjectId) ?? []).filter(
+                                (id) => id !== currentSessionId,
+                              );
+                              if (others.length < 2) return null;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEnded(false);
+                                    setBulkEndedCount(null);
+                                    setBulkSubject({ subjectId: session.subjectId, sessionIds: others });
+                                  }}
+                                  className="it-btn-3d py-0.5 px-2 text-[10px] text-amber-800 dark:text-amber-300 font-bold"
+                                >
+                                  {formatMessage(n.revokeAllForAccount, { count: others.length })}
+                                </button>
+                              );
+                            })()}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -204,6 +255,26 @@ export function SessionsView({
           if (!selected || !(await revokeSessionAction(selected)).ok)
             throw new Error(n.failed);
           setEnded(true);
+        }}
+      />
+      <ConfirmDialog
+        isOpen={bulkSubject !== null}
+        onClose={() => setBulkSubject(null)}
+        title={n.bulkConfirmTitle}
+        description={n.bulkConfirmBody}
+        confirmLabel={n.revoke}
+        cancelLabel={n.cancel}
+        errorLabel={n.failed}
+        variant="warning"
+        onConfirm={async () => {
+          if (!bulkSubject) return;
+          let count = 0;
+          for (const id of bulkSubject.sessionIds) {
+            const res = await revokeSessionAction(id);
+            if (res.ok) count++;
+          }
+          if (count === 0) throw new Error(n.failed);
+          setBulkEndedCount(count);
         }}
       />
     </>

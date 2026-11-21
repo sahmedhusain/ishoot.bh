@@ -118,10 +118,21 @@ test.describe("IT Console — Modules, Integrations, Site, Company, Presets, Set
 
     await gotoStrict(page, "/jobs", observer);
     await expect(page.getByRole("heading", { name: t.jobs.title, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t.jobs.cronRegistryTitle })).toBeVisible();
     await page.getByRole("button", { name: t.jobs.refresh }).click();
 
     await gotoStrict(page, "/backups", observer);
     await expect(page.getByRole("heading", { name: t.backups.title, exact: true })).toBeVisible();
+    await expect(page.getByText(t.backups.retentionTitle)).toBeVisible();
+
+    await gotoStrict(page, "/staff-roles", observer);
+    await expect(page.getByRole("heading", { name: t.staffRoles.title, exact: true })).toBeVisible();
+    await page.getByRole("button", { name: t.staffRoles.showMatrix }).click();
+    await expect(page.getByText(new RegExp(t.staffRoles.compareMatrix))).toBeVisible();
+
+    await gotoStrict(page, "/api-keys", observer);
+    await expect(page.getByRole("heading", { name: t.apiKeys.title, exact: true })).toBeVisible();
+    await expect(page.getByText(t.apiKeys.hygieneActive)).toBeVisible();
 
     await gotoStrict(page, "/deployments", observer);
     await expect(page.getByRole("heading", { name: t.deployments.title, exact: true })).toBeVisible();
