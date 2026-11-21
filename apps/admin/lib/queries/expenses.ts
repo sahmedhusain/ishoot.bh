@@ -12,6 +12,8 @@ import {
   deleteExpense as deleteFinanceExpense,
 } from "../api/finance";
 
+const CATEGORY_KINDS = ["cost_of_sales", "operating", "payroll"] as const;
+
 function mapCategory(c: any): ExpenseCategory {
   return {
     id: c.id,
@@ -20,7 +22,7 @@ function mapCategory(c: any): ExpenseCategory {
     name_ar: c.nameAr || c.name_ar || "",
     color: c.color || "#09937F",
     display_order: c.displayOrder || c.sortOrder || 0,
-    kind: c.kind ?? "operating",
+    kind: (CATEGORY_KINDS as readonly string[]).includes(c.kind) ? c.kind : "operating",
     is_system: Boolean(c.isSystem ?? true),
     is_active: c.isActive ?? true,
   };
@@ -89,8 +91,6 @@ export async function getExpenseCategories(
     });
   return categories.map(mapCategory);
 }
-
-const CATEGORY_KINDS = ["cost_of_sales", "operating", "payroll"] as const;
 
 function categoryFields(data: {
   name_en?: string;

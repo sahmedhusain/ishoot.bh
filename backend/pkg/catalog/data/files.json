@@ -124,6 +124,16 @@
       ]
     },
     {
+      "key": "media",
+      "public": true,
+      "types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "application/pdf"
+      ]
+    },
+    {
       "key": "avatars",
       "public": false,
       "types": ["image/png", "image/jpeg", "image/webp"]

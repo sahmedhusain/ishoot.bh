@@ -204,18 +204,18 @@ export async function listAccountChangeRequests(userId: string) {
     .filter((r) => (r.user_id ?? r.userId) === userId)
     .map((r) => {
       const reqBy = userById.get(r.requested_by_id ?? r.requestedById);
-      const revBy = (r.reviewed_by_id ?? r.reviewedById)
-        ? userById.get(r.reviewed_by_id ?? r.reviewedById)
-        : null;
+      const revById = r.decided_by_id ?? r.reviewed_by_id ?? r.decidedById ?? r.reviewedById ?? null;
+      const revBy = revById ? userById.get(revById) : null;
       return {
         ...r,
         userId: r.user_id ?? r.userId,
         requestedById: r.requested_by_id ?? r.requestedById,
-        reviewedById: r.reviewed_by_id ?? r.reviewedById ?? null,
+        beforeValues: r.before ?? r.before_values ?? r.beforeValues ?? null,
+        reviewedById: revById,
         reviewNotes: r.review_notes ?? r.reviewNotes ?? null,
-        reviewedAt: r.reviewed_at ?? r.reviewedAt ?? null,
+        reviewedAt: r.decided_at ?? r.reviewed_at ?? r.decidedAt ?? r.reviewedAt ?? null,
         createdAt: r.created_at ?? r.createdAt,
-        updatedAt: r.updated_at ?? r.updatedAt,
+        updatedAt: r.updated_at ?? r.updatedAt ?? r.created_at ?? r.createdAt,
         requestedBy: reqBy ? { id: reqBy.id, fullName: reqBy.full_name ?? reqBy.fullName } : null,
         reviewedBy: revBy ? { id: revBy.id, fullName: revBy.full_name ?? revBy.fullName } : null,
       };

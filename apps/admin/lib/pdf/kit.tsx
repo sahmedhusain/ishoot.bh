@@ -4,9 +4,8 @@ import { Image, Text, View, type Styles } from "@react-pdf/renderer";
 import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
 
 import { formatDocumentPhone } from "@platform/database";
-import { listCompanyAssetsForIT } from "@platform/api-client";
 import type { CompanySettings } from "@platform/database/types";
-import { serviceToken } from "../api/service-token";
+import { listTableRows } from "../api/tables";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import { DEFAULT_THEME, mix } from "@platform/database/constants/theme";
 import { PDF_FONT, registerPdfFont } from "./shared-styles";
@@ -53,12 +52,11 @@ export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBran
       resolveConfiguredPdfAsset(company?.full_logo_url).catch(() => undefined),
       resolveConfiguredPdfAsset(company?.stamp_url).catch(() => undefined),
       resolveConfiguredPdfAsset(company?.signature_url).catch(() => undefined),
-      serviceToken()
-        .then((token) => listCompanyAssetsForIT(token))
-        .catch(() => [] as Array<{ key?: string; assetKey?: string; fileUrl?: string }>),
+      listTableRows<Record<string, any>>("system", "company_asset").catch(() => []),
     ]);
     const asset = async (key: string) => {
-      const url = assets.find((a: any) => (a.key ?? a.assetKey) === key)?.fileUrl;
+      const match = assets.find((a: any) => (a.key ?? a.assetKey ?? a.asset_key) === key);
+      const url = match?.fileUrl ?? match?.file_url;
       return url ? resolveConfiguredPdfAsset(url).catch(() => undefined) : undefined;
     };
     const resolvedFullLogo = fullLogo || (await asset("full_logo_light"));

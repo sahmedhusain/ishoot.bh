@@ -320,7 +320,7 @@ export function PreferencesView() {
             <h2 className="text-sm font-bold text-ink flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
               <span>{copy.previewTitle}</span>
-              <span className="text-xs font-medium text-primary px-2.5 py-0.5 rounded-full bg-primary/10">
+              <span className="text-xs font-medium text-on-primary-container px-2.5 py-0.5 rounded-full bg-primary-container">
                 {targetScope === "admin" ? copy.adminScope : copy.webScope}
               </span>
             </h2>
@@ -328,7 +328,7 @@ export function PreferencesView() {
               {copy.previewSubtitle}
             </p>
           </div>
-          <span className="text-xs font-semibold text-primary">
+          <span className="text-xs font-semibold text-on-surface-variant">
             {selectedPreset
               ? copy.presets[selectedPreset as keyof typeof copy.presets].name
               : copy.custom}
@@ -476,7 +476,7 @@ export function PreferencesView() {
               ? copy.workspaceDescription
               : copy.webWorkspaceDescription}
           </p>
-          <span className="inline-flex mt-4 text-xs font-medium text-primary">
+          <span className="inline-flex mt-4 text-xs font-medium text-on-surface-variant">
             {selectedPreset
               ? copy.presets[selectedPreset as keyof typeof copy.presets].name
               : copy.custom}

@@ -269,19 +269,19 @@ export const deletePortfolioItem = (token: string, id: string) =>
   cmsFetch<void>(`/v1/cms/portfolio/id/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
 export const listSocialPlans = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/plans", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/plans", {}, token);
 
 export const listSocialPosts = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/posts", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/posts", {}, token);
 
 export const listSocialMetrics = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/metrics", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/metrics", {}, token);
 
 export const listSocialSnapshots = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/snapshots", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/snapshots", {}, token);
 
 export const listSocialPostSnapshots = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/post-snapshots", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/post-snapshots", {}, token);
 
 export const listSocialLinks = (token?: string) =>
-  cmsFetch<any[]>("/v1/cms/desk/social/links", {}, token);
+  cmsFetch<any[]>("/v1/cms/social/links", {}, token);

@@ -10,10 +10,9 @@ export async function getNextSequenceNumber(
 
   const rows = await listTableRows<any>("system", "reference_sequence").catch(() => []);
   const existing = rows.find((r) => r.id === sequenceId);
-  const nextNumber = (existing ? Number(existing.lastNumber ?? 0) : 0) + 1;
+  const nextNumber = (existing ? Number(existing.lastNumber ?? existing.last_number ?? 0) : 0) + 1;
 
   await upsertTableRow("system", "reference_sequence", {
-    ...(existing || {}),
     id: sequenceId,
     prefix,
     year: currentYear,

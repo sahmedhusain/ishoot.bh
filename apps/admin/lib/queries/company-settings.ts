@@ -9,10 +9,9 @@ import {
   getCompanySetupStatus,
   lookupFile,
   lookupFiles,
-  updateCompanyConfigurationForIT,
-  completeCompanySetupForIT,
+  updateCompanyConfiguration,
+  completeCompanySetupApi,
 } from "@platform/api-client";
-import { serviceToken } from "../api/service-token";
 import { assertSupportedCurrency } from "../constants/finance";
 import {
   isFontMimeType,
@@ -292,7 +291,7 @@ async function updateCompanySettingsInTransaction(
   )
     throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
 
-  const updated = await updateCompanyConfigurationForIT(await serviceToken(), {
+  const updated = await updateCompanyConfiguration({
     companyNameEn: updates.company_name_en,
     companyNameAr: updates.company_name_ar,
       crNumber: updates.cr_number,
@@ -363,6 +362,7 @@ async function updateCompanySettingsInTransaction(
       country: updates.country,
       mapUrl: updates.map_url,
     } as any,
+    "admin",
   );
   return mapSettings(updated);
 }
@@ -375,11 +375,15 @@ export async function getSetupCompleteness() {
 export async function updateCompanyTheme(
   input: BrandTheme,
 ): Promise<CompanySettings> {
-  throw new Error("updateCompanyTheme is not yet implemented via API");
+  const updated = await updateCompanyConfiguration(
+    { theme: normalizeTheme(input) as any },
+    "admin",
+  );
+  return mapSettings(updated);
 }
 
 export async function completeCompanySetup(): Promise<CompanySettings> {
-  await completeCompanySetupForIT(await serviceToken());
+  await completeCompanySetupApi("admin");
   return getCompanySettings();
 }
 

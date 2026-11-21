@@ -71,10 +71,18 @@ type AddressOverride = {
   is_default: boolean;
 };
 
-const customerMeta = new Map<string, CustomerMeta>();
-const customerWishlists = new Map<string, Set<string>>();
-const deletedAddressIds = new Set<string>();
-const addressOverrides = new Map<string, AddressOverride>();
+const customerStore = ((globalThis as unknown as Record<string, unknown>).__platformCustomerStore ??= {
+  customerMeta: new Map<string, CustomerMeta>(),
+  customerWishlists: new Map<string, Set<string>>(),
+  deletedAddressIds: new Set<string>(),
+  addressOverrides: new Map<string, AddressOverride>(),
+}) as {
+  customerMeta: Map<string, CustomerMeta>;
+  customerWishlists: Map<string, Set<string>>;
+  deletedAddressIds: Set<string>;
+  addressOverrides: Map<string, AddressOverride>;
+};
+const { customerMeta, customerWishlists, deletedAddressIds, addressOverrides } = customerStore;
 
 function checkName(name: string) {
   const clean = name.trim().replace(/\s+/g, " ").slice(0, 120);

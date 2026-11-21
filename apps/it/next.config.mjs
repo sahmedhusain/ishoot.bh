@@ -68,6 +68,10 @@ const nextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async rewrites() {
+    const apiBase = (process.env.API_URL || "http://localhost:8080").replace(/\/$/, "");
+    return [{ source: "/v1/:path*", destination: `${apiBase}/v1/:path*` }];
+  },
 };
 
 export default nextConfig;

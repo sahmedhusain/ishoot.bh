@@ -240,11 +240,40 @@ export async function getRouteSheet(id: string) {
   const vehicle = sheet.vehicleId
     ? (vehicles as any[]).find((v) => v.id === sheet.vehicleId)
     : null;
-  const stops = (shipments as any[]).filter((s) => s.routeSheetId === id);
+  const driverEn = driver ? nameEn(driver) : "";
+  const driverAr = driver ? nameAr(driver) : "";
+  const stops = (shipments as any[])
+    .filter((s) => s.routeSheetId === id)
+    .map((s, idx) => ({
+      id: String(s.id),
+      stop: s.stopOrder ?? idx + 1,
+      recipient: String(s.recipientName ?? ""),
+      phone: String(s.recipientPhone ?? ""),
+      status: String(s.status ?? "pending"),
+      currency: String(s.currency ?? "BHD"),
+      cod_amount: num(s.codAmount),
+      address: (s.address && typeof s.address === "object" ? s.address : {}) as {
+        line1?: string;
+        line2?: string;
+        area?: string;
+        city?: string;
+      },
+      slot:
+        s.slotStart && s.slotEnd
+          ? { start: String(s.slotStart), end: String(s.slotEnd) }
+          : (s.slot ?? null),
+      items: Array.isArray(s.items)
+        ? (s.items as Array<{ description: string; quantity: number }>)
+        : [],
+    }));
   return {
     ...sheet,
-    driver_en: driver ? nameEn(driver) : "",
-    driver_ar: driver ? nameAr(driver) : "",
+    number: String(sheet.sheetNumber ?? sheet.number ?? sheet.id),
+    date: String(sheet.runDate ?? sheet.plannedDate ?? sheet.createdAt ?? new Date().toISOString()),
+    note: String(sheet.note ?? sheet.notes ?? ""),
+    driver: { name_en: driverEn, name_ar: driverAr },
+    driver_en: driverEn,
+    driver_ar: driverAr,
     vehicle: vehicle?.name ?? "",
     stops,
   };

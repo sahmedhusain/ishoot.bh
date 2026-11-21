@@ -19,14 +19,17 @@ function Avatar({ name, url, size = "h-8 w-8" }: { name: string; url: string | n
   );
 }
 
-export function OrgChartView({ departments, unassigned }: { departments: OrgChartNode[]; unassigned: number }) {
+export function OrgChartView({ departments = [], unassigned = 0 }: { departments: OrgChartNode[]; unassigned: number }) {
   const { t, locale } = useAdminLocale();
   const copy = t.orgChart;
   const ar = locale === "ar";
-  const children = (parent: string | null) => departments.filter((d) => d.parent_id === parent || (parent === null && d.parent_id && !departments.some((p) => p.id === d.parent_id)));
+  const safeDepartments = departments || [];
+  const children = (parent: string | null) => safeDepartments.filter((d) => d.parent_id === parent || (parent === null && d.parent_id && !safeDepartments.some((p) => p.id === d.parent_id)));
 
   const renderNode = (node: OrgChartNode, depth: number): React.ReactNode => {
     const kids = children(node.id);
+    const people = node.people || [];
+    const count = node.count ?? people.length;
     return (
       <li key={node.id} className="relative">
         <details open={depth < 2} className="group">
@@ -39,7 +42,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-[11px] text-ink-muted">
                   <Users className="w-3.5 h-3.5" />
-                  {formatMessage(copy.people, { count: node.count })}
+                  {formatMessage(copy.people, { count })}
                   {kids.length > 0 && <ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />}
                 </span>
               </div>
@@ -63,16 +66,16 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
                   </span>
                 )}
               </div>
-              {node.people.length > 0 && (
+              {people.length > 0 && (
                 <div className="mt-3 flex items-center gap-1" aria-label={copy.members}>
-                  {node.people.map((person, index) => (
+                  {people.map((person, index) => (
                     <span key={index} title={ar && person.name_ar ? person.name_ar : person.name} className="-ms-1 first:ms-0 ring-2 ring-surface rounded-full">
                       <Avatar name={person.name} url={person.avatar_url} size="h-7 w-7" />
                     </span>
                   ))}
-                  {node.count > node.people.length && (
+                  {count > people.length && (
                     <Link href={`${ROUTES.directory}?departmentId=${node.id}`} className="ms-2 text-[11px] font-semibold text-primary dark:text-mint">
-                      {formatMessage(copy.more, { count: node.count - node.people.length })}
+                      {formatMessage(copy.more, { count: count - people.length })}
                     </Link>
                   )}
                 </div>

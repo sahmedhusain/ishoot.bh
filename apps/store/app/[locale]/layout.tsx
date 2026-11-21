@@ -95,7 +95,7 @@ export default async function LocaleLayout({
       <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={storeBaseTone(config.design, config.design.defaultMode)} data-site-tone={storeBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-density={config.design.density} data-corners={corners} data-borders={borders} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}
         <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
-          <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
+          <Script id="site-theme-init" strategy="afterInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
           {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
           <WebsiteOffline company={company} locale={locale} t={t} />
         </body>
@@ -110,7 +110,7 @@ export default async function LocaleLayout({
         className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-paper ${isRTL ? "font-arabic" : "font-sans"}`}
         data-activity={info.activity}
       >
-        <Script id="site-theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
+        <Script id="site-theme-init" strategy="afterInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: storeThemeBootstrap(config.design) }} />
         {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
         <a
           href="#main-content"
@@ -159,7 +159,9 @@ export async function generateMetadata({
   const companyName = pickText(company.company_name_en, company.company_name_ar, locale);
   const title = pickText(config.seo.titleEn, config.seo.titleAr, locale) || formatMessage(seo.title, { companyName });
   const description =
-    pickText(config.seo.descriptionEn, config.seo.descriptionAr, locale) || pickText(company.tagline_en, company.tagline_ar, locale) || seo.description;
+    pickText(config.seo.descriptionEn, config.seo.descriptionAr, locale) ||
+    pickText(company.tagline_en, company.tagline_ar, locale) ||
+    formatMessage(seo.description, { companyName });
   return {
     title,
     description,

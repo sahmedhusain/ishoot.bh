@@ -534,6 +534,10 @@ html[data-borders="defined"] body {
   padding: 24px;
   background: transparent;
 }
+body:has([data-modal-container]) nextjs-portal {
+  display: none !important;
+  pointer-events: none !important;
+}
 [data-modal-backdrop] {
   position: absolute;
   inset: 0;

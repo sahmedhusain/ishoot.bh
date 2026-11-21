@@ -6,6 +6,7 @@ import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
 import { serverMessages } from "@platform/locales";
 import { runAtomicMutation } from "../api/atomic";
+import { listEntityAttachments } from "../api/files";
 import { listTableRows, upsertTableRow } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 import { allocateDocumentNumber } from "../finance/numbering";
@@ -802,7 +803,7 @@ export async function getOrder(id: string) {
     listTableRows<Record<string, any>>("commerce", "sales_order_event", "created_at ASC"),
     listTableRows<Record<string, any>>("identity", "user"),
     listTableRows<Record<string, any>>("finance", "invoice"),
-    listTableRows<Record<string, any>>("notify", "attachment", "created_at ASC"),
+    listEntityAttachments({ entityType: "sales_order", entityId: id }).catch(() => []),
   ]);
   const o = orders.find((r) => r.id === id);
   if (!o) return null;
@@ -1358,14 +1359,27 @@ export async function saleProductOptions() {
       name_en: String(p.nameEn ?? ""),
       name_ar: String(p.nameAr ?? ""),
       price: num(p.price),
-      variants: variants.map((v) => ({
-        id: String(v.id),
-        sku: String(v.sku ?? ""),
-        barcode: String(v.barcode ?? ""),
-        label_en: variantLabel(options, v.optionValues, "en"),
-        label_ar: variantLabel(options, v.optionValues, "ar"),
-        price: v.price == null ? num(p.price) : num(v.price),
-      })),
+      variants: variants.map((v) => {
+        const vals = Array.isArray(v.optionValues)
+          ? v.optionValues
+          : Array.isArray(v.attributes)
+            ? v.attributes
+            : v.attributes && typeof v.attributes === "object"
+              ? Object.values(v.attributes).map(String)
+              : [];
+        return {
+          id: String(v.id),
+          sku: String(v.sku ?? ""),
+          barcode: String(v.barcode ?? ""),
+          label_en:
+            variantLabel(options, vals, "en") ||
+            String(v.nameEn ?? v.sku ?? ""),
+          label_ar:
+            variantLabel(options, vals, "ar") ||
+            String(v.nameAr ?? v.nameEn ?? v.sku ?? ""),
+          price: v.price == null ? num(p.price) : num(v.price),
+        };
+      }),
     };
   });
 }

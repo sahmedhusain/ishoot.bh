@@ -3,6 +3,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 	"github.com/labstack/echo/v4"
@@ -50,9 +51,9 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.GET("/articles/id/:id", h.getArticleByID)
 	desk.PUT("/articles/:id", h.updateArticle)
 	desk.DELETE("/articles/:id", h.deleteArticle)
-	desk.POST("/reviews", h.createReview)
 	desk.PUT("/reviews/:id", h.updateReview)
 	desk.DELETE("/reviews/:id", h.deleteReview)
+	e.POST("/v1/cms/reviews", h.createReview, authMiddleware, authz.ServiceCallers(opts.Readers, append(slices.Clone(opts.Writers), "web")))
 	desk.POST("/faqs", h.createFAQ)
 	desk.PUT("/faqs/:id", h.updateFAQ)
 	desk.DELETE("/faqs/:id", h.deleteFAQ)

@@ -9,9 +9,20 @@ import {
   zoneForAddress,
   type DeliveryMode,
 } from "../constants/delivery";
+import { randomUUID } from "node:crypto";
 import { isFeatureEnabled } from "./features";
 import { getCompanySettings } from "./company-settings";
-import { getDeliverySettings as getDeliverySettingsApi, listDeliveryZones as listDeliveryZonesApi, upsertDeliverySettings, listDeliverySlots, createDeliveryZone } from "@platform/api-client";
+import {
+  getDeliverySettings as getDeliverySettingsApi,
+  listDeliveryZones as listDeliveryZonesApi,
+  upsertDeliverySettings,
+  listDeliverySlots,
+  createDeliveryZone,
+  createShipment as createShipmentApi,
+  listShipments as listShipmentsApi,
+  moveShipmentStatusApi,
+} from "@platform/api-client";
+import { getNextSequenceNumber } from "./sequence";
 
 type Tx = any;
 const num = (value: any) => value == null ? 0 : Number(value.toString());
@@ -254,7 +265,7 @@ export interface ShipmentSlotChoice {
 }
 
 export async function createShipmentForOrder(
-  tx: any,
+  _tx: any,
   order: any,
   choice: {
     zoneId: string | null;
@@ -262,14 +273,64 @@ export async function createShipmentForOrder(
     requireSlot: boolean;
   },
 ) {
-  throw new Error("createShipmentForOrder must be implemented as a single API call in Go backend");
+  const settings = await getDeliverySettingsApi();
+  const slaHours = Number(settings?.slaHours || 48);
+  const promised = new Date(Date.now() + slaHours * 3600_000).toISOString();
+  const slots = choice.zoneId
+    ? await listDeliverySlots(choice.zoneId).catch(() => [])
+    : [];
+  const pickedSlot = choice.slot?.slotId
+    ? (slots as any[]).find((s) => s.id === choice.slot?.slotId)
+    : null;
+  const number = await getNextSequenceNumber("SHP");
+  const addr = (order?.shippingAddress ?? order?.address ?? {}) as Record<string, unknown>;
+  const codAmount =
+    order?.paymentMethod === "cod" ? String(Number(order?.total ?? 0)) : "0";
+  return createShipmentApi({
+    number,
+    orderId: order.id,
+    status: "pending",
+    method: settings?.mode === "agency" ? "agency" : "own",
+    zoneId: choice.zoneId ?? null,
+    slotId: choice.slot?.slotId ?? null,
+    slotDate: choice.slot?.date ?? null,
+    slotStart: pickedSlot?.slotStart ?? pickedSlot?.start ?? null,
+    slotEnd: pickedSlot?.slotEnd ?? pickedSlot?.end ?? null,
+    promisedBy: promised,
+    recipientName: String(order?.name ?? addr?.name ?? "Customer"),
+    recipientPhone: String(order?.phone ?? addr?.phone ?? ""),
+    address: addr,
+    codAmount,
+    codCollected: "0",
+    trackingToken: randomUUID(),
+  } as any);
 }
 
 export async function followOrderStatus(
-  tx: any,
+  _tx: any,
   orderId: string,
   status: string,
   byId: string | null,
 ) {
-  throw new Error("followOrderStatus must be implemented as a single API call in Go backend");
+  const shipments = await listShipmentsApi().catch(() => []);
+  const matching = (shipments || []).filter((s) => s.orderId === orderId);
+  if (status === "cancelled") {
+    for (const s of matching) {
+      if (!["delivered", "cancelled", "returned"].includes(s.status)) {
+        await moveShipmentStatusApi(s.id, {
+          to: "cancelled",
+          actorId: byId ?? undefined,
+        }).catch(() => null);
+      }
+    }
+  } else if (status === "delivered") {
+    for (const s of matching) {
+      if (!["delivered", "cancelled", "returned"].includes(s.status)) {
+        await moveShipmentStatusApi(s.id, {
+          to: "delivered",
+          actorId: byId ?? undefined,
+        }).catch(() => null);
+      }
+    }
+  }
 }

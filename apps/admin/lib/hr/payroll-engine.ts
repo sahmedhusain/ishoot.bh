@@ -54,7 +54,16 @@ export const r3 = (value: number) =>
   Math.round((value + Number.EPSILON) * 1000) / 1000;
 const r2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-export const dayKey = (date: Date) => date.toISOString().slice(0, 10);
+export const dayKey = (date: Date | string | null | undefined) => {
+  if (!date) return "";
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+  }
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime())
+    ? String(date).slice(0, 10)
+    : parsed.toISOString().slice(0, 10);
+};
 export const utcDay = (year: number, monthIndex: number, day: number) =>
   new Date(Date.UTC(year, monthIndex, day));
 export const daysInMonth = (year: number, month: number) =>

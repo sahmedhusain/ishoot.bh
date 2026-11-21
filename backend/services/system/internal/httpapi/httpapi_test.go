@@ -237,6 +237,100 @@ func TestModules(t *testing.T) {
 		app.EventSiteCodeChanged:	1,
 	}, counts)
 }
+
+func TestDeskCompanyGovernanceLegacyBusinessActivity(t *testing.T) {
+	ctx := context.Background()
+	logger := logx.New(io.Discard, logx.Options{})
+	pool, err := db.Open(ctx, db.Config{URL: testkit.Postgres(t), MaxConns: 4, MaxConnLifetime: time.Minute,
+		MaxConnIdleTime: time.Minute, HealthCheckPeriod: time.Minute, StatementTimeout: 10 * time.Second}, logger.Logger)
+	require.NoError(t, err)
+	t.Cleanup(pool.Close)
+	require.NoError(t, migrate.Run(ctx, pool, migrate.Options{Schema: "system", Migrations: migrations.FS, Logger: logger.Logger}))
+
+	var cfg config.Common
+	require.NoError(t, config.LoadFrom(&cfg, map[string]string{"SERVICE_NAME": "system", "APP_ENV": "test"}))
+	e, err := httpx.New(cfg, logger, nil)
+	require.NoError(t, err)
+	admin, identity := authntest.NewServiceSigner(t, "admin"), authntest.NewSigner(t, "identity-1")
+	ring, err := secrets.NewKeyring(secrets.Config{Keys: []string{"primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="}, PrimaryKeyID: "primary"})
+	require.NoError(t, err)
+	httpapi.Register(e, app.New(postgres.New(pool), ring), httpapi.Options{
+		Verifier:         authn.NewVerifier(time.Second, admin.Trust(), identity.Trust()),
+		CompanyReaders:   []string{"admin"},
+		CompanyWriters:   []string{"admin"},
+		CompanyBodyLimit: 64 << 10,
+		JSONBodyLimit:    4096,
+	})
+
+	legacyData := map[string]any{
+		"id":                          "c0000000-0000-0000-0000-000000000001",
+		"companyNameEn":               "Zayed Test Group",
+		"companyNameAr":               "مجموعة زايد للاختبار",
+		"vatEnabled":                  false,
+		"vatPercentage":               "10.00",
+		"defaultCurrency":             "BHD",
+		"currencyDecimals":            3,
+		"paymentTermsDays":            30,
+		"invoicePrefix":               "ZDG",
+		"invoiceNextNumber":           1,
+		"receiptPrefix":               "RCT",
+		"receiptNextNumber":           1,
+		"defaultDiscountLimitPercent": "5.00",
+		"quotationsAlwaysNeedApproval": false,
+		"contentLanguages":            []string{"ar", "en"},
+		"primaryLanguage":             "ar",
+		"businessActivity":            "all",
+		"updatedAt":                   time.Now().UTC().Format(time.RFC3339),
+	}
+	raw, err := json.Marshal(legacyData)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO system.company(id, data, updated_by) VALUES ($1, $2, 'seed')`, legacyData["id"], raw)
+	require.NoError(t, err)
+
+	doc, err := openapi3.NewLoader().LoadFromData(api.OpenAPI)
+	require.NoError(t, err)
+	router, err := gorillamux.NewRouter(doc)
+	require.NoError(t, err)
+	itToken := identity.Sign(t, authntest.Token{Subject: "it-1", Realm: authn.RealmIT, Roles: []string{"it_admin"}})
+
+	call := func(payload any) *httptest.ResponseRecorder {
+		body, _ := json.Marshal(payload)
+		req := httptest.NewRequest(http.MethodPut, "/v1/system/desk/company", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+itToken)
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		route, params, err := router.FindRoute(httptest.NewRequest(http.MethodPut, "http://localhost/v1/system/desk/company", nil))
+		require.NoError(t, err)
+		input := &openapi3filter.ResponseValidationInput{
+			RequestValidationInput: &openapi3filter.RequestValidationInput{Request: req, PathParams: params, Route: route,
+				Options: &openapi3filter.Options{AuthenticationFunc: openapi3filter.NoopAuthenticationFunc}},
+			Status: rec.Code, Header: rec.Header(), Options: &openapi3filter.Options{IncludeResponseStatus: true},
+		}
+		input.SetBodyBytes(rec.Body.Bytes())
+		require.NoError(t, openapi3filter.ValidateResponse(ctx, input), "response breaks contract: %s", rec.Body)
+		return rec
+	}
+
+	okRec := call(map[string]any{
+		"values": map[string]any{
+			"adminAllowedSettings": map[string]bool{"company": true, "web": true},
+		},
+	})
+	require.Equal(t, http.StatusOK, okRec.Code, okRec.Body.String())
+	var updated app.CompanyRecord
+	require.NoError(t, json.Unmarshal(okRec.Body.Bytes(), &updated))
+	require.NotNil(t, updated.AdminAllowedSettings)
+	assert.True(t, updated.AdminAllowedSettings.Company)
+	assert.True(t, updated.AdminAllowedSettings.Web)
+	require.NotNil(t, updated.BusinessActivity)
+	assert.Equal(t, "all", *updated.BusinessActivity)
+
+	badRec := call(map[string]any{
+		"values": map[string]any{"businessActivity": "invalid_activity"},
+	})
+	assert.Equal(t, http.StatusUnprocessableEntity, badRec.Code, badRec.Body.String())
+}
 func checkEvent(t *testing.T, subject string, payload []byte) {
 	t.Helper()
 	raw, err := os.ReadFile("../../../../contracts/events/" + subject + ".v1.json")

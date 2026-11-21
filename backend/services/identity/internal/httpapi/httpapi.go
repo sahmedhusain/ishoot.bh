@@ -25,11 +25,57 @@ type Handler struct {
 func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, issuer *tokens.Issuer, login *accounts.Service, limit int64, callers map[authn.Realm][]string) {
 	h := &Handler{sessions: svc, issuer: issuer, login: login, limit: limit, callers: callers}
 	e.GET("/.well-known/jwks.json", h.jwks)
-	g := e.Group("/v1/identity/:realm/sessions", func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
-	}, authn.Require(verifier, authn.RealmService))
+	registerSessions := func(prefix string, fixed authn.Realm) {
+		g := e.Group(prefix, func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
+		}, authn.Require(verifier, authn.RealmService))
+		resolve := func(c echo.Context) (authn.Realm, error) {
+			if fixed != "" {
+				return h.realmCheck(c, fixed)
+			}
+			return h.realm(c)
+		}
+		readBody := func(c echo.Context) (authn.Realm, string, error) {
+			c.Response().Header().Set("Cache-Control", "no-store")
+			r, err := resolve(c)
+			if err != nil {
+				return "", "", err
+			}
+			var in refreshRequest
+			if err := httpx.BindJSON(c, &in, h.limit); err != nil {
+				return "", "", err
+			}
+			return r, in.Token, nil
+		}
+		if login != nil {
+			g.POST("/login", func(c echo.Context) error {
+				r, err := resolve(c)
+				if err != nil {
+					return err
+				}
+				return h.loginPasswordWithRealm(c, r)
+			})
+		}
+		g.POST("/refresh", func(c echo.Context) error {
+			r, token, err := readBody(c)
+			if err != nil {
+				return err
+			}
+			return h.refreshWithRealm(c, r, token)
+		})
+		g.POST("/logout", func(c echo.Context) error {
+			r, token, err := readBody(c)
+			if err != nil {
+				return err
+			}
+			return h.logoutWithRealm(c, r, token)
+		})
+	}
+	for _, fixedRealm := range []authn.Realm{authn.RealmStaff, authn.RealmCustomer, authn.RealmIT} {
+		registerSessions("/v1/identity/"+string(fixedRealm)+"/sessions", fixedRealm)
+	}
+	registerSessions("/v1/identity/:realm/sessions", "")
 	if login != nil {
-		g.POST("/login", h.loginPassword)
 		user := e.Group("/v1/identity", func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
 		}, authn.Require(issuer.Verifier(), authn.UserRealms...))
@@ -39,8 +85,6 @@ func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, iss
 		user.POST("/mfa/enrollment/confirm", h.confirmMFA)
 		user.POST("/mfa/disable", h.disableMFA)
 	}
-	g.POST("/refresh", h.refresh)
-	g.POST("/logout", h.logout)
 }
 func (h *Handler) jwks(c echo.Context) error {
 	return c.Blob(http.StatusOK, echo.MIMEApplicationJSON, h.issuer.JWKS())
@@ -60,23 +104,14 @@ func (h *Handler) realm(c echo.Context) (authn.Realm, error) {
 	if err != nil || r == authn.RealmService {
 		return "", problem.BadRequest("invalid realm")
 	}
+	return h.realmCheck(c, r)
+}
+func (h *Handler) realmCheck(c echo.Context, r authn.Realm) (authn.Realm, error) {
 	principal, ok := authn.PrincipalFrom(c.Request().Context())
 	if !ok || principal.Realm != authn.RealmService || !slices.Contains(h.callers[r], principal.Subject) {
 		return "", problem.Unauthenticated("")
 	}
 	return r, nil
-}
-func (h *Handler) read(c echo.Context) (authn.Realm, string, error) {
-	c.Response().Header().Set("Cache-Control", "no-store")
-	r, err := h.realm(c)
-	if err != nil {
-		return "", "", err
-	}
-	var in refreshRequest
-	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
-		return "", "", err
-	}
-	return r, in.Token, nil
 }
 func sessionError(err error) error {
 	if errors.Is(err, sessions.ErrInvalid) || errors.Is(err, sessions.ErrReuse) {
@@ -84,11 +119,7 @@ func sessionError(err error) error {
 	}
 	return err
 }
-func (h *Handler) refresh(c echo.Context) error {
-	r, token, err := h.read(c)
-	if err != nil {
-		return err
-	}
+func (h *Handler) refreshWithRealm(c echo.Context, r authn.Realm, token string) error {
 	if h.login != nil {
 		now := time.Now().UTC()
 		result, err := h.login.Refresh(c.Request().Context(), r, token, now)
@@ -111,11 +142,7 @@ func (h *Handler) refresh(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, refreshResponse{SessionID: cred.Family.ID, SubjectID: cred.Family.SubjectID, Realm: cred.Family.Realm, ExpiresAt: cred.Family.ExpiresAt, RefreshToken: cred.Token})
 }
-func (h *Handler) logout(c echo.Context) error {
-	r, token, err := h.read(c)
-	if err != nil {
-		return err
-	}
+func (h *Handler) logoutWithRealm(c echo.Context, r authn.Realm, token string) error {
 	if err := h.sessions.Logout(c.Request().Context(), r, token, time.Now()); err != nil {
 		return sessionError(err)
 	}
@@ -133,11 +160,7 @@ type loginResponse struct {
 	AccessToken	string		`json:"accessToken"`
 	Roles		[]string	`json:"roles"`
 }
-func (h *Handler) loginPassword(c echo.Context) error {
-	r, err := h.realm(c)
-	if err != nil {
-		return err
-	}
+func (h *Handler) loginPasswordWithRealm(c echo.Context, r authn.Realm) error {
 	var in loginRequest
 	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
 		return err

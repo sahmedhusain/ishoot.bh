@@ -331,19 +331,19 @@ export const deleteCampaign = (id: string, token?: string) =>
   salesFetch<void>(`/v1/sales/campaigns/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
 export const listCannedReplies = (token?: string) =>
-  salesFetch<any[]>("/v1/sales/canned-replies", {}, token);
+  salesFetch<any[]>("/v1/system/tables/canned_reply", {}, token);
 
 export const listRequestEvents = (token?: string) =>
-  salesFetch<any[]>("/v1/sales/request-events", {}, token);
+  salesFetch<any[]>("/v1/system/tables/request_event", {}, token);
 
 export const listRequestComments = (token?: string) =>
-  salesFetch<any[]>("/v1/sales/request-comments", {}, token);
+  salesFetch<any[]>("/v1/system/tables/request_comment", {}, token);
 
 export const listRequestAssignments = (token?: string) =>
-  salesFetch<any[]>("/v1/sales/request-assignments", {}, token);
+  salesFetch<any[]>("/v1/system/tables/request_assignment", {}, token);
 
 export const listSalesAttributionChanges = (token?: string) =>
   salesFetch<any[]>("/v1/sales/attribution-changes", {}, token);
 
 export const listClientContacts = (token?: string) =>
-  salesFetch<any[]>("/v1/sales/client-contacts", {}, token);
+  salesFetch<any[]>("/v1/system/tables/client_contact_person", {}, token);

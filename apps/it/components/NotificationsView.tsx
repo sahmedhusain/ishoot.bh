@@ -81,10 +81,11 @@ function TestForm() {
   return (
     <form onSubmit={send} className="flex flex-wrap items-end gap-2 font-mono text-xs">
       <div>
-        <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+        <label htmlFor="notify-test-channel" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
           {n.channel}
         </label>
         <select
+          id="notify-test-channel"
           value={channel}
           onChange={(e) => setChannel(e.target.value)}
           className="it-field-sunken"
@@ -95,10 +96,11 @@ function TestForm() {
       </div>
 
       <div className="grow min-w-48">
-        <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+        <label htmlFor="notify-test-to" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
           {n.testTo}
         </label>
         <input
+          id="notify-test-to"
           value={to}
           onChange={(e) => setTo(e.target.value)}
           dir="ltr"
@@ -192,10 +194,11 @@ export function NotificationsView({
         <form onSubmit={handleApplyFilter} className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 text-xs font-mono">
 
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label htmlFor="notify-filter-status" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
               {n.status}
             </label>
             <select
+              id="notify-filter-status"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="it-field-sunken w-full"
@@ -208,10 +211,11 @@ export function NotificationsView({
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label htmlFor="notify-filter-channel" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
               {n.channel}
             </label>
             <select
+              id="notify-filter-channel"
               value={selectedChannel}
               onChange={(e) => setSelectedChannel(e.target.value)}
               className="it-field-sunken w-full"

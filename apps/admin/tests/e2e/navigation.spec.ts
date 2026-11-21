@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { watchErrors } from "./helpers/helpers";
 import { t } from "./helpers/locale";
+import { loginAsAdmin } from "./helpers/admin-audit";
 
 test("every sidebar destination renders", async ({ page }) => {
   test.setTimeout(20 * 60_000);
+  await loginAsAdmin(page);
   await page.goto("/dashboard");
   const links = await page
     .locator('aside a[href^="/dashboard"]')

@@ -249,8 +249,9 @@ export async function recordProofOfDelivery(
   return res.json();
 }
 
-export async function trackShipment(token: string): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/track/${token}`, {
+export async function trackShipment(token: string, authToken?: string): Promise<Shipment> {
+  const res = await fetch(`${apiUrl()}/v1/delivery/track/${encodeURIComponent(token)}`, {
+    headers: await headers(authToken),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!res.ok) throw await apiError(res);

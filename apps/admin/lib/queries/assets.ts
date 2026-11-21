@@ -187,10 +187,10 @@ export async function listAssetCategories(
 ): Promise<AssetCategoryRecord[]> {
   try {
     const [allRows, allAssets] = await Promise.all([
-      listTableRows<any>("itsm", "asset_category", "display_order ASC, created_at ASC"),
+      listTableRows<any>("itsm", "asset_category", "name_en ASC, code ASC"),
       listTableRows<any>("itsm", "asset").catch(() => []),
     ]);
-    const rows = includeInactive ? allRows : allRows.filter((r) => r.isActive);
+    const rows = includeInactive ? allRows : allRows.filter((r) => r.isActive !== false);
     const assetCountByCat = new Map<string, number>();
     for (const a of allAssets) {
       assetCountByCat.set(a.categoryId, (assetCountByCat.get(a.categoryId) ?? 0) + 1);
@@ -203,7 +203,7 @@ export async function listAssetCategories(
         name_ar: r.nameAr,
         spec_fields: asSpecFields(r.specFields),
         checklist: asChecklist(r.checklist),
-        is_active: !!r.isActive,
+        is_active: r.isActive !== false,
         assets: assetCountByCat.get(r.id) ?? 0,
       }));
     }
@@ -608,7 +608,7 @@ export async function getAsset(id: string) {
       listTableRows<any>("itsm", "asset"),
       listTableRows<any>("itsm", "asset_category").catch(() => []),
       listTableRows<any>("hr", "employee").catch(() => []),
-      listTableRows<any>("itsm", "asset_handover", "created_at DESC").catch(() => []),
+      listTableRows<any>("itsm", "asset_handover", "handover_date DESC, id DESC").catch(() => []),
     ]);
     const found = rawAssets.find((a) => a.id === id);
     if (found) {

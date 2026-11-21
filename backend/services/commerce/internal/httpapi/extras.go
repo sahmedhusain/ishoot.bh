@@ -17,7 +17,7 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 			return c.JSONBlob(http.StatusOK, raw)
 		}
 	}
-	g.GET("/retail/closings", list("retail_closing", "created_at DESC"))
+	g.GET("/retail/closings", list("retail_closing", "closed_at DESC"))
 	g.GET("/regions", list("store_region", "code ASC"))
 	g.GET("/segments", list("customer_segment", "name ASC"))
 

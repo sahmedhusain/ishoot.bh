@@ -37,7 +37,9 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
   const locations = useLocationOptions(warehouses);
   const keys = variants.length ? variants.map((v) => v.id) : [""];
   const label = (key: string) => variants.find((v) => v.id === key)?.label ?? "";
-  const item = (key: string) => stock.items.find((i) => i.variant_key === key);
+  const stockItems = Array.isArray(stock?.items) ? stock.items : [];
+  const stockLevels = Array.isArray(stock?.levels) ? stock.levels : [];
+  const item = (key: string) => stockItems.find((i) => i.variant_key === key);
   const [levels, setLevels] = React.useState(() => Object.fromEntries(keys.map((key) => [key, { reorderPoint: item(key)?.reorder_point?.toString() ?? "", reorderQuantity: item(key)?.reorder_quantity?.toString() ?? "" }])));
   const [changeFor, setChangeFor] = React.useState<string | null>(null);
   const [pick, setPick] = React.useState(keys[0]);
@@ -82,7 +84,7 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
 
       <div>
         <h3 className="text-xs font-semibold text-ink-muted mb-2">{copy.levels}</h3>
-        {stock.levels.length === 0 ? (
+        {stockLevels.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noStock}</p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-outline-variant">
@@ -97,7 +99,7 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
-                {stock.levels.map((l, index) => (
+                {stockLevels.map((l, index) => (
                   <tr key={index}>
                     {variants.length > 0 && <td className="px-3 py-2">{label(l.variant_key)}</td>}
                     <td className="px-3 py-2 font-mono text-xs" dir="ltr">{l.location}</td>

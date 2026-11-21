@@ -20,11 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase,
     title,
-    description: seo.description,
+    description: formatMessage(seo.description, values),
     ...(company.icon_url ? { icons: { icon: company.icon_url } } : {}),
     openGraph: {
       title,
-      description: seo.description,
+      description: formatMessage(seo.description, values),
       url: metadataBase.href,
       siteName: company.company_name_en,
       images: company.logo_url

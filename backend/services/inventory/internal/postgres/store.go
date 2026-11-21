@@ -93,7 +93,50 @@ func (s *Store) CreateStockMovement(ctx context.Context, p sqlcdb.CreateStockMov
 	return s.q.CreateStockMovement(ctx, p)
 }
 func (s *Store) ListStockMovementsByProduct(ctx context.Context, p sqlcdb.ListStockMovementsByProductParams) ([]StockMovement, error) {
-	return s.q.ListStockMovementsByProduct(ctx, p)
+	items, err := s.q.ListStockMovementsByProduct(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		return []StockMovement{}, nil
+	}
+	return items, nil
+}
+func (s *Store) ListRecentStockMovements(ctx context.Context, limit int32) ([]StockMovement, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, movement_type, product_id, variant_id, location_id, quantity, unit_cost, source_type, source_id, transfer_id, reason, note, created_by_id, created_at
+		FROM inventory.stock_movement
+		ORDER BY created_at DESC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := make([]StockMovement, 0)
+	for rows.Next() {
+		var i StockMovement
+		if err := rows.Scan(
+			&i.ID,
+			&i.MovementType,
+			&i.ProductID,
+			&i.VariantID,
+			&i.LocationID,
+			&i.Quantity,
+			&i.UnitCost,
+			&i.SourceType,
+			&i.SourceID,
+			&i.TransferID,
+			&i.Reason,
+			&i.Note,
+			&i.CreatedByID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	return items, rows.Err()
 }
 func (s *Store) ListStockCounts(ctx context.Context) ([]StockCount, error) {
 	return s.q.ListStockCounts(ctx)

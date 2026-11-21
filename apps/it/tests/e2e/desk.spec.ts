@@ -1,35 +1,20 @@
-import fs from "node:fs";
-import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { createTicket } from "@platform/api-client";
-import { ports } from "../../playwright.config";
-import t from "@platform/locales/ar.json";
+import t from "@platform/locales/en.json";
 import { watchErrors } from "./helpers/helpers";
-import { totp } from "./helpers/totp";
+import { selectOption } from "./helpers/select-option";
+import { loadItAccount } from "./helpers/strict-audit";
+import { freshTotp } from "./helpers/totp";
 
-const accountFile = path.resolve(
-  process.env.E2E_IT_ACCOUNT_FILE ||
-    path.join(__dirname, "../../.results/it-account.json"),
-);
+const WEB_URL = (process.env.WEB_URL || "http://localhost:3000").replace(/\/$/, "");
+const IT_URL = (process.env.IT_URL || "http://localhost:3002").replace(/\/$/, "");
 
 test.describe.configure({ mode: "serial" });
 
 test("IT works a ticket from the desk", async ({ page, browser }) => {
-
   test.slow();
-  test.skip(
-    !fs.existsSync(accountFile),
-    "run node tests/e2e/it-account.cjs first",
-  );
-  require("dotenv").config({
-    path: path.resolve(__dirname, "../../../../.env"),
-    quiet: true,
-  });
-  const account = JSON.parse(fs.readFileSync(accountFile, "utf8")) as {
-    email: string;
-    password: string;
-    secret: string;
-  };
+  const account = loadItAccount();
+  const rootUsername = account.username || process.env.IT_ADMIN_USERNAME || "BA0001";
   const title = `E2E printer ${Date.now()}`;
   await createTicket({
     requesterId: "e2e-employee",
@@ -41,22 +26,23 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     description: "The printer on the second floor jams.",
   });
   const watch = watchErrors(page);
+  const nav = page.getByRole("navigation", { name: "Navigation menu" });
 
   await page.goto("/login");
-  await page.getByLabel(t.login.email).fill(account.email);
-  await page.getByLabel(t.login.password).fill(account.password);
+  await page.locator('input[name="username"]').fill(rootUsername);
+  await page.locator('input[name="password"]').fill(account.password);
   await page.getByRole("button", { name: t.login.submit }).click();
-  await page.getByLabel(t.login.otp).fill(totp(account.secret));
+  await page.locator('input[name="otp"]').fill(await freshTotp(account.secret));
   await page.getByRole("button", { name: t.login.verify }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(
     page.getByRole("heading", { name: t.overview.title }),
   ).toBeVisible();
-  await expect(page.getByText(account.email)).toBeVisible();
+  await expect(page.getByText(new RegExp(rootUsername, "i")).first()).toBeVisible();
   await expect(page.getByText(t.overview.open, { exact: true })).toBeVisible();
   await expect(page.getByText(t.overview.unavailable)).toHaveCount(0);
 
-  await page.getByRole("link", { name: t.nav.tickets }).click();
+  await nav.getByRole("link", { name: t.nav.tickets }).click();
   await expect(page).toHaveURL(/\/tickets$/);
   await expect(
     page.getByRole("heading", { name: t.tickets.title }),
@@ -74,7 +60,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   ).toHaveCount(0);
 
   await page.getByRole("radio", { name: t.tickets.note }).click();
-  await page.getByLabel(t.tickets.note).fill("Toner order placed.");
+  await page.getByRole("textbox", { name: t.tickets.note }).fill("Toner order placed.");
   await page.getByRole("button", { name: t.tickets.send }).click();
   await expect(page.getByText("Toner order placed.")).toBeVisible();
 
@@ -87,36 +73,59 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     page.getByText(t.statuses.resolved, { exact: true }).first(),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: t.nav.sla }).click();
+  await nav.getByRole("link", { name: t.nav.sla }).click();
   const response = page.getByLabel(`${t.priorities.low} ${t.sla.response}`);
   const resolve = page.getByLabel(`${t.priorities.low} ${t.sla.resolve}`);
   const before = await response.inputValue();
+  const beforeResolve = await resolve.inputValue();
   await response.fill("2000");
   await resolve.fill("1000");
-  await page
-    .getByRole("row", { name: new RegExp(t.priorities.low) })
-    .getByRole("button", { name: t.sla.save })
-    .click();
+  const lowRow = page.getByRole("row", { name: new RegExp(t.priorities.low) });
+  await lowRow.getByRole("button", { name: t.sla.save }).click();
   await expect(page.getByText(t.sla.failed)).toBeVisible();
   await response.fill(String(Number(before) + 1));
   await resolve.fill("10080");
-  await page
-    .getByRole("row", { name: new RegExp(t.priorities.low) })
-    .getByRole("button", { name: t.sla.save })
-    .click();
+  await lowRow.getByRole("button", { name: t.sla.save }).click();
   await expect(page.getByText(t.sla.saved)).toBeVisible();
+  await expect(lowRow.getByRole("button", { name: t.sla.save })).toBeDisabled({ timeout: 10_000 });
   await expect(response).toHaveValue(String(Number(before) + 1));
+  await response.fill(before);
+  await resolve.fill(beforeResolve);
+  await lowRow.getByRole("button", { name: t.sla.save }).click();
+  await expect(page.getByText(t.sla.saved).first()).toBeVisible();
+  await expect(lowRow.getByRole("button", { name: t.sla.save })).toBeDisabled({ timeout: 10_000 });
 
-  await page.getByRole("link", { name: t.nav.modules }).click();
-  const reviews = page.getByRole("switch", { name: "تقييمات العملاء" });
-  const wasOn = (await reviews.getAttribute("aria-checked")) === "true";
-  await reviews.click();
-  await expect(page.getByText(t.modules.saved).first()).toBeVisible();
-  await expect(reviews).toHaveAttribute("aria-checked", String(!wasOn));
-  await reviews.click();
-  await expect(reviews).toHaveAttribute("aria-checked", String(wasOn));
+  await nav.getByRole("link", { name: t.nav.modules }).click();
+  const reviewsCard = page
+    .locator(".it-card")
+    .filter({ has: page.locator('p[dir="ltr"]', { hasText: /^reviews$/ }) })
+    .first();
+  const reviewsBtn = reviewsCard.getByRole("button");
+  await expect(reviewsBtn).toBeVisible();
+  const wasOn = (await reviewsBtn.textContent())?.includes("[ON]") ?? false;
+  if (wasOn) {
+    await reviewsBtn.click();
+    const disableDialog = page.getByRole("alertdialog");
+    await expect(disableDialog).toBeVisible();
+    await disableDialog.locator("input").first().fill("DISABLE");
+    await disableDialog.getByRole("button", { name: t.criticalModal.confirm }).click();
+    await expect(page.getByText(t.modules.saved).first()).toBeVisible();
+    await expect(reviewsBtn).toContainText("[OFF]");
+    await reviewsBtn.click();
+    await expect(reviewsBtn).toContainText("[ON]");
+  } else {
+    await reviewsBtn.click();
+    await expect(page.getByText(t.modules.saved).first()).toBeVisible();
+    await expect(reviewsBtn).toContainText("[ON]");
+    await reviewsBtn.click();
+    const disableDialog = page.getByRole("alertdialog");
+    await expect(disableDialog).toBeVisible();
+    await disableDialog.locator("input").first().fill("DISABLE");
+    await disableDialog.getByRole("button", { name: t.criticalModal.confirm }).click();
+    await expect(reviewsBtn).toContainText("[OFF]");
+  }
 
-  await page.getByRole("link", { name: t.nav.integrations }).click();
+  await nav.getByRole("link", { name: t.nav.integrations }).click();
   await expect(page).toHaveURL(/\/integrations$/);
   await expect(
     page.getByRole("heading", { name: t.integrations.title }),
@@ -124,21 +133,36 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await expect(page.getByTestId("integration-resend")).toBeVisible();
   await expect(page.getByTestId("integration-stripe")).toBeVisible();
 
-  await page.getByRole("link", { name: t.nav.site }).click();
+  await nav.getByRole("link", { name: t.nav.site }).click();
   await expect(page.getByRole("heading", { name: t.site.title })).toBeVisible();
   const websiteDomain = page.getByLabel(t.site.domains.websiteLabel);
   const adminDomain = page.getByLabel(t.site.domains.adminLabel);
+  const origWebsite = await websiteDomain.inputValue();
+  const origAdmin = await adminDomain.inputValue();
   const saveDomains = page.getByRole("button", { name: t.site.domains.save });
   await websiteDomain.fill("e2e-site.example.com");
   await adminDomain.fill("e2e-site.example.com");
   await saveDomains.click();
+  const badDomainDialog = page.getByRole("dialog");
+  await expect(badDomainDialog).toBeVisible();
+  await badDomainDialog.locator('input[type="checkbox"]').check();
+  await badDomainDialog.locator('input[placeholder="CONFIRM"]').fill("CONFIRM");
+  await badDomainDialog.getByRole("button", { name: t.domainConfirmModal.confirmBtn }).click();
   await expect(page.getByText(t.site.domainsMustDiffer)).toBeVisible();
+  await badDomainDialog.getByRole("button", { name: t.domainConfirmModal.cancelBtn }).click();
+  await expect(badDomainDialog).toHaveCount(0);
   await adminDomain.fill("https://E2E-Admin.example.com/login");
   await saveDomains.click();
-  await expect(page.getByText(t.site.domains.saved)).toBeVisible();
+  const domainDialog = page.getByRole("dialog");
+  await expect(domainDialog).toBeVisible();
+  await domainDialog.locator('input[type="checkbox"]').check();
+  await domainDialog.locator('input[placeholder="CONFIRM"]').fill("CONFIRM");
+  await domainDialog.getByRole("button", { name: t.domainConfirmModal.confirmBtn }).click();
+  await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
   await expect(adminDomain).toHaveValue("e2e-admin.example.com");
   await expect(page.getByText("e2e-site.example.com").first()).toBeVisible();
 
+  await page.getByRole("button", { name: t.site.tabs.code }).click();
   const analytics = page.getByLabel(t.site.code.googleAnalyticsId);
   const head = page.getByLabel(t.site.code.headHtml);
   const saveCode = page.getByRole("button", { name: t.site.code.save });
@@ -149,7 +173,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await head.fill('<meta name="e2e-site-code">');
   await saveCode.click();
   await expect(page.getByText(t.site.code.saved)).toBeVisible();
-  const site = await page.request.get(`http://localhost:${ports.web}/en`);
+  const site = await page.request.get(`${WEB_URL}/en`);
   const html = await site.text();
   expect(html).toContain("G-E2E12345");
   expect(html).toContain("e2e-site-code");
@@ -158,47 +182,56 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   await head.fill("");
   await saveCode.click();
   await expect(page.getByText(t.site.code.saved).first()).toBeVisible();
-  await websiteDomain.fill("");
-  await adminDomain.fill("");
+
+  await page.getByRole("button", { name: t.site.tabs.domains }).click();
+  await websiteDomain.fill(origWebsite);
+  await adminDomain.fill(origAdmin);
   await saveDomains.click();
+  const restoreDomainDialog = page.getByRole("dialog");
+  await expect(restoreDomainDialog).toBeVisible();
+  await restoreDomainDialog.locator('input[type="checkbox"]').check();
+  await restoreDomainDialog.locator('input[placeholder="CONFIRM"]').fill("CONFIRM");
+  await restoreDomainDialog.getByRole("button", { name: t.domainConfirmModal.confirmBtn }).click();
   await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
 
   const stamp = Date.now();
   const testEmail = `it-test-${stamp}@example.test`;
   const testPhone = `9733${String(stamp).slice(-6)}1`;
-  await page.getByRole("link", { name: t.nav.notifications }).click();
+  await nav.getByRole("link", { name: t.nav.notifications }).click();
   await expect(
     page.getByRole("heading", { name: t.notifications.title }),
   ).toBeVisible();
-  const to = page.getByLabel(t.notifications.testTo);
-  const sendTest = page.getByRole("button", { name: t.notifications.sendTest });
+  const testForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: t.notifications.sendTest }),
+  });
+  const to = testForm.getByLabel(t.notifications.testTo, { exact: true });
+  const sendTest = testForm.getByRole("button", { name: t.notifications.sendTest });
   await to.fill(testEmail);
   await sendTest.click();
   await expect(
     page.getByText(t.notifications.testQueued).first(),
   ).toBeVisible();
-  await page.getByLabel(t.notifications.channel).selectOption("whatsapp");
+  await testForm.getByLabel(t.notifications.channel, { exact: true }).selectOption("whatsapp");
   await to.fill(`+${testPhone}`);
   await sendTest.click();
   await expect(
     page.getByText(t.notifications.testQueued).first(),
   ).toBeVisible();
 
-  await page.getByLabel(t.notifications.channel).selectOption("whatsapp");
+  await testForm.getByLabel(t.notifications.channel, { exact: true }).selectOption("whatsapp");
   await to.fill("+97333000400");
   await sendTest.click();
-  const messages = page.getByRole("list", { name: t.notifications.title });
+  const tableRows = page.locator("table tbody tr");
   await expect(async () => {
     await page.reload();
     await expect(
-      messages.getByRole("listitem").filter({ hasText: "97333000400" }).first(),
+      tableRows.filter({ hasText: "97333000400" }).first(),
     ).toContainText(t.notifications.statuses.failed, { timeout: 2_000 });
     await expect(
-      messages.getByRole("listitem").filter({ hasText: testEmail }),
+      tableRows.filter({ hasText: testEmail }).first(),
     ).toContainText(t.notifications.statuses.sent, { timeout: 2_000 });
   }).toPass({ timeout: 45_000 });
-  const refused = messages
-    .getByRole("listitem")
+  const refused = tableRows
     .filter({ hasText: "97333000400" })
     .first();
   await expect(refused).toContainText(
@@ -219,7 +252,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     expect((await res.json()).items).toHaveLength(1);
   }).toPass({ timeout: 30_000 });
 
-  await page.getByRole("link", { name: t.nav.audit }).click();
+  await nav.getByRole("link", { name: t.nav.audit }).click();
   await expect(
     page.getByRole("heading", { name: t.audit.title }),
   ).toBeVisible();
@@ -248,9 +281,9 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     events.getByText(t.audit.subjects["notify.message.failed"]).first(),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: t.nav.itAccounts }).click();
+  await nav.getByRole("link", { name: t.nav.itAccounts }).click();
   await expect(
-    page.getByRole("heading", { name: t.itAccounts.title, exact: true }),
+    page.getByRole("heading", { name: /IT Team/i, level: 1 }),
   ).toBeVisible();
   const administrator = page.getByRole("form", {
     name: account.email,
@@ -258,7 +291,14 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
   });
   await administrator.getByLabel(t.itAccounts.active).uncheck();
   await administrator.getByRole("button", { name: t.itAccounts.save }).click();
-  await expect(page.getByText(t.itAccounts.errors.lastAdmin)).toBeVisible();
+  const lastAdminDialog = page.getByRole("alertdialog");
+  await expect(lastAdminDialog).toBeVisible();
+  await lastAdminDialog.locator("input").first().fill("LOCK");
+  await lastAdminDialog.getByRole("button", { name: t.itAccounts.save }).click();
+  await expect(page.getByText(t.itAccounts.errors.lastAdmin).first()).toBeVisible();
+  await lastAdminDialog.getByRole("button", { name: t.criticalModal.cancel }).click();
+  await expect(lastAdminDialog).toHaveCount(0);
+  await page.reload({ waitUntil: "domcontentloaded" });
   await expect(administrator.getByLabel(t.itAccounts.active)).toBeChecked();
 
   const newEmail = `it-account-${stamp}@example.test`;
@@ -285,23 +325,23 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     .click();
   await expect(provisioning).toHaveCount(0);
   const member = page.getByRole("form", { name: newEmail, exact: true });
-  await member.getByRole("combobox", { name: t.itAccounts.role }).click();
-  await page
-    .getByRole("option", { name: /it_engineer|IT Systems Engineer|مهندس أنظمة تقنية المعلومات/i })
-    .click();
+  await selectOption(member.getByRole("combobox", { name: t.itAccounts.role }), "it_engineer");
   await member.getByRole("button", { name: t.itAccounts.save }).click();
+  const roleConfirm = page.getByRole("alertdialog");
+  await expect(roleConfirm).toBeVisible();
+  await roleConfirm.getByRole("button", { name: t.itAccounts.save }).click();
   await expect(page.getByText(t.itAccounts.saved).first()).toBeVisible();
 
   const guest = await browser.newContext({
-    baseURL: `http://localhost:${ports.it}`,
+    baseURL: IT_URL,
   });
   try {
     const other = await guest.newPage();
     await other.goto("/login");
-    await other.getByLabel(t.login.email).fill(newEmail);
-    await other.getByLabel(t.login.password).fill(newPassword);
+    await other.locator('input[name="username"]').fill(newEmail.split("@")[0]);
+    await other.locator('input[name="password"]').fill(newPassword);
     await other.getByRole("button", { name: t.login.submit }).click();
-    await other.getByLabel(t.login.otp).fill(totp(newSecret));
+    await other.locator('input[name="otp"]').fill(await freshTotp(newSecret));
     await other.getByRole("button", { name: t.login.verify }).click();
     await expect(other).toHaveURL(/\/$/);
     await expect(
@@ -313,10 +353,14 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     )!.value;
     await member.getByLabel(t.itAccounts.active).uncheck();
     await member.getByRole("button", { name: t.itAccounts.save }).click();
+    const lockDialog = page.getByRole("alertdialog");
+    await expect(lockDialog).toBeVisible();
+    await lockDialog.locator("input").first().fill("LOCK");
+    await lockDialog.getByRole("button", { name: t.itAccounts.save }).click();
     await expect(member.getByLabel(t.itAccounts.active)).not.toBeChecked();
     await expect(async () => {
       const status = await other.request.get(
-        `${process.env.API_URL}/v1/identity/session`,
+        `${process.env.API_URL || "http://localhost:8080"}/v1/identity/session`,
         { headers: { Authorization: `Bearer ${access}` } },
       );
       expect(status.status()).toBe(401);
@@ -325,6 +369,7 @@ test("IT works a ticket from the desk", async ({ page, browser }) => {
     await guest.close();
   }
 
+  await page.getByRole("button", { name: t.userDropdown.operatorProfile }).click();
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.goto("/tickets");

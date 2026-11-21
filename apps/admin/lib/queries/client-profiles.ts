@@ -299,6 +299,17 @@ export async function createClientProfile(
       id,
       ...data,
     });
+    await upsertTableRow<Record<string, any>>("sales", "contact", {
+      id,
+      firstName: data.firstName || data.companyName || "Client",
+      lastName: data.lastName ?? null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
+      company: data.companyName ?? null,
+      contactType: data.contactType || "client",
+      status: "active",
+      notes: data.notes ?? null,
+    });
     const createdPersons: Record<string, any>[] = [];
     for (const p of persons) {
       createdPersons.push(
@@ -346,6 +357,17 @@ export async function updateClientProfile(
     const updated = await upsertTableRow<Record<string, any>>("sales", "crm_contact", {
       id,
       ...data,
+    });
+    await upsertTableRow<Record<string, any>>("sales", "contact", {
+      id,
+      firstName: data.firstName || data.companyName || "Client",
+      lastName: data.lastName ?? null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
+      company: data.companyName ?? null,
+      contactType: data.contactType || "client",
+      status: "active",
+      notes: data.notes ?? null,
     });
     const createdPersons: Record<string, any>[] = [];
     for (const p of persons) {

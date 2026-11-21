@@ -68,8 +68,14 @@ type PaymentAttemptRecord = {
   order: OrderSnapshot;
 };
 
-const attemptsMap = new Map<string, PaymentAttemptRecord>();
-const webhookEvents = new Set<string>();
+const onlinePaymentStore = ((globalThis as unknown as Record<string, unknown>).__platformOnlinePaymentStore ??= {
+  attemptsMap: new Map<string, PaymentAttemptRecord>(),
+  webhookEvents: new Set<string>(),
+}) as {
+  attemptsMap: Map<string, PaymentAttemptRecord>;
+  webhookEvents: Set<string>;
+};
+const { attemptsMap, webhookEvents } = onlinePaymentStore;
 
 function toOrderSnapshot(o: NonNullable<Awaited<ReturnType<typeof getOrder>>>): OrderSnapshot {
   return {

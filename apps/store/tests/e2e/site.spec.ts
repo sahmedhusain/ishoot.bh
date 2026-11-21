@@ -9,7 +9,7 @@ import {
   watchErrors,
 } from "./helpers/helpers";
 
-const PAGES = ["", "/works", "/about", "/contact"];
+const PAGES = ["", "/products", "/offers", "/branches"];
 
 for (const locale of ["en", "ar"] as const) {
   for (const path of PAGES) {

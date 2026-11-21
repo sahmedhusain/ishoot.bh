@@ -179,7 +179,9 @@ func normalizeCompany(next *CompanyRecord, current CompanyRecord, patch map[stri
 	if !seen[next.PrimaryLanguage] {
 		next.PrimaryLanguage = next.ContentLanguages[0]
 	}
-	if next.BusinessActivity != nil && !catalog.IsBusinessActivity(*next.BusinessActivity) {
+	if next.BusinessActivity != nil &&
+		(current.BusinessActivity == nil || *next.BusinessActivity != *current.BusinessActivity) &&
+		!catalog.IsBusinessActivity(*next.BusinessActivity) {
 		return ErrValidationFailed
 	}
 	if next.TimeZone != nil && *next.TimeZone != "" {

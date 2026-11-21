@@ -496,12 +496,18 @@ export async function quoteCart(
   }[] = [];
   for (const line of cart) {
     const product = products.find((p: any) => p.id === line.productId);
+    const requestedQty = Math.min(MAX_LINE_QUANTITY, Math.floor(line.quantity));
     const activeVariants = (product?.variants ?? []).filter((v: any) => v.isActive);
+    const sortedActive = [...activeVariants].sort((a: any, b: any) => num(a.price) - num(b.price));
     const variant = line.variantId
       ? product?.variants.find((v: any) => v.id === line.variantId)
       : activeVariants.length === 1
         ? activeVariants[0]
-        : undefined;
+        : sortedActive.find(
+            (v: any) =>
+              !product?.trackStock ||
+              (available.get(`${product.id}|${v.id}`) ?? 0) >= requestedQty,
+          ) ?? sortedActive[0];
     if (
       !product ||
       (product.variants.length
@@ -515,7 +521,7 @@ export async function quoteCart(
       });
       continue;
     }
-    const quantity = Math.min(MAX_LINE_QUANTITY, Math.floor(line.quantity));
+    const quantity = requestedQty;
     const variantKey = variant?.id ?? "";
     if (
       product.trackStock &&

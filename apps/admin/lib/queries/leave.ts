@@ -24,6 +24,12 @@ import {
 import { getLeaveBalance, refreshLeaveBalanceCache } from "./leave-balances";
 import { LeaveRequest } from "../types";
 
+const toIso = (val: unknown): string => {
+  if (!val) return new Date().toISOString();
+  const d = val instanceof Date ? val : new Date(String(val));
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+};
+
 type LeaveApprovedHook = (
   leaveRequestId: string,
   approverId: string,
@@ -296,13 +302,13 @@ export async function createLeaveRequest(data: {
   await refreshLeaveBalanceCache(data.employeeId);
   return {
     ...created,
-    startDate: created.startDate.toISOString(),
-    endDate: created.endDate.toISOString(),
+    startDate: toIso(created.startDate),
+    endDate: toIso(created.endDate),
     hours: created.hours ? Number(created.hours) : null,
     days: Number(created.days),
-    createdAt: created.createdAt.toISOString(),
-    updatedAt: created.updatedAt.toISOString(),
-    approvedAt: created.approvedAt?.toISOString() || null,
+    createdAt: toIso(created.createdAt),
+    updatedAt: toIso(created.updatedAt),
+    approvedAt: created.approvedAt ? toIso(created.approvedAt) : null,
   } as LeaveRequest;
 }
 
@@ -427,13 +433,13 @@ export async function approveLeaveRequest(
         ...(updated as any).employee,
         leaveBalanceDays: Number((updated as any).employee.leaveBalanceDays),
       },
-      startDate: updated.startDate.toISOString(),
-      endDate: updated.endDate.toISOString(),
+      startDate: toIso(updated.startDate),
+      endDate: toIso(updated.endDate),
       hours: (updated as any).hours ? Number((updated as any).hours) : null,
       days: Number((updated as any).days),
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-      approvedAt: updated.approvedAt?.toISOString() || null,
+      createdAt: toIso(updated.createdAt),
+      updatedAt: toIso(updated.updatedAt),
+      approvedAt: updated.approvedAt ? toIso(updated.approvedAt) : null,
     } as any,
     conflicts,
   };
@@ -488,13 +494,13 @@ export async function rejectLeaveRequest(
       ...updated.employee,
       leaveBalanceDays: Number(updated.employee.leaveBalanceDays),
     },
-    startDate: updated.startDate.toISOString(),
-    endDate: updated.endDate.toISOString(),
+    startDate: toIso(updated.startDate),
+    endDate: toIso(updated.endDate),
     hours: updated.hours ? Number(updated.hours) : null,
     days: Number(updated.days),
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-    approvedAt: updated.approvedAt?.toISOString() || null,
+    createdAt: toIso(updated.createdAt),
+    updatedAt: toIso(updated.updatedAt),
+    approvedAt: updated.approvedAt ? toIso(updated.approvedAt) : null,
   } as LeaveRequest;
 }
 

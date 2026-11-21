@@ -724,7 +724,7 @@ export async function getCalendarFor(
   const viewer = await calendarViewer(userId);
   const wanted = new Set(layers);
   const [rawEvents, rawDeals, rawUsers] = await Promise.all([
-    listTableRows<any>("workflow", "calendar_event", "start_date ASC").catch(() => []),
+    listTableRows<any>("workflow", "calendar_event", "start_time ASC").catch(() => []),
     listTableRows<any>("sales", "crm_deal").catch(() => []),
     listTableRows<any>("identity", "user").catch(() => []),
   ]);
@@ -802,7 +802,7 @@ export async function getCalendarEvents(
   limit?: number,
 ): Promise<CalendarEvent[]> {
   const [rawEvents, rawDeals] = await Promise.all([
-    listTableRows<any>("workflow", "calendar_event", "start_date ASC").catch(() => []),
+    listTableRows<any>("workflow", "calendar_event", "start_time ASC").catch(() => []),
     listTableRows<any>("sales", "crm_deal").catch(() => []),
   ]);
   const dealMap = new Map<string, any>(rawDeals.map((d): [any, any] => [d.id, d]));

@@ -127,15 +127,8 @@ func (s *Store) UpdateEmployeeFields(ctx context.Context, id string, in UpdateEm
 
 func (s *Store) ListLeaveTypes(ctx context.Context) (json.RawMessage, error) {
 	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY sort_order ASC, name_en ASC), '[]'::json)
+		SELECT COALESCE(json_agg(t ORDER BY name_en ASC, code ASC), '[]'::json)
 		FROM hr.leave_type t
-	`)
-}
-
-func (s *Store) ListPublicHolidays(ctx context.Context) (json.RawMessage, error) {
-	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY date ASC), '[]'::json)
-		FROM hr.public_holiday t
 	`)
 }
 
@@ -148,14 +141,14 @@ func (s *Store) ListShiftTypes(ctx context.Context) (json.RawMessage, error) {
 
 func (s *Store) ListGosiComponents(ctx context.Context) (json.RawMessage, error) {
 	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY sort_order ASC, code ASC), '[]'::json)
+		SELECT COALESCE(json_agg(t ORDER BY code ASC, name_en ASC), '[]'::json)
 		FROM hr.gosi_component t
 	`)
 }
 
 func (s *Store) ListEmployeeGosiRecords(ctx context.Context) (json.RawMessage, error) {
 	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY effective_from DESC), '[]'::json)
+		SELECT COALESCE(json_agg(t ORDER BY id ASC), '[]'::json)
 		FROM hr.employee_gosi_record t
 	`)
 }
@@ -167,24 +160,10 @@ func (s *Store) GetGosiSettings(ctx context.Context) (json.RawMessage, error) {
 	`)
 }
 
-func (s *Store) ListFinalSettlements(ctx context.Context) (json.RawMessage, error) {
-	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json)
-		FROM hr.final_settlement t
-	`)
-}
-
 func (s *Store) ListSalaryDocuments(ctx context.Context) (json.RawMessage, error) {
 	return s.queryJSONArray(ctx, `
 		SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json)
 		FROM hr.salary_document t
-	`)
-}
-
-func (s *Store) ListSupportPrograms(ctx context.Context) (json.RawMessage, error) {
-	return s.queryJSONArray(ctx, `
-		SELECT COALESCE(json_agg(t ORDER BY name_en ASC), '[]'::json)
-		FROM hr.support_program t
 	`)
 }
 

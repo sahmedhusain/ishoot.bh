@@ -78,11 +78,30 @@ for (const locale of ["en", "ar"] as const)
             body: JSON.stringify({ error: "INVALID_INPUT" }),
           }),
       );
-      if (screen === "forgot")
+      if (screen === "forgot") {
+        const forgotRequests: string[] = [];
+        const onRequest = (req: { url: () => string }) => {
+          if (req.url().includes("/api/auth/forgot-password")) {
+            forgotRequests.push(req.url());
+          }
+        };
+        page.on("request", onRequest);
+        await page.locator('button[type="submit"]').click();
+        expect(forgotRequests).toEqual([]);
+        const usernameInput = page.getByLabel(t.forgotPasswordForm.username, {
+          exact: true,
+        });
+        expect(
+          await usernameInput.evaluate((el) =>
+            (el as HTMLInputElement).matches(":invalid"),
+          ),
+        ).toBe(true);
+        page.off("request", onRequest);
+        await usernameInput.fill("audit");
         await page
           .getByLabel(t.forgotPasswordForm.emailAddress, { exact: true })
           .fill("audit@example.test");
-      else
+      } else
         await page
           .getByLabel(t.resetPasswordForm.newPassword, { exact: true })
           .fill("layout-test-password");

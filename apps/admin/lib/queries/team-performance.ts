@@ -2,9 +2,9 @@ import { listInvoices, listPayments } from "../api/finance";
 import {
   listDepartments,
   listEmployees,
-  listHRUsers,
   listLeaveRequests,
 } from "../api/hr";
+import { listAdminUsersApi } from "../api/identity";
 import { listInquiries, listQuotations } from "../api/sales";
 import { leaveDaysRequested } from "../constants/hr";
 import { companyCurrency } from "../finance/company-currency";
@@ -53,19 +53,20 @@ export async function getTeamMembers(
   includeEveryone = false,
 ) {
   const [users, departments, employees] = await Promise.all([
-    listHRUsers().catch(() => []),
+    listAdminUsersApi().catch(() => []),
     includeEveryone ? Promise.resolve([]) : listDepartments().catch(() => []),
     includeEveryone ? Promise.resolve([]) : listEmployees().catch(() => []),
   ]);
 
   const activeUsers = (users as any[])
-    .filter((u) => u.isActive !== false && u.id !== managerId)
+    .filter((u) => (u.is_active ?? u.isActive ?? true) !== false && !(u.archived_at ?? u.archivedAt) && u.id !== managerId)
     .map((u) => ({
-      id: u.id,
-      fullName: u.fullName || u.email || u.id,
+      id: String(u.id ?? ""),
+      fullName: String(u.full_name ?? u.fullName ?? u.email ?? u.id ?? ""),
       role: u.role || "staff",
-      managerId: u.managerId ?? null,
-    }));
+      managerId: u.manager_id ?? u.managerId ?? null,
+    }))
+    .filter((u) => u.id !== "");
 
   if (includeEveryone) {
     return activeUsers
@@ -101,7 +102,7 @@ export async function getTeamPerformance(
 
   const [allUsers, allQuotes, allInvoices, allPayments, allInquiries, allLeaves, allEmployees] =
     await Promise.all([
-      listHRUsers().catch(() => []),
+      listAdminUsersApi().catch(() => []),
       listQuotations().catch(() => []),
       listInvoices().catch(() => []),
       listPayments().catch(() => []),
@@ -113,8 +114,8 @@ export async function getTeamPerformance(
   const users = (allUsers as any[])
     .filter((u) => memberSet.has(u.id))
     .map((u) => ({
-      id: u.id,
-      fullName: u.fullName || u.email || u.id,
+      id: String(u.id),
+      fullName: String(u.full_name ?? u.fullName ?? u.email ?? u.id ?? ""),
       role: u.role || "staff",
     }));
 

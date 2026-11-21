@@ -8,10 +8,11 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const force = process.argv.includes("--force");
 const target = path.resolve(
-  process.env.E2E_IT_ACCOUNT_FILE || path.join(__dirname, ".results/it-account.json"),
+  process.env.E2E_IT_ACCOUNT_FILE || path.join(__dirname, "../../.results/it-account.json"),
 );
-if (fs.existsSync(target)) {
+if (!force && fs.existsSync(target)) {
   console.log("IT account: kept", path.relative(process.cwd(), target));
   process.exit(0);
 }
@@ -62,4 +63,8 @@ fs.mkdirSync(path.dirname(target), { recursive: true });
 fs.writeFileSync(target, JSON.stringify({ email: loginEmail, password, secret }), {
   mode: 0o600,
 });
+for (const cacheFile of ["it-token-cache.json", "it-totp-state.json"]) {
+  const p = path.resolve(__dirname, "../../../../../.local/qa-logs", cacheFile);
+  if (fs.existsSync(p)) fs.unlinkSync(p);
+}
 console.log("IT account: ready", loginEmail);

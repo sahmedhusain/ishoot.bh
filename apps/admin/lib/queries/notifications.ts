@@ -1,23 +1,5 @@
-import { upsertTableRow } from "../api/tables";
+import { deliverNotifications } from "../api/inbox";
 import { Notification } from "../types";
-
-function mapNotification(n: any): Notification {
-  return {
-    id: n.id,
-    user_id: n.userId,
-    title: n.title,
-    message: n.message,
-    type: n.type as any,
-    entity_type: n.entityType || undefined,
-    entity_id: n.entityId || undefined,
-    message_key: n.messageKey || undefined,
-    message_params:
-      (n.messageParams as Record<string, string> | null) || undefined,
-    action_url: n.actionUrl || undefined,
-    is_read: !!n.isRead,
-    created_at: new Date(n.createdAt || Date.now()).toISOString(),
-  };
-}
 
 export async function createNotification(data: {
   user_id: string;
@@ -29,17 +11,37 @@ export async function createNotification(data: {
   message_key?: string;
   message_params?: Record<string, string>;
 }): Promise<Notification> {
-  const created = await upsertTableRow<any>("notify", "notification", {
-    id: crypto.randomUUID(),
-    userId: data.user_id,
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  await deliverNotifications([
+    {
+      id,
+      realm: "staff",
+      recipient: data.user_id,
+      priority: data.type === "warning" ? "high" : "normal",
+      title: data.title,
+      body: data.message,
+      entityType: data.entity_type || undefined,
+      entityId: data.entity_id || undefined,
+      messageKey:
+        data.message_key && /^[A-Za-z0-9_.-]{1,200}$/.test(data.message_key)
+          ? data.message_key
+          : undefined,
+      messageParams: data.message_params,
+      createdAt,
+    },
+  ]);
+  return {
+    id,
+    user_id: data.user_id,
     title: data.title,
     message: data.message,
     type: data.type || "info",
-    entityType: data.entity_type || null,
-    entityId: data.entity_id || null,
-    messageKey: data.message_key || null,
-    messageParams: data.message_params ?? null,
-    isRead: false,
-  });
-  return mapNotification(created);
+    entity_type: data.entity_type,
+    entity_id: data.entity_id,
+    message_key: data.message_key,
+    message_params: data.message_params,
+    is_read: false,
+    created_at: createdAt,
+  };
 }

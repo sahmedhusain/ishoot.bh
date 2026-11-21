@@ -60,8 +60,8 @@ export async function GET(req: Request) {
       broadcastsSent,
       reportsSent,
     });
-  } catch {
-    console.error("Scheduled maintenance failed");
+  } catch (err) {
+    console.error("Scheduled maintenance failed:", err);
     return NextResponse.json(
       { error: serverMessages.runtimeMaintenanceFailed },
       { status: 500 },

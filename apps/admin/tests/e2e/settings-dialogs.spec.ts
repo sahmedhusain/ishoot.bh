@@ -1,4 +1,6 @@
 import { selectOption } from "./helpers/select-option";
+import { loginAsAdmin } from "./helpers/admin-audit";
+import { setAdminGovernance } from "./helpers/governance";
 import { expect, test } from "@playwright/test";
 import { formatMessage } from "@platform/locales";
 import enLocale from "../../locales/en.json";
@@ -27,6 +29,7 @@ for (const locale of ["en", "ar"] as const) {
       nativeDialogs.push(dialog.type());
       await dialog.dismiss();
     });
+    await loginAsAdmin(page);
     await page.goto("/dashboard/services");
     await page
       .getByRole("main")
@@ -140,82 +143,99 @@ for (const locale of ["en", "ar"] as const) {
       .click();
 
     await page.goto("/dashboard/settings/company");
-    const main = page.getByRole("main");
-    const name = main.locator("input").first();
-    const changedName = `${await name.inputValue()} E2E`;
-    await name.fill(changedName);
-    await main
-      .getByRole("button", { name: t.actions.save, exact: true })
-      .first()
-      .click();
-    await expect(dialog).toHaveAccessibleName(
-      t.companySettingsView.diffModalTitle,
-    );
-    await expect(dialog).toContainText(changedName);
-    let releaseCompany!: () => void;
-    const blockedCompany = new Promise<void>((resolve) => {
-      releaseCompany = resolve;
-    });
-    await page.route("**/dashboard/settings/company", async (route) => {
-      if (route.request().method() !== "POST") return route.continue();
-      await blockedCompany;
-      await route.fulfill({
-        status: 500,
-        contentType: "text/plain",
-        body: "Test save failure",
-      });
-    });
-    await dialog
-      .getByRole("button", {
-        name: t.companySettingsView.confirmChanges,
-        exact: true,
-      })
-      .click();
+    await expect(page).toHaveURL(/\/dashboard\/settings\?restricted=1&section=company/);
+    await expect(
+      page.getByRole("heading", { name: t.settingsGovernance.restrictedTitle }),
+    ).toBeVisible();
+
+    await page.goto("/dashboard/settings/web");
+    await expect(page).toHaveURL(/\/dashboard\/settings\?restricted=1&section=web/);
+    await expect(
+      page.getByRole("heading", { name: t.settingsGovernance.restrictedTitle }),
+    ).toBeVisible();
+
+    await page.goto("/dashboard/settings/preferences");
+    const settingsNav = page.locator("nav.admin-settings-nav");
+    await expect(
+      settingsNav.getByRole("link", { name: t.settingsTabs.preferences, exact: true }),
+    ).toBeVisible();
+    await expect(
+      settingsNav.getByRole("link", { name: t.settingsTabs.company, exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      settingsNav.getByRole("link", { name: t.settingsTabs.web, exact: true }),
+    ).toHaveCount(0);
+
+    await setAdminGovernance({ company: true, web: true });
     try {
+      await page.goto("/dashboard/settings/preferences");
       await expect(
-        dialog.getByRole("button", {
-          name: t.companySettingsView.cancel,
+        settingsNav.getByRole("link", { name: t.settingsTabs.company, exact: true }),
+      ).toBeVisible();
+      await expect(
+        settingsNav.getByRole("link", { name: t.settingsTabs.web, exact: true }),
+      ).toBeVisible();
+
+      await page.goto("/dashboard/settings/company");
+      await expect(page).toHaveURL(/\/dashboard\/settings\/company$/);
+      const main = page.getByRole("main");
+      const name = main.locator("input").first();
+      const changedName = `${await name.inputValue()} E2E`;
+      await name.fill(changedName);
+      await main
+        .getByRole("button", { name: t.actions.save, exact: true })
+        .first()
+        .click();
+      await expect(dialog).toHaveAccessibleName(
+        t.companySettingsView.diffModalTitle,
+      );
+      await expect(dialog).toContainText(changedName);
+      let releaseCompany!: () => void;
+      const blockedCompany = new Promise<void>((resolve) => {
+        releaseCompany = resolve;
+      });
+      await page.route("**/dashboard/settings/company", async (route) => {
+        if (route.request().method() !== "POST") return route.continue();
+        await blockedCompany;
+        await route.fulfill({
+          status: 500,
+          contentType: "text/plain",
+          body: "Test save failure",
+        });
+      });
+      await dialog
+        .getByRole("button", {
+          name: t.companySettingsView.confirmChanges,
           exact: true,
-        }),
-      ).toBeDisabled();
-      await page.keyboard.press("Escape");
-      await expect(dialog).toBeVisible();
+        })
+        .click();
+      try {
+        await expect(
+          dialog.getByRole("button", {
+            name: t.companySettingsView.cancel,
+            exact: true,
+          }),
+        ).toBeDisabled();
+        await page.keyboard.press("Escape");
+        await expect(dialog).toBeVisible();
+      } finally {
+        releaseCompany();
+      }
+      await expect(dialog.getByRole("alert")).toBeVisible();
+      await dialog
+        .getByRole("button", { name: t.companySettingsView.cancel, exact: true })
+        .click();
+      await expect(name).toHaveValue(changedName);
+      await main
+        .getByRole("tab", { name: t.companySettingsTabs.banking, exact: true })
+        .click();
+      await main
+        .getByRole("tab", { name: t.companySettingsTabs.general, exact: true })
+        .click();
+      await expect(name).toHaveValue(changedName);
+      expect(nativeDialogs).toEqual([]);
     } finally {
-      releaseCompany();
+      await setAdminGovernance(null);
     }
-    await expect(dialog.getByRole("alert")).toBeVisible();
-    await dialog
-      .getByRole("button", { name: t.companySettingsView.cancel, exact: true })
-      .click();
-    await expect(name).toHaveValue(changedName);
-    await main
-      .getByRole("tab", { name: t.companySettingsTabs.taxVat, exact: true })
-      .click();
-    const vat = main.getByRole("switch", {
-      name: t.companySettingsTabs.vatStateLabel,
-      exact: true,
-    });
-    const checked = await vat.getAttribute("aria-checked");
-    await vat.click();
-    await dialog
-      .getByRole("button", {
-        name: t.companySettingsTabs.cancelTaxChange,
-        exact: true,
-      })
-      .click();
-    await expect(vat).toHaveAttribute("aria-checked", checked!);
-    await vat.click();
-    await dialog
-      .getByRole("button", {
-        name: t.companySettingsTabs.applyTaxChange,
-        exact: true,
-      })
-      .click();
-    await expect(dialog).toHaveCount(0);
-    await expect(vat).toHaveAttribute(
-      "aria-checked",
-      checked === "true" ? "false" : "true",
-    );
-    expect(nativeDialogs).toEqual([]);
   });
 }

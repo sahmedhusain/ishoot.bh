@@ -3,6 +3,7 @@ import { TICKET_CATEGORIES, ticketCategory } from "@platform/contracts";
 import { watchErrors } from "./helpers/helpers";
 import { selectOption } from "./helpers/select-option";
 import { t } from "./helpers/locale";
+import { loginAsAdmin } from "./helpers/admin-audit";
 
 const s = t.itSupport;
 const PDF = Buffer.from(
@@ -16,7 +17,12 @@ test("an employee raises, follows and cancels an IT request", async ({
   const title = `E2E laptop ${Date.now()}`;
   const category = TICKET_CATEGORIES.find((c) => c.linksAsset)!;
 
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await page.goto("/dashboard/it-support");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await expect(page.getByText(s.unavailable)).toHaveCount(0);
   await page.getByRole("link", { name: s.newTicket }).click();
   await expect(page).toHaveURL(/\/dashboard\/it-support\/new$/);
@@ -72,7 +78,12 @@ test("an employee raises, follows and cancels an IT request", async ({
   ).toBeVisible();
   await expect(page.getByText(s.closedNoComments)).toBeVisible();
 
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await page.goto("/dashboard/it-support");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await expect(
     page.getByRole("link", { name: new RegExp(title) }),
   ).toBeVisible();

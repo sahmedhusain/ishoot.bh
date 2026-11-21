@@ -108,10 +108,15 @@ export async function getWebsiteEditor() {
 export const getWebsiteSnapshot = cache(
   async (preview = false): Promise<WebsiteSnapshot> => {
     const snap = await getContentSnapshot("main").catch(() => null);
-    const hasPublished =
-      snap?.published &&
-      typeof snap.published === "object" &&
-      Object.keys(snap.published as Record<string, unknown>).length > 0;
+    const pub = snap?.published as Record<string, any> | undefined;
+    const hasPublished = Boolean(
+      pub &&
+        typeof pub === "object" &&
+        pub.config &&
+        Array.isArray(pub.config.sections) &&
+        pub.config.sections.length > 0 &&
+        Array.isArray(pub.portfolio),
+    );
     if (!preview && hasPublished)
       return snap!.published as unknown as WebsiteSnapshot;
     if (!preview) {

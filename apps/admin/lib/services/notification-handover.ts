@@ -57,7 +57,8 @@ export function toNewNotification(row: PendingRow): NewNotification {
 
 export async function handOverNotifications(limit = 200): Promise<number> {
   const allRows = await listTableRows<any>("notify", "notification", "created_at ASC").catch(() => []);
-  const rows = allRows.filter((r) => !r.handedOverAt).slice(0, limit);
+  // Rows already stored in notify.notification use `recipient` rather than legacy `userId`/`handedOverAt`.
+  const rows = allRows.filter((r) => typeof r.userId === "string" && r.userId && !r.handedOverAt).slice(0, limit);
   if (!rows.length) return 0;
   const items = rows.map(toNewNotification);
   try {
@@ -86,7 +87,7 @@ export function flushNotifications(): Promise<void> {
   running ??= (async () => {
     try {
       const allRows = await listTableRows<any>("notify", "notification").catch(() => []);
-      const pending = allRows.find((r) => !r.handedOverAt);
+      const pending = allRows.find((r) => typeof r.userId === "string" && r.userId && !r.handedOverAt);
       if (!pending) return;
       while ((await handOverNotifications()) === 200);
     } finally {

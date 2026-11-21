@@ -1,5 +1,6 @@
 import type { components, paths } from "./generated/system";
 import { serviceClient, userClient, unwrap, unwrapEmpty } from "./http";
+import { serviceFetch } from "./service-fetch";
 export type CompanyConfiguration = components["schemas"]["CompanyRecord"];
 export type CompanyConfigurationPatch = components["schemas"]["CompanyPatch"];
 export type CompanyTheme = components["schemas"]["CompanyTheme"];
@@ -10,6 +11,20 @@ export const getCompanyConfiguration = () =>
   unwrap(system().GET("/v1/system/company"));
 export const getCompanyConfigurationNoStore = () =>
   unwrap(system().GET("/v1/system/company", { cache: "no-store" }));
+export const updateCompanyConfiguration = (
+  values: CompanyConfigurationPatch,
+  actorId = "admin",
+) =>
+  unwrap(
+    system().PUT("/v1/system/company", {
+      body: { values, actorId },
+    }),
+  );
+export const completeCompanySetupApi = (actorId = "admin") =>
+  serviceFetch<void>("/v1/system/setup/complete", {
+    method: "POST",
+    body: JSON.stringify({ actorId }),
+  });
 export const getCompanyConfigurationForIT = (token: string) =>
   unwrap(userClient<paths>(token).GET("/v1/system/desk/company"));
 export const updateCompanyConfigurationForIT = (

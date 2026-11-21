@@ -36,7 +36,7 @@ export function WebsiteLanguageFields({ config, onChange, languages }: { config:
         {COPY_FIELDS.map(([group, key, label]) => {
           const values = config.interfaceCopy?.[language.code]?.[group] as Record<string, unknown> | undefined;
           const value = typeof values?.[key] === "string" ? values[key] as string : "";
-          const fallback = (dictionary[group] as Record<string, unknown>)[key];
+          const fallback = (dictionary[group] as Record<string, unknown> | undefined)?.[key];
           return <label key={`${group}.${key}`} className="block space-y-1 text-xs"><span>{copy.fields[label]}</span><Input dir={language.direction} value={value} placeholder={typeof fallback === "string" ? fallback : ""} maxLength={1500} onChange={(event) => onChange({ ...config, interfaceCopy: deepMerge(config.interfaceCopy ?? {}, { [language.code]: { [group]: { [key]: event.target.value } } }) })} /></label>;
         })}
       </div></details>;

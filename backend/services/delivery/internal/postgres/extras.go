@@ -106,7 +106,7 @@ func (s *Store) UpdateShipmentStatusAndEvent(ctx context.Context, id, toStatus, 
 		return err
 	}
 	_, err = s.pool.Exec(ctx, `
-		INSERT INTO delivery.shipment_event (id, shipment_id, status, note, actor_id, created_at)
+		INSERT INTO delivery.shipment_event (id, shipment_id, status, note, by_id, at)
 		VALUES ($1, $2, $3, $4, NULLIF($5, ''), now())
 	`, uuid.NewString(), id, toStatus, note, actorID)
 	return err

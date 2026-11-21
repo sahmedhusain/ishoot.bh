@@ -102,26 +102,30 @@ test.describe("Admin — HR, Assets, Operations & CMS", () => {
     await page.locator('button[type="submit"]:visible').first().click();
     await expect(page).toHaveURL(/\/dashboard\/hr\/employees\/new/);
 
-    const firstEn = page.locator('input[name="firstNameEn"], input[name="first_name_en"]').first();
-    if ((await firstEn.count()) > 0) await firstEn.fill(`E2EFirst`);
-    const lastEn = page.locator('input[name="lastNameEn"], input[name="last_name_en"]').first();
-    if ((await lastEn.count()) > 0) await lastEn.fill(`Employee${ts}`);
-    const empEmail = page.locator('input[name="email"], input[type="email"]').first();
-    if ((await empEmail.count()) > 0) await empEmail.fill(`e2e-emp-${ts}@example.test`);
+    const firstEn = "E2EFirst";
+    const lastEn = `Employee${ts}`;
+    await page.getByLabel(/First Name \(English\)/i).fill(firstEn);
+    await page.getByLabel(/Last Name \(English\)/i).fill(lastEn);
+    await page.getByLabel(/^Email/i).first().fill(`e2e-emp-${ts}@example.test`);
+    await page.locator('input[placeholder="e.g. Senior Specialist"]').fill("Operations QA Engineer");
 
-    await page.locator('button[type="submit"]:visible').first().click();
-    await page.waitForTimeout(1500);
+    await page.getByRole("button", { name: /Save Employee Record/i }).click();
+    await expect(page).toHaveURL(/\/dashboard\/hr\/employees\/(?!new$)[^/]+$/, { timeout: 30_000 });
+    await expect(page.getByText(`${firstEn} ${lastEn}`).first()).toBeVisible({ timeout: 10_000 });
 
-    // 2. Verify Asset detail page has Edit control
-    await page.goto("/dashboard/assets", { waitUntil: "domcontentloaded" });
-    const firstAssetLink = page
-      .locator('a[href^="/dashboard/assets/"]:not([href$="/new"]):not([href$="/categories"])')
-      .first();
-    if ((await firstAssetLink.count()) > 0) {
-      const href = await firstAssetLink.getAttribute("href");
-      if (href) await page.goto(href, { waitUntil: "domcontentloaded" });
-      await expect(page.getByRole("button", { name: /edit/i }).first()).toBeVisible({ timeout: 15_000 });
-    }
+    // 2. Verify Asset creation & detail page Edit control
+    await page.goto("/dashboard/assets/new", { waitUntil: "domcontentloaded" });
+    const assetNameInput = page.locator("form input[required]").first();
+    await expect(assetNameInput).toBeVisible({ timeout: 10_000 });
+    const assetName = `E2E Asset ${ts}`;
+    await assetNameInput.fill(assetName);
+    await page.locator('form button[type="submit"]').first().click();
+    await expect(page).toHaveURL(/\/dashboard\/assets\/(?!new$)[^/]+$/, { timeout: 30_000 });
+
+    const editAssetBtn = page.getByRole("button", { name: /^edit$/i }).first();
+    await expect(editAssetBtn).toBeVisible({ timeout: 15_000 });
+    await editAssetBtn.click();
+    await expect(page.locator('form button[type="submit"]').first()).toBeVisible({ timeout: 10_000 });
 
     expect(serverErrors).toEqual([]);
     expect(errors).toEqual([]);

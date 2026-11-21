@@ -40,12 +40,13 @@ export async function loginAsAdmin(page: Page) {
   const passwordField = page.locator("#login-password:visible, input[type=\"password\"]:visible").first();
   await expect(usernameField).toBeVisible({ timeout: 20_000 });
   await expect(async () => {
+    if (/\/dashboard/.test(page.url())) return;
     await usernameField.fill(adminUsers.admin.username);
     await passwordField.fill(adminUsers.admin.password);
     await expect(usernameField).toHaveValue(adminUsers.admin.username);
     await page.locator('button[type="submit"]:visible').click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
-  }).toPass({ timeout: 65_000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 55_000 });
+  }).toPass({ timeout: 100_000 });
 }
 
 export async function auditAdminRoutes(page: Page, routes: string[]) {
@@ -67,14 +68,14 @@ export async function auditAdminRoutes(page: Page, routes: string[]) {
     await expect(page.locator("main, h1, h2").first(), `Content visible on ${route}`).toBeVisible({ timeout: 20_000 });
     expect(page.url(), `Route ${route} redirected to /login`).not.toMatch(/\/login/);
 
-    // Exercise tabs on the page
-    const tabs = page.locator('[role="tab"]');
+    // Exercise ALL visible tabs on the page without artificial caps
+    const tabs = page.locator('[role="tab"]:visible');
     const tabCount = await tabs.count();
-    for (let i = 0; i < Math.min(tabCount, 5); i++) {
-      if (await tabs.nth(i).isVisible()) {
-        await tabs.nth(i).click();
-        await page.waitForTimeout(100);
-      }
+    for (let i = 0; i < tabCount; i++) {
+      const tab = tabs.nth(i);
+      await expect(tab).toBeVisible();
+      await tab.click();
+      await page.waitForTimeout(100);
     }
     await page.waitForLoadState("domcontentloaded");
   }

@@ -107,6 +107,9 @@ func defaultInvoiceItemFields(item *sqlcdb.InsertInvoiceItemParams, idx int) {
 	if item.SortOrder == 0 {
 		item.SortOrder = int32(idx)
 	}
+	if !item.TaxRate.Valid {
+		_ = item.TaxRate.Scan("0")
+	}
 }
 
 func (s *Service) ListInvoicesFiltered(ctx context.Context, contactID, quotationID *string) ([]postgres.Invoice, error) {

@@ -1,25 +1,18 @@
 import { test, expect } from "@playwright/test";
+import { loginAsAdmin } from "./helpers/admin-audit";
 
 test.describe("Inventory & IT Operations", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
-    await page.locator('input[type="email"], input[name="email"]').fill("director@example.com");
-    await page.locator('input[type="password"], input[name="password"]').fill("password");
-    await page.locator('button[type="submit"]').click();
-    await page.waitForLoadState("networkidle");
+    await loginAsAdmin(page);
   });
 
   test("can access stock inventory movements", async ({ page }) => {
-    await page.goto("/dashboard/inventory/movements");
-    await page.waitForLoadState("networkidle");
-    const container = page.locator("main, [data-page-section], table, ul").first();
-    await expect(container).toBeVisible();
+    await page.goto("/dashboard/inventory/movements", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("main h1").first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("can access IT support portal", async ({ page }) => {
-    await page.goto("/dashboard/support");
-    await page.waitForLoadState("networkidle");
-    const container = page.locator("main, [data-page-section]").first();
-    await expect(container).toBeVisible();
+    await page.goto("/dashboard/it-support", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("main h1").first()).toBeVisible({ timeout: 10_000 });
   });
 });

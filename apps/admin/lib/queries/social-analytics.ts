@@ -487,7 +487,7 @@ function planView(
     id: plan.id,
     title: plan.title,
     caption: plan.caption,
-    platforms: plan.platforms as SocialPlatformId[],
+    platforms: Array.isArray(plan.platforms) ? (plan.platforms as SocialPlatformId[]) : [],
     mediaUrl: plan.mediaUrl,
     scheduledFor: plan.scheduledFor ? new Date(plan.scheduledFor).toISOString() : null,
     status: plan.status as SocialPlanStatus,

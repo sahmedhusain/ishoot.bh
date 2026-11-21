@@ -26,6 +26,12 @@ import {
   INVOICE_STATUS_TRANSITIONS,
 } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
+
+const toIso = (val: unknown): string => {
+  if (!val) return new Date().toISOString();
+  const d = val instanceof Date ? val : new Date(String(val));
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+};
 import {
   companyTaxes,
   companyVat,
@@ -78,12 +84,12 @@ function mapDatabaseInvoiceToInvoice(inv: any): Invoice {
     status: (inv.status as InvoiceStatus) || "draft",
     pdf_storage_path: inv.pdfStoragePath || undefined,
     delivery_channel: (inv.deliveryChannel as any) || undefined,
-    delivered_at: inv.deliveredAt ? inv.deliveredAt.toISOString() : undefined,
+    delivered_at: inv.deliveredAt ? toIso(inv.deliveredAt) : undefined,
     notes_en: inv.notesEn || undefined,
     notes_ar: inv.notesAr || undefined,
     created_by: inv.createdById || undefined,
-    created_at: inv.createdAt.toISOString(),
-    updated_at: inv.updatedAt.toISOString(),
+    created_at: toIso(inv.createdAt),
+    updated_at: toIso(inv.updatedAt),
     line_items: inv.lineItems
       ? inv.lineItems.map((li: any) => ({
           id: li.id,
@@ -110,10 +116,10 @@ function mapDatabaseInvoiceToInvoice(inv: any): Invoice {
           job_title: contactObj.jobTitle || undefined,
           notes: contactObj.notes || undefined,
           created_at: contactObj.createdAt
-            ? contactObj.createdAt.toISOString()
+            ? toIso(contactObj.createdAt)
             : new Date().toISOString(),
           updated_at: contactObj.updatedAt
-            ? contactObj.updatedAt.toISOString()
+            ? toIso(contactObj.updatedAt)
             : new Date().toISOString(),
         }
       : undefined,

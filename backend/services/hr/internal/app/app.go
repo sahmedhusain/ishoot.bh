@@ -132,6 +132,9 @@ func (s *Service) CreateEmployee(ctx context.Context, in sqlcdb.CreateEmployeePa
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
+	if strings.TrimSpace(in.EmployeeNumber) == "" {
+		in.EmployeeNumber = "EMP-" + strings.ToUpper(strings.ReplaceAll(in.ID, "-", "")[:8])
+	}
 	var created postgres.Employee
 	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		var txErr error

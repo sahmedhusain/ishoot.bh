@@ -258,8 +258,9 @@ export async function listShipmentEvents(id: string, token?: string): Promise<Sh
   return res.json();
 }
 
-export async function trackShipment(token: string): Promise<Shipment> {
+export async function trackShipment(token: string, authToken?: string): Promise<Shipment> {
   const res = await fetch(`${apiUrl()}/v1/delivery/track/${encodeURIComponent(token)}`, {
+    headers: await headers(authToken),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!res.ok) throw await apiError(res);
@@ -311,6 +312,24 @@ export async function listShipmentsEnriched(
     `${apiUrl()}/v1/delivery/shipments/enriched${qs ? `?${qs}` : ""}`,
     {
       headers: await headers(token),
+      signal: AbortSignal.timeout(apiTimeoutMs()),
+    },
+  );
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+
+export async function moveShipmentStatusApi(
+  id: string,
+  input: { to: string; note?: string; reason?: string; codCollected?: number; actorId?: string },
+  token?: string,
+): Promise<{ id: string; status: string }> {
+  const res = await fetch(
+    `${apiUrl()}/v1/delivery/shipments/${encodeURIComponent(id)}/status`,
+    {
+      method: "PUT",
+      headers: await headers(token),
+      body: JSON.stringify(input),
       signal: AbortSignal.timeout(apiTimeoutMs()),
     },
   );

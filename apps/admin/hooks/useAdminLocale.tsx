@@ -42,23 +42,32 @@ export function AdminLocaleProvider({
     t: initialTranslations ?? defaultTranslationsFor(activity),
   }));
 
-  const localeRequest = React.useRef(0);
+  const activeLocaleRef = React.useRef(state.locale);
+  const activeActivityRef = React.useRef(activity);
+
   const applyLocale = React.useCallback(async (next: AdminLocale) => {
     if (!isLocale(next)) return;
-    const request = ++localeRequest.current;
+    if (activeLocaleRef.current === next && activeActivityRef.current === activity) return;
+
+    activeLocaleRef.current = next;
+    activeActivityRef.current = activity;
+
     const dictionary = await loadAdminTranslations(next, activity);
-    if (request !== localeRequest.current) return;
     document.cookie = `${STORAGE_KEY}=${encodeURIComponent(next)}; Path=/; Max-Age=31536000; SameSite=Lax`;
-    setState({ locale: next, t: dictionary });
     document.documentElement.dir = isRtlLocale(next) ? "rtl" : "ltr";
     document.documentElement.lang = next;
+
+    setState({ locale: next, t: dictionary });
   }, [activity]);
 
   React.useEffect(() => {
     let saved: string | null = null;
     try { saved = localStorage.getItem(STORAGE_KEY); } catch {}
-    void applyLocale(isLocale(saved) ? saved : initialLocale);
-  }, [applyLocale, initialLocale]);
+    const target = isLocale(saved) ? saved : initialLocale;
+    if (target !== activeLocaleRef.current || activity !== activeActivityRef.current) {
+      void applyLocale(target);
+    }
+  }, [applyLocale, initialLocale, activity]);
 
   const setLocale = (newLocale: AdminLocale) => {
     try { localStorage.setItem(STORAGE_KEY, newLocale); } catch {}

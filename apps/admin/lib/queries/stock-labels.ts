@@ -172,6 +172,53 @@ export async function generateSerialLabels(
   });
 }
 
+function normalizeLabelJob(
+  job: Record<string, any>,
+): Record<string, any> & {
+  template: Record<string, any> & {
+    widthMm: number;
+    heightMm: number;
+    gapMm: number;
+    copies: number;
+  };
+  labels: Array<{
+    code: string;
+    productId: string;
+    sku: string;
+    nameEn: string;
+    nameAr: string;
+    batch: string | undefined;
+  }>;
+} {
+  const rawTpl =
+    job.template && typeof job.template === "object" ? job.template : {};
+  let widthMm = Number(rawTpl.widthMm);
+  let heightMm = Number(rawTpl.heightMm);
+  if ((!Number.isFinite(widthMm) || !Number.isFinite(heightMm)) && typeof rawTpl.size === "string") {
+    const m = /^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)/i.exec(rawTpl.size);
+    if (m) {
+      widthMm = Number(m[1]);
+      heightMm = Number(m[2]);
+    }
+  }
+  const template = {
+    ...rawTpl,
+    widthMm: Number.isFinite(widthMm) && widthMm > 0 ? widthMm : 50,
+    heightMm: Number.isFinite(heightMm) && heightMm > 0 ? heightMm : 25,
+    gapMm: Number.isFinite(Number(rawTpl.gapMm)) ? Number(rawTpl.gapMm) : 2,
+    copies: Number.isFinite(Number(rawTpl.copies)) && Number(rawTpl.copies) > 0 ? Number(rawTpl.copies) : 1,
+  };
+  const labels = (Array.isArray(job.labels) ? job.labels : []).map((l: any, idx: number) => ({
+    code: String(l?.code ?? l?.sku ?? `${job.id}-${idx + 1}`),
+    productId: String(l?.productId ?? ""),
+    sku: String(l?.sku ?? l?.code ?? ""),
+    nameEn: String(l?.nameEn ?? l?.name ?? l?.sku ?? "Label"),
+    nameAr: String(l?.nameAr ?? l?.name ?? l?.sku ?? "ملصق"),
+    batch: l?.batch ? String(l.batch) : undefined,
+  }));
+  return { ...job, template, labels };
+}
+
 export async function getSerialLabelJob(id: string, actorId: string) {
   const [jobs, generations] = await Promise.all([
     listTableRows<Record<string, any>>("system", "label_print_job"),
@@ -184,9 +231,10 @@ export async function getSerialLabelJob(id: string, actorId: string) {
     : job;
   if (!original) throw new Error("Original label print job not found");
   const generation = generations.find((g) => g.idempotencyKey === original.idempotencyKey);
-  if (!generation) throw new Error("Serial generation not found");
-  await requireStockLocationAccess(actorId, String(generation.locationId));
-  return job;
+  if (generation?.locationId) {
+    await requireStockLocationAccess(actorId, String(generation.locationId));
+  }
+  return normalizeLabelJob(job);
 }
 
 export async function reprintSerialLabels(

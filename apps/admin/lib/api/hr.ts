@@ -2,6 +2,7 @@ import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
 import { normalizeApiRecord } from "./normalize";
+import { listTableRows } from "./tables";
 
 export type Department = {
   id: string;
@@ -379,7 +380,7 @@ export const listLeaveTypesApi = (token?: string) =>
   hrFetch<any[]>("/v1/hr/leave-types", {}, token);
 
 export const listPublicHolidaysApi = (token?: string) =>
-  hrFetch<any[]>("/v1/hr/public-holidays", {}, token);
+  listTableRows<any>("system", "public_holiday", "date ASC", token);
 
 export const listShiftTypesApi = (token?: string) =>
   hrFetch<any[]>("/v1/hr/shift-types", {}, token);
@@ -394,13 +395,13 @@ export const getGosiSettingsApi = (token?: string) =>
   hrFetch<any[]>("/v1/hr/gosi/settings", {}, token);
 
 export const listFinalSettlementsApi = (token?: string) =>
-  hrFetch<any[]>("/v1/hr/final-settlements", {}, token);
+  listTableRows<any>("system", "final_settlement", "last_working_day DESC", token);
 
 export const listSalaryDocumentsApi = (token?: string) =>
   hrFetch<any[]>("/v1/hr/salary-documents", {}, token);
 
 export const listSupportProgramsApi = (token?: string) =>
-  hrFetch<any[]>("/v1/hr/support-programs", {}, token);
+  listTableRows<any>("itsm", "support_program", "name_en ASC", token);
 
 export const listEmployeeSupportsApi = (token?: string) =>
   hrFetch<any[]>("/v1/hr/employee-supports", {}, token);

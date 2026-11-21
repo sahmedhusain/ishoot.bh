@@ -23,15 +23,15 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 	g.GET("/tax-rates", list("tax_rate", "created_at DESC"))
 	g.GET("/commission-rules", list("commission_rule", "created_at DESC"))
 	g.GET("/commission-payouts", list("commission_payout", "created_at DESC"))
-	g.GET("/commission-snapshots", list("commission_snapshot", "created_at DESC"))
+	g.GET("/commission-snapshots", list("commission_snapshot", "earned_at DESC"))
 	g.GET("/cashier-sessions", list("cashier_session", "opened_at DESC"))
 	g.GET("/cash-drawers", list("cash_drawer", "name ASC"))
-	g.GET("/journal-entries", list("journal_entry", "entry_date DESC"))
+	g.GET("/journal-entries", list("journal_entry", "posting_date DESC"))
 	g.GET("/journal-lines", list("journal_line", "id ASC"))
 	g.GET("/payment-attempts", list("payment_attempt", "created_at DESC"))
-	g.GET("/payment-collections", list("payment_collection", "created_at DESC"))
-	g.GET("/payment-methods", list("payment_method_config", "provider ASC"))
-	g.GET("/document-taxes", list("document_tax", "created_at DESC"))
+	g.GET("/payment-collections", list("payment_collection", "collected_at DESC"))
+	g.GET("/payment-methods", list("payment_method_config", "sort_order ASC"))
+	g.GET("/document-taxes", list("document_tax", "display_order ASC"))
 
 	db.RegisterTableRoutes(g, h.svc.Pool(), "finance", []string{
 		"agency_invoice", "bank_settlement", "cash_drawer", "cashier_session", "catalog_item_ref",

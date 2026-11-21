@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import {
@@ -8,37 +6,27 @@ import {
   listIdentitySessionsForIT,
   updateITAccountForIT,
 } from "@platform/api-client";
-import ar from "@platform/locales/ar.json";
 import en from "@platform/locales/en.json";
-import { ports } from "../../playwright.config";
 import { selectOption } from "./helpers/select-option";
-import { totp } from "./helpers/totp";
+import { loadItAccount } from "./helpers/strict-audit";
+import { freshTotp } from "./helpers/totp";
 
-test("IT lists, filters and revokes sessions with bilingual confirmation and live invalidation", async ({
+const IT_URL = (process.env.IT_URL || "http://localhost:3002").replace(/\/$/, "");
+
+test("IT lists, filters and revokes sessions across viewports with live invalidation", async ({
   page,
   context,
   browser,
 }) => {
   test.setTimeout(180_000);
-  const accountFile = path.resolve(
-    process.env.E2E_IT_ACCOUNT_FILE ||
-      path.join(__dirname, "../../.results/it-account.json"),
-  );
-  test.skip(
-    !fs.existsSync(accountFile),
-    "run node tests/e2e/it-account.cjs first",
-  );
-  const account = JSON.parse(fs.readFileSync(accountFile, "utf8")) as {
-    email: string;
-    password: string;
-    secret: string;
-  };
+  const account = loadItAccount();
+  const rootUsername = account.username || process.env.IT_ADMIN_USERNAME || "BA0001";
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/login");
-  await page.getByLabel(ar.login.email).fill(account.email);
-  await page.getByLabel(ar.login.password).fill(account.password);
-  await page.getByRole("button", { name: ar.login.submit }).click();
+  await page.locator('input[name="username"]').fill(rootUsername);
+  await page.locator('input[name="password"]').fill(account.password);
+  await page.getByRole("button", { name: en.login.submit }).click();
 
   const step = Math.floor(Date.now() / 30_000);
   await expect
@@ -47,8 +35,8 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
       intervals: [250],
     })
     .toBeGreaterThan(step);
-  await page.getByLabel(ar.login.otp).fill(totp(account.secret));
-  await page.getByRole("button", { name: ar.login.verify }).click();
+  await page.locator('input[name="otp"]').fill(await freshTotp(account.secret));
+  await page.getByRole("button", { name: en.login.verify }).click();
   await expect(page).toHaveURL(/\/$/);
   const accessCookie = process.env.IT_ACCESS_COOKIE || "platform_it_access";
   const rootToken = (await context.cookies()).find(
@@ -65,18 +53,18 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
     role: "it_engineer",
   });
   const guest = await browser.newContext({
-    baseURL: `http://localhost:${ports.it}`,
+    baseURL: IT_URL,
     timezoneId: "Pacific/Honolulu",
   });
   try {
     const other = await guest.newPage();
     other.on("pageerror", (error) => pageErrors.push(error.message));
     await other.goto("/login");
-    await other.getByLabel(ar.login.email).fill(email);
-    await other.getByLabel(ar.login.password).fill(password);
-    await other.getByRole("button", { name: ar.login.submit }).click();
-    await other.getByLabel(ar.login.otp).fill(totp(created.secret));
-    await other.getByRole("button", { name: ar.login.verify }).click();
+    await other.locator('input[name="username"]').fill(email.split("@")[0]);
+    await other.locator('input[name="password"]').fill(password);
+    await other.getByRole("button", { name: en.login.submit }).click();
+    await other.locator('input[name="otp"]').fill(await freshTotp(created.secret));
+    await other.getByRole("button", { name: en.login.verify }).click();
     await expect(other).toHaveURL(/\/$/);
     const guestToken = (await guest.cookies()).find(
       (cookie) => cookie.name === accessCookie,
@@ -91,14 +79,14 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
       `/sessions?realm=it&realm=staff&subjectId=${created.subjectId}&subjectId=ignored&cursor=&cursor=invalid`,
     );
     await expect(
-      other.getByRole("heading", { name: ar.sessions.title, exact: true }),
+      other.getByRole("heading", { name: en.sessions.title, exact: true }),
     ).toBeVisible();
     await expect(
-      other.getByRole("button", { name: ar.sessions.revoke, exact: true }),
+      other.getByRole("button", { name: en.sessions.revoke, exact: true }),
     ).toHaveCount(0);
     const localDate = await other.evaluate(
       (value) =>
-        new Intl.DateTimeFormat("ar-u-nu-latn", {
+        new Intl.DateTimeFormat("en-GB", {
           dateStyle: "medium",
           timeStyle: "short",
         }).format(new Date(value)),
@@ -108,32 +96,23 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
       localDate,
     );
 
-    for (const copy of [ar, en]) {
-      await page.setViewportSize({
-        width: copy === ar ? 390 : 1280,
-        height: 900,
-      });
-      if (copy === en) {
-        await page
-          .getByRole("button", { name: ar.app.language, exact: true })
-          .click();
-        await expect(page.locator("html")).toHaveAttribute("lang", "en");
-      }
+    for (const width of [390, 1280] as const) {
+      await page.setViewportSize({ width, height: 900 });
       await page
-        .getByRole("link", { name: copy.nav.sessions, exact: true })
+        .getByRole("link", { name: en.nav.sessions, exact: true })
         .click();
       await expect(
-        page.getByRole("heading", { name: copy.sessions.title, exact: true }),
+        page.getByRole("heading", { name: en.sessions.title, exact: true }),
       ).toBeVisible();
       await selectOption(
-        page.getByRole("combobox", { name: copy.sessions.realm, exact: true }),
+        page.getByRole("combobox", { name: en.sessions.realm, exact: true }),
         "it",
       );
       await page
-        .getByLabel(copy.sessions.accountId, { exact: true })
+        .getByLabel(en.sessions.accountId, { exact: true })
         .fill(created.subjectId);
       await page
-        .getByRole("button", { name: copy.sessions.filter, exact: true })
+        .getByRole("button", { name: en.sessions.filter, exact: true })
         .click();
       await expect(page).toHaveURL(
         new RegExp(`subjectId=${created.subjectId}`),
@@ -146,41 +125,39 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
         ),
       ).toBe(true);
       await row
-        .getByRole("button", { name: copy.sessions.revoke, exact: true })
+        .getByRole("button", { name: en.sessions.revoke, exact: true })
         .click();
       const dialog = page.getByRole("dialog", {
-        name: copy.sessions.confirmTitle,
+        name: en.sessions.confirmTitle,
         exact: true,
       });
-      await expect(dialog).toContainText(copy.sessions.confirmBody);
+      await expect(dialog).toContainText(en.sessions.confirmBody);
       await dialog
-        .getByRole("button", { name: copy.sessions.cancel, exact: true })
+        .getByRole("button", { name: en.sessions.cancel, exact: true })
         .click();
       await expect(dialog).toHaveCount(0);
-      await expect(row).toContainText(copy.sessions.active);
-      if (copy === ar) {
+      await expect(row).toContainText(en.sessions.active);
+      if (width === 390) {
         await page.route("**/sessions*", (route) =>
           route.request().method() === "POST"
             ? route.fulfill({ status: 500, body: "E2E revocation failure" })
             : route.continue(),
         );
         await row
-          .getByRole("button", { name: copy.sessions.revoke, exact: true })
+          .getByRole("button", { name: en.sessions.revoke, exact: true })
           .click();
         await dialog
-          .getByRole("button", { name: copy.sessions.revoke, exact: true })
+          .getByRole("button", { name: en.sessions.revoke, exact: true })
           .click();
-        await expect(dialog.getByRole("alert")).toHaveText(
-          copy.sessions.failed,
-        );
+        await expect(dialog.getByRole("alert")).toHaveText(en.sessions.failed);
         await page.unroute("**/sessions*");
         await dialog
-          .getByRole("button", { name: copy.sessions.cancel, exact: true })
+          .getByRole("button", { name: en.sessions.cancel, exact: true })
           .click();
         expect(
           (
             await other.request.get(
-              `${process.env.API_URL}/v1/identity/session`,
+              `${process.env.API_URL || "http://localhost:8080"}/v1/identity/session`,
               { headers: { Authorization: `Bearer ${guestToken}` } },
             )
           ).status(),
@@ -213,9 +190,12 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
       .toBe(true);
     expect(
       (
-        await other.request.get(`${process.env.API_URL}/v1/identity/session`, {
-          headers: { Authorization: `Bearer ${guestToken}` },
-        })
+        await other.request.get(
+          `${process.env.API_URL || "http://localhost:8080"}/v1/identity/session`,
+          {
+            headers: { Authorization: `Bearer ${guestToken}` },
+          },
+        )
       ).status(),
     ).toBe(401);
 

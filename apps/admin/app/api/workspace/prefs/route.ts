@@ -28,6 +28,14 @@ export async function PUT(req: NextRequest) {
     scratchpad?: Record<string, unknown>;
     sidebarPrefs?: Record<string, unknown>;
   };
-  const updated = await saveWorkspacePrefs(user.id, body);
+  const patch: {
+    widgets?: unknown;
+    scratchpad?: Record<string, unknown>;
+    sidebarPrefs?: Record<string, unknown>;
+  } = {};
+  if (body.widgets !== undefined) patch.widgets = body.widgets;
+  if (body.scratchpad !== undefined) patch.scratchpad = body.scratchpad;
+  if (body.sidebarPrefs !== undefined) patch.sidebarPrefs = body.sidebarPrefs;
+  const updated = await saveWorkspacePrefs(user.id, patch);
   return NextResponse.json(updated, { headers: noStore });
 }

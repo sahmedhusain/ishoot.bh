@@ -18,6 +18,7 @@ func New(cfg config.Common, logger *logx.Logger, metrics *Metrics) (*echo.Echo, 
 	e := echo.New()
 	e.HideBanner, e.HidePort = true, true
 	e.HTTPErrorHandler = ErrorHandler(logger)
+	e.Binder = &flexJSONBinder{}
 	extractor, err := ipExtractor(cfg.HTTP.TrustedProxies)
 	if err != nil {
 		return nil, err

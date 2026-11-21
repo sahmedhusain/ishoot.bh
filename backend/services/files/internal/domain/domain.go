@@ -20,6 +20,7 @@ var (
 )
 var SniffLength = catalog.Files.SniffLength()
 var namePattern = regexp.MustCompile(`^[A-Za-z0-9_-]+\.([a-z0-9]+)$`)
+var urlPathPattern = regexp.MustCompile(`^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.([a-z0-9]+)$`)
 type Location struct {
 	Folder	catalog.FileFolder
 	Name	string
@@ -37,7 +38,11 @@ func ParseURL(fileURL string) (Location, error) {
 		return Location{}, ErrInvalidURL
 	}
 	folder, ok := catalog.Files.Folder(folderKey)
-	match := namePattern.FindStringSubmatch(name)
+	pattern := namePattern
+	if folderKey == "media" {
+		pattern = urlPathPattern
+	}
+	match := pattern.FindStringSubmatch(name)
 	if !ok || match == nil {
 		return Location{}, ErrInvalidURL
 	}

@@ -1,4 +1,5 @@
 import { selectOption } from "./helpers/select-option";
+import { loginAsAdmin } from "./helpers/admin-audit";
 import { expect, test } from "@playwright/test";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
@@ -29,6 +30,7 @@ for (const locale of ["en", "ar"] as const)
         nativeDialogs.push(dialog.type());
         await dialog.dismiss();
       });
+      await loginAsAdmin(page);
       await page.goto("/dashboard/cms/articles/new");
       const editor = page
         .getByRole("main")

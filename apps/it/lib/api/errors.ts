@@ -36,4 +36,7 @@ export async function apiError(
 }
 
 export const isApiError = (err: unknown, ...codes: string[]): err is ApiError =>
-  err instanceof ApiError && (codes.length === 0 || codes.includes(err.code));
+  err != null &&
+  typeof err === "object" &&
+  ((err as any).name === "ApiError" || err instanceof ApiError) &&
+  (codes.length === 0 || codes.includes((err as any).code));

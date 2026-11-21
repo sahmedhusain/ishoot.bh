@@ -35,10 +35,6 @@ func (s *Service) ListLeaveTypes(ctx context.Context) (json.RawMessage, error) {
 	return s.store.ListLeaveTypes(ctx)
 }
 
-func (s *Service) ListPublicHolidays(ctx context.Context) (json.RawMessage, error) {
-	return s.store.ListPublicHolidays(ctx)
-}
-
 func (s *Service) ListShiftTypes(ctx context.Context) (json.RawMessage, error) {
 	return s.store.ListShiftTypes(ctx)
 }
@@ -55,16 +51,8 @@ func (s *Service) GetGosiSettings(ctx context.Context) (json.RawMessage, error) 
 	return s.store.GetGosiSettings(ctx)
 }
 
-func (s *Service) ListFinalSettlements(ctx context.Context) (json.RawMessage, error) {
-	return s.store.ListFinalSettlements(ctx)
-}
-
 func (s *Service) ListSalaryDocuments(ctx context.Context) (json.RawMessage, error) {
 	return s.store.ListSalaryDocuments(ctx)
-}
-
-func (s *Service) ListSupportPrograms(ctx context.Context) (json.RawMessage, error) {
-	return s.store.ListSupportPrograms(ctx)
 }
 
 func (s *Service) SaveShiftType(ctx context.Context, id, code, nameEn, nameAr, allowanceMode string, allowanceValue float64, isActive bool) (json.RawMessage, error) {

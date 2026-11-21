@@ -17,12 +17,7 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 			return c.JSONBlob(http.StatusOK, raw)
 		}
 	}
-	g.GET("/canned-replies", list("canned_reply", "title ASC"))
-	g.GET("/request-events", list("request_event", "created_at DESC"))
-	g.GET("/request-comments", list("request_comment", "created_at DESC"))
-	g.GET("/request-assignments", list("request_assignment", "assigned_at DESC"))
 	g.GET("/attribution-changes", list("sales_attribution_change", "created_at DESC"))
-	g.GET("/client-contacts", list("client_contact_person", "name ASC"))
 
 	db.RegisterTableRoutes(g, h.svc.Pool(), "sales", []string{
 		"campaign", "catalog_item_ref", "contact", "crm_contact", "crm_deal", "deal",

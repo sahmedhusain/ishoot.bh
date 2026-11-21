@@ -1,5 +1,5 @@
 import { ProductCard } from "../../../../components/catalog/ProductCard";
-import { catalogueProductPrices, getStoreCatalog, storeProductForItem } from "@platform/database/queries/store";
+import { catalogueProductPrices, getStoreCatalog, listWishlist, storeProductForItem } from "@platform/database";
 import { ContentImage } from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
 import { notFound } from "next/navigation";
@@ -59,7 +59,12 @@ export default async function ProductDetailPage({
       : null;
   const canOrder = storeOn && !preview && (await orderingEnabled().catch(() => false));
   const storeProduct = storeOn && !preview ? await storeProductForItem(item.id) : null;
-  const store = customer ? { signedIn: !!customer.profile, saved: false } : null;
+  const savedWishlist = customer?.profile?.id
+    ? await listWishlist(customer.profile.id).catch(() => [])
+    : [];
+  const store = customer
+    ? { signedIn: !!customer.profile, saved: savedWishlist.some((entry) => entry.id === item.id) }
+    : null;
 
   const layout = info.collection.layout;
   const title = pickText(item.title_en, item.title_ar, locale);

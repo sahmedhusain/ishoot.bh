@@ -19,8 +19,8 @@ func (s *Service) UpdateWarehouseFields(ctx context.Context, id string, code, na
 	return s.store.UpdateWarehouseFields(ctx, id, code, nameEn, nameAr, address, isDefault, isActive)
 }
 
-func (s *Service) UpdateLocationFields(ctx context.Context, id string, code, nameEn, nameAr, kind *string, isActive *bool) error {
-	return s.store.UpdateLocationFields(ctx, id, code, nameEn, nameAr, kind, isActive)
+func (s *Service) UpdateLocationFields(ctx context.Context, id string, code, name *string, isActive *bool) error {
+	return s.store.UpdateLocationFields(ctx, id, code, name, isActive)
 }
 
 func (s *Service) DeleteCategoryByID(ctx context.Context, id string) error {

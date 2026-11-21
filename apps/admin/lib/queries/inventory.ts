@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
+import { listTableRows, upsertTableRow } from "../api/tables";
 import {
   listWarehouses as listWarehousesApi,
   getWarehouse,
@@ -172,9 +174,31 @@ export async function getStockOverview(
   };
 }
 
-export async function getProductStock(productId: string, actorId?: string): Promise<any> {
-  const stock = await listStockLevels(productId);
-  return stock || [];
+export async function getProductStock(productId: string, _actorId?: string): Promise<{
+  levels: { variant_key: string; location: string; batch: string | null; expiry: string | null; on_hand: number; reserved: number }[];
+  items: { variant_key: string; reorder_point: number | null; reorder_quantity: number | null; average_cost: number }[];
+}> {
+  const [rawLevels, stockItems] = await Promise.all([
+    listStockLevels(productId).catch(() => []),
+    listTableRows<any>("inventory", "stock_item").catch(() => []),
+  ]);
+  const levels = (rawLevels || []).map((l: any) => ({
+    variant_key: l.variantKey ?? l.variant_key ?? "",
+    location: l.locationName || l.location || l.locationId || l.warehouseId || "",
+    batch: l.batchNumber ?? l.batch ?? null,
+    expiry: l.expiryDate ?? l.expiry ?? null,
+    on_hand: Number(l.onHand ?? l.quantityOnHand ?? l.on_hand ?? 0),
+    reserved: Number(l.reserved ?? l.quantityReserved ?? l.reserved ?? 0),
+  }));
+  const items = (stockItems || [])
+    .filter((i: any) => i.productId === productId || i.product_id === productId)
+    .map((i: any) => ({
+      variant_key: i.variantKey ?? i.variant_key ?? "",
+      reorder_point: i.reorderPoint == null ? null : Number(i.reorderPoint),
+      reorder_quantity: i.reorderQuantity == null ? null : Number(i.reorderQuantity),
+      average_cost: Number(i.averageCost ?? i.average_cost ?? 0),
+    }));
+  return { levels, items };
 }
 
 export async function listWarehouses(actorId?: string): Promise<WarehouseRecord[]> {
@@ -275,16 +299,105 @@ export interface MovementInput {
   note?: string;
 }
 
+const levelKey = (
+  productId: string,
+  variantId: string | null | undefined,
+  locationId: string,
+) => `${productId}::${variantId || ""}::${locationId}`;
+
+const readLevelNumbers = (row: Record<string, any> | undefined) => ({
+  onHand: num(row?.quantityOnHand ?? row?.onHand ?? 0),
+  reserved: num(row?.quantityReserved ?? row?.reserved ?? 0),
+  reorder: num(row?.reorderPoint ?? 0),
+});
+
 export async function postMovements(
-  tx: any,
+  _tx: any,
   movements: MovementInput[],
   userId: string | null,
 ) {
-  throw new Error("postMovements must be implemented as a single API call in Go backend");
+  if (!movements.length) return [];
+  const levels = await listTableRows<Record<string, any>>("inventory", "stock_level").catch(() => []);
+  const byKey = new Map<string, Record<string, any>>();
+  for (const l of levels) {
+    byKey.set(levelKey(String(l.productId), l.variantId, String(l.locationId)), l);
+  }
+  const low: Array<{
+    productId: string;
+    variantId: string | null;
+    locationId: string;
+    available: number;
+    reorderPoint: number;
+  }> = [];
+  for (const m of movements) {
+    const key = levelKey(m.productId, m.variantId, m.locationId);
+    const cur = byKey.get(key);
+    const prev = readLevelNumbers(cur);
+    const nextOnHand = roundQuantity(prev.onHand + Number(m.quantity || 0));
+    const nextReserved =
+      m.type === "sale" && Number(m.quantity) < 0
+        ? Math.max(
+            0,
+            roundQuantity(
+              prev.reserved - Math.min(prev.reserved, Math.abs(Number(m.quantity))),
+            ),
+          )
+        : prev.reserved;
+    const nextAvailable = roundQuantity(nextOnHand - nextReserved);
+    const nextId = cur?.id ?? randomUUID();
+    await adjustStock({
+      movement: {
+        movementType: m.type as any,
+        productId: m.productId,
+        variantId: m.variantId || null,
+        locationId: m.locationId,
+        quantity: String(m.quantity),
+        unitCost: String(m.unitCost ?? 0),
+        sourceType: m.sourceType ?? "manual",
+        sourceId: m.sourceId ?? null,
+        transferId: m.transferId ?? null,
+        batchNumber: m.batchNumber ?? null,
+        expiryDate: m.expiryDate ?? null,
+        reason: m.reason ?? null,
+        note: m.note ?? null,
+        createdById: userId ?? null,
+      } as any,
+      level: {
+        id: nextId,
+        productId: m.productId,
+        variantId: m.variantId || null,
+        locationId: m.locationId,
+        quantityOnHand: String(nextOnHand),
+        quantityReserved: String(nextReserved),
+        quantityAvailable: String(nextAvailable),
+        reorderPoint: String(prev.reorder),
+      } as any,
+    });
+    byKey.set(key, {
+      id: nextId,
+      productId: m.productId,
+      variantId: m.variantId || null,
+      locationId: m.locationId,
+      quantityOnHand: nextOnHand,
+      quantityReserved: nextReserved,
+      quantityAvailable: nextAvailable,
+      reorderPoint: prev.reorder,
+    });
+    if (prev.reorder > 0 && nextAvailable <= prev.reorder) {
+      low.push({
+        productId: m.productId,
+        variantId: m.variantId || null,
+        locationId: m.locationId,
+        available: nextAvailable,
+        reorderPoint: prev.reorder,
+      });
+    }
+  }
+  return low;
 }
 
 export async function reserveStock(
-  tx: any,
+  _tx: any,
   input: {
     productId: string;
     variantId?: string;
@@ -293,7 +406,24 @@ export async function reserveStock(
     quantity: number;
   },
 ) {
-  throw new Error("reserveStock must be implemented as a single API call in Go backend");
+  const levels = await listTableRows<Record<string, any>>("inventory", "stock_level").catch(() => []);
+  const key = levelKey(input.productId, input.variantId, input.locationId);
+  const cur = levels.find(
+    (l) => levelKey(String(l.productId), l.variantId, String(l.locationId)) === key,
+  );
+  const prev = readLevelNumbers(cur);
+  const nextReserved = Math.max(0, roundQuantity(prev.reserved + Number(input.quantity || 0)));
+  const nextAvailable = roundQuantity(prev.onHand - nextReserved);
+  return upsertTableRow("inventory", "stock_level", {
+    id: cur?.id ?? randomUUID(),
+    productId: input.productId,
+    variantId: input.variantId || null,
+    locationId: input.locationId,
+    quantityOnHand: prev.onHand,
+    quantityReserved: nextReserved,
+    quantityAvailable: nextAvailable,
+    reorderPoint: prev.reorder,
+  });
 }
 
 export interface StockChangeInput {
@@ -360,7 +490,40 @@ export async function transferStock(
   input: TransferInput,
   userId: string | null,
 ) {
-  throw new Error("transferStock must be implemented as a single API call in Go backend");
+  const amount = roundQuantity(Math.abs(Number(input.quantity)));
+  if (!amount) throw new Error(serverMessages.stockQuantityInvalid);
+  if (!input.fromLocationId || !input.toLocationId || input.fromLocationId === input.toLocationId) {
+    throw new Error(serverMessages.stockLocationMissing);
+  }
+  const transferId = randomUUID();
+  return postMovements(
+    null,
+    [
+      {
+        type: "transfer_out",
+        productId: input.productId,
+        variantId: input.variantId,
+        locationId: input.fromLocationId,
+        quantity: -amount,
+        batchNumber: input.batchNumber,
+        sourceType: "transfer",
+        transferId,
+        note: input.note?.trim().slice(0, 500) || undefined,
+      },
+      {
+        type: "transfer_in",
+        productId: input.productId,
+        variantId: input.variantId,
+        locationId: input.toLocationId,
+        quantity: amount,
+        batchNumber: input.batchNumber,
+        sourceType: "transfer",
+        transferId,
+        note: input.note?.trim().slice(0, 500) || undefined,
+      },
+    ],
+    userId,
+  );
 }
 
 export async function setReorderPoint(
@@ -400,9 +563,58 @@ export async function createStockCount(
   });
 }
 
-export async function getStockCount(id: string, _actorId?: string): Promise<any> {
-  const { getStockCountApi } = await import("../api/inventory");
-  return getStockCountApi(id);
+export async function getStockCount(id: string, actorId?: string): Promise<any> {
+  const { getStockCountApi, listStockCountLinesApi } = await import("../api/inventory");
+  const sc = await getStockCountApi(id).catch(() => null);
+  if (!sc) return null;
+  const [rawLines, warehouses, products] = await Promise.all([
+    listStockCountLinesApi(id).catch(() => []),
+    listWarehouses(actorId).catch(() => []),
+    listProducts().catch(() => []),
+  ]);
+  const wh = warehouses.find((w) => w.id === sc.warehouseId);
+  const locMap = new Map(
+    (warehouses.flatMap((w) => w.locations) ?? []).map((l) => [l.id, l]),
+  );
+  const prodMap = new Map((products as any[]).map((p) => [p.id, p]));
+  const lines = (Array.isArray(rawLines) ? rawLines : []).map((l: any) => {
+    const prod = prodMap.get(l.productId);
+    const loc = l.locationId ? locMap.get(l.locationId) : undefined;
+    const expected = l.expected != null ? num(l.expected) : num(l.systemQuantity);
+    const countedRaw =
+      l.counted != null
+        ? num(l.counted)
+        : l.countedQuantity != null && sc.status !== "counting"
+          ? num(l.countedQuantity)
+          : null;
+    return {
+      id: String(l.id),
+      product_id: String(l.productId),
+      variant_id: l.variantId ?? null,
+      name_en: String(prod?.nameEn ?? l.productId ?? ""),
+      name_ar: String(prod?.nameAr ?? prod?.nameEn ?? l.productId ?? ""),
+      sku: String(prod?.sku ?? l.variantKey ?? ""),
+      barcode: String(prod?.barcode ?? ""),
+      batch: l.batchKey ?? null,
+      location: String(loc?.code ?? loc?.name ?? l.locationId ?? ""),
+      variant_values: l.variantKey ? [String(l.variantKey)] : [],
+      expected,
+      counted: countedRaw,
+    };
+  });
+  return {
+    id: String(sc.id),
+    number: String(sc.countNumber ?? sc.number ?? sc.id),
+    warehouse_id: String(sc.warehouseId),
+    warehouse_en: wh?.name_en ?? String(sc.warehouseId ?? ""),
+    warehouse_ar: wh?.name_ar ?? wh?.name_en ?? String(sc.warehouseId ?? ""),
+    scope: String(sc.scope ?? "full"),
+    status: String(sc.status ?? "counting"),
+    note: String(sc.note ?? sc.notes ?? ""),
+    created_by: sc.countedById ?? sc.createdById ?? null,
+    approved_by: sc.approvedById ?? null,
+    lines,
+  };
 }
 
 export async function listStockCounts(actorId?: string): Promise<any> {
@@ -460,7 +672,7 @@ export async function approveStockCount(
 
 export async function listMovements(query: any = {}, _actorId?: string) {
   const { listMovementsApi } = await import("../api/inventory");
-  const rows = await listMovementsApi().catch(() => []);
+  const rows = (await listMovementsApi().catch(() => [])) || [];
   const filtered = rows.filter((r: any) => {
     if (query?.productId && r.productId !== query.productId) return false;
     if (query?.warehouseId && r.warehouseId !== query.warehouseId) return false;

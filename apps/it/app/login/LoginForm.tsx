@@ -37,9 +37,9 @@ export function LoginForm({
               className="size-5 rounded object-contain shrink-0"
             />
           ) : null}
-          <span className="text-white font-semibold text-sm tracking-tight">
+          <h1 className="text-white font-semibold text-sm tracking-tight">
             {branding?.name || copy.app.name}
-          </span>
+          </h1>
         </div>
       </div>
 

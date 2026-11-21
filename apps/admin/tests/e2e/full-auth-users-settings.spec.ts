@@ -53,27 +53,48 @@ test.describe("Admin — Auth, Users, Roles & All Settings Pages", () => {
     await loginAsAdmin(page);
 
     const ts = Date.now();
-    await page.goto("/dashboard/users/new", { waitUntil: "domcontentloaded" });
+    const empFirst = "E2EStaff";
+    const empLast = `User${ts}`;
+    const empEmail = `e2e-emp-link-${ts}@example.test`;
 
-    // Submit empty form -> should stay on /new (HTML5 / custom validation)
+    // 1. Create an unlinked employee first so NewUserFormView always has an employee to link
+    await page.goto("/dashboard/hr/employees/new", { waitUntil: "domcontentloaded" });
+    await page.getByLabel(/First Name \(English\)/i).fill(empFirst);
+    await page.getByLabel(/Last Name \(English\)/i).fill(empLast);
+    await page.getByLabel(/^Email/i).first().fill(empEmail);
+    await page.locator('input[placeholder="e.g. Senior Specialist"]').fill("QA Test Specialist");
+    await page.getByRole("button", { name: /Save Employee Record/i }).click();
+    await expect(page).toHaveURL(/\/dashboard\/hr\/employees\/(?!new$)[^/]+$/, { timeout: 30_000 });
+
+    // 2. Navigate to /dashboard/users/new and verify empty submit validation stays on /new
+    await page.goto("/dashboard/users/new", { waitUntil: "domcontentloaded" });
     await page.locator('button[type="submit"]:visible').first().click();
     await expect(page).toHaveURL(/\/dashboard\/users\/new/);
 
-    // Fill valid user details
-    const nameEn = page.locator('input[name="nameEn"], input[name="name_en"], input[name="name"]').first();
-    if ((await nameEn.count()) > 0) await nameEn.fill(`E2E User ${ts}`);
+    // 3. Fill valid user details via real comboboxes and labeled inputs
+    const combos = page.locator('button[role="combobox"]:visible');
+    await expect(combos.first()).toBeVisible({ timeout: 10_000 });
+    await combos.nth(0).click();
+    const empOption = page
+      .locator('[role="listbox"] [role="option"]')
+      .filter({ hasText: `${empFirst} ${empLast}` })
+      .first();
+    await expect(empOption).toBeVisible({ timeout: 5_000 });
+    await empOption.click();
 
-    const emailInput = page.locator('input[name="email"], input[type="email"]').first();
-    if ((await emailInput.count()) > 0) await emailInput.fill(`e2e-user-${ts}@example.test`);
+    await page.getByPlaceholder("e.g. Sayed Ahmed").fill(`${empFirst} ${empLast}`);
+    const userEmail = `e2e-user-${ts}@example.test`;
+    await page.locator('input[type="email"]').first().fill(userEmail);
+    await page.locator('input[type="password"]').first().fill(`UserPass!${ts}A`);
 
-    const usernameInput = page.locator('input[name="username"]').first();
-    if ((await usernameInput.count()) > 0) await usernameInput.fill(`e2eu${ts.toString().slice(-6)}`);
+    await combos.nth(1).click();
+    const roleOption = page.locator('[role="listbox"] [role="option"]:not([data-option-value=""])').first();
+    await expect(roleOption).toBeVisible({ timeout: 5_000 });
+    await roleOption.click();
 
-    const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
-    if ((await passwordInput.count()) > 0) await passwordInput.fill(`UserPass!${ts}`);
-
-    await page.locator('button[type="submit"]:visible').first().click();
-    await page.waitForTimeout(1500);
+    await page.getByRole("button", { name: /Create User Account/i }).click();
+    await expect(page).toHaveURL(/\/dashboard\/users(\?|$)/, { timeout: 30_000 });
+    await expect(page.getByText(userEmail)).toBeVisible({ timeout: 10_000 });
 
     expect(serverErrors).toEqual([]);
     expect(errors).toEqual([]);

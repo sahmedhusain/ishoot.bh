@@ -73,6 +73,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
               fallbackText={companyTitle}
               width={200}
               height={40}
+              loading="eager"
             />
           ) : (
             <>
@@ -86,6 +87,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
                 className="w-7 h-7 object-contain shrink-0"
                 width={40}
                 height={40}
+                loading="eager"
               />
               <ContentImage
                 src={
@@ -98,6 +100,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
                 fallbackText={companyTitle}
                 width={240}
                 height={60}
+                loading="eager"
               />
             </>
           )}

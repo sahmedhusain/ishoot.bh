@@ -17,6 +17,10 @@ func TestParseURL(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, loc.Folder.Public)
 	assert.Equal(t, "image/jpeg", loc.Type.MIME)
+	loc, err = ParseURL("/api/files/media/banners/banner-01.png")
+	require.NoError(t, err)
+	assert.True(t, loc.Folder.Public)
+	assert.Equal(t, "media/banners/banner-01.png", loc.Key())
 	tests := map[string]error{
 		"/files/general/a.pdf":			ErrInvalidURL,
 		"/api/files/general":			ErrInvalidURL,

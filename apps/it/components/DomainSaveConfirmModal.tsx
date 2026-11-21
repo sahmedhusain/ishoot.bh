@@ -36,7 +36,7 @@ export function DomainSaveConfirmModal({
   const [acknowledgedDns, setAcknowledgedDns] = React.useState(false);
 
   React.useEffect(() => {
-    if (open) {
+    if (!open) {
       setTypedVerification("");
       setAcknowledgedDns(false);
     }

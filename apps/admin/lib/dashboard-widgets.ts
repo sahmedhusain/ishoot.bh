@@ -80,11 +80,15 @@ export async function dashboardLayoutFor(
   ctx: DashboardContext,
 ): Promise<{ layout: DashboardLayoutItem[]; custom: boolean }> {
   const saved = await getDashboardLayout(ctx.user.id);
-  if (saved)
-    return {
-      layout: normalizeDashboardLayout(saved, ctx.available),
-      custom: true,
-    };
+  if (saved) {
+    const normalized = normalizeDashboardLayout(saved, ctx.available);
+    if (normalized.length > 0) {
+      return {
+        layout: normalized,
+        custom: true,
+      };
+    }
+  }
   return {
     layout: normalizeDashboardLayout(
       defaultDashboardLayout(ctx.user.role, ctx.focus),

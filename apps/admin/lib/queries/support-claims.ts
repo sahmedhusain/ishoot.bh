@@ -69,7 +69,11 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
       Number(item.housingAllowance) +
       Number(item.transportAllowance) +
       Number(item.otherAllowances);
-    const settings = parsePayrollSettings(item.calculationSnapshot);
+    const rawSnapshot = item.calculationSnapshot as Record<string, any> | null;
+    const settings =
+      rawSnapshot && rawSnapshot.employee && rawSnapshot.employer
+        ? parsePayrollSettings(rawSnapshot)
+        : null;
     const providerStarts = new Map<string, string>();
     for (const s of settings?.supports ?? []) {
       const provider = s.provider.trim();
@@ -157,7 +161,7 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
         receipt: receipt
           ? {
               amount: Number(receipt.receivedAmount),
-              receivedOn: receipt.receivedOn.toISOString().slice(0, 10),
+              receivedOn: (receipt.receivedOn instanceof Date ? receipt.receivedOn : new Date(receipt.receivedOn || Date.now())).toISOString().slice(0, 10),
               reference: receipt.reference,
             }
           : null,

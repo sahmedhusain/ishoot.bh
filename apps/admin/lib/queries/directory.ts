@@ -1,5 +1,6 @@
 import { listAdminUsersApi } from "../api/identity";
-import { listDepartments, listEmployees } from "../api/hr";
+import { listDepartments } from "../api/hr";
+import { listTableRows } from "../api/tables";
 import { departmentSubtree } from "./departments";
 
 export interface DirectoryEntry {
@@ -34,11 +35,23 @@ export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
       ? new Set(await departmentSubtree([filters.departmentId]))
       : null;
 
-  const [users, employees, departments] = await Promise.all([
+  const [users, rawEmployees, departments] = await Promise.all([
     listAdminUsersApi().catch(() => []),
-    listEmployees().catch(() => []),
+    listTableRows<any>("hr", "employee").catch(() => []),
     listDepartments().catch(() => []),
   ]);
+
+  const employees = rawEmployees.map((e: any) => ({
+    ...e,
+    userId: e.userId ?? e.user_id ?? null,
+    departmentId: e.departmentId ?? e.department_id ?? null,
+    firstNameEn: e.firstNameEn ?? e.first_name_en ?? "",
+    lastNameEn: e.lastNameEn ?? e.last_name_en ?? "",
+    firstNameAr: e.firstNameAr ?? e.first_name_ar ?? "",
+    lastNameAr: e.lastNameAr ?? e.last_name_ar ?? "",
+    jobTitleEn: e.jobTitleEn ?? e.job_title_en ?? null,
+    jobTitleAr: e.jobTitleAr ?? e.job_title_ar ?? null,
+  }));
 
   const deptById = new Map<string, any>(departments.map((d: any): [any, any] => [d.id, d]));
   const userById = new Map<string, any>(users.map((u: any): [any, any] => [u.id, u]));
@@ -127,7 +140,16 @@ export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
       };
     });
 
-  const entries = [...userEntries, ...unlinkedEntries].sort(
+  const seenIds = new Set(userEntries.map((u) => u.id));
+  const mergedEntries = [
+    ...userEntries,
+    ...unlinkedEntries.filter((e) => {
+      if (seenIds.has(e.id)) return false;
+      seenIds.add(e.id);
+      return true;
+    }),
+  ];
+  const entries = mergedEntries.sort(
     (a, b) =>
       (a.department ?? "~").localeCompare(b.department ?? "~") ||
       a.name.localeCompare(b.name),

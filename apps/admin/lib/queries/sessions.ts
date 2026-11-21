@@ -20,7 +20,7 @@ function mapUser(u: any): Profile {
 
 export async function getSessionUser(id: string, token?: string): Promise<Profile | null> {
   try {
-    const user = await getAdminUserApi(id, token);
+    const user = await getAdminUserApi(id);
     if (user && (user.is_active ?? user.isActive ?? true)) {
       return mapUser(user);
     }
@@ -60,7 +60,15 @@ export async function getSessionUser(id: string, token?: string): Promise<Profil
       };
     }
   } catch (err: any) {
-    if (err && typeof err === "object" && (err.status === 502 || err.status === 503 || err.status === 504)) {
+    if (
+      err &&
+      typeof err === "object" &&
+      (err.status === 502 ||
+        err.status === 503 ||
+        err.status === 504 ||
+        err.name === "TimeoutError" ||
+        err.name === "AbortError")
+    ) {
       throw err;
     }
   }

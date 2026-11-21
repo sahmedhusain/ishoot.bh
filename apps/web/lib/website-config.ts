@@ -492,7 +492,8 @@ export interface PublicService {
   descriptionAr: string | null;
   imageUrl: string | null;
 }
-export function safeWebsiteUrl(value: string, fallback = ""): string {
+export function safeWebsiteUrl(value?: string | null, fallback = ""): string {
+  if (!value || typeof value !== "string") return fallback;
   if (value.startsWith("/") && !value.startsWith("//") && !/[\\\s]/.test(value))
     return value;
   try {

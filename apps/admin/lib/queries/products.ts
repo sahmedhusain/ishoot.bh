@@ -136,7 +136,7 @@ export async function getProduct(id: string): Promise<ProductRecord | null> {
     track_batches: (p as any).trackBatches ?? false,
     image_urls: (p as any).imageUrls ?? [],
     options: normalizeProductOptions((p as any).options) ?? [],
-    variants: (await listVariantsApi(id)).map((v) => ({
+    variants: ((await listVariantsApi(id)) ?? []).map((v) => ({
       id: v.id,
       sku: v.sku,
       barcode: v.barcode ?? null,
@@ -216,6 +216,9 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
   const priceValue = Number(input.price || 0);
   const cleanedInput = {
     ...input,
+    categoryId: input.categoryId?.trim() || null,
+    barcode: input.barcode?.trim() || null,
+    brand: input.brand?.trim() || null,
     nameAr: input.nameAr?.trim() || input.nameEn.trim(),
     descriptionEn: input.descriptionEn ?? "",
     descriptionAr: input.descriptionAr ?? "",

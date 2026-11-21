@@ -61,17 +61,22 @@ test.describe("Admin — Products, Inventory, Procurement & Delivery", () => {
     await saveBtn.click();
     await expect(page).toHaveURL(/\/dashboard\/products\/new/);
 
-    const nameEn = page.locator('input[name="nameEn"], input[name="name_en"]').first();
-    if ((await nameEn.count()) > 0) await nameEn.fill(`E2E Product ${ts}`);
+    const nameEn = page.locator('input[name="productNameEn"]').first();
+    await expect(nameEn).toBeVisible({ timeout: 10_000 });
+    await nameEn.fill(`E2E Product ${ts}`);
     const sku = page.locator('input[name="sku"]').first();
-    if ((await sku.count()) > 0) await sku.fill(`E2E-SKU-${ts}`);
-    const price = page.locator('input[name="price"], input[name="unitPrice"]').first();
-    if ((await price.count()) > 0) await price.fill("49.500");
+    await expect(sku).toBeVisible();
+    await sku.fill(`E2E-SKU-${ts}`);
+    const price = page.locator('input[name="price"]').first();
+    await expect(price).toBeVisible();
+    await price.fill("49.500");
     const cost = page.locator('input[name="cost"]').first();
-    if ((await cost.count()) > 0) await cost.fill("25.000");
+    await expect(cost).toBeVisible();
+    await cost.fill("25.000");
 
     await saveBtn.click();
-    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(/\/dashboard\/products\/(?!new$)[^/]+$/, { timeout: 30_000 });
+    await expect(page.locator('input[name="sku"]').first()).toHaveValue(`E2E-SKU-${ts}`);
 
     expect(serverErrors).toEqual([]);
     expect(errors).toEqual([]);

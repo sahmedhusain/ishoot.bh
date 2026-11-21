@@ -46,9 +46,10 @@ export async function getAccessibleSalaryDocument(
   id: string,
   user: Profile,
 ): Promise<SalaryDocumentRecord> {
-  const [docs, employees] = await Promise.all([
+  const [docs, employees, departments] = await Promise.all([
     listTableRows<Record<string, any>>("hr", "salary_document"),
     listTableRows<Record<string, any>>("hr", "employee"),
+    listTableRows<Record<string, any>>("hr", "department").catch(() => []),
   ]);
   const rawDoc = docs.find((d) => d.id === id);
   const employee = rawDoc ? employees.find((e) => e.id === rawDoc.employeeId) : null;
@@ -58,8 +59,52 @@ export async function getAccessibleSalaryDocument(
     (employee.userId !== user.id && !(await canManageSalaryDocuments(user)))
   )
     throw new Error(serverMessages.salaryDocumentAccessDenied);
+  const dept = employee.departmentId
+    ? departments.find((d) => d.id === employee.departmentId)
+    : null;
+  const rawSnapshot =
+    rawDoc.snapshot && typeof rawDoc.snapshot === "object"
+      ? (rawDoc.snapshot as Record<string, any>)
+      : {};
+  const existingEmp =
+    rawSnapshot.employee && typeof rawSnapshot.employee === "object"
+      ? (rawSnapshot.employee as Record<string, any>)
+      : null;
+  const hydratedSnapshot = {
+    ...rawSnapshot,
+    employee: {
+      employeeNumber:
+        existingEmp?.employeeNumber ?? employee.employeeNumber ?? "",
+      firstNameEn: existingEmp?.firstNameEn ?? employee.firstNameEn ?? "",
+      lastNameEn: existingEmp?.lastNameEn ?? employee.lastNameEn ?? "",
+      firstNameAr: existingEmp?.firstNameAr ?? employee.firstNameAr ?? "",
+      lastNameAr: existingEmp?.lastNameAr ?? employee.lastNameAr ?? "",
+      jobTitleEn: existingEmp?.jobTitleEn ?? employee.jobTitleEn ?? "",
+      jobTitleAr: existingEmp?.jobTitleAr ?? employee.jobTitleAr ?? "",
+      hireDate:
+        existingEmp?.hireDate ??
+        (employee.hireDate ? String(employee.hireDate).slice(0, 10) : ""),
+      departmentEn: existingEmp?.departmentEn ?? dept?.nameEn ?? null,
+      departmentAr: existingEmp?.departmentAr ?? dept?.nameAr ?? null,
+    },
+    compensation: {
+      basicSalary: employee.basicSalary ?? rawSnapshot.basic ?? 0,
+      housingAllowance: employee.housingAllowance ?? 0,
+      transportAllowance: employee.transportAllowance ?? 0,
+      otherAllowances: employee.otherAllowances ?? 0,
+      ...(rawSnapshot.compensation && typeof rawSnapshot.compensation === "object"
+        ? rawSnapshot.compensation
+        : {}),
+    },
+  };
+  const languages =
+    Array.isArray(rawDoc.languages) && rawDoc.languages.length
+      ? rawDoc.languages
+      : ["en", "ar"];
   return {
     ...(rawDoc as any),
+    languages,
+    snapshot: hydratedSnapshot,
     createdAt: new Date(rawDoc.createdAt),
     updatedAt: new Date(rawDoc.updatedAt),
     issuedAt: rawDoc.issuedAt ? new Date(rawDoc.issuedAt) : null,

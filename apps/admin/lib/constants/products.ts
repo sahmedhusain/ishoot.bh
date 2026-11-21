@@ -99,10 +99,11 @@ export function variantCombinations(options: ProductOption[]): string[][] {
 }
 
 export function variantLabel(
-  options: ProductOption[],
-  values: string[],
-  locale: string,
+  options: ProductOption[] = [],
+  values: string[] = [],
+  locale: string = "en",
 ) {
+  if (!Array.isArray(values) || values.length === 0) return "";
   return values
     .map((value, index) => {
       const match = options[index]?.values.find((v) => v.en === value);

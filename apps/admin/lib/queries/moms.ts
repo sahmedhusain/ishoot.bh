@@ -7,13 +7,19 @@ import {
   MomActionItem,
 } from "../types";
 
+const toIso = (val: unknown): string => {
+  if (!val) return new Date().toISOString();
+  const d = val instanceof Date ? val : new Date(String(val));
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+};
+
 export function mapDatabaseMom(m: any): MinuteOfMeetingItem {
   return {
     id: m.id,
     mom_number: m.momNumber,
     title: m.title,
     title_ar: m.titleAr || undefined,
-    meeting_date: m.meetingDate.toISOString().split("T")[0],
+    meeting_date: toIso(m.meetingDate).split("T")[0],
     start_time: m.startTime || undefined,
     end_time: m.endTime || undefined,
     location: m.location || undefined,
@@ -38,8 +44,8 @@ export function mapDatabaseMom(m: any): MinuteOfMeetingItem {
     approved_by_name: m.approvedBy?.fullName || undefined,
     signature_url: m.signatureUrl || undefined,
     pdf_storage_path: m.pdfStoragePath || undefined,
-    created_at: m.createdAt.toISOString(),
-    updated_at: m.updatedAt.toISOString(),
+    created_at: toIso(m.createdAt),
+    updated_at: toIso(m.updatedAt),
   };
 }
 

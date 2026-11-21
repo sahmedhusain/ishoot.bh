@@ -247,6 +247,9 @@ func (s *Service) CreateQuotation(ctx context.Context, q sqlcdb.CreateQuotationP
 			if item.SortOrder == 0 {
 				item.SortOrder = int32(idx)
 			}
+			if !item.TaxRate.Valid {
+				_ = item.TaxRate.Scan("0")
+			}
 			inserted, err := st.InsertQuotationItem(ctx, item)
 			if err != nil {
 				return err

@@ -141,13 +141,56 @@ export async function applyActivityDepartments(
 }
 
 export async function getOrgChart(): Promise<{
-  departments: DepartmentNode[];
+  departments: (DepartmentNode & {
+    count: number;
+    head: { name: string; avatar_url: string | null } | null;
+    deputy: { name: string; avatar_url: string | null } | null;
+    people: { name: string; name_ar?: string; avatar_url: string | null }[];
+  })[];
   unassigned: number;
 }> {
-  const [departments, employees] = await Promise.all([
+  const [deptTree, employees] = await Promise.all([
     getDepartmentTree(),
     listEmployees().catch(() => []),
   ]);
-  const unassigned = (employees as any[]).filter((e) => !e.departmentId).length;
+  const empList = (employees as any[]) || [];
+  const empByDept = new Map<string, any[]>();
+  for (const emp of empList) {
+    if (emp.departmentId) {
+      const list = empByDept.get(emp.departmentId) || [];
+      list.push(emp);
+      empByDept.set(emp.departmentId, list);
+    }
+  }
+
+  const departments = deptTree.map((dept) => {
+    const deptEmps = empByDept.get(dept.id) || [];
+    const headEmp = deptEmps.find((e) => e.id === dept.manager_id || e.userId === dept.manager_id);
+    const deputyEmp = deptEmps.find((e) => e.id === dept.deputy_id || e.userId === dept.deputy_id);
+
+    const people = deptEmps.map((e) => ({
+      name: e.nameEn || e.fullName || e.name || e.id,
+      name_ar: e.nameAr || undefined,
+      avatar_url: e.avatarUrl || e.avatar_url || null,
+    }));
+
+    return {
+      ...dept,
+      count: deptEmps.length || dept.employee_count || 0,
+      head: dept.manager_name
+        ? { name: dept.manager_name, avatar_url: headEmp?.avatarUrl || headEmp?.avatar_url || null }
+        : headEmp
+        ? { name: headEmp.nameEn || headEmp.fullName || headEmp.id, avatar_url: headEmp.avatarUrl || headEmp.avatar_url || null }
+        : null,
+      deputy: dept.deputy_name
+        ? { name: dept.deputy_name, avatar_url: deputyEmp?.avatarUrl || deputyEmp?.avatar_url || null }
+        : deputyEmp
+        ? { name: deputyEmp.nameEn || deputyEmp.fullName || deputyEmp.id, avatar_url: deputyEmp.avatarUrl || deputyEmp.avatar_url || null }
+        : null,
+      people,
+    };
+  });
+
+  const unassigned = empList.filter((e) => !e.departmentId).length;
   return { departments, unassigned };
 }

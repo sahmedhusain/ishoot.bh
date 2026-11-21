@@ -57,6 +57,7 @@ const config: Config = {
         },
         "on-surface": themed("--m3-color-on-surface"),
         "on-surface-variant": themed("--m3-color-on-surface-variant"),
+        "on-primary": themed("--brand-on-primary"),
         "primary-container": themed("--m3-color-primary-container"),
         "on-primary-container": themed("--m3-color-on-primary-container"),
         "secondary-container": themed("--m3-color-secondary-container"),

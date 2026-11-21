@@ -148,7 +148,7 @@ export async function shipmentCounts(
 }
 
 export async function shipmentForTracking(token: string) {
-  if (!/^[A-Za-z0-9_-]{20,40}$/.test(token)) return null;
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(token)) return null;
   try {
     const apiSh = await trackApiShipment(token);
     if (!apiSh || !apiSh.id) return null;

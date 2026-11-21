@@ -196,15 +196,15 @@ export function Shell({
     setSearchQuery("");
   };
 
-  const TOP_TABS = [
-    { href: "/", label: copy.nav.overview, icon: Gauge },
-    { href: "/tickets", label: copy.nav.tickets, icon: ListChecks },
-    { href: "/sla", label: copy.nav.sla, icon: Timer },
-    { href: "/it-accounts", label: copy.nav.itAccounts, icon: Users },
-    { href: "/system-health", label: copy.nav.systemHealth, icon: Activity },
-    { href: "/logs", label: copy.nav.logs, icon: Terminal },
-    { href: "/database", label: copy.nav.database, icon: Database },
-    { href: "/deployments", label: copy.nav.deployments, icon: Server },
+  const TOP_TABS: Array<{ href: string; label: string; icon: React.ComponentType<{ className?: string }>; resource?: string }> = [
+    { href: "/", label: copy.nav.overview, icon: Gauge, resource: "tickets" },
+    { href: "/tickets", label: copy.nav.tickets, icon: ListChecks, resource: "tickets" },
+    { href: "/sla", label: copy.nav.sla, icon: Timer, resource: "ticket_settings" },
+    { href: "/it-accounts", label: copy.nav.itAccounts, icon: Users, resource: "it_accounts" },
+    { href: "/system-health", label: copy.nav.systemHealth, icon: Activity, resource: "system_health" },
+    { href: "/logs", label: copy.nav.logs, icon: Terminal, resource: "logs" },
+    { href: "/database", label: copy.nav.database, icon: Database, resource: "database" },
+    { href: "/deployments", label: copy.nav.deployments, icon: Server, resource: "system_health" },
     { href: "/settings", label: copy.nav.settings, icon: Settings },
   ];
 
@@ -218,14 +218,14 @@ export function Shell({
           {copy.app.skipToContent}
         </a>
 
-        <header className="it-header flex items-center justify-between gap-4 z-30 shadow-sm">
-          <div className="flex items-center gap-3 shrink-0">
+        <header className="it-header flex items-center justify-between gap-2 sm:gap-4 z-30 shadow-sm min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             <Link
               href="/"
-              className="flex items-center gap-2 group text-white text-decoration-none"
+              className="flex items-center gap-2 group text-white text-decoration-none min-w-0"
               aria-label={copy.app.openDashboard}
             >
-              <div className="flex items-center gap-2 font-bold tracking-tight">
+              <div className="flex items-center gap-2 font-bold tracking-tight min-w-0">
                 {branding?.isSetup && branding.iconUrl ? (
                   <img
                     src={branding.iconUrl}
@@ -233,7 +233,7 @@ export function Shell({
                     className="size-5 rounded object-contain shrink-0"
                   />
                 ) : null}
-                <span className="text-white font-semibold text-sm tracking-tight">
+                <span className="text-white font-semibold text-sm tracking-tight truncate max-w-[165px] sm:max-w-none">
                   {branding?.name || copy.app.name}
                 </span>
               </div>
@@ -244,7 +244,7 @@ export function Shell({
             </Link>
           </div>
 
-          <div className="flex-1 max-w-md mx-2">
+          <div className="hidden sm:block flex-1 max-w-md mx-2 min-w-0">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-slate-400 pointer-events-none" />
               <input
@@ -258,7 +258,7 @@ export function Shell({
             </form>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
               <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>{copy.app.production}</span>
@@ -355,7 +355,9 @@ export function Shell({
         </header>
 
         <nav aria-label="Primary tabs" className="it-tabbar">
-          {TOP_TABS.map((tab) => {
+          {TOP_TABS.filter((tab) =>
+            tab.resource ? itAllowed(roles, tab.resource, "read") : true,
+          ).map((tab) => {
             const isTabActive = active(tab.href);
             return (
               <Link

@@ -9,17 +9,24 @@ import {
 import { config as settings } from "./lib/config";
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const api =
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/v1/") ||
+    /^\/tickets\/[^/]+\/attachment$/.test(pathname);
   const access = request.cookies.get(settings.accessCookie())?.value;
   if (!needsRenewal(access)) return NextResponse.next();
 
   const refresh = request.cookies.get(settings.refreshCookie())?.value;
   const email = request.cookies.get(settings.accountCookie())?.value ?? "";
   const credential = refresh ? await renew(refresh) : null;
-  if (!credential)
+  if (!credential) {
+    if (api) return withCookies(NextResponse.next(), clearedCookies());
     return withCookies(
       NextResponse.redirect(new URL("/login", request.url)),
       clearedCookies(),
     );
+  }
 
   const cookies = sessionCookies(credential, email);
 

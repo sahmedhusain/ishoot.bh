@@ -89,7 +89,10 @@ export function mapContact(c: any): CRMContact {
     legal_form: c.legalForm || undefined,
     cr_number: c.crNumber || undefined,
     cr_expiry_date: c.crExpiryDate
-      ? c.crExpiryDate.toISOString().slice(0, 10)
+      ? (typeof c.crExpiryDate === "string"
+          ? c.crExpiryDate
+          : c.crExpiryDate.toISOString()
+        ).slice(0, 10)
       : undefined,
     registration_number: c.registrationNumber || undefined,
     registration_country: c.registrationCountry || undefined,
@@ -678,7 +681,7 @@ export async function searchCRMContacts(
     const phoneVars = phoneSearchVariants(clean);
     const filtered = (contacts || []).filter((c) => {
       const name = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase();
-      const comp = (c.company || "").toLowerCase();
+      const comp = (c.company || (c as any).companyName || "").toLowerCase();
       const email = (c.email || "").toLowerCase();
       const phone = c.phone || "";
       return (
@@ -743,7 +746,7 @@ export async function globalAdminSearch(
 
     for (const c of (contacts || []).filter(c => {
       const name = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase();
-      const comp = (c.company || "").toLowerCase();
+      const comp = (c.company || (c as any).companyName || "").toLowerCase();
       const email = (c.email || "").toLowerCase();
       const phone = c.phone || "";
       return name.includes(clean.toLowerCase()) || comp.includes(clean.toLowerCase()) || email.includes(clean.toLowerCase()) || phoneVars.some(v => phone.includes(v));

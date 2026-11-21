@@ -336,18 +336,20 @@ function DomainsCard({
         {records("admin")}
       </div>
 
-      <DomainSaveConfirmModal
-        open={confirmOpen}
-        currentWebsite={saved.website}
-        newWebsite={values.website}
-        currentAdmin={saved.admin}
-        newAdmin={values.admin}
-        currentStore={saved.store}
-        newStore={values.store}
-        busy={saving}
-        onConfirm={save}
-        onCancel={() => setConfirmOpen(false)}
-      />
+      {confirmOpen && (
+        <DomainSaveConfirmModal
+          open={confirmOpen}
+          currentWebsite={saved.website}
+          newWebsite={values.website}
+          currentAdmin={saved.admin}
+          newAdmin={values.admin}
+          currentStore={saved.store}
+          newStore={values.store}
+          busy={saving}
+          onConfirm={save}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </div>
   );
 }

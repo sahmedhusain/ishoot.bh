@@ -2,6 +2,7 @@ import { Promotions } from "../../../components/store/Promotions";
 import { ProductGrid } from "../../../components/store/ProductGrid";
 import { storeEnabled } from "../../../lib/customer";
 import { getStoreCatalog } from "@platform/database/queries/store";
+import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../../lib/site";
 
 export async function generateMetadata({
@@ -10,22 +11,22 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [, t] = await Promise.all([getSite(), siteTranslations(locale)]);
+  const [{ company }, t] = await Promise.all([getSite(), siteTranslations(locale)]);
+  const companyName = pickText(company?.company_name_en, company?.company_name_ar, locale);
   return {
-    title: t.store.allProducts,
+    title: companyName ? `${t.store.allProducts} — ${companyName}` : t.store.allProducts,
   };
 }
 
 export default async function ProductsPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const [{ locale }, { category }] = await Promise.all([params, searchParams]);
-  const [{ website }, storeOn] = await Promise.all([
+  const { locale } = await params;
+  const [{ website }, t, storeOn] = await Promise.all([
     getSite(),
+    siteTranslations(locale),
     storeEnabled().catch(() => false),
   ]);
   if (!website) return null;
@@ -37,10 +38,14 @@ export default async function ProductsPage({
   return (
     <div className="space-y-8 pb-20">
       <Promotions locale={locale} placement="catalogue" />
+      <header className="shell pt-6">
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-ink">
+          {t.store.allProducts}
+        </h1>
+      </header>
       <ProductGrid
         items={catalogueItems}
         categories={categories}
-        initialCategory={category}
       />
     </div>
   );

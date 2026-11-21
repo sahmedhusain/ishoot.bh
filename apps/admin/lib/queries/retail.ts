@@ -47,7 +47,7 @@ export async function listRegisters(branchId: string, actorId: string) {
   await requireBranchAccess(actorId, branchId);
   const [registers, drawers] = await Promise.all([
     listTableRows<Record<string, any>>("commerce", "retail_register", "code ASC"),
-    listTableRows<Record<string, any>>("commerce", "cash_drawer", "code ASC"),
+    listTableRows<Record<string, any>>("finance", "cash_drawer", "code ASC"),
   ]);
   const drawersByReg = new Map<string, Record<string, any>[]>();
   for (const d of drawers) {
@@ -88,11 +88,11 @@ export async function saveDrawer(input: DrawerInput, actorId: string) {
       throw new Error("Invalid drawer configuration");
 
     if (input.id) {
-      const drawers = await listTableRows<Record<string, any>>("commerce", "cash_drawer");
+      const drawers = await listTableRows<Record<string, any>>("finance", "cash_drawer");
       const existing = drawers.find((d) => d.id === input.id);
       if (!existing || existing.registerId !== input.registerId)
         throw new Error("Cash drawer not found");
-      return upsertTableRow("commerce", "cash_drawer", {
+      return upsertTableRow("finance", "cash_drawer", {
         id: input.id,
         code: input.code.trim(),
         name: input.name.trim(),
@@ -106,7 +106,7 @@ export async function saveDrawer(input: DrawerInput, actorId: string) {
       });
     }
 
-    return upsertTableRow("commerce", "cash_drawer", {
+    return upsertTableRow("finance", "cash_drawer", {
       id: randomUUID(),
       registerId: input.registerId,
       code: input.code.trim(),
@@ -122,7 +122,7 @@ export async function saveDrawer(input: DrawerInput, actorId: string) {
 export async function listDrawers(registerId: string, actorId: string) {
   const [registers, drawers] = await Promise.all([
     listTableRows<Record<string, any>>("commerce", "retail_register"),
-    listTableRows<Record<string, any>>("commerce", "cash_drawer", "code ASC"),
+    listTableRows<Record<string, any>>("finance", "cash_drawer", "code ASC"),
   ]);
   const register = registers.find((r) => r.id === registerId);
   if (!register) throw new Error("Register not found");
@@ -156,7 +156,7 @@ export async function closeRetailShift(shiftId: string, actorId: string) {
   return runAtomicMutation(async () => {
     const [shifts, sessions] = await Promise.all([
       listTableRows<Record<string, any>>("commerce", "retail_shift"),
-      listTableRows<Record<string, any>>("commerce", "cashier_session"),
+      listTableRows<Record<string, any>>("finance", "cashier_session"),
     ]);
     const shift = shifts.find((s) => s.id === shiftId);
     if (!shift) throw new Error("Retail shift not found");
@@ -190,8 +190,8 @@ export async function openCashierSession(input: OpenSessionInput, actorId: strin
   return runAtomicMutation(async () => {
     const [registers, drawers, sessions, shifts] = await Promise.all([
       listTableRows<Record<string, any>>("commerce", "retail_register"),
-      listTableRows<Record<string, any>>("commerce", "cash_drawer"),
-      listTableRows<Record<string, any>>("commerce", "cashier_session"),
+      listTableRows<Record<string, any>>("finance", "cash_drawer"),
+      listTableRows<Record<string, any>>("finance", "cashier_session"),
       listTableRows<Record<string, any>>("commerce", "retail_shift"),
     ]);
     const register = registers.find((r) => r.id === input.registerId);
@@ -217,7 +217,7 @@ export async function openCashierSession(input: OpenSessionInput, actorId: strin
 
     const floatVal = Number(new Database.Decimal(input.openingFloat.toString()).toString());
 
-    return upsertTableRow("commerce", "cashier_session", {
+    return upsertTableRow("finance", "cashier_session", {
       id: randomUUID(),
       registerId: input.registerId,
       drawerId: input.drawerId,
@@ -240,7 +240,7 @@ export interface CloseSessionInput {
 export async function closeCashierSession(input: CloseSessionInput, actorId: string) {
   return runAtomicMutation(async () => {
     const [sessions, registers, allCollections] = await Promise.all([
-      listTableRows<Record<string, any>>("commerce", "cashier_session"),
+      listTableRows<Record<string, any>>("finance", "cashier_session"),
       listTableRows<Record<string, any>>("commerce", "retail_register"),
       listTableRows<Record<string, any>>("finance", "payment_collection"),
     ]);
@@ -268,7 +268,7 @@ export async function closeCashierSession(input: CloseSessionInput, actorId: str
     const expectedCashVal = new Database.Decimal(String(session.openingFloat ?? 0)).add(cashCollections);
     const cashDifferenceVal = actualCashVal.sub(expectedCashVal);
 
-    return upsertTableRow("commerce", "cashier_session", {
+    return upsertTableRow("finance", "cashier_session", {
       id: input.sessionId,
       closedAt: new Date().toISOString(),
       closingFloat: Number(closingFloatVal.toString()),
@@ -300,7 +300,7 @@ export async function recordPaymentCollection(input: PaymentCollectionInput, act
     await requireBranchAccess(actorId, input.branchId);
 
     if (input.sessionId) {
-      const sessions = await listTableRows<Record<string, any>>("commerce", "cashier_session");
+      const sessions = await listTableRows<Record<string, any>>("finance", "cashier_session");
       const session = sessions.find((s) => s.id === input.sessionId);
       if (!session || session.status !== "open")
         throw new Error("Cashier session is already closed");
@@ -378,8 +378,8 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
 
     if (input.level === "drawer") {
       const [drawers, allSessions] = await Promise.all([
-        listTableRows<Record<string, any>>("commerce", "cash_drawer"),
-        listTableRows<Record<string, any>>("commerce", "cashier_session"),
+        listTableRows<Record<string, any>>("finance", "cash_drawer"),
+        listTableRows<Record<string, any>>("finance", "cashier_session"),
       ]);
       const drawer = drawers.find((d) => d.id === input.targetId);
       if (!drawer) throw new Error("Cash drawer not found");
@@ -393,7 +393,7 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
       cashVariance = sessions.reduce((s, x) => s.add(String(x.cashDifference ?? 0)), new Database.Decimal(0));
       snapshotData = { drawerCode: drawer.code, sessionCount: sessions.length };
     } else if (input.level === "session") {
-      const allSessions = await listTableRows<Record<string, any>>("commerce", "cashier_session");
+      const allSessions = await listTableRows<Record<string, any>>("finance", "cashier_session");
       const session = allSessions.find((s) => s.id === input.targetId);
       if (!session) throw new Error("Cashier session not found");
       if (session.status !== "closed") throw new Error("Cashier session must be closed before closing");
@@ -410,7 +410,7 @@ export async function performRetailClosing(input: RetailClosingInput, actorId: s
     } else if (input.level === "shift") {
       const [shifts, allSessions] = await Promise.all([
         listTableRows<Record<string, any>>("commerce", "retail_shift"),
-        listTableRows<Record<string, any>>("commerce", "cashier_session"),
+        listTableRows<Record<string, any>>("finance", "cashier_session"),
       ]);
       const shift = shifts.find((s) => s.id === input.targetId);
       if (!shift) throw new Error("Retail shift not found");

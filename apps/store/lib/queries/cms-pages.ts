@@ -60,7 +60,19 @@ const mapPage = (row: CMSPage): CmsPageRecord => ({
   seo_title_ar: row.seoTitleAr ?? "",
   seo_description_en: row.seoDescriptionEn ?? "",
   seo_description_ar: row.seoDescriptionAr ?? "",
-  blocks: Array.isArray(row.blocks) ? (row.blocks as unknown as Block[]) : [],
+  blocks: Array.isArray(row.blocks)
+    ? (row.blocks as unknown[])
+        .filter(
+          (b): b is Block =>
+            Boolean(b) &&
+            typeof b === "object" &&
+            typeof (b as Record<string, unknown>).type === "string" &&
+            (BLOCK_TYPES as readonly string[]).includes(String((b as Record<string, unknown>).type)) &&
+            Boolean((b as Record<string, unknown>).data) &&
+            typeof (b as Record<string, unknown>).data === "object",
+        )
+        .map((b) => ({ ...b, visible: (b as { visible?: boolean }).visible !== false }))
+    : [],
   is_visible: row.isVisible,
   in_header: row.inHeader,
   in_footer: row.inFooter,

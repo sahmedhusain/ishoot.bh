@@ -95,23 +95,43 @@ export function watchErrors(page: Page) {
 }
 
 export async function brokenImages(page: Page) {
-  return page.evaluate(async () => {
+  await page.waitForLoadState("load").catch(() => undefined);
+  const { brokenLoaded, lazyPending } = await page.evaluate(async () => {
     const images = Array.from(document.images);
-    images.forEach((img) => (img.loading = "eager"));
     await Promise.all(
-      images.map((img) =>
-        img.complete
-          ? null
-          : new Promise((r) => {
-              img.onload = img.onerror = r;
+      images
+        .filter((img) => !img.complete && img.loading !== "lazy")
+        .map(
+          (img) =>
+            new Promise((r) => {
+              img.addEventListener("load", r, { once: true });
+              img.addEventListener("error", r, { once: true });
               setTimeout(r, 8000);
             }),
-      ),
+        ),
     );
-    return images
-      .filter((img) => img.currentSrc && img.naturalWidth === 0)
-      .map((img) => img.currentSrc);
+    return {
+      brokenLoaded: images
+        .filter((img) => img.complete && img.currentSrc && img.naturalWidth === 0)
+        .map((img) => img.currentSrc),
+      lazyPending: Array.from(
+        new Set(
+          images
+            .filter((img) => !img.complete && (img.currentSrc || img.src))
+            .map((img) => img.currentSrc || img.src),
+        ),
+      ),
+    };
   });
+  const baseUrl = page.url();
+  const broken = [...brokenLoaded];
+  for (const src of lazyPending) {
+    if (!/^https?:\/\//.test(src) && !src.startsWith("/")) continue;
+    const target = src.startsWith("/") ? new URL(src, baseUrl).href : src;
+    const res = await page.request.get(target).catch(() => null);
+    if (!res || res.status() >= 400) broken.push(src);
+  }
+  return broken;
 }
 
 export async function themeVariable(page: Page, name: string) {

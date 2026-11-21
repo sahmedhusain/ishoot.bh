@@ -19,7 +19,7 @@ type Gateway struct {
 	IdleConnTimeout		time.Duration		`env:"UPSTREAM_IDLE_TIMEOUT" envDefault:"90s" validate:"gt=0"`
 	MaxIdleConnsPerHost	int			`env:"UPSTREAM_MAX_IDLE_CONNS_PER_HOST" envDefault:"64" validate:"gt=0"`
 	IdentityStatusURL	string			`env:"IDENTITY_STATUS_URL" validate:"omitempty,url"`
-	IdentityStatusTimeout	time.Duration		`env:"IDENTITY_STATUS_TIMEOUT" envDefault:"3s" validate:"gt=0"`
+	IdentityStatusTimeout	time.Duration		`env:"IDENTITY_STATUS_TIMEOUT" envDefault:"15s" validate:"gt=0"`
 	RateLimitPrefix		string			`env:"RATE_LIMIT_PREFIX" envDefault:"gateway:rl:" validate:"required"`
 	RateLimitFailOpen	bool			`env:"RATE_LIMIT_FAIL_OPEN" envDefault:"false"`
 }

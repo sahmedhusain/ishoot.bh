@@ -5,54 +5,34 @@ import {
   getCompanySettings,
   isFeatureEnabled,
 } from "@platform/database";
+import { getStoreCatalog } from "@platform/database/queries/store";
 import { resolveWebsiteConfig } from "@platform/database/website-config";
 import { publicSiteUrl } from "../lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (await publicSiteUrl()).href.replace(/\/$/, "");
-  const [website, company, enabled] = await Promise.all([
+  const [website, company, storeFeature] = await Promise.all([
     getWebsiteSnapshot(),
     getCompanySettings(),
-    isFeatureEnabled("cms"),
+    isFeatureEnabled("store"),
   ]);
-  if (!enabled) return [];
   const config = resolveWebsiteConfig(website.config);
-  const builtIn = (type: string) =>
-    website.pages?.find((page) => page.page_type === type);
-  const visible = (id: string) =>
-    (builtIn(id)?.is_visible ?? true) &&
-    config.pages.find((page) => page.id === id)?.visible !== false;
-  const catalogue = `/${config.collection.slug}`;
+  if (!storeFeature || !config.commerce.capabilities.shop) return [];
+  const { items, categories } = await getStoreCatalog(
+    website.portfolio ?? [],
+    website.categories ?? [],
+  );
   const paths = [
     "",
-    ...(visible("about") ? ["/about"] : []),
-    ...(visible("contact") ? ["/contact"] : []),
-    ...(visible("works")
-      ? [
-          catalogue,
-          ...website.portfolio.map(
-            (item) => `${catalogue}/${encodeURIComponent(item.slug)}`,
-          ),
-        ]
-      : []),
-    ...(website.pages ?? [])
-      .filter((page) => page.page_type === "custom" && page.is_visible)
-      .map((page) => `/${page.slug}`),
-    ...(() => {
-      const live = (website.articles ?? []).filter(
-        (article) =>
-          !article.publish_at || Date.parse(article.publish_at) <= Date.now(),
-      );
-      const base = `/${config.articles.slug}`;
-      return live.length
-        ? [
-            base,
-            ...live.map(
-              (article) => `${base}/${encodeURIComponent(article.slug)}`,
-            ),
-          ]
-        : [];
-    })(),
+    "/products",
+    "/offers",
+    "/branches",
+    ...categories
+      .filter((category) => category.slug)
+      .map((category) => `/categories/${encodeURIComponent(category.slug)}`),
+    ...items
+      .filter((item) => item.slug)
+      .map((item) => `/products/${encodeURIComponent(item.slug)}`),
   ];
   const languages = company.content_languages;
   return paths.flatMap((path) =>

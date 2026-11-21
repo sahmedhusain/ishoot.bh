@@ -70,7 +70,7 @@ func (h *handler) extrasRoutes(services *echo.Group) {
 		}
 		return c.NoContent(http.StatusNoContent)
 	}, caller(h.opts.CompanyWriters))
-	services.GET("/final-settlements", list("final_settlement", "created_at DESC"), read)
+	services.GET("/final-settlements", list("final_settlement", "last_working_day DESC"), read)
 	db.RegisterTableRoutes(services, h.svc.Pool(), "system", []string{
 		"abuse_window", "account_change_request", "accounting_account", "accounting_period",
 		"activity_log", "announcement", "announcement_receipt", "api_key", "approval_policy",

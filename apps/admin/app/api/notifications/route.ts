@@ -21,9 +21,9 @@ export async function GET(req: NextRequest) {
   return measureOperation("admin:notifications:GET", async () => {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
-    const owner = await myInboxOwner();
     const q = req.nextUrl.searchParams;
     try {
+      const owner = await myInboxOwner(user);
       const id = q.get("id");
       if (id) return NextResponse.json(await getInboxItem(owner, id), { headers: noStore });
       const view = q.get("view") ?? "preview";

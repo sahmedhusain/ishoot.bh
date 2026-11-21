@@ -27,12 +27,16 @@ const getPublishedWebsite = cache(
     async (): Promise<WebsiteSnapshot> => {
       try {
         const snap = await getContentSnapshot("main");
+        const pub = snap?.published as Record<string, any> | undefined;
         if (
-          snap?.published &&
-          typeof snap.published === "object" &&
-          Object.keys(snap.published).length > 0
+          pub &&
+          typeof pub === "object" &&
+          pub.config &&
+          Array.isArray(pub.config.sections) &&
+          pub.config.sections.length > 0 &&
+          Array.isArray(pub.portfolio)
         ) {
-          return snap.published as unknown as WebsiteSnapshot;
+          return pub as unknown as WebsiteSnapshot;
         }
       } catch {}
       return await getWebsiteSnapshot(false);

@@ -287,7 +287,7 @@ function mapEnrolment(row: EnrolmentRow) {
       action: e.action,
       details: e.details as Record<string, unknown> | null,
       actorId: e.actorId,
-      createdAt: e.createdAt.toISOString(),
+      createdAt: e.createdAt instanceof Date ? e.createdAt.toISOString() : new Date(e.createdAt || Date.now()).toISOString(),
     })),
   };
 }

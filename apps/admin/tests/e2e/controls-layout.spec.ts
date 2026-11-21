@@ -3,10 +3,16 @@ import AxeBuilder from "@axe-core/playwright";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
 import { selectOption } from "./helpers/select-option";
+import { loginAsAdmin } from "./helpers/admin-audit";
+import { setAdminGovernance } from "./helpers/governance";
 const uiEn = enLocale.shared.ui;
 const uiAr = arLocale.shared.ui;
 const en = enLocale.admin;
 const ar = arLocale.admin;
+
+test.beforeEach(async ({ page }) => {
+  await loginAsAdmin(page);
+});
 
 test("deferred scroll content is enhanced only after it becomes visible", async ({
   page,
@@ -199,32 +205,45 @@ for (const locale of ["en", "ar"] as const) {
   test(`Material tabs follow reading direction and retain keyboard focus (${locale})`, async ({
     page,
   }) => {
+    const t = locale === "ar" ? ar : en;
     await page.addInitScript(
       (locale) => localStorage.setItem("platform_admin_locale", locale),
       locale,
     );
     await page.goto("/dashboard/settings/company");
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(page).toHaveURL(/\/dashboard\/settings\?restricted=1&section=company/);
     await expect(
-      page.locator('main [role="tablist"] > .os-scrollbar-horizontal').first(),
-    ).toHaveCount(1);
-    const tabs = page.locator('main [role="tablist"]').first().getByRole("tab");
-    await tabs.first().focus();
-    await page.keyboard.press(locale === "ar" ? "ArrowLeft" : "ArrowRight");
-    await expect(tabs.nth(1)).toBeFocused();
-    await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
-    await page.keyboard.press("End");
-    await expect(tabs.last()).toBeFocused();
-    await expect(tabs.last()).toHaveAttribute("aria-selected", "true");
-    await page.keyboard.press("Home");
-    await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
-    await expect(tabs.first()).toHaveAttribute("tabindex", "0");
-    await expect(tabs.nth(1)).toHaveAttribute("tabindex", "-1");
-    expect(
-      await tabs
-        .first()
-        .evaluate((element) => getComputedStyle(element, ":after").height),
-    ).toBe("3px");
+      page.getByRole("heading", { name: t.settingsGovernance.restrictedTitle }),
+    ).toBeVisible();
+
+    await setAdminGovernance({ company: true });
+    try {
+      await page.goto("/dashboard/settings/company");
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(
+        page.locator('main [role="tablist"] > .os-scrollbar-horizontal').first(),
+      ).toHaveCount(1);
+      const tabs = page.locator('main [role="tablist"]').first().getByRole("tab");
+      await tabs.first().focus();
+      await page.keyboard.press(locale === "ar" ? "ArrowLeft" : "ArrowRight");
+      await expect(tabs.nth(1)).toBeFocused();
+      await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+      await page.keyboard.press("End");
+      await expect(tabs.last()).toBeFocused();
+      await expect(tabs.last()).toHaveAttribute("aria-selected", "true");
+      await page.keyboard.press("Home");
+      await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
+      await expect(tabs.first()).toHaveAttribute("tabindex", "0");
+      await expect(tabs.nth(1)).toHaveAttribute("tabindex", "-1");
+      expect(
+        await tabs
+          .first()
+          .evaluate((element) => getComputedStyle(element, ":after").height),
+      ).toBe("3px");
+    } finally {
+      await setAdminGovernance(null);
+    }
   });
 }
 
@@ -240,34 +259,46 @@ for (const locale of ["en", "ar"] as const) {
     );
     await page.goto("/dashboard/settings/web");
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
-    await page
-      .getByRole("tab", { name: t.webSettingsView.tabSocial, exact: true })
-      .click();
-    const platform = page.getByRole("combobox", {
-      name: t.webSettings.platform,
-      exact: true,
-    });
-    const icon = platform.locator("../..").locator(":scope > span svg");
-    await expect(platform.locator("svg")).toHaveCount(1);
-    const iconBox = await icon.boundingBox(),
-      textBox = await platform.locator(".m3-select-value").boundingBox();
-    expect(
-      locale === "ar"
-        ? iconBox!.x > textBox!.x + textBox!.width
-        : textBox!.x > iconBox!.x + iconBox!.width,
-    ).toBe(true);
-    await platform.click();
-    await insideViewport(page, page.locator("[data-select-popup]"));
-    await settle(page);
-    const scan = await new AxeBuilder({ page })
-      .include("[data-select-popup]")
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-      .analyze();
-    expect(
-      scan.violations.map(({ id, nodes }) => ({
-        id,
-        targets: nodes.map((node) => node.target),
-      })),
-    ).toEqual([]);
+    await expect(page).toHaveURL(/\/dashboard\/settings\?restricted=1&section=web/);
+    await expect(
+      page.getByRole("heading", { name: t.settingsGovernance.restrictedTitle }),
+    ).toBeVisible();
+
+    await setAdminGovernance({ web: true });
+    try {
+      await page.goto("/dashboard/settings/web");
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await page
+        .getByRole("tab", { name: t.webSettingsView.tabSocial, exact: true })
+        .click();
+      const platform = page.getByRole("combobox", {
+        name: t.webSettings.platform,
+        exact: true,
+      });
+      const icon = platform.locator("../..").locator(":scope > span svg");
+      await expect(platform.locator("svg")).toHaveCount(1);
+      const iconBox = await icon.boundingBox(),
+        textBox = await platform.locator(".m3-select-value").boundingBox();
+      expect(
+        locale === "ar"
+          ? iconBox!.x > textBox!.x + textBox!.width
+          : textBox!.x > iconBox!.x + iconBox!.width,
+      ).toBe(true);
+      await platform.click();
+      await insideViewport(page, page.locator("[data-select-popup]"));
+      await settle(page);
+      const scan = await new AxeBuilder({ page })
+        .include("[data-select-popup]")
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze();
+      expect(
+        scan.violations.map(({ id, nodes }) => ({
+          id,
+          targets: nodes.map((node) => node.target),
+        })),
+      ).toEqual([]);
+    } finally {
+      await setAdminGovernance(null);
+    }
   });
 }

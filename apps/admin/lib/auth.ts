@@ -21,6 +21,13 @@ export const getStaffToken = cache(async (): Promise<StaffToken | null> => {
   return verifyAccessToken(cookieVal);
 });
 
+const isTransientError = (error: unknown): boolean =>
+  (isApiError(error) && (error.status === 502 || error.status === 503 || error.status === 504)) ||
+  (typeof error === "object" &&
+    error !== null &&
+    ((error as { name?: string }).name === "TimeoutError" ||
+      (error as { name?: string }).name === "AbortError"));
+
 export const getCurrentUser = cache(async (): Promise<Profile | null> =>
   memoizeOperation("auth:user", async () => {
     const staff = await getStaffToken();
@@ -30,11 +37,11 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
     try {
       await checkSession(staff.token);
     } catch (error) {
-      if (isApiError(error) && (error.status === 502 || error.status === 503 || error.status === 504)) {
+      if (isTransientError(error)) {
         try {
           await checkSession(staff.token);
         } catch (retryErr) {
-          if (!isApiError(retryErr) || (retryErr.status !== 502 && retryErr.status !== 503 && retryErr.status !== 504)) {
+          if (!isTransientError(retryErr)) {
             console.error("getCurrentUser: checkSession error:", retryErr);
             return null;
           }
@@ -49,7 +56,7 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
       if (!user) console.error("getCurrentUser: getSessionUser returned null for userId:", staff.userId);
       return user;
     } catch (error) {
-      if (isApiError(error) && (error.status === 502 || error.status === 503 || error.status === 504)) {
+      if (isTransientError(error)) {
         const isSuper = staff.userId === "super-admin";
         return {
           id: staff.userId,
@@ -89,7 +96,7 @@ export const getCurrentPermissions = cache(async () =>
       policy = await getStaffAccess(staff.token);
     } catch (error) {
       console.error("getCurrentPermissions: getStaffAccess error:", error);
-      if (isApiError(error) && (error.status === 503 || error.status === 502 || error.status === 504)) {
+      if (isTransientError(error)) {
         return {};
       }
       throw error;

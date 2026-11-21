@@ -668,7 +668,7 @@ export function calculateInvoiceTotals(
     throw new Error(serverMessages.unsupportedCurrency);
   if (
     otherTaxes.some(
-      (tax) => !Number.isFinite(tax.rate) || tax.rate <= 0 || tax.rate > 100,
+      (tax) => !Number.isFinite(tax.rate) || tax.rate < 0 || tax.rate > 100,
     )
   )
     throw new Error(serverMessages.invalidTaxRate);

@@ -384,13 +384,13 @@ export const deleteContract = (id: string, token?: string) =>
   workflowFetch<void>(`/v1/workflow/contracts/${encodeURIComponent(id)}`, { method: "DELETE" }, token);
 
 export const listApprovalPolicies = (token?: string) =>
-  workflowFetch<any[]>("/v1/workflow/approval-policies", {}, token);
+  workflowFetch<any[]>("/v1/system/tables/approval_policy", {}, token);
 
 export const listApprovalPolicySteps = (token?: string) =>
-  workflowFetch<any[]>("/v1/workflow/approval-policy-steps", {}, token);
+  workflowFetch<any[]>("/v1/system/tables/approval_policy_step", {}, token);
 
 export const listSignaturePolicies = (token?: string) =>
-  workflowFetch<any[]>("/v1/workflow/signature-policies", {}, token);
+  workflowFetch<any[]>("/v1/system/tables/signature_policy", {}, token);
 
 export const listCalendarFeedTokens = (token?: string) =>
-  workflowFetch<any[]>("/v1/workflow/calendar-feed-tokens", {}, token);
+  workflowFetch<any[]>("/v1/system/tables/calendar_feed_token", {}, token);

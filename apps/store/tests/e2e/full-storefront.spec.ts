@@ -28,7 +28,7 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
 
     for (const path of ["/en", "/en/products", "/en/offers", "/en/branches"]) {
       const res = await page.goto(path, { waitUntil: "domcontentloaded" });
-      expect(res?.status(), `HTTP status for ${path}`).toBeLessThan(500);
+      expect(res?.status(), `HTTP status for ${path}`).toBe(200);
       await expect(page.locator("body")).toBeVisible();
     }
 
@@ -38,12 +38,11 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
     const count = await productCards.count();
     expect(count).toBeGreaterThan(0);
 
-    // Click category tab if present
-    const categoryTabs = page.locator('[role="tab"], a[href*="/en/categories/"]');
-    if ((await categoryTabs.count()) > 0) {
-      await categoryTabs.first().click();
-      await page.waitForLoadState("domcontentloaded");
-    }
+    // Click category tab unconditionally
+    const categoryTabs = page.locator('[role="tab"], a[href*="/en/categories/"], button[aria-pressed]');
+    expect(await categoryTabs.count()).toBeGreaterThan(0);
+    await categoryTabs.first().click();
+    await page.waitForLoadState("domcontentloaded");
 
     await page.goto("/en/products", { waitUntil: "domcontentloaded" });
     const firstHref = await productCards.first().getAttribute("href");
@@ -91,74 +90,71 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
     expect(signUpRes.status(), `Sign-up API status: ${await signUpRes.text()}`).toBeLessThan(400);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Store Customer", { timeout: 15_000 });
 
-    // 2. Add Address & validate
+    // 2. Add Address & validate unconditionally
     const addAddrBtn = page.getByRole("button", { name: /add address/i });
-    if ((await addAddrBtn.count()) > 0) {
-      await addAddrBtn.click();
-      const addrForm = page.getByTestId("account-address-form");
-      await expect(addrForm).toBeVisible();
-      await addrForm.locator('input[name="address-line1"]').fill("Road 42, Block 318");
-      await addrForm.locator('input[name="address-city"]').fill("Manama");
-      await addrForm.locator('input[name="address-country"]').fill("Bahrain");
-      await addrForm.locator('input[name="address-phone"]').fill("+97336001234");
-      await page.getByTestId("account-address-save").click();
-      await expect(page.getByText(/Road 42, Block 318/)).toBeVisible({ timeout: 10_000 });
-    }
+    await expect(addAddrBtn).toBeVisible();
+    await addAddrBtn.click();
+    const addrForm = page.getByTestId("account-address-form");
+    await expect(addrForm).toBeVisible();
+    await addrForm.locator('input[name="address-line1"]').fill("Road 42, Block 318");
+    await addrForm.locator('input[name="address-city"]').fill("Manama");
+    await addrForm.locator('input[name="address-country"]').fill("Bahrain");
+    await addrForm.locator('input[name="address-phone"]').fill("+97336001234");
+    await page.getByTestId("account-address-save").click();
+    await expect(page.getByText(/Road 42, Block 318/)).toBeVisible({ timeout: 10_000 });
 
-    // 3. Sign out and test Password Sign-In + Mailpit OTP Sign-In
+    // 3. Sign out and test Password Sign-In + Mailpit OTP Sign-In unconditionally
     const signOutBtn = page.getByRole("button", { name: /sign out|log out/i });
-    if ((await signOutBtn.count()) > 0) {
-      await signOutBtn.click();
-      await expect(page.getByTestId("account-submit")).toBeVisible({ timeout: 10_000 });
+    await expect(signOutBtn).toBeVisible();
+    await signOutBtn.click();
+    await expect(page.getByTestId("account-submit")).toBeVisible({ timeout: 10_000 });
 
-      // Wrong password validation
-      await page.locator('input[name="email"]').fill(email);
-      await page.locator('input[name="password"]').fill("WrongPassword999!");
-      await page.getByTestId("account-submit").click();
-      await expect(page.locator('[role="alert"]').first()).toBeVisible();
+    // Wrong password validation
+    await page.locator('input[name="email"]').fill(email);
+    await page.locator('input[name="password"]').fill("WrongPassword999!");
+    await page.getByTestId("account-submit").click();
+    await expect(page.locator('[role="alert"]').first()).toBeVisible();
 
-      // Test Email Code (OTP) via Mailpit
-      await page.locator("#customer-sign-in-code").click();
-      await page.locator('input[name="email"]').fill(email);
-      await page.getByTestId("account-submit").click();
-      await expect(page.locator('input[name="code"]')).toBeVisible({ timeout: 10_000 });
+    // Test Email Code (OTP) via Mailpit
+    await page.locator("#customer-sign-in-code").click();
+    await page.locator('input[name="email"]').fill(email);
+    await page.getByTestId("account-submit").click();
+    await expect(page.locator('input[name="code"]')).toBeVisible({ timeout: 10_000 });
 
-      // Fetch code from Mailpit
-      let otpCode = "";
-      await expect
-        .poll(
-          async () => {
-            const mpRes = await request.get("http://localhost:8025/api/v1/messages");
-            if (!mpRes.ok()) return "";
-            const mpData = (await mpRes.json()) as { messages?: Array<{ ID: string; To?: Array<{ Address: string }> }> };
-            const msg = mpData.messages?.find((m) => m.To?.some((t) => t.Address === email));
-            if (!msg) return "";
-            const detailRes = await request.get(`http://localhost:8025/api/v1/message/${msg.ID}`);
-            const detail = (await detailRes.json()) as { Text?: string; HTML?: string };
-            const match = (detail.Text || detail.HTML || "").match(/\b(\d{6})\b/);
-            otpCode = match?.[1] || "";
-            return otpCode;
-          },
-          { timeout: 15_000 },
-        )
-        .toMatch(/^\d{6}$/);
+    // Fetch code from Mailpit
+    let otpCode = "";
+    await expect
+      .poll(
+        async () => {
+          const mpRes = await request.get("http://localhost:8025/api/v1/messages");
+          if (!mpRes.ok()) return "";
+          const mpData = (await mpRes.json()) as { messages?: Array<{ ID: string; To?: Array<{ Address: string }> }> };
+          const msg = mpData.messages?.find((m) => m.To?.some((t) => t.Address === email));
+          if (!msg) return "";
+          const detailRes = await request.get(`http://localhost:8025/api/v1/message/${msg.ID}`);
+          const detail = (await detailRes.json()) as { Text?: string; HTML?: string };
+          const match = (detail.Text || detail.HTML || "").match(/\b(\d{6})\b/);
+          otpCode = match?.[1] || "";
+          return otpCode;
+        },
+        { timeout: 15_000 },
+      )
+      .toMatch(/^\d{6}$/);
 
-      await page.locator('input[name="code"]').fill(otpCode);
-      await page.getByTestId("account-submit").click();
-      await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Store Customer", { timeout: 15_000 });
-    }
+    await page.locator('input[name="code"]').fill(otpCode);
+    await page.getByTestId("account-submit").click();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Store Customer", { timeout: 15_000 });
 
-    // 4. Add a product to Wishlist & Cart
+    // 4. Add a product to Wishlist & Cart unconditionally
     await page.goto("/en/products", { waitUntil: "domcontentloaded" });
     const firstProductHref = await page.locator('[data-testid^="product-card-"] a, a[href*="/en/products/"]').first().getAttribute("href");
     expect(firstProductHref).toBeTruthy();
     await page.goto(firstProductHref!, { waitUntil: "domcontentloaded" });
 
     const wishlistBtn = page.getByTestId("wishlist-toggle");
-    if ((await wishlistBtn.count()) > 0) {
-      await wishlistBtn.click();
-      await expect(wishlistBtn).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
-    }
+    await expect(wishlistBtn).toBeVisible();
+    await wishlistBtn.click();
+    await expect(wishlistBtn).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
 
     const addToCartBtn = page.getByRole("button", { name: /add to cart|add to bag/i }).first();
     await expect(addToCartBtn).toBeVisible();
@@ -173,13 +169,12 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
 
     // Apply invalid coupon then remove it so checkout is enabled
     const couponInput = page.locator('input[placeholder*="coupon" i], input[aria-label*="coupon" i]').first();
-    if ((await couponInput.count()) > 0) {
-      await couponInput.fill("INVALID-E2E-COUPON");
-      await page.getByRole("button", { name: /apply/i }).click();
-      const removeCouponBtn = page.getByRole("button", { name: /remove coupon/i });
-      await expect(removeCouponBtn).toBeVisible({ timeout: 10_000 });
-      await removeCouponBtn.click();
-    }
+    await expect(couponInput).toBeVisible();
+    await couponInput.fill("INVALID-E2E-COUPON");
+    await page.getByRole("button", { name: /apply/i }).click();
+    const removeCouponBtn = page.getByRole("button", { name: /remove coupon/i });
+    await expect(removeCouponBtn).toBeVisible({ timeout: 10_000 });
+    await removeCouponBtn.click();
 
     const checkoutLink = page.locator('a[href*="/en/checkout"]').first();
     await expect(checkoutLink).toBeVisible();
@@ -189,14 +184,12 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
 
     // 6. Checkout: place order
     const phoneInput = page.getByRole("textbox", { name: /national phone number/i });
-    if ((await phoneInput.count()) > 0 && (await phoneInput.inputValue()) === "") {
-      await phoneInput.fill("+97336001234");
-      await phoneInput.blur();
-    }
+    await expect(phoneInput).toBeVisible();
+    await phoneInput.fill("+97336001234");
+    await phoneInput.blur();
     const codRadio = page.locator('input[type="radio"][value="cod"]');
-    if ((await codRadio.count()) > 0) {
-      await codRadio.check({ force: true });
-    }
+    await expect(codRadio).toBeAttached();
+    await codRadio.check({ force: true });
     const placeOrderBtn = page.locator('button[type="submit"]').last();
     await expect(placeOrderBtn).toBeVisible();
     await placeOrderBtn.click();
@@ -204,14 +197,13 @@ test.describe("Store App — Full Page-by-Page, Account, Wishlist, Cart & Checko
     await expect(page).toHaveURL(/\/en\/checkout\/done/, { timeout: 20_000 });
     await expect(page.locator("h1").first()).toBeVisible();
 
-    // 7. Verify order appears in Account
+    // 7. Verify order appears in Account unconditionally
     await page.goto("/en/account", { waitUntil: "domcontentloaded" });
     const orderLink = page.locator('a[href*="/en/account/orders/"]').first();
-    if ((await orderLink.count()) > 0) {
-      await orderLink.click();
-      await page.waitForLoadState("domcontentloaded");
-      await expect(page.locator("h1").first()).toBeVisible();
-    }
+    await expect(orderLink).toBeVisible();
+    await orderLink.click();
+    await page.waitForLoadState("domcontentloaded");
+    await expect(page.locator("h1").first()).toBeVisible();
 
     expect(serverErrors).toEqual([]);
     // Ignore the expected 401 console error from the negative invalid-password test

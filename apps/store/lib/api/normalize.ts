@@ -22,6 +22,10 @@ export function normalizeApiRecord<T = any>(data: T): T {
       camelKey = "vatAmount";
     } else if (key === "VATRate") {
       camelKey = "vatRate";
+    } else if (/^[a-z0-9].*_[a-z0-9]/i.test(key)) {
+      camelKey = key.replace(/_([a-z0-9])/gi, (_, ch: string) =>
+        ch.toUpperCase(),
+      );
     } else {
       const replaced = key
         .replace(/ID$/, "Id")
@@ -32,8 +36,10 @@ export function normalizeApiRecord<T = any>(data: T): T {
         .replace(/^([A-Z])/, (m) => m.toLowerCase());
     }
 
-    result[camelKey] = normalizedValue;
-    if (camelKey !== key) {
+    if (result[camelKey] === undefined) {
+      result[camelKey] = normalizedValue;
+    }
+    if (camelKey !== key && result[key] === undefined) {
       result[key] = normalizedValue;
     }
   }

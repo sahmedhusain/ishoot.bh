@@ -9,9 +9,16 @@ import {
   watchErrors,
 } from "./helpers/helpers";
 import { t } from "./helpers/locale";
+import { loginAsAdmin } from "./helpers/admin-audit";
+import { setAdminGovernance } from "./helpers/governance";
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await page.goto("/dashboard");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ar");
 });
 
 test("the dashboard uses the company's theme, fonts and logos", async ({
@@ -38,18 +45,29 @@ test("the dashboard uses the company's theme, fonts and logos", async ({
 
 test("changing the theme in settings re-colours the app", async ({ page }) => {
   await page.goto("/dashboard/settings/company");
-  await page.getByRole("tab", { name: t.setupWizard.steps.brand }).click();
-  const accent = page
-    .getByLabel(t.setupWizard.brand.accent, { exact: true })
-    .last();
-  await accent.fill("#DC2626");
-  await page.getByTestId("theme-save").click();
-  await expect
-    .poll(() => themeVariable(page, "--brand-accent"))
-    .toBe(channels("#DC2626"));
-  await accent.fill(demo.theme.accent);
-  await page.getByTestId("theme-save").click();
-  await expect
-    .poll(() => themeVariable(page, "--brand-accent"))
-    .toBe(channels(demo.theme.accent));
+  await expect(page).toHaveURL(/\/dashboard\/settings\?restricted=1&section=company/);
+  await expect(
+    page.getByRole("heading", { name: t.settingsGovernance.restrictedTitle }),
+  ).toBeVisible();
+
+  await setAdminGovernance({ company: true, appearance: true });
+  try {
+    await page.goto("/dashboard/settings/company");
+    await page.getByRole("tab", { name: t.setupWizard.steps.brand }).click();
+    const accent = page
+      .getByLabel(t.setupWizard.brand.accent, { exact: true })
+      .last();
+    await accent.fill("#DC2626");
+    await page.getByTestId("theme-save").click();
+    await expect
+      .poll(() => themeVariable(page, "--brand-accent"))
+      .toBe(channels("#DC2626"));
+    await accent.fill(demo.theme.accent);
+    await page.getByTestId("theme-save").click();
+    await expect
+      .poll(() => themeVariable(page, "--brand-accent"))
+      .toBe(channels(demo.theme.accent));
+  } finally {
+    await setAdminGovernance(null);
+  }
 });

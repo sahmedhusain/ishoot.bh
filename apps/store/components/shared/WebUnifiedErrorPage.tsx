@@ -86,12 +86,12 @@ export function WebUnifiedErrorPage({
   const isAuth = resolvedCode === "401" || resolvedCode === "403";
 
   const quickLinks = [
-    { href: `/${locale}`, label: copy.homeLink, icon: Home },
-    { href: `/${locale}/portfolio`, label: copy.portfolioLink, icon: Film },
-    { href: `/${locale}/services`, label: copy.servicesLink, icon: Sparkles },
-    { href: `/${locale}/store`, label: copy.storeLink, icon: ShoppingBag },
-    { href: `/${locale}/about`, label: copy.aboutLink, icon: Info },
-    { href: `/${locale}/contact`, label: copy.contactLink, icon: Mail },
+    { href: `/${locale}`, label: translations.nav?.home || copy.homeLink, icon: Home },
+    { href: `/${locale}/products`, label: translations.nav?.products || "Products", icon: ShoppingBag },
+    { href: `/${locale}/offers`, label: translations.nav?.offers || "Offers", icon: Sparkles },
+    { href: `/${locale}/branches`, label: translations.nav?.branches || "Branches", icon: Film },
+    { href: `/${locale}/cart`, label: translations.nav?.cart || "Cart", icon: Info },
+    { href: `/${locale}/account`, label: translations.nav?.account || "Account", icon: Mail },
   ];
 
   return (

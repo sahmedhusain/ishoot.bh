@@ -104,11 +104,13 @@ func staffDraft(ctx context.Context, q *sqlcdb.Queries, id string) (StaffDraft, 
 		return StaffDraft{}, ErrPolicyUnavailable
 	}
 	out := StaffDraft{Email: row.Email, DisplayName: row.DisplayName, Role: row.Roles[0], Active: row.Active}
-	if err := json.Unmarshal(row.PermissionOverrides, &out.Overrides); err != nil {
+	overrides, err := parsePermissionOverrides(row.PermissionOverrides)
+	if err != nil {
 		return out, err
 	}
-	err = json.Unmarshal(row.DataScopes, &out.DataScopes)
-	return out, err
+	out.Overrides = overrides
+	out.DataScopes = parseScopeOverrides(row.DataScopes)
+	return out, nil
 }
 func (s *DeskStaff) List(ctx context.Context, actor authn.Principal, cursor string, limit int32) (StaffDeskPage, error) {
 	out := StaffDeskPage{Items: []StaffDeskAccount{}}

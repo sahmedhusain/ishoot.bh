@@ -198,7 +198,7 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
       entity_type: a.entityType,
       entity_id: a.entityId,
       uploaded_by: a.uploadedBy?.fullName || a.uploadedBy?.email || undefined,
-      created_at: a.createdAt.toISOString(),
+      created_at: toIso(a.createdAt),
     }));
 
     return mapped;

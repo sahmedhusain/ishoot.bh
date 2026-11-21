@@ -122,17 +122,15 @@ test.describe("Store Architecture & UX", () => {
     await expect(resultsCount).toContainText(/\d+/);
 
     const sortCombo = page.getByRole("combobox", { name: /sort by/i });
-    if ((await sortCombo.count()) > 0) {
-      await sortCombo.click();
-      await page.getByRole("option").nth(1).click();
-      await expect(page).toHaveURL(/[?&]sort=/);
-    }
+    await expect(sortCombo).toBeVisible();
+    await sortCombo.click();
+    await page.getByRole("option").nth(1).click();
+    await expect(page).toHaveURL(/[?&]sort=/);
 
     const categoryButtons = page.locator('[data-testid="product-grid"] button[aria-pressed]');
-    if ((await categoryButtons.count()) > 1) {
-      await categoryButtons.nth(1).click();
-      await expect(categoryButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
-    }
+    expect(await categoryButtons.count()).toBeGreaterThan(1);
+    await categoryButtons.nth(1).click();
+    await expect(categoryButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
 
     const clearBtn = page.locator('[data-testid="product-grid"]').getByRole("button", { name: /clear/i }).first();
     await expect(clearBtn).toBeVisible();

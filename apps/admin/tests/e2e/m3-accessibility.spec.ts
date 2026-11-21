@@ -3,6 +3,16 @@ import AxeBuilder from "@axe-core/playwright";
 import { t } from "./helpers/locale";
 import { STYLE_PRESETS } from "../../lib/constants/theme";
 import { acceptConfirmations } from "./helpers/helpers";
+import { loginAsAdmin } from "./helpers/admin-audit";
+import { setAdminGovernance } from "./helpers/governance";
+
+test.beforeAll(async () => {
+  await setAdminGovernance({ company: true, appearance: true });
+});
+
+test.afterAll(async () => {
+  await setAdminGovernance(null);
+});
 
 for (const mode of ["light", "dark"] as const) {
   test.describe(`Material 3 / ${mode}`, () => {
@@ -11,6 +21,7 @@ for (const mode of ["light", "dark"] as const) {
         (mode) => localStorage.setItem("platform_admin_theme", mode),
         mode,
       );
+      await loginAsAdmin(page);
     });
 
     for (const path of [
@@ -24,20 +35,26 @@ for (const mode of ["light", "dark"] as const) {
         expect(response?.ok()).toBe(true);
         await expect(page.locator("main h1").first()).toBeVisible();
         await expect(page.locator("html")).toHaveClass(mode);
-        await page.evaluate(() =>
-          Promise.all(
-            document
-              .getAnimations()
-              .filter(
-                (animation) =>
-                  animation.timeline instanceof DocumentTimeline &&
-                  Number.isFinite(
-                    animation.effect?.getTiming().iterations ?? 1,
-                  ),
-              )
-              .map((animation) => animation.finished.catch(() => {})),
-          ),
-        );
+        await page.waitForLoadState("networkidle").catch(() => {});
+        await page.waitForFunction(() => {
+          const pending = document
+            .getAnimations()
+            .filter(
+              (animation) =>
+                animation.playState !== "finished" &&
+                animation.timeline instanceof DocumentTimeline &&
+                Number.isFinite(
+                  animation.effect?.getTiming().iterations ?? 1,
+                ),
+            );
+          if (pending.length > 0) return false;
+          const fading = Array.from(
+            document.querySelectorAll(
+              "main, .animate-page-in, .animate-fade-in",
+            ),
+          ).some((el) => parseFloat(getComputedStyle(el).opacity) < 0.99);
+          return !fading;
+        });
         if (path === "/dashboard") {
           await page.waitForFunction(() => !!customElements.get("md-ripple"));
           const ripple = page
@@ -77,6 +94,10 @@ for (const mode of ["light", "dark"] as const) {
 test("appearance segments support keyboard input, persistence and OS changes", async ({
   page,
 }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await acceptConfirmations(page);
   await page.goto("/dashboard/settings/preferences");
   const light = page.getByRole("radio", {
@@ -108,6 +129,10 @@ test("appearance segments support keyboard input, persistence and OS changes", a
 test("compact RTL drawer keeps focus and reduced motion preferences", async ({
   page,
 }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/dashboard/settings/preferences");
@@ -141,6 +166,10 @@ test("compact RTL drawer keeps focus and reduced motion preferences", async ({
 test("appearance presets preview Material roles and shared company shapes", async ({
   page,
 }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("platform_admin_locale", "ar"),
+  );
+  await loginAsAdmin(page);
   await page.goto("/dashboard/settings/company");
   await page
     .getByRole("tab", { name: t.setupWizard.steps.brand, exact: true })

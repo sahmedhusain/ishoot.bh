@@ -24,7 +24,7 @@ const SERVICE_PREFIX: Record<ServiceSchema, string> = {
   commerce: "/v1/commerce",
   workflow: "/v1/workflow",
   inventory: "/v1/inventory",
-  cms: "/v1/cms/desk",
+  cms: "/v1/cms",
   notify: "/v1/notify",
   delivery: "/v1/delivery",
 };
@@ -43,6 +43,21 @@ export function listTableRows<T = Record<string, any>>(
   );
 }
 
+/** Drop stale snake_case duplicates when an updated camelCase sibling is present. */
+export function dedupeUpsertRow(row: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (key.includes("_")) {
+      const camel = key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+      if (camel !== key && Object.prototype.hasOwnProperty.call(row, camel)) {
+        continue;
+      }
+    }
+    cleaned[key] = value;
+  }
+  return cleaned;
+}
+
 export function upsertTableRow<T = Record<string, any>>(
   service: ServiceSchema,
   table: string,
@@ -51,7 +66,7 @@ export function upsertTableRow<T = Record<string, any>>(
 ): Promise<T> {
   return serviceFetch<T>(
     `${SERVICE_PREFIX[service]}/tables/${encodeURIComponent(table)}`,
-    { method: "POST", body: JSON.stringify(row) },
+    { method: "POST", body: JSON.stringify(dedupeUpsertRow(row)) },
     token,
   );
 }

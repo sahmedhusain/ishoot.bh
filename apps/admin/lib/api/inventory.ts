@@ -2,6 +2,7 @@ import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
 import { normalizeApiRecord } from "./normalize";
+import { serviceFetch } from "./service-fetch";
 
 export type Warehouse = {
   id: string;
@@ -400,6 +401,10 @@ export async function getStockCountApi(id: string, token?: string): Promise<Stoc
   return invFetch<StockCount>(`/v1/inventory/counts/${encodeURIComponent(id)}`, {}, token);
 }
 
+export async function listStockCountLinesApi(countId: string, token?: string): Promise<any[]> {
+  return invFetch<any[]>(`/v1/inventory/counts/${encodeURIComponent(countId)}/lines`, {}, token);
+}
+
 export async function addCountLineApi(
   countId: string,
   input: { productId: string; variantId?: string; locationId: string },
@@ -448,9 +453,9 @@ export async function listStockTraceEventsApi(token?: string): Promise<any[]> {
 }
 
 export async function listLabelPrintJobsApi(token?: string): Promise<any[]> {
-  return invFetch<any[]>("/v1/inventory/label-jobs", {}, token);
+  return serviceFetch<any[]>("/v1/system/tables/label_print_job", {}, token);
 }
 
 export async function listStockTransfersApi(token?: string): Promise<any[]> {
-  return invFetch<any[]>("/v1/inventory/transfers", {}, token);
+  return serviceFetch<any[]>("/v1/inventory/tables/stock_allocation", {}, token);
 }

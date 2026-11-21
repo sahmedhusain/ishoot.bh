@@ -189,12 +189,12 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
               <Line
                 label={p.overtimePay}
                 tone="plus"
-                detail={summary ? fill(p.overtimeDetail, { normal: hours(summary.overtime.normal), night: hours(summary.overtime.night), rest: hours(summary.overtime.restDay), holiday: hours(summary.overtime.holiday) }) : null}
+                detail={summary?.overtime ? fill(p.overtimeDetail, { normal: hours(summary.overtime.normal ?? 0), night: hours(summary.overtime.night ?? 0), rest: hours(summary.overtime.restDay ?? 0), holiday: hours(summary.overtime.holiday ?? 0) }) : null}
                 value={money(item.overtimePay)}
               />
             )}
             {item.shiftAllowance > 0 && (
-              <Line label={p.shiftAllowance} tone="plus" detail={summary ? Object.entries(summary.shifts).map(([code, count]) => `${code} × ${count}`).join(" · ") : null} value={money(item.shiftAllowance)} />
+              <Line label={p.shiftAllowance} tone="plus" detail={summary?.shifts ? Object.entries(summary.shifts).map(([code, count]) => `${code} × ${count}`).join(" · ") : null} value={money(item.shiftAllowance)} />
             )}
             {item.commission > 0 && (
               <Line label={p.commission} tone="plus" detail={detail.commission ? fill(p.commissionDetail, { rate: detail.commission.ratePercent, basis: detail.commission.basis.toFixed(3) }) : null} value={money(item.commission)} />
@@ -226,7 +226,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
               <Line
                 label={p.leaveDeduction}
                 tone="minus"
-                detail={summary ? fill(p.leaveDetail, { days: Object.values(summary.leave).reduce((s, l) => s + l.unpaidDays, 0) }) : null}
+                detail={summary?.leave ? fill(p.leaveDetail, { days: Object.values(summary.leave).reduce((s, l) => s + l.unpaidDays, 0) }) : null}
                 value={money(item.leaveDeduction)}
               />
             )}
@@ -269,7 +269,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
               </div>
             ))}
           </dl>
-          {Object.keys(summary.leave).length > 0 && (
+          {summary.leave && Object.keys(summary.leave).length > 0 && (
             <div>
               <h3 className="mb-2 text-xs font-semibold text-ink">{p.leaveTaken}</h3>
               <ul className="flex flex-wrap gap-2">
@@ -282,7 +282,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
               </ul>
             </div>
           )}
-          {summary.warnings.length > 0 && (
+          {Array.isArray(summary.warnings) && summary.warnings.length > 0 && (
             <ul className="space-y-1">
               {Array.from(new Set(summary.warnings.map((w) => w.split(":")[0]))).map((w) => {
                 const text = w === "unmarked_days" ? p.warnings.unmarked : w === "deductions_capped" ? p.warnings.capped : w === "no_paid_days" ? p.warnings.noPaid : w === "on_leave_without_request" ? p.warnings.onLeave : null;

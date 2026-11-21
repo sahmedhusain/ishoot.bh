@@ -644,7 +644,7 @@ export function WelcomeProfileWidget({
           </h2>
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {designationLabel ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary dark:text-mint px-2.5 py-0.5 text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary dark:text-mint px-2.5 py-0.5 text-[11px] font-semibold">
                 <UserCheck className="w-3 h-3" aria-hidden="true" />
                 <bdi dir="auto">{designationLabel}</bdi>
               </span>
@@ -655,7 +655,7 @@ export function WelcomeProfileWidget({
               </span>
             ) : null}
             {roleLabel && !designationLabel ? (
-              <span className="inline-flex items-center rounded-full bg-primary/15 text-primary px-2.5 py-0.5 text-[11px] font-semibold">
+              <span className="inline-flex items-center rounded-full bg-primary/10 text-primary dark:text-mint px-2.5 py-0.5 text-[11px] font-semibold">
                 <bdi dir="auto">{roleLabel}</bdi>
               </span>
             ) : null}

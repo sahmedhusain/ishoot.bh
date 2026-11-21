@@ -152,11 +152,17 @@ export type AttachmentFilters = {
   projectId?: string;
 };
 
-export const listEntityAttachments = (
+export const listEntityAttachments = async (
   filters?: AttachmentFilters,
   token?: string,
-): Promise<EntityAttachment[]> =>
-  serviceFetch<EntityAttachment[]>(`/v1/files/attachments${buildQuery(filters)}`, {}, token);
+): Promise<EntityAttachment[]> => {
+  const res = await serviceFetch<EntityAttachment[] | { items?: EntityAttachment[] }>(
+    `/v1/files/attachments${buildQuery(filters)}`,
+    {},
+    token,
+  );
+  return Array.isArray(res) ? res : (res?.items ?? []);
+};
 
 export const createEntityAttachment = (
   input: Partial<EntityAttachment>,

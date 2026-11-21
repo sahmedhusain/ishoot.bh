@@ -26,7 +26,7 @@ export interface LetterTemplateInput {
 
 export async function listLetterTemplates(includeInactive = true) {
   const [allRows, allLetters] = await Promise.all([
-    listTableRows<any>("workflow", "letter_template", "display_order ASC, created_at ASC"),
+    listTableRows<any>("workflow", "letter_template", "sort_order ASC, name_en ASC"),
     listTableRows<any>("workflow", "official_letter").catch(() => []),
   ]);
   const rows = includeInactive ? allRows : allRows.filter((t) => t.isActive);

@@ -372,7 +372,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `GATEWAY_UPSTREAM_IDLE_TIMEOUT` | `90s` | `gt=0` |
 | `GATEWAY_UPSTREAM_MAX_IDLE_CONNS_PER_HOST` | `64` | `gt=0` |
 | `GATEWAY_IDENTITY_STATUS_URL` |  | `omitempty,url` |
-| `GATEWAY_IDENTITY_STATUS_TIMEOUT` | `3s` | `gt=0` |
+| `GATEWAY_IDENTITY_STATUS_TIMEOUT` | `15s` | `gt=0` |
 | `GATEWAY_RATE_LIMIT_PREFIX` | `gateway:rl:` | `required` |
 | `GATEWAY_RATE_LIMIT_FAIL_OPEN` | `false` |  |
 | `AUTH_ISSUER` |  |  |
@@ -588,7 +588,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
-| `INVENTORY_READERS` | `admin,it,store,commerce,delivery` | `min=1,dive,required` |
+| `INVENTORY_READERS` | `admin,it,store,web,commerce,delivery` | `min=1,dive,required` |
 | `INVENTORY_WRITERS` | `admin,store,commerce` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |

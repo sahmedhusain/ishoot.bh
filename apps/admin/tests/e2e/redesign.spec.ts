@@ -1,17 +1,30 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
-import { acceptConfirmations } from "./helpers/helpers";
+import { loginAsAdmin } from "./helpers/admin-audit";
 const en = enLocale.admin;
 const ar = arLocale.admin;
+
+async function clickAndConfirm(page: Page, trigger: Locator) {
+  const confirmDialog = page
+    .getByRole("dialog")
+    .filter({ has: page.locator("[data-confirm-dialog]") });
+  await expect(async () => {
+    if (!(await confirmDialog.isVisible())) {
+      await trigger.click();
+    }
+    await expect(confirmDialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
+  await confirmDialog.getByRole("button").last().click();
+  await expect(confirmDialog).toHaveCount(0);
+}
 
 for (const locale of ["en", "ar"] as const) {
   const t = locale === "en" ? en : ar;
   test(`workspace customization and dialog regions (${locale})`, async ({
     page,
   }) => {
-    await acceptConfirmations(page);
     await page.setViewportSize({
       width: locale === "ar" ? 390 : 1440,
       height: 900,
@@ -26,6 +39,7 @@ for (const locale of ["en", "ar"] as const) {
       },
       { locale },
     );
+    await loginAsAdmin(page);
     await page.goto("/dashboard/settings/preferences");
     if (locale === "en") {
       await page
@@ -81,7 +95,7 @@ for (const locale of ["en", "ar"] as const) {
         })
         .check();
     }
-    await page.getByTestId("appearance-save").first().click();
+    await clickAndConfirm(page, page.getByTestId("appearance-save").first());
     await expect(page.getByTestId("appearance-save").first()).toBeDisabled();
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute(
@@ -162,9 +176,10 @@ for (const locale of ["en", "ar"] as const) {
     await header.getByRole("button").click();
     await expect(dialog).toHaveCount(0);
     await page.goto("/dashboard/settings/preferences");
-    await page
-      .getByRole("button", { name: t.appearance.reset, exact: true })
-      .click();
+    await clickAndConfirm(
+      page,
+      page.getByRole("button", { name: t.appearance.reset, exact: true }),
+    );
     await expect(page.locator("html")).toHaveAttribute(
       "data-density",
       "comfortable",
@@ -183,7 +198,7 @@ for (const locale of ["en", "ar"] as const) {
         exact: true,
       })
       .check();
-    await page.getByTestId("appearance-save").first().click();
+    await clickAndConfirm(page, page.getByTestId("appearance-save").first());
     await expect(page.getByTestId("appearance-save").first()).toBeDisabled();
     await page.goto("/dashboard/cms/stats");
     await page
@@ -208,10 +223,19 @@ test("a modular planner form retains its submit association in the footer", asyn
   await page.addInitScript(() =>
     localStorage.setItem("platform_admin_locale", "en"),
   );
+  await loginAsAdmin(page);
   await page.goto("/dashboard/analytics");
-  await page
-    .getByRole("tab", { name: en.socialAnalytics.tabs.planner, exact: true })
-    .click();
+  await page.waitForLoadState("networkidle").catch(() => {});
+  const plannerTab = page.getByRole("tab", {
+    name: en.socialAnalytics.tabs.planner,
+    exact: true,
+  });
+  await expect(async () => {
+    await plannerTab.click();
+    await expect(plannerTab).toHaveAttribute("aria-selected", "true", {
+      timeout: 2_000,
+    });
+  }).toPass({ timeout: 15_000 });
   await page
     .getByRole("button", { name: en.socialAnalytics.plan.add, exact: true })
     .click();

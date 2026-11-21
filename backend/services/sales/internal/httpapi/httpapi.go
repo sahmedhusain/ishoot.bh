@@ -3,6 +3,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"platform.local/backend/pkg/authn"
@@ -30,7 +31,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	auth := authn.Require(opts.Verifier, authn.RealmService)
 	g := e.Group("/v1/sales", auth, authz.ServiceCallers(opts.Readers, opts.Writers))
 	g.GET("/contacts", h.listContacts)
-	g.POST("/contacts", h.createContact)
+	e.POST("/v1/sales/contacts", h.createContact, auth, authz.ServiceCallers(opts.Readers, append(slices.Clone(opts.Writers), "web", "store")))
 	g.GET("/contacts/:id", h.getContact)
 	g.PUT("/contacts/:id", h.updateContact)
 	g.DELETE("/contacts/:id", h.deleteContact)

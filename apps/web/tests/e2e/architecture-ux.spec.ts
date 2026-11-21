@@ -6,7 +6,7 @@ test.describe("Web Architecture & UX", () => {
     const routes = [
       { path: "/en" },
       { path: "/ar" },
-      { path: "/en/works" },
+      { path: "/en/work" },
       { path: "/en/about" },
       { path: "/en/contact" },
     ];

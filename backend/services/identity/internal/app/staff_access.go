@@ -55,6 +55,54 @@ func (s *StaffAccess) Read(ctx context.Context, actor authn.Principal) (StaffAcc
 	})
 	return policy, err
 }
+func parsePermissionOverrides(raw []byte) (map[string]bool, error) {
+	out := make(map[string]bool)
+	if len(raw) == 0 {
+		return out, nil
+	}
+	var flat map[string]bool
+	if err := json.Unmarshal(raw, &flat); err == nil {
+		return flat, nil
+	}
+	var generic map[string]any
+	if err := json.Unmarshal(raw, &generic); err == nil {
+		for k, v := range generic {
+			if b, ok := v.(bool); ok {
+				out[k] = b
+			} else if subMap, ok := v.(map[string]any); ok {
+				for subK, subV := range subMap {
+					if b, ok := subV.(bool); ok {
+						out[k+":"+subK] = b
+					} else {
+						return nil, ErrPolicyUnavailable
+					}
+				}
+			} else {
+				return nil, ErrPolicyUnavailable
+			}
+		}
+		return out, nil
+	}
+	return nil, ErrPolicyUnavailable
+}
+
+func parseScopeOverrides(raw []byte) map[string]string {
+	out := make(map[string]string)
+	if len(raw) == 0 {
+		return out
+	}
+	var generic map[string]any
+	if err := json.Unmarshal(raw, &generic); err != nil {
+		return out
+	}
+	for k, v := range generic {
+		if s, ok := v.(string); ok {
+			out[k] = s
+		}
+	}
+	return out
+}
+
 func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role string, modules map[string]bool) (StaffAccessPolicy, error) {
 	raw, err := q.StaffPermissionOverrides(ctx, subject)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -63,9 +111,9 @@ func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role s
 	if err != nil {
 		return StaffAccessPolicy{}, err
 	}
-	var overrides map[string]bool
-	if err := json.Unmarshal(raw, &overrides); err != nil {
-		return StaffAccessPolicy{}, ErrPolicyUnavailable
+	overrides, err := parsePermissionOverrides(raw)
+	if err != nil {
+		return StaffAccessPolicy{}, err
 	}
 	grants, err := q.StaffPermissionGrants(ctx, role)
 	if err != nil {
@@ -87,10 +135,7 @@ func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role s
 	if err != nil {
 		return StaffAccessPolicy{}, err
 	}
-	var individualScopes map[string]string
-	if err := json.Unmarshal(scopeOverrides, &individualScopes); err != nil {
-		return StaffAccessPolicy{}, ErrPolicyUnavailable
-	}
+	individualScopes := parseScopeOverrides(scopeOverrides)
 	for area, scope := range individualScopes {
 		storedScopes[area] = scope
 	}

@@ -512,6 +512,13 @@ function hashContent(
     .digest("hex");
 }
 
+const reqTargetType = (r: Record<string, any>): string =>
+  r.targetType ?? r.entityType ?? r.kind ?? "";
+const reqTargetId = (r: Record<string, any>): string =>
+  r.targetId ?? r.entityId ?? "";
+const reqRequesterId = (r: Record<string, any>): string =>
+  r.requestedById ?? r.requesterId ?? "";
+
 export interface SubmitForApprovalInput {
   targetType: ApprovalTargetType;
   targetId: string;
@@ -556,7 +563,7 @@ export async function submitForApproval(
     const policy: Record<string, any> | null = policyRow ? { ...policyRow, steps } : null;
 
     const matchingReqs = existingRequests.filter(
-      (r) => r.targetType === input.targetType && r.targetId === input.targetId,
+      (r) => reqTargetType(r) === input.targetType && reqTargetId(r) === input.targetId,
     );
     for (const pending of matchingReqs.filter((r) => r.status === "pending")) {
       await upsertTableRow("workflow", "approval_request", {
@@ -610,6 +617,12 @@ export async function submitForApproval(
       "approval_request",
       {
         id: crypto.randomUUID(),
+        kind: input.targetType,
+        entityType: input.targetType,
+        entityId: input.targetId,
+        requesterId: requester.id,
+        priority: "normal",
+        reason: input.discountReason ?? null,
         targetType: input.targetType,
         targetId: input.targetId,
         revision,
@@ -645,11 +658,14 @@ export async function submitForApproval(
               : "no_alternate_approver";
       await upsertTableRow("workflow", "approval_decision", {
         id: crypto.randomUUID(),
+        requestId: created.id,
         approvalRequestId: created.id,
         decision: "approved",
+        approverId: requester.id,
         decidedById: requester.id,
+        comments: reason,
         reason,
-        step: created.currentStep,
+        step: route?.step ?? 1,
       });
       await upsertTableRow("workflow", "approval_request", {
         ...created,
@@ -750,10 +766,14 @@ export async function decideApprovalRequest(
           .sort((a, b) => Number(a.order) - Number(b.order)) as PolicyStep[])
       : ([] as PolicyStep[]);
     const reqDecisions = decisions.filter(
-      (d) => d.approvalRequestId === approvalRequestId,
+      (d) => (d.requestId ?? d.approvalRequestId) === approvalRequestId,
     );
     const request: Record<string, any> = {
       ...requestRow,
+      targetType: reqTargetType(requestRow),
+      targetId: reqTargetId(requestRow),
+      requestedById: reqRequesterId(requestRow),
+      currentStep: Number(requestRow.currentStep ?? 1),
       approverIds: Array.isArray(requestRow.approverIds)
         ? requestRow.approverIds
         : [],
@@ -801,9 +821,12 @@ export async function decideApprovalRequest(
 
     await upsertTableRow("workflow", "approval_decision", {
       id: crypto.randomUUID(),
+      requestId: approvalRequestId,
       approvalRequestId,
       decision,
+      approverId: actorId,
       decidedById: actorId,
+      comments: reason?.trim() || null,
       reason: reason?.trim() || null,
       step: request.currentStep,
       signatureData,
@@ -819,7 +842,7 @@ export async function decideApprovalRequest(
 
     if (decision === "approved") {
       const alreadyDecided = new Set([
-        ...request.decisions.map((d: any) => d.decidedById),
+        ...request.decisions.map((d: any) => d.approverId ?? d.decidedById),
         actorId,
       ]);
       const next = await nextApprovers(
@@ -913,18 +936,18 @@ export async function findPendingApproval(
   const found = rows
     .filter(
       (r) =>
-        r.targetType === targetType &&
-        r.targetId === targetId &&
+        reqTargetType(r) === targetType &&
+        reqTargetId(r) === targetId &&
         r.status === "pending",
     )
     .sort((a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0))[0];
   if (!found) return null;
   return {
     id: found.id,
-    requestedById: found.requestedById,
+    requestedById: reqRequesterId(found),
     approverIds: Array.isArray(found.approverIds) ? found.approverIds : [],
     status: found.status,
-    currentStep: found.currentStep,
+    currentStep: Number(found.currentStep ?? 1),
   };
 }
 
@@ -938,8 +961,8 @@ export async function cancelPendingApprovals(
   );
   for (const r of rows.filter(
     (row) =>
-      row.targetType === targetType &&
-      row.targetId === targetId &&
+      reqTargetType(row) === targetType &&
+      reqTargetId(row) === targetId &&
       row.status === "pending",
   )) {
     await upsertTableRow("workflow", "approval_request", {

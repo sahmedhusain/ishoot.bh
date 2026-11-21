@@ -2,8 +2,9 @@ import { allowedCategories } from "@platform/contracts";
 import type { InboxOwner } from "@platform/api-client";
 import { getCurrentPermissions, requireAuth } from "./auth";
 
-async function allows() {
-  const [user, permissions] = await Promise.all([requireAuth(), getCurrentPermissions()]);
+async function allows(existingUser?: { id: string; role: string }) {
+  const user = existingUser ?? (await requireAuth());
+  const permissions = await getCurrentPermissions().catch(() => ({} as Record<string, boolean>));
   return {
     user,
     allows: (resource: string, action: string) =>
@@ -11,8 +12,8 @@ async function allows() {
   };
 }
 
-export async function myInboxOwner(): Promise<InboxOwner> {
-  const { user, allows: can } = await allows();
+export async function myInboxOwner(existingUser?: { id: string; role: string }): Promise<InboxOwner> {
+  const { user, allows: can } = await allows(existingUser);
   return { realm: "staff", userId: user.id, categories: allowedCategories("staff", can) };
 }
 

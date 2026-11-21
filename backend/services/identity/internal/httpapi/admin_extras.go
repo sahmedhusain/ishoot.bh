@@ -70,12 +70,9 @@ func RegisterAdminExtras(e *echo.Echo, verifier *authn.Verifier, pool *pgxpool.P
 	g.GET("/roles", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY name_en ASC), '[]'::json) FROM identity.role t`))
 	g.GET("/permissions", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY resource ASC, action ASC), '[]'::json) FROM identity.permission t`))
 	g.GET("/role-data-scopes", queryJSON(`SELECT COALESCE(json_agg(t), '[]'::json) FROM identity.role_data_scope t`))
-	g.GET("/branches", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY name_en ASC), '[]'::json) FROM identity.branch t`))
+	g.GET("/branches", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY name ASC), '[]'::json) FROM identity.branch t`))
 	g.GET("/branch-grants", queryJSON(`SELECT COALESCE(json_agg(t), '[]'::json) FROM identity.branch_grant t`))
 	g.GET("/sessions", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json) FROM identity.session t`))
-	g.GET("/profile-changes", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json) FROM identity.profile_change_request t`))
-	g.GET("/account-changes", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json) FROM identity.account_change_request t`))
-	g.GET("/signature-changes", queryJSON(`SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json) FROM identity.signature_change t`))
 
 	g.PUT("/permissions", func(c echo.Context) error {
 		var in struct {
@@ -87,13 +84,22 @@ func RegisterAdminExtras(e *echo.Echo, verifier *authn.Verifier, pool *pgxpool.P
 		if err := c.Bind(&in); err != nil {
 			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 		}
-		_, err := pool.Exec(c.Request().Context(), `
-			INSERT INTO identity.permission (id, role, resource, action, allowed, created_at)
-			VALUES (gen_random_uuid()::text, $1, $2, $3, $4, now())
-			ON CONFLICT (role, resource, action) DO UPDATE SET allowed = EXCLUDED.allowed
+		ctx := c.Request().Context()
+		tag, err := pool.Exec(ctx, `
+			UPDATE identity.permission
+			SET allowed = $4
+			WHERE role = $1 AND resource = $2 AND action = $3
 		`, in.Role, in.Resource, in.Action, in.Allowed)
 		if err != nil {
 			return err
+		}
+		if tag.RowsAffected() == 0 {
+			if _, err := pool.Exec(ctx, `
+				INSERT INTO identity.permission (id, role, resource, action, allowed, created_at)
+				VALUES (gen_random_uuid()::text, $1, $2, $3, $4, now())
+			`, in.Role, in.Resource, in.Action, in.Allowed); err != nil {
+				return err
+			}
 		}
 		return c.JSON(http.StatusOK, map[string]any{"ok": true})
 	})
@@ -108,8 +114,8 @@ func RegisterAdminExtras(e *echo.Echo, verifier *authn.Verifier, pool *pgxpool.P
 		}
 		for area, scope := range in.Scopes {
 			if _, err := pool.Exec(c.Request().Context(), `
-				INSERT INTO identity.role_data_scope (id, role, area, scope)
-				VALUES (gen_random_uuid()::text, $1, $2, $3)
+				INSERT INTO identity.role_data_scope (role, area, scope)
+				VALUES ($1, $2, $3)
 				ON CONFLICT (role, area) DO UPDATE SET scope = EXCLUDED.scope
 			`, in.Role, area, scope); err != nil {
 				return err
@@ -131,132 +137,11 @@ func RegisterAdminExtras(e *echo.Echo, verifier *authn.Verifier, pool *pgxpool.P
 		}
 		var raw []byte
 		err := pool.QueryRow(c.Request().Context(), `
-			INSERT INTO identity.branch (id, code, name_en, name_ar, time_zone, business_day_start, is_active, revision, created_at, updated_at)
-			VALUES (COALESCE(NULLIF($1,''), gen_random_uuid()::text), $2, $3, $3, $4, $5, true, 1, now(), now())
-			ON CONFLICT (id) DO UPDATE SET code = EXCLUDED.code, name_en = EXCLUDED.name_en, time_zone = EXCLUDED.time_zone, business_day_start = EXCLUDED.business_day_start, revision = identity.branch.revision + 1, updated_at = now()
+			INSERT INTO identity.branch (id, code, name, time_zone, business_day_start, is_active, revision, created_at, updated_at)
+			VALUES (COALESCE(NULLIF($1,''), gen_random_uuid()::text), $2, $3, $4, $5, true, 1, now(), now())
+			ON CONFLICT (id) DO UPDATE SET code = EXCLUDED.code, name = EXCLUDED.name, time_zone = EXCLUDED.time_zone, business_day_start = EXCLUDED.business_day_start, revision = identity.branch.revision + 1, updated_at = now()
 			RETURNING row_to_json(identity.branch.*)
 		`, in.ID, in.Code, in.Name, in.TimeZone, in.BusinessDayStart).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusOK, raw)
-	})
-
-	g.POST("/profile-changes", func(c echo.Context) error {
-		var in map[string]any
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			INSERT INTO identity.profile_change_request (id, user_id, requested_by_id, manager_id, status, old_values, new_values, created_at, updated_at)
-			VALUES (gen_random_uuid()::text, $1, $2, $3, 'pending', $4::jsonb, $5::jsonb, now(), now())
-			RETURNING row_to_json(identity.profile_change_request.*)
-		`, in["userId"], in["requestedById"], in["managerId"], in["oldValues"], in["newValues"]).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusCreated, raw)
-	})
-
-	g.PUT("/profile-changes/:id/status", func(c echo.Context) error {
-		var in struct {
-			Status      string  `json:"status"`
-			ReviewedBy  *string `json:"reviewedById"`
-			ReviewNotes *string `json:"reviewNotes"`
-		}
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			UPDATE identity.profile_change_request
-			SET status = $2, reviewed_by_id = COALESCE($3, reviewed_by_id), review_notes = COALESCE($4, review_notes), reviewed_at = now(), updated_at = now()
-			WHERE id = $1
-			RETURNING row_to_json(identity.profile_change_request.*)
-		`, c.Param("id"), in.Status, in.ReviewedBy, in.ReviewNotes).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusOK, raw)
-	})
-
-	g.POST("/account-changes", func(c echo.Context) error {
-		var in map[string]any
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			INSERT INTO identity.account_change_request (id, user_id, requested_by_id, status, changes, before_values, reason, created_at, updated_at)
-			VALUES (gen_random_uuid()::text, $1, $2, 'pending', $3::jsonb, $4::jsonb, $5, now(), now())
-			RETURNING row_to_json(identity.account_change_request.*)
-		`, in["userId"], in["requestedById"], in["changes"], in["beforeValues"], in["reason"]).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusCreated, raw)
-	})
-
-	g.PUT("/account-changes/:id/status", func(c echo.Context) error {
-		var in struct {
-			Status      string  `json:"status"`
-			ReviewedBy  *string `json:"reviewedById"`
-			ReviewNotes *string `json:"reviewNotes"`
-		}
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			UPDATE identity.account_change_request
-			SET status = $2, reviewed_by_id = COALESCE($3, reviewed_by_id), review_notes = COALESCE($4, review_notes), reviewed_at = now(), updated_at = now()
-			WHERE id = $1
-			RETURNING row_to_json(identity.account_change_request.*)
-		`, c.Param("id"), in.Status, in.ReviewedBy, in.ReviewNotes).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusOK, raw)
-	})
-
-	g.POST("/signature-changes", func(c echo.Context) error {
-		var in struct {
-			UserID       string  `json:"userId"`
-			SignatureURL string  `json:"signatureUrl"`
-			PreviousURL  *string `json:"previousUrl"`
-		}
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			INSERT INTO identity.signature_change (id, user_id, signature_url, previous_url, status, created_at)
-			VALUES (gen_random_uuid()::text, $1, $2, $3, 'pending', now())
-			RETURNING row_to_json(identity.signature_change.*)
-		`, in.UserID, in.SignatureURL, in.PreviousURL).Scan(&raw)
-		if err != nil {
-			return err
-		}
-		return c.JSONBlob(http.StatusCreated, raw)
-	})
-
-	g.PUT("/signature-changes/:id/status", func(c echo.Context) error {
-		var in struct {
-			Status      string  `json:"status"`
-			ReviewedBy  *string `json:"reviewedById"`
-			ReviewNotes *string `json:"reviewNotes"`
-		}
-		if err := c.Bind(&in); err != nil {
-			return problem.New(http.StatusBadRequest, "bad_request", err.Error())
-		}
-		var raw []byte
-		err := pool.QueryRow(c.Request().Context(), `
-			UPDATE identity.signature_change
-			SET status = $2, reviewed_by_id = COALESCE($3, reviewed_by_id), review_notes = COALESCE($4, review_notes), decided_at = now()
-			WHERE id = $1
-			RETURNING row_to_json(identity.signature_change.*)
-		`, c.Param("id"), in.Status, in.ReviewedBy, in.ReviewNotes).Scan(&raw)
 		if err != nil {
 			return err
 		}

@@ -20,8 +20,11 @@ import {
   type WageBasis,
 } from "../hr/social-insurance";
 
-const day = (value: Date | null | undefined) =>
-  value ? value.toISOString().slice(0, 10) : null;
+const day = (value: unknown) => {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+};
 const num = (value: unknown) => (value == null ? null : Number(value));
 const dateInput = (
   value: string | null | undefined,
@@ -39,11 +42,30 @@ const dayBefore = (value: Date) => new Date(value.getTime() - 86_400_000);
 export async function getGosiRules(): Promise<GosiRules> {
   const rows = await listTableRows("hr", "gosi_settings").catch(() => []);
   const row = rows.find((r) => r.id === "default") ?? rows[0];
+  const rawMappings = row?.nationalityCategories;
+  const sanitized: Record<string, InsuredCategory> = {};
+  if (rawMappings && typeof rawMappings === "object") {
+    for (const [key, val] of Object.entries(rawMappings as Record<string, unknown>)) {
+      if (typeof val === "string" && (INSURED_CATEGORIES as readonly string[]).includes(val)) {
+        sanitized[key] = val as InsuredCategory;
+      }
+    }
+  }
+  const hasRawKeys =
+    !!rawMappings &&
+    typeof rawMappings === "object" &&
+    Object.keys(rawMappings as Record<string, unknown>).length > 0;
+  const nationalityCategories: Record<string, InsuredCategory> =
+    Object.keys(sanitized).length > 0
+      ? sanitized
+      : hasRawKeys
+        ? { BH: "bahraini", SA: "gcc", KW: "gcc", AE: "gcc", QA: "gcc", OM: "gcc", "*": "expat" }
+        : {};
   return {
     currency: await companyCurrency(),
     firstOfMonthRule: row?.firstOfMonthRule ?? true,
     wageSource: row?.wageSource === "contract" ? "contract" : "registered",
-    nationalityCategories: (row?.nationalityCategories ?? {}) as Record<string, InsuredCategory>,
+    nationalityCategories,
   };
 }
 
@@ -64,23 +86,33 @@ export async function updateGosiRules(input: GosiRules, actorId: string) {
 
 type ComponentRow = any;
 export function toComponentRule(row: ComponentRow): GosiComponentRule {
+  const code = String(row.code ?? "");
+  const defaultAppliesTo: string[] = Array.isArray(row.appliesTo)
+    ? row.appliesTo
+    : /eos|expat/i.test(code)
+      ? ["expat"]
+      : /old|pension/i.test(code)
+        ? ["bahraini", "gcc"]
+        : ["bahraini", "gcc", "expat"];
   return {
     id: row.id,
-    code: row.code,
+    code,
     nameEn: row.nameEn,
     nameAr: row.nameAr,
-    appliesTo: row.appliesTo,
-    employeePercent: Number(row.employeePercent),
-    employerPercent: Number(row.employerPercent),
+    appliesTo: defaultAppliesTo,
+    employeePercent: Number(row.employeePercent ?? 0),
+    employerPercent: Number(row.employerPercent ?? 0),
     serviceTiers: Array.isArray(row.serviceTiers)
       ? (row.serviceTiers as unknown as ServiceTier[])
       : [],
-    wageBasis: row.wageBasis as WageBasis,
+    wageBasis: (WAGE_BASES as readonly string[]).includes(row.wageBasis)
+      ? (row.wageBasis as WageBasis)
+      : "fixed",
     minWage: num(row.minWage),
     maxWage: num(row.maxWage),
-    effectiveFrom: day(row.effectiveFrom)!,
+    effectiveFrom: day(row.effectiveFrom) ?? "2024-01-01",
     effectiveTo: day(row.effectiveTo),
-    isActive: row.isActive,
+    isActive: row.isActive !== false,
   };
 }
 
@@ -175,7 +207,7 @@ function normalizeComponent(input: GosiComponentInput) {
 }
 
 export async function listGosiComponents() {
-  const rows = await listTableRows("hr", "gosi_component", "code ASC, effective_from DESC");
+  const rows = await listTableRows("hr", "gosi_component", "code ASC");
   return rows.map((row) => ({
     ...toComponentRule({
       ...row,
@@ -193,12 +225,12 @@ export async function scheduleGosiComponent(
 ) {
   const data = normalizeComponent(input);
   return runAtomicMutation(async () => {
-    const all = await listTableRows("hr", "gosi_component", "effective_from ASC");
+    const all = await listTableRows("hr", "gosi_component", "code ASC");
     const versions = all
       .filter((v) => v.code === data.code)
       .map((v) => ({
         ...v,
-        effectiveFrom: new Date(v.effectiveFrom),
+        effectiveFrom: v.effectiveFrom ? new Date(v.effectiveFrom) : new Date(),
         effectiveTo: v.effectiveTo ? new Date(v.effectiveTo) : null,
       }));
     if (
@@ -276,28 +308,31 @@ type ProfileRow = any;
 export function toGosiProfile(
   row: ProfileRow,
 ): GosiProfile & { id: string; notes: string | null } {
+  const category = (INSURED_CATEGORIES as readonly string[]).includes(row.category)
+    ? (row.category as InsuredCategory)
+    : "expat";
   return {
     id: row.id,
-    category: row.category as InsuredCategory,
-    registrationNumber: row.registrationNumber,
+    category,
+    registrationNumber: row.registrationNumber ?? null,
     registeredWage: num(row.registeredWage),
     overrides: Array.isArray(row.overrides)
       ? (row.overrides as unknown as ComponentOverride[])
       : [],
-    effectiveFrom: day(row.effectiveFrom)!,
+    effectiveFrom: day(row.effectiveFrom) ?? "2024-01-01",
     effectiveTo: day(row.effectiveTo),
-    notes: row.notes,
+    notes: row.notes ?? null,
   };
 }
 
 export async function listEmployeeGosiRecords(employeeId: string) {
-  const rows = await listTableRows("hr", "employee_gosi_record", "effective_from DESC");
+  const rows = await listTableRows("hr", "employee_gosi_record", "id DESC");
   return rows
     .filter((r) => r.employeeId === employeeId)
     .map((r) =>
       toGosiProfile({
         ...r,
-        effectiveFrom: new Date(r.effectiveFrom),
+        effectiveFrom: r.effectiveFrom ? new Date(r.effectiveFrom) : new Date(),
         effectiveTo: r.effectiveTo ? new Date(r.effectiveTo) : null,
       }),
     );
@@ -351,12 +386,12 @@ export async function saveEmployeeGosiRecord(
     const employees = await listEmployees();
     const employee = employees.find((e) => e.id === employeeId);
     if (!employee) throw new Error(serverMessages.employeeNotFound);
-    const allVersions = await listTableRows("hr", "employee_gosi_record", "effective_from ASC");
+    const allVersions = await listTableRows("hr", "employee_gosi_record", "id ASC");
     const versions = allVersions
       .filter((v) => v.employeeId === employeeId)
       .map((v) => ({
         ...v,
-        effectiveFrom: new Date(v.effectiveFrom),
+        effectiveFrom: v.effectiveFrom ? new Date(v.effectiveFrom) : new Date(),
         effectiveTo: v.effectiveTo ? new Date(v.effectiveTo) : null,
       }));
     if (
@@ -393,7 +428,7 @@ export async function saveEmployeeGosiRecord(
 }
 
 export async function deleteEmployeeGosiRecord(id: string) {
-  const all = await listTableRows("hr", "employee_gosi_record", "effective_from DESC");
+  const all = await listTableRows("hr", "employee_gosi_record", "id DESC");
   const record = all.find((r) => r.id === id);
   if (!record) throw new Error(serverMessages.registrationNotFound);
   return runAtomicMutation(async () => {
@@ -402,6 +437,8 @@ export async function deleteEmployeeGosiRecord(id: string) {
       (r) =>
         r.id !== id &&
         r.employeeId === record.employeeId &&
+        record.effectiveFrom &&
+        r.effectiveFrom &&
         new Date(r.effectiveFrom) < new Date(record.effectiveFrom),
     );
     if (previous)
@@ -548,7 +585,7 @@ export async function previewEmployeeContributions(
 export async function listGosiRegistrations() {
   const [allEmps, gosiRecords, empRecords] = await Promise.all([
     listEmployees(),
-    listTableRows("hr", "employee_gosi_record", "effective_from DESC"),
+    listTableRows("hr", "employee_gosi_record", "id DESC"),
     listTableRows("system", "employment_record").catch(() => []),
   ]);
   const gosiByEmp = new Map<string, any[]>();

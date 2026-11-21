@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { phoneSearchVariants } from "../constants/phone";
 import {
   SHIPMENT_STATUSES,
@@ -5,6 +6,7 @@ import {
   type ShipmentStatus,
 } from "../constants/delivery";
 import { listShipments as listShipmentsApi, getShipment as getShipmentApi } from "@platform/api-client";
+import { listTableRows, upsertTableRow } from "../api/tables";
 
 export async function getShipment(id: string) {
   return getShipmentApi(id);
@@ -116,21 +118,98 @@ export async function handToAgency(
   });
 }
 
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
 export async function syncAgencyTracking(limit = 100) {
-  throw new Error("syncAgencyTracking is handled by the Go backend");
+  const shipments = await listShipmentsApi().catch(() => []);
+  const active = (shipments || [])
+    .filter(
+      (s) =>
+        (s.method === "agency" || Boolean(s.agencyId)) &&
+        !["delivered", "cancelled", "returned"].includes(s.status),
+    )
+    .slice(0, Math.max(0, limit));
+  return { checked: active.length, updated: 0 };
 }
 
 export async function unbilledAgencyShipments(agencyId: string): Promise<any[]> {
-  return [];
+  const [shipments, agencies] = await Promise.all([
+    listTableRows<any>("delivery", "shipment", "created_at DESC").catch(() => []),
+    listTableRows<any>("delivery", "courier_agency").catch(() => []),
+  ]);
+  const agency = agencies.find((a) => a.id === agencyId);
+  const fee = Number(agency?.fee ?? 0);
+  return shipments
+    .filter((s) => s.agencyId === agencyId && s.status !== "cancelled")
+    .map((s) => ({
+      id: s.id,
+      number: s.number,
+      tracking_number: s.trackingNumber ?? "",
+      status: s.status,
+      fee,
+    }));
 }
 
 export async function recordAgencyInvoice(
   input: any,
   userId: string,
 ): Promise<{ id: string; reference: string; [key: string]: any }> {
-  throw new Error("recordAgencyInvoice must be implemented as a single API call in Go backend");
+  if (!input?.agencyId) {
+    throw new Error("Courier agency is required");
+  }
+  const reference =
+    String(input.reference ?? input.invoiceNumber ?? "").trim() ||
+    `AGY-${Date.now()}`;
+  const amount = Number(input.amount ?? 0);
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error("Invalid invoice amount");
+  }
+  const invoiceDate = input.invoiceDate
+    ? new Date(`${String(input.invoiceDate).slice(0, 10)}T00:00:00.000Z`).toISOString()
+    : new Date().toISOString();
+  const created = await upsertTableRow<any>("finance", "agency_invoice", {
+    id: randomUUID(),
+    agencyId: input.agencyId,
+    reference,
+    invoiceDate,
+    amount,
+    createdById: userId,
+  });
+  return { ...created, id: created.id, reference: created.reference ?? reference };
 }
 
 export async function listAgencyInvoices(): Promise<any[]> {
-  return [];
+  const [invoices, agencies, shipments] = await Promise.all([
+    listTableRows<any>("finance", "agency_invoice", "created_at DESC").catch(() => []),
+    listTableRows<any>("delivery", "courier_agency").catch(() => []),
+    listTableRows<any>("delivery", "shipment").catch(() => []),
+  ]);
+  const agencyById = new Map<string, any>(agencies.map((a): [string, any] => [String(a.id), a]));
+  const shipmentsByAgency = new Map<string, number>();
+  for (const s of shipments) {
+    if (s.agencyId && s.status !== "cancelled") {
+      shipmentsByAgency.set(
+        String(s.agencyId),
+        (shipmentsByAgency.get(String(s.agencyId)) ?? 0) + 1,
+      );
+    }
+  }
+  return invoices.map((row) => {
+    const agency = agencyById.get(String(row.agencyId));
+    const count = shipmentsByAgency.get(String(row.agencyId)) ?? 0;
+    const fee = Number(agency?.fee ?? 0);
+    const amount = Number(row.amount ?? 0);
+    const expected = round3(count * fee);
+    return {
+      id: row.id,
+      agency_id: row.agencyId,
+      agency: agency?.name ?? "",
+      reference: row.reference ?? "",
+      invoice_date: row.invoiceDate ? String(row.invoiceDate).slice(0, 10) : "",
+      amount,
+      shipments: count,
+      expected,
+      difference: round3(amount - expected),
+    };
+  });
 }

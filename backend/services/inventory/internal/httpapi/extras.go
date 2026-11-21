@@ -22,8 +22,6 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 	g.GET("/serials", h.listAllInventoryTable("stock_serial", "created_at DESC"))
 	g.GET("/packages", h.listAllInventoryTable("stock_package", "created_at DESC"))
 	g.GET("/trace-events", h.listAllInventoryTable("stock_trace_event", "created_at DESC"))
-	g.GET("/label-jobs", h.listAllInventoryTable("label_print_job", "created_at DESC"))
-	g.GET("/transfers", h.listAllInventoryTable("stock_transfer", "created_at DESC"))
 
 	db.RegisterTableRoutes(g, h.svc.Pool(), "inventory", []string{
 		"goods_receipt", "goods_receipt_line", "product", "product_category",
@@ -66,15 +64,18 @@ func (h *handler) updateWarehouse(c echo.Context) error {
 func (h *handler) updateLocation(c echo.Context) error {
 	var in struct {
 		Code     *string `json:"code"`
+		Name     *string `json:"name"`
 		NameEn   *string `json:"nameEn"`
-		NameAr   *string `json:"nameAr"`
-		Kind     *string `json:"kind"`
 		IsActive *bool   `json:"isActive"`
 	}
 	if err := c.Bind(&in); err != nil {
 		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
 	}
-	if err := h.svc.UpdateLocationFields(c.Request().Context(), c.Param("id"), in.Code, in.NameEn, in.NameAr, in.Kind, in.IsActive); err != nil {
+	name := in.Name
+	if name == nil {
+		name = in.NameEn
+	}
+	if err := h.svc.UpdateLocationFields(c.Request().Context(), c.Param("id"), in.Code, name, in.IsActive); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusNoContent)

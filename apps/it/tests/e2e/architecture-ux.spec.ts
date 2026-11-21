@@ -10,7 +10,7 @@ import {
   revokeIdentitySessionForIT,
   updateITAccountForIT,
 } from "@platform/api-client";
-import { totp } from "./helpers/totp";
+import { freshTotp } from "./helpers/totp";
 
 process.env.API_URL ||= "http://localhost:8080";
 
@@ -55,7 +55,7 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
 
     const otpInput = page.locator('input[name="otp"]');
     await expect(otpInput).toBeVisible();
-    await otpInput.fill(totp(account.secret));
+    await otpInput.fill(await freshTotp(account.secret));
     await page.locator('button[type="submit"]').click();
     await expect(page).toHaveURL(/\/$/);
 
@@ -89,7 +89,7 @@ test.describe("IT Console Auth & Go Identity API Roundtrip", () => {
 
       const guestOtp = other.locator('input[name="otp"]');
       await expect(guestOtp).toBeVisible();
-      await guestOtp.fill(totp(created.secret));
+      await guestOtp.fill(await freshTotp(created.secret));
       await other.locator('button[type="submit"]').click();
       await expect(other).toHaveURL(/\/$/);
 

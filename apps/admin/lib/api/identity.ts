@@ -322,6 +322,7 @@ export const getPasswordPolicy = (realm: ManagedRealm) =>
   );
 
 import { serviceFetch } from "./service-fetch";
+import { listTableRows, upsertTableRow } from "./tables";
 
 export const listAdminUsersApi = (token?: string) =>
   serviceFetch<any[]>("/v1/identity/admin/users", {}, token);
@@ -355,13 +356,13 @@ export const listAdminSessionsApi = (token?: string) =>
   serviceFetch<any[]>("/v1/identity/admin/sessions", {}, token);
 
 export const listAdminProfileChangesApi = (token?: string) =>
-  serviceFetch<any[]>("/v1/identity/admin/profile-changes", {}, token);
+  listTableRows<any>("system", "profile_change_request", "created_at DESC", token);
 
 export const listAdminAccountChangesApi = (token?: string) =>
-  serviceFetch<any[]>("/v1/identity/admin/account-changes", {}, token);
+  listTableRows<any>("system", "account_change_request", "created_at DESC", token);
 
 export const listAdminSignatureChangesApi = (token?: string) =>
-  serviceFetch<any[]>("/v1/identity/admin/signature-changes", {}, token);
+  listTableRows<any>("system", "signature_change", "created_at DESC", token);
 
 export const setAdminPermissionApi = (
   input: { role: string; resource: string; action: string; allowed: boolean },
@@ -394,37 +395,103 @@ export const saveAdminBranchApi = (
   );
 
 export const createProfileChangeApi = (input: Record<string, any>, token?: string) =>
-  serviceFetch<any>("/v1/identity/admin/profile-changes", { method: "POST", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "profile_change_request",
+    {
+      status: "pending",
+      user_id: input.userId ?? input.user_id,
+      requested_by_id: input.requestedById ?? input.requested_by_id,
+      manager_id: input.managerId ?? input.manager_id ?? null,
+      old_values: input.oldValues ?? input.old_values ?? null,
+      new_values: input.newValues ?? input.new_values ?? null,
+    },
+    token,
+  );
 
 export const updateProfileChangeStatusApi = (
   id: string,
   input: { status: string; reviewedById?: string; reviewNotes?: string | null },
   token?: string,
 ) =>
-  serviceFetch<any>(`/v1/identity/admin/profile-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "profile_change_request",
+    {
+      id,
+      status: input.status,
+      review_notes: input.reviewNotes ?? null,
+      reviewed_at: new Date().toISOString(),
+    },
+    token,
+  );
 
 export const createAccountChangeApi = (input: Record<string, any>, token?: string) =>
-  serviceFetch<any>("/v1/identity/admin/account-changes", { method: "POST", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "account_change_request",
+    {
+      status: "pending",
+      user_id: input.userId ?? input.user_id,
+      requested_by_id: input.requestedById ?? input.requested_by_id,
+      changes: input.changes ?? {},
+      before: input.before ?? input.beforeValues ?? null,
+      reason: input.reason ?? null,
+    },
+    token,
+  );
 
 export const updateAccountChangeStatusApi = (
   id: string,
   input: { status: string; reviewedById?: string; reviewNotes?: string | null },
   token?: string,
 ) =>
-  serviceFetch<any>(`/v1/identity/admin/account-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "account_change_request",
+    {
+      id,
+      status: input.status,
+      decided_by_id: input.reviewedById ?? null,
+      review_notes: input.reviewNotes ?? null,
+      decided_at: new Date().toISOString(),
+    },
+    token,
+  );
 
 export const createSignatureChangeApi = (
   input: { userId: string; signatureUrl: string; previousUrl?: string | null },
   token?: string,
 ) =>
-  serviceFetch<any>("/v1/identity/admin/signature-changes", { method: "POST", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "signature_change",
+    {
+      status: "pending",
+      user_id: input.userId,
+      signature_url: input.signatureUrl,
+      previous_url: input.previousUrl ?? null,
+    },
+    token,
+  );
 
 export const updateSignatureChangeStatusApi = (
   id: string,
   input: { status: string; reviewedById?: string; reviewNotes?: string | null },
   token?: string,
 ) =>
-  serviceFetch<any>(`/v1/identity/admin/signature-changes/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify(input) }, token);
+  upsertTableRow<any>(
+    "system",
+    "signature_change",
+    {
+      id,
+      status: input.status,
+      reviewed_by_id: input.reviewedById ?? null,
+      review_notes: input.reviewNotes ?? null,
+      decided_at: new Date().toISOString(),
+    },
+    token,
+  );
 
 export const updateAdminUserFieldsApi = (id: string, input: Record<string, any>, token?: string) =>
   serviceFetch<any>(`/v1/identity/admin/users/${encodeURIComponent(id)}/fields`, { method: "PUT", body: JSON.stringify(input) }, token);

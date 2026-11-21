@@ -2,6 +2,8 @@ package app
 import (
 	"context"
 	"errors"
+	"math/big"
+	"strings"
 	"time"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -164,6 +166,18 @@ func (s *Service) CreateProduct(ctx context.Context, in sqlcdb.CreateProductPara
 	if in.ID == "" {
 		in.ID = uuid.NewString()
 	}
+	if !in.CostPrice.Valid {
+		in.CostPrice = pgtype.Numeric{Int: big.NewInt(0), Valid: true}
+	}
+	if !in.SellingPrice.Valid {
+		in.SellingPrice = pgtype.Numeric{Int: big.NewInt(0), Valid: true}
+	}
+	if !in.TaxRate.Valid {
+		in.TaxRate = pgtype.Numeric{Int: big.NewInt(0), Valid: true}
+	}
+	if !in.ReorderPoint.Valid {
+		in.ReorderPoint = pgtype.Numeric{Int: big.NewInt(0), Valid: true}
+	}
 	var created postgres.Product
 	err := s.store.Tx(ctx, func(st *postgres.Store, tx pgx.Tx) error {
 		var txErr error
@@ -260,10 +274,20 @@ func (s *Service) AdjustStock(ctx context.Context, move sqlcdb.CreateStockMoveme
 	return res, err
 }
 func (s *Service) ListStockMovements(ctx context.Context, productID string, limit int32) ([]postgres.StockMovement, error) {
-	return s.store.ListStockMovementsByProduct(ctx, sqlcdb.ListStockMovementsByProductParams{
-		ProductID:	productID,
-		Limit:		limit,
+	if strings.TrimSpace(productID) == "" {
+		return s.store.ListRecentStockMovements(ctx, limit)
+	}
+	items, err := s.store.ListStockMovementsByProduct(ctx, sqlcdb.ListStockMovementsByProductParams{
+		ProductID: productID,
+		Limit:     limit,
 	})
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		return []postgres.StockMovement{}, nil
+	}
+	return items, nil
 }
 func (s *Service) ListStockCounts(ctx context.Context) ([]postgres.StockCount, error) {
 	return s.store.ListStockCounts(ctx)
