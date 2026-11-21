@@ -26,6 +26,7 @@ import { CriticalActionModal } from "./CriticalActionModal";
 
 const empty = (role: string): StaffAccountDraft => ({
   email: "",
+  username: "",
   displayName: "",
   role,
   active: true,
@@ -39,6 +40,7 @@ export function StaffAccountsView({
   initial,
   editId,
   cursor,
+  fromOnboardingTicket = false,
   canCreate,
   canEdit,
   canExecute,
@@ -48,6 +50,7 @@ export function StaffAccountsView({
   initial?: StaffAccountDraft;
   editId?: string;
   cursor: string;
+  fromOnboardingTicket?: boolean;
   canCreate: boolean;
   canEdit: boolean;
   canExecute: boolean;
@@ -114,7 +117,8 @@ export function StaffAccountsView({
         const q = searchQuery.toLowerCase();
         const matches =
           (account.displayName && account.displayName.toLowerCase().includes(q)) ||
-          (account.email && account.email.toLowerCase().includes(q));
+          (account.email && account.email.toLowerCase().includes(q)) ||
+          (account.username && account.username.toLowerCase().includes(q));
         if (!matches) return false;
       }
       if (selectedRoleFilter && !account.roles.includes(selectedRoleFilter)) {
@@ -126,13 +130,45 @@ export function StaffAccountsView({
       if (selectedStatusFilter === "suspended" && account.active) {
         return false;
       }
+      if (selectedStatusFilter === "no_mfa" && account.mfaEnabled) {
+        return false;
+      }
       return true;
     });
   }, [page.items, searchQuery, selectedRoleFilter, selectedStatusFilter]);
 
+  const activeCount = page.items.filter((a) => a.active).length;
+  const suspendedCount = page.items.length - activeCount;
+  const mfaCount = page.items.filter((a) => a.mfaEnabled).length;
+
   return (
     <div className="space-y-4">
       <PageTitle title={n.title} description={n.description} />
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+        <div className="it-card p-3 border-l-4 border-l-sky-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{n.kpiTotal}</div>
+          <div className="text-lg font-bold text-ink">{page.items.length}</div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-emerald-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{n.kpiActive}</div>
+          <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{activeCount}</div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-rose-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{n.kpiSuspended}</div>
+          <div className="text-lg font-bold text-rose-700 dark:text-rose-400">{suspendedCount}</div>
+        </div>
+        <div className="it-card p-3 border-l-4 border-l-indigo-500">
+          <div className="text-[10px] uppercase font-bold text-ink-muted">{n.kpiMfa}</div>
+          <div className="text-lg font-bold text-indigo-700 dark:text-indigo-400">{mfaCount}</div>
+        </div>
+      </div>
+
+      {fromOnboardingTicket && (
+        <div className="it-card p-3 border-l-4 border-l-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 text-xs font-mono text-emerald-900 dark:text-emerald-200">
+          {n.prefillBanner}
+        </div>
+      )}
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] font-mono text-xs">
 
@@ -190,6 +226,7 @@ export function StaffAccountsView({
                 <option value="">{n.filterStatus}: {n.filterAll}</option>
                 <option value="active">{n.filterActive}</option>
                 <option value="suspended">{n.filterSuspended}</option>
+                <option value="no_mfa">{n.filterNoMfa}</option>
               </select>
             </div>
           </div>
@@ -213,6 +250,11 @@ export function StaffAccountsView({
                   className="block font-bold text-ink hover:underline"
                 >
                   {account.displayName || account.email}
+                  {account.username && (
+                    <span className="ms-1.5 text-[10px] font-mono text-sky-700 dark:text-sky-400">
+                      @{account.username}
+                    </span>
+                  )}
                 </Link>
                 <p dir="ltr" className="break-all text-[11px] text-ink-muted">
                   {account.email}
@@ -255,10 +297,26 @@ export function StaffAccountsView({
         </div>
 
         <div className="it-card space-y-4 p-4">
-          <div className="border-b border-slate-300 dark:border-slate-700 pb-2">
+          <div className="border-b border-slate-300 dark:border-slate-700 pb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink font-mono">
               {editId ? n.edit : n.new}
             </h2>
+            {editId && (
+              <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
+                <Link
+                  href={`/sessions?subjectId=${encodeURIComponent(editId)}`}
+                  className="it-btn-3d px-2 py-0.5 text-sky-700 dark:text-sky-300"
+                >
+                  {n.viewSessions}
+                </Link>
+                <Link
+                  href={`/audit?actor=${encodeURIComponent(editId)}`}
+                  className="it-btn-3d px-2 py-0.5"
+                >
+                  {n.viewAudit}
+                </Link>
+              </div>
+            )}
           </div>
 
           <form onSubmit={submit} className="space-y-4">
@@ -307,6 +365,19 @@ export function StaffAccountsView({
                     change({ displayName: event.target.value })
                   }
                   className="it-field-sunken w-full font-sans text-xs"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="font-bold text-ink-muted font-mono">{n.username}</span>
+                <input
+                  maxLength={64}
+                  dir="ltr"
+                  placeholder={n.usernamePlaceholder}
+                  value={draft.username ?? ""}
+                  onChange={(event) =>
+                    change({ username: event.target.value })
+                  }
+                  className="it-field-sunken w-full font-mono text-xs"
                 />
               </label>
               <label className="block space-y-1">

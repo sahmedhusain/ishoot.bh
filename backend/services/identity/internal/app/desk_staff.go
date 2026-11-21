@@ -22,6 +22,7 @@ var ErrRoleExists = errors.New("role already exists")
 var ErrRoleAssigned = errors.New("role is assigned or protected")
 type StaffDraft struct {
 	Email		string			`json:"email"`
+	Username	string			`json:"username,omitempty"`
 	DisplayName	string			`json:"displayName"`
 	Role		string			`json:"role"`
 	Active		bool			`json:"active"`
@@ -37,6 +38,7 @@ type AccessTemplate struct {
 type StaffDeskAccount struct {
 	ITAccount
 	DisplayName	string	`json:"displayName"`
+	Username	string	`json:"username,omitempty"`
 }
 type StaffDeskPage struct {
 	Items		[]StaffDeskAccount	`json:"items"`
@@ -117,7 +119,7 @@ func (s *DeskStaff) List(ctx context.Context, actor authn.Principal, cursor stri
 	if len(cursor) > 200 || limit < 1 || limit > 200 {
 		return out, ErrValidation
 	}
-	err := s.withIT(ctx, actor, "staff_accounts", "read", func(_ pgx.Tx, q *sqlcdb.Queries) error {
+	err := s.withIT(ctx, actor, "staff_accounts", "read", func(tx pgx.Tx, q *sqlcdb.Queries) error {
 		rows, err := q.ListStaffAccounts(ctx, sqlcdb.ListStaffAccountsParams{Cursor: cursor, RowLimit: limit + 1})
 		if err != nil {
 			return err
@@ -126,12 +128,22 @@ func (s *DeskStaff) List(ctx context.Context, actor authn.Principal, cursor stri
 			rows = rows[:limit]
 			out.NextCursor = rows[len(rows)-1].SubjectID
 		}
+		usernames := map[string]string{}
+		if uRows, uErr := tx.Query(ctx, "SELECT subject_id, COALESCE(username, '') FROM identity.account WHERE realm='staff' AND username IS NOT NULL"); uErr == nil {
+			defer uRows.Close()
+			for uRows.Next() {
+				var sid, uname string
+				if uRows.Scan(&sid, &uname) == nil {
+					usernames[sid] = uname
+				}
+			}
+		}
 		for _, row := range rows {
 			name := ""
 			if row.DisplayName != nil {
 				name = *row.DisplayName
 			}
-			out.Items = append(out.Items, StaffDeskAccount{ITAccount: ITAccount{ID: row.SubjectID, Email: row.Email, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, CreatedAt: row.CreatedAt, LastLoginAt: row.LastLoginAt}, DisplayName: name})
+			out.Items = append(out.Items, StaffDeskAccount{ITAccount: ITAccount{ID: row.SubjectID, Email: row.Email, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, CreatedAt: row.CreatedAt, LastLoginAt: row.LastLoginAt}, DisplayName: name, Username: usernames[row.SubjectID]})
 		}
 		return nil
 	})
@@ -181,7 +193,17 @@ func (s *DeskStaff) Read(ctx context.Context, actor authn.Principal, id string) 
 	if !validID(id) {
 		return out, ErrValidation
 	}
-	err := s.withIT(ctx, actor, "staff_accounts", "read", func(_ pgx.Tx, q *sqlcdb.Queries) error { var err error; out, err = staffDraft(ctx, q, id); return err })
+	err := s.withIT(ctx, actor, "staff_accounts", "read", func(tx pgx.Tx, q *sqlcdb.Queries) error {
+		var err error
+		out, err = staffDraft(ctx, q, id)
+		if err == nil {
+			var uname string
+			if tx.QueryRow(ctx, "SELECT COALESCE(username, '') FROM identity.account WHERE realm='staff' AND subject_id=$1", id).Scan(&uname) == nil {
+				out.Username = uname
+			}
+		}
+		return err
+	})
 	return out, err
 }
 func (s *DeskStaff) CopyAccess(ctx context.Context, actor authn.Principal, id string) (AccessTemplate, error) {
@@ -242,6 +264,17 @@ func (s *DeskStaff) Save(ctx context.Context, actor authn.Principal, id string, 
 		action = "create"
 	}
 	email, ok := normalizeEmail(in.Email)
+	username := strings.TrimSpace(in.Username)
+	if len(username) > 64 {
+		return "", ErrValidation
+	}
+	if username != "" {
+		for _, r := range username {
+			if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '.' || r == '_' || r == '-') {
+				return "", ErrValidation
+			}
+		}
+	}
 	if !ok || !validID(id) || !utf8.ValidString(in.DisplayName) || len([]rune(strings.TrimSpace(in.DisplayName))) < 1 || len([]rune(in.DisplayName)) > 120 || (!create && in.CopiedFrom != "") || len(in.CopiedFrom) > 200 {
 		return "", ErrValidation
 	}
@@ -291,7 +324,11 @@ func (s *DeskStaff) Save(ctx context.Context, actor authn.Principal, id string, 
 			}
 		}
 		now := time.Now().UTC()
-		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: "staff", SubjectID: id, Email: email, Username: nil, Roles: []string{in.Role}, Active: in.Active, Now: now}); err != nil {
+		var usernamePtr *string
+		if username != "" {
+			usernamePtr = &username
+		}
+		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: "staff", SubjectID: id, Email: email, Username: usernamePtr, Roles: []string{in.Role}, Active: in.Active, Now: now}); err != nil {
 			if uniqueViolation(err) {
 				return ErrEmailTaken
 			}

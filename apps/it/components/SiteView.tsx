@@ -49,6 +49,7 @@ import {
   saveSitePresentationAction,
   updateItSocialLinkAction,
 } from "../app/(desk)/site/actions";
+import { revalidateFrontendCacheAction } from "../app/(desk)/deployments/actions";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
@@ -933,7 +934,220 @@ function SocialLinksCard({
   );
 }
 
-type SiteTab = "domains" | "presentation" | "social" | "code";
+type SiteTab = "domains" | "presentation" | "social" | "code" | "pages" | "operations";
+
+function PagesSeoCard({
+  snapshot,
+  websiteDomain,
+}: {
+  snapshot: CMSContentSnapshot;
+  websiteDomain?: string;
+}) {
+  const { copy } = useCopy();
+  const p = copy.site.pages;
+  const pages = Array.isArray((snapshot as { pages?: unknown[] }).pages)
+    ? ((snapshot as { pages?: Array<Record<string, unknown>> }).pages ?? [])
+    : [];
+  const baseUrl = websiteDomain
+    ? websiteDomain.startsWith("http")
+      ? websiteDomain.replace(/\/$/, "")
+      : `https://${websiteDomain}`
+    : "";
+
+  return (
+    <div className="it-card p-5 space-y-4 font-mono text-xs">
+      <div className="border-b border-rule pb-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-ink">{p.title}</h2>
+        <p className="text-[11px] text-ink-muted font-sans mt-0.5">{p.subtitle}</p>
+      </div>
+      {pages.length === 0 ? (
+        <p className="text-ink-muted py-4 text-center">{p.noPages}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="it-table w-full text-xs">
+            <thead>
+              <tr>
+                <th className="text-start">{p.slug}</th>
+                <th className="text-start">EN / AR</th>
+                <th className="text-start">{p.navVisibility}</th>
+                <th className="text-start">{p.seoStatus}</th>
+                {baseUrl && <th className="text-end">{p.openLive}</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {pages.map((pg, idx) => {
+                const slug = String(pg.slug ?? pg.id ?? idx);
+                const route = slug === "home" ? "/" : `/${slug}`;
+                const titleEn = String(pg.titleEn ?? pg.title_en ?? slug);
+                const titleAr = String(pg.titleAr ?? pg.title_ar ?? "");
+                const inHeader = Boolean(pg.showInHeader ?? pg.show_in_header);
+                const inFooter = Boolean(pg.showInFooter ?? pg.show_in_footer);
+                const hasSeo = Boolean(pg.seoTitleEn ?? pg.seo_title_en ?? pg.seoDescriptionEn ?? pg.seo_description_en);
+                return (
+                  <tr key={slug}>
+                    <td className="font-bold text-ink" dir="ltr">{route}</td>
+                    <td>
+                      <div className="text-ink font-sans font-medium">{titleEn}</div>
+                      {titleAr && <div className="text-[11px] text-ink-muted font-sans" dir="rtl">{titleAr}</div>}
+                    </td>
+                    <td>
+                      <div className="flex flex-wrap gap-1">
+                        {inHeader && <span className="it-badge it-badge-active text-[9px]">HEADER</span>}
+                        {inFooter && <span className="it-badge it-badge-neutral text-[9px]">FOOTER</span>}
+                        {!inHeader && !inFooter && <span className="text-ink-muted">—</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`it-badge text-[9px] ${hasSeo ? "it-badge-active" : "it-badge-warn"}`}>
+                        {hasSeo ? "SEO OK" : "MISSING"}
+                      </span>
+                    </td>
+                    {baseUrl && (
+                      <td className="text-end">
+                        <a
+                          href={`${baseUrl}${route}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="it-btn-3d px-2 py-0.5 text-[10px] text-sky-700 dark:text-sky-300"
+                        >
+                          {p.openLive}
+                        </a>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SiteOperationsCard({ canEdit }: { canEdit: boolean }) {
+  const { copy } = useCopy();
+  const op = copy.site.operations;
+  const router = useRouter();
+  const [busy, setBusy] = React.useState(false);
+  const [maintenanceOn, setMaintenanceOn] = React.useState(false);
+  const [statusLog, setStatusLog] = React.useState<string[]>([]);
+
+  const handlePublish = async () => {
+    setBusy(true);
+    try {
+      const res = await publishItWebsiteSnapshotAction();
+      if (res.ok) {
+        toast.success(op.publishSnapshot);
+        setStatusLog((prev) => [`Published live CMS snapshot (${new Date().toISOString().slice(11, 19)} UTC)`, ...prev].slice(0, 6));
+        router.refresh();
+      } else {
+        toast.error(copy.site.failed);
+      }
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRevalidateAll = async () => {
+    setBusy(true);
+    try {
+      const res = await revalidateFrontendCacheAction("all", ["/"], ["website", "company"]);
+      const ok = res.results.filter((r) => r.ok).length;
+      if (ok === res.results.length) {
+        toast.success(`${op.revalidateAll}: ${ok}/${res.results.length} HTTP 200`);
+      } else {
+        toast.error(copy.site.failed);
+      }
+      setStatusLog((prev) => [
+        ...res.results.map((r) => `Revalidate ${r.target}: ${r.ok ? `HTTP ${r.status}` : r.error || r.status} (${r.durationMs}ms)`),
+        ...prev,
+      ].slice(0, 6));
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleQuickPublicRevalidate = async () => {
+    setBusy(true);
+    try {
+      const res = await revalidatePublicSiteFromItAction();
+      if (res.ok) {
+        setMaintenanceOn((prev) => !prev);
+        toast.success(op.revalidateAll);
+        setStatusLog((prev) => [`Triggered public site revalidation (${new Date().toISOString().slice(11, 19)} UTC)`, ...prev].slice(0, 6));
+      } else {
+        toast.error(copy.site.failed);
+      }
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="it-card p-5 space-y-4 font-mono text-xs">
+      <div className="border-b border-rule pb-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-ink">{op.title}</h2>
+        <p className="text-[11px] text-ink-muted font-sans mt-0.5">{op.subtitle}</p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={busy || !canEdit}
+          onClick={() => void handlePublish()}
+          className="it-btn-3d py-1.5 px-3 font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5 disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+          <span>{op.publishSnapshot}</span>
+        </button>
+
+        <button
+          type="button"
+          disabled={busy || !canEdit}
+          onClick={() => void handleRevalidateAll()}
+          className="it-btn-3d py-1.5 px-3 font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} />
+          <span>{op.revalidateAll}</span>
+        </button>
+      </div>
+
+      <div className="border border-rule p-3.5 bg-surface space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="font-bold text-ink uppercase">{op.maintenanceTitle}</div>
+            <p className="text-[11px] text-ink-muted font-sans">{op.maintenanceDesc}</p>
+          </div>
+          <button
+            type="button"
+            disabled={busy || !canEdit}
+            onClick={() => void handleQuickPublicRevalidate()}
+            className="it-btn-3d py-1.5 px-3 font-bold text-amber-800 dark:text-amber-300 disabled:opacity-50"
+          >
+            {op.revalidateAll}
+          </button>
+        </div>
+      </div>
+
+      {statusLog.length > 0 && (
+        <ul className="space-y-1 border-t border-rule pt-2 text-[11px] text-ink-muted">
+          {statusLog.map((line, i) => (
+            <li key={`${line}-${i}`} className="text-emerald-700 dark:text-emerald-400">
+              • {line}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export function SiteView({
   domains,
@@ -961,6 +1175,8 @@ export function SiteView({
     { id: "domains", label: copy.site.tabs.domains, show: true },
     { id: "presentation", label: copy.site.tabs.presentation, show: true },
     { id: "social", label: copy.site.tabs.social, show: true },
+    { id: "pages", label: copy.site.tabs.pages, show: true },
+    { id: "operations", label: copy.site.tabs.operations, show: true },
     { id: "code", label: copy.site.tabs.code, show: code !== undefined },
   ];
 
@@ -1020,6 +1236,17 @@ export function SiteView({
           ) : (
             <Unavailable />
           ))}
+
+        {tab === "pages" &&
+          (snapshot ? (
+            <PagesSeoCard snapshot={snapshot} websiteDomain={domains?.websiteDomain} />
+          ) : (
+            <Unavailable />
+          ))}
+
+        {tab === "operations" && (
+          <SiteOperationsCard canEdit={canEditDomains || canCheckDomains || canEditPresentation} />
+        )}
 
         {tab === "code" &&
           (code === undefined ? null : code ? (

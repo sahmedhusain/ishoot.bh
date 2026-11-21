@@ -772,6 +772,7 @@ export interface components {
         StaffDraft: {
 
             email: string;
+            username?: string;
             displayName: string;
             role: string;
             active: boolean;
@@ -815,6 +816,7 @@ export interface components {
 
             lastLoginAt: string | null;
             displayName: string;
+            username?: string;
         };
         StaffAccessPreview: {
             subjectId: string;

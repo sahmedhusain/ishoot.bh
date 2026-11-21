@@ -164,6 +164,19 @@ export function TicketView({
 
   const ticketAttachments = attachments.filter((a) => !a.commentId);
 
+  const onboardingMeta = React.useMemo(() => {
+    const match = ticket.description.match(/\[HR_ONBOARDING_META:([^\]]+)\]/);
+    if (!match?.[1]) return null;
+    const sp = new URLSearchParams(match[1]);
+    return {
+      username: sp.get("username") || "",
+      copyFrom: sp.get("copyFrom") || "",
+      employeeId: sp.get("employeeId") || "",
+      email: sp.get("email") || "",
+      name: sp.get("name") || "",
+    };
+  }, [ticket.description]);
+
   const staffById = React.useMemo(
     () => new Map(staffOptions.map((s) => [s.id, s] as [string, StaffOption])),
     [staffOptions],
@@ -353,6 +366,46 @@ export function TicketView({
       </div>
 
       {!canEdit && <p className="text-xs font-mono text-ink-muted">{t.readOnly}</p>}
+
+      {onboardingMeta && (
+        <div className="it-card p-3.5 border-l-4 border-l-sky-600 bg-sky-50/60 dark:bg-sky-950/30 font-mono text-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="font-bold uppercase tracking-wider text-sky-900 dark:text-sky-200">
+              {t.hrOnboardingBanner}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted">
+              <span>
+                <strong className="text-ink">{t.requestedUsernameLabel}:</strong>{" "}
+                <code dir="ltr" className="text-sky-700 dark:text-sky-300 font-bold">
+                  {onboardingMeta.username || "—"}
+                </code>
+              </span>
+              <span>
+                <strong className="text-ink">{t.referenceUserLabel}:</strong>{" "}
+                {onboardingMeta.copyFrom ? (
+                  <code dir="ltr" className="text-emerald-700 dark:text-emerald-300 font-bold">
+                    {onboardingMeta.copyFrom}
+                  </code>
+                ) : (
+                  <span>{t.itToDecide}</span>
+                )}
+              </span>
+            </div>
+          </div>
+          <Link
+            href={`/staff-accounts?${new URLSearchParams({
+              ...(onboardingMeta.name ? { prefillName: onboardingMeta.name } : {}),
+              ...(onboardingMeta.email ? { prefillEmail: onboardingMeta.email } : {}),
+              ...(onboardingMeta.username ? { prefillUsername: onboardingMeta.username } : {}),
+              ...(onboardingMeta.copyFrom ? { copyFrom: onboardingMeta.copyFrom } : {}),
+              ticketId: ticket.id,
+            }).toString()}`}
+            className="it-btn-3d py-1.5 px-3 font-bold text-emerald-800 dark:text-emerald-300"
+          >
+            {t.provisionStaffAccount}
+          </Link>
+        </div>
+      )}
 
       {showAssignInput && canAssign && (
         <div className="it-card p-3 space-y-3 font-mono text-xs bg-slate-50 dark:bg-slate-900/60">

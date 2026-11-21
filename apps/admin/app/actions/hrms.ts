@@ -17,7 +17,9 @@ import {
   type EmployeeIdentityInput,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
+import { createTicket } from "@platform/api-client";
 import { hasPermission, requirePermission } from "../../lib/auth";
+import { announceChange } from "../../lib/live";
 
 const PAY_FIELDS = [
   "basicSalary",
@@ -58,6 +60,12 @@ export async function createEmployeeAction(data: {
   otherAllowances?: number;
   payrollSettings?: EmployeePayrollSettings;
   userId?: string;
+  userAccountMode?: "none" | "existing" | "request_it";
+  requestedUsername?: string | null;
+  referenceUserId?: string | null;
+  referenceUserName?: string | null;
+  referenceUserRole?: string | null;
+  itRequestNotes?: string | null;
   identity?: EmployeeIdentityInput;
   credentials?: EmployeeCredentialInput[];
 }) {
@@ -72,10 +80,25 @@ export async function createEmployeeAction(data: {
         : new Date().toISOString().slice(0, 10);
 
       const { employee } = await runAtomicMutation(async () => {
-        const { identity, credentials, ...employeeData } = data;
+        const {
+          identity,
+          credentials,
+          userAccountMode,
+          requestedUsername,
+          referenceUserId,
+          referenceUserName,
+          referenceUserRole,
+          itRequestNotes,
+          ...employeeData
+        } = data;
+        const resolvedUserId =
+          userAccountMode === "none" || userAccountMode === "request_it"
+            ? undefined
+            : employeeData.userId;
         const employee = await createEmployee(
           {
             ...employeeData,
+            userId: resolvedUserId,
             firstNameAr: data.firstNameAr || data.firstNameEn,
             lastNameAr: data.lastNameAr || data.lastNameEn,
             jobTitleAr: data.jobTitleAr || data.jobTitleEn,
@@ -121,8 +144,49 @@ export async function createEmployeeAction(data: {
         return { employee };
       });
 
+      let itTicketId: string | undefined;
+      if (data.userAccountMode === "request_it") {
+        const reqUsername = (data.requestedUsername || "").trim();
+        const empFullName = `${data.firstNameEn.trim()} ${data.lastNameEn.trim()}`.trim();
+        const refSummary = data.referenceUserId
+          ? `${data.referenceUserName || data.referenceUserId} (ID: ${data.referenceUserId}${data.referenceUserRole ? `, Role: ${data.referenceUserRole}` : ""})`
+          : "Not specified — IT to decide role & permissions";
+        const metaParts = [
+          `username=${encodeURIComponent(reqUsername)}`,
+          `copyFrom=${encodeURIComponent(data.referenceUserId || "")}`,
+          `employeeId=${encodeURIComponent(employee.id)}`,
+          `email=${encodeURIComponent((data.email || "").trim())}`,
+          `name=${encodeURIComponent(empFullName)}`,
+        ].join("&");
+        const description = [
+          `HR Onboarding — New Portal User Account Request`,
+          `Employee: ${empFullName} (${employee.employeeNumber})`,
+          `Job Title: ${data.jobTitleEn.trim()}`,
+          `Work Email: ${(data.email || "").trim() || "Not provided"}`,
+          `Requested Username: ${reqUsername || "IT to assign"}`,
+          `Reference / Example User (Copy Access From): ${refSummary}`,
+          data.itRequestNotes?.trim() ? `HR Notes: ${data.itRequestNotes.trim()}` : null,
+          `[HR_ONBOARDING_META:${metaParts}]`,
+        ]
+          .filter(Boolean)
+          .join("\n");
+
+        const ticket = await createTicket({
+          requesterId: actor.id,
+          requesterName: actor.full_name,
+          requesterEmail: actor.email,
+          category: "access",
+          subcategory: "new_access",
+          priority: "high",
+          title: `New Staff User Onboarding: ${empFullName}${reqUsername ? ` (${reqUsername})` : ""}`.slice(0, 190),
+          description,
+        });
+        itTicketId = ticket.id;
+        await announceChange("it_support", ticket.id, { topics: ["it.tickets"], event: "created" });
+      }
+
       revalidatePath(ROUTES.hr.employees);
-      return { success: true, employee };
+      return { success: true, employee, itTicketId };
     } catch (err: any) {
       console.error("createEmployeeAction error:", err);
       return { success: false, error: err?.message || "Failed to create employee" };

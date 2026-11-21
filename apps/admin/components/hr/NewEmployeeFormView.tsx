@@ -22,21 +22,39 @@ import {
   Building,
   CheckCircle2,
   DollarSign,
+  KeyRound,
   ShieldCheck,
+  Sparkles,
+  UserCheck,
+  UserPlus,
+  UserX,
 } from "lucide-react";
 import { createEmployeeAction } from "../../app/actions/hrms";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { toast } from "sonner";
 import { PageHeader } from "../layout/PageHeader";
 
+export interface OnboardingUserOption {
+  id: string;
+  fullName: string;
+  email: string;
+  username: string;
+  role: string;
+  alreadyLinked?: boolean;
+}
+
+type UserAccountMode = "none" | "existing" | "request_it";
+const USERNAME_RE = /^[A-Za-z0-9._-]{3,40}$/;
+
 interface NewEmployeeFormViewProps {
   departments: Department[];
   visaExemptCountries?: string[];
   linkUser?: { id: string; fullName: string; email: string } | null;
+  existingUsers?: OnboardingUserOption[];
   canSetPay?: boolean;
 }
 
-export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, visaExemptCountries = [] }: NewEmployeeFormViewProps) {
+export function NewEmployeeFormView({ departments, linkUser, existingUsers = [], canSetPay = false, visaExemptCountries = [] }: NewEmployeeFormViewProps) {
   const companyCurrency = useCompanyCurrency();
   const router = useRouter();
   const companyCountry = useCompanyCountry();
@@ -75,7 +93,63 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
   const [transportAllowance, setTransportAllowance] = React.useState(50);
   const [otherAllowances, setOtherAllowances] = React.useState(0);
 
-  const markSaved = useUnsavedChanges({ payrollSettings, firstNameEn, lastNameEn, firstNameAr, lastNameAr, email, phone, cprNumber, identity, visa, jobTitleEn, jobTitleAr, departmentId, hireDate, contractType, basicSalary, housingAllowance, transportAllowance, otherAllowances });
+  const [userAccountMode, setUserAccountMode] = React.useState<UserAccountMode>(
+    linkUser ? "existing" : "none",
+  );
+  const [selectedUserId, setSelectedUserId] = React.useState<string>(linkUser?.id ?? "");
+  const [requestedUsername, setRequestedUsername] = React.useState<string>("");
+  const [referenceUserId, setReferenceUserId] = React.useState<string>("");
+  const [itRequestNotes, setItRequestNotes] = React.useState<string>("");
+
+  const existingUsernameSet = React.useMemo(
+    () => new Set(existingUsers.map((u) => u.username.toLowerCase())),
+    [existingUsers],
+  );
+  const isRequestedUsernameTaken =
+    requestedUsername.trim().length > 0 &&
+    existingUsernameSet.has(requestedUsername.trim().toLowerCase());
+
+  const suggestUsername = () => {
+    const f = firstNameEn.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const l = lastNameEn.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!f && !l) return;
+    let candidate = f && l ? `${f}.${l}` : f || l;
+    if (candidate.length < 3) candidate = `${candidate}01`;
+    let suffix = 2;
+    let unique = candidate;
+    while (existingUsernameSet.has(unique.toLowerCase())) {
+      unique = `${candidate}${suffix}`;
+      suffix++;
+    }
+    setRequestedUsername(unique.slice(0, 40));
+  };
+
+  const markSaved = useUnsavedChanges({
+    payrollSettings,
+    firstNameEn,
+    lastNameEn,
+    firstNameAr,
+    lastNameAr,
+    email,
+    phone,
+    cprNumber,
+    identity,
+    visa,
+    jobTitleEn,
+    jobTitleAr,
+    departmentId,
+    hireDate,
+    contractType,
+    basicSalary,
+    housingAllowance,
+    transportAllowance,
+    otherAllowances,
+    userAccountMode,
+    selectedUserId,
+    requestedUsername,
+    referenceUserId,
+    itRequestNotes,
+  });
 
   const totalMonthlyGross =
     basicSalary + housingAllowance + transportAllowance + otherAllowances;
@@ -86,6 +160,29 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
       toast.error(t.newEmployeeForm.pleaseFillInAllMandatory);
       return;
     }
+    if (userAccountMode === "existing" && !selectedUserId) {
+      toast.error(t.newEmployeeForm.selectExistingUserRequired);
+      return;
+    }
+    if (userAccountMode === "request_it") {
+      const uname = requestedUsername.trim();
+      if (!uname) {
+        toast.error(t.newEmployeeForm.requestedUsernameRequired);
+        return;
+      }
+      if (!USERNAME_RE.test(uname)) {
+        toast.error(t.newEmployeeForm.usernameInvalidError);
+        return;
+      }
+      if (isRequestedUsernameTaken) {
+        toast.error(t.newEmployeeForm.usernameTakenWarning);
+        return;
+      }
+    }
+
+    const refUser = referenceUserId
+      ? existingUsers.find((u) => u.id === referenceUserId)
+      : undefined;
 
     setSubmitting(true);
     const toastId = toast.loading(t.newEmployeeForm.registeringEmployeeRecordInHrms);
@@ -104,13 +201,25 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
         hireDate,
         contractType,
         ...(canSetPay && { basicSalary, housingAllowance, transportAllowance, otherAllowances, payrollSettings }),
-        userId: linkUser?.id,
+        userId: userAccountMode === "existing" ? selectedUserId || undefined : undefined,
+        userAccountMode,
+        requestedUsername: userAccountMode === "request_it" ? requestedUsername.trim() : null,
+        referenceUserId: userAccountMode === "request_it" && refUser ? refUser.id : null,
+        referenceUserName: userAccountMode === "request_it" && refUser ? refUser.fullName : null,
+        referenceUserRole: userAccountMode === "request_it" && refUser ? refUser.role : null,
+        itRequestNotes: userAccountMode === "request_it" ? itRequestNotes.trim() || null : null,
         identity: { ...identity, cpr_number: cprNumber.trim() || undefined },
         credentials: visaRequired && (visa.number || visa.expiry_date || visa.cost_amount !== undefined) ? [visa] : [],
       });
 
       if (res.success && res.employee) {
-        toast.success(formatMessage(t.employeeResidency.created, { number: res.employee.employeeNumber }), { id: toastId });
+        toast.success(
+          formatMessage(
+            res.itTicketId ? t.newEmployeeForm.createdWithItTicket : t.employeeResidency.created,
+            { number: res.employee.employeeNumber },
+          ),
+          { id: toastId },
+        );
         if (!markSaved()) return;
         router.push(ROUTES.hr.employee(res.employee.id));
       } else {
@@ -466,6 +575,167 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
         </>) : (
           <p className="text-xs text-amber-700 dark:text-amber-300 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">{t.hrExtensions.payrollCompletesPay}</p>
         )}
+
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <div className="border-b border-outline-variant pb-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-accent" />
+              {t.newEmployeeForm.userAccountSection}
+            </h2>
+            <p className="text-xs text-ink-muted mt-1">{t.newEmployeeForm.userAccountHint}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {(
+              [
+                {
+                  id: "none" as const,
+                  icon: UserX,
+                  label: t.newEmployeeForm.modeNone,
+                  desc: t.newEmployeeForm.modeNoneDesc,
+                },
+                {
+                  id: "existing" as const,
+                  icon: UserCheck,
+                  label: t.newEmployeeForm.modeExisting,
+                  desc: t.newEmployeeForm.modeExistingDesc,
+                },
+                {
+                  id: "request_it" as const,
+                  icon: UserPlus,
+                  label: t.newEmployeeForm.modeRequestIt,
+                  desc: t.newEmployeeForm.modeRequestItDesc,
+                },
+              ]
+            ).map(({ id, icon: Icon, label, desc }) => {
+              const active = userAccountMode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setUserAccountMode(id)}
+                  className={`text-start p-3 rounded-lg border transition-all space-y-1 ${
+                    active
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-outline-variant bg-surface hover:bg-surface-muted"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                    <Icon className={`w-4 h-4 ${active ? "text-primary" : "text-ink-muted"}`} />
+                    <span>{label}</span>
+                  </div>
+                  <p className="text-[11px] text-ink-muted leading-snug">{desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {userAccountMode === "existing" && (
+            <div className="space-y-2 pt-2">
+              <label className="block">
+                <span className="block text-xs font-medium text-ink mb-1">
+                  {t.newEmployeeForm.selectExistingUser}
+                </span>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedUserId(id);
+                    const picked = existingUsers.find((u) => u.id === id);
+                    if (picked) {
+                      if (!email.trim() && picked.email) setEmail(picked.email);
+                      if (!firstNameEn.trim() && picked.fullName) {
+                        const parts = picked.fullName.split(" ");
+                        setFirstNameEn(parts[0] || "");
+                        if (!lastNameEn.trim()) setLastNameEn(parts.slice(1).join(" "));
+                      }
+                    }
+                  }}
+                  className="w-full text-xs rounded-md border border-outline-variant bg-surface p-2 text-ink"
+                >
+                  <option value="">{t.newEmployeeForm.selectExistingUserPlaceholder}</option>
+                  {existingUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.fullName} (@{u.username} · {u.role} · {u.email})
+                      {u.alreadyLinked ? ` [${t.newEmployeeForm.alreadyLinkedBadge}]` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+
+          {userAccountMode === "request_it" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div>
+                <label className="block">
+                  <span className="block text-xs font-medium text-ink mb-1">
+                    {t.newEmployeeForm.requestedUsername}
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      dir="ltr"
+                      value={requestedUsername}
+                      onChange={(e) => setRequestedUsername(e.target.value)}
+                      placeholder={t.newEmployeeForm.requestedUsernamePlaceholder}
+                      className="flex-1 text-xs font-mono rounded-md border border-outline-variant bg-surface p-2 text-ink"
+                    />
+                    <button
+                      type="button"
+                      onClick={suggestUsername}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-outline-variant bg-surface hover:bg-surface-muted text-ink"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-accent" />
+                      <span>{t.newEmployeeForm.suggestUsername}</span>
+                    </button>
+                  </div>
+                </label>
+                {isRequestedUsernameTaken && (
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1">
+                    {t.newEmployeeForm.usernameTakenWarning}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block">
+                  <span className="block text-xs font-medium text-ink mb-1">
+                    {t.newEmployeeForm.referenceUserLabel}
+                  </span>
+                  <select
+                    value={referenceUserId}
+                    onChange={(e) => setReferenceUserId(e.target.value)}
+                    className="w-full text-xs rounded-md border border-outline-variant bg-surface p-2 text-ink"
+                  >
+                    <option value="">{t.newEmployeeForm.referenceUserItDecide}</option>
+                    {existingUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.fullName} — {u.role} (@{u.username})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="text-[11px] text-ink-muted mt-1">{t.newEmployeeForm.referenceUserHint}</p>
+              </div>
+
+              <label className="block sm:col-span-2">
+                <span className="block text-xs font-medium text-ink mb-1">
+                  {t.newEmployeeForm.itNotesLabel}
+                </span>
+                <textarea
+                  rows={2}
+                  value={itRequestNotes}
+                  onChange={(e) => setItRequestNotes(e.target.value)}
+                  placeholder={t.newEmployeeForm.itNotesPlaceholder}
+                  className="w-full text-xs rounded-md border border-outline-variant bg-surface p-2 text-ink"
+                />
+              </label>
+            </div>
+          )}
+        </Card>
       </div>
     </form>
   );

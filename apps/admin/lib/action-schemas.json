@@ -6608,6 +6608,55 @@
             "kind": "string",
             "optional": true
           },
+          "userAccountMode": {
+            "kind": "union",
+            "variants": [
+              { "kind": "literal", "value": "none" },
+              { "kind": "literal", "value": "existing" },
+              { "kind": "literal", "value": "request_it" }
+            ],
+            "optional": true
+          },
+          "requestedUsername": {
+            "kind": "union",
+            "variants": [
+              { "kind": "string" },
+              { "kind": "literal", "value": null }
+            ],
+            "optional": true
+          },
+          "referenceUserId": {
+            "kind": "union",
+            "variants": [
+              { "kind": "string" },
+              { "kind": "literal", "value": null }
+            ],
+            "optional": true
+          },
+          "referenceUserName": {
+            "kind": "union",
+            "variants": [
+              { "kind": "string" },
+              { "kind": "literal", "value": null }
+            ],
+            "optional": true
+          },
+          "referenceUserRole": {
+            "kind": "union",
+            "variants": [
+              { "kind": "string" },
+              { "kind": "literal", "value": null }
+            ],
+            "optional": true
+          },
+          "itRequestNotes": {
+            "kind": "union",
+            "variants": [
+              { "kind": "string" },
+              { "kind": "literal", "value": null }
+            ],
+            "optional": true
+          },
           "identity": {
             "kind": "object",
             "fields": {
