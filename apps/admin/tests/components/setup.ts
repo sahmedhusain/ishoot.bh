@@ -360,6 +360,7 @@ vi.mock("../../app/actions/hrms", () =>
     "updateEmployeeAction",
     "createDepartmentAction",
     "updateDepartmentAction",
+    "saveEmployeeExtendedProfileAction",
   ]),
 );
 vi.mock("../../app/actions/inventory", () =>
