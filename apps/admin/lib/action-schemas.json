@@ -6405,6 +6405,17 @@
       }
     }
   },
+  "saveEmployeeExtendedProfileAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string"
+      },
+      "profile": {
+        "kind": "unknown"
+      }
+    }
+  },
   "createEmployeeAction": {
     "kind": "object",
     "fields": {
@@ -6655,6 +6666,10 @@
               { "kind": "string" },
               { "kind": "literal", "value": null }
             ],
+            "optional": true
+          },
+          "extendedProfile": {
+            "kind": "unknown",
             "optional": true
           },
           "identity": {

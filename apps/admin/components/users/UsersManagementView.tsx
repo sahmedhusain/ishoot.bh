@@ -135,7 +135,12 @@ export function UsersManagementView({
     color: "rgb(var(--brand-accent))",
   }));
 
-  const filteredUsers = users;
+  const [onlyWithoutHr, setOnlyWithoutHr] = React.useState(false);
+  const withoutHrCount = React.useMemo(() => users.filter((u) => !u.employee_id).length, [users]);
+  const filteredUsers = React.useMemo(
+    () => (onlyWithoutHr ? users.filter((u) => !u.employee_id) : users),
+    [users, onlyWithoutHr],
+  );
 
   const statusOf = (u: Profile): AccountSettingsValue["status"] =>
     u.archived_at ? "archived" : u.suspended_at ? "suspended" : u.is_active ? "active" : "inactive";
@@ -147,6 +152,7 @@ export function UsersManagementView({
     status: statusOf(u),
     discountLimitPercent: u.discount_limit_percent ?? null,
     commissionRatePercent: u.commission_rate_percent ?? null,
+    employeeId: u.employee_id ?? null,
   });
 
   const handleCreateUser = async (e?: React.FormEvent) => {
@@ -272,6 +278,22 @@ export function UsersManagementView({
               {(["all", "active", "suspended", "archived", "inactive"] as const).map((status) => <option key={status} value={status}>{t.usersBulk.statuses[status]}</option>)}
             </Select>
             <Button type="submit" size="sm" variant="outline" className="rounded-xl">{t.actions.search}</Button>
+            {withoutHrCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setOnlyWithoutHr((v) => !v)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                  onlyWithoutHr
+                    ? "border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                    : "border-outline-variant bg-surface-sunken text-ink-muted hover:text-ink"
+                }`}
+              >
+                <span>{t.hrSelfService.employeeNotLinked}</span>
+                <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                  {withoutHrCount}
+                </span>
+              </button>
+            )}
             <span className="ms-auto text-xs text-ink-muted">{formatMessage(t.usersBulk.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
           </form>
 
@@ -654,6 +676,7 @@ export function UsersManagementView({
           roles={allRoles.filter((r) => r.key !== "super_admin" || actorRole === "super_admin").map((r) => ({ id: r.key, name: r.name }))}
           managers={people.map((x) => ({ id: x.id, name: x.fullName }))}
           requiresApproval={false}
+          canCreateEmployees={canCreateEmployees}
           onClose={() => setEditing(null)}
           onSaved={() => window.location.reload()}
         />

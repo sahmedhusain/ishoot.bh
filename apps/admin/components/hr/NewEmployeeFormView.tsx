@@ -33,6 +33,14 @@ import { createEmployeeAction } from "../../app/actions/hrms";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { toast } from "sonner";
 import { PageHeader } from "../layout/PageHeader";
+import {
+  EmployeeExtendedProfileFields,
+  emptyExtendedProfile,
+} from "./EmployeeExtendedProfileFields";
+import type { EmployeeExtendedProfile } from "../../lib/api/hr";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CPR_RE = /^[A-Za-z0-9-]{6,15}$/;
 
 export interface OnboardingUserOption {
   id: string;
@@ -100,6 +108,9 @@ export function NewEmployeeFormView({ departments, linkUser, existingUsers = [],
   const [requestedUsername, setRequestedUsername] = React.useState<string>("");
   const [referenceUserId, setReferenceUserId] = React.useState<string>("");
   const [itRequestNotes, setItRequestNotes] = React.useState<string>("");
+  const [extendedProfile, setExtendedProfile] = React.useState<EmployeeExtendedProfile>(() =>
+    emptyExtendedProfile({ email: linkUser?.email ?? null }),
+  );
 
   const existingUsernameSet = React.useMemo(
     () => new Set(existingUsers.map((u) => u.username.toLowerCase())),
@@ -156,9 +167,37 @@ export function NewEmployeeFormView({ departments, linkUser, existingUsers = [],
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstNameEn.trim() || !lastNameEn.trim() || !jobTitleEn.trim()) {
+    if (!firstNameEn.trim() || !lastNameEn.trim() || !jobTitleEn.trim() || !hireDate.trim()) {
       toast.error(t.newEmployeeForm.pleaseFillInAllMandatory);
       return;
+    }
+    if (email.trim() && !EMAIL_RE.test(email.trim())) {
+      toast.error(`${t.employeeExtendedProfile.invalidEmail}: ${email.trim()}`);
+      return;
+    }
+    if (cprNumber.trim() && !CPR_RE.test(cprNumber.trim())) {
+      toast.error(t.employeeExtendedProfile.invalidCpr);
+      return;
+    }
+    if (basicSalary < 0 || housingAllowance < 0 || transportAllowance < 0 || otherAllowances < 0) {
+      toast.error(t.employeeExtendedProfile.negativeSalaryError);
+      return;
+    }
+    if (extendedProfile.probationEndDate && hireDate && extendedProfile.probationEndDate < hireDate) {
+      toast.error(t.employeeExtendedProfile.probationBeforeHireError);
+      return;
+    }
+    for (const em of extendedProfile.emails) {
+      if (em.value.trim() && !EMAIL_RE.test(em.value.trim())) {
+        toast.error(`${t.employeeExtendedProfile.invalidEmail}: ${em.value}`);
+        return;
+      }
+    }
+    for (const ec of extendedProfile.emergencyContacts) {
+      if (ec.email?.trim() && !EMAIL_RE.test(ec.email.trim())) {
+        toast.error(`${t.employeeExtendedProfile.invalidEmail}: ${ec.email}`);
+        return;
+      }
     }
     if (userAccountMode === "existing" && !selectedUserId) {
       toast.error(t.newEmployeeForm.selectExistingUserRequired);
@@ -183,6 +222,34 @@ export function NewEmployeeFormView({ departments, linkUser, existingUsers = [],
     const refUser = referenceUserId
       ? existingUsers.find((u) => u.id === referenceUserId)
       : undefined;
+
+    const cleanedContacts = extendedProfile.contacts.filter((c) => c.value.trim() !== "");
+    if (phone.trim() && !cleanedContacts.some((c) => c.value.trim() === phone.trim())) {
+      cleanedContacts.unshift({
+        id: "primary-phone",
+        type: "mobile",
+        value: phone.trim(),
+        isPrimary: cleanedContacts.length === 0,
+      });
+    }
+    const cleanedEmails = extendedProfile.emails.filter((em) => em.value.trim() !== "");
+    if (email.trim() && !cleanedEmails.some((em) => em.value.trim().toLowerCase() === email.trim().toLowerCase())) {
+      cleanedEmails.unshift({
+        id: "primary-email",
+        type: "work",
+        value: email.trim(),
+        isPrimary: cleanedEmails.length === 0,
+        syncToAccount: !cleanedEmails.some((em) => em.syncToAccount),
+      });
+    }
+    const finalExtendedProfile: EmployeeExtendedProfile = {
+      ...extendedProfile,
+      contacts: cleanedContacts,
+      emails: cleanedEmails,
+      emergencyContacts: extendedProfile.emergencyContacts.filter(
+        (ec) => ec.name.trim() !== "" || ec.phone.trim() !== "",
+      ),
+    };
 
     setSubmitting(true);
     const toastId = toast.loading(t.newEmployeeForm.registeringEmployeeRecordInHrms);
@@ -210,6 +277,7 @@ export function NewEmployeeFormView({ departments, linkUser, existingUsers = [],
         itRequestNotes: userAccountMode === "request_it" ? itRequestNotes.trim() || null : null,
         identity: { ...identity, cpr_number: cprNumber.trim() || undefined },
         credentials: visaRequired && (visa.number || visa.expiry_date || visa.cost_amount !== undefined) ? [visa] : [],
+        extendedProfile: finalExtendedProfile,
       });
 
       if (res.success && res.employee) {
@@ -575,6 +643,11 @@ export function NewEmployeeFormView({ departments, linkUser, existingUsers = [],
         </>) : (
           <p className="text-xs text-amber-700 dark:text-amber-300 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">{t.hrExtensions.payrollCompletesPay}</p>
         )}
+
+        <EmployeeExtendedProfileFields
+          value={extendedProfile}
+          onChange={setExtendedProfile}
+        />
 
         <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
           <div className="border-b border-outline-variant pb-3">

@@ -34,6 +34,8 @@ import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccoun
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
 import { EmployeeDetailView } from "../../../../../components/hr/EmployeeDetailView";
+import { EmployeeExtendedProfileCard } from "../../../../../components/hr/EmployeeExtendedProfileCard";
+import { getEmployeeExtendedProfileApi } from "../../../../../lib/api/hr";
 import { pageMetadata } from "../../../../../lib/company-metadata";
 
 export const generateMetadata = () => pageMetadata("hr/employees/[id]");
@@ -48,7 +50,7 @@ export default async function EmployeeDetailPage({
   const actor = await requirePagePermission("employees", "read");
   const { id } = await params;
 
-  const [found, departments, canEdit, canViewPay, canEditPay, residency] =
+  const [found, departments, canEdit, canViewPay, canEditPay, residency, extendedProfileRaw] =
     await Promise.all([
       getEmployeeById(id),
       listDepartments(),
@@ -56,7 +58,20 @@ export default async function EmployeeDetailPage({
       hasPermission("payroll", "read"),
       hasPermission("payroll", "edit"),
       getEmployeeResidency(id),
+      getEmployeeExtendedProfileApi(id).catch(() => null),
     ]);
+  const extendedProfile = extendedProfileRaw ?? {
+    contacts: found?.phone ? [{ id: "primary-phone", type: "mobile" as const, value: found.phone, isPrimary: true }] : [],
+    emails: found?.email ? [{ id: "primary-email", type: "work" as const, value: found.email, isPrimary: true, syncToAccount: true }] : [],
+    emergencyContacts: [],
+    healthRecord: {},
+    workLocation: "",
+    probationEndDate: "",
+    maritalStatus: "",
+    bankName: "",
+    iban: "",
+    hrNotes: "",
+  };
   const employee =
     found && !canViewPay ? { ...found, employmentRecords: [] } : found;
 
@@ -182,6 +197,11 @@ export default async function EmployeeDetailPage({
         canManageUsers={canManageUsers}
         canEditEmployees={canEdit}
         canViewPay={canViewPay}
+      />
+      <EmployeeExtendedProfileCard
+        employeeId={id}
+        initialProfile={extendedProfile}
+        canEdit={canEdit}
       />
       <LeaveBalancesCard
         balances={balances}

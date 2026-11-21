@@ -870,6 +870,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     staffRoster: STAFF_ROSTER,
     customers: CUSTOMERS,
     itRoster,
+    defaultPasswordHash: DEFAULT_PASSWORD_HASH,
   }));
 
   lines.push(``);

@@ -6132,7 +6132,7 @@
     },
     "email": {
       "udt": "text",
-      "req": true,
+      "req": false,
       "pk": false,
       "fk": null
     },
@@ -6287,6 +6287,66 @@
       "fk": null
     },
     "mobile_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "contacts": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "emails": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "emergency_contacts": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "health_record": {
+      "udt": "jsonb",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "work_location": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "probation_end_date": {
+      "udt": "date",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "marital_status": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "bank_name": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "iban": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "hr_notes": {
       "udt": "text",
       "req": false,
       "pk": false,

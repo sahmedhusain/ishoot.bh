@@ -18,6 +18,10 @@ import {
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { createTicket } from "@platform/api-client";
+import {
+  saveEmployeeExtendedProfileApi,
+  type EmployeeExtendedProfile,
+} from "../../lib/api/hr";
 import { hasPermission, requirePermission } from "../../lib/auth";
 import { announceChange } from "../../lib/live";
 
@@ -68,6 +72,7 @@ export async function createEmployeeAction(data: {
   itRequestNotes?: string | null;
   identity?: EmployeeIdentityInput;
   credentials?: EmployeeCredentialInput[];
+  extendedProfile?: EmployeeExtendedProfile;
 }) {
   return measureOperation("action:createEmployeeAction", async () => {
     try {
@@ -83,6 +88,7 @@ export async function createEmployeeAction(data: {
         const {
           identity,
           credentials,
+          extendedProfile,
           userAccountMode,
           requestedUsername,
           referenceUserId,
@@ -95,9 +101,24 @@ export async function createEmployeeAction(data: {
           userAccountMode === "none" || userAccountMode === "request_it"
             ? undefined
             : employeeData.userId;
+
+        const primaryContactVal =
+          extendedProfile?.contacts?.find((c) => c.isPrimary && c.value?.trim())?.value?.trim() ||
+          extendedProfile?.contacts?.find((c) => c.value?.trim())?.value?.trim() ||
+          employeeData.phone ||
+          null;
+        const primaryEmailVal =
+          extendedProfile?.emails?.find((e) => e.isPrimary && e.value?.trim())?.value?.trim() ||
+          extendedProfile?.emails?.find((e) => e.type === "work" && e.value?.trim())?.value?.trim() ||
+          extendedProfile?.emails?.find((e) => e.value?.trim())?.value?.trim() ||
+          employeeData.email ||
+          "";
+
         const employee = await createEmployee(
           {
             ...employeeData,
+            phone: primaryContactVal,
+            email: primaryEmailVal,
             userId: resolvedUserId,
             firstNameAr: data.firstNameAr || data.firstNameEn,
             lastNameAr: data.lastNameAr || data.lastNameEn,
@@ -107,6 +128,14 @@ export async function createEmployeeAction(data: {
           },
           actor.id,
         );
+
+        if (extendedProfile) {
+          try {
+            await saveEmployeeExtendedProfileApi(employee.id, extendedProfile);
+          } catch (e) {
+            console.error("Failed to save employee extended profile:", e);
+          }
+        }
 
         if (identity) {
           try {
@@ -148,6 +177,10 @@ export async function createEmployeeAction(data: {
       if (data.userAccountMode === "request_it") {
         const reqUsername = (data.requestedUsername || "").trim();
         const empFullName = `${data.firstNameEn.trim()} ${data.lastNameEn.trim()}`.trim();
+        const syncedEmail =
+          data.extendedProfile?.emails?.find((e) => e.syncToAccount && e.value?.trim())?.value?.trim() ||
+          data.extendedProfile?.emails?.find((e) => e.type === "work" && e.value?.trim())?.value?.trim() ||
+          (data.email || "").trim();
         const refSummary = data.referenceUserId
           ? `${data.referenceUserName || data.referenceUserId} (ID: ${data.referenceUserId}${data.referenceUserRole ? `, Role: ${data.referenceUserRole}` : ""})`
           : "Not specified — IT to decide role & permissions";
@@ -155,14 +188,14 @@ export async function createEmployeeAction(data: {
           `username=${encodeURIComponent(reqUsername)}`,
           `copyFrom=${encodeURIComponent(data.referenceUserId || "")}`,
           `employeeId=${encodeURIComponent(employee.id)}`,
-          `email=${encodeURIComponent((data.email || "").trim())}`,
+          `email=${encodeURIComponent(syncedEmail)}`,
           `name=${encodeURIComponent(empFullName)}`,
         ].join("&");
         const description = [
           `HR Onboarding — New Portal User Account Request`,
           `Employee: ${empFullName} (${employee.employeeNumber})`,
           `Job Title: ${data.jobTitleEn.trim()}`,
-          `Work Email: ${(data.email || "").trim() || "Not provided"}`,
+          `Account / Work Email: ${syncedEmail || "Not provided"}`,
           `Requested Username: ${reqUsername || "IT to assign"}`,
           `Reference / Example User (Copy Access From): ${refSummary}`,
           data.itRequestNotes?.trim() ? `HR Notes: ${data.itRequestNotes.trim()}` : null,
@@ -291,5 +324,54 @@ export async function updateDepartmentAction(
 
     revalidatePath(ROUTES.hr.employees);
     return { success: true, department };
+  });
+}
+
+export async function saveEmployeeExtendedProfileAction(
+  employeeId: string,
+  profile: EmployeeExtendedProfile,
+) {
+  return measureOperation("action:saveEmployeeExtendedProfileAction", async () => {
+    const actor = await requirePermission("employees", "edit");
+    validateActionArguments("saveEmployeeExtendedProfileAction", { employeeId, profile });
+
+    const saved = await saveEmployeeExtendedProfileApi(employeeId, profile);
+
+    const primaryPhone =
+      profile.contacts.find((c) => c.isPrimary && c.value?.trim())?.value?.trim() ||
+      profile.contacts.find((c) => c.value?.trim())?.value?.trim() ||
+      null;
+    const primaryEmail =
+      profile.emails.find((e) => e.isPrimary && e.value?.trim())?.value?.trim() ||
+      profile.emails.find((e) => e.type === "work" && e.value?.trim())?.value?.trim() ||
+      profile.emails.find((e) => e.value?.trim())?.value?.trim() ||
+      null;
+
+    if (primaryPhone !== null || primaryEmail !== null) {
+      try {
+        await updateEmployee(
+          employeeId,
+          {
+            ...(primaryPhone !== null ? { phone: primaryPhone } : {}),
+            ...(primaryEmail !== null ? { email: primaryEmail } : {}),
+          },
+          actor.id,
+        );
+      } catch (e) {
+        console.error("Failed to sync primary contact/email to employee:", e);
+      }
+    }
+
+    await createActivityLog({
+      user_id: actor.id,
+      action: "update",
+      entity_type: "employee",
+      entity_id: employeeId,
+      details: { section: "extended_profile" },
+    });
+
+    revalidatePath(ROUTES.hr.employees);
+    revalidatePath(ROUTES.hr.employee(employeeId));
+    return { success: true, profile: saved };
   });
 }

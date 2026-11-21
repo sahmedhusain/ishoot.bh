@@ -424,3 +424,75 @@ export const deleteAttendanceEntryApi = (employeeId: string, date: string, token
     { method: "DELETE" },
     token,
   );
+
+export type EmployeeContactType = "mobile" | "work" | "home" | "whatsapp" | "other";
+
+export interface EmployeeContactEntry {
+  id: string;
+  type: EmployeeContactType;
+  label?: string;
+  countryCode?: string;
+  value: string;
+  isPrimary: boolean;
+}
+
+export type EmployeeEmailType = "work" | "personal" | "other";
+
+export interface EmployeeEmailEntry {
+  id: string;
+  type: EmployeeEmailType;
+  label?: string;
+  value: string;
+  isPrimary: boolean;
+  syncToAccount?: boolean;
+}
+
+export interface EmployeeEmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  isPrimary: boolean;
+}
+
+export interface EmployeeHealthRecord {
+  bloodType?: string;
+  allergies?: string;
+  chronicConditions?: string;
+  medications?: string;
+  insuranceProvider?: string;
+  insurancePolicyNumber?: string;
+  insuranceExpiryDate?: string;
+  lastMedicalCheckupDate?: string;
+  fitnessStatus?: "fit" | "fit_with_restrictions" | "pending" | "";
+  medicalNotes?: string;
+}
+
+export interface EmployeeExtendedProfile {
+  contacts: EmployeeContactEntry[];
+  emails: EmployeeEmailEntry[];
+  emergencyContacts: EmployeeEmergencyContact[];
+  healthRecord: EmployeeHealthRecord;
+  workLocation?: string | null;
+  probationEndDate?: string | null;
+  maritalStatus?: string | null;
+  bankName?: string | null;
+  iban?: string | null;
+  hrNotes?: string | null;
+}
+
+export const getEmployeeExtendedProfileApi = (id: string, token?: string) =>
+  hrFetch<EmployeeExtendedProfile>(`/v1/hr/employees/${encodeURIComponent(id)}/profile`, {}, token);
+
+export const saveEmployeeExtendedProfileApi = (
+  id: string,
+  input: EmployeeExtendedProfile,
+  token?: string,
+) =>
+  hrFetch<EmployeeExtendedProfile>(
+    `/v1/hr/employees/${encodeURIComponent(id)}/profile`,
+    { method: "PUT", body: JSON.stringify(input) },
+    token,
+  );

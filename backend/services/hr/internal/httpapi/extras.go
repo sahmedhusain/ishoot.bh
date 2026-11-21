@@ -16,6 +16,8 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 	g.DELETE("/departments/:id", h.deleteDepartment)
 	g.POST("/departments/assign-users", h.assignUsersToDepartment)
 	g.PUT("/employees/:id", h.updateEmployee)
+	g.GET("/employees/:id/profile", h.getEmployeeProfile)
+	g.PUT("/employees/:id/profile", h.saveEmployeeProfile)
 
 	g.GET("/leave-types", rawJSONHandler(h.svc.ListLeaveTypes))
 	g.GET("/shift-types", rawJSONHandler(h.svc.ListShiftTypes))
@@ -135,4 +137,24 @@ func (h *handler) updateEmployee(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, emp)
+}
+
+func (h *handler) getEmployeeProfile(c echo.Context) error {
+	prof, err := h.svc.GetEmployeeExtendedProfile(c.Request().Context(), c.Param("id"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, prof)
+}
+
+func (h *handler) saveEmployeeProfile(c echo.Context) error {
+	var in postgres.EmployeeExtendedProfile
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	prof, err := h.svc.SaveEmployeeExtendedProfile(c.Request().Context(), c.Param("id"), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, prof)
 }

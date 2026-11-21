@@ -18,6 +18,7 @@ function buildScenarioExpansionSql({
   staffRoster,
   customers,
   itRoster = [],
+  defaultPasswordHash = "",
 }) {
   const lines = [];
   const pfx = company.prefix;
@@ -874,6 +875,195 @@ function buildScenarioExpansionSql({
         },
         "ON CONFLICT (id) DO NOTHING",
       ),
+    );
+  });
+
+  // ── 12. IDENTITY & HR: NON-HR PORTAL USERS (NO HR EMPLOYEE RECORD) + NON-USER HR EMPLOYEES + EXTENDED HR PROFILES ──
+  lines.push(`\n-- SCENARIO EXPANSION: NON-HR PORTAL USERS (EXTERNAL / CONTRACTORS / CONSULTANTS WITHOUT HR EMPLOYEE RECORD)`);
+  const nonHrPortalUsers = [
+    { id: "ext-auditor-khalil", username: "khalil.alshaikh", name: "Khalil Al-Shaikh", role: "finance", emailLocal: "khalil.audit", dept: "d-fin", reportTo: finMgr.id },
+    { id: "ext-advisor-maha", username: "maha.almoosa", name: "Dr. Maha Al-Moosa", role: "viewer", emailLocal: "maha.advisory", dept: "d-exec", reportTo: sa.id },
+    { id: "ext-partner-jawad", username: "jawad.alhaddad", name: "Jawad Al-Haddad", role: "sales", emailLocal: "jawad.partner", dept: "d-sales", reportTo: salesLead.id },
+    { id: "ext-design-noora", username: "noora.bucheeri", name: "Noora Bucheeri", role: "employee", emailLocal: "noora.studio", dept: "d-ops", reportTo: opsMgr.id },
+    { id: "ext-legal-salman", username: "salman.almansoori", name: "Salman Al-Mansoori", role: "viewer", emailLocal: "salman.legal", dept: "d-exec", reportTo: sa.id },
+    { id: "ext-logistics-hussain", username: "hussain.alaradi", name: "Hussain Al-Aradi", role: "operations", emailLocal: "hussain.fleet", dept: "d-ops", reportTo: opsMgr.id },
+    { id: "ext-sales-dalal", username: "dalal.alkooheji", name: "Dalal Al-Kooheji", role: "sales", emailLocal: "dalal.agent", dept: "d-sales", reportTo: salesLead.id },
+    { id: "ext-qa-rashid", username: "rashid.alsuwaidi", name: "Rashid Al-Suwaidi", role: "it_specialist", emailLocal: "rashid.qa", dept: "d-ops", reportTo: opsMgr.id },
+    { id: "ext-vendor-fatima", username: "fatima.alhashimi", name: "Fatima Al-Hashimi", role: "inventory", emailLocal: "fatima.vendor", dept: "d-ops", reportTo: opsMgr.id },
+    { id: "ext-support-yousif", username: "yousif.albinali", name: "Yousif Al-Binali", role: "support", emailLocal: "yousif.desk", dept: "d-ops", reportTo: opsMgr.id },
+    { id: "ext-mktg-reem", username: "reem.alghanim", name: "Reem Al-Ghanim", role: "employee", emailLocal: "reem.media", dept: "d-sales", reportTo: salesLead.id },
+    { id: "ext-it-tariq", username: "tariq.alkhawaja", name: "Tariq Al-Khawaja", role: "it_specialist", emailLocal: "tariq.cloud", dept: "d-exec", reportTo: sa.id },
+  ];
+  nonHrPortalUsers.forEach((nu, idx) => {
+    const email = `${nu.emailLocal}@${domainHost}`;
+    lines.push(
+      ins(
+        "identity.account",
+        {
+          realm: "staff",
+          subject_id: nu.id,
+          email,
+          username: nu.username,
+          password_hash: defaultPasswordHash || "$argon2id$v=19$m=19456,t=2,p=1$pY9XsX6uhwv8DfyY+1St1w$+gLc4Swb4+gFXMhwXuQYoMx/NxPL4Qbg1gCEk4w1ODA",
+          roles: [nu.role],
+          active: true,
+          mfa_enabled: false,
+          mfa_secret_encrypted: null,
+          mfa_last_step: null,
+          mfa_pending_secret_encrypted: null,
+          mfa_pending_expires_at: null,
+          last_login_at: hoursAgo((idx % 18) + 2),
+          reporting_to: nu.reportTo,
+          created_at: ago(45 - idx * 2),
+          updated_at: now,
+        },
+        "ON CONFLICT (realm, subject_id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "identity.staff_access",
+        {
+          realm: "staff",
+          subject_id: nu.id,
+          display_name: nu.name,
+          permission_overrides: {},
+          data_scopes: { scope: "department", departmentId: nu.dept, branches: ["br-hq"] },
+          updated_at: now,
+        },
+        "ON CONFLICT (realm, subject_id) DO NOTHING",
+      ),
+    );
+    lines.push(
+      ins(
+        "hr.identity_user_ref",
+        {
+          subject_id: nu.id,
+          realm: "staff",
+          display_name: nu.name,
+          email,
+          status: "active",
+          employee_id: null,
+          updated_at: now,
+        },
+        "ON CONFLICT (subject_id) DO NOTHING",
+      ),
+    );
+  });
+
+  lines.push(`\n-- SCENARIO EXPANSION: NON-USER HR EMPLOYEES (FIELD / WAREHOUSE STAFF WITH NO PORTAL LOGIN)`);
+  const nonUserEmployees = [
+    { id: "emp-field-jassim", empNo: `${pfx}-FLD-01`, fnEn: "Jassim", lnEn: "Al-Dossary", fnAr: "جاسم", lnAr: "الدوسري", titleEn: "Fleet Delivery Driver", titleAr: "سائق توصيل", dept: "d-ops", phone: "+97336114401", sal: 420, loc: "Muharraq Logistics Hub", bank: "BBK", iban: "BH67BBKU00100001234501", blood: "O+" },
+    { id: "emp-field-mahdi", empNo: `${pfx}-FLD-02`, fnEn: "Mahdi", lnEn: "Al-Saffar", fnAr: "مهدي", lnAr: "الصفار", titleEn: "Warehouse Receiving Technician", titleAr: "فني استلام مستودع", dept: "d-ops", phone: "+97336114402", sal: 460, loc: "Sitra Industrial Warehouse", bank: "NBB", iban: "BH29NBOB00000088123402", blood: "A+" },
+    { id: "emp-field-ibrahim", empNo: `${pfx}-FLD-03`, fnEn: "Ibrahim", lnEn: "Al-Qassab", fnAr: "إبراهيم", lnAr: "القصاب", titleEn: "Site Installation Technician", titleAr: "فني تركيب ميداني", dept: "d-ops", phone: "+97336114403", sal: 510, loc: "Seef Operations Yard", bank: "Al Salam Bank", iban: "BH81ALSA00123456789003", blood: "B+" },
+  ];
+  nonUserEmployees.forEach((ne, idx) => {
+    const sp = splitPhone(ne.phone);
+    lines.push(
+      ins(
+        "hr.employee",
+        {
+          id: ne.id,
+          user_id: null,
+          employee_number: ne.empNo,
+          first_name_en: ne.fnEn,
+          last_name_en: ne.lnEn,
+          first_name_ar: ne.fnAr,
+          last_name_ar: ne.lnAr,
+          email: null,
+          phone: ne.phone,
+          country_code: sp.country_code,
+          mobile_number: sp.mobile_number,
+          job_title_en: ne.titleEn,
+          job_title_ar: ne.titleAr,
+          department_id: ne.dept,
+          reporting_to: opsMgr.id,
+          manager_id: opsMgr.id,
+          hire_date: dateAgo(180 + idx * 45),
+          status: "active",
+          basic_salary: ne.sal,
+          housing_allowance: 80,
+          transport_allowance: 45,
+          other_allowances: 25,
+          nationality: "BH",
+          gender: "male",
+          leave_balance_days: 21,
+          contacts: [
+            { id: "ct-mob", type: "mobile", value: ne.phone, countryCode: "BH", isPrimary: true },
+            { id: "ct-wa", type: "whatsapp", value: ne.phone, label: "Dispatch WhatsApp", countryCode: "BH", isPrimary: false },
+          ],
+          emails: [],
+          emergency_contacts: [
+            { id: "ec-1", name: `Mohammed ${ne.lnEn}`, relationship: "sibling", phone: `+9733922880${idx + 1}`, isPrimary: true },
+          ],
+          health_record: {
+            bloodType: ne.blood,
+            fitnessStatus: "fit",
+            insuranceProvider: "Solidarity Bahrain",
+            insurancePolicyNumber: `SOL-${pfx}-FLD-${101 + idx}`,
+            insuranceExpiryDate: "2027-06-30",
+            lastMedicalCheckupDate: "2026-02-15",
+            allergies: "None",
+          },
+          work_location: ne.loc,
+          marital_status: idx % 2 === 0 ? "married" : "single",
+          bank_name: ne.bank,
+          iban: ne.iban,
+          hr_notes: "Field operations employee — no portal login required.",
+          created_at: ago(180 + idx * 45),
+          updated_at: now,
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
+  });
+
+  lines.push(`\n-- SCENARIO EXPANSION: RICH EXTENDED PROFILES (CONTACTS, WORK+PERSONAL EMAILS, EMERGENCY, HEALTH, WPS) ON HR EMPLOYEES`);
+  const banks = ["National Bank of Bahrain (NBB)", "Bank of Bahrain and Kuwait (BBK)", "Al Salam Bank", "Ahli United Bank", "Kuwait Finance House Bahrain"];
+  const insurers = ["Solidarity Bahrain", "Takaful International", "GIG Gulf", "Bupa Arabia"];
+  const bloods = ["O+", "A+", "B+", "AB+", "O-", "A-"];
+  const locations = [`${company.shortEn} Seef HQ`, "Diplomatic Area Office", "Muharraq Operations Hub", "Riffa Regional Branch"];
+  const esc = (str) => String(str).replace(/'/g, "''");
+  staffRoster.slice(0, 16).forEach((s, idx) => {
+    const workEmail = staffEmail(s, domainHost);
+    const personalEmail = `${s.id.replace(/[^a-z0-9]/gi, ".")}.personal@gmail.com`;
+    const baseMob = `+97339${String(410000 + idx * 137).slice(0, 6)}`;
+    const workTel = `+97317${String(220100 + idx * 19).slice(0, 6)}`;
+    const contactsJson = JSON.stringify([
+      { id: "ct-mob", type: "mobile", value: baseMob, countryCode: "BH", isPrimary: true },
+      { id: "ct-work", type: "work", value: workTel, label: `Ext ${200 + idx}`, countryCode: "BH", isPrimary: false },
+      { id: "ct-wa", type: "whatsapp", value: baseMob, label: "Business WhatsApp", countryCode: "BH", isPrimary: false },
+    ]);
+    const emailsJson = JSON.stringify([
+      { id: "em-work", type: "work", value: workEmail, isPrimary: true, syncToAccount: true },
+      { id: "em-personal", type: "personal", value: personalEmail, isPrimary: false, syncToAccount: false },
+    ]);
+    const emergencyJson = JSON.stringify([
+      { id: "ec-1", name: `Nasser ${s.nameEn.split(" ").slice(-1)[0] || "Al-Khalifa"}`, relationship: idx % 2 === 0 ? "spouse" : "parent", phone: `+97333${String(510000 + idx * 91).slice(0, 6)}`, email: personalEmail, isPrimary: true },
+      { id: "ec-2", name: `Huda ${s.nameEn.split(" ").slice(-1)[0] || "Al-Khalifa"}`, relationship: "sibling", phone: `+97336${String(710000 + idx * 73).slice(0, 6)}`, isPrimary: false },
+    ]);
+    const healthJson = JSON.stringify({
+      bloodType: bloods[idx % bloods.length],
+      fitnessStatus: idx === 5 ? "fit_with_restrictions" : "fit",
+      insuranceProvider: insurers[idx % insurers.length],
+      insurancePolicyNumber: `MED-${pfx}-${2000 + idx}`,
+      insuranceExpiryDate: "2027-12-31",
+      lastMedicalCheckupDate: "2026-03-10",
+      allergies: idx % 4 === 0 ? "Penicillin" : "None",
+      medicalNotes: idx === 5 ? "Ergonomic desk seating recommended." : "Annual occupational health clearance completed.",
+    });
+    const iban = `BH${60 + (idx % 30)}NBOB00000099${String(100000 + idx * 17).slice(0, 6)}`;
+    lines.push(
+      `UPDATE hr.employee SET ` +
+      `contacts = '${esc(contactsJson)}'::jsonb, ` +
+      `emails = '${esc(emailsJson)}'::jsonb, ` +
+      `emergency_contacts = '${esc(emergencyJson)}'::jsonb, ` +
+      `health_record = '${esc(healthJson)}'::jsonb, ` +
+      `work_location = '${esc(locations[idx % locations.length])}', ` +
+      `marital_status = '${idx % 3 === 0 ? "single" : "married"}', ` +
+      `bank_name = '${esc(banks[idx % banks.length])}', ` +
+      `iban = '${iban}' ` +
+      `WHERE id = '${esc(s.id)}';`
     );
   });
 

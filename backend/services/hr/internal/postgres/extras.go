@@ -227,3 +227,92 @@ func (s *Store) DeleteAttendanceByEmployeeDate(ctx context.Context, employeeID, 
 	_, err := s.pool.Exec(ctx, `DELETE FROM hr.attendance_entry WHERE employee_id = $1 AND date = $2::date`, employeeID, date)
 	return err
 }
+
+type EmployeeExtendedProfile struct {
+	Contacts          json.RawMessage `json:"contacts"`
+	Emails            json.RawMessage `json:"emails"`
+	EmergencyContacts json.RawMessage `json:"emergencyContacts"`
+	HealthRecord      json.RawMessage `json:"healthRecord"`
+	WorkLocation      *string         `json:"workLocation"`
+	ProbationEndDate  *string         `json:"probationEndDate"`
+	MaritalStatus     *string         `json:"maritalStatus"`
+	BankName          *string         `json:"bankName"`
+	IBAN              *string         `json:"iban"`
+	HrNotes           *string         `json:"hrNotes"`
+}
+
+func (s *Store) GetEmployeeExtendedProfile(ctx context.Context, id string) (EmployeeExtendedProfile, error) {
+	var p EmployeeExtendedProfile
+	var contacts, emails, emergency, health []byte
+	err := s.pool.QueryRow(ctx, `
+		SELECT
+			COALESCE(contacts, '[]'::jsonb),
+			COALESCE(emails, '[]'::jsonb),
+			COALESCE(emergency_contacts, '[]'::jsonb),
+			COALESCE(health_record, '{}'::jsonb),
+			work_location,
+			to_char(probation_end_date, 'YYYY-MM-DD'),
+			marital_status,
+			bank_name,
+			iban,
+			hr_notes
+		FROM hr.employee
+		WHERE id = $1
+	`, id).Scan(
+		&contacts, &emails, &emergency, &health,
+		&p.WorkLocation, &p.ProbationEndDate, &p.MaritalStatus, &p.BankName, &p.IBAN, &p.HrNotes,
+	)
+	if err != nil {
+		return EmployeeExtendedProfile{}, err
+	}
+	p.Contacts = json.RawMessage(contacts)
+	p.Emails = json.RawMessage(emails)
+	p.EmergencyContacts = json.RawMessage(emergency)
+	p.HealthRecord = json.RawMessage(health)
+	return p, nil
+}
+
+func (s *Store) SaveEmployeeExtendedProfile(ctx context.Context, id string, in EmployeeExtendedProfile) (EmployeeExtendedProfile, error) {
+	contacts := in.Contacts
+	if len(contacts) == 0 {
+		contacts = json.RawMessage(`[]`)
+	}
+	emails := in.Emails
+	if len(emails) == 0 {
+		emails = json.RawMessage(`[]`)
+	}
+	emergency := in.EmergencyContacts
+	if len(emergency) == 0 {
+		emergency = json.RawMessage(`[]`)
+	}
+	health := in.HealthRecord
+	if len(health) == 0 {
+		health = json.RawMessage(`{}`)
+	}
+
+	var probDate *string
+	if in.ProbationEndDate != nil && *in.ProbationEndDate != "" {
+		probDate = in.ProbationEndDate
+	}
+
+	_, err := s.pool.Exec(ctx, `
+		UPDATE hr.employee
+		SET contacts = $2::jsonb,
+		    emails = $3::jsonb,
+		    emergency_contacts = $4::jsonb,
+		    health_record = $5::jsonb,
+		    work_location = $6,
+		    probation_end_date = CASE WHEN $7::text IS NULL OR $7::text = '' THEN NULL ELSE $7::date END,
+		    marital_status = $8,
+		    bank_name = $9,
+		    iban = $10,
+		    hr_notes = $11,
+		    updated_at = now()
+		WHERE id = $1
+	`, id, []byte(contacts), []byte(emails), []byte(emergency), []byte(health),
+		in.WorkLocation, probDate, in.MaritalStatus, in.BankName, in.IBAN, in.HrNotes)
+	if err != nil {
+		return EmployeeExtendedProfile{}, err
+	}
+	return s.GetEmployeeExtendedProfile(ctx, id)
+}
