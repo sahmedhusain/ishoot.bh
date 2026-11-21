@@ -3704,7 +3704,7 @@ function buildRichModuleSql({
     const tStatus = i <= 12 ? "closed" : i <= 16 ? "resolved" : i <= 20 ? "in_progress" : "open";
     const tCreatedAgo = Math.max(2, 48 - i * 2);
     const itAssignee = ["it-eng-001", "it-supp-001", "it-manager-001"][(i - 1) % 3];
-    const itAssigneeName = itAssignee === "it-eng-001" ? "IT Systems Engineer" : itAssignee === "it-supp-001" ? "IT Support Specialist" : "IT Operations Manager";
+    const itAssigneeName = itAssignee === "it-eng-001" ? "Khalid Al-Buainain" : itAssignee === "it-supp-001" ? "Aisha Al-Zayani" : "Rashid Al-Khalifa";
     lines.push(
       ins(
         "itsm.ticket",
@@ -3718,7 +3718,7 @@ function buildRichModuleSql({
           subcategory: i % 3 === 0 ? "connectivity" : i % 2 === 0 ? "permissions" : "workstation",
           priority: i <= 4 ? "critical" : i <= 10 ? "high" : i <= 20 ? "normal" : "low",
           status: tStatus,
-          title: `${rawTitle} (#${300 + i})`.slice(0, 190),
+          title: String(rawTitle).slice(0, 190),
           description: `Operational IT support request submitted by ${s.nameEn} (${s.username}) for ${prjId}.`,
           asset_ref: `${pfx}-IT-${String(assetRefIdx).padStart(2, "0")}`,
           assignee_id: itAssignee,

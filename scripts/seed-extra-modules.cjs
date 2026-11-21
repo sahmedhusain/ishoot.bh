@@ -32,25 +32,69 @@ const EXTRA_STAFF = [
   { id: "mona-essa", nameEn: "Mona Essa", nameAr: "منى عيسى", username: "ME0029", role: "hr_officer", dept: "d-hr", titleEn: "Talent & Onboarding Officer", titleAr: "مسؤولة التوظيف", salary: 910, reportTo: "fatima-khalifa" },
   { id: "jassim-hilal", nameEn: "Jassim Hilal", nameAr: "جاسم هلال", username: "JH0030", role: "driver", dept: "d-log", titleEn: "Heavy Van Driver", titleAr: "سائق شاحنة توصيل", salary: 710, reportTo: "khalid-doseri" },
   { id: "nadia-fakhro", nameEn: "Nadia Fakhro", nameAr: "نادية فخرو", username: "NF0031", role: "cashier", dept: "d-sales", titleEn: "Branch Cashier", titleAr: "أمينة صندوق الفرع", salary: 730, reportTo: "sami-khoury" },
+  { id: "waleed-almoayyed", nameEn: "Waleed Al-Moayyed", nameAr: "وليد المؤيد", username: "WM0032", role: "sales", dept: "d-sales", titleEn: "Key Account Manager", titleAr: "مدير حسابات كبار العملاء", salary: 1420, reportTo: "sami-khoury" },
+  { id: "huda-alghanim", nameEn: "Huda Al-Ghanim", nameAr: "هدى الغانم", username: "HG0033", role: "accountant", dept: "d-fin", titleEn: "Treasury & AR Controller", titleAr: "مراقبة الخزينة والحسابات المدينة", salary: 1280, reportTo: "layla-nasser" },
+  { id: "mansoor-albuainain", nameEn: "Mansoor Al-Buainain", nameAr: "منصور البوعينين", username: "MB0034", role: "procurement", dept: "d-proc", titleEn: "Vendor Relations Lead", titleAr: "قائد علاقات الموردين", salary: 1240, reportTo: "ibrahim-kooheji" },
+  { id: "dalal-alrumaihi", nameEn: "Dalal Al-Rumaihi", nameAr: "دلال الرميحي", username: "DR0035", role: "hr_officer", dept: "d-hr", titleEn: "Compensation & Benefits Analyst", titleAr: "محللة التعويضات والمزايا", salary: 1080, reportTo: "fatima-khalifa" },
+  { id: "isa-alsharif", nameEn: "Isa Al-Sharif", nameAr: "عيسى الشريف", username: "IS0036", role: "warehouse_staff", dept: "d-log", titleEn: "Quality & Dispatch Inspector", titleAr: "مفتش الجودة والشحن", salary: 840, reportTo: "khalid-doseri" },
+  { id: "shaikha-alsuwaidi", nameEn: "Shaikha Al-Suwaidi", nameAr: "شيخة السويدي", username: "SS0037", role: "marketing", dept: "d-mkt", titleEn: "Digital Performance Lead", titleAr: "قائدة التسويق الرقمي", salary: 1180, reportTo: "hana-yousef" },
 ];
 
-// 42 additional customers (combined with 8 base = 50 customers per company)
-const EXTRA_CUSTOMERS = Array.from({ length: 42 }, (_, idx) => {
-  const num = idx + 9;
-  const padded = String(num).padStart(3, "0");
-  const cities = ["Manama", "Seef District", "Muharraq", "Riffa", "Isa Town", "Amwaj Islands", "Sitra", "Budaiya", "Saar", "Juffair"];
-  const sectors = ["Trading", "Logistics", "Hospitality", "Healthcare", "Construction", "Retail", "Technology", "Consultancy", "Media", "Manufacturing"];
-  const city = cities[idx % cities.length];
-  const sector = sectors[idx % sectors.length];
-  return {
-    id: `cust-${padded}`,
-    nameEn: `Bahrain ${sector} Group #${num} W.L.L.`,
-    nameAr: `مجموعة البحرين للخدمات ${num} ذ.م.م`,
-    email: `accounts${num}@bh-enterprise-${num}.bh`,
-    phone: `+97317${String(100000 + num * 137).slice(0, 6)}`,
-    city,
-  };
-});
+// 52 realistic Bahraini & GCC corporate and individual customers (combined with 8 base = 60 real customers per company)
+const EXTRA_CUSTOMERS = [
+  { id: "cust-009", nameEn: "Almoayyed Contracting Group W.L.L.", nameAr: "مجموعة المؤيد للمقاولات ذ.م.م", email: "procurement@almoayyed-contracting.bh", phone: "+97317210940", city: "Manama" },
+  { id: "cust-010", nameEn: "Seef Waterfront Hospitality W.L.L.", nameAr: "سيف ووترفرونت للضيافة ذ.م.م", email: "finance@seefwaterfront.bh", phone: "+97317582210", city: "Seef District" },
+  { id: "cust-011", nameEn: "Hidd Industrial Fabrication Co.", nameAr: "شركة الحد للتصنيع الصناعي", email: "supply@hiddfab.bh", phone: "+97317671488", city: "Hidd" },
+  { id: "cust-012", nameEn: "Riffa Views Property Management", nameAr: "إدارة عقارات رفاع فيوز", email: "accounts@riffaviews-pm.bh", phone: "+97317756120", city: "Riffa" },
+  { id: "cust-013", nameEn: "Dilmunia Health & Wellness Center", nameAr: "مركز دلمونيا للصحة والعافية", email: "billing@dilmuniawellness.bh", phone: "+97316509300", city: "Muharraq" },
+  { id: "cust-014", nameEn: "Arad Bay Maritime Services W.L.L.", nameAr: "خدمات خليج عراد البحرية ذ.م.م", email: "ops@aradmaritime.bh", phone: "+97317334890", city: "Muharraq" },
+  { id: "cust-015", nameEn: "Zallaq Coast Resort & Spa", nameAr: "منتجع وسبا ساحل الزلاق", email: "purchasing@zallaqcoast.bh", phone: "+97317630410", city: "Zallaq" },
+  { id: "cust-016", nameEn: "Saar International Academy", nameAr: "أكاديمية سار الدولية", email: "finance@saaracademy.bh", phone: "+97317691255", city: "Saar" },
+  { id: "cust-017", nameEn: "Sitra Petrochemical Logistics", nameAr: "سترة للخدمات اللوجستية البتروكيماوية", email: "ap@sitralogistics.bh", phone: "+97317732800", city: "Sitra" },
+  { id: "cust-018", nameEn: "Amwaj Marina Yacht Club", nameAr: "نادي مرسى أمواج لليخوت", email: "admin@amwajmarina.bh", phone: "+97316031940", city: "Amwaj Islands" },
+  { id: "cust-019", nameEn: "Budaiya Organic Farms & Grocers", nameAr: "مزارع وبقالات البديع العضوية", email: "orders@budaiyaorganic.bh", phone: "+97317594210", city: "Budaiya" },
+  { id: "cust-020", nameEn: "Diplomatic Tower Financial Advisory", nameAr: "برج الدبلوماسي للاستشارات المالية", email: "accounts@diptower-advisory.bh", phone: "+97317531180", city: "Diplomatic Area" },
+  { id: "cust-021", nameEn: "Juffair Oasis Serviced Residences", nameAr: "واحة الجفير للشقق الفندقية", email: "procurement@juffairoasis.bh", phone: "+97317824600", city: "Juffair" },
+  { id: "cust-022", nameEn: "Isa Town Medical Diagnostics Lab", nameAr: "مختبر مدينة عيسى للتشخيص الطبي", email: "supply@isatownlab.bh", phone: "+97317684920", city: "Isa Town" },
+  { id: "cust-023", nameEn: "Sanabis Commercial Printing Press", nameAr: "مطبعة السنابس التجارية", email: "orders@sanabispress.bh", phone: "+97317552090", city: "Sanabis" },
+  { id: "cust-024", nameEn: "Tubli Cold Chain Distribution", nameAr: "توبلي لتوزيع سلسلة التبريد", email: "dispatch@tublicoldchain.bh", phone: "+97317783510", city: "Tubli" },
+  { id: "cust-025", nameEn: "Al-Fateh Engineering Consultants", nameAr: "الفاتح للاستشارات الهندسية", email: "finance@alfateh-eng.bh", phone: "+97317295140", city: "Manama" },
+  { id: "cust-026", nameEn: "Kanoo Heritage Travel & Concierge", nameAr: "كانو التراثية للسفر والكونسيرج", email: "bookings@kanooheritage.bh", phone: "+97317228810", city: "Manama" },
+  { id: "cust-027", nameEn: "Awali Solar & Clean Energy W.L.L.", nameAr: "عوالي للطاقة الشمسية والنظيفة ذ.م.م", email: "projects@awalisolar.bh", phone: "+97317759400", city: "Riffa" },
+  { id: "cust-028", nameEn: "Adliya Artisan Roastery & Bakery", nameAr: "محمصة ومخبز العدلية الحرفي", email: "wholesale@adliyaroastery.bh", phone: "+97317714320", city: "Manama" },
+  { id: "cust-029", nameEn: "Qalali Marine Hardware & Supply", nameAr: "قلالي للمعدات واللوازم البحرية", email: "sales@qalalimarinestore.bh", phone: "+97317324590", city: "Muharraq" },
+  { id: "cust-030", nameEn: "Janabiyah Equestrian & Country Club", nameAr: "نادي الجنبية للفروسية والريف", email: "events@janabiyahequestrian.bh", phone: "+97317698410", city: "Saar" },
+  { id: "cust-031", nameEn: "Salmabad Steel & Aluminum Works", nameAr: "سلماباد لأعمال الحديد والألمنيوم", email: "purchasing@salmabadsteel.bh", phone: "+97317874120", city: "Isa Town" },
+  { id: "cust-032", nameEn: "Hamad Town Dental & Orthodontic Clinic", nameAr: "عيادة مدينة حمد لطب وتقويم الأسنان", email: "admin@hamadtowndental.bh", phone: "+97317412980", city: "Riffa" },
+  { id: "cust-033", nameEn: "Diyar Al-Muharraq Urban Retail", nameAr: "ديار المحرق للتجزئة الحضرية", email: "leasing@diyarretail.bh", phone: "+97316608450", city: "Muharraq" },
+  { id: "cust-034", nameEn: "Seef Horizon Legal Partners", nameAr: "آفاق السيف للشركاء القانونيين", email: "billing@seefhorizonlaw.bh", phone: "+97317589020", city: "Seef District" },
+  { id: "cust-035", nameEn: "Bahrain Bay Cloud & Data Center", nameAr: "خليج البحرين للسحابة ومراكز البيانات", email: "ops@bahrainbaycloud.bh", phone: "+97317104430", city: "Diplomatic Area" },
+  { id: "cust-036", nameEn: "Al-Khobar Causeway Freight Lines", nameAr: "خطوط شحن جسر الخبر", email: "customs@causewayfreight.sa", phone: "+966138902210", city: "Manama" },
+  { id: "cust-037", nameEn: "Dammam Gulf Industrial Packaging", nameAr: "الدمام الخليجية للتغليف الصناعي", email: "orders@gulfpack-dmm.sa", phone: "+966138445190", city: "Sitra" },
+  { id: "cust-038", nameEn: "Riyadh Najd Corporate Catering", nameAr: "نجد الرياض لتموين الشركات", email: "supply@najdcatering.sa", phone: "+966114628810", city: "Seef District" },
+  { id: "cust-039", nameEn: "Doha Lusail Architectural Studio", nameAr: "استوديو لوسيل المعماري - الدوحة", email: "projects@lusailarch.qa", phone: "+97444128900", city: "Diplomatic Area" },
+  { id: "cust-040", nameEn: "Dubai Creek Luxury Interior Fitout", nameAr: "خور دبي لتجهيز الديكورات الفاخرة", email: "procurement@creekfitout.ae", phone: "+97143298840", city: "Amwaj Islands" },
+  { id: "cust-041", nameEn: "Kuwait Sharq Medical Supplies Co.", nameAr: "شركة شرق الكويت للمستلزمات الطبية", email: "imports@sharqmed.kw", phone: "+96522461090", city: "Manama" },
+  { id: "cust-042", nameEn: "Muscat Qurum Boutique Hotels", nameAr: "فنادق القرم البوتيكية - مسقط", email: "finance@qurumboutique.om", phone: "+96824561920", city: "Seef District" },
+  { id: "cust-043", nameEn: "Abdulla Al-Aali", nameAr: "عبدالله العالي", email: "abdulla.alaali@batelco-mail.bh", phone: "+97339412801", city: "Isa Town" },
+  { id: "cust-044", nameEn: "Shaikha Al-BinAli", nameAr: "شيخة البنعلي", email: "shaikha.binali@gmail.com", phone: "+97339620415", city: "Riffa" },
+  { id: "cust-045", nameEn: "Mohammed Al-Koheji", nameAr: "محمد الكوهجي", email: "m.alkoheji@icloud.com", phone: "+97336218490", city: "Muharraq" },
+  { id: "cust-046", nameEn: "Noura Al-Rumaihi", nameAr: "نورة الرميحي", email: "noura.rumaihi@outlook.com", phone: "+97333891244", city: "Saar" },
+  { id: "cust-047", nameEn: "Saeed Al-Balooshi", nameAr: "سعيد البلوشي", email: "saeed.balooshi@gmail.com", phone: "+97339104578", city: "Budaiya" },
+  { id: "cust-048", nameEn: "Hessa Al-Sulaiti", nameAr: "حصة السليطي", email: "hessa.sulaiti@icloud.com", phone: "+97336782109", city: "Amwaj Islands" },
+  { id: "cust-049", nameEn: "Fawaz Al-Thawadi", nameAr: "فواز الذوادي", email: "fawaz.thawadi@outlook.com", phone: "+97339845123", city: "Seef District" },
+  { id: "cust-050", nameEn: "Lulwa Al-Jalahma", nameAr: "لولوة الجلاهمة", email: "lulwa.jalahma@gmail.com", phone: "+97333519082", city: "Manama" },
+  { id: "cust-051", nameEn: "Ebrahim Al-Murbati", nameAr: "إبراهيم المرباطي", email: "ebrahim.murbati@gmail.com", phone: "+97339201467", city: "Muharraq" },
+  { id: "cust-052", nameEn: "Amina Al-Khaja", nameAr: "آمنة الخاجة", email: "amina.khaja@icloud.com", phone: "+97336451298", city: "Juffair" },
+  { id: "cust-053", nameEn: "Talal Al-Shaikh", nameAr: "طلال الشيخ", email: "talal.alshaikh@outlook.com", phone: "+97339773210", city: "Riffa" },
+  { id: "cust-054", nameEn: "Mariam Al-Qassab", nameAr: "مريم القصاب", email: "mariam.qassab@gmail.com", phone: "+97333194822", city: "Sanabis" },
+  { id: "cust-055", nameEn: "Nasser Al-Mannai", nameAr: "ناصر المناعي", email: "nasser.mannai@icloud.com", phone: "+97339508314", city: "Hidd" },
+  { id: "cust-056", nameEn: "Zainab Al-Mahroos", nameAr: "زينب المحروس", email: "zainab.mahroos@gmail.com", phone: "+97336902341", city: "Tubli" },
+  { id: "cust-057", nameEn: "Bader Al-Naimi", nameAr: "بدر النعيمي", email: "bader.naimi@outlook.com", phone: "+97339341892", city: "Zallaq" },
+  { id: "cust-058", nameEn: "Kholood Al-Haddad", nameAr: "خلود الحداد", email: "kholood.haddad@gmail.com", phone: "+97333672915", city: "Saar" },
+  { id: "cust-059", nameEn: "Yaqub Al-Arrayed", nameAr: "يعقوب العريض", email: "yaqub.arrayed@icloud.com", phone: "+97339118273", city: "Manama" },
+  { id: "cust-060", nameEn: "Rawan Al-Sada", nameAr: "روان السادة", email: "rawan.sada@gmail.com", phone: "+97336048195", city: "Amwaj Islands" },
+];
 
 function buildExtraModuleSql({
   company,

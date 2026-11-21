@@ -5,6 +5,7 @@ const sharp = require(path.resolve(__dirname, "../apps/admin/node_modules/sharp"
 const { COMPANIES } = require("./seed-companies.cjs");
 const { buildRichModuleSql } = require("./seed-rich-modules.cjs");
 const { EXTRA_STAFF, EXTRA_CUSTOMERS, buildExtraModuleSql } = require("./seed-extra-modules.cjs");
+const { buildScenarioExpansionSql } = require("./seed-scenarios-expansion.cjs");
 const {
   schemaMeta,
   uuidOf,
@@ -138,19 +139,24 @@ const STAFF_ROSTER = [
 const FEMALE_STAFF_IDS = new Set([
   "layla-nasser", "noor-hamdan", "hana-yousef", "maryam-bucheeri", "fatima-khalifa",
   "zahra-jaffar", "reem-ansari", "latifa-shaker", "amal-sultan", "dina-mansoor",
-  "sara-kanoo", "mona-essa", "nadia-fakhro",
+  "sara-kanoo", "mona-essa", "nadia-fakhro", "huda-alghanim", "dalal-alrumaihi",
+  "shaikha-alsuwaidi",
 ]);
 const NATIONALITY_CYCLE = ["BH", "BH", "BH", "BH", "SA", "EG", "JO", "AE", "IN", "BH", "BH", "GB"];
 
-const IT_ROSTER = [
-  { id: "430c4105-6360-4415-bf1b-087d582c7fc6", username: IT_ADMIN_USERNAME, email: IT_ADMIN_EMAIL, displayName: `${SUPER_ADMIN_NAME} (IT)`, passwordHash: IT_ADMIN_PASSWORD_HASH, role: "it_admin", reportTo: null },
-  { id: "it-manager-001", username: "IT0002", email: "it-manager@example.com", displayName: "IT Operations Manager", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_manager", reportTo: "430c4105-6360-4415-bf1b-087d582c7fc6" },
-  { id: "it-lead-001", username: "IT0003", email: "it-lead@example.com", displayName: "IT Team Lead", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_lead", reportTo: "it-manager-001" },
-  { id: "it-eng-001", username: "IT0004", email: "it-engineer@example.com", displayName: "IT Systems Engineer", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_engineer", reportTo: "it-lead-001" },
-  { id: "it-work-001", username: "IT0005", email: "it-worker@example.com", displayName: "IT Operations Worker", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_worker", reportTo: "it-lead-001" },
-  { id: "it-supp-001", username: "IT0006", email: "it-support@example.com", displayName: "IT Support Specialist", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_support", reportTo: "it-lead-001" },
-  { id: "it-audit-001", username: "IT0007", email: "it-auditor@example.com", displayName: "IT Compliance Auditor", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_auditor", reportTo: "it-manager-001" },
-];
+function buildItRoster(domainHost) {
+  return [
+    { id: "430c4105-6360-4415-bf1b-087d582c7fc6", username: IT_ADMIN_USERNAME, email: IT_ADMIN_EMAIL, displayName: `${SUPER_ADMIN_NAME} (IT)`, passwordHash: IT_ADMIN_PASSWORD_HASH, role: "it_admin", reportTo: null },
+    { id: "it-manager-001", username: "IT0002", email: `rashid.khalifa@${domainHost}`, displayName: "Rashid Al-Khalifa", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_manager", reportTo: "430c4105-6360-4415-bf1b-087d582c7fc6" },
+    { id: "it-lead-001", username: "IT0003", email: `mariam.doseri@${domainHost}`, displayName: "Mariam Al-Doseri", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_lead", reportTo: "it-manager-001" },
+    { id: "it-eng-001", username: "IT0004", email: `khalid.buainain@${domainHost}`, displayName: "Khalid Al-Buainain", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_engineer", reportTo: "it-lead-001" },
+    { id: "it-work-001", username: "IT0005", email: `salman.arrayed@${domainHost}`, displayName: "Salman Al-Arrayed", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_worker", reportTo: "it-lead-001" },
+    { id: "it-supp-001", username: "IT0006", email: `aisha.zayani@${domainHost}`, displayName: "Aisha Al-Zayani", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_support", reportTo: "it-lead-001" },
+    { id: "it-audit-001", username: "IT0007", email: `hassan.malki@${domainHost}`, displayName: "Hassan Al-Malki", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_auditor", reportTo: "it-manager-001" },
+    { id: "it-devops-001", username: "IT0008", email: `zainab.banna@${domainHost}`, displayName: "Zainab Al-Banna", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_engineer", reportTo: "it-lead-001" },
+    { id: "it-soc-001", username: "IT0009", email: `yousef.hammadi@${domainHost}`, displayName: "Yousef Al-Hammadi", passwordHash: DEFAULT_PASSWORD_HASH, role: "it_auditor", reportTo: "it-manager-001" },
+  ];
+}
 
 const CUSTOMERS = [
   { id: "cust-001", nameEn: "Al-Jazeera Gulf Holdings W.L.L.", nameAr: "مجموعة الجزيرة الخليجية القابضة", email: "procurement@aljazeeragulf.bh", phone: "+97317223344", city: "Manama" },
@@ -608,7 +614,8 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
   lines.push(`-- IDENTITY`);
   lines.push(identityRolesBlock);
 
-  for (const itAcc of IT_ROSTER) {
+  const itRoster = buildItRoster(domainHost);
+  for (const itAcc of itRoster) {
     lines.push(
       ins(
         "identity.account",
@@ -838,7 +845,7 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     filesList,
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
     superAdminEmail: SUPER_ADMIN_EMAIL,
-    itRoster: IT_ROSTER,
+    itRoster,
   }));
 
   lines.push(``);
@@ -852,7 +859,17 @@ function buildSeedSql(company, companyJson, themeJson, filesList) {
     filesList,
     defaultPasswordHash: DEFAULT_PASSWORD_HASH,
     superAdminEmail: SUPER_ADMIN_EMAIL,
-    itRoster: IT_ROSTER,
+    itRoster,
+  }));
+
+  lines.push(``);
+  lines.push(`-- REAL-WORLD MULTI-SCENARIO EXPANSION`);
+  lines.push(buildScenarioExpansionSql({
+    company,
+    domainHost,
+    staffRoster: STAFF_ROSTER,
+    customers: CUSTOMERS,
+    itRoster,
   }));
 
   lines.push(``);
