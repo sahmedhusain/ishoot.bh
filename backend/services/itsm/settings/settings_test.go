@@ -21,6 +21,7 @@ func TestITSMConfigLoad(t *testing.T) {
 	err := config.LoadFrom(&cfg, env)
 	require.NoError(t, err)
 	assert.Equal(t, "itsm", cfg.ServiceName)
+	assert.Equal(t, []string{"admin", "web", "store", "it"}, cfg.ITSM.RequestCallers)
 	assert.Equal(t, "IT Support", cfg.ITSM.ITDisplayName)
 	assert.Equal(t, int32(25), cfg.ITSM.DefaultPageSize)
 }

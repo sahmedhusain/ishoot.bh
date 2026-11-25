@@ -654,7 +654,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OUTBOX_INTERVAL` | `1s` | `gt=0` |
 | `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
 | `OUTBOX_RETENTION` | `168h` | `gte=0` |
-| `ITSM_REQUEST_CALLERS` | `admin` | `min=1,dive,required` |
+| `ITSM_REQUEST_CALLERS` | `admin,web,store,it` | `min=1,dive,required` |
 | `ITSM_IT_DISPLAY_NAME` | `IT Support` | `required,max=200` |
 | `ITSM_MAX_ATTACHMENTS` | `10` | `gte=0,lte=50` |
 | `ITSM_MAX_ATTACHMENT_SIZE` | `10485760` | `gt=0` |

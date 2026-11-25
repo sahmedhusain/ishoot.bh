@@ -5,9 +5,9 @@ info:
   description: |
     IT tickets (ADR 0010). Two kinds of caller:
 
-    - `/v1/itsm/requests` — employees, through the admin app. The app authenticates with its service token
-      (ADR 0011), has already signed the employee in, and passes the employee as the requester. A requester only
-      ever sees their own tickets and never sees internal notes.
+    - `/v1/itsm/requests` — requesters, through the platform apps (`admin`, `web`, `store`, `it`). Each app authenticates
+      with its service token (ADR 0011) and passes the requester in the request. A requester only ever sees their own
+      tickets and never sees internal notes.
     - `/v1/itsm/desk` — IT staff, with their own IT-realm access tokens. Each operation needs the catalogue
       permission named in its description (`contracts/catalog/it-access.json`).
 

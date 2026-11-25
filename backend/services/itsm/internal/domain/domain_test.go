@@ -40,6 +40,21 @@ func TestNormalize(t *testing.T) {
 	n = valid()
 	n.Attachments = make([]Attachment, 3)
 	assert.Error(t, n.Normalize(Limits{MaxAttachments: 2}))
+
+	// Error-report tickets from any app (including anonymous web/store visitors) use software/system_issue.
+	for _, prio := range []string{"critical", "high", "normal", "low", ""} {
+		errReport := NewTicket{
+			RequesterID:    "visitor:anon-1",
+			RequesterName:  "Anonymous Visitor (web)",
+			RequesterEmail: "anonymous+web@visitor.invalid",
+			Category:       "software",
+			Subcategory:    "system_issue",
+			Priority:       prio,
+			Title:          "[WEB 500] ERR-20261125-ABC123 — /checkout",
+			Description:    "Incident ID: ERR-20261125-ABC123",
+		}
+		require.NoError(t, errReport.Normalize(Limits{MaxAttachments: 10}))
+	}
 }
 func TestApply(t *testing.T) {
 	now := time.Date(2026, 11, 1, 9, 0, 0, 0, time.UTC)

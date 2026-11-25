@@ -111,7 +111,7 @@ services:
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
       AUTH_ISSUER: ""
       AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
-      ITSM_REQUEST_CALLERS: admin
+      ITSM_REQUEST_CALLERS: admin,web,store,it
     # Secrets (itsm-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
     configFiles: []
     talksTo: [identity]

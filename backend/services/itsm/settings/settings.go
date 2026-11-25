@@ -16,7 +16,7 @@ type Config struct {
 	ITSM		ITSM		`envPrefix:"ITSM_"`
 }
 type ITSM struct {
-	RequestCallers		[]string	`env:"REQUEST_CALLERS" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	RequestCallers		[]string	`env:"REQUEST_CALLERS" envDefault:"admin,web,store,it" envSeparator:"," validate:"min=1,dive,required"`
 	ITDisplayName		string		`env:"IT_DISPLAY_NAME" envDefault:"IT Support" validate:"required,max=200"`
 	MaxAttachments		int		`env:"MAX_ATTACHMENTS" envDefault:"10" validate:"gte=0,lte=50"`
 	MaxAttachmentSize	int64		`env:"MAX_ATTACHMENT_SIZE" envDefault:"10485760" validate:"gt=0"`

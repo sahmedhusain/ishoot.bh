@@ -26,7 +26,7 @@ the workflow is coded in the service.
 
 | Path                  | Caller                                           | Authorization                                                     |
 | --------------------- | ------------------------------------------------ | ----------------------------------------------------------------- |
-| `/v1/itsm/requests/*` | The admin app's back end, with its service token | Caller listed in `ITSM_REQUEST_CALLERS`; requester in the request |
+| `/v1/itsm/requests/*` | Platform apps' back ends (`admin`, `web`, `store`, `it`), with service tokens | Caller listed in `ITSM_REQUEST_CALLERS`; requester in the request |
 | `/v1/itsm/desk/*`     | IT staff, with IT-realm access tokens (identity) | `contracts/catalog/it-access.json` (`tickets`, `ticket_settings`) |
 
 Desk permissions: reading needs `tickets:read`; transitions and comments `tickets:edit`, and the assign transition

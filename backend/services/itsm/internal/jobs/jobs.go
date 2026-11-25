@@ -3,6 +3,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,6 +53,14 @@ type NotificationWorker struct {
 	Notifier	*notifyclient.Client
 	Logger		*slog.Logger
 }
+func isAnonymousRequester(id string) bool {
+	return strings.HasPrefix(id, "visitor:") || strings.HasPrefix(id, "anonymous:")
+}
+
+func isDeliverableEmail(email string) bool {
+	return email != "" && !strings.HasSuffix(strings.ToLower(strings.TrimSpace(email)), ".invalid")
+}
+
 func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.NotificationArgs]) error {
 	if w.Notifier == nil {
 		return nil
@@ -60,20 +69,22 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 	ticketRef := fmt.Sprintf("#%d", args.TicketNumber)
 	switch args.EventKind {
 	case "created":
-		_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
-			Realm:		"staff",
-			Recipient:	args.RequesterID,
-			Category:	"it_tickets",
-			Priority:	"normal",
-			Title:		fmt.Sprintf("Ticket %s submitted", ticketRef),
-			Body:		args.TicketTitle,
-			ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
-			EntityType:	"ticket",
-			EntityID:	args.TicketID,
-			ActorID:	args.ActorID,
-			DedupeKey:	fmt.Sprintf("itsm:inbox:%s:created", args.TicketID),
-		}})
-		if args.RequesterEmail != "" {
+		if !isAnonymousRequester(args.RequesterID) {
+			_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
+				Realm:		"staff",
+				Recipient:	args.RequesterID,
+				Category:	"it_tickets",
+				Priority:	"normal",
+				Title:		fmt.Sprintf("Ticket %s submitted", ticketRef),
+				Body:		args.TicketTitle,
+				ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
+				EntityType:	"ticket",
+				EntityID:	args.TicketID,
+				ActorID:	args.ActorID,
+				DedupeKey:	fmt.Sprintf("itsm:inbox:%s:created", args.TicketID),
+			}})
+		}
+		if isDeliverableEmail(args.RequesterEmail) {
 			emailSubject := fmt.Sprintf("[IT-%s] Ticket Received: %s", ticketRef, args.TicketTitle)
 			emailText := fmt.Sprintf("Your IT ticket %s (%s) has been received. Our team will review it shortly.\n\nTicket ID: %s",
 				ticketRef, args.TicketTitle, args.TicketID)
@@ -84,21 +95,23 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 		}
 	case "transition":
 		if args.ActorRealm == "it" {
-			title := fmt.Sprintf("Ticket %s updated: %s", ticketRef, args.Detail)
-			_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
-				Realm:		"staff",
-				Recipient:	args.RequesterID,
-				Category:	"it_tickets",
-				Priority:	"normal",
-				Title:		title,
-				Body:		args.TicketTitle,
-				ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
-				EntityType:	"ticket",
-				EntityID:	args.TicketID,
-				ActorID:	args.ActorID,
-				DedupeKey:	fmt.Sprintf("itsm:inbox:%s:%s", args.TicketID, args.EventID),
-			}})
-			if args.RequesterEmail != "" {
+			if !isAnonymousRequester(args.RequesterID) {
+				title := fmt.Sprintf("Ticket %s updated: %s", ticketRef, args.Detail)
+				_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
+					Realm:		"staff",
+					Recipient:	args.RequesterID,
+					Category:	"it_tickets",
+					Priority:	"normal",
+					Title:		title,
+					Body:		args.TicketTitle,
+					ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
+					EntityType:	"ticket",
+					EntityID:	args.TicketID,
+					ActorID:	args.ActorID,
+					DedupeKey:	fmt.Sprintf("itsm:inbox:%s:%s", args.TicketID, args.EventID),
+				}})
+			}
+			if isDeliverableEmail(args.RequesterEmail) {
 				subj := fmt.Sprintf("[IT-%s] Status Update: %s", ticketRef, args.Detail)
 				text := fmt.Sprintf("Your ticket %s (%s) status changed to %s.\n\nTicket ID: %s",
 					ticketRef, args.TicketTitle, args.Detail, args.TicketID)
@@ -122,20 +135,22 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 		}
 	case "comment":
 		if args.ActorRealm == "it" {
-			_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
-				Realm:		"staff",
-				Recipient:	args.RequesterID,
-				Category:	"it_tickets",
-				Priority:	"normal",
-				Title:		fmt.Sprintf("New reply on ticket %s", ticketRef),
-				Body:		args.TicketTitle,
-				ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
-				EntityType:	"ticket",
-				EntityID:	args.TicketID,
-				ActorID:	args.ActorID,
-				DedupeKey:	fmt.Sprintf("itsm:inbox:comment:%s:%s", args.TicketID, args.EventID),
-			}})
-			if args.RequesterEmail != "" {
+			if !isAnonymousRequester(args.RequesterID) {
+				_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{
+					Realm:		"staff",
+					Recipient:	args.RequesterID,
+					Category:	"it_tickets",
+					Priority:	"normal",
+					Title:		fmt.Sprintf("New reply on ticket %s", ticketRef),
+					Body:		args.TicketTitle,
+					ActionURL:	fmt.Sprintf("/tickets/%s", args.TicketID),
+					EntityType:	"ticket",
+					EntityID:	args.TicketID,
+					ActorID:	args.ActorID,
+					DedupeKey:	fmt.Sprintf("itsm:inbox:comment:%s:%s", args.TicketID, args.EventID),
+				}})
+			}
+			if isDeliverableEmail(args.RequesterEmail) {
 				subj := fmt.Sprintf("[IT-%s] New Reply: %s", ticketRef, args.TicketTitle)
 				text := fmt.Sprintf("A reply was added to your IT ticket %s (%s).\n\nTicket ID: %s",
 					ticketRef, args.TicketTitle, args.TicketID)
