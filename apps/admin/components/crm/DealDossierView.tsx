@@ -190,7 +190,7 @@ export function DealDossierView({
         </Card>
       </div>
 
-      <div className="border-b border-outline-variant dark:border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto" role="tablist">
+      <div className="border-b border-outline-variant flex items-center gap-2 text-sm font-semibold overflow-x-auto" role="tablist">
         {[
           { id: "overview", label: t.dealDossier.tabOverview, icon: User },
           { id: "timeline", label: t.dealDossier.tabTimeline, icon: Clock },
@@ -206,16 +206,11 @@ export function DealDossierView({
           },
         ].map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${isActive
-                ? "border-accent text-primary dark:text-accent"
-                : "border-transparent text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white"
-                }`}
-             tabIndex={activeTab === tab.id ? 0 : -1} role="tab" aria-selected={activeTab === tab.id} type="button">
+              tabIndex={activeTab === tab.id ? 0 : -1} role="tab" aria-selected={activeTab === tab.id} type="button">
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
             </button>

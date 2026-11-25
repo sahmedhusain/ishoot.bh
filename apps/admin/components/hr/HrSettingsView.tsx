@@ -522,8 +522,7 @@ export function HrSettingsView({
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"}`}
-           tabIndex={tab === key ? 0 : -1}>
+            tabIndex={tab === key ? 0 : -1}>
             {h.tabs[key]}
           </button>
         ))}

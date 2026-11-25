@@ -164,7 +164,7 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
         }
       />
 
-      <div role="tablist" aria-label={t.notificationsCenter.title} className="flex flex-wrap gap-2 border-b border-outline-variant pb-3">
+      <div role="tablist" data-tab-variant="pills" aria-label={t.notificationsCenter.title} className="flex flex-wrap gap-2 border-b border-outline-variant pb-3">
         {TABS.map((key) => (
           <button
             key={key}
@@ -173,12 +173,12 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
             aria-selected={tab === key}
             onClick={() => selectTab(key)}
             className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-              tab === key ? "bg-secondary-container text-on-secondary-container" : "text-ink-muted hover:bg-ink/5",
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              tab === key ? "bg-secondary-container text-on-secondary-container shadow-xs" : "text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface",
             )}
           >
             {l.tabs[key]}
-            {key === "unread" && unread > 0 && <span className="ms-2 rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">{unread}</span>}
+            {key === "unread" && unread > 0 && <span className="ms-2 rounded-full bg-primary px-1.5 text-[10px] font-bold text-m3-on-primary">{unread}</span>}
           </button>
         ))}
       </div>
@@ -195,8 +195,10 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
                 aria-pressed={category === key}
                 onClick={() => setCategory(key)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs",
-                  category === key ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:bg-ink/5",
+                  "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  category === key
+                    ? "border-primary/40 bg-secondary-container text-on-secondary-container shadow-xs"
+                    : "border-outline-variant text-on-surface-variant hover:bg-on-surface/[0.06] hover:text-on-surface",
                 )}
               >
                 {key ? categoryName(key, locale) : l.allCategories}
@@ -205,8 +207,8 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
           </div>
 
           {selected.size > 0 && (
-            <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-outline-variant bg-surface-raised p-2 shadow-sm">
-              <span className="px-2 text-sm font-medium text-ink">{formatMessage(l.selected, { count: selected.size })}</span>
+            <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-outline-variant bg-surface-container-high p-2 shadow-m3-2">
+              <span className="px-2 text-sm font-medium text-on-surface">{formatMessage(l.selected, { count: selected.size })}</span>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => bulk("read")} className="gap-1.5">
                 <MailOpen className="size-4" aria-hidden />
                 {l.markRead}
@@ -237,7 +239,7 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
                     onConfirm: () => bulk("delete"),
                   })
                 }
-                className="gap-1.5 text-rose-600"
+                className="gap-1.5 text-m3-error"
               >
                 <Trash2 className="size-4" aria-hidden />
                 {l.delete}
@@ -250,21 +252,21 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
 
           {loading ? (
             <div className="flex justify-center py-16" aria-label={t.notificationMenu.loading}>
-              <Loader2 className="h-6 w-6 animate-spin text-ink-muted" aria-hidden />
+              <Loader2 className="h-6 w-6 animate-spin text-on-surface-variant" aria-hidden />
             </div>
           ) : !items.length ? (
-            <div className="rounded-3xl border border-outline-variant px-6 py-14 text-center">
-              <Inbox aria-hidden className="mx-auto mb-3 h-8 w-8 text-ink-muted" />
-              <p className="text-sm font-medium text-ink">{l.empty[tab]}</p>
+            <div className="rounded-3xl border border-outline-variant bg-surface-container-low px-6 py-14 text-center">
+              <Inbox aria-hidden className="mx-auto mb-3 h-8 w-8 text-on-surface-variant" />
+              <p className="text-sm font-medium text-on-surface">{l.empty[tab]}</p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-outline-variant">
-              <label className="flex items-center gap-3 border-b border-outline-variant bg-surface-raised px-4 py-2 text-xs text-ink-muted">
+            <div className="overflow-hidden rounded-3xl border border-outline-variant bg-surface-container-low">
+              <label className="flex items-center gap-3 border-b border-outline-variant bg-surface-container px-4 py-2.5 text-xs font-medium text-on-surface-variant">
                 <input
                   type="checkbox"
                   checked={selected.size === items.length}
                   onChange={(e) => setSelected(e.target.checked ? new Set(items.map((i) => i.id)) : new Set())}
-                  className="h-4 w-4 accent-[var(--accent)]"
+                  className="h-4 w-4 accent-primary"
                 />
                 {l.selectAll}
               </label>
@@ -274,20 +276,20 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
                   const text = notificationText(n, t, locale);
                   const href = notificationHref(n);
                   return (
-                    <li key={item.id} className={cn("flex gap-3 px-4 py-4", !item.read && "bg-accent/[0.04]")}>
+                    <li key={item.id} className={cn("flex gap-3 px-4 py-4 transition-colors", !item.read && "bg-primary-container/20")}>
                       <input
                         type="checkbox"
                         checked={selected.has(item.id)}
                         onChange={() => toggle(item.id)}
                         aria-label={formatMessage(l.selectOne, { title: text.title })}
-                        className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
+                        className="mt-1 h-4 w-4 shrink-0 accent-primary"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="flex flex-wrap items-center gap-2 text-[11px] text-ink-muted">
-                          {!item.read && <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />}
+                        <p className="flex flex-wrap items-center gap-2 text-[11px] text-on-surface-variant">
+                          {!item.read && <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />}
                           <span>{categoryName(item.category, locale)}</span>
                           {(item.priority === "urgent" || item.priority === "high") && (
-                            <span className={cn("rounded px-1.5 font-semibold", item.priority === "urgent" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300")}>
+                            <span className={cn("rounded-full px-2 py-0.5 font-semibold", item.priority === "urgent" ? "bg-m3-error-container text-m3-on-error-container" : "bg-tertiary-container text-on-tertiary-container")}>
                               {l.priority[item.priority]}
                             </span>
                           )}
@@ -303,27 +305,27 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
                           <Link
                             href={href}
                             onClick={() => !item.read && void updateNotificationAction(item.id, "read").catch(() => {})}
-                            className="mt-1 block text-sm font-semibold text-ink hover:underline"
+                            className="mt-1 block text-sm font-semibold text-on-surface hover:underline"
                           >
                             <bdi dir="auto">{text.title}</bdi>
                           </Link>
                         ) : (
-                          <p className="mt-1 text-sm font-semibold text-ink">
+                          <p className="mt-1 text-sm font-semibold text-on-surface">
                             <bdi dir="auto">{text.title}</bdi>
                           </p>
                         )}
-                        {text.message && <p className="mt-1 text-sm text-ink-muted">{text.message}</p>}
+                        {text.message && <p className="mt-1 text-sm text-on-surface-variant">{text.message}</p>}
                         <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                          <button type="button" disabled={busy} onClick={() => run(() => updateNotificationAction(item.id, item.read ? "unread" : "read"))} className="inline-flex items-center gap-1 text-ink-muted hover:text-accent">
+                          <button type="button" disabled={busy} onClick={() => run(() => updateNotificationAction(item.id, item.read ? "unread" : "read"))} className="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary">
                             <Check className="h-3.5 w-3.5" aria-hidden />
                             {item.read ? l.markUnread : l.markRead}
                           </button>
-                          <button type="button" disabled={busy} onClick={() => run(() => updateNotificationAction(item.id, item.archived ? "unhide" : "hide"))} className="inline-flex items-center gap-1 text-ink-muted hover:text-accent">
+                          <button type="button" disabled={busy} onClick={() => run(() => updateNotificationAction(item.id, item.archived ? "unhide" : "hide"))} className="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary">
                             {item.archived ? <ArchiveRestore className="h-3.5 w-3.5" aria-hidden /> : <Archive className="h-3.5 w-3.5" aria-hidden />}
                             {item.archived ? l.unarchive : l.archive}
                           </button>
                           {item.entityType && item.entityId && (
-                            <button type="button" disabled={busy} onClick={() => run(() => muteNotificationRecordAction(item.entityType!, item.entityId!), l.recordMuted)} className="inline-flex items-center gap-1 text-ink-muted hover:text-accent">
+                            <button type="button" disabled={busy} onClick={() => run(() => muteNotificationRecordAction(item.entityType!, item.entityId!), l.recordMuted)} className="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary">
                               <BellOff className="h-3.5 w-3.5" aria-hidden />
                               {l.muteRecord}
                             </button>
@@ -338,7 +340,7 @@ export function NotificationInboxView({ tab: initialTab }: { tab: string }) {
                                 onConfirm: () => run(() => updateNotificationAction(item.id, "delete")),
                               })
                             }
-                            className="inline-flex items-center gap-1 text-ink-muted hover:text-rose-600"
+                            className="inline-flex items-center gap-1 text-on-surface-variant hover:text-m3-error"
                           >
                             <Trash2 className="h-3.5 w-3.5" aria-hidden />
                             {l.delete}

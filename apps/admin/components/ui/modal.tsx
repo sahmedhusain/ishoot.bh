@@ -19,6 +19,7 @@ export interface ModalProps {
   busy?: boolean;
   kind?: "form" | "confirmation" | "command" | "picker";
   icon?: React.ReactNode;
+  iconTone?: "secondary" | "danger" | "warning" | "primary";
   ariaLabel?: string;
   closeLabel?: string;
 }
@@ -152,6 +153,7 @@ export function Modal({
   id,
   kind = "form",
   icon,
+  iconTone = "secondary",
 }: ModalProps) {
   const copy = useUiCopy();
   const [footerHost, setFooterHost] = React.useState<HTMLDivElement | null>(
@@ -220,7 +222,16 @@ export function Modal({
               {icon && (
                 <span
                   aria-hidden
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-m3-secondary-container text-m3-on-secondary-container"
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                    iconTone === "danger"
+                      ? "bg-m3-error-container text-m3-on-error-container"
+                      : iconTone === "warning"
+                        ? "bg-m3-tertiary-container text-m3-on-tertiary-container"
+                        : iconTone === "primary"
+                          ? "bg-m3-primary-container text-m3-on-primary-container"
+                          : "bg-m3-secondary-container text-m3-on-secondary-container",
+                  )}
                 >
                   {icon}
                 </span>

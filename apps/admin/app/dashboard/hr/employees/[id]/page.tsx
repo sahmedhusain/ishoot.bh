@@ -27,6 +27,7 @@ import {
   getStaffRoles,
 } from "@platform/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
+import { EmployeeProfileTabs } from "../../../../../components/hr/EmployeeProfileTabs";
 import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
 import { EmployeeAssetsCard } from "../../../../../components/assets/EmployeeAssetsCard";
 import { EmployeeHandoversCard } from "../../../../../components/handovers/EmployeeHandoversCard";
@@ -142,6 +143,13 @@ export default async function EmployeeDetailPage({
       ),
     ])
     : [[], []];
+  const canViewAssets = await hasPermission("assets", "read");
+  const canDeleteAttachment = await hasPermission("employees", "delete");
+  const [employeeAssets, handovers] = await Promise.all([
+    canViewAssets ? getEmployeeAssets(id) : Promise.resolve(null),
+    listEmployeeHandovers({ employeeId: id }),
+  ]);
+
   return (
     <div className="space-y-6">
       <EmployeeDetailView
@@ -151,107 +159,127 @@ export default async function EmployeeDetailPage({
         canViewPay={canViewPay}
         canEditPay={canEditPay}
       />
-      {residency && (
-        <EmployeeResidencyPanel
-          visaExemptCountries={(await getHrPolicy()).visaExemptCountries}
-          employeeId={id}
-          residency={residency}
-          canEdit={canEdit}
-        />
-      )}
-      {(await hasPermission("assets", "read")) && (
-        <EmployeeAssetsCard
-          {...await getEmployeeAssets(id)}
-          own={false}
-          canOpenAssets
-        />
-      )}
-      <EmployeeHandoversCard
-        employeeId={id}
-        items={await listEmployeeHandovers({ employeeId: id })}
-        canStart={
-          canEdit && (employee as { status?: string }).status !== "terminated"
+      <EmployeeProfileTabs
+        overview={
+          <>
+            <EmployeeExtendedProfileCard
+              employeeId={id}
+              initialProfile={extendedProfile}
+              canEdit={canEdit}
+            />
+            <EmployeeAccountCard
+              account={
+                account && linkedUserId
+                  ? {
+                    userId: linkedUserId,
+                    fullName: account.fullName,
+                    role: account.role,
+                    managerId: account.managerId,
+                    status: account.status,
+                    discountLimitPercent: account.discountLimitPercent,
+                    commissionRatePercent: account.commissionRatePercent,
+                  }
+                  : null
+              }
+              email={account?.email ?? null}
+              isSuperAdmin={account?.isSuperAdmin ?? false}
+              roles={roleRows
+                .map((r) => ({ id: r.id, name: r.nameEn, nameAr: r.nameAr }))
+                .map((r) => ({ id: r.id, name: r.name }))}
+              managers={managerRows.map((m) => ({ id: m.id, name: m.fullName }))}
+              requests={accountRequests as never}
+              canManageUsers={canManageUsers}
+              canEditEmployees={canEdit}
+              canViewPay={canViewPay}
+            />
+          </>
+        }
+        hr={
+          <>
+            {residency && (
+              <EmployeeResidencyPanel
+                visaExemptCountries={(await getHrPolicy()).visaExemptCountries}
+                employeeId={id}
+                residency={residency}
+                canEdit={canEdit}
+              />
+            )}
+            <LeaveBalancesCard
+              balances={balances}
+              year={year}
+              employeeId={id}
+              canAdjust={canEdit}
+            />
+            <EmployeeAttachments
+              employeeId={id}
+              attachments={attachments}
+              canEdit={canEdit}
+              canDelete={canDeleteAttachment}
+            />
+          </>
+        }
+        compensation={
+          canViewPay || canManage ? (
+            <>
+              {canViewPay && (
+                <RecurringPayPanel
+                  employeeId={id}
+                  items={recurringPay}
+                  canEdit={canEditPay}
+                />
+              )}
+              {canViewPay && (
+                <EmployeePayHistory
+                  rows={payItems.map((p) => ({
+                    id: p.id,
+                    month: p.periodMonth,
+                    year: p.periodYear,
+                    netSalary: Number(p.netSalary),
+                    paymentStatus: p.paymentStatus,
+                    runStatus: p.runStatus,
+                  }))}
+                />
+              )}
+              {canManage && (
+                <SalaryDocumentsView
+                  embedded
+                  employeeId={id}
+                  availableMonths={availableMonths}
+                  decidableIds={decidableIds}
+                  documents={documents.map((item) => ({
+                    id: item.id,
+                    kind: item.kind,
+                    status: item.status,
+                    months: item.months as string[],
+                    createdAt: item.createdAt.toISOString(),
+                    reviewNotes: item.reviewNotes,
+                    languages: item.languages,
+                    shareable: linkedUserId !== actor.id,
+                  }))}
+                />
+              )}
+            </>
+          ) : undefined
+        }
+        assets={
+          <>
+            {employeeAssets && (
+              <EmployeeAssetsCard
+                {...employeeAssets}
+                own={false}
+                canOpenAssets
+              />
+            )}
+            <EmployeeHandoversCard
+              employeeId={id}
+              items={handovers}
+              canStart={
+                canEdit && (employee as { status?: string }).status !== "terminated"
+              }
+            />
+          </>
         }
       />
-      <EmployeeAccountCard
-        account={
-          account && linkedUserId
-            ? {
-              userId: linkedUserId,
-              fullName: account.fullName,
-              role: account.role,
-              managerId: account.managerId,
-              status: account.status,
-              discountLimitPercent: account.discountLimitPercent,
-              commissionRatePercent: account.commissionRatePercent,
-            }
-            : null
-        }
-        email={account?.email ?? null}
-        isSuperAdmin={account?.isSuperAdmin ?? false}
-        roles={roleRows
-          .map((r) => ({ id: r.id, name: r.nameEn, nameAr: r.nameAr }))
-          .map((r) => ({ id: r.id, name: r.name }))}
-        managers={managerRows.map((m) => ({ id: m.id, name: m.fullName }))}
-        requests={accountRequests as never}
-        canManageUsers={canManageUsers}
-        canEditEmployees={canEdit}
-        canViewPay={canViewPay}
-      />
-      <EmployeeExtendedProfileCard
-        employeeId={id}
-        initialProfile={extendedProfile}
-        canEdit={canEdit}
-      />
-      <LeaveBalancesCard
-        balances={balances}
-        year={year}
-        employeeId={id}
-        canAdjust={canEdit}
-      />
-      {canViewPay && (
-        <RecurringPayPanel
-          employeeId={id}
-          items={recurringPay}
-          canEdit={canEditPay}
-        />
-      )}
-      {canViewPay && (
-        <EmployeePayHistory
-          rows={payItems.map((p) => ({
-            id: p.id,
-            month: p.periodMonth,
-            year: p.periodYear,
-            netSalary: Number(p.netSalary),
-            paymentStatus: p.paymentStatus,
-            runStatus: p.runStatus,
-          }))}
-        />
-      )}
-      <EmployeeAttachments
-        employeeId={id}
-        attachments={attachments}
-        canEdit={canEdit}
-        canDelete={await hasPermission("employees", "delete")}
-      />
-      {canManage && (
-        <SalaryDocumentsView
-          embedded
-          employeeId={id}
-          availableMonths={availableMonths}
-          decidableIds={decidableIds}
-          documents={documents.map((item) => ({
-            id: item.id,
-            kind: item.kind,
-            status: item.status,
-            months: item.months as string[],
-            createdAt: item.createdAt.toISOString(),
-            reviewNotes: item.reviewNotes,
-            languages: item.languages,
-            shareable: linkedUserId !== actor.id,
-          }))}
-        />
-      )}
     </div>
   );
 }

@@ -59,7 +59,7 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
               {managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </Select>
           )}
-          <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
+          <div data-tab-variant="pills" role="tablist" className="inline-flex p-1 rounded-full bg-surface-container border border-outline-variant">
             {PERIODS.map((p) => (
               <button key={p} type="button" role="tab" aria-selected={period === p} onClick={() => go({ period: p })} className={`px-3 py-1.5 rounded-full text-xs font-semibold ${period === p ? "bg-accent text-accent-foreground" : "text-ink-muted hover:text-ink"}`} tabIndex={period === p ? 0 : -1}>
                 {k.periods[p]}

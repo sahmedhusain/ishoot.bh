@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { CRMContact, CRMDeal, DealPipelineStage, Quotation, ServiceItem } from "@platform/database";
 import { ClientAutocomplete } from "../../components/crm/ClientAutocomplete";
 import { ClientProfileForm } from "../../components/crm/ClientProfileForm";
@@ -345,19 +345,26 @@ describe("Admin Batch 3: CRM, Quotations, Sales, Orders, Outreach, Services, Sup
     expect(adminActionMocks.saveStoreCustomCategoryAction).toBeDefined();
     expect(adminActionMocks.deleteStoreCustomCategoryAction).toBeDefined();
     fireEvent.click(screen.getByTestId("coupon-delete-cp-1"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Confirm$/i }));
     await waitFor(() => expect(adminActionMocks.deleteCouponAction).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("tab", { name: /Storefront & Categories/i }));
     fireEvent.click(screen.getByTestId("custom-category-delete-cat-custom-1"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Confirm$/i }));
     await waitFor(() => expect(adminActionMocks.deleteStoreCustomCategoryAction).toHaveBeenCalledWith("cat-custom-1"));
     expect(screen.getByTestId("storefront-pages-directory")).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("Featured Collection"), { target: { value: "Seasonal Essentials" } });
     fireEvent.click(screen.getByTestId("custom-category-save"));
     await waitFor(() => expect(adminActionMocks.saveStoreCustomCategoryAction).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("tab", { name: /Rewards & Gift Cards/i }));
     fireEvent.click(screen.getByTestId("gift-card-new"));
     await waitFor(() => expect(screen.getByTestId("gift-card-save")).toBeEnabled());
     fireEvent.click(screen.getByTestId("gift-card-save"));
     await waitFor(() => expect(adminActionMocks.saveGiftCardAction).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByTestId("gift-card-delete-gc-1")).toBeEnabled());
     fireEvent.click(screen.getByTestId("gift-card-delete-gc-1"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Confirm$/i }));
     await waitFor(() => expect(adminActionMocks.deleteGiftCardAction).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByTestId("admin-wallet-submit")).toBeEnabled());
     fireEvent.click(screen.getByTestId("admin-wallet-submit"));
@@ -368,6 +375,8 @@ describe("Admin Batch 3: CRM, Quotations, Sales, Orders, Outreach, Services, Sup
     await waitFor(() => expect(screen.getByTestId("admin-tier-submit")).toBeEnabled());
     fireEvent.click(screen.getByTestId("admin-tier-submit"));
     await waitFor(() => expect(adminActionMocks.saveCustomerAccountDiscountAction).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("tab", { name: /Return Requests/i }));
     await waitFor(() => expect(screen.getByTestId("return-approve-wallet-ret-1")).toBeEnabled());
     fireEvent.click(screen.getByTestId("return-approve-wallet-ret-1"));
     await waitFor(() => {

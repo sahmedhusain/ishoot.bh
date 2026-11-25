@@ -18,7 +18,7 @@ import { AdminLocaleProvider } from "../hooks/useAdminLocale";
 import { AdminThemeProvider } from "../hooks/useAdminTheme";
 import { UnsavedChangesProvider } from "../hooks/useUnsavedChanges";
 import { TelemetryMonitor } from "../components/TelemetryMonitor";
-import { Toaster } from "sonner";
+import { AdminToaster } from "../components/layout/AdminToaster";
 
 export const generateMetadata = () => companyMetadata();
 export const dynamic = "force-dynamic";
@@ -82,7 +82,7 @@ export default async function RootLayout({
             <CompanyCurrencyProvider currency={company?.default_currency}><PhoneCountryProvider country={company?.country}><ConfirmationProvider>
               <UnsavedChangesProvider><OverlayScrollbarsProvider /><TelemetryMonitor />{children}</UnsavedChangesProvider>
             </ConfirmationProvider></PhoneCountryProvider></CompanyCurrencyProvider>
-            <Toaster richColors closeButton position="top-right" />
+            <AdminToaster />
           </AdminLocaleProvider>
         </AdminThemeProvider>
       </body>

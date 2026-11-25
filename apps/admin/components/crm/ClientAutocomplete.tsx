@@ -217,8 +217,8 @@ export function ClientAutocomplete({
               }}
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
                 mode === "search"
-                  ? "bg-surface-raised dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                  : "text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+                  ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
               }`}
             >
               <Users className="w-3 h-3" />
@@ -232,8 +232,8 @@ export function ClientAutocomplete({
               }}
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
                 mode === "create"
-                  ? "bg-surface-raised dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                  : "text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+                  ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
               }`}
             >
               <UserPlus className="w-3 h-3" />
@@ -247,7 +247,7 @@ export function ClientAutocomplete({
             href={ROUTES.crm.customer(selectedContact.id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-accent hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
+            className="text-primary hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
           >
             <span>{t.crm.viewDossier}</span>
             <ExternalLink className="w-3 h-3" />
@@ -256,28 +256,28 @@ export function ClientAutocomplete({
       </div>
 
       {selectedContact ? (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-raised border border-outline-variant dark:bg-tone-10/60 dark:border-white/10 transition-colors">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-low border border-outline-variant transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+            <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               {selectedContact.company
                 ? selectedContact.company.charAt(0).toUpperCase()
                 : selectedContact.full_name?.charAt(0).toUpperCase() || "C"}
             </div>
             <div className="min-w-0 space-y-0.5">
-              <div className="text-sm font-bold text-ink truncate flex items-center gap-2">
+              <div className="text-sm font-bold text-on-surface truncate flex items-center gap-2">
                 <span>
                   {selectedContact.company || selectedContact.full_name}
                 </span>
                 {selectedContact.company && selectedContact.full_name && (
-                  <span className="text-xs font-normal text-ink-muted">
+                  <span className="text-xs font-normal text-on-surface-variant">
                     (<bdi dir="auto">{selectedContact.full_name}</bdi>)
                   </span>
                 )}
               </div>
-              <div className="text-xs text-ink-muted truncate flex items-center gap-3">
+              <div className="text-xs text-on-surface-variant truncate flex items-center gap-3">
                 {selectedContact.email && (
                   <span className="inline-flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-ink-muted" />
+                    <Mail className="w-3 h-3 text-on-surface-variant" />
                     <span>
                       <bdi dir="ltr">{selectedContact.email}</bdi>
                     </span>
@@ -285,7 +285,7 @@ export function ClientAutocomplete({
                 )}
                 {selectedContact.phone && (
                   <span className="inline-flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-ink-muted" />
+                    <Phone className="w-3 h-3 text-on-surface-variant" />
                     <span dir="ltr">
                       <bdi dir="ltr">{selectedContact.phone}</bdi>
                     </span>
@@ -298,16 +298,16 @@ export function ClientAutocomplete({
           <button
             type="button"
             onClick={handleClear}
-            className="p-1.5 rounded-lg text-ink-muted hover:text-ink-muted hover:bg-surface-sunken/50 dark:hover:text-white dark:hover:bg-white/10 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] transition-colors shrink-0"
             title={t.crm.clearSelection}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : mode === "create" ? (
-        <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 space-y-3 animate-fade-in">
-          <div className="flex items-center justify-between pb-2 border-b border-outline-variant/60 dark:border-white/10">
-            <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-mint">
+        <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant">
+            <div className="flex items-center gap-2 text-xs font-bold text-primary">
               <UserPlus className="w-4 h-4" />
               <span>{t.clientAutocomplete.createNewCustomerAndAdd}</span>
             </div>
@@ -317,14 +317,14 @@ export function ClientAutocomplete({
                 setMode("search");
                 setCreateError(null);
               }}
-              className="text-xs text-ink-muted hover:text-ink dark:hover:text-white"
+              className="text-xs text-on-surface-variant hover:text-on-surface"
             >
               {t.clientAutocomplete.cancelAndSearch}
             </button>
           </div>
 
           {createError && (
-            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-rose-300 text-xs flex items-center gap-2">
+            <div className="p-2.5 rounded-lg bg-m3-error-container border border-outline-variant text-m3-on-error-container text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{createError}</span>
             </div>
@@ -515,14 +515,14 @@ export function ClientAutocomplete({
                       key={contact.id}
                       type="button"
                       onClick={() => handleSelect(contact)}
-                      className="w-full text-start p-3 hover:bg-surface-raised dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
+                      className="w-full text-start p-3 hover:bg-on-surface/[0.06] transition-colors flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0">
-                        <div className="font-bold text-ink truncate">
+                        <div className="font-bold text-on-surface truncate">
                           {contact.company ? `${contact.company} - ` : ""}
                           <bdi dir="auto">{contact.full_name}</bdi>
                         </div>
-                        <div className="text-[11px] text-ink-muted truncate mt-0.5 flex items-center gap-2">
+                        <div className="text-[11px] text-on-surface-variant truncate mt-0.5 flex items-center gap-2">
                           {contact.email && (
                             <span>
                               <bdi dir="ltr">{contact.email}</bdi>

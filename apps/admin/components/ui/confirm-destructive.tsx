@@ -76,33 +76,44 @@ export function ConfirmDialog({
   const isDanger = variant === "danger";
 
   return (
-    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          disabled={isSubmitting || loading}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          type="button"
-          variant={isDanger ? "danger" : "primary"}
-          size="sm"
-          onClick={handleConfirm}
-          aria-busy={isSubmitting || loading}
-          disabled={!canConfirm || isSubmitting || loading}
-        >
-          {isSubmitting || loading ? loadingLabel : confirmLabel}
-        </Button>
-      </div>
-    }>
-      <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
+    <Modal
+      kind="confirmation"
+      icon={isDanger ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+      iconTone={isDanger ? "danger" : "warning"}
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      busy={isSubmitting || loading}
+      description={description}
+      className="max-w-lg"
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            disabled={isSubmitting || loading}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            variant={isDanger ? "danger" : "primary"}
+            size="sm"
+            onClick={handleConfirm}
+            aria-busy={isSubmitting || loading}
+            disabled={!canConfirm || isSubmitting || loading}
+          >
+            {isSubmitting || loading ? loadingLabel : confirmLabel}
+          </Button>
+        </div>
+      }
+    >
+      <div data-confirm-dialog className={confirmMatchText || error ? "space-y-4 text-sm text-on-surface-variant" : "sr-only"}>
         {confirmMatchText && (
           <div className="space-y-2">
-            <label htmlFor={inputId} className="block text-xs text-ink-muted">
+            <label htmlFor={inputId} className="block text-xs font-medium text-on-surface-variant">
               {typePromptLabel || `${copy.typeToConfirm}: ${confirmMatchText}`}
             </label>
             <Input
@@ -113,13 +124,16 @@ export function ConfirmDialog({
               value={typedInput}
               onChange={(e) => setTypedInput(e.target.value)}
               placeholder={confirmMatchText}
-              className="font-mono text-xs border-rose-500/40 focus:border-rose-400"
+              className="font-mono text-xs border-m3-error/50 focus:border-m3-error"
             />
           </div>
         )}
 
-        {error && <p role="alert" className="text-rose-700 dark:text-rose-300">{errorLabel ?? copy.actionFailed}</p>}
-
+        {error && (
+          <p role="alert" className="rounded-xl bg-m3-error-container px-3.5 py-2.5 text-xs font-medium text-m3-on-error-container">
+            {errorLabel ?? copy.actionFailed}
+          </p>
+        )}
       </div>
     </Modal>
   );

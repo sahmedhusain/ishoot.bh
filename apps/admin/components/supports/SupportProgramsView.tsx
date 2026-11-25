@@ -60,12 +60,12 @@ const firstOfNextMonth = () => {
     .slice(0, 10);
 };
 const STATUS_STYLE: Record<string, string> = {
-  applied: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  approved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  partially_approved: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  rejected: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  suspended: "bg-ink/10 text-ink-muted",
-  ended: "bg-ink/10 text-ink-muted",
+  applied: "bg-tertiary-container text-on-tertiary-container",
+  approved: "bg-primary-container text-on-primary-container",
+  partially_approved: "bg-secondary-container text-on-secondary-container",
+  rejected: "bg-m3-error-container text-m3-on-error-container",
+  suspended: "bg-surface-container-high text-on-surface-variant",
+  ended: "bg-surface-container-high text-on-surface-variant",
 };
 
 export function SupportProgramsView({
@@ -88,6 +88,7 @@ export function SupportProgramsView({
   const router = useRouter();
   const isAr = locale === "ar";
   const [busy, setBusy] = React.useState(false);
+  const [tab, setTab] = React.useState<"enrolments" | "programs">("enrolments");
   const pending = React.useRef(false);
   const enrolmentFormId = React.useId();
   const [actionError, setActionError] = React.useState("");
@@ -207,7 +208,8 @@ export function SupportProgramsView({
             size="sm"
             variant="outline"
             className="gap-1.5"
-            onClick={() =>
+            onClick={() => {
+              setTab("programs");
               setProgramForm({
                 name_en: "",
                 name_ar: "",
@@ -216,8 +218,8 @@ export function SupportProgramsView({
                 prorate: true,
                 is_active: true,
                 notes: "",
-              })
-            }
+              });
+            }}
           >
             <Plus className="h-4 w-4" aria-hidden />
             {s.addProgram}
@@ -225,6 +227,45 @@ export function SupportProgramsView({
         )}
       />
 
+      <div
+        role="tablist"
+        data-tab-variant="pills"
+        aria-label={s.title}
+        className="flex flex-wrap gap-2 border-b border-outline-variant pb-3"
+      >
+        {(["enrolments", "programs"] as const).map((key) => {
+          const active = tab === key;
+          const count = key === "enrolments" ? enrolments.length : programs.length;
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(key)}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                active
+                  ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                  : "text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface"
+              }`}
+            >
+              <span>{s.tabs[key]}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  active
+                    ? "bg-primary text-m3-on-primary"
+                    : "bg-surface-container-high text-on-surface-variant"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "programs" && (
+      <>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {programs.map((p) => {
           const rule = currentRule(p);
@@ -771,7 +812,10 @@ export function SupportProgramsView({
           </div>
         </form>
       )}
+      </>
+      )}
 
+      {tab === "enrolments" && (
       <section className={card}>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -981,6 +1025,7 @@ export function SupportProgramsView({
           </div>
         )}
       </section>
+      )}
 
       {enrolment && <Modal isOpen onClose={() => setEnrolment(null)} title={enrolment.id ? s.editEnrolment : s.addEnrolment}
         busy={busy} className="max-w-3xl" footer={<div className="flex justify-end gap-3">

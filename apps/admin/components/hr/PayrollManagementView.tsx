@@ -263,7 +263,7 @@ export function PayrollManagementView({
 
       <div className="space-y-6">
         {runs.length === 0 ? (
-          <div className="p-12 text-center rounded-lg border border-dashed border-outline-variant bg-white/50 dark:bg-surface-raised/50">
+          <div className="p-12 text-center rounded-2xl border border-dashed border-outline-variant bg-surface-container-low">
             <DollarSign className="w-10 h-10 text-ink-muted mx-auto mb-3" />
             <h3 className="text-base font-semibold text-ink">
               {t.payrollManagement.noPayrollRunsGenerated}

@@ -206,7 +206,7 @@ export function NotificationCenter() {
         aria-controls="notification-preview"
         onClick={() => menu.setOpen(!menu.open)}
         title={mutedLabel ?? undefined}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <span className="sr-only">
           {t.actions.notifications}
@@ -216,7 +216,7 @@ export function NotificationCenter() {
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute -end-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 text-primary-foreground ring-2 ring-white dark:ring-surface-raised"
+            className="absolute -end-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] font-semibold leading-4 text-m3-on-primary ring-2 ring-surface"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
@@ -231,19 +231,19 @@ export function NotificationCenter() {
           role="dialog"
           aria-label={t.notificationsCenter.title}
           ref={menu.panelRef}
-          className="admin-popover absolute end-0 top-full z-50 mt-3 flex max-h-[min(40rem,calc(100dvh-6rem))] w-[420px] flex-col max-sm:fixed max-sm:inset-x-3 max-sm:mt-0 max-sm:w-auto"
+          className="admin-popover absolute end-0 top-full z-50 mt-3 flex max-h-[min(40rem,calc(100dvh-6rem))] w-[420px] flex-col rounded-3xl border border-outline-variant bg-surface-container-high text-on-surface shadow-m3-3 max-sm:fixed max-sm:inset-x-3 max-sm:mt-0 max-sm:w-auto"
         >
-          <header role="presentation" data-popup-header className="admin-popover-header flex items-center justify-between gap-3">
+          <header role="presentation" data-popup-header className="admin-popover-header flex items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-high px-4 py-3.5 rounded-t-3xl">
             <div className="min-w-0">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-on-surface">
                 {t.notificationsCenter.title}
                 <span
                   title={live === "open" ? l.live : live === "offline" ? l.offline : l.reconnecting}
-                  className={`h-2 w-2 rounded-full ${live === "open" ? "bg-emerald-500" : live === "offline" ? "bg-ink/30" : "animate-pulse bg-amber-500"}`}
+                  className={`h-2 w-2 rounded-full ${live === "open" ? "bg-emerald-500" : live === "offline" ? "bg-outline" : "animate-pulse bg-amber-500"}`}
                 />
                 <span className="sr-only">{live === "open" ? l.live : live === "offline" ? l.offline : l.reconnecting}</span>
               </h2>
-              <p className="mt-1 truncate text-xs text-ink-muted">
+              <p className="mt-1 truncate text-xs text-on-surface-variant">
                 {mutedLabel ?? formatMessage(p.unreadCount, { count: String(unreadCount) })}
               </p>
             </div>
@@ -257,15 +257,15 @@ export function NotificationCenter() {
                   disabled={!preferences}
                   title={l.muteMenu}
                   aria-label={l.muteMenu}
-                  className="rounded-lg p-2 text-ink-muted hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30"
+                  className="rounded-full p-2 text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-38"
                 >
                   {mutedUntil ? <BellOff aria-hidden className="h-4 w-4" /> : <Bell aria-hidden className="h-4 w-4" />}
                 </button>
                 {muteOpen && preferences && (
-                  <div role="menu" className="absolute end-0 top-full z-10 mt-1 w-64 rounded-xl border border-outline-variant bg-surface-raised p-1 shadow-lg">
+                  <div role="menu" className="absolute end-0 top-full z-10 mt-1 w-64 rounded-2xl border border-outline-variant bg-surface-container-highest p-1.5 shadow-m3-3">
                     {mutedUntil ? (
-                      <button role="menuitem" type="button" disabled={busy !== null} onClick={() => savePreferences({ mutedUntil: null }, l.unmuted)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm text-ink hover:bg-ink/5">
-                        <BellRing aria-hidden className="h-4 w-4 text-ink-muted" />
+                      <button role="menuitem" type="button" disabled={busy !== null} onClick={() => savePreferences({ mutedUntil: null }, l.unmuted)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-start text-sm text-on-surface hover:bg-on-surface/[0.08]">
+                        <BellRing aria-hidden className="h-4 w-4 text-on-surface-variant" />
                         {l.unmute}
                       </button>
                     ) : (
@@ -276,9 +276,9 @@ export function NotificationCenter() {
                           type="button"
                           disabled={busy !== null}
                           onClick={() => savePreferences({ mutedUntil: muteUntil(choice) }, l.muted)}
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm text-ink hover:bg-ink/5"
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-start text-sm text-on-surface hover:bg-on-surface/[0.08]"
                         >
-                          <BellOff aria-hidden className="h-4 w-4 text-ink-muted" />
+                          <BellOff aria-hidden className="h-4 w-4 text-on-surface-variant" />
                           {choice === "1h"
                             ? formatMessage(l.muteFor[choice], { hours: 1 })
                             : choice === "8h"
@@ -295,9 +295,9 @@ export function NotificationCenter() {
                       onClick={() =>
                         savePreferences({ soundEnabled: !preferences.soundEnabled }, preferences.soundEnabled ? l.soundTurnedOff : l.soundTurnedOn)
                       }
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm text-ink hover:bg-ink/5"
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-start text-sm text-on-surface hover:bg-on-surface/[0.08]"
                     >
-                      {preferences.soundEnabled ? <VolumeX aria-hidden className="h-4 w-4 text-ink-muted" /> : <Volume2 aria-hidden className="h-4 w-4 text-ink-muted" />}
+                      {preferences.soundEnabled ? <VolumeX aria-hidden className="h-4 w-4 text-on-surface-variant" /> : <Volume2 aria-hidden className="h-4 w-4 text-on-surface-variant" />}
                       {preferences.soundEnabled ? l.soundOff : l.soundOn}
                     </button>
                   </div>
@@ -308,7 +308,7 @@ export function NotificationCenter() {
                 onClick={() => menu.setOpen(false)}
                 title={l.settingsLink}
                 aria-label={l.settingsLink}
-                className="rounded-lg p-2 text-ink-muted hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-full p-2 text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Settings2 aria-hidden className="h-4 w-4" />
               </Link>
@@ -326,31 +326,35 @@ export function NotificationCenter() {
                 }}
                 title={t.notificationsCenter.markAllRead}
                 aria-label={t.notificationsCenter.markAllRead}
-                className="rounded-lg p-2 text-ink-muted hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30"
+                className="rounded-full p-2 text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-38"
               >
                 <CheckCheck aria-hidden className="h-4 w-4" />
               </button>
             </div>
           </header>
-          <div className="flex gap-1 border-b border-outline-variant px-4 pb-3" aria-label={p.filter}>
+          <div className="flex gap-2 border-b border-outline-variant bg-surface-container px-4 py-2.5" aria-label={p.filter}>
             {(["all", "unread"] as const).map((value) => (
               <button
                 key={value}
                 type="button"
                 aria-pressed={filter === value}
                 onClick={() => setFilter(value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${filter === value ? "bg-accent/10 text-primary dark:text-mint" : "text-ink-muted hover:bg-ink/5"}`}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  filter === value
+                    ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                    : "text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface"
+                }`}
               >
                 {t.communications[value]}
               </button>
             ))}
           </div>
-          <div className="min-h-28 overflow-y-auto overscroll-contain" aria-busy={loading}>
+          <div className="min-h-28 overflow-y-auto overscroll-contain bg-surface-container-low" aria-busy={loading}>
             {failed && (
-              <div role="alert" className="flex items-center gap-2 border-b border-outline-variant px-4 py-3 text-xs text-ink-muted">
-                <AlertCircle aria-hidden className="h-4 w-4" />
+              <div role="alert" className="flex items-center gap-2 border-b border-outline-variant bg-m3-error-container px-4 py-3 text-xs text-m3-on-error-container">
+                <AlertCircle aria-hidden className="h-4 w-4 shrink-0" />
                 <span className="flex-1">{p.failed}</span>
-                <button type="button" onClick={() => refresh(true)} className="rounded-md p-1 hover:bg-ink/5" aria-label={p.retry}>
+                <button type="button" onClick={() => refresh(true)} className="rounded-full p-1 hover:bg-on-surface/[0.08]" aria-label={p.retry}>
                   <RefreshCw className="h-4 w-4" />
                 </button>
               </div>
@@ -359,20 +363,20 @@ export function NotificationCenter() {
               <div className="space-y-4 p-4" aria-label={p.loading}>
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="flex animate-pulse gap-3 motion-reduce:animate-none">
-                    <div className="h-8 w-8 rounded-lg bg-ink/5" />
+                    <div className="h-8 w-8 rounded-xl bg-surface-container-highest" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 w-3/4 rounded bg-ink/5" />
-                      <div className="h-3 rounded bg-ink/5" />
-                      <div className="h-2 w-1/3 rounded bg-ink/5" />
+                      <div className="h-3 w-3/4 rounded bg-surface-container-highest" />
+                      <div className="h-3 rounded bg-surface-container-highest" />
+                      <div className="h-2 w-1/3 rounded bg-surface-container-highest" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : !items.length ? (
               <div className="px-6 py-9 text-center">
-                <Inbox aria-hidden className="mx-auto mb-3 h-7 w-7 text-ink-muted" />
-                <p className="text-sm font-medium text-ink">{filter === "unread" ? p.noUnread : t.notificationsCenter.noNotifications}</p>
-                <p className="mt-1 text-xs text-ink-muted">{filter === "unread" ? p.caughtUp : t.notificationsCenter.allUpToDate}</p>
+                <Inbox aria-hidden className="mx-auto mb-3 h-7 w-7 text-on-surface-variant" />
+                <p className="text-sm font-medium text-on-surface">{filter === "unread" ? p.noUnread : t.notificationsCenter.noNotifications}</p>
+                <p className="mt-1 text-xs text-on-surface-variant">{filter === "unread" ? p.caughtUp : t.notificationsCenter.allUpToDate}</p>
               </div>
             ) : (
               <ul className="divide-y divide-outline-variant">
@@ -382,10 +386,16 @@ export function NotificationCenter() {
                   const href = notificationHref(n);
                   const content = (
                     <>
-                      <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-muted">
+                      <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-on-surface-variant">
                         <span>{categoryName(item.category, locale)}</span>
                         {(item.priority === "urgent" || item.priority === "high") && (
-                          <span className={`rounded px-1.5 py-px font-semibold ${item.priority === "urgent" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-semibold ${
+                              item.priority === "urgent"
+                                ? "bg-m3-error-container text-m3-on-error-container"
+                                : "bg-tertiary-container text-on-tertiary-container"
+                            }`}
+                          >
                             {l.priority[item.priority]}
                           </span>
                         )}
@@ -396,18 +406,18 @@ export function NotificationCenter() {
                           </span>
                         )}
                       </p>
-                      <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-ink">
+                      <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-on-surface">
                         <bdi dir="auto">{text.title}</bdi>
                       </p>
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">{text.message}</p>
-                      <time dateTime={item.createdAt} className="mt-2 block text-[11px] text-ink-muted">
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-on-surface-variant">{text.message}</p>
+                      <time dateTime={item.createdAt} className="mt-2 block text-[11px] text-on-surface-variant">
                         {notificationAge(item.createdAt, locale)}
                       </time>
                     </>
                   );
                   return (
-                    <li key={item.id} className={`flex gap-3 px-4 py-3.5 ${item.read ? "" : "bg-accent/[0.04]"}`}>
-                      <span aria-hidden className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${item.read ? "bg-transparent" : "bg-accent"}`} />
+                    <li key={item.id} className={`flex gap-3 px-4 py-3.5 transition-colors ${item.read ? "" : "bg-primary-container/25"}`}>
+                      <span aria-hidden className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.read ? "bg-transparent" : "bg-primary"}`} />
                       <div className="min-w-0 flex-1">
                         {href ? (
                           <Link
@@ -416,7 +426,7 @@ export function NotificationCenter() {
                               if (!item.read) void run(item.id, () => updateNotificationAction(item.id, "read"));
                               menu.setOpen(false);
                             }}
-                            className="block rounded-md hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            className="block rounded-lg hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             {content}
                           </Link>
@@ -424,11 +434,11 @@ export function NotificationCenter() {
                           content
                         )}
                         <div className="mt-2 flex flex-wrap gap-3">
-                          <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => updateNotificationAction(item.id, item.read ? "unread" : "read"))} className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent disabled:opacity-40">
+                          <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => updateNotificationAction(item.id, item.read ? "unread" : "read"))} className="flex items-center gap-1 text-[11px] text-on-surface-variant hover:text-primary disabled:opacity-40">
                             <Check aria-hidden className="h-3 w-3" />
                             {item.read ? l.markUnread : l.markRead}
                           </button>
-                          <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => updateNotificationAction(item.id, "hide"))} className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent disabled:opacity-40">
+                          <button type="button" disabled={busy !== null} onClick={() => run(item.id, () => updateNotificationAction(item.id, "hide"))} className="flex items-center gap-1 text-[11px] text-on-surface-variant hover:text-primary disabled:opacity-40">
                             <Archive aria-hidden className="h-3 w-3" />
                             {l.archive}
                           </button>
@@ -442,7 +452,7 @@ export function NotificationCenter() {
                                   toast.success(l.recordMuted);
                                 })
                               }
-                              className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent disabled:opacity-40"
+                              className="flex items-center gap-1 text-[11px] text-on-surface-variant hover:text-primary disabled:opacity-40"
                             >
                               <BellOff aria-hidden className="h-3 w-3" />
                               {l.muteRecord}
@@ -458,7 +468,7 @@ export function NotificationCenter() {
                                 onConfirm: () => run(item.id, () => updateNotificationAction(item.id, "delete"), { confirmed: true }),
                               })
                             }
-                            className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-rose-600 disabled:opacity-40"
+                            className="flex items-center gap-1 text-[11px] text-on-surface-variant hover:text-m3-error disabled:opacity-40"
                           >
                             <Trash2 aria-hidden className="h-3 w-3" />
                             {l.delete}
@@ -471,11 +481,11 @@ export function NotificationCenter() {
               </ul>
             )}
           </div>
-          <footer className="border-t border-outline-variant p-3">
+          <footer className="border-t border-outline-variant bg-surface-container-high p-3 rounded-b-3xl">
             <Link
               href={ROUTES.notifications()}
               onClick={() => menu.setOpen(false)}
-              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm font-medium text-primary hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-mint"
+              className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-primary hover:bg-on-surface/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               {p.viewAll}
               <ArrowRight aria-hidden className="h-4 w-4 rtl:rotate-180" />

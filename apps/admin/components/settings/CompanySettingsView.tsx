@@ -295,7 +295,7 @@ export function CompanySettingsView({
 
       <SettingsNavTabs />
 
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container dark:bg-surface-raised border border-outline-variant overflow-x-auto" role="tablist">
+      <div data-tab-variant="pills" className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container border border-outline-variant overflow-x-auto" role="tablist">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -306,13 +306,12 @@ export function CompanySettingsView({
               type="button"
               onClick={() => { if (tab.key === "theme") setThemeVisited(true); setActiveTab(tab.key); }}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${isActive
-                ? "bg-surface-raised dark:bg-surface-container text-primary dark:text-mint shadow-xs border border-outline-variant/80 dark:border-outline-variant"
-                : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white"
+                ? "bg-secondary-container text-on-secondary-container"
+                : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
                 }`}
              tabIndex={activeTab === tab.key ? 0 : -1} role="tab" aria-selected={activeTab === tab.key}>
               <Icon
-                className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-ink-muted dark:text-ink-muted"
-                  }`}
+                className="w-3.5 h-3.5"
               />
               <span>{tab.label}</span>
             </button>

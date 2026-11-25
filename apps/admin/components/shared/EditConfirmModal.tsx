@@ -60,7 +60,7 @@ export function EditConfirmModal({
       errorLabel={errorLabel}
       description={
         <div className="space-y-5">
-          <p className="text-xs text-ink-muted">
+          <p className="text-xs text-on-surface-variant">
             {description ||
               (t.editConfirmModal.pleaseReviewTheModifiedFields)}
           </p>
@@ -70,20 +70,20 @@ export function EditConfirmModal({
               {filteredChanges.map((change, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-2xl bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 space-y-1.5"
+                  className="p-3.5 rounded-2xl bg-surface-container-low border border-outline-variant space-y-1.5"
                 >
-                  <div className="text-[11px] font-bold text-ink dark:text-ink-muted uppercase tracking-wider">
+                  <div className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
                     {change.label}
                   </div>
 
                   <div className="flex items-center gap-3 text-xs">
-                    <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] min-w-0 break-words line-through opacity-80">
+                    <div className="flex-1 p-2 rounded-xl bg-m3-error-container/60 border border-m3-error/30 text-m3-on-error-container font-mono text-[11px] min-w-0 break-words line-through opacity-90">
                       {formatValue(change.oldValue, t)}
                     </div>
 
-                    <ArrowRight className="w-3.5 h-3.5 text-ink-muted shrink-0 rtl:rotate-180" />
+                    <ArrowRight className="w-3.5 h-3.5 text-on-surface-variant shrink-0 rtl:rotate-180" />
 
-                    <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">
+                    <div className="flex-1 p-2 rounded-xl bg-m3-primary-container/60 border border-m3-primary/30 text-m3-on-primary-container font-mono text-[11px] font-bold min-w-0 break-words">
                       {formatValue(change.newValue, t)}
                     </div>
                   </div>
@@ -91,7 +91,7 @@ export function EditConfirmModal({
               ))}
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2.5 text-amber-800 dark:text-amber-300 text-xs">
+            <div className="p-4 rounded-2xl bg-m3-tertiary-container/60 border border-m3-tertiary/30 flex items-center gap-2.5 text-m3-on-tertiary-container text-xs">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
                 {t.editConfirmModal.noFieldsHaveBeenModified}

@@ -196,28 +196,28 @@ export function UserProfileView({
     switch (status) {
       case "approved":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container text-on-primary-container border border-outline-variant/60">
+            <CheckCircle2 className="w-3 h-3" />
             <span>{t.userProfile.approved}</span>
           </span>
         );
       case "pending":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/50">
-            <Clock className="w-3 h-3 text-amber-500" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tertiary-container text-on-tertiary-container border border-outline-variant/60">
+            <Clock className="w-3 h-3" />
             <span>{t.userProfile.pendingReview}</span>
           </span>
         );
       case "rejected":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200/50">
-            <XCircle className="w-3 h-3 text-rose-500" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-m3-error-container text-m3-on-error-container border border-outline-variant/60">
+            <XCircle className="w-3 h-3" />
             <span>{t.userProfile.rejected}</span>
           </span>
         );
       case "cancelled":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-sunken text-ink-muted dark:bg-white/10">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">
             <span>{t.profileWorkspace.withdrawn}</span>
           </span>
         );
@@ -228,19 +228,19 @@ export function UserProfileView({
 
   return (
     <div id="details" className="scroll-mt-20 space-y-6">
-      <div className="p-6 sm:p-8 rounded-3xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-surface-container-low border border-outline-variant shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <ProfilePhoto userId={user.id} name={user.full_name} avatarUrl={user.avatar_url} />
           <div className="min-w-0 space-y-1.5">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink font-display">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-on-surface font-display">
                 <bdi dir="auto">{user.full_name}</bdi>
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-sunken dark:bg-white/10 text-ink">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">
                 {user.role.replace(/^staff_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-muted">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant">
               <span className="flex items-center gap-1 font-mono">
                 <Mail className="w-3.5 h-3.5" />
                 <span><bdi dir="ltr">{user.email}</bdi></span>
@@ -263,7 +263,7 @@ export function UserProfileView({
               <button
                 type="button"
                 onClick={() => setStatusOpen(true)}
-                className="rounded-full border border-outline-variant px-2.5 py-0.5 text-[11px] font-medium text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-full border border-outline-variant px-2.5 py-0.5 text-[11px] font-medium text-on-surface hover:bg-on-surface/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {t.presence.setStatus}
               </button>
@@ -274,11 +274,11 @@ export function UserProfileView({
 
         <div className="flex items-center gap-3">
           <div className="text-end">
-            <span className="text-[11px] text-ink-muted block">
+            <span className="text-[11px] text-on-surface-variant block">
               {t.userProfile.accountStatus}
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${user.is_active ? "text-emerald-500" : "text-on-surface-variant"}`}>
+              <span className={`w-2 h-2 rounded-full ${user.is_active ? "bg-emerald-500" : "bg-outline"}`} />
               <span>
                 {user.is_active ? t.roles.statusActive : t.roles.statusInactive}
               </span>
@@ -289,8 +289,8 @@ export function UserProfileView({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
+          <div className="p-6 rounded-2xl bg-surface-container-low border border-outline-variant shadow-sm space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-outline-variant">
               <Phone className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
                 {t.profileWorkspace.contact}

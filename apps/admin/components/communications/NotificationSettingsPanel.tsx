@@ -32,23 +32,32 @@ function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onCh
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50",
-        checked ? "bg-primary" : "bg-ink/20",
+        "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-38",
+        checked ? "border-primary bg-primary" : "border-outline bg-surface-container-highest",
       )}
     >
-      <span className={cn("inline-block h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-5 rtl:-translate-x-5" : "translate-x-0.5 rtl:-translate-x-0.5")} />
+      <span
+        className={cn(
+          "inline-block rounded-full shadow-xs transition-all",
+          checked
+            ? "h-5 w-5 translate-x-5.5 rtl:-translate-x-5.5 bg-m3-on-primary"
+            : "h-4 w-4 translate-x-1 rtl:-translate-x-1 bg-outline",
+        )}
+      />
     </button>
   );
 }
 
 function Section({ title, hint, icon, children }: { title: string; hint?: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5">
+    <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-container-low p-5">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 text-accent">{icon}</span>
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container">
+          {icon}
+        </span>
         <div>
-          <h2 className="text-sm font-semibold text-ink">{title}</h2>
-          {hint && <p className="mt-1 text-xs text-ink-muted">{hint}</p>}
+          <h2 className="text-sm font-semibold text-on-surface">{title}</h2>
+          {hint && <p className="mt-1 text-xs text-on-surface-variant">{hint}</p>}
         </div>
       </div>
       {children}
@@ -152,8 +161,10 @@ export function NotificationSettingsPanel() {
               <label
                 key={sound}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm",
-                  draft.sound === sound ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted",
+                  "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  draft.sound === sound
+                    ? "border-primary/40 bg-secondary-container text-on-secondary-container shadow-xs"
+                    : "border-outline-variant bg-surface-container text-on-surface-variant hover:bg-on-surface/[0.06]",
                 )}
               >
                 <input
@@ -220,7 +231,7 @@ export function NotificationSettingsPanel() {
 
       <Section icon={<BellRing className="h-5 w-5" aria-hidden />} title={s.categoriesTitle} hint={s.categoriesHint}>
         <div className="overflow-hidden rounded-2xl border border-outline-variant">
-          <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-outline-variant bg-ink/[0.03] px-4 py-2 text-xs font-semibold text-ink-muted">
+          <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-outline-variant bg-surface-container px-4 py-2.5 text-xs font-semibold text-on-surface-variant">
             <span>{s.category}</span>
             <span className="w-14 text-center">{s.notify}</span>
             <span className="w-14 text-center">{s.sound}</span>
@@ -286,7 +297,7 @@ export function NotificationSettingsPanel() {
         )}
       </Section>
 
-      <div className="sticky bottom-3 flex justify-end gap-2 rounded-2xl border border-outline-variant bg-surface-raised/95 p-3 shadow-sm backdrop-blur">
+      <div className="sticky bottom-3 flex justify-end gap-2 rounded-2xl border border-outline-variant bg-surface-container-high/95 p-3 shadow-m3-2 backdrop-blur">
         {dirty && <span className="me-auto self-center text-xs text-ink-muted">{s.unsaved}</span>}
         <Button variant="ghost" disabled={!dirty || saving} onClick={() => setDraft(preferences)}>
           {s.discard}

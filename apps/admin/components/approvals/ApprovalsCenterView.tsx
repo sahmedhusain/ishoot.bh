@@ -113,15 +113,15 @@ export function ApprovalsCenterView({
             type="button"
             aria-current={scope === tab.id ? "page" : undefined}
             onClick={() => navigate({ scope: tab.id, status: "all" })}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${scope === tab.id
-              ? "bg-primary text-primary-foreground"
-              : "bg-surface-sunken text-ink-muted hover:bg-surface-sunken dark:bg-white/5 dark:text-ink dark:hover:bg-white/10"
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${scope === tab.id
+              ? "bg-secondary-container text-on-secondary-container"
+              : "bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
               }`}
           >
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (
               <span
-                className={`text-xs rounded-full px-1.5 ${scope === tab.id ? "bg-white/20" : "bg-surface-raised dark:bg-white/10"}`}
+                className={`text-xs rounded-full px-1.5 ${scope === tab.id ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant"}`}
               >
                 {tab.count}
               </span>
@@ -135,7 +135,7 @@ export function ApprovalsCenterView({
           aria-label={a.types.all}
           value={targetType}
           onChange={(event) => navigate({ type: event.target.value })}
-          className="rounded-lg border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-surface px-3 py-1.5 text-sm"
+          className="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-sm"
         >
           <option value="all">{a.types.all}</option>
           {APPROVAL_TARGET_TYPES.map((type) => (
@@ -149,7 +149,7 @@ export function ApprovalsCenterView({
             aria-label={a.status.all}
             value={status}
             onChange={(event) => navigate({ status: event.target.value })}
-            className="rounded-lg border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-surface px-3 py-1.5 text-sm"
+            className="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-sm"
           >
             {STATUS_FILTERS.map((value) => (
               <option key={value} value={value}>

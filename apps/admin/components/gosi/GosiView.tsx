@@ -134,6 +134,7 @@ export function GosiView({
   );
   const [bulkFrom, setBulkFrom] = React.useState(firstOfNextMonth());
   const [showHistory, setShowHistory] = React.useState<string | null>(null);
+  const [tab, setTab] = React.useState<"overview" | "rules">("overview");
   const money = (v: number) => formatCurrencyValue(v, companyCurrency, isAr);
 
   const run = async (work: () => Promise<unknown>, done: string) => {
@@ -215,6 +216,35 @@ export function GosiView({
       </Modal>
       <PageHeader />
 
+      <div
+        role="tablist"
+        data-tab-variant="pills"
+        aria-label={g.title}
+        className="flex flex-wrap gap-2 border-b border-outline-variant pb-3"
+      >
+        {(["overview", "rules"] as const).map((key) => {
+          const active = tab === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(key)}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                active
+                  ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                  : "text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface"
+              }`}
+            >
+              {g.tabs[key]}
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "rules" && (
+      <>
       <section className={card} data-page-section>
         <h2 className="mb-3 text-sm font-bold text-ink">{g.rulesTitle}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -266,7 +296,11 @@ export function GosiView({
       </section>
 
       <NationalitySchemeFields rules={rules} disabled={!canEdit || busy} onChange={(next) => { void run(() => updateGosiRulesAction(next), g.saved); }} />
+      </>
+      )}
 
+      {tab === "overview" && (
+      <>
       <section className={card}>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -286,7 +320,7 @@ export function GosiView({
         </div>
         <div className="overflow-x-auto rounded-2xl border border-outline-variant">
           <DataTable className="w-full text-xs">
-            <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
+            <thead className="bg-surface-container text-[11px] text-on-surface-variant">
               <tr>
                 <th className="px-3 py-2 text-start"><bdi dir="auto">{g.fields.name}</bdi></th>
                 <th className="px-3 py-2 text-start">{g.fields.appliesTo}</th>
@@ -315,7 +349,7 @@ export function GosiView({
                           {c.code}
                         </div>
                         {!c.isActive ? (
-                          <span className="text-[10px] text-rose-600">
+                          <span className="text-[10px] text-m3-error">
                             {g.inactive}
                           </span>
                         ) : null}
@@ -424,7 +458,7 @@ export function GosiView({
                                   <button
                                     type="button"
                                     disabled={busy}
-                                    className="font-semibold text-rose-600 hover:underline"
+                                    className="font-semibold text-m3-error hover:underline"
                                     onClick={() => {
                                       setEndDate(today()); setActionError("");
                                       setEnding({ id: v.id, from: formatDate(v.effectiveFrom, locale, "numeric") });
@@ -689,7 +723,7 @@ export function GosiView({
                         ),
                       })
                     }
-                    className="mb-2 rounded-lg p-1.5 text-ink-muted hover:text-rose-600"
+                    className="mb-2 rounded-lg p-1.5 text-on-surface-variant hover:text-m3-error"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -779,7 +813,7 @@ export function GosiView({
         </div>
         <div className="overflow-x-auto rounded-2xl border border-outline-variant">
           <DataTable className="w-full text-xs">
-            <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
+            <thead className="bg-surface-container text-[11px] text-on-surface-variant">
               <tr>
                 <th className="px-3 py-2 text-start">
                   <bdi dir="auto">{g.fields.employeeName}</bdi>
@@ -868,6 +902,8 @@ export function GosiView({
           </DataTable>
         </div>
       </section>
+      </>
+      )}
 
       {registering && (
         <RegistrationForm
@@ -1134,7 +1170,7 @@ function RegistrationForm({
                     <button
                       type="button"
                       disabled={busy}
-                      className="font-semibold text-rose-600 hover:underline"
+                      className="font-semibold text-m3-error hover:underline"
                       onClick={async () => {
                         return confirmAction({
                           description: g.deleteConfirm,

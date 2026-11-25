@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, MapPinned, Plus, Trash2 } from "lucide-react";
-import { Button, Card, Input, Select, Textarea, formatCurrencyValue } from "@platform/ui";
+import { Button, Card, Input, Select, Textarea, formatCurrencyValue, useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { DELIVERY_MODES } from "@platform/database/constants/delivery";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -130,6 +130,7 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
 
 function SlotsEditor({ slots, zoneId, canEdit, busy, run }: { slots: Slot[]; zoneId: string; canEdit: boolean; busy: boolean; run: (task: () => Promise<unknown>) => Promise<boolean> }) {
   const { t } = useAdminLocale();
+  const confirmAction = useConfirmation();
   const copy = t.delivery.settings;
   const [adding, setAdding] = React.useState(false);
   const [draft, setDraft] = React.useState({ weekdays: [] as number[], start: "09:00", end: "13:00", capacity: "" });
@@ -144,13 +145,30 @@ function SlotsEditor({ slots, zoneId, canEdit, busy, run }: { slots: Slot[]; zon
             <li key={s.id} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs">
               <span dir="ltr">{label(s)}</span>
               {s.capacity != null && <span className="text-ink-muted">· {formatMessage(copy.perSlot, { count: s.capacity })}</span>}
-              {canEdit && <button type="button" aria-label={formatMessage(copy.removeSlot, { slot: label(s) })} disabled={busy} onClick={() => void run(() => deleteDeliverySlotAction(s.id))} className="text-rose-600"><Trash2 className="w-3 h-3" /></button>}
+              {canEdit && (
+                <button
+                  type="button"
+                  aria-label={formatMessage(copy.removeSlot, { slot: label(s) })}
+                  disabled={busy}
+                  onClick={() =>
+                    confirmAction({
+                      title: t.actions.delete,
+                      description: formatMessage(copy.removeSlot, { slot: label(s) }),
+                      variant: "danger",
+                      onConfirm: () => run(() => deleteDeliverySlotAction(s.id)),
+                    })
+                  }
+                  className="text-m3-error hover:opacity-80"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
             </li>
           ))}
         </ul>
       )}
       {canEdit && !adding && (
-        <button type="button" className="inline-flex items-center gap-1 text-xs font-semibold text-primary dark:text-mint" onClick={() => setAdding(true)}><Plus className="w-3 h-3" />{copy.addSlot}</button>
+        <button type="button" className="inline-flex items-center gap-1 text-xs font-semibold text-primary" onClick={() => setAdding(true)}><Plus className="w-3 h-3" />{copy.addSlot}</button>
       )}
       {adding && (
         <div className="space-y-2 rounded-xl bg-ink/[0.03] p-3">

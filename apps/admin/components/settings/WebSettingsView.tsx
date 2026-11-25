@@ -7,7 +7,7 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { CompanySettings, SocialLink } from "@platform/database/types";
-import { Card, Input, Textarea } from "@platform/ui";
+import { Card, Input, Textarea, useConfirmation } from "@platform/ui";
 import {
   Globe,
   ExternalLink,
@@ -59,6 +59,7 @@ export function WebSettingsView({
   socialLinks = [],
 }: WebSettingsViewProps) {
   const { t } = useAdminLocale();
+  const confirmAction = useConfirmation();
   const [settings, setSettings] =
     React.useState<CompanySettings>(initialSettings);
   const [activeTab, setActiveTab] = React.useState<
@@ -104,10 +105,14 @@ export function WebSettingsView({
   };
 
   const handleDeleteSocialLink = async (id: string) => {
-    try {
-      await deleteSocialLinkAction(id);
-      setLinks(links.filter((l) => l.id !== id));
-    } catch (e) { }
+    confirmAction({
+      description: t.actions.delete,
+      variant: "danger",
+      onConfirm: async () => {
+        await deleteSocialLinkAction(id);
+        setLinks((prev) => prev.filter((l) => l.id !== id));
+      },
+    });
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -150,12 +155,13 @@ export function WebSettingsView({
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">
       <Link
         href={ROUTES.cms.website}
-        className="block rounded-xl bg-emerald-900 text-white p-5 font-semibold"
+        className="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant bg-primary-container text-on-primary-container p-5 font-semibold hover:shadow-m3-1 transition-shadow"
       >
-        {t.webSettings.websiteEditorPreviewAndPublishing}
+        <span>{t.webSettings.websiteEditorPreviewAndPublishing}</span>
+        <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
       </Link>
       <PageHeader
-        title={<><span>{t.webSettingsView.title}</span><span className="text-xs font-bold text-accent font-sans">
+        title={<><span>{t.webSettingsView.title}</span><span className="text-xs font-bold text-primary font-sans">
               &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
             </span></>}
         actions={<div className="flex items-center gap-2.5">
@@ -163,11 +169,11 @@ export function WebSettingsView({
             type="button"
             disabled={isRevalidating}
             onClick={handleRevalidate}
-            className="px-3.5 py-2 rounded-xl bg-surface-raised border border-outline-variant dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-ink hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
+            className="px-3.5 py-2 rounded-xl bg-surface-container-low border border-outline-variant hover:border-primary text-xs font-semibold text-on-surface hover:text-primary inline-flex items-center gap-2 transition-all"
             title={t.webSettingsView.purgeTooltip}
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 ${isRevalidating ? "animate-spin text-accent" : ""}`}
+              className={`w-3.5 h-3.5 ${isRevalidating ? "animate-spin text-primary" : ""}`}
             />
             <span>
               {revalidateSuccess
@@ -180,27 +186,27 @@ export function WebSettingsView({
             href={webUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
+            className="px-4 py-2 rounded-xl bg-m3-primary hover:opacity-95 text-m3-on-primary text-xs font-bold inline-flex items-center gap-2 transition-all shadow-m3-1"
           >
-            <Globe className="w-3.5 h-3.5 text-primary dark:text-mint" />
+            <Globe className="w-3.5 h-3.5 text-m3-on-primary" />
             <span>{t.webSettingsView.viewLiveWebsite}</span>
-            <ExternalLink className="w-3 h-3 text-white/70" />
+            <ExternalLink className="w-3 h-3 text-m3-on-primary/80" />
           </a>
         </div>}
       />
 
       <SettingsNavTabs />
 
-      <div className="flex items-center gap-2 border-b border-outline-variant dark:border-white/10 pb-3 overflow-x-auto" role="tablist">
+      <div className="flex items-center gap-2 border-b border-outline-variant pb-3 overflow-x-auto" role="tablist">
         <button
           type="button"
           onClick={() => setActiveTab("hero")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "hero"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
             }`}
          tabIndex={activeTab === "hero" ? 0 : -1} role="tab" aria-selected={activeTab === "hero"}>
-          <Film className="w-4 h-4 text-accent" />
+          <Film className="w-4 h-4" />
           <span>{t.webSettingsView.tabHero}</span>
         </button>
 
@@ -208,11 +214,11 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("narrative")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "narrative"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
             }`}
          tabIndex={activeTab === "narrative" ? 0 : -1} role="tab" aria-selected={activeTab === "narrative"}>
-          <Building2 className="w-4 h-4 text-accent" />
+          <Building2 className="w-4 h-4" />
           <span>{t.webSettingsView.tabNarrative}</span>
         </button>
 
@@ -220,11 +226,11 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("legal")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "legal"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
             }`}
          tabIndex={activeTab === "legal" ? 0 : -1} role="tab" aria-selected={activeTab === "legal"}>
-          <Shield className="w-4 h-4 text-accent" />
+          <Shield className="w-4 h-4" />
           <span>{t.webSettings.termsAndPrivacy}</span>
         </button>
 
@@ -232,11 +238,11 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("social")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "social"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
             }`}
          tabIndex={activeTab === "social" ? 0 : -1} role="tab" aria-selected={activeTab === "social"}>
-          <Share2 className="w-4 h-4 text-accent" />
+          <Share2 className="w-4 h-4" />
           <span>{t.webSettingsView.tabSocial}</span>
         </button>
 
@@ -244,14 +250,14 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("cms")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "cms"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.06]"
             }`}
          tabIndex={activeTab === "cms" ? 0 : -1} role="tab" aria-selected={activeTab === "cms"}>
-          <Layers className="w-4 h-4 text-accent" />
+          <Layers className="w-4 h-4" />
           <span>{t.webSettingsView.tabCms}</span>
           {cmsCounts.pendingReviews > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-m3-tertiary-container text-m3-on-tertiary-container">
               {cmsCounts.pendingReviews}
             </span>
           )}

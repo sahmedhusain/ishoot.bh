@@ -6,7 +6,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
-import { Button, Input, Select, formatCurrencyValue } from "@platform/ui";
+import { Button, Input, Select, formatCurrencyValue, useConfirmation } from "@platform/ui";
 import type { RecurringPayInput, RecurringPayRecord } from "@platform/database";
 import { PAY_LINE_CATEGORIES } from "@platform/database/constants/hr";
 import { deleteRecurringPayAction, saveRecurringPayAction } from "../../app/actions/payroll";
@@ -19,6 +19,7 @@ const toInput = (r: RecurringPayRecord): RecurringPayInput => ({ kind: r.kind, c
 
 export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: string; items: RecurringPayRecord[]; canEdit: boolean }) {
   const companyCurrency = useCompanyCurrency();
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const c = t.payLines;
   const router = useRouter();
@@ -117,7 +118,23 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
                   {canEdit ? (
                     <>
                       <button type="button" aria-label={c.edit} title={c.edit} onClick={() => setEditing({ id: r.id, value: toInput(r) })} className="rounded-lg p-1.5 text-ink-muted hover:text-ink hover:bg-ink/5"><Pencil className="h-3.5 w-3.5" /></button>
-                      <button type="button" aria-label={c.remove} title={c.remove} disabled={busy} onClick={() => run(() => deleteRecurringPayAction(r.id), () => undefined)} className="rounded-lg p-1.5 text-ink-muted hover:text-rose-500 hover:bg-rose-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button
+                        type="button"
+                        aria-label={c.remove}
+                        title={c.remove}
+                        disabled={busy}
+                        onClick={() =>
+                          confirmAction({
+                            title: c.remove,
+                            description: r.label,
+                            variant: "danger",
+                            onConfirm: () => run(() => deleteRecurringPayAction(r.id), () => undefined),
+                          })
+                        }
+                        className="rounded-lg p-1.5 text-on-surface-variant hover:text-m3-error hover:bg-m3-error/[0.08]"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </>
                   ) : null}
                 </div>

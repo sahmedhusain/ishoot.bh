@@ -76,7 +76,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
         hint={showVat ? d.registerHintVat : d.registerHint}
         action={
           showVat ? (
-            <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
+            <div data-tab-variant="pills" role="tablist" className="inline-flex p-1 rounded-full bg-surface-container border border-outline-variant">
               {(["all", "with", "without"] as const).map((f) => (
                 <button
                   key={f}

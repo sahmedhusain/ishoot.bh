@@ -77,18 +77,18 @@ export function AdminProfileDropdown() {
         aria-haspopup="menu"
         aria-expanded={menu.open}
         aria-controls="account-menu"
-        className="flex h-10 items-center gap-2 rounded-full px-1.5 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex h-10 items-center gap-2 rounded-full px-1.5 text-on-surface hover:bg-on-surface/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
       >
         {user ? (
           <PresenceAvatar userId={user.id} name={user.fullName} src={user.avatarUrl} size={32} />
         ) : (
-          <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-m3-primary text-m3-on-primary">
             <UserRound className="h-4 w-4" />
           </span>
         )}
         <ChevronDown
           aria-hidden
-          className={`hidden h-3 w-3 sm:block transition-transform ${menu.open ? "rotate-180" : ""}`}
+          className={`hidden h-3 w-3 sm:block text-on-surface-variant transition-transform ${menu.open ? "rotate-180" : ""}`}
         />
       </button>
       {menu.open && (
@@ -103,13 +103,13 @@ export function AdminProfileDropdown() {
           <div data-popup-header className="admin-popover-header flex items-start gap-3">
             {user && <PresenceAvatar userId={user.id} name={user.fullName} src={user.avatarUrl} size={44} />}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-ink text-start">
+              <p className="truncate text-sm font-semibold text-on-surface text-start">
                 <bdi dir="auto">{user?.fullName ?? t.profileDropdown.adminUser}</bdi>
               </p>
-              <p className="mt-1 truncate text-xs text-ink-muted text-start">
+              <p className="mt-1 truncate text-xs text-on-surface-variant text-start">
                 <bdi dir="ltr">{user?.email}</bdi>
               </p>
-              <p className="mt-2 text-xs text-primary dark:text-mint text-start">{role}</p>
+              <p className="mt-2 inline-flex items-center rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-medium text-on-secondary-container text-start">{role}</p>
             </div>
           </div>
           <div className="admin-popover-body">
@@ -120,7 +120,7 @@ export function AdminProfileDropdown() {
                 menu.setOpen(false);
                 setStatusOpen(true);
               }}
-              className="flex w-full flex-col items-start gap-1 rounded-xl px-3 py-2.5 text-start text-sm text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:bg-accent/10"
+              className="flex w-full flex-col items-start gap-1 rounded-xl px-3 py-2.5 text-start text-sm text-on-surface hover:bg-on-surface/[0.08] focus-visible:outline-none focus-visible:bg-secondary-container/60"
             >
               <span className="font-medium">{t.presence.setStatus}</span>
               <StatusSummary className="max-w-full" />
@@ -131,9 +131,9 @@ export function AdminProfileDropdown() {
                 role="menuitem"
                 href={href}
                 onClick={() => menu.setOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:bg-accent/10"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-on-surface hover:bg-on-surface/[0.08] focus-visible:outline-none focus-visible:bg-secondary-container/60"
               >
-                <Icon aria-hidden className="h-4 w-4 text-ink-muted" />
+                <Icon aria-hidden className="h-4 w-4 text-on-surface-variant" />
                 {label}
               </Link>
             ))}
@@ -144,7 +144,7 @@ export function AdminProfileDropdown() {
               type="button"
               disabled={busy}
               onClick={signOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-m3-error hover:bg-m3-error/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-m3-error disabled:opacity-50"
             >
               {busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

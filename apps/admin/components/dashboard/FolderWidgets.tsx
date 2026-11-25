@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatMessage } from "@platform/locales";
-import { Button, DateDisplay, Input, Select, useDialog } from "@platform/ui";
+import { Button, DateDisplay, Input, Select, useConfirmation, useDialog } from "@platform/ui";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -351,16 +351,24 @@ export function CustomFoldersWidget({
     }
   };
 
-  const handleDeleteFolder = async (folderId: string) => {
-    setBusy(true);
-    try {
-      await deleteCustomFolderAction(folderId);
-      setFolders((prev) => prev.filter((f) => f.id !== folderId));
-      if (activeFolder?.id === folderId) setActiveFolder(null);
-      router.refresh();
-    } finally {
-      setBusy(false);
-    }
+  const confirmAction = useConfirmation();
+  const handleDeleteFolder = (folderId: string, folderName?: string) => {
+    confirmAction({
+      title: t.actions.delete,
+      description: folderName || b.newCustomFolder,
+      variant: "danger",
+      onConfirm: async () => {
+        setBusy(true);
+        try {
+          await deleteCustomFolderAction(folderId);
+          setFolders((prev) => prev.filter((f) => f.id !== folderId));
+          if (activeFolder?.id === folderId) setActiveFolder(null);
+          router.refresh();
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
   };
 
   const colorKeys = Object.keys(FOLDER_TONES) as CustomArchiveFolder["color"][];
@@ -405,8 +413,8 @@ export function CustomFoldersWidget({
               data-modal-container
               data-kind="form"
               className="fixed inset-0 z-[70] flex items-center justify-center bg-transparent p-4 sm:p-6"
-              onClick={() => setCreating(false)}
             >
+              <div data-modal-backdrop aria-hidden="true" onClick={() => setCreating(false)} />
               <div
                 {...dialog}
                 data-modal-card
@@ -518,8 +526,8 @@ export function CustomFoldersWidget({
               data-modal-container
               data-kind="form"
               className="fixed inset-0 z-[70] flex items-center justify-center bg-transparent p-4 sm:p-6"
-              onClick={() => setActiveFolder(null)}
             >
+              <div data-modal-backdrop aria-hidden="true" onClick={() => setActiveFolder(null)} />
               <div
                 {...dialog}
                 data-modal-card
@@ -546,10 +554,18 @@ export function CustomFoldersWidget({
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => handleDeleteFolder(activeFolder.id)}
+                      onClick={() =>
+                        handleDeleteFolder(
+                          activeFolder.id,
+                          locale === "ar"
+                            ? activeFolder.nameAr || activeFolder.nameEn
+                            : activeFolder.nameEn || activeFolder.nameAr,
+                        )
+                      }
                       disabled={busy}
-                      className="w-8 h-8 rounded-full bg-surface-container-highest text-ink-muted hover:text-rose-500 flex items-center justify-center"
+                      className="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-m3-error flex items-center justify-center"
                       title={t.actions.delete}
+                      aria-label={t.actions.delete}
                     >
                       <Trash2 className="w-4 h-4" aria-hidden="true" />
                     </button>

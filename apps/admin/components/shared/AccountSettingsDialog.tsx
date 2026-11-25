@@ -145,7 +145,7 @@ export function AccountSettingsDialog({
                 <Link
                   href={ROUTES.hr.newEmployee({ userId: value.userId })}
                   onClick={onClose}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3 py-1.5 text-xs font-semibold text-m3-on-primary hover:opacity-95 transition-opacity shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   {t.hrSelfService.createEmployeeProfile}
