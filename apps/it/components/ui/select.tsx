@@ -156,7 +156,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         ...Object.fromEntries(
           Array.from(computed)
             .filter((name) =>
-              /^--(md-sys-color-|m3-color-|brand-|site-|web-|admin-)/.test(
+              /^--(it-|ui-|brand-|site-|web-|admin-)/.test(
                 name,
               ),
             )

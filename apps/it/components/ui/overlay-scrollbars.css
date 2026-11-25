@@ -96,7 +96,7 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical,
   border-radius: 9999px !important;
   background-color: color-mix(
     in srgb,
-    var(--md-sys-color-on-surface, 255 255 255) 30%,
+    var(--it-ink-muted, #64748b) 45%,
     transparent
   );
   transform-origin: center right;
@@ -133,13 +133,13 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
   transform: scaleX(1.15) !important;
   background-color: color-mix(
     in srgb,
-    var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 90%,
+    var(--it-accent-blue, #0070d2) 90%,
     transparent
   ) !important;
   box-shadow: 0 0 8px
     color-mix(
       in srgb,
-      var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 60%,
+      var(--it-accent-blue, #0070d2) 60%,
       transparent
     ) !important;
 }
@@ -149,13 +149,13 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-vertical .os-scrollbar-handle::a
   opacity: 1 !important;
   transform: scaleX(1.3) !important;
   background-color: var(
-    --md-sys-color-primary,
-    rgb(var(--brand-accent, 16 185 129))
+    --it-accent-blue,
+    #0070d2
   ) !important;
   box-shadow: 0 0 14px
     color-mix(
       in srgb,
-      var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 90%,
+      var(--it-accent-blue, #0070d2) 90%,
       transparent
     ) !important;
 }
@@ -187,7 +187,7 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
   border-radius: 9999px !important;
   background-color: color-mix(
     in srgb,
-    var(--md-sys-color-on-surface, 255 255 255) 30%,
+    var(--it-ink-muted, #64748b) 45%,
     transparent
   );
   transform-origin: center bottom;
@@ -219,13 +219,13 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
   transform: scaleY(1.15) !important;
   background-color: color-mix(
     in srgb,
-    var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 90%,
+    var(--it-accent-blue, #0070d2) 90%,
     transparent
   ) !important;
   box-shadow: 0 0 8px
     color-mix(
       in srgb,
-      var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 60%,
+      var(--it-accent-blue, #0070d2) 60%,
       transparent
     ) !important;
 }
@@ -235,13 +235,13 @@ html[dir="rtl"] .os-theme-material.os-scrollbar-horizontal:not(.os-scrollbar-cor
   opacity: 1 !important;
   transform: scaleY(1.3) !important;
   background-color: var(
-    --md-sys-color-primary,
-    rgb(var(--brand-accent, 16 185 129))
+    --it-accent-blue,
+    #0070d2
   ) !important;
   box-shadow: 0 0 14px
     color-mix(
       in srgb,
-      var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 90%,
+      var(--it-accent-blue, #0070d2) 90%,
       transparent
     ) !important;
 }

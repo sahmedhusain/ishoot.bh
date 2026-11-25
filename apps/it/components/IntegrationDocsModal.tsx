@@ -20,6 +20,15 @@ export function IntegrationDocsModal({
   const idoc = copy.integrationDocs;
   const [copied, setCopied] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   if (!open || !provider) return null;
 
   const copyToClipboard = (text: string, id: string) => {
@@ -32,20 +41,29 @@ export function IntegrationDocsModal({
   const specs = getProviderTechnicalSpecs(provider);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="it-card w-full max-w-2xl max-h-[90vh] flex flex-col bg-surface overflow-hidden border-2 border-slate-700 shadow-2xl font-mono text-xs">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-[2px]"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="integration-docs-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-lg border border-outline-variant bg-surface text-ink overflow-hidden shadow-2xl font-mono text-xs"
+      >
 
-        <div className="flex items-center justify-between border-b border-outline-variant bg-slate-900 px-4 py-3 text-white">
+        <div className="flex items-center justify-between border-b border-white/10 bg-[#1a2b49] dark:bg-[#0b1526] px-4 py-3 text-white">
           <div className="flex items-center gap-2">
-            <FileCode className="h-4 w-4 text-amber-400" />
-            <h2 className="font-bold uppercase tracking-wider text-sm">
+            <FileCode className="h-4 w-4 text-sky-300" />
+            <h2 id="integration-docs-title" className="font-bold uppercase tracking-wider text-sm">
               {idoc.modalTitle}: {provider.id.toUpperCase()}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="rounded-md p-1 text-white/75 hover:bg-white/10 hover:text-white transition-colors"
             aria-label={idoc.close}
           >
             <X className="h-4 w-4" />
@@ -53,7 +71,7 @@ export function IntegrationDocsModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="flex items-center justify-between p-3 border border-outline-variant bg-slate-100 dark:bg-slate-900/60">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md p-3 border border-outline-variant bg-surface-raised">
             <div>
               <span className="text-[10px] text-ink-muted uppercase">PROVIDER KIND:</span>
               <div className="font-bold uppercase text-ink">{provider.kind}</div>

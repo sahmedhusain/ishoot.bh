@@ -249,7 +249,7 @@ export function OverviewView({
         </div>
 
         <div className="lg:col-span-2 it-card p-0 overflow-hidden flex flex-col">
-          <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
               {o.latest}
             </h2>

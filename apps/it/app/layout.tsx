@@ -57,7 +57,14 @@ export default async function RootLayout({
         <CopyProvider copy={copy} locale="en">
           <CurrencyLocaleProvider value="en">
             <ConfirmationProvider><TelemetryMonitor />{children}</ConfirmationProvider>
-            <Toaster richColors closeButton position="top-right" />
+            <Toaster
+              richColors
+              closeButton
+              position="top-right"
+              toastOptions={{
+                className: "it-toast",
+              }}
+            />
           </CurrencyLocaleProvider>
         </CopyProvider>
       </body>

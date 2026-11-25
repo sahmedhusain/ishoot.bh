@@ -336,7 +336,7 @@ export function AvatarEditor({
                 void pick(e.dataTransfer.files[0]);
               }}
               className={cn(
-                "flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 text-center transition-colors",
+                "flex flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors",
                 dragging ? "border-accent bg-accent/5" : "border-outline-variant",
               )}
             >

@@ -10,7 +10,7 @@ export interface CriticalActionModalProps {
   title?: string;
   description: string;
   impactDetails?: string[];
-  requiredConfirmationText?: string; 
+  requiredConfirmationText?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   dangerLevel?: "critical" | "warning";
@@ -45,6 +45,17 @@ export function CriticalActionModal({
     }
   }, [open]);
 
+  React.useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !busy) {
+        onCancel();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, busy, onCancel]);
+
   if (!open) return null;
 
   const requiresMatch = Boolean(requiredConfirmationText && requiredConfirmationText.trim().length > 0);
@@ -53,26 +64,33 @@ export function CriticalActionModal({
   const isCritical = dangerLevel === "critical";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-[2px]"
+      onClick={() => {
+        if (!busy) onCancel();
+      }}
+    >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="critical-action-title"
-        className="it-card w-full max-w-lg overflow-hidden border-2 border-slate-700 bg-surface shadow-2xl font-mono text-xs"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-outline-variant bg-surface text-ink shadow-2xl"
       >
-
         <div
           className={`flex items-center justify-between border-b px-4 py-3 text-white ${
-            isCritical ? "bg-rose-950 border-rose-800" : "bg-amber-950 border-amber-800"
+            isCritical
+              ? "bg-rose-900 dark:bg-rose-950 border-rose-800"
+              : "bg-amber-800 dark:bg-amber-950 border-amber-700"
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             {isCritical ? (
-              <ShieldAlert className="h-5 w-5 text-rose-400" />
+              <ShieldAlert className="h-4 w-4 text-rose-200 shrink-0" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-amber-400" />
+              <AlertTriangle className="h-4 w-4 text-amber-200 shrink-0" />
             )}
-            <h2 id="critical-action-title" className="font-bold uppercase tracking-wider text-sm">
+            <h2 id="critical-action-title" className="font-bold tracking-wide text-sm truncate">
               {modalTitle}
             </h2>
           </div>
@@ -80,7 +98,7 @@ export function CriticalActionModal({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="text-slate-400 hover:text-white"
+            className="rounded-md p-1 text-white/75 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-40"
             aria-label={copy.shared.ui.close}
           >
             <X className="h-4 w-4" />
@@ -88,16 +106,16 @@ export function CriticalActionModal({
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-ink text-xs leading-relaxed font-sans">{description}</p>
+          <p className="text-ink text-xs leading-relaxed">{description}</p>
 
           {impactDetails.length > 0 && (
-            <div className="p-3 border border-outline-variant bg-slate-50 dark:bg-slate-900/60 space-y-2">
+            <div className="rounded-md p-3 border border-outline-variant bg-surface-raised space-y-2">
               <div className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                 OPERATIONAL IMPACT & SYSTEM ATTENTION:
               </div>
-              <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 text-[11px] font-sans">
+              <ul className="list-disc list-inside space-y-1 text-ink-muted text-[11px]">
                 {impactDetails.map((item, idx) => (
-                  <li key={idx} className="leading-tight">
+                  <li key={idx} className="leading-snug">
                     {item}
                   </li>
                 ))}
@@ -109,7 +127,7 @@ export function CriticalActionModal({
             <div className="space-y-1.5 pt-1">
               <label className="block text-[11px] text-ink-muted">
                 To confirm this operation, please type{" "}
-                <span className="font-bold text-rose-600 dark:text-rose-400 select-all">
+                <span className="font-mono font-bold text-rose-600 dark:text-rose-400 select-all">
                   {requiredConfirmationText}
                 </span>{" "}
                 below:
@@ -120,21 +138,20 @@ export function CriticalActionModal({
                 onChange={(e) => setTypedText(e.target.value)}
                 disabled={busy}
                 placeholder={`Type "${requiredConfirmationText}" to proceed`}
-                className="w-full border-2 border-outline-variant focus:border-rose-500 bg-surface px-3 py-1.5 text-xs font-mono font-semibold text-ink outline-none"
+                className="it-field-sunken w-full font-mono text-xs font-semibold focus:border-rose-500"
                 autoFocus
               />
             </div>
           )}
         </div>
 
-        <div className="border-t border-outline-variant bg-slate-100 dark:bg-slate-900/80 px-4 py-3 flex items-center justify-end gap-2">
+        <div className="border-t border-outline-variant bg-surface-raised px-4 py-3 flex items-center justify-end gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onCancel}
             disabled={busy}
-            className="font-mono text-xs"
           >
             {cancelBtnLabel}
           </Button>
@@ -144,7 +161,7 @@ export function CriticalActionModal({
             size="sm"
             onClick={() => void onConfirm()}
             disabled={!isMatch || busy}
-            className={`font-mono text-xs flex items-center gap-1.5 ${
+            className={`flex items-center gap-1.5 ${
               isCritical
                 ? "bg-rose-700 hover:bg-rose-800 text-white"
                 : "bg-amber-600 hover:bg-amber-700 text-white"

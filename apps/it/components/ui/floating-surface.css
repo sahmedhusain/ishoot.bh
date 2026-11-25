@@ -4,14 +4,14 @@
   min-width: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 12px;
-  background: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface);
-  box-shadow: 0 8px 24px rgb(0 0 0/0.16);
-  animation: m3-surface-open 180ms cubic-bezier(0.2, 0, 0, 1);
+  border: 1px solid var(--it-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--it-surface, #ffffff);
+  color: var(--it-ink, #1e293b);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.22), 0 4px 10px -4px rgba(15, 23, 42, 0.1);
+  animation: it-surface-open 160ms ease;
 }
-@keyframes m3-surface-open {
+@keyframes it-surface-open {
   from {
     opacity: 0.3;
     transform: translateY(-4px);
@@ -26,9 +26,6 @@
     animation: none;
   }
 }
-html[data-motion="none"] .m3-floating-surface {
-  animation: none;
-}
 .m3-region-surface {
   display: flex;
   flex-direction: column;
@@ -39,8 +36,8 @@ html[data-motion="none"] .m3-floating-surface {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--it-border, #e2e8f0);
   flex-shrink: 0;
 }
 .m3-surface-header strong {
@@ -50,11 +47,11 @@ html[data-motion="none"] .m3-floating-surface {
   font-weight: 600;
 }
 .m3-surface-header button {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
-  border-radius: 50%;
-  font-size: 1.25rem;
+  border-radius: 6px;
+  font-size: 1.125rem;
 }
 .m3-surface-body {
   min-height: 0;
@@ -68,29 +65,11 @@ html[data-motion="none"] .m3-floating-surface {
   gap: 12px;
   flex-wrap: wrap;
   padding: 10px 16px;
-  border-top: 1px solid var(--md-sys-color-outline-variant);
+  border-top: 1px solid var(--it-border, #e2e8f0);
   font-size: 0.8125rem;
-  color: var(--md-sys-color-primary);
+  color: var(--it-accent-blue, #0070d2);
   flex-shrink: 0;
 }
 .m3-surface-footer button {
-  min-height: 40px;
-}
-
-@keyframes m3-surface-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-html[data-motion="reduced"] .m3-floating-surface {
-  animation-name: m3-surface-fade;
-}
-@media (pointer: coarse) {
-  .m3-surface-header button {
-    min-width: 48px;
-    min-height: 48px;
-  }
+  min-height: 36px;
 }

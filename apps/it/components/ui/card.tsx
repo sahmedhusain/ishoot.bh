@@ -7,15 +7,12 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Card({ className, variant = "outlined", ...props }: CardProps) {
   const variantStyles = {
-
     elevated:
-      "bg-m3-surface-container-low text-m3-on-surface border border-m3-outline-variant/30 shadow-m3-1 dark:bg-m3-surface-container-low dark:border-m3-outline-variant/20 dark:text-m3-on-surface",
-
+      "bg-surface text-ink border border-outline-variant shadow-sm",
     filled:
-      "bg-m3-surface-container-highest text-m3-on-surface border-0 dark:bg-m3-surface-container-highest dark:text-m3-on-surface",
-
+      "bg-surface-raised text-ink border border-outline-variant",
     outlined:
-      "bg-m3-surface border border-m3-outline-variant text-m3-on-surface dark:bg-m3-surface dark:border-m3-outline-variant dark:text-m3-on-surface",
+      "bg-surface text-ink border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
   };
 
   return (
@@ -23,7 +20,7 @@ export function Card({ className, variant = "outlined", ...props }: CardProps) {
       data-ui="card"
       data-variant={variant}
       className={cn(
-        "rounded-[var(--md-sys-shape-corner-medium)] p-6 transition-[box-shadow,background-color] duration-base ease-standard",
+        "rounded-lg p-5 transition-[box-shadow,background-color] duration-150",
         variantStyles[variant],
         className,
       )}

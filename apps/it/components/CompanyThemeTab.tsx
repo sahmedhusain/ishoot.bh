@@ -173,7 +173,7 @@ export function CompanyThemeTab({
                 disabled={!canEdit}
                 value={theme.primary}
                 onChange={(e) => set({ primary: e.target.value.toUpperCase() })}
-                className="h-9 w-12 cursor-pointer border border-slate-300 bg-transparent p-0.5"
+                className="h-9 w-12 cursor-pointer border border-slate-300 dark:border-slate-700 bg-transparent p-0.5 rounded"
               />
               <input
                 dir="ltr"
@@ -196,7 +196,7 @@ export function CompanyThemeTab({
                 disabled={!canEdit}
                 value={theme.accent}
                 onChange={(e) => set({ accent: e.target.value.toUpperCase() })}
-                className="h-9 w-12 cursor-pointer border border-slate-300 bg-transparent p-0.5"
+                className="h-9 w-12 cursor-pointer border border-slate-300 dark:border-slate-700 bg-transparent p-0.5 rounded"
               />
               <input
                 dir="ltr"

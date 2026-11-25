@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Mail, MessageCircle, RotateCcw, Send, Filter, ArrowRight } from "lucide-react";
+import { Mail, MessageCircle, RotateCcw, Send, Filter, ArrowRight, ArrowLeft } from "lucide-react";
 import { formatMessage } from "@platform/locales";
 import type { NotifyMessage } from "@platform/api-client";
 import { retryMessageAction, sendTestMessageAction } from "../app/actions";
@@ -32,7 +32,7 @@ const href = (
 
 function ChannelIcon({ channel }: { channel: string }) {
   const Icon = channel === "whatsapp" ? MessageCircle : Mail;
-  return <Icon className="size-3.5 text-slate-500 shrink-0" aria-hidden />;
+  return <Icon className="size-3.5 text-ink-muted shrink-0" aria-hidden />;
 }
 
 function useRetry() {
@@ -79,9 +79,9 @@ function TestForm() {
   };
 
   return (
-    <form onSubmit={send} className="flex flex-wrap items-end gap-2 font-mono text-xs">
+    <form onSubmit={send} className="flex flex-wrap items-end gap-3 text-xs">
       <div>
-        <label htmlFor="notify-test-channel" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+        <label htmlFor="notify-test-channel" className="block text-[10px] uppercase font-bold tracking-wider text-ink-muted mb-1">
           {n.channel}
         </label>
         <select
@@ -96,7 +96,7 @@ function TestForm() {
       </div>
 
       <div className="grow min-w-48">
-        <label htmlFor="notify-test-to" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+        <label htmlFor="notify-test-to" className="block text-[10px] uppercase font-bold tracking-wider text-ink-muted mb-1">
           {n.testTo}
         </label>
         <input
@@ -113,10 +113,10 @@ function TestForm() {
       <button
         type="submit"
         disabled={busy}
-        className="it-btn-3d py-1.5 px-3 font-bold text-sky-800 dark:text-sky-300 disabled:opacity-50"
+        className="it-btn-primary"
       >
-        <Send className="size-3.5 inline mr-1" aria-hidden />
-        {n.sendTest}
+        <Send className="size-3.5" aria-hidden />
+        <span>{n.sendTest}</span>
       </button>
     </form>
   );
@@ -157,44 +157,58 @@ export function NotificationsView({
       .filter((s) => s.status === status)
       .reduce((sum, s) => sum + s.messages, 0);
 
+  const statusMeta: Record<"sent" | "queued" | "failed", { accent: string; badge: string }> = {
+    sent: {
+      accent: "border-s-4 border-s-emerald-600 dark:border-s-emerald-400",
+      badge: "it-badge it-badge-active",
+    },
+    queued: {
+      accent: "border-s-4 border-s-[#0070d2] dark:border-s-sky-400",
+      badge: "it-badge it-badge-warn",
+    },
+    failed: {
+      accent: "border-s-4 border-s-rose-600 dark:border-s-rose-400",
+      badge: "it-badge it-badge-error",
+    },
+  };
+
   return (
     <div className="space-y-4">
       <PageTitle title={n.title} description={n.description} />
 
-      <div className="grid grid-cols-3 gap-2 font-mono text-xs" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
         {(["sent", "queued", "failed"] as const).map((status) => (
           <div
             key={status}
-            className="it-card p-3 border-l-4 border-l-sky-600 dark:border-l-sky-400"
+            className={`it-card p-3.5 ${statusMeta[status].accent}`}
           >
-            <div className="text-[10px] text-ink-muted uppercase font-bold">{n.statuses[status]}</div>
-            <div className="text-xl font-bold text-ink mt-0.5">{total(status)}</div>
-            <div className="text-[10px] text-ink-muted">{formatMessage(n.lastDay, { hours: 24 })}</div>
+            <div className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">{n.statuses[status]}</div>
+            <div className="text-xl font-bold text-ink mt-1">{total(status)}</div>
+            <div className="text-[11px] text-ink-muted mt-0.5">{formatMessage(n.lastDay, { hours: 24 })}</div>
           </div>
         ))}
       </div>
 
       {canExecute && (
-        <div className="it-card space-y-2">
-          <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-1">
-            <h2 className="text-xs font-bold uppercase font-mono text-ink">{n.testTitle}</h2>
+        <div className="it-card space-y-3">
+          <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink">{n.testTitle}</h2>
           </div>
           <TestForm />
         </div>
       )}
 
-      <div className="it-card space-y-2">
-        <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-1.5">
-          <div className="flex items-center gap-1.5 font-mono text-xs font-bold uppercase text-ink">
-            <Filter className="size-3.5 text-amber-600" />
+      <div className="it-card space-y-3">
+        <div className="flex items-center justify-between border-b border-outline-variant pb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink">
+            <Filter className="size-3.5 text-[#0070d2] dark:text-sky-400" />
             <span>{n.filtersTitle}</span>
           </div>
         </div>
 
-        <form onSubmit={handleApplyFilter} className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 text-xs font-mono">
-
+        <form onSubmit={handleApplyFilter} className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-xs">
           <div>
-            <label htmlFor="notify-filter-status" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label htmlFor="notify-filter-status" className="block text-[10px] uppercase font-bold tracking-wider text-ink-muted mb-1">
               {n.status}
             </label>
             <select
@@ -211,7 +225,7 @@ export function NotificationsView({
           </div>
 
           <div>
-            <label htmlFor="notify-filter-channel" className="block text-[10px] uppercase font-bold text-ink-muted mb-1">
+            <label htmlFor="notify-filter-channel" className="block text-[10px] uppercase font-bold tracking-wider text-ink-muted mb-1">
               {n.channel}
             </label>
             <select
@@ -226,17 +240,17 @@ export function NotificationsView({
             </select>
           </div>
 
-          <div className="flex items-end gap-1.5">
+          <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="it-btn-3d flex-1 py-1.5 font-bold text-emerald-800 dark:text-emerald-300"
+              className="it-btn-primary flex-1"
             >
               {n.filterApply}
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="it-btn-3d py-1.5 px-3"
+              className="it-btn-secondary"
             >
               {copy.sessions.clear}
             </button>
@@ -245,25 +259,25 @@ export function NotificationsView({
       </div>
 
       {!page ? (
-        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+        <div className="it-card p-8 text-center text-xs text-ink-muted">
           {n.unavailable}
         </div>
       ) : page.items.length === 0 ? (
-        <div className="it-card p-8 text-center text-xs font-mono text-ink-muted">
+        <div className="it-card p-8 text-center text-xs text-ink-muted">
           {n.empty}
         </div>
       ) : (
         <div className="it-card p-0 overflow-x-auto">
-          <table className="it-table w-full font-mono text-xs">
+          <table className="it-table w-full text-xs">
             <thead>
               <tr>
-                <th className="w-20">CHANNEL</th>
+                <th className="w-24">CHANNEL</th>
                 <th className="w-56">RECIPIENT</th>
                 <th>SUBJECT / CONTENT</th>
                 <th className="w-36">CALLER / ORIGIN</th>
                 <th className="w-40">TIMESTAMP</th>
                 <th className="w-24 text-center">STATUS</th>
-                <th className="w-24 text-center">ACTIONS</th>
+                <th className="w-28 text-center">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -275,18 +289,18 @@ export function NotificationsView({
                       <span className="uppercase">{m.channel}</span>
                     </span>
                   </td>
-                  <td className="font-semibold truncate max-w-xs" dir="ltr">
+                  <td className="font-mono font-semibold truncate max-w-xs" dir="ltr">
                     <bdi>{m.recipient}</bdi>
                   </td>
                   <td>
                     <Link
                       href={`/notifications/${m.id}`}
-                      className="font-sans font-medium text-ink hover:underline block truncate max-w-sm"
+                      className="font-medium text-ink hover:text-[#0070d2] dark:hover:text-sky-300 hover:underline block truncate max-w-sm"
                     >
                       {m.subject ?? n.channels[m.channel]}
                     </Link>
                     {m.status === "failed" && m.lastError && (
-                      <span className="text-[10px] text-rose-700 dark:text-rose-400 block truncate">
+                      <span className="text-[11px] text-rose-700 dark:text-rose-400 block truncate mt-0.5">
                         {m.lastError}
                       </span>
                     )}
@@ -294,19 +308,11 @@ export function NotificationsView({
                   <td className="text-ink-muted text-[11px] truncate">
                     {formatMessage(n.from, { caller: m.caller })}
                   </td>
-                  <td className="text-[10px] text-ink-muted whitespace-nowrap">
+                  <td className="text-[11px] text-ink-muted whitespace-nowrap">
                     {date(m.createdAt)}
                   </td>
                   <td className="text-center">
-                    <span
-                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase border ${
-                        m.status === "sent"
-                          ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
-                          : m.status === "queued"
-                          ? "bg-sky-500/10 text-sky-700 border-sky-500/30"
-                          : "bg-rose-500/10 text-rose-700 border-rose-500/30"
-                      }`}
-                    >
+                    <span className={statusMeta[m.status]?.badge ?? "it-badge it-badge-neutral"}>
                       {n.statuses[m.status]}
                     </span>
                   </td>
@@ -316,18 +322,18 @@ export function NotificationsView({
                         type="button"
                         onClick={() => retry(m.id)}
                         disabled={busy === m.id}
-                        className="it-btn-3d py-0.5 px-2 text-[10px] text-amber-700 dark:text-amber-400"
+                        className="it-btn-secondary py-1 px-2.5 text-[11px] text-amber-700 dark:text-amber-300 font-semibold"
                         title={n.retry}
                       >
-                        <RotateCcw className="size-3 inline mr-1" />
-                        {n.retry}
+                        <RotateCcw className="size-3" />
+                        <span>{n.retry}</span>
                       </button>
                     ) : (
                       <Link
                         href={`/notifications/${m.id}`}
-                        className="it-btn-3d py-0.5 px-2 text-[10px]"
+                        className="it-btn-secondary py-1 px-2.5 text-[11px]"
                       >
-                        <ArrowRight className="size-3 inline rtl:rotate-180" />
+                        <ArrowRight className="size-3 rtl:rotate-180" />
                       </Link>
                     )}
                   </td>
@@ -338,11 +344,11 @@ export function NotificationsView({
         </div>
       )}
 
-      <nav className="flex gap-2 pt-2 font-mono text-xs" aria-label={n.pages}>
+      <nav className="flex gap-2 pt-2 text-xs" aria-label={n.pages}>
         {filter.cursor && (
           <Link
             href={href(filter, {})}
-            className="it-btn-3d py-1 px-3"
+            className="it-btn-secondary"
           >
             {n.newest}
           </Link>
@@ -350,7 +356,7 @@ export function NotificationsView({
         {page?.nextCursor && (
           <Link
             href={href(filter, { cursor: page.nextCursor })}
-            className="it-btn-3d py-1 px-3"
+            className="it-btn-secondary"
           >
             {n.older}
           </Link>
@@ -393,47 +399,48 @@ export function NotificationDetail({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 pb-2">
-        <PageTitle
-          title={m.subject ?? n.channels[m.channel]}
-          actions={
-            canExecute && m.status === "failed" ? (
+      <PageTitle
+        title={m.subject ?? n.channels[m.channel]}
+        actions={
+          <div className="flex items-center gap-2">
+            {canExecute && m.status === "failed" && (
               <button
                 type="button"
                 onClick={() => retry(m.id)}
                 disabled={busy === m.id}
-                className="it-btn-3d py-1 px-3 text-rose-700 dark:text-rose-400 font-bold"
+                className="it-btn-primary"
               >
-                <RotateCcw className="size-3.5 inline mr-1" />
-                {n.retry}
+                <RotateCcw className="size-3.5" />
+                <span>{n.retry}</span>
               </button>
-            ) : null
-          }
-        />
-        <Link href="/notifications" className="it-btn-3d py-1 px-3 text-xs font-mono">
-          ← {n.back}
-        </Link>
-      </div>
+            )}
+            <Link href="/notifications" className="it-btn-secondary">
+              <ArrowLeft className="size-3.5 rtl:rotate-180" />
+              <span>{n.back}</span>
+            </Link>
+          </div>
+        }
+      />
 
-      <div className="it-card p-4 space-y-4 font-mono text-xs">
+      <div className="it-card p-5 space-y-4 text-xs">
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
           {rows.map(([label, value]) => (
             <React.Fragment key={label}>
-              <dt className="text-ink-muted uppercase font-bold">{label}:</dt>
+              <dt className="text-ink-muted uppercase font-bold text-[11px]">{label}:</dt>
               <dd className="text-ink font-semibold">{value}</dd>
             </React.Fragment>
           ))}
         </dl>
 
         {m.lastError && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs">
+          <div className="p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs">
             <span className="font-bold">LAST TRANSMISSION ERROR:</span> {m.lastError}
           </div>
         )}
 
         {m.attachments && m.attachments.length > 0 && (
-          <div className="border-t border-slate-300 dark:border-slate-700 pt-3">
-            <h2 className="text-xs font-bold uppercase mb-1">
+          <div className="border-t border-outline-variant pt-3">
+            <h2 className="text-xs font-bold uppercase mb-1.5 text-ink">
               {n.attachments}
             </h2>
             <ul className="list-disc ps-5 space-y-0.5 text-ink-muted">
@@ -449,13 +456,13 @@ export function NotificationDetail({
 
         {[m.text, m.html].map((body, i) =>
           body ? (
-            <div key={i} className="border-t border-slate-300 dark:border-slate-700 pt-3">
-              <h2 className="text-xs font-bold uppercase mb-1">
+            <div key={i} className="border-t border-outline-variant pt-3">
+              <h2 className="text-xs font-bold uppercase mb-1.5 text-ink">
                 {i === 0 ? n.text : n.html}
               </h2>
               <pre
                 dir="auto"
-                className="it-field-sunken max-h-96 overflow-auto whitespace-pre-wrap p-3 text-xs"
+                className="it-field-sunken max-h-96 overflow-auto whitespace-pre-wrap p-3 text-xs font-mono"
               >
                 {body}
               </pre>

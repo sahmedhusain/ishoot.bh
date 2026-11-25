@@ -484,9 +484,9 @@ export function ITAccountsView({
                     <div className="text-[11px] text-ink-muted font-sans">
                       {n.lastLogin}: {account.lastLoginAt ? date(account.lastLoginAt) : n.never} •{" "}
                       {account.mfaEnabled ? (
-                        <span className="text-emerald-600 font-semibold">{n.twoFaEnrolled}</span>
+                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold">{n.twoFaEnrolled}</span>
                       ) : (
-                        <span className="text-amber-600">{n.twoFaMissing}</span>
+                        <span className="text-amber-700 dark:text-amber-400">{n.twoFaMissing}</span>
                       )}
                       {" • "}
                       <span className="font-semibold text-ink">

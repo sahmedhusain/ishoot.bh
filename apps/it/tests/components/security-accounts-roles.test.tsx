@@ -146,6 +146,19 @@ describe("IT Security, Accounts, Sessions & Roles Components", () => {
 
   it("SettingsView loads security status + IT roles and wires MFA, roles, preferences & presence actions", async () => {
     const user = userEvent.setup();
+    itActionMocks.getITRolesAction.mockResolvedValueOnce({
+      ok: true,
+      items: [
+        {
+          id: "custom_ops",
+          nameEn: "Custom Ops",
+          nameAr: "عمليات",
+          system: false,
+          reportingToRole: null,
+          grants: { "tickets:read": true },
+        },
+      ],
+    });
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -183,6 +196,20 @@ describe("IT Security, Accounts, Sessions & Roles Components", () => {
     await waitFor(() => {
       expect(itActionMocks.getITRolesAction).toHaveBeenCalled();
     });
+
+    // Verify custom IT role deletion uses Oracle CriticalActionModal (never window.confirm)
+    const confirmSpy = vi.spyOn(window, "confirm");
+    const deleteRoleBtn = await screen.findByRole("button", { name: enCopy.itRoles.deleteRole });
+    await user.click(deleteRoleBtn);
+    expect(confirmSpy).not.toHaveBeenCalled();
+    const deleteDialog = screen.getByRole("alertdialog");
+    expect(deleteDialog).toBeInTheDocument();
+    await user.type(within(deleteDialog).getByRole("textbox"), "DELETE");
+    await user.click(within(deleteDialog).getByRole("button", { name: enCopy.itRoles.deleteRole }));
+    await waitFor(() => {
+      expect(itActionMocks.deleteITRoleAction).toHaveBeenCalledWith("custom_ops");
+    });
+    confirmSpy.mockRestore();
 
     expect(itActionMocks.beginItMFAAction).toBeDefined();
     expect(itActionMocks.confirmItMFAAction).toBeDefined();
