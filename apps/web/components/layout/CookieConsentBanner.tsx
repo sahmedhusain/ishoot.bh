@@ -69,7 +69,7 @@ function M3Switch({
       />
       <span
         aria-hidden="true"
-        className={`relative inline-flex h-8 w-[52px] items-center rounded-full border-2 transition-colors duration-fast cursor-pointer ${
+        className={`relative inline-flex h-8 w-[52px] items-center rounded-full border-2 transition-colors duration-fast cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-m3-primary ${
           checked
             ? "bg-m3-primary border-m3-primary"
             : "bg-m3-surface-container-highest border-m3-outline"
@@ -94,6 +94,8 @@ export function CookieConsentBanner() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [prefsEnabled, setPrefsEnabled] = React.useState(true);
   const [analyticsEnabled, setAnalyticsEnabled] = React.useState(true);
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const titleId = React.useId();
 
   React.useEffect(() => {
     const existing = readStoredConsent();
@@ -114,6 +116,20 @@ export function CookieConsentBanner() {
     window.addEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handler);
     return () => window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handler);
   }, []);
+
+  React.useEffect(() => {
+    if (!modalOpen) return;
+    const element = dialogRef.current;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    element?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      element?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [modalOpen]);
 
   const saveChoice = (preferences: boolean, analytics: boolean) => {
     const payload: CookiePreferences = {
@@ -194,25 +210,33 @@ export function CookieConsentBanner() {
       )}
 
       {modalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cookie-preferences-title"
+        <dialog
+          ref={dialogRef}
+          aria-labelledby={titleId}
           dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onCancel={(event) => {
+            event.preventDefault();
+            setModalOpen(false);
+          }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setModalOpen(false);
+          }}
+          data-lenis-prevent
+          className="m-auto p-0 w-[calc(100%-2rem)] max-w-xl max-h-[90dvh] rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-5 overflow-hidden text-m3-on-surface backdrop:bg-black/60"
         >
-          <div className="w-full max-w-xl rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-5 overflow-hidden text-m3-on-surface">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-m3-outline-variant">
+          <div className="flex flex-col max-h-[90dvh]">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-m3-outline-variant shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-m3-secondary-container text-m3-on-secondary-container flex items-center justify-center shrink-0">
                   <ShieldCheck aria-hidden="true" className="w-5 h-5" />
                 </div>
-                <h2 id="cookie-preferences-title" className="text-lg font-display font-bold text-m3-on-surface">
+                <h2 id={titleId} className="text-lg font-display font-bold text-m3-on-surface">
                   {t("cookies.bannerTitle")}
                 </h2>
               </div>
               <button
                 type="button"
+                autoFocus
                 aria-label={t("footer.close")}
                 onClick={() => setModalOpen(false)}
                 className="w-11 h-11 rounded-full flex items-center justify-center text-m3-on-surface-variant hover:bg-m3-on-surface/[0.08] cursor-pointer"
@@ -221,7 +245,7 @@ export function CookieConsentBanner() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[65dvh] overflow-y-auto">
+            <div className="p-6 space-y-4 overflow-y-auto overscroll-contain" data-lenis-prevent>
               <p className="text-xs sm:text-sm text-m3-on-surface-variant leading-relaxed">
                 {t("cookies.policyIntro")}
               </p>
@@ -259,7 +283,7 @@ export function CookieConsentBanner() {
               </label>
             </div>
 
-            <div className="px-6 py-4 border-t border-m3-outline-variant flex flex-wrap items-center justify-end gap-2.5">
+            <div className="px-6 py-4 border-t border-m3-outline-variant flex flex-wrap items-center justify-end gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => saveChoice(false, false)}
@@ -276,7 +300,7 @@ export function CookieConsentBanner() {
               </button>
             </div>
           </div>
-        </div>
+        </dialog>
       )}
     </>
   );
