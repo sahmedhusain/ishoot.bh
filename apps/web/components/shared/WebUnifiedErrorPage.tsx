@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -8,18 +8,18 @@ import {
   ShieldAlert,
   RefreshCw,
   Home,
-  Terminal,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Check,
+  Flag,
+  CheckCircle2,
+  Loader2,
   Briefcase,
   Sparkles,
   Newspaper,
   Mail,
   Info,
 } from "lucide-react";
+import { formatMessage } from "@platform/locales";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useSnackbar } from "../ui/snackbar";
 
 export interface WebUnifiedErrorPageProps {
   statusCode?: number | string;
@@ -29,6 +29,15 @@ export interface WebUnifiedErrorPageProps {
   error?: (Error & { digest?: string; status?: number; statusCode?: number }) | null;
   reset?: () => void;
   showQuickLinks?: boolean;
+}
+
+function makeIncidentId(code: string): string {
+  const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const rand =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID().slice(0, 6).toUpperCase()
+      : Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `ERR-${day}-${code}-${rand}`;
 }
 
 export function WebUnifiedErrorPage({
@@ -41,47 +50,35 @@ export function WebUnifiedErrorPage({
   showQuickLinks,
 }: WebUnifiedErrorPageProps) {
   const { locale, isRTL, translations, site } = useTranslation();
+  const snackbar = useSnackbar();
   const copy = translations.errorPages;
   const collectionSlug = site?.collection?.slug || "work";
   const articlesSlug = site?.articles?.slug || "news";
 
-  const [copied, setCopied] = useState(false);
-  const [showStack, setShowStack] = useState(false);
-
   const resolvedCode = String(
     statusCode ?? (error?.status || error?.statusCode || (error ? 500 : 404)),
   );
+  const reactId = React.useId().replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6) || "WEB";
+  const [incidentId, setIncidentId] = React.useState(`ERR-${resolvedCode}-${reactId}`);
+  const [reporting, setReporting] = React.useState(false);
+  const [reportedTicket, setReportedTicket] = React.useState<string | null>(null);
+  const [reportError, setReportError] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    setIncidentId(makeIncidentId(resolvedCode));
+  }, [resolvedCode]);
+
+  React.useEffect(() => {
     if (error) {
       console.error(`[WebUnifiedErrorPage HTTP ${resolvedCode}]:`, error);
     }
   }, [error, resolvedCode]);
-
-  const copyDiagnostics = () => {
-    const payload = JSON.stringify(
-      {
-        timestamp: new Date().toISOString(),
-        statusCode: resolvedCode,
-        errorName: error?.name,
-        errorMessage: customMessage || error?.message,
-        digest: error?.digest,
-        stack: error?.stack,
-      },
-      null,
-      2,
-    );
-    navigator.clipboard.writeText(payload);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   const titleKey = `code${resolvedCode}Title` as keyof typeof copy;
   const descKey = `code${resolvedCode}Desc` as keyof typeof copy;
 
   const resolvedTitle = customTitle || (copy[titleKey] as string) || copy.genericTitle;
   const resolvedDesc = customDescription || (copy[descKey] as string) || copy.genericDescription;
-  const resolvedMessage = customMessage || error?.message || copy.unknownMessage;
   const resolvedBadge = copy.codePrefix.replace("{code}", resolvedCode);
 
   const is404 = resolvedCode === "404" || showQuickLinks;
@@ -96,86 +93,122 @@ export function WebUnifiedErrorPage({
     { href: `/${locale}/contact`, label: copy.contactLink, icon: Mail },
   ];
 
+  const handleReport = async () => {
+    if (reporting || reportedTicket) return;
+    setReporting(true);
+    setReportError(null);
+    try {
+      const numericStatus = Number(resolvedCode);
+      const res = await fetch("/api/error-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          errorCode: resolvedCode,
+          incidentId,
+          statusCode: Number.isFinite(numericStatus) ? numericStatus : 500,
+          route: typeof window !== "undefined" ? window.location.pathname : "/",
+          url: typeof window !== "undefined" ? window.location.href : "/",
+          timestamp: new Date().toISOString(),
+          message: customMessage || error?.message || "",
+          stack: error?.stack || "",
+          digest: error?.digest || "",
+          clientMeta:
+            typeof window !== "undefined"
+              ? {
+                  viewport: `${window.innerWidth}x${window.innerHeight}`,
+                  language: navigator.language || locale,
+                  platform: navigator.platform || "",
+                  referrer: document.referrer || "",
+                }
+              : undefined,
+        }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        ticketNumber?: number | null;
+        incidentId?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(copy.reportFailed);
+      }
+
+      const refLabel = data.ticketNumber ? `#${data.ticketNumber}` : data.incidentId || incidentId;
+      setReportedTicket(refLabel);
+      snackbar.show({
+        message: formatMessage(copy.reportSuccess, { ticket: refLabel }),
+        variant: "success",
+      });
+    } catch {
+      setReportError(copy.reportFailed);
+      snackbar.show({
+        message: copy.reportFailed,
+        variant: "error",
+      });
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const iconContainerClass = is404
+    ? "bg-m3-secondary-container text-m3-on-secondary-container"
+    : isAuth
+      ? "bg-m3-tertiary-container text-m3-on-tertiary-container"
+      : "bg-m3-error-container text-m3-on-error-container";
+
+  const badgeClass = is404
+    ? "bg-m3-secondary-container text-m3-on-secondary-container"
+    : isAuth
+      ? "bg-m3-tertiary-container text-m3-on-tertiary-container"
+      : "bg-m3-error-container text-m3-on-error-container";
+
   return (
     <main
       role="alert"
-      className="min-h-[80vh] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-brand-base text-ink"
+      className="min-h-[82vh] w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-m3-surface text-m3-on-surface"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="max-w-2xl w-full text-center space-y-6 bg-brand-surface/90 border border-white/10 p-6 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-xl relative overflow-hidden">
+      <div className="max-w-xl w-full text-center space-y-6 bg-m3-surface-container-low border border-m3-outline-variant p-6 sm:p-10 rounded-[var(--md-sys-shape-corner-extra-large,28px)] shadow-m3-2">
         <div
-          className={`absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none ${
-            is404
-              ? "bg-accent/10"
-              : isAuth
-                ? "bg-amber-500/10"
-                : "bg-rose-500/10"
-          }`}
-        />
-
-        <div className="relative mx-auto">
-          <div
-            className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-xl transition-transform ${
-              is404
-                ? "bg-accent/10 border border-accent/30 text-accent shadow-accent/10"
-                : isAuth
-                  ? "bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-amber-500/10"
-                  : "bg-rose-500/10 border border-rose-500/30 text-rose-500 shadow-rose-500/10"
-            }`}
-          >
-            {is404 ? (
-              <FileQuestion className="w-10 h-10" />
-            ) : isAuth ? (
-              <ShieldAlert className="w-10 h-10" />
-            ) : (
-              <AlertCircle className="w-10 h-10" />
-            )}
-          </div>
+          className={`w-16 h-16 rounded-[var(--md-sys-shape-corner-large,16px)] flex items-center justify-center mx-auto ${iconContainerClass}`}
+        >
+          {is404 ? (
+            <FileQuestion aria-hidden="true" className="w-8 h-8" />
+          ) : isAuth ? (
+            <ShieldAlert aria-hidden="true" className="w-8 h-8" />
+          ) : (
+            <AlertCircle aria-hidden="true" className="w-8 h-8" />
+          )}
         </div>
 
-        <div className="space-y-3 relative z-10">
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wider ${
-              is404
-                ? "bg-accent/10 border border-accent/25 text-accent"
-                : isAuth
-                  ? "bg-amber-500/10 border border-amber-500/25 text-amber-400"
-                  : "bg-rose-500/10 border border-rose-500/25 text-rose-400"
-            }`}
-          >
-            <span>{resolvedBadge}</span>
-            {error?.name && <span>· {error.name}</span>}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`inline-flex items-center px-3.5 py-1 rounded-full font-mono text-xs font-semibold tracking-wide ${badgeClass}`}
+            >
+              {resolvedBadge}
+            </span>
+            <span
+              data-testid="error-incident-id"
+              dir="ltr"
+              className="inline-flex items-center px-3.5 py-1 rounded-full bg-m3-surface-container border border-m3-outline-variant font-mono text-xs font-semibold text-m3-on-surface-variant"
+            >
+              {incidentId}
+            </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-m3-on-surface font-display tracking-tight">
             {resolvedTitle}
           </h1>
 
-          <p className="text-sm text-ink-muted leading-relaxed max-w-lg mx-auto">
+          <p className="text-sm sm:text-base text-m3-on-surface-variant leading-relaxed max-w-md mx-auto">
             {resolvedDesc}
           </p>
         </div>
 
-        {Boolean(error || customMessage) && (
-          <div className="rounded-2xl border border-white/10 bg-black/60 p-4 text-left font-mono text-xs text-rose-300 break-words space-y-1.5 shadow-inner relative z-10">
-            <div className="flex items-center gap-2 text-white/50 text-[11px] uppercase tracking-wider font-sans font-semibold">
-              <Terminal className="w-3.5 h-3.5 text-rose-400" />
-              <span>{copy.technicalMessageLabel}</span>
-            </div>
-            <div className="text-rose-400 font-semibold pl-1">
-              {resolvedMessage}
-            </div>
-            {error?.digest && (
-              <div className="text-[11px] text-white/40 pt-1 border-t border-white/5 pl-1">
-                {copy.refPrefix} {error.digest}
-              </div>
-            )}
-          </div>
-        )}
-
         {is404 && (
-          <div className="pt-1 text-left relative z-10">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted/70 mb-2.5 text-center">
+          <div className="pt-1 text-start">
+            <p className="text-xs font-semibold uppercase tracking-wider text-m3-on-surface-variant mb-3 text-center">
               {copy.quickLinksHeading}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -185,9 +218,9 @@ export function WebUnifiedErrorPage({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-medium text-white transition-all hover:border-accent/30"
+                    className="min-h-11 flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--md-sys-shape-corner-medium,12px)] border border-m3-outline-variant bg-m3-surface-container hover:bg-m3-surface-container-high hover:border-m3-primary text-xs font-semibold text-m3-on-surface transition-colors"
                   >
-                    <Icon className="h-3.5 w-3.5 text-accent shrink-0" />
+                    <Icon aria-hidden="true" className="h-3.5 w-3.5 text-m3-primary shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </Link>
                 );
@@ -196,64 +229,68 @@ export function WebUnifiedErrorPage({
           </div>
         )}
 
-        {error?.stack && (
-          <div className="text-left relative z-10">
-            <button
-              type="button"
-              onClick={() => setShowStack(!showStack)}
-              className="text-xs text-white/40 hover:text-white/70 flex items-center gap-1 transition-colors mx-auto cursor-pointer"
-            >
-              {showStack ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              <span>{copy.diagnosticsToggle}</span>
-            </button>
-
-            {showStack && (
-              <pre className="mt-2 p-3 rounded-xl bg-black/80 border border-white/10 text-white/60 font-mono text-[10px] overflow-x-auto max-h-40 whitespace-pre-wrap leading-relaxed">
-                {error.stack}
-              </pre>
-            )}
+        {reportedTicket && (
+          <div
+            role="status"
+            className="flex items-center justify-center gap-2 rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-primary-container text-m3-on-primary-container px-4 py-3 text-xs font-semibold"
+          >
+            <CheckCircle2 aria-hidden="true" className="w-4 h-4 shrink-0" />
+            <span>{formatMessage(copy.reportSuccess, { ticket: reportedTicket })}</span>
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2 relative z-10">
+        {reportError && (
+          <div
+            role="status"
+            className="rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-error-container text-m3-on-error-container px-4 py-3 text-xs font-semibold"
+          >
+            {reportError}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           {reset && (
             <button
               type="button"
               onClick={reset}
-              className="min-h-11 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all border border-accent/40 active:scale-95 shadow-lg shadow-primary/20 cursor-pointer"
+              className="min-h-11 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary text-xs font-semibold transition-colors shadow-m3-1 cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw aria-hidden="true" className="w-3.5 h-3.5" />
               <span>{copy.retry}</span>
             </button>
           )}
 
+          <button
+            type="button"
+            disabled={reporting || Boolean(reportedTicket)}
+            onClick={() => void handleReport()}
+            className="min-h-11 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-m3-secondary-container hover:brightness-95 text-m3-on-secondary-container text-xs font-semibold transition-colors disabled:opacity-60 cursor-pointer"
+          >
+            {reporting ? (
+              <>
+                <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
+                <span>{copy.reportingButton}</span>
+              </>
+            ) : reportedTicket ? (
+              <>
+                <CheckCircle2 aria-hidden="true" className="w-3.5 h-3.5" />
+                <span>{copy.reportedButton}</span>
+              </>
+            ) : (
+              <>
+                <Flag aria-hidden="true" className="w-3.5 h-3.5" />
+                <span>{copy.reportButton}</span>
+              </>
+            )}
+          </button>
+
           <Link
             href={`/${locale}`}
-            className="min-h-11 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold transition-colors border border-white/10 cursor-pointer"
+            className="min-h-11 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-m3-outline text-m3-primary hover:bg-m3-primary/[0.08] text-xs font-semibold transition-colors cursor-pointer"
           >
-            <Home className="w-3.5 h-3.5" />
+            <Home aria-hidden="true" className="w-3.5 h-3.5" />
             <span>{copy.returnHome}</span>
           </Link>
-
-          {error && (
-            <button
-              type="button"
-              onClick={copyDiagnostics}
-              className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/5 text-xs font-medium transition-colors cursor-pointer border border-transparent hover:border-white/10"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400 font-semibold">{copy.copied}</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copy.copyDiagnostics}</span>
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
     </main>

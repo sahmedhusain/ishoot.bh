@@ -68,7 +68,7 @@
     min-width: min(140px, 100%);
     width: auto;
   }
-  .admin-page [role="tablist"] {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) {
     display: flex;
     gap: 4px;
     align-items: stretch;
@@ -80,7 +80,7 @@
     padding: 0;
     background: transparent;
   }
-  .admin-page [role="tab"] {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) [role="tab"] {
     position: relative;
     display: flex;
     align-items: center;
@@ -100,11 +100,12 @@
       background 150ms,
       color 150ms;
   }
-  .admin-page [role="tab"][aria-selected="true"] {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) [role="tab"][aria-selected="true"] {
     color: var(--md-sys-color-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 4%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 6%, transparent);
+    font-weight: 600;
   }
-  .admin-page [role="tab"][aria-selected="true"]::after {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) [role="tab"][aria-selected="true"]::after {
     content: "";
     position: absolute;
     bottom: 0;
@@ -113,13 +114,10 @@
     border-radius: 3px 3px 0 0;
     background: var(--md-sys-color-primary);
   }
-  .admin-page [role="tab"] svg {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) [role="tab"] svg {
     color: inherit;
   }
-  .admin-page [role="tab"][aria-selected="true"] [class*="text-white"] {
-    color: var(--md-sys-color-primary);
-  }
-  .admin-page [role="tab"]:hover {
+  .admin-page [role="tablist"]:not([data-tab-variant="pills"]) [role="tab"]:hover {
     background: color-mix(
       in srgb,
       var(--md-sys-color-on-surface) 6%,

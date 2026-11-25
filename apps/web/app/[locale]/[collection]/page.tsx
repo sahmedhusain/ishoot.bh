@@ -16,7 +16,12 @@ export default async function CollectionPage({
   searchParams: Promise<{ category?: string; q?: string; page?: string }>;
 }) {
   const { locale, collection } = await params;
-  const [{ website, config, info }, isPreview, t, query] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale), searchParams]);
+  const [{ website, config, info }, isPreview, t, query] = await Promise.all([
+    getSite(),
+    isWebsitePreview(),
+    siteTranslations(locale),
+    searchParams,
+  ]);
   if (!website) notFound();
   if (collection === info.articles.slug && collection !== info.collection.slug)
     return <ArticlesIndex articles={liveArticles(website.articles ?? [])} locale={locale} base={`/${locale}/${info.articles.slug}`} query={query} />;
@@ -35,27 +40,28 @@ export default async function CollectionPage({
   }
 
   const items = website.portfolio ?? [];
-  const categories = website.categories ?? Array.from(
-    new Map(
-      items
-        .filter((item) => item.category)
-        .map((item) => [item.category!.id, item.category!]),
-    ).values(),
-  );
+  const categories =
+    website.categories ??
+    Array.from(
+      new Map(
+        items
+          .filter((item) => item.category)
+          .map((item) => [item.category!.id, item.category!]),
+      ).values(),
+    );
 
   return (
-    <div className="relative min-h-screen bg-brand-base text-ink overflow-hidden">
+    <div className="relative min-h-screen bg-m3-surface text-m3-on-surface overflow-hidden">
       <div className="shell relative z-10 page-heading">
-        <Reveal className="space-y-5 max-w-3xl mb-12 sm:mb-16">
+        <Reveal className="space-y-5 max-w-3xl mb-8 sm:mb-12">
           <SectionBadge>{t.portfolio.badge}</SectionBadge>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-m3-on-surface font-display">
             {t.portfolio.title}
           </h1>
-          <p className="text-base sm:text-lg text-ink-muted leading-relaxed">
+          <p className="text-base sm:text-lg text-m3-on-surface-variant leading-relaxed">
             {t.portfolio.subtitle}
           </p>
         </Reveal>
-
       </div>
       <div className="shell pb-16">
         <PortfolioGrid items={items} categories={categories} layout={info.collection.layout} />

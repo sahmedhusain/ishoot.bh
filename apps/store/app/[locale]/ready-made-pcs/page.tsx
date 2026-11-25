@@ -69,7 +69,7 @@ export default async function ReadyMadePackagesPage({
   return (
     <div className="bg-m3-surface text-m3-on-surface space-y-10 pb-20">
       <header className="shell pt-6 space-y-6">
-        <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 sm:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
               <Layers className="w-3.5 h-3.5" aria-hidden="true" />

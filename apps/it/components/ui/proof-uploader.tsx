@@ -73,7 +73,7 @@ export function ProofUploader({
 
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-ink/15 hover:border-accent/60 bg-surface-sunken/60 hover:bg-surface-sunken rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group"
+        className="border-2 border-dashed border-outline-variant hover:border-primary bg-surface-sunken/60 hover:bg-surface-sunken rounded-lg p-5 text-center cursor-pointer transition-all duration-200 group"
       >
         <input
           ref={fileInputRef}

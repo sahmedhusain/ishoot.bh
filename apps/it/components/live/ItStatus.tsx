@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { Check } from "lucide-react";
 import { formatMessage } from "@platform/locales";
 import { PresenceDot, UserAvatar, type PresenceTone } from "@platform/ui";
 import {
@@ -28,8 +29,13 @@ export function ItStatus({ email }: { email: string }) {
   React.useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    const escape = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", escape);
+    };
   }, [open]);
 
   const current = status?.presence.status ?? "offline";
@@ -57,31 +63,57 @@ export function ItStatus({ email }: { email: string }) {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full border border-outline-variant py-1 ps-1 pe-3 text-xs text-ink hover:bg-surface-container"
+        className="flex items-center gap-2 rounded-md border border-white/20 bg-white/10 py-1 ps-1 pe-2.5 text-xs font-medium text-white hover:bg-white/20 transition-colors"
       >
-        <UserAvatar name={email.split("@")[0].replace(/[._-]+/g, " ")} size={28} tone={presenceTone(current) as PresenceTone} doNotDisturb={presenceSilences(current)} />
+        <UserAvatar
+          name={email.split("@")[0].replace(/[._-]+/g, " ")}
+          size={24}
+          tone={presenceTone(current) as PresenceTone}
+          doNotDisturb={presenceSilences(current)}
+        />
         <span className="hidden sm:inline">{name(current)}</span>
       </button>
       {open && (
-        <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-64 rounded-2xl border border-outline-variant bg-surface p-2 shadow-xl">
-          <p className="px-2 pb-2 text-xs font-semibold text-ink">{c.status}</p>
-          {PRESENCE_MANUAL_STATUSES.map((s) => (
-            <button
-              key={s.key}
-              role="menuitemradio"
-              aria-checked={status?.chosen?.status === s.key}
-              type="button"
-              disabled={busy}
-              onClick={() => choose(s.key)}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start text-sm text-ink hover:bg-surface-container"
-            >
-              <PresenceDot tone={presenceTone(s.key) as PresenceTone} doNotDisturb={s.silences} />
-              {name(s.key)}
-            </button>
-          ))}
-          <label className="mt-2 block px-2 text-xs text-ink-muted">
+        <div
+          role="menu"
+          className="absolute end-0 top-full z-50 mt-2 w-64 rounded-lg border border-outline-variant bg-surface text-ink p-2 shadow-xl"
+        >
+          <p className="px-2 pb-1.5 mb-1 border-b border-outline-variant text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+            {c.status}
+          </p>
+          <div className="space-y-0.5">
+            {PRESENCE_MANUAL_STATUSES.map((s) => {
+              const selected = status?.chosen?.status === s.key;
+              return (
+                <button
+                  key={s.key}
+                  role="menuitemradio"
+                  aria-checked={selected}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => choose(s.key)}
+                  className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-start text-xs font-medium transition-colors ${
+                    selected
+                      ? "bg-[#0070d2]/10 text-[#0070d2] dark:bg-sky-500/15 dark:text-sky-300 font-semibold"
+                      : "text-ink hover:bg-surface-raised"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <PresenceDot tone={presenceTone(s.key) as PresenceTone} doNotDisturb={s.silences} />
+                    <span>{name(s.key)}</span>
+                  </span>
+                  {selected && <Check aria-hidden className="size-3.5 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+          <label className="mt-2 pt-2 border-t border-outline-variant block px-2 text-[11px] font-medium text-ink-muted">
             {c.clearAfter}
-            <select value={duration} onChange={(e) => setDuration(e.target.value as PresenceDuration)} className="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-2 py-1 text-sm text-ink">
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value as PresenceDuration)}
+              className="it-field-sunken mt-1 w-full text-xs"
+            >
               {PRESENCE_DURATIONS.map((d) => {
                 const raw = (c.durations as Record<string, string>)[d] ?? d;
                 const label =
@@ -103,7 +135,12 @@ export function ItStatus({ email }: { email: string }) {
             </select>
           </label>
           {status?.chosen && (
-            <button type="button" disabled={busy} onClick={() => choose(null)} className="mt-2 w-full rounded-lg px-2 py-1.5 text-start text-sm text-accent hover:bg-surface-container">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => choose(null)}
+              className="mt-2 w-full rounded-md px-2.5 py-1.5 text-start text-xs font-semibold text-[#0070d2] dark:text-sky-400 hover:bg-surface-raised transition-colors"
+            >
               {c.reset}
             </button>
           )}

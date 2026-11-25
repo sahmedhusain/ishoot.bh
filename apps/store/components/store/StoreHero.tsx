@@ -102,7 +102,7 @@ export function StoreHero({
     >
       <div className="shell grid gap-5 lg:grid-cols-[2.2fr_1fr]">
         {/* Left (~70%): Asymmetric Hero Carousel Frame */}
-        <div className="relative min-h-[380px] sm:min-h-[430px] overflow-hidden rounded-3xl border border-m3-outline-variant/50 bg-m3-inverse-surface text-m3-inverse-on-surface flex items-center">
+        <div className="relative min-h-[380px] sm:min-h-[430px] overflow-hidden rounded-3xl border border-m3-outline-variant bg-m3-surface-container-highest text-m3-on-surface flex items-center">
           {activeSlide?.media_url ? (
             (activeSlide as HeroBanner & { media_type?: string }).media_type === "video" ? (
               <video
@@ -111,7 +111,7 @@ export function StoreHero({
                 muted
                 loop
                 playsInline
-                className="absolute inset-0 h-full w-full object-cover opacity-50"
+                className="absolute inset-0 h-full w-full object-cover opacity-55"
               />
             ) : (
               <ContentImage
@@ -119,21 +119,30 @@ export function StoreHero({
                 alt={title}
                 width={1200}
                 height={600}
-                className="absolute inset-0 h-full w-full object-cover opacity-45"
+                className="absolute inset-0 h-full w-full object-cover opacity-50"
               />
             )
           ) : null}
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20 rtl:bg-gradient-to-l"
-            aria-hidden="true"
-          />
+          {activeSlide?.media_url ? (
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-[#0B1220]/90 via-[#0B1220]/70 to-[#0B1220]/25 rtl:bg-gradient-to-l"
+              aria-hidden="true"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-m3-primary-container/55 via-m3-surface-container to-m3-secondary-container/45"
+              aria-hidden="true"
+            />
+          )}
 
           <motion.div
             key={activeSlide?.id ?? safeIndex}
             initial={reduced ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduced ? { duration: 0 } : STORE_SPRING_GRID}
-            className="relative z-10 p-6 sm:p-10 lg:p-12 space-y-5 max-w-2xl"
+            className={`relative z-10 p-6 sm:p-10 lg:p-12 space-y-5 max-w-2xl ${
+              activeSlide?.media_url ? "text-[#FFFFFF]" : "text-m3-on-surface"
+            }`}
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
@@ -141,14 +150,14 @@ export function StoreHero({
                 {t("hero.eyebrow", { companyName })}
               </span>
               {loyaltyEnabled && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-secondary-container text-m3-on-secondary-container px-3 py-1 text-xs font-semibold">
                   <Award className="h-3.5 w-3.5 text-m3-primary" aria-hidden="true" />
                   {t("store.loyaltyHeroPill", { defaultValue: "Earn Loyalty Points" })}
                 </span>
               )}
               {raffleEnabled && rafflePrize && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-semibold">
-                  <Sparkles className="h-3.5 w-3.5 text-m3-primary" aria-hidden="true" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-tertiary-container text-m3-on-tertiary-container px-3 py-1 text-xs font-semibold">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                   {rafflePrize}
                 </span>
               )}
@@ -157,20 +166,24 @@ export function StoreHero({
             <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
               {title}
             </h1>
-            <p className="text-sm sm:text-base opacity-85 leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base opacity-90 leading-relaxed max-w-xl">
               {subtitle}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 href={ctaHref}
-                className="inline-flex min-h-12 items-center gap-2 rounded-full bg-m3-primary px-6 py-3 text-sm font-bold text-m3-on-primary shadow-sm hover:brightness-95 transition-all"
+                className="inline-flex min-h-12 items-center gap-2 rounded-full bg-m3-primary px-6 py-3 text-sm font-bold text-m3-on-primary shadow-m3-1 hover:brightness-95 transition-all"
               >
                 <span>{ctaLabel}</span>
                 <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
               </Link>
               <Link
                 href={`/${locale}/deals`}
-                className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold hover:bg-white/20 transition-colors"
+                className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors ${
+                  activeSlide?.media_url
+                    ? "border-[#FFFFFF]/35 bg-[#FFFFFF]/10 text-[#FFFFFF] hover:bg-[#FFFFFF]/20"
+                    : "border-m3-outline bg-m3-surface text-m3-on-surface hover:border-m3-primary"
+                }`}
               >
                 <span>{t("nav.offers")}</span>
               </Link>
@@ -184,7 +197,7 @@ export function StoreHero({
                 data-testid="hero-prev"
                 aria-label={t("store.heroPrev", { defaultValue: "Previous banner" })}
                 onClick={() => setActiveIndex((prev) => (prev - 1 + slides.length) % slides.length)}
-                className="absolute start-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/20 hover:bg-black/75 flex items-center justify-center text-white"
+                className="absolute start-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-m3-surface-container-high/90 border border-m3-outline-variant hover:border-m3-primary flex items-center justify-center text-m3-on-surface cursor-pointer shadow-m3-1"
               >
                 {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
               </button>
@@ -193,7 +206,7 @@ export function StoreHero({
                 data-testid="hero-next"
                 aria-label={t("store.heroNext", { defaultValue: "Next banner" })}
                 onClick={() => setActiveIndex((prev) => (prev + 1) % slides.length)}
-                className="absolute end-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/20 hover:bg-black/75 flex items-center justify-center text-white"
+                className="absolute end-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-m3-surface-container-high/90 border border-m3-outline-variant hover:border-m3-primary flex items-center justify-center text-m3-on-surface cursor-pointer shadow-m3-1"
               >
                 {isRTL ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
               </button>
@@ -207,8 +220,8 @@ export function StoreHero({
                     type="button"
                     aria-label={`Slide ${idx + 1}`}
                     onClick={() => setActiveIndex(idx)}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === safeIndex ? "w-6 bg-m3-primary" : "w-2 bg-white/50 hover:bg-white/80"
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      idx === safeIndex ? "w-6 bg-m3-primary" : "w-2 bg-m3-outline hover:bg-m3-primary/70"
                     }`}
                   />
                 ))}
@@ -221,16 +234,23 @@ export function StoreHero({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           <Link
             href={cardOneHref}
-            className="group relative min-h-[195px] sm:min-h-[205px] overflow-hidden rounded-3xl border border-m3-outline-variant bg-m3-inverse-surface text-m3-inverse-on-surface p-6 flex flex-col justify-between transition-all hover:border-m3-primary"
+            className={`group relative min-h-[195px] sm:min-h-[205px] overflow-hidden rounded-3xl border border-m3-outline-variant p-6 flex flex-col justify-between transition-all hover:border-m3-primary ${
+              sideBannerOne?.media_url
+                ? "bg-[#0B1220] text-[#FFFFFF]"
+                : "bg-m3-surface-container-high text-m3-on-surface"
+            }`}
           >
             {sideBannerOne?.media_url && (
-              <ContentImage
-                src={sideBannerOne.media_url}
-                alt={cardOneTitle}
-                width={500}
-                height={260}
-                className="absolute inset-0 h-full w-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-300"
-              />
+              <>
+                <ContentImage
+                  src={sideBannerOne.media_url}
+                  alt={cardOneTitle}
+                  width={500}
+                  height={260}
+                  className="absolute inset-0 h-full w-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220]/85 via-[#0B1220]/45 to-transparent" aria-hidden="true" />
+              </>
             )}
             <div className="relative z-10 flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-secondary-container px-3 py-1 text-[11px] font-bold text-m3-on-secondary-container">
@@ -247,16 +267,23 @@ export function StoreHero({
 
           <Link
             href={cardTwoHref}
-            className="group relative min-h-[195px] sm:min-h-[205px] overflow-hidden rounded-3xl border border-m3-outline-variant bg-m3-inverse-surface text-m3-inverse-on-surface p-6 flex flex-col justify-between transition-all hover:border-m3-primary"
+            className={`group relative min-h-[195px] sm:min-h-[205px] overflow-hidden rounded-3xl border border-m3-outline-variant p-6 flex flex-col justify-between transition-all hover:border-m3-primary ${
+              sideBannerTwo?.media_url
+                ? "bg-[#0B1220] text-[#FFFFFF]"
+                : "bg-m3-primary-container text-m3-on-primary-container"
+            }`}
           >
             {sideBannerTwo?.media_url && (
-              <ContentImage
-                src={sideBannerTwo.media_url}
-                alt={cardTwoTitle}
-                width={500}
-                height={260}
-                className="absolute inset-0 h-full w-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-300"
-              />
+              <>
+                <ContentImage
+                  src={sideBannerTwo.media_url}
+                  alt={cardTwoTitle}
+                  width={500}
+                  height={260}
+                  className="absolute inset-0 h-full w-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1220]/85 via-[#0B1220]/45 to-transparent" aria-hidden="true" />
+              </>
             )}
             <div className="relative z-10 flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3 py-1 text-[11px] font-bold text-m3-on-primary">

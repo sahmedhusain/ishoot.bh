@@ -1,6 +1,6 @@
 "use client";
-import { ContentImage } from "../shared/ContentImage";
 
+import { ContentImage } from "../shared/ContentImage";
 import * as React from "react";
 import type { ClientLogo } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -15,7 +15,7 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
   return (
     <section
       id="clients"
-      className="relative z-10 bg-brand-base py-16 border-y border-white/10"
+      className="relative z-10 bg-m3-surface text-m3-on-surface py-16 border-y border-m3-outline-variant"
       aria-label={t("clients.label")}
     >
       <svg
@@ -108,8 +108,8 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
         </defs>
       </svg>
       <div className="shell mb-8">
-        <div className="flex items-center justify-between gap-6 text-xs text-ink-muted border-b border-white/5 pb-5">
-          <span className="font-semibold text-mint uppercase tracking-wider">
+        <div className="flex items-center justify-between gap-6 text-xs text-m3-on-surface-variant border-b border-m3-outline-variant pb-5">
+          <span className="font-semibold text-m3-primary uppercase tracking-wider">
             {t("clients.marqueeBadge")}
           </span>
           <button
@@ -117,7 +117,7 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
             onClick={() => setPaused((value) => !value)}
             aria-label={paused ? t("clients.resume") : t("clients.pause")}
             aria-pressed={paused}
-            className="client-marquee-control min-h-11 min-w-11 shrink-0 flex items-center justify-center rounded-full border border-white/20 text-white hover:bg-white/10 transition-colors duration-150"
+            className="client-marquee-control min-h-11 min-w-11 shrink-0 flex items-center justify-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:bg-m3-surface-container-high transition-colors duration-150 cursor-pointer"
           >
             {paused ? (
               <Play aria-hidden="true" className="w-4 h-4" />
@@ -155,7 +155,7 @@ export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLo
                       }}
                     />
                   ) : (
-                    <span className="text-sm font-semibold text-white text-center">
+                    <span className="text-sm font-semibold text-m3-on-surface text-center">
                       {client.client_name}
                     </span>
                   )}

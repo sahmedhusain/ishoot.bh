@@ -965,6 +965,7 @@
     "diagnosticsToggle": "تتبع المكدس البرمجي والتشخيصات",
     "retry": "إعادة المحاولة",
     "returnHome": "العودة إلى الرئيسية",
+    "reportButton": "إبلاغ عن المشكلة",
     "copyDiagnostics": "نسخ التفاصيل",
     "copied": "تم النسخ!"
   }

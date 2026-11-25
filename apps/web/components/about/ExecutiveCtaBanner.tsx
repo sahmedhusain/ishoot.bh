@@ -17,18 +17,18 @@ export async function ExecutiveCtaBanner({
   return (
     <section
       data-testid="executive-cta-banner"
-      className="relative bg-brand-base text-ink py-20 sm:py-24 border-t border-white/10"
+      className="relative bg-m3-surface text-m3-on-surface py-20 sm:py-24 border-t border-m3-outline-variant"
     >
       <div className="shell">
-        <div className="rounded-3xl bg-white/[0.04] border border-white/10 p-8 sm:p-12 lg:p-16 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="rounded-3xl bg-m3-surface-container-high border border-m3-outline-variant p-8 sm:p-12 lg:p-16 flex flex-col lg:flex-row lg:items-center justify-between gap-8 shadow-m3-1">
           <div className="space-y-4 max-w-2xl">
-            <span className="inline-block text-xs font-bold uppercase tracking-wider text-mint">
+            <span className="inline-block text-xs font-bold uppercase tracking-wider text-m3-primary">
               {t.about.credentialsBadge}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-display font-bold text-white leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-display font-bold text-m3-on-surface leading-tight">
               {cleanSentenceEnd(formatMessage(t.about.executiveCtaTitle, { companyName: cleanSentenceEnd(companyName) }))}
             </h2>
-            <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
+            <p className="text-sm sm:text-base text-m3-on-surface-variant leading-relaxed">
               {cleanSentenceEnd(formatMessage(t.about.executiveCtaSub, { companyName: cleanSentenceEnd(companyName) }))}
             </p>
           </div>
@@ -39,7 +39,7 @@ export async function ExecutiveCtaBanner({
             </Link>
             <Link
               href={catalogueHref}
-              className="inline-flex min-h-11 items-center gap-2 rounded-brand border border-white/20 bg-white/5 hover:bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 rounded-[var(--brand-button-radius,9999px)] border border-m3-outline bg-transparent hover:bg-m3-primary/[0.08] px-5 py-2.5 text-sm font-semibold text-m3-primary transition-colors"
             >
               <span>{t.portfolio.filterAll}</span>
               <ArrowUpRight aria-hidden="true" className="w-4 h-4 rtl:-scale-x-100" />

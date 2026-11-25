@@ -42,7 +42,7 @@ export default async function DropsPage({
   return (
     <div className="bg-m3-surface text-m3-on-surface space-y-8 pb-20">
       <header className="shell pt-6">
-        <div className="rounded-3xl border border-m3-outline-variant bg-m3-inverse-surface text-m3-inverse-on-surface p-6 sm:p-10 space-y-2">
+        <div className="rounded-3xl border border-m3-outline-variant bg-m3-surface-container-high text-m3-on-surface p-6 sm:p-10 space-y-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
             <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
             {isAr ? "دفعات حصرية محدودة" : "LIMITED STORE DROPS"}

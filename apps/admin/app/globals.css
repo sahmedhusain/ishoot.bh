@@ -327,18 +327,57 @@ a[href^="tel:"] {
   background: rgb(0 0 0 / 0.32);
 }
 [data-sonner-toaster] [data-sonner-toast] {
-  background: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-inverse-on-surface);
-  border: 0;
-  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large, 16px);
   box-shadow: var(--md-sys-elevation-level3);
+  padding: 0.875rem 1rem;
+  gap: 0.75rem;
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent);
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="warning"] {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  border-color: color-mix(in srgb, var(--md-sys-color-tertiary) 28%, transparent);
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  border-color: color-mix(in srgb, var(--md-sys-color-error) 28%, transparent);
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="info"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  border-color: color-mix(in srgb, var(--md-sys-color-secondary) 28%, transparent);
+}
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
 }
 [data-sonner-toast] [data-description] {
   color: inherit;
+  opacity: 0.88;
 }
 [data-sonner-toast] [data-button] {
-  background: transparent;
-  color: var(--md-sys-color-inverse-primary);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-radius: var(--md-sys-shape-corner-full, 9999px);
+  font-weight: 600;
+  padding-inline: 0.75rem;
+}
+[data-sonner-toast] [data-cancel] {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--md-sys-shape-corner-full, 9999px);
+}
+[data-sonner-toast] [data-close-button] {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .rich-text-editor > * + * {

@@ -4,7 +4,7 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import type { ExpenseCategory } from "@platform/database/types";
 import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@platform/database/constants/finance";
-import { Select, Card, Button, Input } from "@platform/ui";
+import { Select, Card, Button, Input, useConfirmation } from "@platform/ui";
 import { Plus, Eye, EyeOff, Trash2, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "../../constants/routes";
@@ -18,6 +18,7 @@ import { PageHeader } from "../layout/PageHeader";
 
 export function ExpenseCategoriesView({ initialCategories, canDelete }: { initialCategories: ExpenseCategory[]; canDelete: boolean }) {
   const { t, locale } = useAdminLocale();
+  const confirmAction = useConfirmation();
   const cT = t.expenseCategories;
   const [categories, setCategories] = React.useState(initialCategories);
   const [drafts, setDrafts] = React.useState<Record<string, Partial<ExpenseCategory>>>({});
@@ -156,14 +157,20 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
                           type="button"
                           disabled={busy === c.id}
                           onClick={() =>
-                            run(c.id, async () => {
-                              const res = await deleteExpenseCategoryAction(c.id);
-                              if (res.outcome === "deleted") setCategories((prev) => prev.filter((x) => x.id !== c.id));
-                              else replace({ ...c, is_active: false });
-                              toast.success(res.outcome === "deleted" ? cT.deleted : cT.hiddenInUse);
+                            confirmAction({
+                              title: t.actions.delete,
+                              description: locale === "ar" ? c.name_ar : c.name_en,
+                              variant: "danger",
+                              onConfirm: () =>
+                                run(c.id, async () => {
+                                  const res = await deleteExpenseCategoryAction(c.id);
+                                  if (res.outcome === "deleted") setCategories((prev) => prev.filter((x) => x.id !== c.id));
+                                  else replace({ ...c, is_active: false });
+                                  toast.success(res.outcome === "deleted" ? cT.deleted : cT.hiddenInUse);
+                                }),
                             })
                           }
-                          className="p-2 rounded-lg text-rose-500 hover:bg-rose-500/10"
+                          className="p-2 rounded-lg text-m3-error hover:bg-m3-error/[0.08]"
                           title={t.actions.delete}
                           aria-label={t.actions.delete}
                         >

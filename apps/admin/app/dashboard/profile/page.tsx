@@ -51,14 +51,16 @@ export default async function ProfilePage() {
   }));
   return (
     <ProfileWorkspace hasEmployee={!!employeeRecord}>
-      <UserProfileView
-        user={user}
-        manager={manager}
-        employeeRecord={employeeRecord}
-        myRequests={myRequests}
-      />
+      <div data-profile-tab="details">
+        <UserProfileView
+          user={user}
+          manager={manager}
+          employeeRecord={employeeRecord}
+          myRequests={myRequests}
+        />
+      </div>
       {employeeRecord && (
-        <section id="assets" className="scroll-mt-20">
+        <section id="assets" data-profile-tab="assets" className="scroll-mt-20">
           <EmployeeAssetsCard
             {...await getEmployeeAssets(employeeRecord.id)}
             own
@@ -66,17 +68,19 @@ export default async function ProfilePage() {
           />
         </section>
       )}
-      <section id="signature" className="scroll-mt-20">
+      <section id="signature" data-profile-tab="signature" className="scroll-mt-20">
         <SignaturePad
           currentUrl={user.signature_url}
           changes={await listSignatureChanges(user.id)}
         />
       </section>
-      <ProfileSecurityView
-        mfaEnabled={security.mfaEnabled}
-        sessions={sessions}
-        recoveryCount={security.recoveryCodesLeft}
-      />
+      <div data-profile-tab="security">
+        <ProfileSecurityView
+          mfaEnabled={security.mfaEnabled}
+          sessions={sessions}
+          recoveryCount={security.recoveryCodesLeft}
+        />
+      </div>
     </ProfileWorkspace>
   );
 }

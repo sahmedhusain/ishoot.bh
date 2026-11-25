@@ -293,7 +293,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           }
           value={query}
           placeholder={t.quickJump.universalSearch}
-          className={`${className ?? ""} !ps-10 !pe-20 transition-all duration-300 ease-&lsqb;cubic-bezier(0.2,0,0,1)&rsqb;`}
+          className={`${className ?? ""} !ps-10 !pe-20 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]`}
           onFocus={() => setIsOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -384,7 +384,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           {error ? (
             <p
               role="alert"
-              className="px-4 py-3 text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-500/10"
+              className="px-4 py-3 text-xs font-medium text-m3-on-error-container bg-m3-error-container"
             >
               {error}
             </p>

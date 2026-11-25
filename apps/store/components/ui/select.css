@@ -7,16 +7,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: var(--admin-field-height, 48px);
+  min-height: var(--store-field-height, 48px);
   width: 100%;
   max-width: 100%;
   padding-block: 4px;
   padding-inline-start: var(--select-ps, 12px);
   padding-inline-end: var(--select-pe, 12px);
-  border: 1px solid var(--md-sys-color-outline, #777);
-  border-radius: var(--admin-field-radius, 8px);
-  background: var(--md-sys-color-surface-container-lowest, #fff);
-  color: var(--md-sys-color-on-surface, #202124);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--store-field-radius, 8px);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
   font: inherit;
   font-size: 0.875rem;
   line-height: 1.35;
@@ -68,8 +68,8 @@
   overflow: hidden;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 12px;
-  background: var(--md-sys-color-surface-container-high, #f5f3f8);
-  color: var(--md-sys-color-on-surface, #202124);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
   box-shadow: 0 8px 24px rgb(0 0 0/0.16);
   animation: m3-menu-enter 200ms var(--ease-standard, ease);
   isolation: isolate;
@@ -188,7 +188,7 @@
   }
 }
 html[data-motion="reduced"] .m3-select-popup {
-  animation-name: admin-scrim-in;
+  animation-name: store-scrim-in;
 }
 html[data-motion="none"] .m3-select-popup {
   animation: none;

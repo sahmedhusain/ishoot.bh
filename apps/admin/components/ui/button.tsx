@@ -17,17 +17,17 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
     const baseStyles =
-      "m3-button inline-flex items-center justify-center whitespace-nowrap font-medium select-none relative overflow-hidden transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-150 ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb; motion-safe:active:scale-[0.97] disabled:pointer-events-none disabled:shadow-none rounded-[var(--brand-button-radius,9999px)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-m3-primary";
+      "m3-button inline-flex items-center justify-center whitespace-nowrap font-medium select-none relative overflow-hidden transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:active:scale-[0.97] disabled:pointer-events-none disabled:shadow-none rounded-[var(--brand-button-radius,9999px)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-m3-primary";
 
     const variants = {
       primary: "bg-m3-primary text-m3-on-primary hover:shadow-m3-1",
       secondary:
         "bg-m3-secondary-container text-m3-on-secondary-container hover:shadow-m3-1",
-      ghost: "bg-transparent text-m3-primary",
-      outline: "bg-transparent border border-m3-outline text-m3-primary",
+      ghost: "bg-transparent text-m3-primary hover:bg-m3-primary/[0.08]",
+      outline: "bg-transparent border border-m3-outline text-m3-primary hover:bg-m3-primary/[0.08]",
       elevated:
         "bg-m3-surface-container-low text-m3-primary shadow-m3-1 hover:shadow-m3-2",
-      danger: "bg-m3-error-container text-m3-on-error-container",
+      danger: "bg-m3-error-container text-m3-on-error-container hover:shadow-m3-1",
       fab: "bg-m3-primary-container text-m3-on-primary-container rounded-[var(--md-sys-shape-corner-large)] shadow-m3-3 hover:shadow-m3-4",
     };
 

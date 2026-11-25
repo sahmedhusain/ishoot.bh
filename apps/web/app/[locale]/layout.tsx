@@ -3,7 +3,7 @@ import Script from "next/script";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
 import { TelemetryMonitor } from "../../components/TelemetryMonitor";
 import * as React from "react";
-import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
+import { PhoneCountryProvider, CompanyCurrencyProvider, SnackbarProvider } from "@platform/ui";
 import { isRtlLocale } from "@platform/locales/registry";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
@@ -89,7 +89,7 @@ export default async function LocaleLayout({
     return (
       <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}
-        <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
+        <body className={`min-h-screen bg-m3-surface text-m3-on-surface ${isRTL ? "font-arabic" : "font-sans"}`}>
           <Script id="site-theme-init" strategy="afterInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
           {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
           <WebsiteOffline company={company} locale={locale} t={t} />
@@ -102,60 +102,66 @@ export default async function LocaleLayout({
     <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
       {head}
       <body
-        className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-paper ${isRTL ? "font-arabic" : "font-sans"}`}
+        className={`min-h-screen bg-m3-surface text-m3-on-surface selection:bg-m3-primary/25 selection:text-m3-on-surface ${isRTL ? "font-arabic" : "font-sans"}`}
         data-activity={info.activity}
       >
         <Script id="site-theme-init" strategy="afterInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
         {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:bg-white focus:text-black focus:p-3"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:bg-m3-primary focus:text-m3-on-primary focus:px-4 focus:py-2.5 focus:rounded-full focus:shadow-m3-3 focus:text-sm focus:font-semibold"
         >
           {t.common.skipContent}
         </a>
         {preview && (
-          <div className="fixed bottom-4 start-4 z-[100] bg-amber-100 text-amber-950 p-3 rounded-lg shadow-lg flex gap-4 items-center text-sm">
+          <div className="fixed bottom-4 start-4 z-[100] bg-m3-tertiary-container text-m3-on-tertiary-container border border-m3-outline-variant px-4 py-2.5 rounded-full shadow-m3-3 flex gap-4 items-center text-xs font-semibold">
             <span>{t.common.preview}</span>
             <form method="post" action="/api/preview">
-              <button className="underline">{t.common.exitPreview}</button>
+              <button className="underline hover:opacity-80 cursor-pointer">{t.common.exitPreview}</button>
             </form>
           </div>
         )}
         {preview && adminOrigin ? <PreviewBridge adminOrigin={adminOrigin} /> : null}
         <SiteThemeProvider design={config.design}>
         <CompanyCurrencyProvider currency={company.default_currency}><PhoneCountryProvider country={company.country}><SiteProvider site={info}>
+        <SnackbarProvider closeLabel={t.common.close}>
           <FloatingScrollbar />
           <BackToTop />
           <SmoothScroll>
-            <Navbar
-              company={company}
-              pages={config.pages}
-              links={menus?.header}
-              searchIndex={([
-                ...(website?.portfolio ?? []).slice(0, 12).map((item) => ({
-                  id: `proj-${item.id}`,
-                  title: pickText(item.title_en, item.title_ar, locale),
-                  subtitle: item.category ? (locale === "ar" ? item.category.name_ar : item.category.name_en) : item.client_name ?? undefined,
-                  href: `/${locale}/${info.collection.slug}/${encodeURIComponent(item.slug)}`,
-                  group: "project" as const,
-                })),
-                ...(website?.articles ?? []).slice(0, 10).map((art) => ({
-                  id: `art-${art.id}`,
-                  title: pickText(art.title_en, art.title_ar, locale),
-                  subtitle: art.category ?? undefined,
-                  href: `/${locale}/${info.articles.slug}/${encodeURIComponent(art.slug)}`,
-                  group: "article" as const,
-                })),
-              ]) satisfies NavbarSearchEntry[]}
-            />
+            <SiteRegion region="header">
+              <Navbar
+                company={company}
+                pages={config.pages}
+                links={menus?.header}
+                searchIndex={([
+                  ...(website?.portfolio ?? []).slice(0, 12).map((item) => ({
+                    id: `proj-${item.id}`,
+                    title: pickText(item.title_en, item.title_ar, locale),
+                    subtitle: item.category ? (locale === "ar" ? item.category.name_ar : item.category.name_en) : item.client_name ?? undefined,
+                    href: `/${locale}/${info.collection.slug}/${encodeURIComponent(item.slug)}`,
+                    group: "project" as const,
+                  })),
+                  ...(website?.articles ?? []).slice(0, 10).map((art) => ({
+                    id: `art-${art.id}`,
+                    title: pickText(art.title_en, art.title_ar, locale),
+                    subtitle: art.category ?? undefined,
+                    href: `/${locale}/${info.articles.slug}/${encodeURIComponent(art.slug)}`,
+                    group: "article" as const,
+                  })),
+                ]) satisfies NavbarSearchEntry[]}
+              />
+            </SiteRegion>
             <SiteRegion as="main" region="page" id="main-content" className="w-full">
               <TelemetryMonitor />
               {children}
             </SiteRegion>
-            <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
+            <SiteRegion region="footer">
+              <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
+            </SiteRegion>
             <CookieConsentBanner />
             {!preview && code ? <SiteCustomCode code={code} nonce={nonce} /> : null}
           </SmoothScroll>
+        </SnackbarProvider>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>
         </SiteThemeProvider>
       </body>

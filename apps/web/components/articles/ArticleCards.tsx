@@ -51,16 +51,16 @@ export function ArticleCards({
   const ar = locale === "ar";
 
   return (
-    <section className="relative bg-m3-surface text-ink py-20 sm:py-24 border-t border-m3-outline-variant">
+    <section className="relative bg-m3-surface text-m3-on-surface py-20 sm:py-24 border-t border-m3-outline-variant">
       <div className="shell space-y-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-m3-outline-variant">
           <div className="space-y-3">
             {badge && <SectionBadge>{badge}</SectionBadge>}
-            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-m3-on-surface leading-tight">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-sm sm:text-base text-ink-muted max-w-2xl leading-relaxed">
+              <p className="text-sm sm:text-base text-m3-on-surface-variant max-w-2xl leading-relaxed">
                 {subtitle}
               </p>
             )}
@@ -68,10 +68,10 @@ export function ArticleCards({
           {viewAllLabel && (
             <Link
               href={base}
-              className="min-h-11 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-semibold hover:opacity-90 transition-opacity shrink-0"
+              className="min-h-11 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-semibold hover:brightness-95 transition-all shrink-0"
             >
               <span>{viewAllLabel}</span>
-              <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
+              <ArrowUpRight aria-hidden="true" className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           )}
         </div>
@@ -87,7 +87,7 @@ export function ArticleCards({
               <Reveal key={article.id}>
                 <Link
                   href={`${base}/${encodeURIComponent(article.slug)}`}
-                  className="group flex flex-col h-full rounded-3xl overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-3 transition-all duration-200"
+                  className="group flex flex-col h-full rounded-[var(--md-sys-shape-corner-extra-large,28px)] overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-2 transition-all duration-200"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-m3-surface-container">
                     <ContentImage
@@ -113,26 +113,26 @@ export function ArticleCards({
                       <div className="flex flex-wrap items-center gap-3 text-xs text-m3-on-surface-variant">
                         <span>{articleDate(article, locale)}</span>
                         <span className="inline-flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-m3-primary" />
+                          <Clock aria-hidden="true" className="w-3 h-3 text-m3-primary" />
                           <span>{ar ? `${mins} د قراءة` : `${mins} min read`}</span>
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-display font-bold text-ink group-hover:text-m3-primary transition-colors line-clamp-2 leading-snug">
+                      <h3 className="text-lg font-display font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors line-clamp-2 leading-snug">
                         {artTitle}
                       </h3>
 
                       {excerpt && (
-                        <p className="text-sm text-ink-muted line-clamp-3 leading-relaxed">
+                        <p className="text-sm text-m3-on-surface-variant line-clamp-3 leading-relaxed">
                           {excerpt}
                         </p>
                       )}
                     </div>
 
                     {article.author_name && (
-                      <div className="pt-3 border-t border-m3-outline-variant/60 flex items-center justify-between text-xs text-ink-muted">
+                      <div className="pt-3 border-t border-m3-outline-variant/60 flex items-center justify-between text-xs text-m3-on-surface-variant">
                         <span className="font-medium">{article.author_name}</span>
-                        <ArrowUpRight className="w-4 h-4 text-m3-primary rtl:-scale-x-100" />
+                        <ArrowUpRight aria-hidden="true" className="w-4 h-4 text-m3-primary rtl:-scale-x-100" />
                       </div>
                     )}
                   </div>

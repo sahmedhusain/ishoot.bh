@@ -71,17 +71,17 @@ export function ProductGallery({
 
         <div className="absolute top-4 start-4 flex flex-col items-start gap-1.5">
           {discountPct > 0 && (
-            <span className="rounded-full bg-m3-error px-3 py-1 text-xs font-bold text-white shadow-sm">
+            <span className="rounded-full bg-m3-error px-3 py-1 text-xs font-bold text-m3-on-error shadow-m3-1">
               -{discountPct}%
             </span>
           )}
           {isOutOfStock && (
-            <span className="rounded-full bg-m3-inverse-surface px-3 py-1 text-xs font-semibold text-m3-inverse-on-surface">
+            <span className="rounded-full bg-m3-surface-container-highest border border-m3-outline-variant px-3 py-1 text-xs font-semibold text-m3-on-surface">
               {ar ? "غير متوفر" : "Out of stock"}
             </span>
           )}
           {!isOutOfStock && lowStockCount != null && lowStockCount > 0 && lowStockCount <= 5 && (
-            <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-black">
+            <span className="rounded-full bg-m3-tertiary-container px-3 py-1 text-xs font-semibold text-m3-on-tertiary-container">
               {ar ? `متبقي ${lowStockCount} فقط` : `Only ${lowStockCount} left`}
             </span>
           )}
@@ -185,7 +185,7 @@ export function PcMatchmakerBanner({
   return (
     <section
       data-testid="home-pc-builder-banner"
-      className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10 overflow-hidden"
+      className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 sm:p-10 overflow-hidden"
     >
       <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center">
         <div className="space-y-6">
@@ -197,7 +197,7 @@ export function PcMatchmakerBanner({
             <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight">
               {ar ? "باقة متكاملة مصممة حسب ميزانيتك" : "A complete order package matched to your budget."}
             </h2>
-            <p className="text-sm opacity-80 max-w-xl leading-relaxed">
+            <p className="text-sm text-m3-on-surface-variant max-w-xl leading-relaxed">
               {ar
                 ? "اختر الفئة المناسبة والميزانية المستهدفة لعرض أفضل المنتجات والباقات المتوفرة في المتجر."
                 : "Select your tier and target budget to surface curated products and bundles tailored to your requirements."}
@@ -214,10 +214,10 @@ export function PcMatchmakerBanner({
                   type="button"
                   aria-pressed={selected}
                   onClick={() => setGoal(g.id)}
-                  className={`rounded-2xl border p-4 text-start transition-all min-h-[88px] ${
+                  className={`rounded-2xl border p-4 text-start transition-all min-h-[88px] cursor-pointer ${
                     selected
-                      ? "border-m3-primary bg-m3-primary/15 ring-1 ring-m3-primary"
-                      : "border-white/15 bg-white/5 hover:border-white/35"
+                      ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container ring-1 ring-m3-primary"
+                      : "border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -225,15 +225,15 @@ export function PcMatchmakerBanner({
                     {selected && <CheckCircle2 className="w-4 h-4 text-m3-primary" aria-hidden="true" />}
                   </div>
                   <p className="text-sm font-bold">{g.label}</p>
-                  <p className="text-[11px] opacity-75">{g.sub}</p>
+                  <p className="text-[11px] opacity-80">{g.sub}</p>
                 </button>
               );
             })}
           </div>
 
-          <div className="space-y-2 rounded-2xl border border-white/15 bg-white/5 p-4">
+          <div className="space-y-2 rounded-2xl border border-m3-outline-variant bg-m3-surface p-4">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold uppercase tracking-wider opacity-80">
+              <span className="font-semibold uppercase tracking-wider text-m3-on-surface-variant">
                 {ar ? "الميزانية المستهدفة" : "Target Budget"}
               </span>
               <span className="font-display text-base font-bold text-m3-primary" dir="ltr">
@@ -248,9 +248,9 @@ export function PcMatchmakerBanner({
               aria-label={ar ? "الميزانية" : "Budget"}
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
-              className="w-full accent-[var(--m3-color-primary)] cursor-pointer"
+              className="w-full accent-m3-primary cursor-pointer"
             />
-            <div className="flex justify-between text-[11px] opacity-65 font-mono" dir="ltr">
+            <div className="flex justify-between text-[11px] text-m3-on-surface-variant font-mono" dir="ltr">
               <span>50 {baseCurrency}</span>
               <span>500 {baseCurrency}</span>
               <span>1500 {baseCurrency}</span>
@@ -268,7 +268,7 @@ export function PcMatchmakerBanner({
             </Link>
             <Link
               href={`/${locale}/ready-made-pcs`}
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-sm font-semibold hover:bg-white/10 transition-colors"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-m3-outline bg-m3-surface px-5 py-3 text-sm font-semibold text-m3-on-surface hover:border-m3-primary transition-colors"
             >
               <span>{ar ? "باقات جاهزة للطلب" : "Featured Collections"}</span>
             </Link>
@@ -276,30 +276,30 @@ export function PcMatchmakerBanner({
         </div>
 
         <div className="grid gap-4">
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-5 space-y-3">
+          <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface p-5 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <span className="rounded-full bg-m3-secondary-container text-m3-on-secondary-container px-3 py-0.5 text-[11px] font-bold">
                 {ar ? "متوافق مع اختيارك" : "CURATED MATCH"}
               </span>
               {highlightedCategory && (
-                <span className="text-xs font-mono opacity-80">
+                <span className="text-xs font-mono text-m3-on-surface-variant">
                   {pickText(highlightedCategory.name_en, highlightedCategory.name_ar, locale)}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-m3-primary/20 grid place-items-center text-m3-primary shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-m3-primary-container text-m3-on-primary-container grid place-items-center shrink-0">
                 <Package className="w-6 h-6" aria-hidden="true" />
               </div>
               <div>
-                <p className="font-bold text-sm">
+                <p className="font-bold text-sm text-m3-on-surface">
                   {goal === "essential"
                     ? ar ? "مجموعة القيمة الأساسية" : "Essential Store Package"
                     : goal === "professional"
                       ? ar ? "مجموعة الأعمال والاحتراف" : "Professional Suite Bundle"
                       : ar ? "المجموعة الشاملة المتكاملة" : "Complete Turnkey Package"}
                 </p>
-                <p className="text-xs opacity-75">
+                <p className="text-xs text-m3-on-surface-variant">
                   {ar
                     ? "تجهيز متكامل ومراجعة كاملة للمخزون والضمان قبل الإرسال."
                     : "Verified availability, regional pricing, and warranty protection included."}
@@ -307,13 +307,13 @@ export function PcMatchmakerBanner({
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-5 flex items-center gap-3">
+          <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface p-5 flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-m3-primary shrink-0" aria-hidden="true" />
             <div className="text-xs space-y-0.5">
-              <p className="font-bold text-sm">
+              <p className="font-bold text-sm text-m3-on-surface">
                 {ar ? "ضمان الجودة والتوافق" : "Quality & Fulfillment Verified"}
               </p>
-              <p className="opacity-75">
+              <p className="text-m3-on-surface-variant">
                 {ar
                   ? "تتم مراجعة كل باقة لضمان الجاهزية والتوصيل السريع."
                   : "Every selection is checked against live warehouse stock and delivery coverage."}
@@ -455,7 +455,7 @@ export function CountdownCampaignBanner({
   return (
     <section
       data-testid="countdown-campaign-banner"
-      className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10"
+      className="rounded-3xl bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/50 p-6 sm:p-10"
     >
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
@@ -466,7 +466,7 @@ export function CountdownCampaignBanner({
           <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">
             {title}
           </h2>
-          <p className="text-sm opacity-80 leading-relaxed">{subtitle}</p>
+          <p className="text-sm opacity-85 leading-relaxed">{subtitle}</p>
           <div className="pt-1">
             <Link
               href={ctaHref}
@@ -479,17 +479,17 @@ export function CountdownCampaignBanner({
         </div>
 
         <div className="space-y-2">
-          <p className="text-[11px] font-mono uppercase tracking-widest opacity-70">
+          <p className="text-[11px] font-mono uppercase tracking-widest opacity-80">
             {ar ? "ينتهي العرض خلال" : "ENDS IN"}
           </p>
           <div className="flex items-center gap-2.5" dir="ltr">
             {tiles.map((tile) => (
               <div
                 key={tile.label}
-                className="min-w-[64px] rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-center"
+                className="min-w-[64px] rounded-2xl border border-m3-outline-variant bg-m3-surface text-m3-on-surface px-3 py-2.5 text-center shadow-m3-1"
               >
                 <div className="font-mono text-2xl font-bold leading-none">{tile.value}</div>
-                <div className="text-[10px] tracking-wider opacity-70 mt-1">{tile.label}</div>
+                <div className="text-[10px] tracking-wider text-m3-on-surface-variant mt-1">{tile.label}</div>
               </div>
             ))}
           </div>

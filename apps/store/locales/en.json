@@ -965,6 +965,7 @@
     "diagnosticsToggle": "Technical Stack Trace & Diagnostics",
     "retry": "Retry",
     "returnHome": "Return to Home",
+    "reportButton": "Report",
     "copyDiagnostics": "Copy Details",
     "copied": "Copied!"
   }

@@ -18,6 +18,8 @@ import {
   useCurrencyLocale,
 } from "../../components/ui/currency-display";
 import { FloatingSurface } from "../../components/ui/floating-surface";
+import { ConfirmDialog } from "../../components/ui/confirm-dialog";
+import { SnackbarProvider, useSnackbar } from "../../components/ui/snackbar";
 import { Input } from "../../components/ui/input";
 import {
   COUNTRY_DIAL_CODES,
@@ -106,5 +108,43 @@ describe("Web UI Primitives & Helpers", () => {
 
     expect(screen.getByText("Floating Content")).toBeInTheDocument();
     anchor.remove();
+  });
+
+  it("ConfirmDialog and SnackbarProvider work accessibly without native dialogs", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const onClose = vi.fn();
+
+    function SnackbarTrigger() {
+      const snackbar = useSnackbar();
+      return (
+        <button
+          type="button"
+          onClick={() => snackbar.show({ message: "Action saved", variant: "success" })}
+        >
+          Trigger Toast
+        </button>
+      );
+    }
+
+    render(
+      <SnackbarProvider>
+        <SnackbarTrigger />
+        <ConfirmDialog
+          isOpen
+          onClose={onClose}
+          onConfirm={onConfirm}
+          title="Delete item?"
+          description="This cannot be undone."
+          destructive
+        />
+      </SnackbarProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Trigger Toast" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Action saved");
+
+    await user.click(screen.getByRole("button", { name: /^confirm$/i }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });

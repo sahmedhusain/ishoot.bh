@@ -20,6 +20,7 @@ import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
 import { SiteThemeProvider, StoreRegion } from "../../components/site/SiteTheme";
+import { SnackbarProvider } from "../../components/ui/snackbar";
 import { storeBaseTone, storeThemeBootstrap, type StoreDesign } from "../../lib/theme/store-design";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
@@ -121,20 +122,21 @@ export default async function LocaleLayout({
         {enabled && website && !preview && code ? <SiteAnalytics code={code} nonce={nonce} /> : null}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:bg-white focus:text-black focus:p-3"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:rounded-full focus:bg-m3-primary focus:text-m3-on-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:shadow-m3-2"
         >
           {t.common.skipContent}
         </a>
         {preview && (
-          <div className="fixed bottom-4 start-4 z-[100] bg-amber-100 text-amber-950 p-3 rounded-lg shadow-lg flex gap-4 items-center text-sm">
+          <div className="fixed bottom-4 start-4 z-[100] bg-m3-tertiary-container text-m3-on-tertiary-container border border-m3-outline-variant px-4 py-2.5 rounded-2xl shadow-m3-2 flex gap-4 items-center text-sm font-medium">
             <span>{t.common.preview}</span>
             <form method="post" action="/api/preview">
-              <button className="underline">{t.common.exitPreview}</button>
+              <button className="underline font-semibold cursor-pointer">{t.common.exitPreview}</button>
             </form>
           </div>
         )}
         {preview && adminOrigin ? <StorePreviewBridge adminOrigin={adminOrigin} /> : null}
         <SiteThemeProvider design={config.design}>
+        <SnackbarProvider>
         <CompanyCurrencyProvider currency={company.default_currency}><PhoneCountryProvider country={company.country}><SiteProvider site={info}>
           <FloatingScrollbar />
           <BackToTop />
@@ -165,6 +167,7 @@ export default async function LocaleLayout({
             {!preview && code ? <SiteCustomCode code={code} nonce={nonce} /> : null}
           </SmoothScroll>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>
+        </SnackbarProvider>
         </SiteThemeProvider>
       </body>
     </html>

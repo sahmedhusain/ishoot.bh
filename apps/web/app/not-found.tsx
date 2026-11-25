@@ -3,6 +3,7 @@ import { normalizeTheme, themeStylesheet, websiteThemeStylesheet } from "@platfo
 import { defaultWebsiteDesign, siteBaseTone } from "@platform/database/constants/website-design";
 import { getSite } from "../lib/site";
 import { WebUnifiedErrorPage } from "../components/shared/WebUnifiedErrorPage";
+import { SnackbarProvider } from "@platform/ui";
 
 export default async function NotFound() {
   if (!(await isCompanySetupCompleted().catch(() => false))) {
@@ -29,8 +30,10 @@ export default async function NotFound() {
           }}
         />
       </head>
-      <body className="min-h-screen bg-brand-base text-ink flex items-center justify-center p-4 sm:p-6 font-sans">
-        <WebUnifiedErrorPage statusCode={404} showQuickLinks={true} />
+      <body className="min-h-screen bg-m3-surface text-m3-on-surface flex items-center justify-center p-4 sm:p-6 font-sans">
+        <SnackbarProvider>
+          <WebUnifiedErrorPage statusCode={404} showQuickLinks={true} />
+        </SnackbarProvider>
       </body>
     </html>
   );

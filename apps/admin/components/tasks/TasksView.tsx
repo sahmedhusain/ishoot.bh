@@ -96,7 +96,7 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
   return (
     <div className="space-y-5" data-testid="tasks-view">
       <div className="flex flex-col lg:flex-row gap-2 lg:items-center">
-        <div className="inline-flex rounded-full border border-outline-variant p-1 text-xs font-semibold" role="tablist">
+        <div data-tab-variant="pills" className="inline-flex rounded-full border border-outline-variant bg-surface-container p-1 text-xs font-semibold" role="tablist">
           {(["mine", "board", "all"] as const).map((v) => (
             <Link key={v} href={href({ view: v })} role="tab" aria-selected={filters.view === v} className={`rounded-full px-3 py-1.5 ${filters.view === v ? "bg-primary text-primary-foreground" : "text-ink-muted hover:text-ink"}`} tabIndex={filters.view === v ? 0 : -1}>{copy.views[v]}</Link>
           ))}

@@ -63,7 +63,7 @@ export function Footer({
   const governanceLinks = [
     { href: `/${locale}/press`, label: t("footer.pressKit") },
     { href: `/${locale}/terms`, label: t("footer.terms") },
-    { href: `/${locale}/rules`.replace("/rules", "/privacy"), label: t("footer.rules") },
+    { href: `/${locale}/privacy`, label: t("footer.rules") },
     { href: `/${locale}/cookies`, label: t("footer.cookies") },
   ];
 
@@ -81,7 +81,7 @@ export function Footer({
     <>
       <footer
         dir={isRTL ? "rtl" : "ltr"}
-        className="relative bg-m3-surface text-ink border-t border-m3-outline-variant"
+        className="site-footer relative bg-m3-surface-container-low text-m3-on-surface border-t border-m3-outline-variant"
       >
         <div className="shell py-16 md:py-20 space-y-12">
           {showFooterInvitation && (
@@ -90,7 +90,7 @@ export function Footer({
                 <span className="web-eyebrow text-m3-primary">
                   {t("footer.invitationLabel")}
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-[1.08] max-w-xl">
+                <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-m3-on-surface leading-[1.08] max-w-xl">
                   {cleanSentenceEnd(t("footer.invitationTitle"))}
                 </h2>
               </div>
@@ -98,7 +98,7 @@ export function Footer({
               <div className="flex flex-wrap items-center gap-4">
                 <Link
                   href={`/${locale}/contact?intent=quote_request`}
-                  className="web-button group shadow-m3-2"
+                  className="web-button group shadow-m3-1"
                 >
                   <span>{t("footer.invitationAction")}</span>
                   <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -107,19 +107,19 @@ export function Footer({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
+          <div className="site-footer-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-4 space-y-4">
-              <Link href={`/${locale}`} className="inline-flex items-center gap-3 group">
+              <Link href={`/${locale}`} className="inline-flex items-center gap-3 min-h-11 group">
                 <BrandImage company={company} icon className="h-9 w-9 shrink-0" />
                 <BrandImage company={company} className="h-7 min-w-0 max-w-[min(45vw,16rem)]" />
               </Link>
               {tagline && (
-                <p className="text-sm text-ink-muted leading-relaxed max-w-sm">
+                <p className="text-sm text-m3-on-surface-variant leading-relaxed max-w-sm">
                   {tagline}
                 </p>
               )}
               {company.cr_number && (
-                <div className="inline-flex items-center gap-2 rounded-full bg-m3-surface-container border border-m3-outline-variant px-3.5 py-1.5 text-xs text-ink-muted">
+                <div className="inline-flex items-center gap-2 rounded-full bg-m3-surface-container border border-m3-outline-variant px-3.5 py-1.5 text-xs text-m3-on-surface-variant">
                   <ShieldCheck className="w-3.5 h-3.5 text-m3-primary shrink-0" />
                   <span>
                     {t("footer.registrationLabel")}: <bdi dir="ltr">{company.cr_number}</bdi>
@@ -129,7 +129,7 @@ export function Footer({
             </div>
 
             <div className="lg:col-span-3 space-y-3">
-              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-m3-on-surface-variant">
                 {t("footer.navigation")}
               </h3>
               <ul className="space-y-1">
@@ -137,7 +137,7 @@ export function Footer({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="inline-flex min-h-10 items-center text-sm text-ink-muted hover:text-m3-primary transition-colors"
+                      className="inline-flex min-h-11 items-center text-sm text-m3-on-surface-variant hover:text-m3-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -147,7 +147,7 @@ export function Footer({
             </div>
 
             <div className="lg:col-span-2 space-y-3">
-              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-m3-on-surface-variant">
                 {t("footer.companyLinks")}
               </h3>
               <ul className="space-y-1">
@@ -155,7 +155,7 @@ export function Footer({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="inline-flex min-h-10 items-center text-sm text-ink-muted hover:text-m3-primary transition-colors"
+                      className="inline-flex min-h-11 items-center text-sm text-m3-on-surface-variant hover:text-m3-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -165,14 +165,14 @@ export function Footer({
             </div>
 
             <div className="lg:col-span-3 space-y-3">
-              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-m3-on-surface-variant">
                 {t("footer.social")}
               </h3>
-              <div className="space-y-2.5 text-sm text-ink-muted">
+              <div className="space-y-2.5 text-sm text-m3-on-surface-variant">
                 {company.email && (
                   <a
                     href={`mailto:${company.email}`}
-                    className="flex items-center gap-2.5 hover:text-m3-primary transition-colors break-all"
+                    className="flex items-center gap-2.5 min-h-10 hover:text-m3-primary transition-colors break-all"
                   >
                     <Mail className="w-4 h-4 text-m3-primary shrink-0" />
                     <bdi dir="ltr">{company.email}</bdi>
@@ -181,7 +181,7 @@ export function Footer({
                 {company.phone && (
                   <a
                     href={`tel:${company.phone.replace(/\s+/g, "")}`}
-                    className="flex items-center gap-2.5 hover:text-m3-primary transition-colors"
+                    className="flex items-center gap-2.5 min-h-10 hover:text-m3-primary transition-colors"
                   >
                     <Phone className="w-4 h-4 text-m3-primary shrink-0" />
                     <bdi dir="ltr">{company.phone}</bdi>
@@ -204,7 +204,7 @@ export function Footer({
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={social.platform}
-                      className="w-11 h-11 rounded-full border border-m3-outline-variant bg-m3-surface-container-low hover:border-m3-primary hover:bg-m3-surface-container flex items-center justify-center transition-colors text-ink-muted hover:text-ink"
+                      className="w-11 h-11 rounded-full border border-m3-outline-variant bg-m3-surface-container hover:border-m3-primary hover:bg-m3-secondary-container flex items-center justify-center transition-colors text-m3-on-surface-variant hover:text-m3-on-secondary-container"
                     >
                       <SocialIcon name={social.platform} className="w-4 h-4" />
                     </a>
@@ -214,7 +214,7 @@ export function Footer({
             </div>
           </div>
 
-          <div className="pt-8 border-t border-m3-outline-variant flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-ink-muted">
+          <div className="pt-8 border-t border-m3-outline-variant flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-m3-on-surface-variant">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2">
               <p>
                 © {year} {brandName.endsWith(".") ? brandName : `${brandName}.`} {t("footer.allRights")}
@@ -222,21 +222,21 @@ export function Footer({
               <button
                 type="button"
                 onClick={() => setActiveModal("terms")}
-                className="min-h-10 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+                className="min-h-11 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
               >
                 {t("footer.terms")}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveModal("rules")}
-                className="min-h-10 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+                className="min-h-11 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
               >
                 {t("footer.rules")}
               </button>
               <button
                 type="button"
                 onClick={() => openCookiePreferences()}
-                className="inline-flex min-h-10 items-center gap-1.5 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+                className="inline-flex min-h-11 items-center gap-1.5 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
               >
                 <Cookie className="w-3.5 h-3.5" />
                 <span>{t("footer.cookieSettings")}</span>

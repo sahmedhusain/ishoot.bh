@@ -159,6 +159,7 @@ describe("Admin Batch 8: Shared & UI Primitives", () => {
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("/api/lookups/"));
     });
+    fetchSpy.mockRestore();
   });
 
   it("renders all UI primitives, hooks, audio/notification helpers & analytics charts cleanly", async () => {
@@ -260,5 +261,50 @@ describe("Admin Batch 8: Shared & UI Primitives", () => {
     );
 
     expect(screen.getByTestId("ui-hooks")).toBeInTheDocument();
+  });
+
+  it("AdminErrorPage hides raw error details/copy button and submits ITSM report on click", async () => {
+    const user = userEvent.setup();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input).includes("/api/error-report")) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            ticketId: "tkt-42",
+            ticketNumber: 42,
+            incidentId: "INC-TEST",
+            status: "open",
+          }),
+          { status: 201 },
+        );
+      }
+      return new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 });
+    });
+
+    const err = new Error("SECRET_DB_STACK_MESSAGE");
+    err.stack = "Error: SECRET_DB_STACK_MESSAGE\n    at secretInternalFrame (/app/db.ts:99:1)";
+
+    render(
+      <AdminTestProviders>
+        <AdminErrorPage statusCode={500} error={err} reset={vi.fn()} />
+      </AdminTestProviders>,
+    );
+
+    expect(screen.getByTestId("error-code-badge")).toHaveTextContent("HTTP 500");
+    expect(screen.getByTestId("error-incident-id")).toHaveTextContent(/INC-/);
+    expect(screen.queryByText(/SECRET_DB_STACK_MESSAGE/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/secretInternalFrame/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copy/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("error-report-button"));
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/error-report",
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(screen.getByTestId("error-report-success")).toHaveTextContent(/#42/);
+    });
+    fetchSpy.mockRestore();
   });
 });

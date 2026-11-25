@@ -420,7 +420,7 @@ export function RequestDetailView({
           </div>}
         />
 
-        <div className="flex items-center gap-2 border-t border-outline-variant dark:border-white/5 pt-3" role="tablist">
+        <div data-tab-variant="pills" className="flex flex-wrap items-center gap-2 border-t border-outline-variant pt-3" role="tablist">
           {[
             {
               id: "overview",
@@ -448,17 +448,17 @@ export function RequestDetailView({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 ${activeTab === tab.id
-                ? "bg-accent text-accent-foreground shadow-sm shadow-accent/20"
-                : "bg-surface-sunken dark:bg-white/5 text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white"
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${activeTab === tab.id
+                ? "bg-secondary-container text-on-secondary-container"
+                : "bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
                 }`}
              tabIndex={activeTab === tab.id ? 0 : -1} role="tab" aria-selected={activeTab === tab.id} type="button">
               <span>{tab.label}</span>
               {tab.count !== null && tab.count > 0 && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === tab.id
-                    ? "bg-white/20 text-white"
-                    : "bg-surface-sunken dark:bg-white/10 text-ink-muted dark:text-ink"
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === tab.id
+                    ? "bg-primary text-on-primary"
+                    : "bg-surface-container-high text-on-surface-variant"
                     }`}
                 >
                   {tab.count}
@@ -472,24 +472,24 @@ export function RequestDetailView({
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" data-tab-panel>
           <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
+            <div className="p-6 rounded-2xl bg-surface-container-low border border-outline-variant space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
                 {t.requestDetail.technicalScopeAndRequirements}
               </h3>
-              <div className="text-sm text-ink leading-relaxed whitespace-pre-line bg-surface-raised dark:bg-black/30 p-4 rounded-xl border border-outline-variant/50 dark:border-white/5">
+              <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/60">
                 {request.message}
               </div>
 
               {request.serviceType && (
                 <div className="pt-2">
-                  <span className="text-xs text-ink-muted block mb-1">
+                  <span className="text-xs text-on-surface-variant block mb-1">
                     {t.requestDetail.requestedServices}
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {request.serviceType.split(",").map((s: string, i: number) => (
                       <span
                         key={i}
-                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-sunken dark:bg-white/10 text-ink"
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-surface-container-high text-on-surface"
                       >
                         {s.trim()}
                       </span>

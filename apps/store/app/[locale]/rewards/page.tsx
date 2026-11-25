@@ -35,7 +35,7 @@ export default async function RewardsPage({
   return (
     <div className="bg-m3-surface text-m3-on-surface space-y-10 pb-20">
       <header className="shell pt-6 space-y-6">
-        <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10 space-y-5">
+        <div className="rounded-3xl bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/60 p-6 sm:p-10 space-y-5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
             <Award className="w-3.5 h-3.5" aria-hidden="true" />
             {isAr ? "برنامج الولاء والمحفظة" : "LOYALTY POINTS & STORE WALLET"}
@@ -43,7 +43,7 @@ export default async function RewardsPage({
           <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight">
             {isAr ? "اكسب نقاطاً وحوّلها لرصيد فوري" : "Earn Loyalty Points on Every Order"}
           </h1>
-          <p className="text-sm sm:text-base opacity-80 max-w-2xl">
+          <p className="text-sm sm:text-base opacity-85 max-w-2xl">
             {isAr
               ? `اكسب ${pointsPerUnit} نقاط مقابل كل 1 ${info.currency} واستبدل كل ${redeemRate} نقطة بـ 1 ${info.currency} مباشرة في محفظتك أو عند الدفع.`
               : `Earn ${pointsPerUnit} points per 1 ${info.currency} spent and convert ${redeemRate} points = 1 ${info.currency} directly into Store Wallet credit or instant checkout savings.`}
@@ -58,9 +58,9 @@ export default async function RewardsPage({
             </Link>
             <Link
               href={`/${locale}/gift-cards`}
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-sm font-semibold hover:bg-white/10"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-m3-outline bg-m3-surface px-5 py-3 text-sm font-semibold text-m3-on-surface hover:border-m3-primary"
             >
-              <Gift className="w-4 h-4" aria-hidden="true" />
+              <Gift className="w-4 h-4 text-m3-primary" aria-hidden="true" />
               {isAr ? "استرداد بطاقة هدية" : "Redeem Gift Card"}
             </Link>
           </div>

@@ -53,7 +53,7 @@ export function CashFlowChart({
                 y1={y}
                 x2={data.length * 80}
                 y2={y}
-                stroke="rgba(255, 255, 255, 0.05)"
+                stroke="rgb(var(--ui-outline-variant) / 0.7)"
                 strokeDasharray="4 4"
               />
             ))}

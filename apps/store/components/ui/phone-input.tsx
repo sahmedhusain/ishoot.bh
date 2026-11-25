@@ -132,7 +132,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
         autoComplete={props.autoComplete ?? "tel-national"}
         maxLength={20}
         value={entry.national}
-        className="min-w-0 flex-1 rounded-[var(--admin-field-radius,var(--md-sys-shape-corner-extra-small,8px))] border border-m3-outline bg-[var(--md-sys-color-surface-container-lowest,transparent)] px-3.5 py-2 text-base text-m3-on-surface placeholder:text-m3-on-surface-variant focus:border-m3-primary focus:outline-none focus:ring-1 focus:ring-m3-primary aria-[invalid=true]:border-m3-error aria-[invalid=true]:ring-m3-error sm:text-sm"
+        className="min-w-0 flex-1 rounded-[var(--store-field-radius,var(--md-sys-shape-corner-extra-small,8px))] border border-m3-outline bg-[var(--md-sys-color-surface-container-lowest,transparent)] px-3.5 py-2 text-base text-m3-on-surface placeholder:text-m3-on-surface-variant focus:border-m3-primary focus:outline-none focus:ring-1 focus:ring-m3-primary aria-[invalid=true]:border-m3-error aria-[invalid=true]:ring-m3-error sm:text-sm"
         onChange={(event) => {
           const raw = event.target.value;
           if (/^(\+|00)/.test(raw)) update(parts(raw));

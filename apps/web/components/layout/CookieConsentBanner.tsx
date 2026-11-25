@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Cookie, ShieldCheck, SlidersHorizontal, X } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useSnackbar } from "../ui/snackbar";
 
 export interface CookiePreferences {
   essential: true;
@@ -50,12 +51,51 @@ function persistConsent(prefs: CookiePreferences) {
   }
 }
 
+function M3Switch({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <span className="relative inline-flex shrink-0 items-center">
+      <input
+        type="checkbox"
+        role="switch"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className={`relative inline-flex h-8 w-[52px] items-center rounded-full border-2 transition-colors duration-fast cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-m3-primary ${
+          checked
+            ? "bg-m3-primary border-m3-primary"
+            : "bg-m3-surface-container-highest border-m3-outline"
+        }`}
+      >
+        <span
+          className={`inline-block rounded-full transition-all duration-fast ${
+            checked
+              ? "h-6 w-6 translate-x-5 rtl:-translate-x-5 bg-m3-on-primary"
+              : "h-4 w-4 translate-x-1 rtl:-translate-x-1 bg-m3-outline"
+          }`}
+        />
+      </span>
+    </span>
+  );
+}
+
 export function CookieConsentBanner() {
   const { t, locale, isRTL } = useTranslation();
+  const snackbar = useSnackbar();
   const [bannerOpen, setBannerOpen] = React.useState(false);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [prefsEnabled, setPrefsEnabled] = React.useState(true);
   const [analyticsEnabled, setAnalyticsEnabled] = React.useState(true);
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const titleId = React.useId();
 
   React.useEffect(() => {
     const existing = readStoredConsent();
@@ -77,6 +117,20 @@ export function CookieConsentBanner() {
     return () => window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handler);
   }, []);
 
+  React.useEffect(() => {
+    if (!modalOpen) return;
+    const element = dialogRef.current;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    element?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      element?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [modalOpen]);
+
   const saveChoice = (preferences: boolean, analytics: boolean) => {
     const payload: CookiePreferences = {
       essential: true,
@@ -89,6 +143,10 @@ export function CookieConsentBanner() {
     persistConsent(payload);
     setBannerOpen(false);
     setModalOpen(false);
+    snackbar.show({
+      message: t("shared.common.saved"),
+      variant: "success",
+    });
   };
 
   if (!bannerOpen && !modalOpen) return null;
@@ -100,12 +158,12 @@ export function CookieConsentBanner() {
           role="region"
           aria-label={t("cookies.bannerTitle")}
           dir={isRTL ? "rtl" : "ltr"}
-          className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-4xl rounded-3xl bg-m3-surface-container-high/95 backdrop-blur-xl border border-m3-outline-variant shadow-m3-4 p-5 sm:p-6 text-m3-on-surface"
+          className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-4xl rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-4 p-5 sm:p-6 text-m3-on-surface"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div className="flex items-start gap-4 max-w-2xl">
-              <div className="w-11 h-11 rounded-2xl bg-m3-secondary-container text-m3-on-secondary-container flex items-center justify-center shrink-0">
-                <Cookie className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-secondary-container text-m3-on-secondary-container flex items-center justify-center shrink-0">
+                <Cookie aria-hidden="true" className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
                 <h2 className="text-sm sm:text-base font-display font-bold text-m3-on-surface">
@@ -127,22 +185,22 @@ export function CookieConsentBanner() {
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="min-h-11 px-4 rounded-full border border-m3-outline text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="min-h-11 px-4 rounded-full border border-m3-outline text-xs font-semibold text-m3-primary hover:bg-m3-primary/[0.08] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal aria-hidden="true" className="w-3.5 h-3.5" />
                 <span>{t("cookies.customize")}</span>
               </button>
               <button
                 type="button"
                 onClick={() => saveChoice(false, false)}
-                className="min-h-11 px-4 rounded-full border border-m3-outline text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container transition-colors cursor-pointer"
+                className="min-h-11 px-4 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-semibold hover:brightness-95 transition-colors cursor-pointer"
               >
                 {t("cookies.essentialOnly")}
               </button>
               <button
                 type="button"
                 onClick={() => saveChoice(true, true)}
-                className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:bg-m3-primary/90 shadow-m3-1 transition-colors cursor-pointer"
+                className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:brightness-95 shadow-m3-1 transition-colors cursor-pointer"
               >
                 {t("cookies.acceptAll")}
               </button>
@@ -152,39 +210,49 @@ export function CookieConsentBanner() {
       )}
 
       {modalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cookie-preferences-title"
+        <dialog
+          ref={dialogRef}
+          aria-labelledby={titleId}
           dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onCancel={(event) => {
+            event.preventDefault();
+            setModalOpen(false);
+          }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setModalOpen(false);
+          }}
+          data-lenis-prevent
+          className="m-auto p-0 w-[calc(100%-2rem)] max-w-xl max-h-[90dvh] rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-5 overflow-hidden text-m3-on-surface backdrop:bg-black/60"
         >
-          <div className="w-full max-w-xl rounded-3xl bg-m3-surface-container-low border border-m3-outline-variant shadow-m3-5 overflow-hidden text-m3-on-surface">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-m3-outline-variant bg-m3-surface-container">
+          <div className="flex flex-col max-h-[90dvh]">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-m3-outline-variant shrink-0">
               <div className="flex items-center gap-3">
-                <ShieldCheck className="w-5 h-5 text-m3-primary" />
-                <h2 id="cookie-preferences-title" className="text-lg font-display font-bold">
+                <div className="w-10 h-10 rounded-full bg-m3-secondary-container text-m3-on-secondary-container flex items-center justify-center shrink-0">
+                  <ShieldCheck aria-hidden="true" className="w-5 h-5" />
+                </div>
+                <h2 id={titleId} className="text-lg font-display font-bold text-m3-on-surface">
                   {t("cookies.bannerTitle")}
                 </h2>
               </div>
               <button
                 type="button"
+                autoFocus
                 aria-label={t("footer.close")}
                 onClick={() => setModalOpen(false)}
-                className="w-11 h-11 rounded-full border border-m3-outline-variant flex items-center justify-center hover:bg-m3-surface-container-high cursor-pointer"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-m3-on-surface-variant hover:bg-m3-on-surface/[0.08] cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X aria-hidden="true" className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto overscroll-contain" data-lenis-prevent>
               <p className="text-xs sm:text-sm text-m3-on-surface-variant leading-relaxed">
                 {t("cookies.policyIntro")}
               </p>
 
-              <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container p-4 flex items-start justify-between gap-4">
+              <div className="rounded-[var(--md-sys-shape-corner-large,16px)] border border-m3-outline-variant bg-m3-surface-container p-4 flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold">{t("cookies.essentialTitle")}</p>
+                  <p className="text-sm font-semibold text-m3-on-surface">{t("cookies.essentialTitle")}</p>
                   <p className="text-xs text-m3-on-surface-variant leading-relaxed">
                     {t("cookies.essentialDesc")}
                   </p>
@@ -194,55 +262,45 @@ export function CookieConsentBanner() {
                 </span>
               </div>
 
-              <label className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container p-4 flex items-start justify-between gap-4 cursor-pointer">
+              <label className="rounded-[var(--md-sys-shape-corner-large,16px)] border border-m3-outline-variant bg-m3-surface-container p-4 flex items-center justify-between gap-4 cursor-pointer">
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold">{t("cookies.preferencesTitle")}</p>
+                  <p className="text-sm font-semibold text-m3-on-surface">{t("cookies.preferencesTitle")}</p>
                   <p className="text-xs text-m3-on-surface-variant leading-relaxed">
                     {t("cookies.preferencesDesc")}
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={prefsEnabled}
-                  onChange={(e) => setPrefsEnabled(e.target.checked)}
-                  className="mt-1 h-5 w-5 accent-m3-primary cursor-pointer"
-                />
+                <M3Switch checked={prefsEnabled} onChange={setPrefsEnabled} />
               </label>
 
-              <label className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container p-4 flex items-start justify-between gap-4 cursor-pointer">
+              <label className="rounded-[var(--md-sys-shape-corner-large,16px)] border border-m3-outline-variant bg-m3-surface-container p-4 flex items-center justify-between gap-4 cursor-pointer">
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold">{t("cookies.analyticsTitle")}</p>
+                  <p className="text-sm font-semibold text-m3-on-surface">{t("cookies.analyticsTitle")}</p>
                   <p className="text-xs text-m3-on-surface-variant leading-relaxed">
                     {t("cookies.analyticsDesc")}
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={analyticsEnabled}
-                  onChange={(e) => setAnalyticsEnabled(e.target.checked)}
-                  className="mt-1 h-5 w-5 accent-m3-primary cursor-pointer"
-                />
+                <M3Switch checked={analyticsEnabled} onChange={setAnalyticsEnabled} />
               </label>
             </div>
 
-            <div className="px-6 py-4 border-t border-m3-outline-variant bg-m3-surface-container flex flex-wrap items-center justify-end gap-2.5">
+            <div className="px-6 py-4 border-t border-m3-outline-variant flex flex-wrap items-center justify-end gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => saveChoice(false, false)}
-                className="min-h-11 px-4 rounded-full border border-m3-outline text-xs font-semibold hover:bg-m3-surface-container-high cursor-pointer"
+                className="min-h-11 px-4 rounded-full text-xs font-semibold text-m3-primary hover:bg-m3-primary/[0.08] transition-colors cursor-pointer"
               >
                 {t("cookies.essentialOnly")}
               </button>
               <button
                 type="button"
                 onClick={() => saveChoice(prefsEnabled, analyticsEnabled)}
-                className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:bg-m3-primary/90 cursor-pointer"
+                className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:brightness-95 shadow-m3-1 transition-colors cursor-pointer"
               >
                 {t("cookies.savePreferences")}
               </button>
             </div>
           </div>
-        </div>
+        </dialog>
       )}
     </>
   );

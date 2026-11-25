@@ -371,6 +371,7 @@ function ITRolesSettings() {
   const [reportingToRole, setReportingToRole] = React.useState<string>("");
   const [rules, setRules] = React.useState<Record<string, string[]>>({});
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [showDeleteRoleModal, setShowDeleteRoleModal] = React.useState(false);
   const [showNewRoleForm, setShowNewRoleForm] = React.useState(false);
   const [newRoleId, setNewRoleId] = React.useState("");
   const [newNameEn, setNewNameEn] = React.useState("");
@@ -524,19 +525,18 @@ function ITRolesSettings() {
   const handleDeleteRole = async () => {
     const target = roleList.find((r) => r.id === selectedRoleId);
     if (!target || target.system) return;
-    if (confirm(ir.confirmDeleteBody)) {
-      setLoading(true);
-      try {
-        const res = await deleteITRoleAction(selectedRoleId);
-        if (res.ok) {
-          toast.success(ir.roleDeleted);
-          await loadRoles();
-        } else {
-          toast.error(res.reason);
-        }
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      const res = await deleteITRoleAction(selectedRoleId);
+      if (res.ok) {
+        toast.success(ir.roleDeleted);
+        setShowDeleteRoleModal(false);
+        await loadRoles();
+      } else {
+        toast.error(res.reason);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -668,7 +668,7 @@ function ITRolesSettings() {
             {!activeRole?.system && (
               <button
                 type="button"
-                onClick={() => void handleDeleteRole()}
+                onClick={() => setShowDeleteRoleModal(true)}
                 disabled={loading}
                 className="it-btn-3d py-0.5 px-2 text-rose-700 dark:text-rose-400 font-bold flex items-center gap-1"
               >
@@ -794,8 +794,27 @@ function ITRolesSettings() {
             requiredConfirmationText="CONFIRM"
             confirmLabel={ir.saveRole}
             dangerLevel="warning"
+            busy={loading}
             onConfirm={handleSaveRole}
             onCancel={() => setShowConfirmModal(false)}
+          />
+        )}
+
+        {showDeleteRoleModal && activeRole && !activeRole.system && (
+          <CriticalActionModal
+            open={showDeleteRoleModal}
+            title={ir.deleteRole}
+            description={ir.confirmDeleteBody}
+            impactDetails={[
+              `Role: ${activeRole.nameEn} (${activeRole.id})`,
+              "This custom IT role and its permission matrix will be permanently removed.",
+            ]}
+            requiredConfirmationText="DELETE"
+            confirmLabel={ir.deleteRole}
+            dangerLevel="critical"
+            busy={loading}
+            onConfirm={handleDeleteRole}
+            onCancel={() => setShowDeleteRoleModal(false)}
           />
         )}
       </div>

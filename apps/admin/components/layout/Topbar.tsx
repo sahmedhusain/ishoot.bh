@@ -62,7 +62,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
         <Link
           href={ROUTES.home}
-          className="flex items-center gap-2.5 group focus:outline-none ps-1 sm:ps-2"
+          className="flex items-center gap-2.5 group rounded-xl px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           title={companyTitle}
         >
           {(resolvedTheme === "dark" ? (company?.dark_full_logo_url || company?.full_logo_url) : (company?.full_logo_url || company?.dark_full_logo_url)) ? (
@@ -108,7 +108,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       </div>
 
       <div className="admin-topbar-search">
-        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
+        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high text-on-surface text-xs transition-colors border border-outline-variant/40 focus-within:border-primary focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
       </div>
 
       <div className="admin-topbar-actions">
@@ -138,7 +138,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         </button>
 
         <NotificationCenter />
-        <span className="mx-1 h-5 w-px bg-outline-variant/40" aria-hidden />
+        <span className="mx-1 h-5 w-px bg-outline-variant" aria-hidden />
         <AdminProfileDropdown />
       </div>
     </header>

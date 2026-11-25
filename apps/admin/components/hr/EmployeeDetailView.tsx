@@ -137,18 +137,18 @@ export function EmployeeDetailView({
       />
 
       {employee.status === "on_leave" && (
-        <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-tertiary-container border border-outline-variant flex items-start gap-3 text-xs text-on-tertiary-container">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="font-semibold text-sm">{t.employeeDetail.employeeCurrentlyOnApprovedLeave}</div>
-            <p className="text-amber-700 dark:text-amber-400 leading-relaxed text-[11px]">
+            <p className="opacity-90 leading-relaxed text-[11px]">
               {t.employeeDetail.governanceInvariantInEffectThe}
             </p>
           </div>
         </div>
       )}
 
-      <section className="text-sm">
+      <section className="text-sm text-on-surface">
         {t.hrExtensions.accountStatus}:{" "}
         {employee.user
           ? employee.user.isActive
@@ -157,7 +157,7 @@ export function EmployeeDetailView({
           : t.hrExtensions.unlinked}
       </section>
       {canViewPay && !currentRecord?.payrollSettings && (
-        <p className="text-amber-600">{t.hrExtensions.configure}</p>
+        <p className="text-sm font-medium text-amber-600">{t.hrExtensions.configure}</p>
       )}
       {canViewPay && !isEditing && (
         <fieldset disabled>
@@ -420,7 +420,7 @@ export function EmployeeDetailView({
                     <DollarSign className="w-4 h-4 text-accent" />
                     {t.employeeDetail.monthlyRemunerationAndGosiBase}
                   </h2>
-                  <span className="text-xs font-mono font-bold text-primary dark:text-mint">
+                  <span className="text-xs font-mono font-bold text-primary">
                     {t.employeeDetail.totalGross}
                     {totalMonthlyGross.toFixed(3)}
                     {companyCurrency}
@@ -428,30 +428,30 @@ export function EmployeeDetailView({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                  <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
-                    <span className="text-ink-muted">{t.employeeDetail.basicSalary}</span>
-                    <div className="font-mono font-semibold text-ink text-sm">
+                  <div className="p-3 bg-surface-container rounded-lg border border-outline-variant space-y-1">
+                    <span className="text-on-surface-variant">{t.employeeDetail.basicSalary}</span>
+                    <div className="font-mono font-semibold text-on-surface text-sm">
                       {basicSalary.toFixed(3)}
                       {companyCurrency}
                     </div>
                   </div>
-                  <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
-                    <span className="text-ink-muted">{t.shared.housingAllowance}</span>
-                    <div className="font-mono font-semibold text-ink text-sm">
+                  <div className="p-3 bg-surface-container rounded-lg border border-outline-variant space-y-1">
+                    <span className="text-on-surface-variant">{t.shared.housingAllowance}</span>
+                    <div className="font-mono font-semibold text-on-surface text-sm">
                       {housingAllowance.toFixed(3)}
                       {companyCurrency}
                     </div>
                   </div>
-                  <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
-                    <span className="text-ink-muted">{t.shared.transport}</span>
-                    <div className="font-mono font-semibold text-ink text-sm">
+                  <div className="p-3 bg-surface-container rounded-lg border border-outline-variant space-y-1">
+                    <span className="text-on-surface-variant">{t.shared.transport}</span>
+                    <div className="font-mono font-semibold text-on-surface text-sm">
                       {transportAllowance.toFixed(3)}
                       {companyCurrency}
                     </div>
                   </div>
-                  <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
-                    <span className="text-ink-muted">{t.shared.otherAllowances}</span>
-                    <div className="font-mono font-semibold text-ink text-sm">
+                  <div className="p-3 bg-surface-container rounded-lg border border-outline-variant space-y-1">
+                    <span className="text-on-surface-variant">{t.shared.otherAllowances}</span>
+                    <div className="font-mono font-semibold text-on-surface text-sm">
                       {otherAllowances.toFixed(3)}
                       {companyCurrency}
                     </div>
@@ -462,43 +462,43 @@ export function EmployeeDetailView({
           </div>
 
           <div className="space-y-6">
-            <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-ink-muted border-b border-outline-variant pb-2">
+            <Card className="p-6 bg-surface-container-low border border-outline-variant rounded-xl space-y-3">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-on-surface-variant border-b border-outline-variant pb-2">
                 {t.employeeDetail.leaveAndStatutoryEntitlement}
               </h3>
               <div>
-                <span className="text-ink-muted text-xs">
+                <span className="text-on-surface-variant text-xs">
                   {t.employeeDetail.annualLeaveBalance}
                 </span>
-                <div className="text-3xl font-bold font-mono text-primary dark:text-mint mt-1">
+                <div className="text-3xl font-bold font-mono text-primary mt-1">
                   {Number(employee.leaveBalanceDays).toFixed(1)}{" "}
-                  <span className="text-xs font-normal text-ink-muted">
+                  <span className="text-xs font-normal text-on-surface-variant">
                     {t.shared.days}
                   </span>
                 </div>
               </div>
-              <p className="text-[11px] text-ink-muted leading-relaxed pt-2 border-t border-outline-variant dark:border-white/5">
+              <p className="text-[11px] text-on-surface-variant leading-relaxed pt-2 border-t border-outline-variant">
                 {t.employeeDetail.bahrainLabourLawStandard30}
               </p>
             </Card>
 
-            <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-ink-muted border-b border-outline-variant pb-2">
+            <Card className="p-6 bg-surface-container-low border border-outline-variant rounded-xl space-y-3">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-on-surface-variant border-b border-outline-variant pb-2">
                 {t.employeeDetail.linkedSystemLogin}
               </h3>
               {employee.user ? (
                 <div className="text-xs space-y-1">
-                  <div className="font-semibold text-ink">
+                  <div className="font-semibold text-on-surface">
                     <bdi dir="auto">{employee.user.fullName}</bdi>
                   </div>
-                  <div className="text-ink-muted"><bdi dir="ltr">{employee.user.email}</bdi></div>
-                  <div className="font-mono text-[11px] text-accent mt-1">
+                  <div className="text-on-surface-variant"><bdi dir="ltr">{employee.user.email}</bdi></div>
+                  <div className="font-mono text-[11px] text-primary mt-1">
                     {t.employeeDetail.role}
                     {employee.user.role}
                   </div>
                 </div>
               ) : (
-                <div className="text-xs text-ink-muted">{t.employeeDetail.noDashboardUserLinkedEmployee}</div>
+                <div className="text-xs text-on-surface-variant">{t.employeeDetail.noDashboardUserLinkedEmployee}</div>
               )}
             </Card>
           </div>

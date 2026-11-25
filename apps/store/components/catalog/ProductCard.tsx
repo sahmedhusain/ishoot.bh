@@ -11,6 +11,7 @@ import { formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 import { useCart, addToCart } from "../store/cart";
 import { useStorePreferences } from "../layout/StorePreferencesBar";
+import { showSnackbar } from "../ui/snackbar";
 
 const WISHLIST_STORAGE_KEY = "store-guest-wishlist";
 const PRICE_ALERT_STORAGE_KEY = "store-price-alerts";
@@ -99,6 +100,10 @@ export function ProductCard({
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
+    showSnackbar({
+      message: locale === "ar" ? `تمت إضافة ${title} إلى السلة` : `Added ${title} to bag`,
+      tone: "success",
+    });
   };
 
   const toggleWishlist = (e: React.MouseEvent) => {
@@ -106,12 +111,19 @@ export function ProductCard({
     e.stopPropagation();
     try {
       const current: string[] = JSON.parse(window.localStorage.getItem(WISHLIST_STORAGE_KEY) || "[]");
-      const next = current.includes(item.id)
+      const removing = current.includes(item.id);
+      const next = removing
         ? current.filter((id) => id !== item.id)
         : [...current, item.id];
       window.localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(next));
-      setWishlisted(!current.includes(item.id));
+      setWishlisted(!removing);
       window.dispatchEvent(new Event("store-wishlist-change"));
+      showSnackbar({
+        message: removing
+          ? locale === "ar" ? "تمت الإزالة من المفضلة" : "Removed from wishlist"
+          : locale === "ar" ? "تم الحفظ في المفضلة" : "Saved to wishlist",
+        tone: "info",
+      });
     } catch {
       return;
     }
@@ -122,11 +134,18 @@ export function ProductCard({
     e.stopPropagation();
     try {
       const current: string[] = JSON.parse(window.localStorage.getItem(PRICE_ALERT_STORAGE_KEY) || "[]");
-      const next = current.includes(item.id)
+      const removing = current.includes(item.id);
+      const next = removing
         ? current.filter((id) => id !== item.id)
         : [...current, item.id];
       window.localStorage.setItem(PRICE_ALERT_STORAGE_KEY, JSON.stringify(next));
-      setPriceAlertOn(!current.includes(item.id));
+      setPriceAlertOn(!removing);
+      showSnackbar({
+        message: removing
+          ? locale === "ar" ? "تم إيقاف تنبيه السعر" : "Price alert disabled"
+          : locale === "ar" ? "تم تفعيل تنبيه انخفاض السعر" : "Price-drop alert enabled",
+        tone: "info",
+      });
     } catch {
       return;
     }
@@ -169,9 +188,9 @@ export function ProductCard({
               aria-label={t("account.saveToWishlist")}
               aria-pressed={wishlisted}
               onClick={toggleWishlist}
-              className={`h-8 w-8 rounded-full backdrop-blur-sm grid place-items-center transition-colors shadow-sm ${
+              className={`h-8 w-8 rounded-full backdrop-blur-sm grid place-items-center transition-colors shadow-m3-1 cursor-pointer ${
                 wishlisted
-                  ? "bg-m3-error text-white"
+                  ? "bg-m3-error text-m3-on-error"
                   : "bg-m3-surface-container-lowest/90 text-m3-on-surface hover:text-m3-primary"
               }`}
             >
@@ -230,22 +249,22 @@ export function ProductCard({
           {/* Top-Left Discount & Availability Pills */}
           <div className="absolute top-3 start-3 z-10 flex flex-col items-start gap-1">
             {discountPct > 0 && (
-              <span className="rounded-full bg-m3-error px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+              <span className="rounded-full bg-m3-error px-2.5 py-0.5 text-[11px] font-bold text-m3-on-error shadow-m3-1">
                 -{discountPct}%
               </span>
             )}
             {priceNote && (
-              <span className="rounded-full bg-m3-error-container px-2.5 py-0.5 text-[11px] font-bold text-m3-on-error-container shadow-sm">
+              <span className="rounded-full bg-m3-error-container px-2.5 py-0.5 text-[11px] font-bold text-m3-on-error-container shadow-m3-1">
                 {priceNote}
               </span>
             )}
             {isOutOfStock && (
-              <span className="rounded-full bg-m3-inverse-surface px-2.5 py-0.5 text-[11px] font-semibold text-m3-inverse-on-surface">
+              <span className="rounded-full bg-m3-surface-container-highest border border-m3-outline-variant px-2.5 py-0.5 text-[11px] font-semibold text-m3-on-surface">
                 {t("store.outOfStock")}
               </span>
             )}
             {lowStock && item.available_stock != null && (
-              <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-semibold text-black">
+              <span className="rounded-full bg-m3-tertiary-container px-2.5 py-0.5 text-[11px] font-semibold text-m3-on-tertiary-container">
                 {t("store.onlyLeft", { count: item.available_stock })}
               </span>
             )}
@@ -270,7 +289,7 @@ export function ProductCard({
               ) : (
                 <span />
               )}
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shrink-0">
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-m3-tertiary shrink-0">
                 <Star className="h-3 w-3 fill-current" aria-hidden="true" />
                 5.0
               </span>
@@ -295,7 +314,7 @@ export function ProductCard({
             )}
 
             {earnedPoints > 0 && (
-              <div className="inline-flex items-center gap-1 pt-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400 pointer-events-none">
+              <div className="inline-flex items-center gap-1 pt-0.5 text-[11px] font-medium text-m3-tertiary pointer-events-none">
                 <Award className="h-3 w-3" aria-hidden="true" />
                 <span>+{earnedPoints} {t("store.pointsShort", { defaultValue: "pts" })}</span>
               </div>
@@ -349,7 +368,7 @@ export function ProductCard({
               </button>
             </div>
             {lowStock && item.available_stock != null && (
-              <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+              <p className="text-[11px] font-semibold text-m3-tertiary">
                 {t("store.onlyLeft", { count: item.available_stock })}
               </p>
             )}

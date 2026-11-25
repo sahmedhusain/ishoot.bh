@@ -198,7 +198,7 @@ export function SiteModeSwitch({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 min-h-9 px-3.5 py-2 rounded-full border border-m3-outline-variant bg-m3-surface-container-high text-m3-on-surface text-xs font-medium hover:border-m3-primary transition-colors cursor-pointer"
+        className="m3-state-layer inline-flex items-center gap-2 min-h-10 px-3.5 py-2 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface text-xs font-medium hover:border-m3-primary transition-colors cursor-pointer"
       >
         <CurrentIcon
           className="w-4 h-4 shrink-0 text-m3-primary"
@@ -215,7 +215,7 @@ export function SiteModeSwitch({
         <div
           role="menu"
           aria-label={t.common.themeAppearance}
-          className={`absolute ${menuPosition} z-[95] min-w-44 rounded-xl border border-m3-outline-variant bg-m3-surface-container-high p-1.5 shadow-xl text-m3-on-surface`}
+          className={`m3-menu absolute ${menuPosition} z-[95] min-w-44`}
         >
           {modes.map((m) => {
             const Icon = MODE_ICONS[m] ?? Monitor;
@@ -230,18 +230,14 @@ export function SiteModeSwitch({
                   theme.setMode(m);
                   setOpen(false);
                 }}
-                className={`no-btn-shape w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  active
-                    ? "bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
-                    : "text-m3-on-surface hover:bg-m3-surface-container-highest"
-                }`}
+                className="m3-menu-item no-btn-shape"
               >
-                <span className="flex items-center gap-2">
-                  <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span className="flex items-center gap-2.5">
+                  <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span>{names[m]}</span>
                 </span>
                 {active && (
-                  <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <Check className="w-4 h-4 shrink-0 text-m3-primary" aria-hidden="true" />
                 )}
               </button>
             );

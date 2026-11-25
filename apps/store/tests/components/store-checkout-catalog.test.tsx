@@ -70,6 +70,7 @@ vi.mock("@platform/database/queries/store", async (importOriginal) => {
 import { CategoryTabs } from "../../components/catalog/CategoryTabs";
 import { ProductCard } from "../../components/catalog/ProductCard";
 import { AddToCart } from "../../components/store/AddToCart";
+import { CartDrawer, openCartDrawer } from "../../components/store/CartDrawer";
 import { CartLink } from "../../components/store/CartLink";
 import { CartTotals } from "../../components/store/CartTotals";
 import { COUPON_KEY, CartView, FULFILMENT_KEY } from "../../components/store/CartView";
@@ -378,5 +379,46 @@ describe("Store Cart, Checkout, PayButton, Catalog & Promotions", () => {
 
     clearCart();
     expect(JSON.parse(window.localStorage.getItem("platform-cart") || "[]")).toEqual([]);
+  });
+
+  it("opens M3 CartDrawer via openCartDrawer and confirms clear cart via M3 ConfirmDialog", async () => {
+    const user = userEvent.setup();
+    const quote = makeCartQuote();
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify(quote), { status: 200 }));
+
+    writeCart([{ productId: "prod-1", quantity: 1 }]);
+
+    render(
+      <StoreTestProviders>
+        <CartDrawer currency="BHD" />
+        <CartView locale="en" currency="BHD" shopHref="/en/products" fulfilments={{ delivery: true, pickup: true }} />
+      </StoreTestProviders>,
+    );
+
+    openCartDrawer();
+    expect(await screen.findByTestId("cart-drawer")).toBeInTheDocument();
+    const drawerPanel = document.querySelector("[data-drawer-panel]");
+    expect(drawerPanel).not.toBeNull();
+    expect(drawerPanel?.contains(document.activeElement)).toBe(true);
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByTestId("cart-drawer")).toBeNull();
+    });
+
+    const clearAllBtn = await screen.findByTestId("cart-clear-all");
+    await user.click(clearAllBtn);
+
+    const dialog = await screen.findByRole("dialog", { name: /clear shopping cart/i });
+    expect(dialog).toBeInTheDocument();
+    const confirmBtn = dialog.querySelector('button[data-variant="danger"]') as HTMLButtonElement;
+    expect(confirmBtn).not.toBeNull();
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(JSON.parse(window.localStorage.getItem("platform-cart") || "[]")).toEqual([]);
+    });
+    fetchSpy.mockRestore();
   });
 });

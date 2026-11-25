@@ -76,11 +76,11 @@ export function ConfirmDialog({
   const isDanger = variant === "danger";
 
   return (
-    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
-      <div className="flex flex-wrap items-center justify-end gap-3">
+    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-4 h-4 text-rose-300" /> : <AlertTriangle className="w-4 h-4 text-amber-300" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={onClose}
           disabled={isSubmitting || loading}

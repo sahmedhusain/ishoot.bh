@@ -4,7 +4,7 @@ import { DataTable } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import type { Expense, ExpenseCategory } from "@platform/database/types";
-import { Card, CurrencyDisplay, DateDisplay, ConfirmDialog, StatusBadge } from "@platform/ui";
+import { Button, Card, CurrencyDisplay, DateDisplay, ConfirmDialog, Input, Modal, ModalFooter, Select, StatusBadge, Textarea } from "@platform/ui";
 import { Plus, Receipt, Tag, TrendingDown, Trash2, Pencil, Briefcase, UserRound, Building2, Paperclip, Settings2, Repeat } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -269,86 +269,90 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
         cancelLabel={t.actions.cancel}
       />
 
-      {editingExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label={t.actions.edit}>
-          <form onSubmit={handleSaveEditExpense} className="w-full max-w-md rounded-xl border border-outline-variant bg-surface p-6 shadow-xl space-y-4">
-            <h3 className="text-lg font-bold text-ink">{t.actions.edit}</h3>
+      <Modal
+        isOpen={!!editingExpense}
+        onClose={() => setEditingExpense(null)}
+        title={t.actions.edit}
+        busy={savingEdit}
+        className="max-w-md"
+        footer={null}
+      >
+        <form onSubmit={handleSaveEditExpense} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{t.expensesNew.descriptionEnLabel ?? "Description"}</label>
+            <Input
+              type="text"
+              required
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesNew.descriptionEnLabel ?? "Description"}</label>
-              <input
+              <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{t.expensesView.vendor}</label>
+              <Input
                 type="text"
+                value={editVendor}
+                onChange={(e) => setEditVendor(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{t.expensesView.amount}</label>
+              <Input
+                type="number"
+                step="0.001"
+                min="0.001"
                 required
-                value={editDesc}
-                onChange={(e) => setEditDesc(e.target.value)}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.vendor}</label>
-                <input
-                  type="text"
-                  value={editVendor}
-                  onChange={(e) => setEditVendor(e.target.value)}
-                  className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.amount}</label>
-                <input
-                  type="number"
-                  step="0.001"
-                  min="0.001"
-                  required
-                  value={editAmount}
-                  onChange={(e) => setEditAmount(e.target.value)}
-                  className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesView.category}</label>
-              <select
-                value={editCategoryId}
-                onChange={(e) => setEditCategoryId(e.target.value)}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
-              >
-                <option value="">—</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {locale === "ar" ? cat.name_ar : cat.name_en}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">{t.expensesNew.notesLabel ?? "Notes"}</label>
-              <textarea
-                rows={2}
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-ink"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{t.expensesView.category}</label>
+            <Select
+              value={editCategoryId}
+              onChange={(e) => setEditCategoryId(e.target.value)}
+            >
+              <option value="">—</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {locale === "ar" ? cat.name_ar : cat.name_en}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{t.expensesNew.notesLabel ?? "Notes"}</label>
+            <Textarea
+              rows={2}
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+            />
+          </div>
+          <ModalFooter>
+            <div className="flex justify-end gap-2">
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
+                disabled={savingEdit}
                 onClick={() => setEditingExpense(null)}
-                className="px-4 py-2 rounded-lg border border-outline-variant text-sm text-ink hover:bg-ink/5"
               >
                 {t.actions.cancel}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="primary"
+                size="sm"
                 disabled={savingEdit}
-                className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent-hover disabled:opacity-50"
               >
-                {savingEdit ? "..." : t.actions.save}
-              </button>
+                {savingEdit ? t.actions.saving : t.actions.save}
+              </Button>
             </div>
-          </form>
-        </div>
-      )}
+          </ModalFooter>
+        </form>
+      </Modal>
     </div>
   );
 }

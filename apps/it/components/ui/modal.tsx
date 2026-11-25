@@ -219,11 +219,11 @@ export function Modal({
       >
         <ModalFooterContext.Provider value={footerHost}>
           <header role="presentation" data-modal-header>
-            <div className="flex min-w-0 items-start gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
               {icon && (
                 <span
                   aria-hidden
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-m3-secondary-container text-m3-on-secondary-container"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/10 text-sky-300 border border-white/15"
                 >
                   {icon}
                 </span>
@@ -235,7 +235,7 @@ export function Modal({
               onClick={close}
               aria-label={closeLabel}
               disabled={busy}
-              className="flex items-center justify-center m3-state-layer"
+              className="flex items-center justify-center"
             >
               <X aria-hidden className="h-4 w-4" />
             </button>
@@ -244,7 +244,7 @@ export function Modal({
             {description && (
               <div
                 id={descriptionId}
-                className="mb-5 text-sm leading-relaxed text-m3-on-surface-variant"
+                className="mb-4 text-xs leading-relaxed text-ink-muted"
               >
                 {description}
               </div>

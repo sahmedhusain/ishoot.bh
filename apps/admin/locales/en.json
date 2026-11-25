@@ -3005,7 +3005,13 @@
       "notRecorded": "Not recorded",
       "noEmail": "No email",
       "effectiveCompensation": "Effective Compensation",
-      "phone": "Phone Number"
+      "phone": "Phone Number",
+      "tabs": {
+        "overview": "Profile & Overview",
+        "hr": "Residency, Leave & Files",
+        "compensation": "Compensation & Payroll",
+        "assets": "Assets & Handovers"
+      }
     },
     "shared": {
       "jobTitleEnglish": "Job Title (English) *",
@@ -4733,7 +4739,14 @@
       "code502Title": "Bad Gateway",
       "code502Desc": "The upstream platform microservice failed to respond in time.",
       "code503Title": "Service Temporarily Unavailable",
-      "code503Desc": "The requested service is currently performing maintenance or undergoing scaling."
+      "code503Desc": "The requested service is currently performing maintenance or undergoing scaling.",
+      "incidentLabel": "Incident ID",
+      "reportButton": "Report Issue",
+      "reporting": "Submitting report...",
+      "reportedTitle": "Issue reported to IT Support",
+      "reportedWithTicket": "Ticket #{number} has been created (Incident {incidentId}).",
+      "reportFailed": "Unable to submit the report right now. Please try again or share the incident ID with IT Support.",
+      "supportHint": "If the issue persists, submit a report so our team can investigate with this incident ID."
     },
     "notFound": {
       "title": "Document or Resource Not Found",
@@ -6919,10 +6932,18 @@
       "actions": "Actions",
       "remove": "Remove",
       "save": "Save",
-      "delete": "Delete"
+      "delete": "Delete",
+      "tabs": {
+        "overview": "Contributions & Registrations",
+        "rules": "Statutory Rules"
+      }
     },
     "supports": {
       "title": "Wage support",
+      "tabs": {
+        "enrolments": "Employee Enrolments",
+        "programs": "Programs & Rules"
+      },
       "failed": "Could not save the wage support",
       "saved": "Wage support saved",
       "scheduled": "New terms scheduled",
@@ -9458,7 +9479,16 @@
         "paymentGateway": "Pay online through",
         "noGateway": "Do not offer online payment",
         "gatewayHint": "Only payment gateways switched on in Settings → Integrations are listed.",
-        "gatewayTest": "test mode"
+        "gatewayTest": "test mode",
+        "tabs": {
+          "general": "Checkout & Coupons",
+          "rewards": "Rewards & Gift Cards",
+          "storefront": "Storefront & Categories",
+          "returns": "Return Requests"
+        },
+        "deleteCouponConfirm": "Delete coupon {code}?",
+        "deleteGiftCardConfirm": "Delete gift card {code}?",
+        "deleteCategoryConfirm": "Delete category {name}?"
       },
       "paymentTimedOut": "Online payment was not completed in time; the items were released.",
       "pickupStatuses": {

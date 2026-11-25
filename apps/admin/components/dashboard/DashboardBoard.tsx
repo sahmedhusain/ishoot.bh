@@ -1197,8 +1197,8 @@ function WidgetPreviewModal({
       data-modal-container
       data-kind="form"
       className="fixed inset-0 z-[70] flex items-center justify-center bg-transparent p-4 sm:p-6"
-      onClick={onClose}
     >
+      <div data-modal-backdrop aria-hidden="true" onClick={onClose} />
       <div
         {...dialog}
         data-modal-card
@@ -1374,8 +1374,8 @@ function WidgetSettingsModal({
       data-modal-container
       data-kind="form"
       className="fixed inset-0 z-[70] flex items-center justify-center bg-transparent p-4 sm:p-6"
-      onClick={onClose}
     >
+      <div data-modal-backdrop aria-hidden="true" onClick={onClose} />
       <div
         {...dialog}
         data-modal-card

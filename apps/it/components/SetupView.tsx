@@ -304,7 +304,7 @@ export function SetupView({
               {modules.map((m) => (
                 <div
                   key={m.key}
-                  className="flex items-center justify-between rounded-2xl border border-outline-variant p-3"
+                  className="flex items-center justify-between rounded-lg border border-outline-variant p-3"
                 >
                   <div>
                     <p className="text-sm font-medium">
@@ -381,7 +381,7 @@ export function SetupView({
         {step === 5 && (
           <div className="space-y-6">
             <h2 className="text-base font-semibold">{s.step5Title}</h2>
-            <div className="space-y-4 rounded-2xl bg-surface-variant p-4 text-sm">
+            <div className="space-y-4 rounded-lg bg-surface-variant p-4 text-sm border border-outline-variant">
               <div className="flex justify-between border-b border-outline-variant pb-2">
                 <span className="text-ink-muted">{s.companyNameEn}:</span>
                 <span className="font-medium">{nameEn}</span>
@@ -413,7 +413,7 @@ export function SetupView({
             </div>
 
             {setupStatus && !setupStatus.complete && setupStatus.missing.length > 0 && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+              <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
                 <p className="font-semibold">{s.missingNotice}:</p>
                 <ul className="mt-1 list-disc list-inside">
                   {setupStatus.missing.map((f) => (

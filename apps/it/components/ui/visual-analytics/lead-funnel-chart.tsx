@@ -1,6 +1,5 @@
 "use client";
 
-
 export interface FunnelStage {
   label: string;
   count: number;
@@ -18,18 +17,18 @@ export function LeadFunnelChart({ stages }: LeadFunnelChartProps) {
 
   return (
     <div className="w-full space-y-3">
-      {stages.map((stage, idx) => {
+      {stages.map((stage) => {
         const pct = Math.round((stage.count / maxCount) * 100);
 
         return (
           <div key={stage.label} className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-white">{stage.label}</span>
+              <span className="font-medium text-ink">{stage.label}</span>
               <span className="font-mono text-ink-muted">
                 {stage.count} ({pct}%)
               </span>
             </div>
-            <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div className="w-full h-3 bg-surface-sunken rounded-full overflow-hidden p-0.5 border border-outline-variant">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{

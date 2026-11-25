@@ -74,7 +74,7 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
       />
 
       {canProcess && (
-        <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
+        <div data-tab-variant="pills" role="tablist" className="inline-flex p-1 rounded-full bg-surface-container border border-outline-variant">
           {(["mine", "finance"] as const).map((v) => (
             <Link
               key={v}

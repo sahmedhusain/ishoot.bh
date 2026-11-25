@@ -20,7 +20,7 @@ export function CategoryTabs({
   const { isArabic, t } = useTranslation();
 
   return (
-    <div className="flex flex-wrap items-center gap-2 pb-6 border-b border-white/10">
+    <div className="flex flex-wrap items-center gap-2 pb-4">
       {[
         {
           id: "all",
@@ -33,17 +33,23 @@ export function CategoryTabs({
       ].map((cat) => {
         const isActive = activeCategory === cat.slug;
         const path = categoryAncestors(cat.slug, parents).reverse();
-        const name = path.map(slug => [cat, ...categories].find(category => category.slug === slug)).filter(Boolean).map(category => isArabic ? category!.name_ar : category!.name_en).join(" / ");
+        const name = path
+          .map((slug) => [cat, ...categories].find((category) => category.slug === slug))
+          .filter(Boolean)
+          .map((category) => (isArabic ? category!.name_ar : category!.name_en))
+          .join(" / ");
 
         return (
           <button
             key={cat.id}
+            type="button"
             aria-pressed={isActive}
             onClick={() => onSelect(cat.slug)}
-            className={`relative max-w-full break-words text-start min-h-11 px-5 py-2 rounded-md text-xs sm:text-sm font-sans tracking-wide transition-colors duration-150 select-none ${isActive
-              ? "text-m3-on-primary font-semibold bg-m3-primary border border-m3-primary"
-              : "text-ink-muted hover:text-ink bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20"
-              }`}
+            className={`relative max-w-full break-words text-start min-h-11 px-4 py-2 rounded-[var(--md-sys-shape-corner-small,8px)] text-xs sm:text-sm font-sans font-semibold transition-colors duration-150 select-none border cursor-pointer ${
+              isActive
+                ? "bg-m3-secondary-container text-m3-on-secondary-container border-transparent"
+                : "bg-transparent text-m3-on-surface-variant border-m3-outline hover:bg-m3-on-surface/[0.08] hover:text-m3-on-surface"
+            }`}
           >
             {name}
           </button>

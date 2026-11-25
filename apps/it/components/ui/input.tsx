@@ -40,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         dir={resolvedDir}
         className={cn(
-          "flex min-h-12 w-full rounded-[var(--admin-field-radius,var(--md-sys-shape-corner-extra-small,8px))] bg-transparent text-m3-on-surface border border-m3-outline hover:border-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary px-3.5 py-2.5 text-base sm:text-sm transition-colors duration-base ease-standard disabled:opacity-[0.38] disabled:cursor-not-allowed aria-[invalid=true]:border-m3-error aria-[invalid=true]:ring-m3-error",
+          "flex min-h-9 w-full rounded-md bg-surface text-ink border border-outline-variant hover:border-outline placeholder:text-ink-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 px-3 py-2 text-sm transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed aria-[invalid=true]:border-rose-500 aria-[invalid=true]:ring-rose-500/20",
           (isEmail || isTel) && "text-start",
           className,
         )}

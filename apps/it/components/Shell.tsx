@@ -18,6 +18,7 @@ import {
   Key,
   ListChecks,
   LogOut,
+  Menu,
   Monitor,
   Search,
   Settings,
@@ -33,6 +34,7 @@ import {
   Plus,
   ExternalLink,
   FlaskConical,
+  X,
 } from "lucide-react";
 import { itAllowed } from "@platform/contracts";
 import { signOutAction } from "../app/actions";
@@ -117,6 +119,7 @@ export function Shell({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
@@ -129,6 +132,7 @@ export function Shell({
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setUserMenuOpen(false);
+        setMobileNavOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -138,6 +142,10 @@ export function Shell({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
+
+  React.useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -225,6 +233,15 @@ export function Shell({
 
         <header className="it-header flex items-center justify-between gap-2 sm:gap-4 z-30 shadow-sm min-w-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+              aria-expanded={mobileNavOpen}
+              aria-label="Toggle navigation menu"
+              className="lg:hidden inline-flex items-center justify-center size-8 rounded-md border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors shrink-0"
+            >
+              {mobileNavOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+            </button>
             <Link
               href="/"
               className="flex items-center gap-2 group text-white text-decoration-none min-w-0"
@@ -305,7 +322,7 @@ export function Shell({
               {userMenuOpen && (
                 <div className="it-user-dropdown shadow-xl">
 
-                  <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+                  <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/70">
                     <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                       {email}
                     </div>
@@ -313,7 +330,7 @@ export function Shell({
                       {roles.map((r) => (
                         <span
                           key={r}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-medium"
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-medium"
                         >
                           {role(r, dbRoles)}
                         </span>
@@ -340,7 +357,7 @@ export function Shell({
                     </Link>
                   </div>
 
-                  <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                  <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
 
                   <div className="p-1">
                     <form action={signOutAction}>
@@ -378,9 +395,37 @@ export function Shell({
           })}
         </nav>
 
-        <div className="it-shell-grid flex-1 flex flex-col lg:flex-row min-h-0">
+        <div className="it-shell-grid flex-1 flex flex-col lg:flex-row min-h-0 relative">
+          {mobileNavOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-[2px] lg:hidden"
+              onClick={() => setMobileNavOpen(false)}
+              aria-hidden="true"
+            />
+          )}
 
-          <aside className="it-sidebar lg:w-60 shrink-0 flex flex-col">
+          <aside
+            className={`it-sidebar lg:w-60 shrink-0 flex-col ${
+              mobileNavOpen
+                ? "fixed inset-y-0 start-0 z-50 flex w-64 shadow-2xl lg:static lg:shadow-none"
+                : "hidden lg:flex"
+            }`}
+          >
+            {mobileNavOpen && (
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-outline-variant lg:hidden">
+                <span className="text-xs font-bold uppercase tracking-wider text-ink-muted">
+                  {copy.app.operations}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="rounded-md p-1 text-ink-muted hover:bg-surface-muted hover:text-ink"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            )}
             <nav aria-label="Navigation menu" className="overflow-y-auto py-3 space-y-4 flex-1">
               {NAV_GROUPS.map((group) => {
                 const items = group.items.filter((item) =>

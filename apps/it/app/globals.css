@@ -8,99 +8,85 @@ body {
 }
 
 body {
-  font-family: var(--it-font-body, "Segoe UI", system-ui, sans-serif);
+  font-family: var(--it-font-sans, "Segoe UI", system-ui, sans-serif);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
+:root,
 .it-app-body {
-  --brand-primary: 29 95 134;
-  --brand-primary-light: 48 120 158;
-  --brand-primary-dark: 22 75 106;
-  --brand-primary-hover: 25 82 116;
+  --brand-primary: 0 112 210;
+  --brand-primary-light: 2 132 199;
+  --brand-primary-dark: 0 95 178;
+  --brand-primary-hover: 0 95 178;
   --brand-on-primary: 255 255 255;
-  --brand-accent: 29 95 134;
-  --brand-accent-hover: 25 82 116;
-  --brand-accent-pressed: 22 75 106;
+  --brand-accent: 0 112 210;
+  --brand-accent-hover: 0 95 178;
+  --brand-accent-pressed: 0 79 148;
   --brand-on-accent: 255 255 255;
-  --brand-mint: 29 95 134;
-  --brand-text-accent: 29 95 134;
-  --brand-bg-base: 243 245 247;
+  --brand-mint: 0 112 210;
+  --brand-text-accent: 0 112 210;
+  --brand-bg-base: 244 246 248;
   --brand-bg-surface: 255 255 255;
   --brand-bg-elevated: 248 250 252;
   --ui-surface: 255 255 255;
   --ui-surface-raised: 248 250 252;
-  --ui-surface-sunken: 238 242 245;
-  --ui-ink: 28 42 55;
-  --ui-ink-muted: 93 107 120;
+  --ui-surface-sunken: 241 245 249;
+  --ui-surface-muted: 241 245 249;
+  --ui-surface-container: 241 245 249;
+  --ui-surface-container-high: 226 232 240;
+  --ui-ink: 30 41 59;
+  --ui-ink-muted: 100 116 139;
+  --ui-outline: 148 163 184;
+  --ui-outline-variant: 226 232 240;
+  --ui-rule: 226 232 240;
+  --ui-danger: 190 18 60;
+  --ui-primary-container: 224 242 254;
+  --ui-on-primary-container: 7 89 133;
   --motion-fast: 120ms;
   --motion-base: 180ms;
   --motion-slow: 260ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
-  --m3-color-primary: 29 95 134;
-  --m3-color-on-primary: 255 255 255;
-  --m3-color-primary-container: 220 235 245;
-  --m3-color-on-primary-container: 20 52 72;
-  --m3-color-surface: 243 245 247;
-  --m3-color-surface-container-lowest: 255 255 255;
-  --m3-color-surface-container-low: 255 255 255;
-  --m3-color-surface-container: 238 242 245;
-  --m3-color-surface-container-high: 230 235 239;
-  --m3-color-surface-container-highest: 222 229 234;
-  --m3-color-surface-dim: 232 237 240;
-  --m3-color-surface-bright: 255 255 255;
-  --m3-color-on-surface: 28 42 55;
-  --m3-color-on-surface-variant: 76 91 103;
-  --m3-color-outline: 109 124 136;
-  --m3-color-outline-variant: 205 214 221;
-  --md-sys-color-primary: #1d5f86;
 }
 
+html.dark,
 .dark .it-app-body {
-  --brand-primary: 143 197 228;
-  --brand-primary-light: 165 211 235;
-  --brand-primary-dark: 115 178 213;
-  --brand-primary-hover: 165 211 235;
-  --brand-on-primary: 15 39 54;
-  --brand-accent: 143 197 228;
-  --brand-accent-hover: 165 211 235;
-  --brand-accent-pressed: 115 178 213;
-  --brand-on-accent: 15 39 54;
-  --brand-mint: 143 197 228;
-  --brand-text-accent: 143 197 228;
-  --brand-bg-base: 17 24 32;
-  --brand-bg-surface: 25 35 45;
-  --brand-bg-elevated: 31 43 54;
-  --ui-surface: 25 35 45;
-  --ui-surface-raised: 31 43 54;
-  --ui-surface-sunken: 17 24 32;
-  --ui-ink: 226 232 238;
-  --ui-ink-muted: 166 178 190;
-  --m3-color-primary: 143 197 228;
-  --m3-color-on-primary: 15 39 54;
-  --m3-color-primary-container: 37 67 86;
-  --m3-color-on-primary-container: 214 234 246;
-  --m3-color-surface: 17 24 32;
-  --m3-color-surface-container-lowest: 12 18 24;
-  --m3-color-surface-container-low: 25 35 45;
-  --m3-color-surface-container: 31 43 54;
-  --m3-color-surface-container-high: 39 52 64;
-  --m3-color-surface-container-highest: 48 62 75;
-  --m3-color-surface-dim: 17 24 32;
-  --m3-color-surface-bright: 57 70 82;
-  --m3-color-on-surface: 226 232 238;
-  --m3-color-on-surface-variant: 175 187 197;
-  --m3-color-outline: 145 160 172;
-  --m3-color-outline-variant: 60 74 87;
-  --md-sys-color-primary: #8fc5e4;
+  --brand-primary: 2 132 199;
+  --brand-primary-light: 56 189 248;
+  --brand-primary-dark: 3 105 161;
+  --brand-primary-hover: 3 105 161;
+  --brand-on-primary: 255 255 255;
+  --brand-accent: 56 189 248;
+  --brand-accent-hover: 14 165 233;
+  --brand-accent-pressed: 2 132 199;
+  --brand-on-accent: 11 19 32;
+  --brand-mint: 56 189 248;
+  --brand-text-accent: 56 189 248;
+  --brand-bg-base: 11 19 32;
+  --brand-bg-surface: 20 31 50;
+  --brand-bg-elevated: 27 41 66;
+  --ui-surface: 20 31 50;
+  --ui-surface-raised: 27 41 66;
+  --ui-surface-sunken: 11 19 32;
+  --ui-surface-muted: 27 41 66;
+  --ui-surface-container: 27 41 66;
+  --ui-surface-container-high: 36 55 86;
+  --ui-ink: 241 245 249;
+  --ui-ink-muted: 148 163 184;
+  --ui-outline: 71 85 105;
+  --ui-outline-variant: 30 45 66;
+  --ui-rule: 30 45 66;
+  --ui-danger: 251 113 133;
+  --ui-primary-container: 12 74 110;
+  --ui-on-primary-container: 224 242 254;
 }
 
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--it-accent-blue, #1d5f86);
+  outline: 2px solid var(--it-accent-blue, #0070d2);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgb(29 95 134 / 18%);
+  background: rgb(0 112 210 / 20%);
 }

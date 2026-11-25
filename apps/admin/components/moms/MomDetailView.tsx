@@ -644,7 +644,7 @@ export function MomDetailView({
         <form id={emailFormId} onSubmit={handleSendEmail}>
           <fieldset disabled={isSendingEmail}>
             <div>
-              <label htmlFor={`${emailFormId}-recipient`} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor={`${emailFormId}-recipient`} className="block text-xs font-semibold text-on-surface-variant mb-1">
                 {t.momDetail.recipientEmail}
               </label>
               <Input id={`${emailFormId}-recipient`}
@@ -653,12 +653,11 @@ export function MomDetailView({
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 placeholder={t.copy.clientEmailExample}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
 
           </fieldset>
-          {feedbackMessage?.type === "error" && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{feedbackMessage.text}</p>}
+          {feedbackMessage?.type === "error" && <p role="alert" className="mt-3 rounded-lg bg-m3-error-container px-3 py-2 text-sm text-m3-on-error-container">{feedbackMessage.text}</p>}
         </form>
       </Modal>
     </div>

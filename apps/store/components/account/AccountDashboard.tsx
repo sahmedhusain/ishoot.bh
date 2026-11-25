@@ -16,6 +16,8 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 import { addToCart } from "../store/cart";
+import { ConfirmDialog } from "../ui/confirm-destructive";
+import { showSnackbar } from "../ui/snackbar";
 import { accountPost, card, field, label, primaryButton, secondaryButton, statusTone } from "./ui";
 
 interface Address {
@@ -95,6 +97,7 @@ export function AccountDashboard({
   const router = useRouter();
   const [profile, setProfile] = React.useState({ name: customer.name, phone: customer.phone, preferredLocale: customer.locale, marketingOptIn: customer.marketing_opt_in, password: "" });
   const [address, setAddress] = React.useState<typeof blankAddress | null>(null);
+  const [pendingDeleteAddress, setPendingDeleteAddress] = React.useState<Address | null>(null);
   const [confirmEmail, setConfirmEmail] = React.useState("");
   const [pointsToConvert, setPointsToConvert] = React.useState(String(minRedeemPoints));
   const [giftCardCode, setGiftCardCode] = React.useState("");
@@ -113,10 +116,15 @@ export function AccountDashboard({
     setMessage(null);
     try {
       await task();
-      if (ok) setMessage({ where, tone: "ok", text: ok });
+      if (ok) {
+        setMessage({ where, tone: "ok", text: ok });
+        showSnackbar({ message: ok, tone: "success" });
+      }
       router.refresh();
     } catch (err) {
-      setMessage({ where, tone: "error", text: known(`account.errors.${err instanceof Error ? err.message : "generic"}`, "account.errors.generic") });
+      const errText = known(`account.errors.${err instanceof Error ? err.message : "generic"}`, "account.errors.generic");
+      setMessage({ where, tone: "error", text: errText });
+      showSnackbar({ message: errText, tone: "error" });
     } finally {
       setBusy(null);
     }
@@ -252,7 +260,7 @@ export function AccountDashboard({
                   </div>
                   <div className={section}>
                     <p className="text-xs text-ink-muted inline-flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-amber-500" aria-hidden="true" />
+                      <Award className="w-4 h-4 text-m3-tertiary" aria-hidden="true" />
                       {t("account.loyaltyPoints", { defaultValue: "Loyalty Points" })}
                     </p>
                     <p className="text-2xl font-bold text-ink mt-1" data-testid="account-loyalty-points">
@@ -264,7 +272,7 @@ export function AccountDashboard({
                     <p className="text-2xl font-bold text-ink mt-1 capitalize">
                       {customer.tier || "standard"}
                       {discountPercent > 0 && (
-                        <span className="ms-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-xs font-semibold">
+                        <span className="ms-2 rounded-full bg-m3-primary-container text-m3-on-primary-container px-2.5 py-0.5 text-xs font-semibold">
                           -{discountPercent}%
                         </span>
                       )}
@@ -348,7 +356,7 @@ export function AccountDashboard({
                     </Select>
                   </label>
                   <label className="block space-y-2"><span className={label}>{t("account.newPassword")}</span><input name="profilePassword" type="password" autoComplete="new-password" maxLength={200} value={profile.password} onChange={(e) => setProfile({ ...profile, password: e.target.value })} className={field} /></label>
-                  <label className="flex items-center gap-3 text-sm text-ink-muted sm:col-span-2"><input type="checkbox" checked={profile.marketingOptIn} onChange={(e) => setProfile({ ...profile, marketingOptIn: e.target.checked })} className="h-4 w-4 accent-[var(--web-accent)]" />{t("account.marketing")}</label>
+                  <label className="flex items-center gap-3 text-sm text-m3-on-surface-variant sm:col-span-2"><input type="checkbox" checked={profile.marketingOptIn} onChange={(e) => setProfile({ ...profile, marketingOptIn: e.target.checked })} className="h-4 w-4 accent-m3-primary" />{t("account.marketing")}</label>
                 </div>
                 {note("profile")}
                 <button type="submit" className={primaryButton} disabled={!!busy} data-testid="account-profile-save">{t("account.save")}</button>
@@ -366,8 +374,8 @@ export function AccountDashboard({
                       <p className="text-ink-muted"><span>{a.name}</span>{a.phone ? <> · <bdi dir="ltr">{a.phone}</bdi></> : null}</p>
                       <p className="text-ink-muted">{[a.line1, a.line2, a.area, a.city, a.country, a.postal_code].filter(Boolean).join(", ")}</p>
                       <div className="flex gap-3 pt-1">
-                        <button type="button" className="min-h-10 text-xs font-semibold text-[var(--web-accent)] hover:underline" onClick={() => setAddress({ id: a.id, label: a.label, name: a.name, phone: a.phone, line1: a.line1, line2: a.line2, area: a.area, city: a.city, country: a.country, postalCode: a.postal_code, isDefault: a.is_default })}>{t("account.editAddress")}</button>
-                        <button type="button" className="min-h-10 text-xs font-semibold text-m3-error hover:underline" onClick={() => run("address", () => accountPost("address-delete", { id: a.id }))}>{t("account.removeAddress")}</button>
+                        <button type="button" className="min-h-10 text-xs font-semibold text-m3-primary hover:underline cursor-pointer" onClick={() => setAddress({ id: a.id, label: a.label, name: a.name, phone: a.phone, line1: a.line1, line2: a.line2, area: a.area, city: a.city, country: a.country, postalCode: a.postal_code, isDefault: a.is_default })}>{t("account.editAddress")}</button>
+                        <button type="button" className="min-h-10 text-xs font-semibold text-m3-error hover:underline cursor-pointer" data-testid={`remove-address-${a.id}`} onClick={() => setPendingDeleteAddress(a)}>{t("account.removeAddress")}</button>
                       </div>
                     </li>
                   ))}
@@ -398,7 +406,7 @@ export function AccountDashboard({
                         )}
                       </label>
                     ))}
-                    <label className="flex items-center gap-3 text-sm text-ink-muted"><input type="checkbox" checked={address.isDefault} onChange={(e) => setAddress({ ...address, isDefault: e.target.checked })} className="h-4 w-4 accent-[var(--web-accent)]" />{t("account.address.isDefault")}</label>
+                    <label className="flex items-center gap-3 text-sm text-m3-on-surface-variant"><input type="checkbox" checked={address.isDefault} onChange={(e) => setAddress({ ...address, isDefault: e.target.checked })} className="h-4 w-4 accent-m3-primary" />{t("account.address.isDefault")}</label>
                     <div className="sm:col-span-2 flex gap-2">
                       <button type="submit" className={primaryButton} disabled={!!busy} data-testid="account-address-save">{t("account.save")}</button>
                       <button type="button" className={secondaryButton} onClick={() => setAddress(null)}>{t("common.cancel")}</button>
@@ -459,7 +467,7 @@ export function AccountDashboard({
                           <p className="font-medium text-ink">{tx.note || tx.kind}</p>
                           <p className="text-ink-muted">{new Date(tx.created_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</p>
                         </div>
-                        <span className={`font-semibold ${tx.amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-m3-error"}`}>
+                        <span className={`font-semibold ${tx.amount >= 0 ? "text-m3-primary" : "text-m3-error"}`}>
                           {tx.amount >= 0 ? "+" : ""}{formatPrice(tx.amount, currency, locale)}
                         </span>
                       </li>
@@ -523,7 +531,7 @@ export function AccountDashboard({
                           <p className="font-medium text-ink">{tx.note || tx.kind}</p>
                           <p className="text-ink-muted">{new Date(tx.created_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</p>
                         </div>
-                        <span className={`font-semibold ${tx.points >= 0 ? "text-amber-600 dark:text-amber-400" : "text-m3-error"}`}>
+                        <span className={`font-semibold ${tx.points >= 0 ? "text-m3-tertiary" : "text-m3-error"}`}>
                           {tx.points >= 0 ? "+" : ""}{tx.points} pts
                         </span>
                       </li>
@@ -546,7 +554,7 @@ export function AccountDashboard({
                         <span className={`rounded-full px-2.5 py-0.5 text-xs ${statusTone(o.status)}`}>{o.fulfilment === "pickup" && ["shipped", "delivered"].includes(o.status) ? t(`store.pickupStatuses.${o.status}`) : t(`store.statuses.${o.status}`)}</span>
                         <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</span>
                         <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
-                        {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-[var(--web-accent)] hover:underline">{t("store.track")}</Link>}
+                        {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-m3-primary hover:underline">{t("store.track")}</Link>}
                         <span className="ms-auto font-semibold text-m3-on-surface">{formatPrice(o.total, o.currency, locale)}</span>
                         {o.pickup_branch && <p className="basis-full text-ink-muted text-sm">{locale === "ar" ? o.pickup_branch.nameAr : o.pickup_branch.nameEn} · {locale === "ar" ? o.pickup_branch.addressAr : o.pickup_branch.addressEn}</p>}
                         <OrderHelp orderId={o.id} locale={locale} />
@@ -627,17 +635,47 @@ export function AccountDashboard({
             )}
 
             {(activeSection === "all" || activeSection === "profile") && (
-              <section className={`${section} border-rose-500/20`} aria-labelledby="account-delete">
-                <h2 id="account-delete" className={heading}><Trash2 className="w-5 h-5" aria-hidden="true" />{t("account.deleteTitle")}</h2>
-                <p className="text-sm text-ink-muted">{t("account.deleteText")}</p>
+              <section className={`${section} border-m3-error/35`} aria-labelledby="account-delete">
+                <h2 id="account-delete" className={heading}><Trash2 className="w-5 h-5 text-m3-error" aria-hidden="true" />{t("account.deleteTitle")}</h2>
+                <p className="text-sm text-m3-on-surface-variant">{t("account.deleteText")}</p>
                 <label className="block space-y-2 max-w-sm"><span className={label}>{t("account.deleteConfirm")}</span><input name="confirmEmail" type="email" dir="ltr" value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} className={field} /></label>
                 {note("delete")}
-                <button type="button" className={`${secondaryButton} border-rose-500/40 text-m3-error`} disabled={!!busy || !confirmEmail} onClick={() => run("delete", () => accountPost("delete", { confirmEmail }))} data-testid="account-delete">{t("account.delete")}</button>
+                <button type="button" className={`${secondaryButton} border-m3-error/50 text-m3-error hover:bg-m3-error-container/40`} disabled={!!busy || !confirmEmail} onClick={() => run("delete", () => accountPost("delete", { confirmEmail }))} data-testid="account-delete">{t("account.delete")}</button>
               </section>
             )}
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={pendingDeleteAddress !== null}
+        onClose={() => setPendingDeleteAddress(null)}
+        onConfirm={async () => {
+          if (!pendingDeleteAddress) return;
+          const targetId = pendingDeleteAddress.id;
+          await run(
+            "address",
+            () => accountPost("address-delete", { id: targetId }),
+            t("account.saved"),
+          );
+          setPendingDeleteAddress(null);
+        }}
+        title={t("account.removeAddress")}
+        description={
+          pendingDeleteAddress
+            ? `${pendingDeleteAddress.label || pendingDeleteAddress.name} — ${[
+                pendingDeleteAddress.line1,
+                pendingDeleteAddress.area,
+                pendingDeleteAddress.city,
+              ]
+                .filter(Boolean)
+                .join(", ")}`
+            : ""
+        }
+        confirmLabel={t("account.removeAddress")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+      />
     </div>
   );
 }
@@ -651,7 +689,7 @@ export function OrderHelp({ orderId, locale }: { orderId: string; locale: string
   const [sent, setSent] = React.useState("");
   const [error, setError] = React.useState("");
   if (sent) return <p role="status" className="basis-full text-xs text-m3-primary">{t("account.help.sent", { reference: sent })}</p>;
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className="basis-full text-start text-xs font-semibold text-[var(--web-accent)] hover:underline" data-testid="order-help-open">{t("account.help.open")}</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="basis-full text-start text-xs font-semibold text-m3-primary hover:underline cursor-pointer" data-testid="order-help-open">{t("account.help.open")}</button>;
   const send = async () => {
     setBusy(true);
     setError("");

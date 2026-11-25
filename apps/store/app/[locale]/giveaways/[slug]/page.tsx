@@ -56,7 +56,7 @@ export default async function GiveawayDetailPage({
   return (
     <div className="bg-m3-surface text-m3-on-surface space-y-10 pb-20">
       <header className="shell pt-6 space-y-6">
-        <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10 space-y-5">
+        <div className="rounded-3xl bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/60 p-6 sm:p-10 space-y-5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
             <Trophy className="w-3.5 h-3.5" aria-hidden="true" />
             {isGrand
@@ -69,7 +69,7 @@ export default async function GiveawayDetailPage({
                 ? "سحب الجوائز والمكافآت الموسمية"
                 : "Store Seasonal Prize Draw")}
           </h1>
-          <p className="text-sm sm:text-base opacity-80 max-w-2xl">
+          <p className="text-sm sm:text-base opacity-85 max-w-2xl">
             {pickText(cmsPage?.seo_description_en, cmsPage?.seo_description_ar, locale) ||
               (isAr
                 ? `كل ${spendUnit} ${info.currency} تنفقه في المتجر يمنحك تذكرة سحب إلكترونية مرتبطة برقم طلبك وحسابك.`
@@ -85,7 +85,7 @@ export default async function GiveawayDetailPage({
             </Link>
             <Link
               href={`/${locale}/account/rewards`}
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/25 px-5 py-3 text-sm font-semibold hover:bg-white/10"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-m3-outline bg-m3-surface px-5 py-3 text-sm font-semibold text-m3-on-surface hover:border-m3-primary"
             >
               {isAr ? "عرض تذاكري ونقاطي" : "View My Tickets & Rewards"}
             </Link>

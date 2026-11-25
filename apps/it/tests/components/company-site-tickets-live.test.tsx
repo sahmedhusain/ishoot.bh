@@ -283,6 +283,18 @@ describe("IT Company, Site, Tickets, Shell & Live Presence Components", () => {
           { status: 200 },
         );
       }
+      if (url.includes("/api/error-report")) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            ticketId: "tkt-err-1",
+            ticketNumber: 88,
+            incidentId: "IT-500-20261125-TEST01",
+            status: "new",
+          }),
+          { status: 201 },
+        );
+      }
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     });
 
@@ -306,13 +318,26 @@ describe("IT Company, Site, Tickets, Shell & Live Presence Components", () => {
           email="it@example.test"
           roles={["it_admin"]}
           dbRoles={[]}
-          branding={{ companyName: "Zayed Group", iconUrl: "/media/icon.svg" }}
+          branding={{ isSetup: true, name: "Zayed Group", iconUrl: "/media/icon.svg" }}
         >
           <LiveProbe />
-          <ItUnifiedErrorPage statusCode={500} error={new Error("Simulated IT error")} reset={vi.fn()} />
+          <ItUnifiedErrorPage statusCode={500} error={new Error("Simulated IT secret stack error")} reset={vi.fn()} />
         </Shell>
       </CopyProvider>,
     );
+
+    expect(screen.getByText("ERR-IT-500")).toBeInTheDocument();
+    expect(screen.queryByText(/Simulated IT secret stack error/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copy/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: enCopy.errors.reportBtn }));
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/error-report",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+    expect(await screen.findByText(/#88/)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(

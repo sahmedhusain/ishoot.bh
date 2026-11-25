@@ -202,13 +202,14 @@ describe("Web Telemetry, Layout, Site & Shared Components", () => {
     expect(container.querySelector("iframe")).toBeInTheDocument();
   });
 
-  it("WebUnifiedErrorPage shows diagnostics and triggers reset and clipboard copy", async () => {
+  it("WebUnifiedErrorPage hides raw diagnostics, triggers reset, and reports to /api/error-report", async () => {
     const user = userEvent.setup();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: { writeText },
-    });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ ok: true, ticketId: "t-1", ticketNumber: 42, incidentId: "ERR-TEST", status: "new" }),
+        { status: 201 },
+      ),
+    );
     const resetSpy = vi.fn();
 
     render(
@@ -221,12 +222,25 @@ describe("Web Telemetry, Layout, Site & Shared Components", () => {
       </WebTestProviders>,
     );
 
-    expect(screen.getByRole("alert")).toBeInTheDocument();
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeInTheDocument();
+    expect(screen.getByTestId("error-incident-id")).toBeInTheDocument();
+    expect(screen.queryByText(/Boom backend error/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copy/i })).not.toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: /try again|retry|reload/i }));
     expect(resetSpy).toHaveBeenCalledTimes(1);
 
-    await user.click(screen.getByRole("button", { name: /copy/i }));
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Boom backend error"));
+    await user.click(screen.getByRole("button", { name: /^report$/i }));
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/error-report",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: expect.stringContaining("Boom backend error"),
+      }),
+    );
+    expect(await screen.findByText(/#42/)).toBeInTheDocument();
   });
 
   it("CookieConsentBanner and LegalPolicyView render, customize and save preferences", async () => {

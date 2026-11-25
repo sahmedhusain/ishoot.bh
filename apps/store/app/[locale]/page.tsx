@@ -151,7 +151,7 @@ export default async function StoreHomePage({
             className="grid gap-4 md:grid-cols-2"
             data-testid="home-giveaway-banners"
           >
-            <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-8 flex flex-col justify-between gap-6">
+            <div className="rounded-3xl bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/60 p-6 sm:p-8 flex flex-col justify-between gap-6">
               <div className="space-y-3">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
                   <Trophy className="w-3.5 h-3.5" aria-hidden="true" />
@@ -164,7 +164,7 @@ export default async function StoreHomePage({
                     locale,
                   )}
                 </h2>
-                <p className="text-xs sm:text-sm opacity-80">
+                <p className="text-xs sm:text-sm opacity-85">
                   {isAr
                     ? `احصل على تذكرة سحب تلقائيا مقابل كل ${storeSettings?.raffle_spend_unit ?? 10} ${info.currency} من مشترياتك.`
                     : `Receive 1 automatic raffle entry for every ${storeSettings?.raffle_spend_unit ?? 10} ${info.currency} spent online or in-store.`}
@@ -187,10 +187,10 @@ export default async function StoreHomePage({
               </div>
             </div>
 
-            <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-8 flex flex-col justify-between gap-6">
+            <div className="rounded-3xl bg-m3-secondary-container text-m3-on-secondary-container border border-m3-outline-variant/60 p-6 sm:p-8 flex flex-col justify-between gap-6">
               <div className="space-y-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-secondary-container px-3.5 py-1 text-xs font-bold text-m3-on-secondary-container">
-                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-surface text-m3-on-surface border border-m3-outline-variant px-3.5 py-1 text-xs font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-m3-primary" aria-hidden="true" />
                   {isAr ? "حملة المكافآت الكبرى" : "GRAND PRIZE CAMPAIGN"}
                 </span>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">
@@ -198,7 +198,7 @@ export default async function StoreHomePage({
                     ? "السحب المميز للجوائز والقسائم الكبرى"
                     : "Grand Prize & Seasonal Voucher Draw"}
                 </h2>
-                <p className="text-xs sm:text-sm opacity-80">
+                <p className="text-xs sm:text-sm opacity-85">
                   {isAr
                     ? "تُضاعف فرصك مع الباقات المختارة وبطاقات الهدايا طوال فترة الحملة."
                     : "Bonus entries on curated collections, bundles, and gift cards throughout the campaign."}
@@ -314,16 +314,16 @@ export default async function StoreHomePage({
           <div className="grid gap-4 md:grid-cols-3">
             <Link
               href={`/${locale}/build-pc`}
-              className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary transition-colors group"
+              className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary hover:bg-m3-surface-container-highest transition-colors group"
             >
-              <div className="h-11 w-11 rounded-2xl border border-m3-primary/50 bg-m3-primary/15 grid place-items-center text-m3-primary">
+              <div className="h-11 w-11 rounded-2xl bg-m3-primary-container text-m3-on-primary-container grid place-items-center">
                 <Wrench className="w-5 h-5" aria-hidden="true" />
               </div>
               <div className="space-y-1.5">
                 <h3 className="font-display text-xl font-bold">
                   {isAr ? "منسق الباقات المخصصة" : "Custom Package Builder"}
                 </h3>
-                <p className="text-xs opacity-80">
+                <p className="text-xs text-m3-on-surface-variant">
                   {isAr ? "اجمع المنتجات والعناصر المناسبة لاحتياجك وميزانيتك" : "Combine products & bundles tailored to your requirements"}
                 </p>
                 <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold text-m3-primary group-hover:underline">
@@ -338,9 +338,9 @@ export default async function StoreHomePage({
                   ? `/${locale}/categories/${encodeURIComponent(effectiveCategories[0].slug)}`
                   : `/${locale}/categories`
               }
-              className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary transition-colors group"
+              className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary hover:bg-m3-surface-container-highest transition-colors group"
             >
-              <div className="h-11 w-11 rounded-2xl border border-m3-primary/50 bg-m3-primary/15 grid place-items-center text-m3-primary">
+              <div className="h-11 w-11 rounded-2xl bg-m3-secondary-container text-m3-on-secondary-container grid place-items-center">
                 <Cpu className="w-5 h-5" aria-hidden="true" />
               </div>
               <div className="space-y-1.5">
@@ -351,7 +351,7 @@ export default async function StoreHomePage({
                       ? "تصفح الفئات المختارة"
                       : "Browse Featured Categories"}
                 </h3>
-                <p className="text-xs opacity-80">
+                <p className="text-xs text-m3-on-surface-variant">
                   {isAr ? "اكتشف الأقسام الأعلى طلبا والمنتجات المميزة" : "Explore flagship collections, bundles, and top-rated picks"}
                 </p>
                 <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold text-m3-primary group-hover:underline">
@@ -362,16 +362,16 @@ export default async function StoreHomePage({
 
             <Link
               href={`/${locale}/shop`}
-              className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary transition-colors group"
+              className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 flex flex-col justify-between gap-6 min-h-[210px] hover:border-m3-primary hover:bg-m3-surface-container-highest transition-colors group"
             >
-              <div className="h-11 w-11 rounded-2xl border border-m3-primary/50 bg-m3-primary/15 grid place-items-center text-m3-primary">
+              <div className="h-11 w-11 rounded-2xl bg-m3-tertiary-container text-m3-on-tertiary-container grid place-items-center">
                 <Sparkles className="w-5 h-5" aria-hidden="true" />
               </div>
               <div className="space-y-1.5">
                 <h3 className="font-display text-xl font-bold">
                   {isAr ? "تصفح الكتالوج الكامل" : "Shop All Products"}
                 </h3>
-                <p className="text-xs opacity-80">
+                <p className="text-xs text-m3-on-surface-variant">
                   {isAr ? "جميع المنتجات والإصدارات الجديدة وبطاقات الهدايا" : "Full catalogue, new arrivals & instant gift vouchers"}
                 </p>
                 <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold text-m3-primary group-hover:underline">

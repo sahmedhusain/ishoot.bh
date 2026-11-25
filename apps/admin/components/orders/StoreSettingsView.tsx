@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Award, ExternalLink, FolderKanban, Gift, Globe, Loader2, Plus, RotateCcw, Ticket, Trash2, Users } from "lucide-react";
-import { Button, Card, Input, Select } from "@platform/ui";
+import { Button, Card, Input, Select, useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import type { CustomStoreCategorySpec } from "@platform/database/constants/store";
@@ -72,9 +72,11 @@ export function StoreSettingsView({
   returnRequests?: AdminOrderReturnRequestRow[];
   customCategories?: CustomStoreCategorySpec[];
 }) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const copy = t.orders.settings;
   const rewardsCopy = t.orders.rewards;
+  const confirmAction = useConfirmation();
+  const [tab, setTab] = React.useState<"general" | "rewards" | "storefront" | "returns">("general");
   const [form, setForm] = React.useState({
     guestCheckout: settings.guest_checkout,
     deliveryEnabled: settings.delivery_enabled,
@@ -172,19 +174,56 @@ export function StoreSettingsView({
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
       <PageHeader />
+      <div
+        role="tablist"
+        data-tab-variant="pills"
+        aria-label={t.orders.nav.settings}
+        className="flex flex-wrap gap-2 border-b border-outline-variant pb-3"
+      >
+        {(["general", "rewards", "storefront", "returns"] as const).map((key) => {
+          const active = tab === key;
+          const badge =
+            key === "returns"
+              ? returnRequests.filter((r) => r.status === "pending").length
+              : 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(key)}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                active
+                  ? "bg-secondary-container text-on-secondary-container shadow-xs"
+                  : "text-on-surface-variant hover:bg-on-surface/[0.08] hover:text-on-surface"
+              }`}
+            >
+              <span>{copy.tabs[key]}</span>
+              {badge > 0 && (
+                <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-m3-on-primary">
+                  {badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
       {message && (
         <p
           role={message.tone === "error" ? "alert" : "status"}
           className={`text-sm rounded-xl px-4 py-3 ${
             message.tone === "ok"
-              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-              : "bg-rose-500/10 text-rose-700 dark:text-rose-300"
+              ? "bg-primary-container text-on-primary-container"
+              : "bg-m3-error-container text-m3-on-error-container"
           }`}
         >
           {message.text}
         </p>
       )}
+      {(tab === "general" || tab === "rewards" || tab === "storefront") && (
       <Card className="p-5 space-y-5">
+        {tab === "general" && (
         <fieldset disabled={!canEdit} className="grid sm:grid-cols-2 gap-4">
           {toggle("guestCheckout")}
           {toggle("pickupEnabled")}
@@ -272,9 +311,11 @@ export function StoreSettingsView({
             )}
           </Field>
         </fieldset>
+        )}
 
         {/* Loyalty, Wallet, Raffle & Privacy/SSL Controls */}
-        <fieldset disabled={!canEdit} className="border-t border-outline-variant pt-4 space-y-4">
+        {tab === "rewards" && (
+        <fieldset disabled={!canEdit} className="space-y-4">
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
             <Award className="w-4 h-4 text-accent" aria-hidden="true" />
             {rewardsCopy.rewardsSettingsHeading}
@@ -411,9 +452,11 @@ export function StoreSettingsView({
             </label>
           </div>
         </fieldset>
+        )}
 
         {/* Website & Storefront Experience Settings */}
-        <fieldset disabled={!canEdit} className="border-t border-outline-variant pt-4 space-y-4">
+        {tab === "storefront" && (
+        <fieldset disabled={!canEdit} className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold text-ink flex items-center gap-2">
               <Globe className="w-4 h-4 text-accent" aria-hidden="true" />
@@ -530,6 +573,7 @@ export function StoreSettingsView({
             </div>
           </div>
         </fieldset>
+        )}
 
         {canEdit && (
           <Button
@@ -546,8 +590,10 @@ export function StoreSettingsView({
           </Button>
         )}
       </Card>
+      )}
 
       {/* Coupons Card */}
+      {tab === "general" && (
       <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2">
@@ -746,9 +792,16 @@ export function StoreSettingsView({
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="ms-auto rounded-full text-rose-600"
+                    className="ms-auto rounded-full text-m3-error"
                     disabled={busy}
-                    onClick={() => run(() => deleteCouponAction(c.id), copy.saved)}
+                    onClick={() =>
+                      confirmAction({
+                        title: t.actions.delete,
+                        description: formatMessage(copy.deleteCouponConfirm, { code: c.code }),
+                        variant: "danger",
+                        onConfirm: () => run(() => deleteCouponAction(c.id), copy.saved),
+                      })
+                    }
                     data-testid={`coupon-delete-${c.id}`}
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -759,8 +812,11 @@ export function StoreSettingsView({
           </ul>
         )}
       </Card>
+      )}
 
       {/* Gift Cards & Store Vouchers Card */}
+      {tab === "rewards" && (
+      <>
       <Card className="p-5 space-y-4" data-page-section data-testid="gift-cards-panel">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2">
@@ -866,10 +922,17 @@ export function StoreSettingsView({
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="ms-auto text-rose-600"
+                    className="ms-auto text-m3-error"
                     disabled={busy}
                     data-testid={`gift-card-delete-${g.id}`}
-                    onClick={() => run(() => deleteGiftCardAction(g.id), copy.saved)}
+                    onClick={() =>
+                      confirmAction({
+                        title: t.actions.delete,
+                        description: formatMessage(copy.deleteGiftCardConfirm, { code: g.code }),
+                        variant: "danger",
+                        onConfirm: () => run(() => deleteGiftCardAction(g.id), copy.saved),
+                      })
+                    }
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                   </Button>
@@ -1022,8 +1085,11 @@ export function StoreSettingsView({
           </div>
         )}
       </Card>
+      </>
+      )}
 
       {/* Customer Return & Refund Requests Queue */}
+      {tab === "returns" && (
       <Card className="p-5 space-y-4" data-page-section data-testid="return-requests-panel">
         <h2 className="font-bold text-ink flex items-center gap-2">
           <RotateCcw className="w-4 h-4 text-accent" aria-hidden="true" />
@@ -1102,8 +1168,11 @@ export function StoreSettingsView({
           </ul>
         )}
       </Card>
+      )}
 
       {/* Custom Storefront Categories Manager */}
+      {tab === "storefront" && (
+      <>
       <Card className="p-5 space-y-4" data-testid="admin-custom-categories-card">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-ink flex items-center gap-2">
@@ -1147,15 +1216,23 @@ export function StoreSettingsView({
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="rounded-full text-rose-600"
+                    className="rounded-full text-m3-error"
                     disabled={busy}
                     data-testid={`custom-category-delete-${cat.id}`}
                     onClick={() =>
-                      run(async () => {
-                        const res = await deleteStoreCustomCategoryAction(cat.id);
-                        if (res?.categories) setCategoriesList(res.categories);
-                        else setCategoriesList((prev) => prev.filter((item) => item.id !== cat.id));
-                      }, copy.saved)
+                      confirmAction({
+                        title: t.actions.delete,
+                        description: formatMessage(copy.deleteCategoryConfirm, {
+                          name: locale === "ar" && cat.name_ar ? cat.name_ar : cat.name_en,
+                        }),
+                        variant: "danger",
+                        onConfirm: () =>
+                          run(async () => {
+                            const res = await deleteStoreCustomCategoryAction(cat.id);
+                            if (res?.categories) setCategoriesList(res.categories);
+                            else setCategoriesList((prev) => prev.filter((item) => item.id !== cat.id));
+                          }, copy.saved),
+                      })
                     }
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -1307,13 +1384,15 @@ export function StoreSettingsView({
           ].map((routePath) => (
             <span
               key={routePath}
-              className="rounded-xl border border-outline-variant bg-surface-muted px-3 py-1.5 text-ink"
+              className="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-1.5 text-on-surface"
             >
               {routePath}
             </span>
           ))}
         </div>
       </Card>
+      </>
+      )}
     </div>
   );
 }

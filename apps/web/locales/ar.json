@@ -815,7 +815,14 @@
     "retry": "إعادة المحاولة",
     "returnHome": "العودة إلى الرئيسية",
     "copyDiagnostics": "نسخ التفاصيل",
-    "copied": "تم النسخ!"
+    "copied": "تم النسخ!",
+    "errorCodeLabel": "رمز الخطأ",
+    "incidentIdLabel": "الرقم المرجعي",
+    "reportButton": "إبلاغ عن المشكلة",
+    "reportingButton": "جارٍ إرسال البلاغ…",
+    "reportedButton": "تم الإبلاغ",
+    "reportSuccess": "تم إرسال البلاغ إلى الدعم الفني ({ticket}).",
+    "reportFailed": "تعذر إرسال البلاغ. يرجى المحاولة مرة أخرى."
   },
   "cookies": {
     "bannerTitle": "الخصوصية وتفضيلات ملفات الارتباط",

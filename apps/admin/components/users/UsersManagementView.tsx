@@ -210,21 +210,21 @@ export function UsersManagementView({
       )}
       <PageHeader
         actions={<div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-surface p-1 rounded-xl border border-outline-variant text-xs font-semibold" role="tablist">
+          <div data-tab-variant="pills" className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant text-xs font-semibold" role="tablist">
             <button
               onClick={() => setActiveTab("users")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "users"
-                ? "bg-accent text-accent-foreground shadow-sm"
-                : "text-ink-muted hover:text-ink"
+              className={`px-3.5 py-1.5 rounded-full transition-all ${activeTab === "users"
+                ? "bg-secondary-container text-on-secondary-container"
+                : "text-on-surface-variant hover:text-on-surface"
                 }`}
              tabIndex={activeTab === "users" ? 0 : -1} role="tab" aria-selected={activeTab === "users"} type="button">
               {t.nav.users} ({total})
             </button>
             <button
               onClick={() => setActiveTab("matrix")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "matrix"
-                ? "bg-accent text-accent-foreground shadow-sm"
-                : "text-ink-muted hover:text-ink"
+              className={`px-3.5 py-1.5 rounded-full transition-all ${activeTab === "matrix"
+                ? "bg-secondary-container text-on-secondary-container"
+                : "text-on-surface-variant hover:text-on-surface"
                 }`}
              tabIndex={activeTab === "matrix" ? 0 : -1} role="tab" aria-selected={activeTab === "matrix"} type="button">
               {t.usersView.permissionsMatrix}

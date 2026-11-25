@@ -122,7 +122,7 @@ export function AccountSignIn({
           <div
             role="tablist"
             aria-label={t("account.signInTitle")}
-            className="mt-8 grid grid-cols-3 gap-2"
+            className="mt-8 grid grid-cols-3 gap-1.5 rounded-2xl border border-m3-outline-variant bg-m3-surface p-1.5"
           >
             {(["password", "code", "signUp"] as const).map((id) => (
               <button
@@ -160,7 +160,11 @@ export function AccountSignIn({
                   setError("");
                   setCodeSent(false);
                 }}
-                className={`rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition-colors ${tab === id ? "bg-m3-secondary-container text-m3-on-secondary-container" : "text-ink-muted hover:text-white"}`}
+                className={`min-h-10 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
+                  tab === id
+                    ? "bg-m3-secondary-container text-m3-on-secondary-container shadow-m3-1"
+                    : "text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"
+                }`}
               >
                 {t(`account.tabs.${id}`)}
               </button>
@@ -261,7 +265,7 @@ export function AccountSignIn({
                     type="checkbox"
                     checked={form.marketingOptIn}
                     onChange={(e) => set({ marketingOptIn: e.target.checked })}
-                    className="h-4 w-4 accent-[var(--web-accent)]"
+                    className="h-4 w-4 accent-m3-primary"
                   />
                   {t("account.marketing")}
                 </label>

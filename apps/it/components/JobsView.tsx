@@ -309,28 +309,44 @@ export function JobsView({
       </div>
 
       {inspectQueue && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="it-card w-full max-w-lg bg-surface p-4 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-outline-variant pb-2">
-              <span className="font-bold uppercase text-ink">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-[2px]"
+          onClick={() => setInspectQueue(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`QUEUE SNAPSHOT: ${inspectQueue.name.toUpperCase()}`}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg overflow-hidden rounded-lg border border-outline-variant bg-surface text-ink shadow-2xl font-mono text-xs"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 bg-[#1a2b49] dark:bg-[#0b1526] px-4 py-3 text-white">
+              <span className="font-bold uppercase tracking-wider text-sm">
                 QUEUE SNAPSHOT: {inspectQueue.name.toUpperCase()}
               </span>
-              <button type="button" onClick={() => setInspectQueue(null)}>
+              <button
+                type="button"
+                onClick={() => setInspectQueue(null)}
+                aria-label={copy.shared.ui.close}
+                className="rounded-md p-1 text-white/75 hover:bg-white/10 hover:text-white transition-colors"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <pre className="p-3 bg-slate-950 text-emerald-300 overflow-x-auto text-[11px]">
-              {JSON.stringify(
-                {
-                  queue: inspectQueue.name,
-                  engine: "river-pg",
-                  states: inspectQueue.states,
-                  outboxLag: stats?.outboxLag ?? [],
-                },
-                null,
-                2,
-              )}
-            </pre>
+            <div className="p-4">
+              <pre className="rounded-md p-3 bg-slate-950 text-emerald-300 overflow-x-auto text-[11px] border border-slate-800">
+                {JSON.stringify(
+                  {
+                    queue: inspectQueue.name,
+                    engine: "river-pg",
+                    states: inspectQueue.states,
+                    outboxLag: stats?.outboxLag ?? [],
+                  },
+                  null,
+                  2,
+                )}
+              </pre>
+            </div>
           </div>
         </div>
       )}

@@ -23,6 +23,7 @@ import { formatPrice } from "../../lib/site-copy";
 import { useTranslation } from "../../hooks/useTranslation";
 import { addToCart } from "./cart";
 import { useStorePreferences } from "../layout/StorePreferencesBar";
+import { showSnackbar } from "../ui/snackbar";
 
 export interface ProductOption {
   nameEn: string;
@@ -102,6 +103,10 @@ export function AddToCart({
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
+      showSnackbar({
+        message: ar ? "تم نسخ رابط المنتج" : "Product link copied",
+        tone: "info",
+      });
     } catch {
       return;
     }
@@ -122,7 +127,7 @@ export function AddToCart({
               </p>
             )}
             {discountPct > 0 && (
-              <span className="rounded-full bg-m3-error px-2.5 py-0.5 text-xs font-bold text-white">
+              <span className="rounded-full bg-m3-error px-2.5 py-0.5 text-xs font-bold text-m3-on-error">
                 -{discountPct}%
               </span>
             )}
@@ -134,7 +139,7 @@ export function AddToCart({
           )}
         </div>
         {savingsAmount > 0 && (
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          <p className="text-xs font-semibold text-m3-primary">
             {ar
               ? `وفّر ${formatPrice(savingsAmount, displayCurrency, locale)}`
               : `You save ${formatPrice(savingsAmount, displayCurrency, locale)}`}
@@ -235,8 +240,14 @@ export function AddToCart({
           onClick={() => {
             addToCart({ productId: product.product_id, variantId: variant?.id, quantity });
             setAdded(true);
+            showSnackbar({
+              message: t("store.added"),
+              tone: "success",
+              actionLabel: t("store.viewCart"),
+              onAction: () => router.push(`/${locale}/cart`),
+            });
           }}
-          className="flex-1 min-w-[160px] min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-sm transition-colors disabled:opacity-50"
+          className="flex-1 min-w-[160px] min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-sm transition-colors disabled:opacity-50 cursor-pointer"
           data-testid="add-to-cart-button"
         >
           <ShoppingBag className="w-4 h-4" aria-hidden="true" />
@@ -276,7 +287,7 @@ export function AddToCart({
           </div>
           {loyaltyEnabled && pointsEarned > 0 && (
             <div className="rounded-xl border border-m3-outline-variant bg-m3-surface p-2.5 flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+              <Award className="w-4 h-4 text-m3-tertiary shrink-0" aria-hidden="true" />
               <span className="font-medium text-m3-on-surface">
                 {t("store.earnPointsWithPurchase", { points: pointsEarned, defaultValue: `Earn +${pointsEarned} pts` })}
               </span>
@@ -303,7 +314,7 @@ export function AddToCart({
               onClick={handleCopyLink}
               className="inline-flex items-center gap-1 rounded-full border border-m3-outline-variant px-2.5 py-1 hover:text-m3-on-surface"
             >
-              {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-3 h-3 text-m3-primary" /> : <Copy className="w-3 h-3" />}
               <span>{copied ? t("store.linkCopied", { defaultValue: "Copied" }) : t("store.copyLink", { defaultValue: "Copy Link" })}</span>
             </button>
             <a

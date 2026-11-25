@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { formatMessage } from "@platform/locales";
-import { Button, Modal, SegmentedButton, Select } from "@platform/ui";
+import { Button, Modal, ModalFooter, SegmentedButton, Select } from "@platform/ui";
 import {
   ArrowDown,
   ArrowUp,
@@ -193,7 +193,7 @@ export function SidebarCustomizerModal({
   };
 
   return (
-    <Modal isOpen={open} onClose={onClose} title={copy.title}>
+    <Modal isOpen={open} onClose={onClose} title={copy.title} footer={null}>
       <div className="space-y-5">
         <p className="text-xs text-ink-muted leading-relaxed">{copy.subtitle}</p>
 
@@ -414,26 +414,28 @@ export function SidebarCustomizerModal({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-outline-variant/60">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            className="gap-1.5 text-xs"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            {copy.resetDefault}
-          </Button>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={onClose}>
-              {t.actions.cancel}
+        <ModalFooter>
+          <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              className="gap-1.5 text-xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              {copy.resetDefault}
             </Button>
-            <Button type="button" variant="primary" size="sm" onClick={handleSave}>
-              {copy.saveChanges}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={onClose}>
+                {t.actions.cancel}
+              </Button>
+              <Button type="button" variant="primary" size="sm" onClick={handleSave}>
+                {copy.saveChanges}
+              </Button>
+            </div>
           </div>
-        </div>
+        </ModalFooter>
       </div>
     </Modal>
   );

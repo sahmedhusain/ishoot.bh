@@ -18,7 +18,7 @@ import {
   ShieldCheck,
   RotateCcw,
 } from "lucide-react";
-import { Select } from "@platform/ui";
+import { ConfirmDialog, Select } from "@platform/ui";
 import { CURRENCY_CODES, getCurrencyLabel } from "@platform/config/currency";
 import type {
   CompanyConfiguration,
@@ -107,6 +107,7 @@ export function CompanyView({
 
   const [tab, setTab] = React.useState<Tab>("profile");
   const [busy, setBusy] = React.useState(false);
+  const [pendingAssetRemove, setPendingAssetRemove] = React.useState<{ key: string; title: string } | null>(null);
 
   const [formData, setFormData] = React.useState<CompanyConfigurationPatch>(() => {
     if (!company) return {};
@@ -858,7 +859,7 @@ export function CompanyView({
                             {canEdit && (
                               <button
                                 type="button"
-                                onClick={() => handleAssetRemove(key)}
+                                onClick={() => setPendingAssetRemove({ key, title })}
                                 className="it-btn-3d w-full py-1 text-xs text-rose-700 dark:text-rose-400 font-bold flex items-center justify-center gap-1"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -1053,6 +1054,25 @@ export function CompanyView({
           </fieldset>
         </form>
       )}
+
+      <ConfirmDialog
+        isOpen={pendingAssetRemove !== null}
+        onClose={() => setPendingAssetRemove(null)}
+        title={c.removeAsset}
+        description={
+          pendingAssetRemove
+            ? `${c.removeAsset}: ${pendingAssetRemove.title} (${pendingAssetRemove.key})`
+            : ""
+        }
+        confirmLabel={c.removeAsset}
+        cancelLabel={copy.shared.ui.cancel}
+        variant="danger"
+        loading={busy}
+        onConfirm={async () => {
+          if (!pendingAssetRemove) return;
+          await handleAssetRemove(pendingAssetRemove.key);
+        }}
+      />
     </div>
   );
 }

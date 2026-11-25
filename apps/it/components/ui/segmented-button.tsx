@@ -34,14 +34,14 @@ export function SegmentedButton<T extends string = string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        "inline-flex max-w-full rounded-full border border-m3-outline",
+        "inline-flex max-w-full rounded-md border border-outline-variant bg-surface overflow-hidden",
         className,
       )}
     >
       {options.map((option, index) => (
         <label
           key={option.value}
-          className="relative min-w-0 flex-1 cursor-pointer first:rounded-s-full last:rounded-e-full"
+          className="relative min-w-0 flex-1 cursor-pointer"
         >
           <input
             type="radio"
@@ -54,14 +54,14 @@ export function SegmentedButton<T extends string = string>({
           />
           <span
             className={cn(
-              "m3-segment flex min-h-10 h-full items-center justify-center gap-2 px-4 py-2 text-center font-medium text-m3-on-surface rounded-[inherit] transition-colors duration-base ease-standard peer-checked:bg-m3-secondary-container peer-checked:text-m3-on-secondary-container peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-m3-primary peer-disabled:opacity-[0.38] peer-disabled:cursor-not-allowed",
+              "flex min-h-9 h-full items-center justify-center gap-1.5 px-3 py-1.5 text-center font-medium text-ink transition-colors duration-150 hover:bg-surface-raised peer-checked:bg-[#0070d2]/10 peer-checked:text-[#0070d2] dark:peer-checked:bg-[#0284c7]/20 dark:peer-checked:text-sky-300 peer-checked:font-semibold peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-[-2px] peer-focus-visible:outline-primary peer-disabled:opacity-50 peer-disabled:cursor-not-allowed",
               size === "sm" ? "text-xs" : "text-sm",
-              index > 0 && "border-s border-m3-outline",
+              index > 0 && "border-s border-outline-variant",
             )}
           >
             <span
               aria-hidden
-              className="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-4 [&>svg]:w-4"
+              className="flex h-3.5 w-3.5 shrink-0 items-center justify-center [&>svg]:h-3.5 [&>svg]:w-3.5"
             >
               {option.value === value ? <Check /> : option.icon}
             </span>

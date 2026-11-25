@@ -285,7 +285,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1.5" role="tablist">
+        <div data-tab-variant="pills" className="flex flex-wrap gap-1.5" role="tablist">
           {(["all", ...SOCIAL_PLAN_STATUSES] as const).map((status) => (
             <button
               key={status}
@@ -293,10 +293,10 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
               role="tab"
               aria-selected={filter === status}
               onClick={() => setFilter(status)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === status ? "bg-primary text-primary-foreground" : "bg-surface-sunken text-ink hover:bg-surface-sunken dark:bg-white/5 dark:text-ink dark:hover:bg-white/10"}`}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${filter === status ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container"}`}
              tabIndex={filter === status ? 0 : -1}>
               {status === "all" ? p.all : p.statuses[status]}
-              <span className="ms-1 opacity-70">{status === "all" ? plans.length : plans.filter((x) => x.status === status).length}</span>
+              <span className="ms-1 opacity-75">{status === "all" ? plans.length : plans.filter((x) => x.status === status).length}</span>
             </button>
           ))}
         </div>
@@ -480,8 +480,7 @@ export function SocialAnalyticsView({
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"}`}
-           tabIndex={tab === key ? 0 : -1}>
+            tabIndex={tab === key ? 0 : -1}>
             {s.tabs[key]}
           </button>
         ))}

@@ -133,13 +133,13 @@ export function ReviewsManagementView({
         </Card>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-outline-variant dark:border-white/10 pb-3">
+      <div className="flex items-center gap-2 border-b border-outline-variant pb-3">
         <button
           type="button"
           onClick={() => setFilter("all")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${filter === "all"
-            ? "bg-primary text-primary-foreground shadow-xs"
-            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
+          className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${filter === "all"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
             }`}
         >
           {t.reviewsView.tabAll} ({reviews.length})
@@ -147,14 +147,14 @@ export function ReviewsManagementView({
         <button
           type="button"
           onClick={() => setFilter("pending")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${filter === "pending"
-            ? "bg-amber-600 text-white shadow-xs"
-            : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+          className={`px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${filter === "pending"
+            ? "bg-m3-tertiary-container text-m3-on-tertiary-container"
+            : "text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
             }`}
         >
           <span>{t.reviewsView.tabPending}</span>
           {pendingCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">
               {pendingCount}
             </span>
           )}
