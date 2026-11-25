@@ -372,7 +372,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
             <legend className="text-lg font-bold text-m3-on-surface">{t("store.payment")}</legend>
             {methods.map((m) => (
               <label key={m} className={`flex min-h-11 items-center gap-3 rounded-xl border px-4 py-3 text-sm cursor-pointer transition-colors ${paymentMethod === m ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold" : "border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface-variant"}`}>
-                <input type="radio" name="paymentMethod" value={m} checked={paymentMethod === m} onChange={() => setPaymentMethod(m)} className="h-4 w-4 accent-[var(--web-accent)]" />
+                <input type="radio" name="paymentMethod" value={m} checked={paymentMethod === m} onChange={() => setPaymentMethod(m)} className="h-4 w-4 accent-m3-primary" />
                 {t(`store.paymentMethods.${m}`, { defaultValue: m === "wallet" ? "Store Wallet" : m })}
               </label>
             ))}

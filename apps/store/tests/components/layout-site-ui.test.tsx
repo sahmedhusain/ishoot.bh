@@ -83,6 +83,7 @@ import { SegmentedButton } from "../../components/ui/segmented-button";
 import { Select } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import { Skeleton } from "../../components/ui/skeleton";
+import { SnackbarProvider, showSnackbar } from "../../components/ui/snackbar";
 import { StatusBadge, StatusLabelsProvider } from "../../components/ui/status-badge";
 import { Textarea } from "../../components/ui/textarea";
 import { cn } from "../../components/ui/utils";
@@ -356,9 +357,11 @@ describe("Store Layout, Site, Shared & UI Components", () => {
     expect(screen.queryByTestId("region-option-SAR")).toBeNull();
     await user.click(await screen.findByTestId("region-option-BHD"));
     expect(screen.getByTestId("probe-region")).toHaveTextContent("BHD");
+    await user.keyboard("{Escape}");
 
     await user.click(screen.getByTestId("cookie-settings-trigger"));
     expect(await screen.findByTestId("cookie-settings-modal")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
 
     // Exercise standalone StorePreferencesBar export + modal helpers directly too
     render(<StoreTestProviders><StorePreferencesBar /></StoreTestProviders>);
@@ -387,5 +390,60 @@ describe("Store Layout, Site, Shared & UI Components", () => {
     await user.type(emailInput, "fan@example.test");
     fireEvent.submit(newsletterForm);
     expect(screen.getByText(/Subscribed/i)).toBeInTheDocument();
+  });
+
+  it("M3 SnackbarProvider & WebUnifiedErrorPage render without raw stack/copy and submit ITSM error reports", async () => {
+    const user = userEvent.setup();
+    const origFetch = globalThis.fetch;
+    const reportFetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "/api/error-report") {
+        return new Response(
+          JSON.stringify({ ok: true, ticketNumber: 512, incidentId: "ERR-20261125-500" }),
+          { status: 201 },
+        );
+      }
+      return new Response(JSON.stringify({}), { status: 200 });
+    });
+    globalThis.fetch = reportFetch as unknown as typeof fetch;
+
+    try {
+      const err = Object.assign(new Error("SENSITIVE_DB_CONNECTION_STRING"), {
+        digest: "DIGEST99",
+        stack: "Error: SENSITIVE_DB_CONNECTION_STRING\n    at secretPool (/srv/db.ts:12)",
+      });
+
+      render(
+        <StoreTestProviders>
+          <SnackbarProvider>
+            <button
+              type="button"
+              data-testid="trigger-snackbar"
+              onClick={() => showSnackbar({ message: "Added to bag", tone: "success" })}
+            >
+              Show Toast
+            </button>
+            <WebUnifiedErrorPage statusCode={500} error={err} />
+          </SnackbarProvider>
+        </StoreTestProviders>,
+      );
+
+      await user.click(screen.getByTestId("trigger-snackbar"));
+      expect(await screen.findByTestId("store-snackbar")).toHaveTextContent("Added to bag");
+
+      expect(screen.getByTestId("error-code-badge")).toBeInTheDocument();
+      expect(screen.queryByText(/SENSITIVE_DB_CONNECTION_STRING/)).toBeNull();
+      expect(screen.queryByText(/secretPool/)).toBeNull();
+      expect(screen.queryByRole("button", { name: /copy/i })).toBeNull();
+
+      await user.click(screen.getByTestId("error-report-button"));
+      expect(await screen.findByTestId("error-report-confirmation")).toHaveTextContent("#512");
+      expect(reportFetch).toHaveBeenCalledWith(
+        "/api/error-report",
+        expect.objectContaining({ method: "POST" }),
+      );
+    } finally {
+      globalThis.fetch = origFetch;
+    }
   });
 });

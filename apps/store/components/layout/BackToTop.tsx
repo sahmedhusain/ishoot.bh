@@ -36,9 +36,7 @@ export function BackToTop() {
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: reduced
-        ? "instant"
-        : "smooth",
+      behavior: reduced ? "instant" : "smooth",
     });
   };
 
@@ -47,32 +45,37 @@ export function BackToTop() {
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - scrollProgress * circumference;
-
   const label = t("common.backToTop");
 
   return (
     <button
+      type="button"
       onClick={scrollToTop}
       aria-label={label}
       aria-hidden={!isVisible}
       tabIndex={isVisible ? 0 : -1}
       title={label}
-      className={`fixed bottom-6 sm:bottom-8 z-[70] flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color] duration-200 ease-out group ${isRTL ? "left-6 sm:left-8" : "right-6 sm:right-8"
-        } ${isVisible
+      data-testid="back-to-top"
+      data-keep-round="true"
+      className={`m3-state-layer fixed bottom-20 md:bottom-6 z-[70] flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color,box-shadow] duration-200 ease-out group cursor-pointer ${
+        isRTL ? "left-5 sm:left-8" : "right-5 sm:right-8"
+      } ${
+        isVisible
           ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           : "opacity-0 scale-75 translate-y-4 pointer-events-none"
-        } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-ink hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
+      } bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/50 shadow-m3-3 hover:shadow-m3-4 active:scale-95`}
     >
       <svg
         className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-1"
         viewBox="0 0 48 48"
+        aria-hidden="true"
       >
         <circle
           cx="24"
           cy="24"
           r={radius}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.1)"
+          stroke="rgb(var(--m3-color-on-primary-container) / 0.16)"
           strokeWidth="2.5"
         />
         <circle
@@ -80,7 +83,7 @@ export function BackToTop() {
           cy="24"
           r={radius}
           fill="none"
-          stroke="rgb(var(--brand-accent))"
+          stroke="rgb(var(--m3-color-primary))"
           strokeWidth="2.5"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
@@ -89,7 +92,7 @@ export function BackToTop() {
         />
       </svg>
 
-      <ArrowUp className="w-5 h-5 text-white/90 group-hover:text-mint group-hover:-translate-y-0.5 transition-[color,transform] duration-200" />
+      <ArrowUp className="w-5 h-5 text-m3-on-primary-container group-hover:-translate-y-0.5 transition-transform duration-200" />
     </button>
   );
 }

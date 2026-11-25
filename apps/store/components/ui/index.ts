@@ -19,3 +19,4 @@ export * from "./floating-surface";
 export * from "./phone-input";
 export * from "./data-table";
 export * from "./ripple";
+export * from "./snackbar";

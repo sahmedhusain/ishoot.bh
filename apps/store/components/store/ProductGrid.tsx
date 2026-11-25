@@ -21,6 +21,9 @@ import { ContentImage } from "../shared/ContentImage";
 import { addToCart } from "./cart";
 import { useStorePreferences } from "../layout/StorePreferencesBar";
 import { STORE_SPRING_GRID } from "../../lib/theme";
+import { Modal } from "../ui/modal";
+import { Button } from "../ui/button";
+import { showSnackbar } from "../ui/snackbar";
 
 export interface ProductGridProps {
   items: PortfolioItem[];
@@ -444,169 +447,158 @@ export function ProductGrid({
         </nav>
       )}
 
-      {quickViewItem && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          data-testid="quick-view-modal"
-          dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setQuickViewItem(null);
-          }}
-        >
-          <div className="w-full max-w-2xl rounded-2xl border border-m3-outline-variant bg-m3-surface-container-low p-6 shadow-2xl grid sm:grid-cols-[0.9fr_1.1fr] gap-6 text-ink">
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-m3-surface">
+      <Modal
+        isOpen={Boolean(quickViewItem)}
+        onClose={() => setQuickViewItem(null)}
+        title={quickViewItem ? pickText(quickViewItem.title_en, quickViewItem.title_ar, locale) : ""}
+        className="max-w-2xl"
+        footer={
+          quickViewItem ? (
+            <div className="flex flex-wrap items-center justify-end gap-2 w-full">
+              <Link
+                href={`/${locale}/products/${quickViewItem.slug}`}
+                onClick={() => setQuickViewItem(null)}
+                className={secondaryButton}
+              >
+                {t("store.viewDetails", { defaultValue: "Details" })}
+              </Link>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => {
+                  const title = pickText(quickViewItem.title_en, quickViewItem.title_ar, locale);
+                  addToCart({ productId: quickViewItem.id, quantity: 1 });
+                  setQuickViewItem(null);
+                  showSnackbar({
+                    message: ar ? `تمت إضافة ${title} إلى السلة` : `Added ${title} to bag`,
+                    tone: "success",
+                  });
+                }}
+              >
+                <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+                {t("store.addToCart")}
+              </Button>
+            </div>
+          ) : undefined
+        }
+      >
+        {quickViewItem && (
+          <div
+            data-testid="quick-view-modal"
+            dir={isRTL ? "rtl" : "ltr"}
+            className="grid sm:grid-cols-[0.9fr_1.1fr] gap-6 text-m3-on-surface"
+          >
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-m3-surface border border-m3-outline-variant">
               <ContentImage
                 src={quickViewItem.thumbnail_url}
                 alt={pickText(quickViewItem.title_en, quickViewItem.title_ar, locale)}
                 width={500}
                 height={500}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain p-3"
               />
             </div>
-            <div className="flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="font-display text-xl font-bold">
-                    {pickText(quickViewItem.title_en, quickViewItem.title_ar, locale)}
-                  </h2>
-                  <button
-                    type="button"
-                    aria-label={t("footer.close", { defaultValue: "Close" })}
-                    onClick={() => setQuickViewItem(null)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-m3-surface-container-high shrink-0"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                {quickViewItem.sku && (
-                  <p className="text-xs font-mono text-ink-muted">SKU: {quickViewItem.sku}</p>
-                )}
-                <p className="text-lg font-bold text-m3-primary">
-                  {displayPrice(quickViewItem.price) || t("store.contactForPrice")}
+            <div className="flex flex-col justify-center space-y-3">
+              {quickViewItem.brand && (
+                <span className="text-xs font-bold uppercase tracking-wider text-m3-primary">
+                  {quickViewItem.brand}
+                </span>
+              )}
+              {quickViewItem.sku && (
+                <p className="text-xs font-mono text-m3-on-surface-variant">SKU: {quickViewItem.sku}</p>
+              )}
+              <p className="text-2xl font-bold text-m3-primary">
+                {displayPrice(quickViewItem.price) || t("store.contactForPrice")}
+              </p>
+              {quickViewItem.price != null && (
+                <p className="text-xs font-medium text-m3-on-surface-variant">
+                  +{calculatePointsEarned(quickViewItem.price)} {t("store.pointsShort", { defaultValue: "pts" })}
                 </p>
-                {quickViewItem.price != null && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    +{calculatePointsEarned(quickViewItem.price)} {t("store.pointsShort", { defaultValue: "pts" })}
-                  </p>
-                )}
-                <p className="text-sm text-ink-muted line-clamp-3">
-                  {pickText(quickViewItem.description_en, quickViewItem.description_ar, locale)}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    addToCart({ productId: quickViewItem.id, quantity: 1 });
-                    setQuickViewItem(null);
-                  }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-m3-primary text-m3-on-primary px-4 py-2.5 text-xs font-bold"
-                >
-                  <ShoppingBag className="w-4 h-4" aria-hidden="true" />
-                  {t("store.addToCart")}
-                </button>
-                <Link
-                  href={`/${locale}/products/${quickViewItem.slug}`}
-                  onClick={() => setQuickViewItem(null)}
-                  className={secondaryButton}
-                >
-                  {t("store.viewDetails", { defaultValue: "Details" })}
-                </Link>
-              </div>
+              )}
+              <p className="text-sm text-m3-on-surface-variant leading-relaxed line-clamp-4">
+                {pickText(quickViewItem.description_en, quickViewItem.description_ar, locale)}
+              </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {compareOpen && compareItems.length > 0 && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          data-testid="compare-modal"
-          dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setCompareOpen(false);
-          }}
-        >
-          <div className="w-full max-w-4xl max-h-[85dvh] overflow-y-auto rounded-2xl border border-m3-outline-variant bg-m3-surface-container-low p-6 shadow-2xl space-y-4 text-ink">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-display text-xl font-bold flex items-center gap-2">
-                <Scale className="w-5 h-5 text-m3-primary" aria-hidden="true" />
-                {t("store.compareProducts", { defaultValue: "Compare Products" })}
-              </h2>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCompareItems([]);
-                    setCompareOpen(false);
-                  }}
-                  className={secondaryButton}
-                >
-                  {t("store.clearFilters")}
-                </button>
-                <button
-                  type="button"
-                  aria-label={t("footer.close", { defaultValue: "Close" })}
-                  onClick={() => setCompareOpen(false)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-m3-surface-container-high"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-m3-outline-variant">
-                    <th className="p-2 text-start font-semibold text-ink-muted">{t("store.specification", { defaultValue: "Spec" })}</th>
-                    {compareItems.map((item) => (
-                      <th key={item.id} className="p-2 text-start font-bold">
-                        {pickText(item.title_en, item.title_ar, locale)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-m3-outline-variant/50">
-                    <td className="p-2 text-ink-muted">{t("store.priceLabel", { defaultValue: "Price" })}</td>
-                    {compareItems.map((item) => (
-                      <td key={item.id} className="p-2 font-semibold">
-                        {displayPrice(item.price) || t("store.contactForPrice")}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr className="border-b border-m3-outline-variant/50">
-                    <td className="p-2 text-ink-muted">{t("store.filterBrand", { defaultValue: "Brand" })}</td>
-                    {compareItems.map((item) => (
-                      <td key={item.id} className="p-2">{item.brand || "—"}</td>
-                    ))}
-                  </tr>
-                  <tr className="border-b border-m3-outline-variant/50">
-                    <td className="p-2 text-ink-muted">SKU</td>
-                    {compareItems.map((item) => (
-                      <td key={item.id} className="p-2 font-mono">{item.sku || "—"}</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-2 text-ink-muted">{t("store.stockStatus", { defaultValue: "Stock" })}</td>
-                    {compareItems.map((item) => (
-                      <td key={item.id} className="p-2">
-                        {item.track_stock && item.available_stock != null && item.available_stock <= 0
-                          ? t("store.outOfStock")
-                          : t("store.inStock")}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+      <Modal
+        isOpen={compareOpen && compareItems.length > 0}
+        onClose={() => setCompareOpen(false)}
+        icon={<Scale className="w-5 h-5" aria-hidden="true" />}
+        title={t("store.compareProducts", { defaultValue: "Compare Products" })}
+        className="max-w-4xl"
+        footer={
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCompareItems([]);
+                setCompareOpen(false);
+              }}
+            >
+              {t("store.clearFilters")}
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setCompareOpen(false)}
+            >
+              {t("footer.close", { defaultValue: "Close" })}
+            </Button>
           </div>
+        }
+      >
+        <div data-testid="compare-modal" dir={isRTL ? "rtl" : "ltr"} className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse text-m3-on-surface">
+            <thead>
+              <tr className="border-b border-m3-outline-variant">
+                <th className="p-3 text-start font-semibold text-m3-on-surface-variant">{t("store.specification", { defaultValue: "Spec" })}</th>
+                {compareItems.map((item) => (
+                  <th key={item.id} className="p-3 text-start font-bold">
+                    {pickText(item.title_en, item.title_ar, locale)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-m3-outline-variant/50">
+                <td className="p-3 text-m3-on-surface-variant">{t("store.priceLabel", { defaultValue: "Price" })}</td>
+                {compareItems.map((item) => (
+                  <td key={item.id} className="p-3 font-semibold text-m3-primary">
+                    {displayPrice(item.price) || t("store.contactForPrice")}
+                  </td>
+                ))}
+              </tr>
+              <tr className="border-b border-m3-outline-variant/50">
+                <td className="p-3 text-m3-on-surface-variant">{t("store.filterBrand", { defaultValue: "Brand" })}</td>
+                {compareItems.map((item) => (
+                  <td key={item.id} className="p-3">{item.brand || "—"}</td>
+                ))}
+              </tr>
+              <tr className="border-b border-m3-outline-variant/50">
+                <td className="p-3 text-m3-on-surface-variant">SKU</td>
+                {compareItems.map((item) => (
+                  <td key={item.id} className="p-3 font-mono">{item.sku || "—"}</td>
+                ))}
+              </tr>
+              <tr>
+                <td className="p-3 text-m3-on-surface-variant">{t("store.stockStatus", { defaultValue: "Stock" })}</td>
+                {compareItems.map((item) => (
+                  <td key={item.id} className="p-3">
+                    {item.track_stock && item.available_stock != null && item.available_stock <= 0
+                      ? t("store.outOfStock")
+                      : t("store.inStock")}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

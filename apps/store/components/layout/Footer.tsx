@@ -128,17 +128,17 @@ export function Footer({ company, socialLinks = [], sslBadgeEnabled, crNumber }:
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     placeholder={t("store.newsletterPlaceholder", { defaultValue: "you@example.com" })}
                     aria-label={t("store.newsletterTitle", { defaultValue: "Newsletter email" })}
-                    className="flex-1 min-w-0 h-9 rounded-full bg-m3-surface border border-m3-outline-variant px-3 text-xs text-m3-on-surface"
+                    className="flex-1 min-w-0 h-10 rounded-full bg-m3-surface border border-m3-outline-variant px-3.5 text-xs text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary"
                   />
                   <button
                     type="submit"
-                    className="h-9 px-3.5 rounded-full bg-m3-primary text-m3-on-primary text-[11px] font-bold shrink-0 hover:brightness-95"
+                    className="h-10 px-4 rounded-full bg-m3-primary text-m3-on-primary text-xs font-bold shrink-0 hover:brightness-95 cursor-pointer"
                   >
                     {t("store.newsletterSubscribe", { defaultValue: "Join" })}
                   </button>
                 </div>
                 {newsletterDone && (
-                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                  <p className="text-[11px] text-m3-primary font-semibold inline-flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
                     {t("store.newsletterSubscribed", { defaultValue: "Subscribed to store deals." })}
                   </p>

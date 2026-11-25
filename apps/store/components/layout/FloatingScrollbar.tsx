@@ -137,10 +137,10 @@ export function FloatingScrollbar() {
           ? "opacity-100 scale-x-100"
           : "opacity-0 scale-x-50 pointer-events-none"
           } ${isDragging
-            ? "bg-accent shadow-[0_0_12px_rgb(var(--brand-accent)/0.9)] scale-x-125"
+            ? "bg-m3-primary scale-x-125"
             : isHovered
-              ? "bg-accent/90 shadow-[0_0_8px_rgb(var(--brand-accent)/0.6)] scale-x-110"
-              : "bg-white/30"
+              ? "bg-m3-primary/80 scale-x-110"
+              : "bg-m3-on-surface/25"
           }`}
         style={{
           height: `${thumbHeight}px`,

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Cookie, Globe, Lock, ShieldCheck, SlidersHorizontal, X } from "lucide-react";
+import { Cookie, Globe, Lock, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { STORE_REGIONS, type StoreRegionSpec } from "@platform/database/constants/store";
 import { getCurrencyDecimals, getCurrencySymbol } from "@platform/config/currency";
 import { getCanonicalRegionName } from "@platform/config/phone";
@@ -11,6 +11,9 @@ import { useSite } from "../site/SiteProvider";
 import { useSiteTheme } from "../site/SiteTheme";
 import { useCompanyCurrency } from "../ui/currency-display";
 import { useCompanyCountry } from "../ui/phone-input";
+import { Modal } from "../ui/modal";
+import { Button } from "../ui/button";
+import { showSnackbar } from "../ui/snackbar";
 
 const REGION_STORAGE_KEY = "store-region-code";
 const COOKIE_STORAGE_KEY = "store-cookie-consent";
@@ -209,15 +212,17 @@ export function StorePreferencesBar({
           aria-label={t("store.cookiesTitle", { defaultValue: "Cookies & Privacy" })}
           data-testid="cookie-consent-banner"
           dir={isRTL ? "rtl" : "ltr"}
-          className="fixed bottom-16 md:bottom-4 inset-x-4 sm:inset-x-auto sm:end-4 sm:max-w-md z-40 rounded-2xl border border-m3-outline-variant bg-m3-surface-container-high/95 backdrop-blur-md p-4 shadow-xl text-sm text-ink space-y-3"
+          className="fixed bottom-20 md:bottom-6 inset-x-4 sm:inset-x-auto sm:end-6 sm:max-w-md z-40 rounded-2xl border border-m3-outline-variant bg-m3-surface-container-high p-5 shadow-m3-3 text-sm text-m3-on-surface space-y-3.5"
         >
           <div className="flex items-start gap-3">
-            <Cookie className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" aria-hidden="true" />
+            <span className="h-9 w-9 rounded-xl bg-m3-primary-container text-m3-on-primary-container grid place-items-center shrink-0">
+              <Cookie className="w-4 h-4" aria-hidden="true" />
+            </span>
             <div className="space-y-1">
-              <p className="font-semibold text-ink">
+              <p className="font-semibold text-m3-on-surface">
                 {t("store.cookiesTitle", { defaultValue: "Cookies & Privacy Choices" })}
               </p>
-              <p className="text-xs text-ink-muted leading-relaxed">
+              <p className="text-xs text-m3-on-surface-variant leading-relaxed">
                 {t("store.cookiesSummary", {
                   defaultValue:
                     "We use essential cookies for cart, security, and checkout, plus optional analytics cookies to improve your shopping experience.",
@@ -226,283 +231,271 @@ export function StorePreferencesBar({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="primary"
               data-testid="cookie-accept-all"
-              onClick={() => saveCookieConsent(true, true)}
-              className="px-3.5 py-1.5 rounded-full bg-brand-primary text-white text-xs font-medium hover:opacity-90 transition-opacity"
+              onClick={() => {
+                saveCookieConsent(true, true);
+                showSnackbar({
+                  message: t("store.cookiePreferencesSaved", { defaultValue: "Cookie preferences saved" }),
+                  tone: "success",
+                });
+              }}
             >
               {t("store.cookiesAcceptAll", { defaultValue: "Accept All" })}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               data-testid="cookie-essential-only"
-              onClick={() => saveCookieConsent(false, false)}
-              className="px-3.5 py-1.5 rounded-full border border-m3-outline-variant bg-m3-surface text-xs font-medium text-ink hover:bg-m3-surface-container-low transition-colors"
+              onClick={() => {
+                saveCookieConsent(false, false);
+                showSnackbar({
+                  message: t("store.cookiePreferencesSaved", { defaultValue: "Essential cookies only active" }),
+                  tone: "info",
+                });
+              }}
             >
               {t("store.cookiesEssentialOnly", { defaultValue: "Essential Only" })}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="ghost"
               data-testid="cookie-customize"
               onClick={() => {
                 setAnalyticsDraft(true);
                 setMarketingDraft(false);
                 setCookiesOpen(true);
               }}
-              className="px-3 py-1.5 rounded-full text-xs font-medium text-brand-primary hover:underline inline-flex items-center gap-1"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
               {t("store.cookieSettings", { defaultValue: "Cookie Settings" })}
-            </button>
+            </Button>
           </div>
         </aside>
       )}
 
-      {prefsOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("store.preferencesTitle", { defaultValue: "Store Preferences" })}
-          data-testid="welcome-modal"
-          dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setPrefsOpen(false);
-          }}
-        >
-          <div className="w-full max-w-lg rounded-2xl border border-m3-outline-variant bg-m3-surface-container-low p-6 shadow-2xl space-y-5 text-ink">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <h2 className="font-display text-xl font-bold flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-brand-primary" aria-hidden="true" />
-                  {t("store.preferencesTitle", { defaultValue: "Store & Regional Preferences" })}
-                </h2>
-                <p className="text-xs text-ink-muted">
-                  {t("store.preferencesSubtitle", {
-                    defaultValue: "Choose your currency, shipping country, language, and theme.",
-                  })}
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label={t("footer.close", { defaultValue: "Close" })}
-                onClick={() => setPrefsOpen(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-m3-surface-container-high transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <Modal
+        isOpen={prefsOpen}
+        onClose={() => setPrefsOpen(false)}
+        id="welcome-preferences-modal"
+        kind="form"
+        icon={<Globe className="w-5 h-5" aria-hidden="true" />}
+        title={t("store.preferencesTitle", { defaultValue: "Store & Regional Preferences" })}
+        description={t("store.preferencesSubtitle", {
+          defaultValue: "Choose your currency, shipping country, language, and theme.",
+        })}
+        className="max-w-lg"
+        footer={
+          <div className="w-full flex flex-wrap items-center justify-between gap-3">
+            {sslBadgeEnabled ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-m3-primary">
+                <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+                {t("store.sslSecuredLabel", { defaultValue: "256-Bit SSL Encrypted" })}
+              </span>
+            ) : (
+              <span />
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              onClick={() => {
+                setPrefsOpen(false);
+                showSnackbar({
+                  message: t("store.preferencesSaved", { defaultValue: "Preferences updated" }),
+                  tone: "success",
+                });
+              }}
+            >
+              {t("store.savePreferences", { defaultValue: "Apply Preferences" })}
+            </Button>
+          </div>
+        }
+      >
+        <div data-testid="welcome-modal" className="space-y-5 text-m3-on-surface">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-m3-on-surface-variant">
+              {t("store.currencyRegionLabel", { defaultValue: "Store Currency & Location" })}
+            </p>
+            <div className="grid grid-cols-1 gap-2">
+              {regions.map((item) => {
+                const active = item.code === region.code;
+                return (
+                  <button
+                    key={item.code}
+                    type="button"
+                    data-testid={`region-option-${item.currency}`}
+                    onClick={() => setRegionCode(item.code)}
+                    className={`rounded-xl border px-3.5 py-2.5 text-start transition-colors cursor-pointer ${
+                      active
+                        ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
+                        : "border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
+                    }`}
+                  >
+                    <div className="text-xs font-bold">{item.currency}</div>
+                    <div className="text-[11px] opacity-80 truncate">
+                      {locale === "ar" ? item.name_ar : item.name_en}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
+          <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                {t("store.currencyRegionLabel", { defaultValue: "Store Currency & Location" })}
+              <p className="text-xs font-semibold uppercase tracking-wider text-m3-on-surface-variant">
+                {t("store.languageLabel", { defaultValue: "Language" })}
               </p>
-              <div className="grid grid-cols-1 gap-2">
-                {regions.map((item) => {
-                  const active = item.code === region.code;
-                  return (
-                    <button
-                      key={item.code}
-                      type="button"
-                      data-testid={`region-option-${item.currency}`}
-                      onClick={() => setRegionCode(item.code)}
-                      className={`rounded-xl border px-3 py-2 text-start transition-colors ${
-                        active
-                          ? "border-brand-primary bg-brand-primary/10 text-brand-primary font-semibold"
-                          : "border-m3-outline-variant bg-m3-surface text-ink hover:border-brand-primary/50"
-                      }`}
-                    >
-                      <div className="text-xs font-bold">{item.currency}</div>
-                      <div className="text-[11px] text-ink-muted truncate">
-                        {locale === "ar" ? item.name_ar : item.name_en}
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex gap-2">
+                {(["en", "ar"] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => switchLocale(lang)}
+                    className={`flex-1 min-h-10 rounded-xl border px-3 py-2 text-xs font-medium transition-colors cursor-pointer ${
+                      locale === lang
+                        ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
+                        : "border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
+                    }`}
+                  >
+                    {lang === "en" ? "English" : "العربية"}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            {theme && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                  {t("store.languageLabel", { defaultValue: "Language" })}
+                <p className="text-xs font-semibold uppercase tracking-wider text-m3-on-surface-variant">
+                  {t("store.appearanceLabel", { defaultValue: "Appearance" })}
                 </p>
-                <div className="flex gap-2">
-                  {(["en", "ar"] as const).map((lang) => (
+                <div className="flex gap-1.5">
+                  {(["light", "dark", "system"] as const).map((m) => (
                     <button
-                      key={lang}
+                      key={m}
                       type="button"
-                      onClick={() => switchLocale(lang)}
-                      className={`flex-1 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
-                        locale === lang
-                          ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
-                          : "border-m3-outline-variant bg-m3-surface text-ink"
+                      onClick={() => theme.setMode(m)}
+                      className={`flex-1 min-h-10 rounded-xl border px-2 py-2 text-xs font-medium capitalize transition-colors cursor-pointer ${
+                        theme.mode === m
+                          ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
+                          : "border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
                       }`}
                     >
-                      {lang === "en" ? "English" : "العربية"}
+                      {m}
                     </button>
                   ))}
                 </div>
               </div>
-
-              {theme && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                    {t("store.appearanceLabel", { defaultValue: "Appearance" })}
-                  </p>
-                  <div className="flex gap-1.5">
-                    {(["light", "dark", "system"] as const).map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => theme.setMode(m)}
-                        className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium capitalize transition-colors ${
-                          theme.mode === m
-                            ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
-                            : "border-m3-outline-variant bg-m3-surface text-ink"
-                        }`}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-m3-outline-variant text-xs text-ink-muted">
-              {sslBadgeEnabled ? (
-                <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
-                  <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-                  {t("store.sslSecuredLabel", { defaultValue: "256-Bit SSL Encrypted" })}
-                </span>
-              ) : (
-                <span />
-              )}
-              <button
-                type="button"
-                onClick={() => setPrefsOpen(false)}
-                className="px-4 py-2 rounded-full bg-brand-primary text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-              >
-                {t("store.savePreferences", { defaultValue: "Apply Preferences" })}
-              </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </Modal>
 
-      {cookiesOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("store.cookieSettings", { defaultValue: "Cookie Settings" })}
-          data-testid="cookie-settings-modal"
-          dir={isRTL ? "rtl" : "ltr"}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setCookiesOpen(false);
-          }}
-        >
-          <div className="w-full max-w-md rounded-2xl border border-m3-outline-variant bg-m3-surface-container-low p-6 shadow-2xl space-y-4 text-ink">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-brand-primary" aria-hidden="true" />
-                <h2 className="font-display text-lg font-bold">
-                  {t("store.cookieSettings", { defaultValue: "Cookie Settings" })}
-                </h2>
-              </div>
-              <button
-                type="button"
-                aria-label={t("footer.close", { defaultValue: "Close" })}
-                onClick={() => setCookiesOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-m3-surface-container-high"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3 flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-ink">
-                    {t("store.cookiesEssentialLabel", { defaultValue: "Essential Security & Cart" })}
-                  </p>
-                  <p className="text-ink-muted">
-                    {t("store.cookiesEssentialDesc", {
-                      defaultValue: "Required for shopping cart, account login, CSRF protection, and SSL checkout.",
-                    })}
-                  </p>
-                </div>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
-                  {t("store.cookiesAlwaysActive", { defaultValue: "Always On" })}
-                </span>
-              </div>
-
-              <label className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3 flex items-center justify-between gap-3 cursor-pointer">
-                <div>
-                  <p className="font-semibold text-ink">
-                    {t("store.cookiesAnalyticsLabel", { defaultValue: "Analytics & Telemetry" })}
-                  </p>
-                  <p className="text-ink-muted">
-                    {t("store.cookiesAnalyticsDesc", {
-                      defaultValue: "Helps us monitor store performance and improve product discovery.",
-                    })}
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={analyticsDraft}
-                  onChange={(e) => setAnalyticsDraft(e.target.checked)}
-                  className="h-4 w-4 rounded accent-brand-primary shrink-0"
-                />
-              </label>
-
-              <label className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3 flex items-center justify-between gap-3 cursor-pointer">
-                <div>
-                  <p className="font-semibold text-ink">
-                    {t("store.cookiesMarketingLabel", { defaultValue: "Marketing & Offers" })}
-                  </p>
-                  <p className="text-ink-muted">
-                    {t("store.cookiesMarketingDesc", {
-                      defaultValue: "Used for relevant promotions, gift vouchers, and seasonal bundle announcements.",
-                    })}
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={marketingDraft}
-                  onChange={(e) => setMarketingDraft(e.target.checked)}
-                  className="h-4 w-4 rounded accent-brand-primary shrink-0"
-                />
-              </label>
-            </div>
-
-            <div className="flex flex-wrap justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  saveCookieConsent(analyticsDraft, marketingDraft);
-                  setCookiesOpen(false);
-                }}
-                className="px-4 py-2 rounded-full border border-m3-outline-variant bg-m3-surface text-xs font-semibold hover:bg-m3-surface-container-high"
-              >
-                {t("store.savePreferences", { defaultValue: "Save Preferences" })}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  saveCookieConsent(true, true);
-                  setCookiesOpen(false);
-                }}
-                className="px-4 py-2 rounded-full bg-brand-primary text-white text-xs font-semibold hover:opacity-90"
-              >
-                {t("store.cookiesAcceptAll", { defaultValue: "Accept All" })}
-              </button>
-            </div>
+      <Modal
+        isOpen={cookiesOpen}
+        onClose={() => setCookiesOpen(false)}
+        id="cookie-settings-modal"
+        kind="form"
+        icon={<ShieldCheck className="w-5 h-5" aria-hidden="true" />}
+        title={t("store.cookieSettings", { defaultValue: "Cookie Settings" })}
+        className="max-w-md"
+        footer={
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                saveCookieConsent(analyticsDraft, marketingDraft);
+                setCookiesOpen(false);
+                showSnackbar({
+                  message: t("store.cookiePreferencesSaved", { defaultValue: "Cookie preferences saved" }),
+                  tone: "success",
+                });
+              }}
+            >
+              {t("store.savePreferences", { defaultValue: "Save Preferences" })}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              onClick={() => {
+                saveCookieConsent(true, true);
+                setCookiesOpen(false);
+                showSnackbar({
+                  message: t("store.cookiePreferencesSaved", { defaultValue: "All cookies enabled" }),
+                  tone: "success",
+                });
+              }}
+            >
+              {t("store.cookiesAcceptAll", { defaultValue: "Accept All" })}
+            </Button>
           </div>
+        }
+      >
+        <div data-testid="cookie-settings-modal" className="space-y-3 text-xs">
+          <div className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3.5 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-m3-on-surface">
+                {t("store.cookiesEssentialLabel", { defaultValue: "Essential Security & Cart" })}
+              </p>
+              <p className="text-m3-on-surface-variant">
+                {t("store.cookiesEssentialDesc", {
+                  defaultValue: "Required for shopping cart, account login, CSRF protection, and SSL checkout.",
+                })}
+              </p>
+            </div>
+            <span className="rounded-full bg-m3-primary-container text-m3-on-primary-container px-2.5 py-0.5 text-[11px] font-semibold shrink-0">
+              {t("store.cookiesAlwaysActive", { defaultValue: "Always On" })}
+            </span>
+          </div>
+
+          <label className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3.5 flex items-center justify-between gap-3 cursor-pointer">
+            <div>
+              <p className="font-semibold text-m3-on-surface">
+                {t("store.cookiesAnalyticsLabel", { defaultValue: "Analytics & Telemetry" })}
+              </p>
+              <p className="text-m3-on-surface-variant">
+                {t("store.cookiesAnalyticsDesc", {
+                  defaultValue: "Helps us monitor store performance and improve product discovery.",
+                })}
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={analyticsDraft}
+              onChange={(e) => setAnalyticsDraft(e.target.checked)}
+              className="h-4 w-4 rounded accent-m3-primary shrink-0"
+            />
+          </label>
+
+          <label className="rounded-xl border border-m3-outline-variant bg-m3-surface p-3.5 flex items-center justify-between gap-3 cursor-pointer">
+            <div>
+              <p className="font-semibold text-m3-on-surface">
+                {t("store.cookiesMarketingLabel", { defaultValue: "Marketing & Offers" })}
+              </p>
+              <p className="text-m3-on-surface-variant">
+                {t("store.cookiesMarketingDesc", {
+                  defaultValue: "Used for relevant promotions, gift vouchers, and seasonal bundle announcements.",
+                })}
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={marketingDraft}
+              onChange={(e) => setMarketingDraft(e.target.checked)}
+              className="h-4 w-4 rounded accent-m3-primary shrink-0"
+            />
+          </label>
         </div>
-      )}
+      </Modal>
     </>
   );
 }

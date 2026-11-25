@@ -76,7 +76,7 @@ export function ConfirmDialog({
   const isDanger = variant === "danger";
 
   return (
-    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
+    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-5 h-5 text-m3-error" /> : <AlertTriangle className="w-5 h-5 text-m3-primary" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
       <div className="flex flex-wrap items-center justify-end gap-3">
         <Button
           type="button"
@@ -99,10 +99,10 @@ export function ConfirmDialog({
         </Button>
       </div>
     }>
-      <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
+      <div data-confirm-dialog className="space-y-4 text-sm text-m3-on-surface-variant">
         {confirmMatchText && (
           <div className="space-y-2">
-            <label htmlFor={inputId} className="block text-xs text-ink-muted">
+            <label htmlFor={inputId} className="block text-xs text-m3-on-surface-variant">
               {typePromptLabel || `${copy.typeToConfirm}: ${confirmMatchText}`}
             </label>
             <Input
@@ -113,12 +113,12 @@ export function ConfirmDialog({
               value={typedInput}
               onChange={(e) => setTypedInput(e.target.value)}
               placeholder={confirmMatchText}
-              className="font-mono text-xs border-rose-500/40 focus:border-rose-400"
+              className="font-mono text-xs border-m3-error/60 focus:border-m3-error"
             />
           </div>
         )}
 
-        {error && <p role="alert" className="text-rose-700 dark:text-rose-300">{errorLabel ?? copy.actionFailed}</p>}
+        {error && <p role="alert" className="text-m3-error font-medium">{errorLabel ?? copy.actionFailed}</p>}
 
       </div>
     </Modal>

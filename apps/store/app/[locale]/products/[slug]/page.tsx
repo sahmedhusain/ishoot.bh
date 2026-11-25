@@ -352,7 +352,7 @@ export default async function ProductDetailPage({
 
         {/* 3. Full-Width Raffle Promo Strip */}
         {storeSettings?.raffle_enabled !== false && (
-          <section className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <section className="rounded-3xl bg-m3-tertiary-container text-m3-on-tertiary-container border border-m3-outline-variant/60 p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3 py-0.5 text-[11px] font-bold text-m3-on-primary">
                 <Ticket className="w-3.5 h-3.5" aria-hidden="true" />

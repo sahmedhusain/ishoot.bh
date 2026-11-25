@@ -71,7 +71,7 @@ export default async function BuildPcPage({
   return (
     <div className="bg-m3-surface text-m3-on-surface space-y-10 pb-20">
       <header className="shell pt-6 space-y-6">
-        <div className="rounded-3xl bg-m3-inverse-surface text-m3-inverse-on-surface border border-m3-outline-variant/40 p-6 sm:p-10 space-y-5">
+        <div className="rounded-3xl bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant p-6 sm:p-10 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2 max-w-2xl">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-primary px-3.5 py-1 text-xs font-bold text-m3-on-primary">
@@ -81,14 +81,14 @@ export default async function BuildPcPage({
               <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight">
                 {pageTitle}
               </h1>
-              <p className="text-sm sm:text-base opacity-80">{pageSubtitle}</p>
+              <p className="text-sm sm:text-base text-m3-on-surface-variant">{pageSubtitle}</p>
             </div>
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-xs space-y-1">
+            <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface p-4 text-xs space-y-1">
               <div className="inline-flex items-center gap-1.5 font-bold text-m3-primary">
                 <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                 {isAr ? "ضمان ومطابقة كاملة" : "Full Quality Verification"}
               </div>
-              <p className="opacity-80">
+              <p className="text-m3-on-surface-variant">
                 {isAr ? "فحص ومطابقة كل عناصر الباقة قبل الشحن" : "Includes quality inspection before dispatch"}
               </p>
             </div>
@@ -102,13 +102,13 @@ export default async function BuildPcPage({
                 className={`inline-flex min-h-11 items-center rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
                   goal === tier.id
                     ? "bg-m3-primary text-m3-on-primary"
-                    : "border border-white/25 text-white hover:bg-white/10"
+                    : "border border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
                 }`}
               >
                 {tier.label}
               </Link>
             ))}
-            <span className="opacity-40 px-1">|</span>
+            <span className="text-m3-outline px-1">|</span>
             {budgetPresets.map((b) => (
               <Link
                 key={b}
@@ -116,7 +116,7 @@ export default async function BuildPcPage({
                 className={`inline-flex min-h-11 items-center rounded-full px-3.5 py-1.5 text-xs font-mono font-bold transition-colors ${
                   budget === b
                     ? "bg-m3-secondary-container text-m3-on-secondary-container"
-                    : "border border-white/20 text-white hover:bg-white/10"
+                    : "border border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary"
                 }`}
                 dir="ltr"
               >

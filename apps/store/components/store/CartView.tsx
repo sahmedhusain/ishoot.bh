@@ -10,6 +10,8 @@ import { field, primaryButton, secondaryButton } from "../account/ui";
 import { clearCart, useCart, writeCart } from "./cart";
 import { CartTotals } from "./CartTotals";
 import { useQuote } from "./useQuote";
+import { ConfirmDialog } from "../ui/confirm-destructive";
+import { showSnackbar } from "../ui/snackbar";
 
 export const COUPON_KEY = "platform-cart-coupon";
 export const FULFILMENT_KEY = "platform-cart-fulfilment";
@@ -44,6 +46,7 @@ export function CartView({
   const [coupon, setCoupon] = React.useState("");
   const [appliedCoupon, setAppliedCoupon] = React.useState("");
   const [sharedCopied, setSharedCopied] = React.useState(false);
+  const [confirmClearOpen, setConfirmClearOpen] = React.useState(false);
   const [fulfilment, setFulfilment] = React.useState<"delivery" | "pickup">(
     fulfilments.delivery ? "delivery" : "pickup",
   );
@@ -93,9 +96,24 @@ export function CartView({
       await navigator.clipboard.writeText(`${summary} — ${window.location.href}`);
       setSharedCopied(true);
       setTimeout(() => setSharedCopied(false), 1800);
+      showSnackbar({
+        message: locale === "ar" ? "تم نسخ ملخص السلة" : "Cart summary copied to clipboard",
+        tone: "success",
+      });
     } catch {
       return;
     }
+  };
+
+  const removeLineWithUndo = (productId: string, variantKey: string, labelText: string) => {
+    const snapshot = [...lines];
+    setQuantity(productId, variantKey, 0);
+    showSnackbar({
+      message: locale === "ar" ? `تمت إزالة ${labelText}` : `Removed ${labelText}`,
+      tone: "info",
+      actionLabel: t("common.undo", { defaultValue: "Undo" }),
+      onAction: () => writeCart(snapshot),
+    });
   };
 
   return (
@@ -120,8 +138,8 @@ export function CartView({
               <button
                 type="button"
                 data-testid="cart-clear-all"
-                onClick={() => clearCart()}
-                className={`${secondaryButton} text-m3-error`}
+                onClick={() => setConfirmClearOpen(true)}
+                className={`${secondaryButton} text-m3-error border-m3-error/40 hover:bg-m3-error-container/40`}
               >
                 <Trash2 className="w-4 h-4 me-1.5" aria-hidden="true" />
                 {t("store.clearCart", { defaultValue: "Clear Cart" })}
@@ -202,8 +220,8 @@ export function CartView({
                         <button
                           type="button"
                           aria-label={t("store.remove", { name: name(l) })}
-                          onClick={() => setQuantity(l.productId, l.variantKey, 0)}
-                          className="p-2 rounded-lg text-m3-error hover:bg-m3-error/10 ms-1"
+                          onClick={() => removeLineWithUndo(l.productId, l.variantKey, name(l))}
+                          className="p-2 rounded-lg text-m3-error hover:bg-m3-error-container/50 ms-1 cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -268,7 +286,9 @@ export function CartView({
                           remember(FULFILMENT_KEY, option);
                         }}
                         className={`${secondaryButton} flex-1 ${
-                          fulfilment === option ? "border-accent text-ink" : ""
+                          fulfilment === option
+                            ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container"
+                            : ""
                         }`}
                       >
                         {t(`store.fulfilments.${option}`)}
@@ -337,6 +357,26 @@ export function CartView({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmClearOpen}
+        onClose={() => setConfirmClearOpen(false)}
+        onConfirm={() => {
+          clearCart();
+          setConfirmClearOpen(false);
+          showSnackbar({
+            message: locale === "ar" ? "تم إفراغ سلة التسوق" : "Shopping cart cleared",
+            tone: "info",
+          });
+        }}
+        title={t("store.clearCartTitle", { defaultValue: "Clear shopping cart?" })}
+        description={t("store.clearCartDesc", {
+          defaultValue: "All items in your shopping cart will be removed. You can add them again anytime.",
+        })}
+        confirmLabel={t("store.clearCart", { defaultValue: "Clear Cart" })}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+      />
     </div>
   );
 }

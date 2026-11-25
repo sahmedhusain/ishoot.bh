@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandImage } from "../site/BrandImage";
-import { SiteModeSwitch, SiteRegion } from "../site/SiteTheme";
+import { SiteRegion } from "../site/SiteTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { CartLink } from "../store/CartLink";
+import { CartDrawer, openCartDrawer } from "../store/CartDrawer";
 import {
   ArrowUpRight,
   ChevronDown,
@@ -23,6 +24,7 @@ import {
   Package,
   Phone,
   Search,
+  ShoppingBag,
   Sparkles,
   Store,
   Tag,
@@ -188,16 +190,23 @@ export function Navbar({
     { href: `/${locale}/contact`, label: ar ? "تواصل معنا" : "Contact" },
   ];
 
+  const mobileNavTabs = [
+    { href: `/${locale}`, label: t("nav.home"), icon: Store, exact: true },
+    { href: `/${locale}/shop`, label: ar ? "المتجر" : "Shop", icon: Package, exact: false },
+    { href: `/${locale}/deals`, label: t("store.navDeals", { defaultValue: "Deals" }), icon: Flame, exact: false },
+    { href: `/${locale}/cart`, label: t("store.cart"), icon: ShoppingBag, exact: false },
+    { href: `/${locale}/account`, label: t("nav.account"), icon: UserRound, exact: false },
+  ];
+
   return (
     <SiteRegion region="header">
-      {/* Unscrollable static top header: remains anchored cleanly at the top of the page without overlapping scrolled content */}
-      <header className="site-navbar relative z-[80] bg-m3-surface border-b border-m3-outline-variant shadow-sm overflow-x-clip">
-        {/* Tier 1: Elevated M3 Utility Bar (Dispatch Notice, Track Order, Store Location, Phone, Locale, Currency/Region, Theme) */}
-        <div className="bg-m3-surface-container-highest/90 text-m3-on-surface border-b border-m3-outline-variant/60 py-2 text-xs">
+      <header className="site-navbar relative z-[80] bg-m3-surface border-b border-m3-outline-variant shadow-m3-1 overflow-x-clip">
+        {/* Tier 1: M3 Utility Bar (Dispatch Notice, Track Order, Store Location, Phone, Locale, Currency/Region) */}
+        <div className="bg-m3-surface-container-highest text-m3-on-surface border-b border-m3-outline-variant/60 py-1.5 text-xs">
           <div className="shell flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 min-w-0">
               <span className="inline-flex items-center gap-1.5 font-semibold text-m3-on-surface truncate">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-m3-primary/15 text-m3-primary shrink-0">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-m3-primary-container text-m3-on-primary-container shrink-0">
                   <Truck className="h-3 w-3" aria-hidden="true" />
                 </span>
                 <span className="truncate">{announcement || t("store.fastDeliveryNotice")}</span>
@@ -238,7 +247,7 @@ export function Navbar({
                 type="button"
                 data-testid="preferences-trigger"
                 onClick={() => openPreferencesModal()}
-                className="inline-flex min-h-9 items-center gap-1.5 px-3 py-1 rounded-full bg-m3-surface-container-low border border-m3-outline-variant text-xs font-semibold text-m3-on-surface hover:border-m3-primary transition-colors cursor-pointer whitespace-nowrap"
+                className="m3-state-layer inline-flex min-h-9 items-center gap-1.5 px-3 py-1 rounded-full bg-m3-surface-container-low border border-m3-outline-variant text-xs font-semibold text-m3-on-surface hover:border-m3-primary transition-colors cursor-pointer whitespace-nowrap"
                 aria-label={t("store.preferencesTitle", { defaultValue: "Store Preferences" })}
               >
                 <Globe className="h-3.5 w-3.5 text-m3-primary shrink-0" aria-hidden="true" />
@@ -248,15 +257,14 @@ export function Navbar({
                 </span>
                 <ChevronDown className="h-3 w-3 text-m3-on-surface-variant" aria-hidden="true" />
               </button>
-              <SiteModeSwitch locale={locale} />
             </div>
           </div>
         </div>
 
-        {/* Tier 2: Brand Lockup + Responsive M3 Pill Search + Wishlist / Cart / Account */}
-        <div className="shell py-2.5 sm:py-3.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-4 lg:gap-6">
+        {/* Tier 2: Brand Lockup + M3 Search Bar + Wishlist / Cart / Quick-Bag / Account */}
+        <div className="shell py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-4 lg:gap-6">
           <Link href={`/${locale}`} className="site-brand flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
-            <div className="relative h-9 w-9 sm:h-11 sm:w-11 flex items-center justify-center shrink-0 rounded-2xl bg-m3-surface-container border border-m3-outline-variant/60 p-1.5 group-hover:border-m3-primary transition-colors">
+            <div className="relative h-10 w-10 sm:h-11 sm:w-11 flex items-center justify-center shrink-0 rounded-2xl bg-m3-surface-container border border-m3-outline-variant p-1.5 group-hover:border-m3-primary transition-colors">
               <BrandImage company={company} icon className="h-6 w-6 sm:h-8 sm:w-8 shrink-0 object-contain" />
             </div>
             <BrandImage company={company} className="h-6 sm:h-7 min-w-0 max-w-[110px] sm:max-w-[min(34vw,14rem)] object-contain" />
@@ -279,7 +287,7 @@ export function Navbar({
               }}
               aria-label={t("store.searchCatalogue")}
               placeholder={t("store.searchPlaceholder")}
-              className="w-full h-11 rounded-full bg-m3-surface-container-low border border-m3-outline-variant ps-11 pe-28 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant transition-all focus:outline-none focus:border-m3-primary focus:bg-m3-surface-container-lowest focus:ring-2 focus:ring-m3-primary/20 [&::-webkit-search-cancel-button]:hidden"
+              className="w-full h-12 rounded-full bg-m3-surface-container-high border border-m3-outline-variant ps-11 pe-28 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant transition-all focus:outline-none focus:border-m3-primary focus:bg-m3-surface-container-lowest focus:ring-2 focus:ring-m3-primary/20 [&::-webkit-search-cancel-button]:hidden"
             />
             <Search className="h-4 w-4 absolute start-4 text-m3-on-surface-variant pointer-events-none" aria-hidden="true" />
             {searchQuery.length > 0 && (
@@ -291,14 +299,15 @@ export function Navbar({
                   setSuggestions(null);
                   setSearchOpen(false);
                 }}
-                className="absolute end-24 h-7 w-7 rounded-full text-m3-on-surface-variant hover:bg-m3-surface-container-high flex items-center justify-center cursor-pointer"
+                data-keep-round="true"
+                className="absolute end-24 h-8 w-8 rounded-full text-m3-on-surface-variant hover:bg-m3-surface-container-highest flex items-center justify-center cursor-pointer"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
             <button
               type="submit"
-              className="absolute end-1.5 top-1.5 bottom-1.5 px-5 rounded-full bg-m3-primary text-xs font-bold text-m3-on-primary hover:brightness-95 transition-all cursor-pointer inline-flex items-center gap-1.5"
+              className="m3-state-layer absolute end-1.5 top-1.5 bottom-1.5 px-5 rounded-full bg-m3-primary text-xs font-bold text-m3-on-primary transition-all cursor-pointer inline-flex items-center gap-1.5"
             >
               <span>{t("common.search")}</span>
             </button>
@@ -307,11 +316,11 @@ export function Navbar({
               <div
                 data-testid="search-autocomplete"
                 dir={isRTL ? "rtl" : "ltr"}
-                className="absolute top-full start-0 end-0 mt-2 rounded-2xl border border-m3-outline-variant bg-m3-surface-container-high shadow-2xl p-3 space-y-2 z-50"
+                className="m3-menu absolute top-full start-0 end-0 mt-2 shadow-m3-3 p-3 space-y-2 z-50"
               >
                 {suggestions.categories.length > 0 && (
                   <div className="space-y-1.5 pb-2 border-b border-m3-outline-variant/60">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-m3-on-surface-variant px-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-m3-on-surface-variant px-1">
                       {ar ? "في الفئات" : "In categories"}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -320,16 +329,16 @@ export function Navbar({
                           key={cat.slug}
                           href={`/${locale}/category/${cat.slug}`}
                           onClick={() => setSearchOpen(false)}
-                          className="px-3 py-1 rounded-full bg-m3-secondary-container text-[11px] font-semibold text-m3-on-secondary-container hover:opacity-90"
+                          className="px-3 py-1 rounded-full bg-m3-secondary-container text-xs font-semibold text-m3-on-secondary-container hover:opacity-90"
                         >
-                          {locale === "ar" ? cat.name_ar || cat.name_en : cat.name_en}
+                          {ar ? cat.name_ar || cat.name_en : cat.name_en}
                         </Link>
                       ))}
                     </div>
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-m3-on-surface-variant px-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-m3-on-surface-variant px-1">
                     {ar ? "أبرز المنتجات" : "Top products"}
                   </p>
                   {suggestions.products.map((item) => (
@@ -337,10 +346,10 @@ export function Navbar({
                       key={item.id}
                       href={`/${locale}/products/${item.slug}`}
                       onClick={() => setSearchOpen(false)}
-                      className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-xs hover:bg-m3-surface-container transition-colors"
+                      className="m3-menu-item"
                     >
                       <span className="truncate font-medium text-m3-on-surface">
-                        {locale === "ar" ? item.title_ar || item.title_en : item.title_en}
+                        {ar ? item.title_ar || item.title_en : item.title_en}
                       </span>
                       {item.price != null && (
                         <span className="shrink-0 font-mono text-m3-primary font-semibold">
@@ -353,7 +362,7 @@ export function Navbar({
                 <Link
                   href={`/${locale}/shop?q=${encodeURIComponent(searchQuery.trim())}`}
                   onClick={() => setSearchOpen(false)}
-                  className="block text-center text-xs font-semibold text-m3-primary py-1.5 hover:underline"
+                  className="block text-center text-xs font-semibold text-m3-primary py-2 hover:underline"
                 >
                   {t("store.seeAllResults", { defaultValue: "View all search results" })}
                 </Link>
@@ -361,30 +370,42 @@ export function Navbar({
             )}
           </form>
 
-          {/* Right User Actions: Wishlist + Cart + Account + Mobile Trigger */}
+          {/* Right User Actions: Wishlist + Cart Link + Quick-Cart Drawer + Account + Mobile Drawer Trigger */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Link
               href={`/${locale}/wishlist`}
               data-testid="navbar-wishlist-link"
               aria-label={t("account.wishlist")}
               title={t("account.wishlist")}
-              className="hidden sm:grid relative h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary hover:bg-m3-surface-container transition-colors"
+              className="m3-state-layer hidden sm:grid relative h-11 w-11 place-items-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary transition-colors"
             >
               <Heart className="w-4 h-4 text-m3-primary" aria-hidden="true" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -end-1 h-5 min-w-[20px] px-1 rounded-full bg-m3-primary text-m3-on-primary text-[10px] font-bold grid place-items-center shadow-xs">
+                <span className="absolute -top-1 -end-1 h-5 min-w-[20px] px-1 rounded-full bg-m3-primary text-m3-on-primary text-[10px] font-bold grid place-items-center">
                   {wishlistCount}
                 </span>
               )}
             </Link>
 
-            <CartLink className="inline-flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 rounded-full bg-m3-primary text-m3-on-primary hover:brightness-95 transition-all shadow-sm font-bold text-xs" />
+            <CartLink className="m3-state-layer inline-flex items-center gap-2 h-11 px-3.5 sm:px-4 rounded-full bg-m3-primary text-m3-on-primary transition-all shadow-m3-1 font-bold text-xs" />
+
+            <button
+              type="button"
+              data-testid="cart-drawer-trigger"
+              aria-label={ar ? "فتح درج السلة السريع" : "Open quick bag drawer"}
+              title={ar ? "معاينة السلة" : "Quick bag"}
+              onClick={() => openCartDrawer()}
+              data-keep-round="true"
+              className="m3-state-layer hidden lg:grid h-11 w-11 place-items-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary transition-colors cursor-pointer"
+            >
+              <LayoutGrid className="w-4 h-4 text-m3-primary" aria-hidden="true" />
+            </button>
 
             <Link
               href={`/${locale}/account`}
               aria-label={t("nav.account")}
               title={t("nav.account")}
-              className="hidden sm:inline-flex h-10 sm:h-11 items-center gap-2 px-3 sm:px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary hover:bg-m3-surface-container transition-colors text-xs font-semibold"
+              className="m3-state-layer hidden sm:inline-flex h-11 items-center gap-2 px-3.5 sm:px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary transition-colors text-xs font-semibold"
             >
               <UserRound className="w-4 h-4 text-m3-primary" aria-hidden="true" />
               <span className="hidden md:inline">{t("nav.account")}</span>
@@ -393,15 +414,16 @@ export function Navbar({
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden w-10 h-10 grid place-items-center rounded-full border border-m3-outline-variant bg-m3-surface-container-high text-m3-on-surface cursor-pointer shrink-0"
+              data-keep-round="true"
+              className="m3-state-layer md:hidden w-11 h-11 grid place-items-center rounded-full border border-m3-outline-variant bg-m3-surface-container-high text-m3-on-surface cursor-pointer shrink-0"
               aria-label={t("common.openMenu")}
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        {/* Tier 3: Static Non-Scrollable Category Strip + Shop Navigation & Mega Menu */}
+        {/* Tier 3: Category Strip + Shop Navigation & Mega Menu */}
         <div
           ref={megaContainerRef}
           className="relative bg-m3-surface-container-low border-t border-m3-outline-variant/60 hidden md:block"
@@ -412,7 +434,7 @@ export function Navbar({
               data-testid="navbar-shop-subbar"
               className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 py-2"
             >
-              <div className="flex flex-wrap lg:flex-nowrap items-center gap-0.5 xl:gap-1 min-w-0">
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-1 min-w-0">
                 {shopLinks.map((link) => {
                   const Icon = link.icon;
                   const isActive =
@@ -422,10 +444,10 @@ export function Navbar({
 
                   if (link.hasMega) {
                     return (
-                      <div key={link.id} className="inline-flex items-center rounded-full border border-m3-outline-variant/70 bg-m3-surface shrink-0">
+                      <div key={link.id} className="inline-flex items-center rounded-full border border-m3-outline-variant bg-m3-surface shrink-0">
                         <Link
                           href={link.href}
-                          className={`inline-flex min-h-9 items-center gap-1 ps-2.5 pe-1.5 py-1 rounded-s-full text-[11.5px] font-semibold whitespace-nowrap transition-colors ${
+                          className={`m3-state-layer inline-flex min-h-9 items-center gap-1.5 ps-3 pe-2 py-1 rounded-s-full text-xs font-semibold whitespace-nowrap transition-colors ${
                             isActive
                               ? "bg-m3-secondary-container text-m3-on-secondary-container"
                               : "text-m3-on-surface hover:bg-m3-surface-container-high"
@@ -440,7 +462,7 @@ export function Navbar({
                           aria-label={ar ? "فتح قائمة الفئات" : "Toggle category mega menu"}
                           data-testid="navbar-mega-toggle"
                           onClick={() => setMegaMenuOpen((open) => !open)}
-                          className={`inline-flex min-h-9 items-center pe-2 ps-1 py-1 rounded-e-full border-s border-m3-outline-variant/50 transition-colors cursor-pointer ${
+                          className={`inline-flex min-h-9 items-center pe-2.5 ps-1.5 py-1 rounded-e-full border-s border-m3-outline-variant transition-colors cursor-pointer ${
                             megaMenuOpen
                               ? "bg-m3-primary text-m3-on-primary"
                               : "text-m3-on-surface-variant hover:bg-m3-surface-container-high hover:text-m3-on-surface"
@@ -457,10 +479,9 @@ export function Navbar({
                       <Link
                         key={link.id}
                         href={link.href}
-                        className="inline-flex min-h-9 items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold shadow-xs whitespace-nowrap transition-transform hover:brightness-95 shrink-0"
-                        style={{ backgroundColor: "#fbbf24", color: "#111827" }}
+                        className="m3-state-layer inline-flex min-h-9 items-center gap-1.5 px-3 py-1 rounded-full bg-m3-tertiary-container text-m3-on-tertiary-container text-xs font-bold whitespace-nowrap transition-colors shrink-0"
                       >
-                        <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: "#111827" }} aria-hidden="true" />
+                        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{link.label}</span>
                       </Link>
                     );
@@ -470,7 +491,7 @@ export function Navbar({
                     <Link
                       key={link.id}
                       href={link.href}
-                      className={`inline-flex min-h-9 items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-semibold whitespace-nowrap transition-colors shrink-0 ${
+                      className={`m3-state-layer inline-flex min-h-9 items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors shrink-0 ${
                         isActive
                           ? "bg-m3-secondary-container text-m3-on-secondary-container"
                           : "text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"
@@ -485,7 +506,7 @@ export function Navbar({
 
               <Link
                 href={`/${locale}/contact`}
-                className="inline-flex min-h-9 items-center gap-1 px-2.5 rounded-full border border-m3-outline-variant/60 bg-m3-surface text-[11.5px] font-semibold text-m3-on-surface hover:border-m3-primary hover:text-m3-primary transition-colors whitespace-nowrap shrink-0"
+                className="m3-state-layer inline-flex min-h-9 items-center gap-1 px-3 rounded-full border border-m3-outline-variant bg-m3-surface text-xs font-semibold text-m3-on-surface hover:border-m3-primary hover:text-m3-primary transition-colors whitespace-nowrap shrink-0"
               >
                 <span>{ar ? "تواصل معنا" : "Contact"}</span>
                 <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
@@ -514,10 +535,10 @@ export function Navbar({
                         className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
                           activeCat
                             ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container"
-                            : "border-m3-outline-variant/60 bg-m3-surface text-m3-on-surface hover:border-m3-primary hover:text-m3-primary"
+                            : "border-m3-outline-variant bg-m3-surface text-m3-on-surface hover:border-m3-primary hover:text-m3-primary"
                         }`}
                       >
-                        {locale === "ar" ? cat.name_ar || cat.name_en : cat.name_en}
+                        {ar ? cat.name_ar || cat.name_en : cat.name_en}
                       </Link>
                     );
                   })}
@@ -536,7 +557,7 @@ export function Navbar({
           {megaMenuOpen && (
             <div
               data-testid="navbar-mega-menu"
-              className="border-t border-m3-outline-variant bg-m3-surface shadow-2xl py-6"
+              className="border-t border-m3-outline-variant bg-m3-surface-container shadow-m3-3 py-6"
             >
               <div className="shell grid gap-6 lg:grid-cols-[1fr_280px]">
                 <div className="space-y-3">
@@ -560,20 +581,20 @@ export function Navbar({
                         onClick={() => setMegaMenuOpen(false)}
                         className="rounded-xl border border-m3-outline-variant bg-m3-surface-container-low px-3.5 py-2.5 text-xs font-semibold text-m3-on-surface hover:border-m3-primary hover:text-m3-primary transition-colors"
                       >
-                        {locale === "ar" ? cat.name_ar || cat.name_en : cat.name_en}
+                        {ar ? cat.name_ar || cat.name_en : cat.name_en}
                       </Link>
                     ))}
                   </div>
                 </div>
-                <div className="rounded-2xl bg-m3-inverse-surface text-m3-inverse-on-surface p-5 flex flex-col justify-between gap-3">
+                <div className="rounded-2xl bg-m3-primary-container text-m3-on-primary-container border border-m3-outline-variant/50 p-5 flex flex-col justify-between gap-3">
                   <div className="space-y-1.5">
                     <span className="inline-flex items-center gap-1 rounded-full bg-m3-primary px-2.5 py-0.5 text-[10px] font-bold text-m3-on-primary">
-                      <Flame className="w-3 h-3" /> HOT DEALS
+                      <Flame className="w-3 h-3" aria-hidden="true" /> HOT DEALS
                     </span>
                     <h4 className="font-display text-lg font-bold">
                       {ar ? "عروض وتخفيضات الأسبوع" : "Featured Store Deals"}
                     </h4>
-                    <p className="text-xs opacity-75">
+                    <p className="text-xs opacity-85">
                       {ar ? "وفّر على المنتجات المختارة واكسب نقاط ولاء إضافية" : "Save on selected collections and earn bonus loyalty rewards."}
                     </p>
                   </div>
@@ -598,36 +619,43 @@ export function Navbar({
         company={company}
       />
 
+      <CartDrawer />
+
       <StorePreferencesBar
         cookieBannerEnabled={cookieBannerEnabled}
         sslBadgeEnabled={sslBadgeEnabled}
       />
 
-      {/* Mobile Bottom Quick Navigation — static clean bottom links without blocking desktop */}
+      {/* M3 Mobile Bottom Navigation Bar */}
       <nav
         aria-label={t("nav.home")}
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-m3-surface/95 backdrop-blur-md border-t border-m3-outline-variant grid grid-cols-5 py-1.5 text-[10px] font-medium text-m3-on-surface-variant"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-m3-surface-container border-t border-m3-outline-variant grid grid-cols-5 py-1.5 text-[11px] font-medium text-m3-on-surface-variant shadow-m3-2"
       >
-        <Link href={`/${locale}`} className="flex flex-col items-center gap-0.5 py-1 hover:text-m3-primary">
-          <Store className="w-4 h-4" aria-hidden="true" />
-          <span>{t("nav.home")}</span>
-        </Link>
-        <Link href={`/${locale}/shop`} className="flex flex-col items-center gap-0.5 py-1 hover:text-m3-primary">
-          <Package className="w-4 h-4" aria-hidden="true" />
-          <span>{ar ? "المتجر" : "Shop"}</span>
-        </Link>
-        <Link href={`/${locale}/deals`} className="flex flex-col items-center gap-0.5 py-1 hover:text-m3-primary">
-          <Flame className="w-4 h-4" aria-hidden="true" />
-          <span>{t("store.navDeals", { defaultValue: "Deals" })}</span>
-        </Link>
-        <Link href={`/${locale}/cart`} className="flex flex-col items-center gap-0.5 py-1 hover:text-m3-primary">
-          <Heart className="w-4 h-4" aria-hidden="true" />
-          <span>{t("store.cart")}</span>
-        </Link>
-        <Link href={`/${locale}/account`} className="flex flex-col items-center gap-0.5 py-1 hover:text-m3-primary">
-          <UserRound className="w-4 h-4" aria-hidden="true" />
-          <span>{t("nav.account")}</span>
-        </Link>
+        {mobileNavTabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = tab.exact
+            ? pathname === tab.href
+            : pathname.startsWith(tab.href);
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-col items-center justify-center gap-0.5 py-1 transition-colors ${
+                active ? "text-m3-on-surface font-semibold" : "text-m3-on-surface-variant hover:text-m3-primary"
+              }`}
+            >
+              <span
+                className={`px-4 py-1 rounded-full transition-colors ${
+                  active ? "bg-m3-secondary-container text-m3-on-secondary-container" : ""
+                }`}
+              >
+                <Icon className="w-4 h-4" aria-hidden="true" />
+              </span>
+              <span className="truncate max-w-full px-1">{tab.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </SiteRegion>
   );
