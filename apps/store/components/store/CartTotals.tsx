@@ -24,7 +24,7 @@ export function CartTotals({ quote, delivery }: { quote: CartQuote; delivery: bo
       {accountDiscount > 0 && (
         <div className={row}>
           <dt className="text-ink-muted">{t("store.accountDiscountLabel", { defaultValue: "Member Discount" })}</dt>
-          <dd className="text-emerald-600 dark:text-emerald-400">- {money(accountDiscount)}</dd>
+          <dd className="text-m3-primary">- {money(accountDiscount)}</dd>
         </div>
       )}
       {pointsDiscount > 0 && (
@@ -32,7 +32,7 @@ export function CartTotals({ quote, delivery }: { quote: CartQuote; delivery: bo
           <dt className="text-ink-muted">
             {t("store.pointsRedeemedLabel", { points: pointsRedeemed, defaultValue: `Loyalty Points (${pointsRedeemed})` })}
           </dt>
-          <dd className="text-amber-600 dark:text-amber-400">- {money(pointsDiscount)}</dd>
+          <dd className="text-m3-tertiary">- {money(pointsDiscount)}</dd>
         </div>
       )}
       {delivery && <div className={row}><dt className="text-ink-muted">{t("store.delivery")}</dt><dd>{quote.deliveryFee > 0 ? money(quote.deliveryFee) : t("store.freeDelivery")}</dd></div>}
@@ -56,7 +56,7 @@ export function CartTotals({ quote, delivery }: { quote: CartQuote; delivery: bo
       {(pointsEarned > 0 || raffleTickets > 0) && (
         <div className="flex flex-wrap gap-2 pt-2 border-t border-m3-outline-variant/60 text-xs">
           {pointsEarned > 0 && (
-            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 font-medium">
+            <span className="inline-flex items-center gap-1 text-m3-tertiary font-medium">
               <Award className="w-3.5 h-3.5" aria-hidden="true" />
               +{pointsEarned} {t("store.pointsShort", { defaultValue: "pts" })}
             </span>

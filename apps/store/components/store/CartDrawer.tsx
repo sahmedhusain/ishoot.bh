@@ -9,6 +9,7 @@ import { formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 import { Button } from "../ui/button";
 import { ConfirmDialog } from "../ui/confirm-destructive";
+import { useDialog } from "../ui/modal";
 import { showSnackbar } from "../ui/snackbar";
 import { clearCart, useCart, writeCart } from "./cart";
 import { useQuote } from "./useQuote";
@@ -42,21 +43,9 @@ function CartDrawerSheet({ currency, onClose }: { currency?: string; onClose: ()
   const [confirmClearOpen, setConfirmClearOpen] = React.useState(false);
   const lines = useCart();
   const { quote } = useQuote(lines, "", "delivery");
-
-  React.useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !confirmClearOpen) {
-        onClose();
-      }
-    };
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [confirmClearOpen, onClose]);
+  const dialog = useDialog(true, () => {
+    if (!confirmClearOpen) onClose();
+  });
 
   const setOpen = (next: boolean) => {
     if (!next) onClose();
@@ -92,8 +81,7 @@ function CartDrawerSheet({ currency, onClose }: { currency?: string; onClose: ()
           className="absolute inset-0"
         />
         <aside
-          role="dialog"
-          aria-modal="true"
+          {...dialog}
           aria-label={t("store.cartTitle")}
           data-drawer-panel
           data-lenis-prevent
@@ -123,7 +111,7 @@ function CartDrawerSheet({ currency, onClose }: { currency?: string; onClose: ()
             </button>
           </header>
 
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+          <div data-dialog-body className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
             {lines.length === 0 ? (
               <div className="py-16 text-center space-y-4">
                 <div className="mx-auto h-14 w-14 rounded-2xl bg-m3-surface-container-high text-m3-on-surface-variant grid place-items-center">

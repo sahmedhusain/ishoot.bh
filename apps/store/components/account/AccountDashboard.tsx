@@ -16,6 +16,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 import { addToCart } from "../store/cart";
+import { ConfirmDialog } from "../ui/confirm-destructive";
 import { showSnackbar } from "../ui/snackbar";
 import { accountPost, card, field, label, primaryButton, secondaryButton, statusTone } from "./ui";
 
@@ -96,6 +97,7 @@ export function AccountDashboard({
   const router = useRouter();
   const [profile, setProfile] = React.useState({ name: customer.name, phone: customer.phone, preferredLocale: customer.locale, marketingOptIn: customer.marketing_opt_in, password: "" });
   const [address, setAddress] = React.useState<typeof blankAddress | null>(null);
+  const [pendingDeleteAddress, setPendingDeleteAddress] = React.useState<Address | null>(null);
   const [confirmEmail, setConfirmEmail] = React.useState("");
   const [pointsToConvert, setPointsToConvert] = React.useState(String(minRedeemPoints));
   const [giftCardCode, setGiftCardCode] = React.useState("");
@@ -258,7 +260,7 @@ export function AccountDashboard({
                   </div>
                   <div className={section}>
                     <p className="text-xs text-ink-muted inline-flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-amber-500" aria-hidden="true" />
+                      <Award className="w-4 h-4 text-m3-tertiary" aria-hidden="true" />
                       {t("account.loyaltyPoints", { defaultValue: "Loyalty Points" })}
                     </p>
                     <p className="text-2xl font-bold text-ink mt-1" data-testid="account-loyalty-points">
@@ -270,7 +272,7 @@ export function AccountDashboard({
                     <p className="text-2xl font-bold text-ink mt-1 capitalize">
                       {customer.tier || "standard"}
                       {discountPercent > 0 && (
-                        <span className="ms-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-xs font-semibold">
+                        <span className="ms-2 rounded-full bg-m3-primary-container text-m3-on-primary-container px-2.5 py-0.5 text-xs font-semibold">
                           -{discountPercent}%
                         </span>
                       )}
@@ -373,7 +375,7 @@ export function AccountDashboard({
                       <p className="text-ink-muted">{[a.line1, a.line2, a.area, a.city, a.country, a.postal_code].filter(Boolean).join(", ")}</p>
                       <div className="flex gap-3 pt-1">
                         <button type="button" className="min-h-10 text-xs font-semibold text-m3-primary hover:underline cursor-pointer" onClick={() => setAddress({ id: a.id, label: a.label, name: a.name, phone: a.phone, line1: a.line1, line2: a.line2, area: a.area, city: a.city, country: a.country, postalCode: a.postal_code, isDefault: a.is_default })}>{t("account.editAddress")}</button>
-                        <button type="button" className="min-h-10 text-xs font-semibold text-m3-error hover:underline cursor-pointer" onClick={() => run("address", () => accountPost("address-delete", { id: a.id }))}>{t("account.removeAddress")}</button>
+                        <button type="button" className="min-h-10 text-xs font-semibold text-m3-error hover:underline cursor-pointer" data-testid={`remove-address-${a.id}`} onClick={() => setPendingDeleteAddress(a)}>{t("account.removeAddress")}</button>
                       </div>
                     </li>
                   ))}
@@ -465,7 +467,7 @@ export function AccountDashboard({
                           <p className="font-medium text-ink">{tx.note || tx.kind}</p>
                           <p className="text-ink-muted">{new Date(tx.created_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</p>
                         </div>
-                        <span className={`font-semibold ${tx.amount >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-m3-error"}`}>
+                        <span className={`font-semibold ${tx.amount >= 0 ? "text-m3-primary" : "text-m3-error"}`}>
                           {tx.amount >= 0 ? "+" : ""}{formatPrice(tx.amount, currency, locale)}
                         </span>
                       </li>
@@ -529,7 +531,7 @@ export function AccountDashboard({
                           <p className="font-medium text-ink">{tx.note || tx.kind}</p>
                           <p className="text-ink-muted">{new Date(tx.created_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</p>
                         </div>
-                        <span className={`font-semibold ${tx.points >= 0 ? "text-amber-600 dark:text-amber-400" : "text-m3-error"}`}>
+                        <span className={`font-semibold ${tx.points >= 0 ? "text-m3-tertiary" : "text-m3-error"}`}>
                           {tx.points >= 0 ? "+" : ""}{tx.points} pts
                         </span>
                       </li>
@@ -644,6 +646,36 @@ export function AccountDashboard({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={pendingDeleteAddress !== null}
+        onClose={() => setPendingDeleteAddress(null)}
+        onConfirm={async () => {
+          if (!pendingDeleteAddress) return;
+          const targetId = pendingDeleteAddress.id;
+          await run(
+            "address",
+            () => accountPost("address-delete", { id: targetId }),
+            t("account.saved"),
+          );
+          setPendingDeleteAddress(null);
+        }}
+        title={t("account.removeAddress")}
+        description={
+          pendingDeleteAddress
+            ? `${pendingDeleteAddress.label || pendingDeleteAddress.name} — ${[
+                pendingDeleteAddress.line1,
+                pendingDeleteAddress.area,
+                pendingDeleteAddress.city,
+              ]
+                .filter(Boolean)
+                .join(", ")}`
+            : ""
+        }
+        confirmLabel={t("account.removeAddress")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+      />
     </div>
   );
 }

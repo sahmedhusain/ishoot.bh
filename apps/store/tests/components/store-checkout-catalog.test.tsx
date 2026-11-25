@@ -399,6 +399,13 @@ describe("Store Cart, Checkout, PayButton, Catalog & Promotions", () => {
 
     openCartDrawer();
     expect(await screen.findByTestId("cart-drawer")).toBeInTheDocument();
+    const drawerPanel = document.querySelector("[data-drawer-panel]");
+    expect(drawerPanel).not.toBeNull();
+    expect(drawerPanel?.contains(document.activeElement)).toBe(true);
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByTestId("cart-drawer")).toBeNull();
+    });
 
     const clearAllBtn = await screen.findByTestId("cart-clear-all");
     await user.click(clearAllBtn);

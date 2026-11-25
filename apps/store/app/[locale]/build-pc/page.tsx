@@ -136,7 +136,7 @@ export default async function BuildPcPage({
               >
                 <div className="flex items-center justify-between text-m3-primary">
                   <Tag className="w-5 h-5" aria-hidden="true" />
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                  <CheckCircle2 className="w-4 h-4 text-m3-primary" aria-hidden="true" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xs font-bold text-m3-on-surface line-clamp-1">

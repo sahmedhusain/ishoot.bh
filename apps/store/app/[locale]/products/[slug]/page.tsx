@@ -207,7 +207,7 @@ export default async function ProductDetailPage({
                 )}
                 <a
                   href="#reviews"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-m3-tertiary hover:underline"
                 >
                   <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                   <span>5.0 (Verified)</span>
@@ -230,7 +230,7 @@ export default async function ProductDetailPage({
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                   isOutOfStock
                     ? "bg-m3-error-container text-m3-on-error-container"
-                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+                    : "bg-m3-primary-container text-m3-on-primary-container border border-m3-primary/30"
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -315,7 +315,7 @@ export default async function ProductDetailPage({
                   </li>
                   <li className="flex justify-between gap-2">
                     <span>{isAr ? "الاستلام من الفرع" : "Showroom Pickup"}</span>
-                    <strong className="text-emerald-600 dark:text-emerald-400">
+                    <strong className="text-m3-primary">
                       {isAr ? "مجاني" : "Free"}
                     </strong>
                   </li>
@@ -480,7 +480,7 @@ export default async function ProductDetailPage({
                 <h2 className="font-display text-xl font-bold text-m3-on-surface">
                   {isAr ? "تقييمات العملاء" : "Customer Reviews"}
                 </h2>
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+                <span className="inline-flex items-center gap-1 rounded-full bg-m3-tertiary-container px-3 py-1 text-xs font-bold text-m3-on-tertiary-container">
                   <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                   5.0
                 </span>

@@ -323,7 +323,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
                 {t("store.rewardsAndWallet", { defaultValue: "Loyalty Points & Store Wallet" })}
               </legend>
               {(rewards?.discountPercent ?? 0) > 0 && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                <p className="text-xs text-m3-primary font-semibold">
                   {t("store.memberDiscountNotice", { percent: rewards?.discountPercent ?? 0, defaultValue: `Member Account Discount Applied: ${rewards?.discountPercent ?? 0}%` })}
                 </p>
               )}
@@ -331,7 +331,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
                 <div className="space-y-1.5 text-sm">
                   <label className="flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-ink">
-                      <Award className="w-4 h-4 text-amber-600" aria-hidden="true" />
+                      <Award className="w-4 h-4 text-m3-tertiary" aria-hidden="true" />
                       {t("store.redeemPointsLabel", { points: rewards?.loyaltyPoints ?? 0, defaultValue: `Redeem Points (Available: ${rewards?.loyaltyPoints ?? 0})` })}
                     </span>
                     <input

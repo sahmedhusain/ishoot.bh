@@ -139,7 +139,7 @@ export function AddToCart({
           )}
         </div>
         {savingsAmount > 0 && (
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          <p className="text-xs font-semibold text-m3-primary">
             {ar
               ? `وفّر ${formatPrice(savingsAmount, displayCurrency, locale)}`
               : `You save ${formatPrice(savingsAmount, displayCurrency, locale)}`}
@@ -287,7 +287,7 @@ export function AddToCart({
           </div>
           {loyaltyEnabled && pointsEarned > 0 && (
             <div className="rounded-xl border border-m3-outline-variant bg-m3-surface p-2.5 flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+              <Award className="w-4 h-4 text-m3-tertiary shrink-0" aria-hidden="true" />
               <span className="font-medium text-m3-on-surface">
                 {t("store.earnPointsWithPurchase", { points: pointsEarned, defaultValue: `Earn +${pointsEarned} pts` })}
               </span>
@@ -314,7 +314,7 @@ export function AddToCart({
               onClick={handleCopyLink}
               className="inline-flex items-center gap-1 rounded-full border border-m3-outline-variant px-2.5 py-1 hover:text-m3-on-surface"
             >
-              {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-3 h-3 text-m3-primary" /> : <Copy className="w-3 h-3" />}
               <span>{copied ? t("store.linkCopied", { defaultValue: "Copied" }) : t("store.copyLink", { defaultValue: "Copy Link" })}</span>
             </button>
             <a

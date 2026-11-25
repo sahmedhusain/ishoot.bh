@@ -242,5 +242,18 @@ describe("Store Account, Auth, Wishlist & Orders Components", () => {
         expect.objectContaining({ method: "POST" }),
       );
     });
+
+    const removeAddrBtn = dashboardRender.getAllByTestId("remove-address-addr-1")[0];
+    await user.click(removeAddrBtn);
+    const addrDialog = await screen.findByRole("dialog", { name: /Remove/i });
+    const addrConfirmBtn = addrDialog.querySelector('button[data-variant="danger"]') as HTMLButtonElement;
+    expect(addrConfirmBtn).not.toBeNull();
+    await user.click(addrConfirmBtn);
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/account/address-delete",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
   });
 });

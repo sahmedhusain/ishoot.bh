@@ -289,7 +289,7 @@ export function ProductCard({
               ) : (
                 <span />
               )}
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shrink-0">
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-m3-tertiary shrink-0">
                 <Star className="h-3 w-3 fill-current" aria-hidden="true" />
                 5.0
               </span>
@@ -314,7 +314,7 @@ export function ProductCard({
             )}
 
             {earnedPoints > 0 && (
-              <div className="inline-flex items-center gap-1 pt-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400 pointer-events-none">
+              <div className="inline-flex items-center gap-1 pt-0.5 text-[11px] font-medium text-m3-tertiary pointer-events-none">
                 <Award className="h-3 w-3" aria-hidden="true" />
                 <span>+{earnedPoints} {t("store.pointsShort", { defaultValue: "pts" })}</span>
               </div>
@@ -368,7 +368,7 @@ export function ProductCard({
               </button>
             </div>
             {lowStock && item.available_stock != null && (
-              <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+              <p className="text-[11px] font-semibold text-m3-tertiary">
                 {t("store.onlyLeft", { count: item.available_stock })}
               </p>
             )}

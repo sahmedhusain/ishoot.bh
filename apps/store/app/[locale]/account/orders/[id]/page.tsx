@@ -162,7 +162,7 @@ export default async function CustomerOrderPage({
           </div>
         )}
         {(extendedOrder?.points_earned ?? 0) > 0 && (
-          <div className="flex justify-between gap-4 text-amber-600 dark:text-amber-400">
+          <div className="flex justify-between gap-4 text-m3-tertiary">
             <dt>{t.account?.loyaltyPoints ?? "Loyalty Points Earned"}</dt>
             <dd className="font-semibold">+{extendedOrder!.points_earned} pts</dd>
           </div>
