@@ -87,13 +87,13 @@ export function ShowcaseHero({
   return (
     <section
       id="home"
-      className="on-media relative min-h-[min(92vh,760px)] pt-24 pb-14 lg:pt-28 lg:pb-16 flex flex-col justify-end overflow-hidden bg-brand-base"
+      className="relative min-h-[min(92vh,760px)] pt-24 pb-14 lg:pt-28 lg:pb-16 flex flex-col justify-end overflow-hidden bg-m3-surface text-m3-on-surface"
     >
       <div className="shell relative z-10 flex-1 flex flex-col justify-end">
-        <div className="relative rounded-[2rem] overflow-hidden border border-white/15 bg-surface-900 shadow-2xl min-h-[min(78vh,640px)] flex flex-col justify-between">
+        <div className="on-media relative rounded-[var(--md-sys-shape-corner-extra-large,28px)] overflow-hidden border border-m3-outline-variant bg-m3-surface-container-highest shadow-m3-3 min-h-[min(78vh,640px)] flex flex-col justify-between">
           <HeroMedia banner={banner} slideIndex={activeIdx} />
 
-          {/* Multi-stop M3 contrast scrim so text is legible across any image */}
+          {/* Multi-stop scrim so white foreground meets WCAG AA over any photography */}
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30 pointer-events-none"
@@ -103,10 +103,9 @@ export function ShowcaseHero({
             className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent pointer-events-none rtl:bg-gradient-to-l"
           />
 
-          {/* Top bar strip inside banner frame */}
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 px-6 pt-6 sm:px-10 sm:pt-8">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 backdrop-blur-md border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-mint" />
+            <span className="inline-flex items-center gap-2 rounded-full bg-black/45 backdrop-blur-md border border-white/25 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+              <ShieldCheck aria-hidden="true" className="w-3.5 h-3.5 text-white" />
               <span>{cleanSentenceEnd(brand)}</span>
             </span>
 
@@ -116,36 +115,35 @@ export function ShowcaseHero({
                   type="button"
                   onClick={prevSlide}
                   aria-label={t("hero.prevSlide")}
-                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                  <ChevronLeft aria-hidden="true" className="w-4 h-4 rtl:rotate-180" />
                 </button>
                 <button
                   type="button"
                   onClick={nextSlide}
                   aria-label={t("hero.nextSlide")}
-                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                  <ChevronRight aria-hidden="true" className="w-4 h-4 rtl:rotate-180" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaused((p) => !p)}
                   aria-label={paused ? t("hero.resume") : t("hero.pause")}
                   aria-pressed={paused}
-                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                  {paused ? <Play aria-hidden="true" className="w-4 h-4" /> : <Pause aria-hidden="true" className="w-4 h-4" />}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Bottom foreground editorial content & desktop quick card */}
           <div className="relative z-10 px-6 pb-8 pt-10 sm:px-10 sm:pb-10 grid lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.85fr)] gap-8 items-end">
             <div className="space-y-5 max-w-3xl">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-mint">
-                <Award className="w-3.5 h-3.5 shrink-0" />
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/90">
+                <Award aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
                 <span>{t("hero.featuredLabel")}</span>
               </p>
 
@@ -154,7 +152,7 @@ export function ShowcaseHero({
               </h1>
 
               {subtitle && (
-                <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-white/85">
+                <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-white/90">
                   {subtitle}
                 </p>
               )}
@@ -164,11 +162,10 @@ export function ShowcaseHero({
               </div>
             </div>
 
-            {/* Right desktop corporate card & slide selector */}
             <div className="flex flex-col gap-4 lg:items-end justify-end">
-              <div className="w-full max-w-sm rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 p-5 space-y-3 text-white">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-mint">
-                  <Globe2 className="w-4 h-4" />
+              <div className="w-full max-w-sm rounded-[var(--md-sys-shape-corner-large,16px)] bg-black/55 backdrop-blur-xl border border-white/20 p-5 space-y-3 text-white">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/90">
+                  <Globe2 aria-hidden="true" className="w-4 h-4" />
                   <span>{t("hero.trustedPartners")}</span>
                 </div>
                 <p className="text-sm text-white/90 leading-relaxed">
@@ -187,8 +184,8 @@ export function ShowcaseHero({
                           aria-pressed={active}
                           className={`min-h-11 min-w-11 px-3 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
                             active
-                              ? "bg-white text-tone-15 border-white shadow-sm"
-                              : "bg-white/5 border-white/25 text-white hover:bg-white/15"
+                              ? "bg-m3-primary text-m3-on-primary border-m3-primary shadow-m3-1"
+                              : "bg-black/35 border-white/25 text-white hover:bg-white/15"
                           }`}
                         >
                           {i + 1}

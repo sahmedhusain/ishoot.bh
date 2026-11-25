@@ -1,6 +1,6 @@
 "use client";
-import { useSiteReducedMotion } from "../site/SiteTheme";
 
+import { useSiteReducedMotion } from "../site/SiteTheme";
 import * as React from "react";
 import { Star, MessageSquarePlus, Quote } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -31,7 +31,7 @@ export function ReviewsSection({
   return (
     <section
       id="reviews"
-      className="relative bg-m3-surface text-ink py-20 sm:py-28 border-t border-m3-outline-variant"
+      className="relative bg-m3-surface text-m3-on-surface py-20 sm:py-28 border-t border-m3-outline-variant"
     >
       <div className="shell space-y-12">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-m3-outline-variant">
@@ -42,13 +42,11 @@ export function ReviewsSection({
             transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
             className="space-y-3"
           >
-            <SectionBadge className="!text-accent-pressed">
-              {t("reviews.sectionLabel")}
-            </SectionBadge>
-            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-tight">
+            <SectionBadge>{t("reviews.sectionLabel")}</SectionBadge>
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-m3-on-surface leading-tight">
               {t("reviews.headline")}
             </h2>
-            <p className="text-sm sm:text-base text-ink-muted font-sans max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-base text-m3-on-surface-variant font-sans max-w-xl leading-relaxed">
               {t("reviews.subtitle")}
             </p>
           </motion.div>
@@ -62,14 +60,16 @@ export function ReviewsSection({
               delay: reduced ? 0 : 0.08,
             }}
           >
-            {site?.commerce?.capabilities.inquiries !== false && <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-xl bg-m3-primary hover:bg-m3-primary/90 text-m3-on-primary shadow-m3-1 font-semibold text-sm transition-colors duration-150 cursor-pointer"
-            >
-              <MessageSquarePlus className="w-4 h-4" />
-              <span>{t("reviews.writeReviewBtn")}</span>
-            </button>}
+            {site?.commerce?.capabilities.inquiries !== false && (
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary shadow-m3-1 font-semibold text-sm transition-colors duration-150 cursor-pointer"
+              >
+                <MessageSquarePlus aria-hidden="true" className="w-4 h-4" />
+                <span>{t("reviews.writeReviewBtn")}</span>
+              </button>
+            )}
           </motion.div>
         </div>
 
@@ -85,29 +85,29 @@ export function ReviewsSection({
                   duration: reduced ? 0 : 0.45,
                   delay: reduced ? 0 : Math.min(idx * 0.06, 0.18),
                 }}
-                className="relative p-6 sm:p-8 rounded-lg bg-m3-surface-container-low border border-m3-outline-variant flex flex-col justify-between space-y-6"
+                className="relative p-6 sm:p-8 rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container-low border border-m3-outline-variant flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div
                       aria-label={`${review.rating} / 5`}
-                      className="flex gap-1 text-accent-pressed"
+                      className="flex gap-1 text-m3-primary"
                     >
                       {Array.from(
                         { length: Math.max(0, Math.min(5, review.rating)) },
                         (_, i) => (
                           <Star
                             key={i}
-                            aria-hidden
+                            aria-hidden="true"
                             className="w-4 h-4 fill-current"
                           />
                         ),
                       )}
                     </div>
-                    <Quote className="w-5 h-5 text-ink-muted" />
+                    <Quote aria-hidden="true" className="w-5 h-5 text-m3-on-surface-variant" />
                   </div>
 
-                  <blockquote className="text-sm sm:text-base leading-relaxed text-ink font-sans italic">
+                  <blockquote className="text-sm sm:text-base leading-relaxed text-m3-on-surface font-sans italic">
                     &quot;
                     {ar
                       ? review.quoteAr || review.quoteEn
@@ -117,13 +117,13 @@ export function ReviewsSection({
                 </div>
 
                 <figcaption className="pt-4 border-t border-m3-outline-variant flex flex-col font-sans">
-                  <strong className="text-sm font-bold text-ink">
+                  <strong className="text-sm font-bold text-m3-on-surface">
                     {ar
                       ? review.authorAr || review.authorEn
                       : review.authorEn || review.authorAr}
                   </strong>
                   {(review.companyAr || review.companyEn) && (
-                    <span className="text-xs text-ink-muted mt-0.5">
+                    <span className="text-xs text-m3-on-surface-variant mt-0.5">
                       {ar ? review.companyAr : review.companyEn}
                     </span>
                   )}
@@ -132,7 +132,7 @@ export function ReviewsSection({
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant text-ink-muted text-sm">
+          <div className="p-8 text-center rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container-low border border-m3-outline-variant text-m3-on-surface-variant text-sm">
             {t("reviews.empty")}
           </div>
         )}

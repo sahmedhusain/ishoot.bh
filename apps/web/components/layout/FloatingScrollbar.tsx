@@ -57,7 +57,7 @@ export function FloatingScrollbar() {
     e.stopPropagation();
     try {
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    } catch { }
+    } catch {}
     setIsDragging(true);
 
     const startY = e.clientY;
@@ -82,7 +82,7 @@ export function FloatingScrollbar() {
       setIsDragging(false);
       try {
         (e.target as HTMLElement).releasePointerCapture(upEvent.pointerId);
-      } catch { }
+      } catch {}
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
@@ -126,22 +126,21 @@ export function FloatingScrollbar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-hidden="true"
-      className="floating-scrollbar fixed top-0 bottom-0 end-1 z-[90] w-4 flex justify-center pointer-events-auto select-none touch-none"
-      style={{
-        background: "transparent",
-      }}
+      className="floating-scrollbar fixed top-0 bottom-0 end-1 z-[90] w-4 flex justify-center pointer-events-auto select-none touch-none bg-transparent"
     >
       <div
         onPointerDown={handlePointerDown}
-        className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform touch-none ${isVisible
-          ? "opacity-100 scale-x-100"
-          : "opacity-0 scale-x-50 pointer-events-none"
-          } ${isDragging
-            ? "bg-accent shadow-[0_0_12px_rgb(var(--brand-accent)/0.9)] scale-x-125"
+        className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform touch-none ${
+          isVisible
+            ? "opacity-100 scale-x-100"
+            : "opacity-0 scale-x-50 pointer-events-none"
+        } ${
+          isDragging
+            ? "bg-m3-primary scale-x-125 shadow-m3-2"
             : isHovered
-              ? "bg-accent/90 shadow-[0_0_8px_rgb(var(--brand-accent)/0.6)] scale-x-110"
-              : "bg-white/30"
-          }`}
+              ? "bg-m3-primary/80 scale-x-110"
+              : "bg-m3-outline/50"
+        }`}
         style={{
           height: `${thumbHeight}px`,
           transform: `translateY(${translateY}px)`,

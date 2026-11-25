@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useSnackbar } from "../ui/snackbar";
 
 interface ReviewSubmissionModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function ReviewSubmissionModal({
   onClose,
 }: ReviewSubmissionModalProps) {
   const { t, locale, isRTL } = useTranslation();
+  const snackbar = useSnackbar();
 
   const submissionKey = React.useRef<string>("");
   const [rating, setRating] = React.useState(5);
@@ -87,8 +89,13 @@ export function ReviewSubmissionModal({
       }
 
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || t("contact.connectionFailed"));
+      snackbar.show({
+        message: t("reviews.modal.thankYouTitle"),
+        variant: "success",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("contact.connectionFailed");
+      setError(msg || t("contact.connectionFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +121,7 @@ export function ReviewSubmissionModal({
         handleReset();
       }}
       data-lenis-prevent
-      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-m3-surface-container-high rounded-[28px] text-m3-on-surface border border-m3-outline-variant shadow-m3-3 backdrop:bg-black/80"
+      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-m3-surface-container-high rounded-[var(--md-sys-shape-corner-extra-large,28px)] text-m3-on-surface border border-m3-outline-variant shadow-m3-4 backdrop:bg-black/65"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleReset();
       }}
@@ -123,10 +130,10 @@ export function ReviewSubmissionModal({
         dir={isRTL ? "rtl" : "ltr"}
         className="relative p-6 sm:p-8 text-m3-on-surface space-y-6"
       >
-        <div className="flex items-center justify-between pb-4 border-b border-m3-outline-variant relative z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-m3-secondary-container text-m3-on-secondary-container">
-              <MessageSquarePlus className="w-5 h-5" />
+        <div className="flex items-center justify-between pb-4 border-b border-m3-outline-variant">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-secondary-container text-m3-on-secondary-container flex items-center justify-center shrink-0">
+              <MessageSquarePlus aria-hidden="true" className="w-5 h-5" />
             </div>
             <div>
               <h3
@@ -146,16 +153,16 @@ export function ReviewSubmissionModal({
             onClick={handleReset}
             aria-label={t("common.close")}
             autoFocus
-            className="w-11 h-11 rounded-full flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-highest transition-colors"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/[0.08] transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X aria-hidden="true" className="w-4 h-4" />
           </button>
         </div>
 
         {submitted ? (
-          <div className="py-8 text-center space-y-4 relative z-10">
+          <div className="py-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-m3-primary-container text-m3-on-primary-container flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
+              <CheckCircle2 aria-hidden="true" className="w-8 h-8" />
             </div>
             <div className="space-y-1">
               <h4 className="text-lg font-bold text-m3-on-surface">
@@ -168,17 +175,17 @@ export function ReviewSubmissionModal({
             <button
               type="button"
               onClick={handleReset}
-              className="px-6 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs transition-colors"
+              className="min-h-11 px-6 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs transition-colors cursor-pointer"
             >
               {t("reviews.modal.close")}
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div
                 role="alert"
-                className="p-3 rounded-xl bg-m3-error-container border border-m3-error/30 text-m3-on-error-container text-xs"
+                className="p-3.5 rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-error-container border border-m3-error/30 text-m3-on-error-container text-xs font-medium"
               >
                 {error}
               </div>
@@ -188,7 +195,7 @@ export function ReviewSubmissionModal({
               <label className="text-xs font-semibold text-m3-on-surface block">
                 {t("reviews.modal.starRating")}
               </label>
-              <div className="flex items-center gap-1.5 p-3 rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant justify-center">
+              <div className="flex items-center gap-1.5 p-3 rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container-low border border-m3-outline-variant justify-center">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const active = (hoverRating || rating) >= star;
                   return (
@@ -200,13 +207,15 @@ export function ReviewSubmissionModal({
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
-                      className="min-w-11 min-h-11 flex items-center justify-center transition-transform motion-safe:hover:scale-110"
+                      className="min-w-11 min-h-11 flex items-center justify-center rounded-full hover:bg-m3-on-surface/[0.08] transition-transform motion-safe:hover:scale-110 cursor-pointer"
                     >
                       <Star
-                        className={`w-7 h-7 transition-colors ${active
-                          ? "text-amber-400 fill-amber-400"
-                          : "text-m3-on-surface-variant/50 stroke-1"
-                          }`}
+                        aria-hidden="true"
+                        className={`w-7 h-7 transition-colors ${
+                          active
+                            ? "text-m3-primary fill-m3-primary"
+                            : "text-m3-on-surface-variant/45 stroke-[1.5]"
+                        }`}
                       />
                     </button>
                   );
@@ -229,7 +238,7 @@ export function ReviewSubmissionModal({
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
                   placeholder={t("reviews.modal.fullNamePlaceholder")}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
+                  className="w-full min-h-11 px-3.5 py-2.5 rounded-[var(--md-sys-shape-corner-extra-small,4px)] bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
                 />
               </div>
 
@@ -246,7 +255,7 @@ export function ReviewSubmissionModal({
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder={t("reviews.modal.companyPlaceholder")}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
+                  className="w-full min-h-11 px-3.5 py-2.5 rounded-[var(--md-sys-shape-corner-extra-small,4px)] bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
                 />
               </div>
             </div>
@@ -265,26 +274,26 @@ export function ReviewSubmissionModal({
                 value={quote}
                 onChange={(e) => setQuote(e.target.value)}
                 placeholder={t("reviews.modal.quotePlaceholder")}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-none"
+                className="w-full px-3.5 py-2.5 rounded-[var(--md-sys-shape-corner-extra-small,4px)] bg-m3-surface-container-lowest border border-m3-outline text-m3-on-surface text-xs placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary resize-none"
               />
             </div>
 
-            <div className="pt-2 flex items-center justify-end gap-2.5">
+            <div className="pt-2 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-highest transition-colors"
+                className="min-h-11 px-4 rounded-full text-xs font-semibold text-m3-primary hover:bg-m3-primary/[0.08] transition-colors cursor-pointer"
               >
                 {t("reviews.modal.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-m3-1 disabled:opacity-50"
+                className="min-h-11 px-5 py-2.5 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-m3-1 disabled:opacity-[0.38] cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
                     <span>{t("reviews.modal.submitting")}</span>
                   </>
                 ) : (

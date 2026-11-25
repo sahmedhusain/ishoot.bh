@@ -33,7 +33,7 @@ export function SplitHero({
       <div className="shell grid lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] gap-10 lg:gap-12 items-center">
         <div className="space-y-6">
           <p className="inline-flex items-center gap-2 rounded-full bg-m3-secondary-container text-m3-on-secondary-container px-4 py-1.5 text-xs font-semibold tracking-wider uppercase">
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck aria-hidden="true" className="w-3.5 h-3.5" />
             <span>{t("hero.eyebrow")}</span>
           </p>
 
@@ -53,7 +53,7 @@ export function SplitHero({
         </div>
 
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-[2rem] border border-m3-outline-variant bg-m3-surface-container aspect-[16/11] shadow-m3-3">
+          <div className="on-media relative overflow-hidden rounded-[var(--md-sys-shape-corner-extra-large,28px)] border border-m3-outline-variant bg-m3-surface-container aspect-[16/11] shadow-m3-3">
             {banner?.media_type === "video" && banner.media_url ? (
               <video
                 src={banner.media_url}
@@ -80,7 +80,7 @@ export function SplitHero({
             />
             <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between gap-4 text-white">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-white/75 font-semibold">
+                <p className="text-[11px] uppercase tracking-wider text-white/80 font-semibold">
                   {t("hero.featuredLabel")}
                 </p>
                 <p className="text-sm font-semibold truncate">
@@ -93,17 +93,17 @@ export function SplitHero({
                     type="button"
                     onClick={() => setIndex((i) => (i - 1 + safeBanners.length) % safeBanners.length)}
                     aria-label={t("hero.prevSlide")}
-                    className="w-11 h-11 rounded-full bg-black/45 border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-11 h-11 rounded-full bg-black/50 border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                    <ChevronLeft aria-hidden="true" className="w-4 h-4 rtl:rotate-180" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setIndex((i) => (i + 1) % safeBanners.length)}
                     aria-label={t("hero.nextSlide")}
-                    className="w-11 h-11 rounded-full bg-black/45 border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-11 h-11 rounded-full bg-black/50 border border-white/25 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    <ChevronRight aria-hidden="true" className="w-4 h-4 rtl:rotate-180" />
                   </button>
                 </div>
               )}

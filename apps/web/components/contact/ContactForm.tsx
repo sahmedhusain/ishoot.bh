@@ -1,7 +1,8 @@
 "use client";
-import { Select, PhoneInput } from "@platform/ui";
+
+import { Select, PhoneInput, useSnackbar } from "@platform/ui";
 import { InquiryAttachments } from "./InquiryAttachments";
-import { formatMessage, getUiTranslations } from "@platform/locales";
+import { getUiTranslations, formatMessage } from "@platform/locales";
 import { isValidPhone } from "@platform/config/phone";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
@@ -10,7 +11,7 @@ import type { PublicService } from "@platform/database/website-config";
 import { getCurrencyLabel } from "@platform/config/currency";
 
 const publicField =
-  "w-full px-4 py-3 rounded-brand bg-m3-surface-container-low border border-m3-outline-variant text-m3-on-surface text-sm placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary transition-colors duration-150 font-sans";
+  "w-full min-h-12 px-4 py-3 rounded-[var(--md-sys-shape-corner-extra-small,4px)] bg-m3-surface-container-lowest border border-m3-outline hover:border-m3-on-surface text-m3-on-surface text-sm placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary transition-colors duration-150 font-sans";
 
 const intents = [
   "inquiry",
@@ -20,6 +21,7 @@ const intents = [
   "review",
 ] as const;
 type Intent = (typeof intents)[number];
+
 export function ContactForm({
   services = [],
   initialIntent = "inquiry",
@@ -34,6 +36,7 @@ export function ContactForm({
   response?: string;
 }) {
   const { t, locale, isArabic: ar, site } = useTranslation();
+  const snackbar = useSnackbar();
   const ask = site?.inquiry ?? { budget: true, timeline: true, location: true, reference: false };
   const currency = getCurrencyLabel(site?.currency ?? "", ar, false);
   const [intent, setIntent] = React.useState<Intent>(
@@ -116,28 +119,28 @@ export function ContactForm({
     const body =
       intent === "review"
         ? {
-          authorName: read("fullName"),
-          companyName: read("company"),
-          rating,
-          quote: read("message"),
-          locale,
-          website: read("website"),
-        }
+            authorName: read("fullName"),
+            companyName: read("company"),
+            rating,
+            quote: read("message"),
+            locale,
+            website: read("website"),
+          }
         : {
-          fullName: read("fullName"),
-          email: read("email"),
-          phone: read("phone"),
-          company: read("company"),
-          message: read("message"),
-          services: sales ? selected : [],
-          budget: read("budget"),
-          timeline: read("timeline"),
-          projectReference: read("projectReference"),
-          location: read("location"),
-          intent,
-          locale,
-          website: read("website"),
-        };
+            fullName: read("fullName"),
+            email: read("email"),
+            phone: read("phone"),
+            company: read("company"),
+            message: read("message"),
+            services: sales ? selected : [],
+            budget: read("budget"),
+            timeline: read("timeline"),
+            projectReference: read("projectReference"),
+            location: read("location"),
+            intent,
+            locale,
+            website: read("website"),
+          };
 
     const payload = JSON.stringify(body);
     if (submission.current.payload !== payload)
@@ -164,8 +167,14 @@ export function ContactForm({
             : t("contact.submissionFailed"),
         );
       setSuccess(data);
+      snackbar.show({
+        message: t("contact.messageReceived"),
+        variant: "success",
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("contact.connectionFailed"));
+      const msg = e instanceof Error ? e.message : t("contact.connectionFailed");
+      setError(msg);
+      snackbar.show({ message: msg, variant: "error" });
     } finally {
       setBusy(false);
     }
@@ -183,24 +192,24 @@ export function ContactForm({
         className="py-10 space-y-6 text-center select-none"
         role="status"
       >
-        <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-m3-primary border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
-          <Check className="w-8 h-8" />
+        <div className="w-16 h-16 rounded-full bg-m3-primary-container text-m3-on-primary-container flex items-center justify-center mx-auto shadow-m3-1">
+          <Check aria-hidden="true" className="w-8 h-8" />
         </div>
-        <h2 className="text-3xl font-display font-bold text-white">
+        <h2 className="text-3xl font-display font-bold text-m3-on-surface">
           {t("contact.messageReceived")}
         </h2>
-        <p className="text-ink-muted font-sans max-w-lg mx-auto text-sm leading-relaxed">
+        <p className="text-m3-on-surface-variant font-sans max-w-lg mx-auto text-sm leading-relaxed">
           {intent === "review"
             ? t("contact.reviewSubmittedNotice")
             : response || t("contact.successMessage")}
         </p>
         {success.reference && (
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-xs mx-auto text-xs font-sans">
-            <span className="text-ink-muted block mb-1">
+          <div className="p-4 rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container border border-m3-outline-variant max-w-xs mx-auto text-xs font-sans">
+            <span className="text-m3-on-surface-variant block mb-1">
               {t("contact.referenceNumber")}
             </span>
             <strong
-              className="select-all font-mono text-sm text-mint"
+              className="select-all font-mono text-sm text-m3-primary"
               dir="ltr"
             >
               {success.reference}
@@ -208,14 +217,14 @@ export function ContactForm({
           </div>
         )}
         {intent !== "review" && !success.confirmationSent && (
-          <p className="text-xs text-ink-muted max-w-md mx-auto">
+          <p className="text-xs text-m3-on-surface-variant max-w-md mx-auto">
             {t("contact.savedNotice")}
           </p>
         )}
         {success.uploadToken && <InquiryAttachments token={success.uploadToken} locale={locale} />}
         <button
           type="button"
-          className="px-6 py-3 rounded-xl bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs transition-colors duration-150 shadow-lg shadow-accent/20 cursor-pointer"
+          className="min-h-11 px-6 py-3 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs transition-colors duration-150 shadow-m3-1 cursor-pointer"
           onClick={() => {
             setSuccess(null);
             submission.current = { payload: "", key: "" };
@@ -236,7 +245,7 @@ export function ContactForm({
       aria-busy={busy}
     >
       <fieldset disabled={busy} className="space-y-4">
-        <legend className="text-xl font-bold text-white font-display mb-4 block">
+        <legend className="text-xl font-bold text-m3-on-surface font-display mb-4 block">
           {t("contact.intents.title")}
         </legend>
         <div className="flex flex-wrap gap-2.5">
@@ -245,10 +254,11 @@ export function ContactForm({
             return (
               <label
                 key={value}
-                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${isSelected
-                  ? "bg-accent text-accent-foreground border border-accent"
-                  : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
-                  }`}
+                className={`min-h-11 px-4 py-2.5 rounded-[var(--md-sys-shape-corner-small,8px)] text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border ${
+                  isSelected
+                    ? "bg-m3-secondary-container text-m3-on-secondary-container border-transparent"
+                    : "bg-transparent text-m3-on-surface-variant border-m3-outline hover:bg-m3-on-surface/[0.08] hover:text-m3-on-surface"
+                }`}
               >
                 <input
                   type="radio"
@@ -266,20 +276,20 @@ export function ContactForm({
             );
           })}
         </div>
-        <p className="text-xs sm:text-sm text-ink-muted font-sans leading-relaxed pt-1">
+        <p className="text-xs sm:text-sm text-m3-on-surface-variant font-sans leading-relaxed pt-1">
           {descriptions[intents.indexOf(intent)]}
         </p>
       </fieldset>
 
       <fieldset
         disabled={busy}
-        className="space-y-6 pt-4 border-t border-white/10"
+        className="space-y-6 pt-5 border-t border-m3-outline-variant"
       >
         <legend className="sr-only">{t("contact.messageDetails")}</legend>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-ink font-sans">
+            <span className="text-xs font-semibold text-m3-on-surface font-sans">
               {intent === "review"
                 ? t("contact.displayName")
                 : t("contact.fullName")}
@@ -296,7 +306,7 @@ export function ContactForm({
           </label>
 
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-ink-muted font-sans">
+            <span className="text-xs font-semibold text-m3-on-surface-variant font-sans">
               {t("contact.companyOptional")}
             </span>
             <input
@@ -312,7 +322,7 @@ export function ContactForm({
         {intent !== "review" && (
           <div className="grid sm:grid-cols-2 gap-5">
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink font-sans">
+              <span className="text-xs font-semibold text-m3-on-surface font-sans">
                 {t("contact.email")}
               </span>
               <input
@@ -327,7 +337,7 @@ export function ContactForm({
             </label>
 
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink font-sans">
+              <span className="text-xs font-semibold text-m3-on-surface font-sans">
                 {t("contact.phone")}
               </span>
               <PhoneInput
@@ -341,7 +351,7 @@ export function ContactForm({
 
         {sales && services.length > 0 && (
           <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-ink font-sans">
+            <legend className="text-xs font-semibold text-m3-on-surface font-sans">
               {t("contact.servicesInterested")}
             </legend>
             <div className="flex flex-wrap gap-2">
@@ -350,10 +360,11 @@ export function ContactForm({
                 return (
                   <label
                     key={service.id}
-                    className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${isChecked
-                      ? "bg-m3-secondary-container text-m3-on-secondary-container border border-m3-primary"
-                      : "bg-m3-surface-container-lowest text-m3-on-surface border border-m3-outline"
-                      }`}
+                    className={`min-h-11 px-3.5 py-2 rounded-[var(--md-sys-shape-corner-small,8px)] text-xs font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-1.5 border ${
+                      isChecked
+                        ? "bg-m3-secondary-container text-m3-on-secondary-container border-transparent"
+                        : "bg-transparent text-m3-on-surface border-m3-outline hover:bg-m3-on-surface/[0.08]"
+                    }`}
                   >
                     <input
                       className="sr-only"
@@ -379,7 +390,7 @@ export function ContactForm({
           <div className="grid sm:grid-cols-2 gap-5">
             {ask.budget && (
               <label className="block space-y-2">
-                <span className="text-xs font-semibold text-ink font-sans">
+                <span className="text-xs font-semibold text-m3-on-surface font-sans">
                   {t("contact.estimatedBudget")}
                 </span>
                 <Select className={field} name="budget" defaultValue="">
@@ -407,7 +418,7 @@ export function ContactForm({
 
             {ask.timeline && (
               <label className="block space-y-2">
-                <span className="text-xs font-semibold text-ink font-sans">
+                <span className="text-xs font-semibold text-m3-on-surface font-sans">
                   {t("contact.targetTimeline")}
                 </span>
                 <Select className={field} name="timeline" defaultValue="">
@@ -432,7 +443,7 @@ export function ContactForm({
 
             {ask.location && (
               <label className="block space-y-2 sm:col-span-2">
-                <span className="text-xs font-semibold text-ink-muted font-sans">
+                <span className="text-xs font-semibold text-m3-on-surface-variant font-sans">
                   {t("contact.location") || t("contact.shootLocation")}
                 </span>
                 <input
@@ -446,7 +457,7 @@ export function ContactForm({
 
             {ask.reference && (
               <label className="block space-y-2 sm:col-span-2">
-                <span className="text-xs font-semibold text-ink-muted font-sans">
+                <span className="text-xs font-semibold text-m3-on-surface-variant font-sans">
                   {t("contact.projectRefLabel")}
                 </span>
                 <input
@@ -462,7 +473,7 @@ export function ContactForm({
 
         {intent === "complaint" && (
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-ink-muted font-sans">
+            <span className="text-xs font-semibold text-m3-on-surface-variant font-sans">
               {t("contact.projectRefLabel")}
             </span>
             <input
@@ -476,14 +487,14 @@ export function ContactForm({
 
         {intent === "review" && (
           <fieldset className="space-y-2">
-            <legend className="text-xs font-semibold text-ink font-sans">
+            <legend className="text-xs font-semibold text-m3-on-surface font-sans">
               {t("contact.starRatingLabel", { min: 1, max: 5 })} *
             </legend>
-            <div className="flex gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 w-fit">
+            <div className="flex gap-2 p-3 rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container border border-m3-outline-variant w-fit">
               {[1, 2, 3, 4, 5].map((value) => (
                 <label
                   key={value}
-                  className="cursor-pointer min-w-11 min-h-11 flex items-center justify-center transition-transform motion-safe:hover:scale-110"
+                  className="cursor-pointer min-w-11 min-h-11 flex items-center justify-center rounded-full hover:bg-m3-on-surface/[0.08] transition-transform motion-safe:hover:scale-110"
                 >
                   <input
                     className="sr-only"
@@ -496,11 +507,12 @@ export function ContactForm({
                     required
                   />
                   <Star
-                    aria-hidden
-                    className={`w-7 h-7 transition-colors ${rating >= value
-                      ? "text-amber-400 fill-amber-400"
-                      : "text-neutral-600"
-                      }`}
+                    aria-hidden="true"
+                    className={`w-7 h-7 transition-colors ${
+                      rating >= value
+                        ? "text-m3-primary fill-m3-primary"
+                        : "text-m3-on-surface-variant/45"
+                    }`}
                   />
                 </label>
               ))}
@@ -509,7 +521,7 @@ export function ContactForm({
         )}
 
         <label className="block space-y-2">
-          <span className="text-xs font-semibold text-ink font-sans">
+          <span className="text-xs font-semibold text-m3-on-surface font-sans">
             {intent === "review"
               ? t("contact.reviewQuoteLabel")
               : t("contact.yourMessage")}{" "}
@@ -537,14 +549,14 @@ export function ContactForm({
           <div
             id="contact-error"
             role="alert"
-            className="p-4 rounded-xl bg-m3-error-container text-m3-on-error-container border border-m3-error/30 text-xs font-sans"
+            className="p-4 rounded-[var(--md-sys-shape-corner-medium,12px)] bg-m3-error-container text-m3-on-error-container border border-m3-error/30 text-xs font-medium font-sans"
           >
             {error}
           </div>
         )}
 
         <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between pt-2">
-          <p className="text-xs leading-relaxed text-ink-muted font-sans max-w-sm">
+          <p className="text-xs leading-relaxed text-m3-on-surface-variant font-sans max-w-sm">
             {intent === "review"
               ? t("contact.reviewSubmittedNotice")
               : response || t("contact.formNote")}
@@ -552,7 +564,7 @@ export function ContactForm({
 
           <button
             disabled={busy}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-6 py-3 rounded-full bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs sm:text-sm transition-colors duration-150 shadow-m3-1 disabled:opacity-[0.38] cursor-pointer"
             type="submit"
           >
             <span>
@@ -562,7 +574,7 @@ export function ContactForm({
                   ? t("contact.submitReview")
                   : t("contact.submitInquiry")}
             </span>
-            <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
+            <ArrowUpRight aria-hidden="true" className="w-4 h-4 rtl:-scale-x-100" />
           </button>
         </div>
       </fieldset>

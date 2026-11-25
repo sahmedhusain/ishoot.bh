@@ -815,7 +815,14 @@
     "retry": "Retry",
     "returnHome": "Return to Home",
     "copyDiagnostics": "Copy Details",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "errorCodeLabel": "Error Code",
+    "incidentIdLabel": "Reference ID",
+    "reportButton": "Report",
+    "reportingButton": "Sending Report…",
+    "reportedButton": "Reported",
+    "reportSuccess": "Report submitted to support ({ticket}).",
+    "reportFailed": "Could not send report. Please try again."
   },
   "cookies": {
     "bannerTitle": "Privacy & Cookie Preferences",

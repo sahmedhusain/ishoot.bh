@@ -10,3 +10,5 @@ export * from "./currency-display";
 export * from "./count-up";
 export * from "./floating-surface";
 export * from "./phone-input";
+export * from "./snackbar";
+export * from "./confirm-dialog";

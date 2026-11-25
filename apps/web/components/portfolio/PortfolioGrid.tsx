@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Search, RotateCcw } from "lucide-react";
 import type { PortfolioItem, PortfolioCategory } from "@platform/database/types";
 import type { CollectionLayout } from "@platform/database/website-presets";
+import { Select } from "@platform/ui";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionGridClass } from "../../lib/site-copy";
 import { formatResultCount } from "../../lib/format-site";
@@ -85,7 +86,7 @@ export function PortfolioGrid({
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl bg-m3-surface-container-low border border-m3-outline-variant p-4 sm:p-5 space-y-4">
+      <div className="rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-low border border-m3-outline-variant p-4 sm:p-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <form
             role="search"
@@ -96,29 +97,35 @@ export function PortfolioGrid({
             className="flex flex-1 items-center gap-2"
           >
             <label className="relative flex-1">
-              <Search className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2" />
+              <Search
+                aria-hidden="true"
+                className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-4 top-1/2 -translate-y-1/2"
+              />
               <input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label={t("portfolio.searchCatalogue")}
                 placeholder={t("portfolio.searchPlaceholder")}
-                className="w-full h-11 rounded-full bg-m3-surface border border-m3-outline-variant ps-10 pe-4 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary"
+                className="w-full h-11 rounded-full bg-m3-surface-container-high border border-m3-outline-variant ps-11 pe-4 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
               />
             </label>
             <button
               type="submit"
-              className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:bg-m3-primary/90 transition-colors cursor-pointer shrink-0"
+              className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:brightness-95 transition-colors cursor-pointer shrink-0"
             >
               {t("articles.search")}
             </button>
           </form>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            <label htmlFor="portfolio-sort" className="text-xs font-semibold text-m3-on-surface-variant whitespace-nowrap shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0 min-w-[14rem]">
+            <label
+              htmlFor="portfolio-sort"
+              className="text-xs font-semibold text-m3-on-surface-variant whitespace-nowrap shrink-0"
+            >
               {t("portfolio.sortBy")}
             </label>
-            <select
+            <Select
               id="portfolio-sort"
               value={sort}
               onChange={(e) => {
@@ -126,18 +133,18 @@ export function PortfolioGrid({
                 pushParams(query, activeCategory, e.target.value);
               }}
               aria-label={t("portfolio.sortBy")}
-              className="h-11 leading-none rounded-full bg-m3-surface border border-m3-outline-variant px-4 py-0 text-xs font-semibold text-m3-on-surface focus:outline-none focus:border-m3-primary shrink-0"
+              className="min-h-11 rounded-full bg-m3-surface-container-high border-m3-outline-variant text-xs font-semibold"
             >
               <option value="featured">{t("portfolio.sortFeatured")}</option>
               <option value="newest">{t("portfolio.sortNewest")}</option>
               <option value="name">{t("portfolio.sortName")}</option>
               <option value="price_asc">{t("portfolio.sortPriceAsc")}</option>
               <option value="price_desc">{t("portfolio.sortPriceDesc")}</option>
-            </select>
+            </Select>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-m3-outline-variant/60">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-m3-outline-variant">
           <CategoryTabs
             categories={categories}
             activeCategory={activeCategory}
@@ -159,16 +166,16 @@ export function PortfolioGrid({
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl bg-m3-surface-container-low border border-m3-outline-variant p-10 text-center space-y-4">
+        <div className="rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-low border border-m3-outline-variant p-10 text-center space-y-4">
           <p className="text-sm sm:text-base text-m3-on-surface-variant">
             {t("portfolio.noResults")}
           </p>
           <button
             type="button"
             onClick={clearFilters}
-            className="min-h-11 px-5 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-semibold inline-flex items-center gap-2 hover:opacity-90 cursor-pointer"
+            className="min-h-11 px-5 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-semibold inline-flex items-center gap-2 hover:brightness-95 cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" />
             <span>{t("portfolio.clearFilters")}</span>
           </button>
         </div>

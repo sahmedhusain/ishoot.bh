@@ -9,7 +9,7 @@ export function SectionBadge({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-1.5 text-xs font-semibold text-mint font-sans tracking-widest uppercase ${className}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold text-m3-primary font-sans tracking-[0.12em] uppercase ${className}`}
     >
       <span>{children}</span>
     </div>

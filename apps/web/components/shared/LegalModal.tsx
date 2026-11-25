@@ -1,6 +1,6 @@
 "use client";
-import { useSiteReducedMotion } from "../site/SiteTheme";
 
+import { useSiteReducedMotion } from "../site/SiteTheme";
 import * as React from "react";
 import { safeLegalHtml } from "../../lib/legal-html";
 import { X } from "lucide-react";
@@ -54,7 +54,7 @@ export function LegalModal({
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="legal-dialog m-auto w-[calc(100%-2rem)] max-w-3xl max-h-[88dvh] p-0 rounded-2xl bg-m3-surface-container-low text-ink border border-m3-outline-variant shadow-2xl backdrop:bg-black/75"
+      className="legal-dialog m-auto w-[calc(100%-2rem)] max-w-3xl max-h-[88dvh] p-0 rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant shadow-m3-5 backdrop:bg-black/65"
       data-lenis-prevent
     >
       <motion.div
@@ -63,24 +63,25 @@ export function LegalModal({
         transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0, 0, 1] }}
         className="flex flex-col max-h-[88dvh]"
       >
-        <div className="flex items-start justify-between gap-5 p-6 sm:px-8 bg-brand-surface text-white">
+        <div className="flex items-start justify-between gap-5 p-6 sm:px-8 bg-m3-surface-container-high border-b border-m3-outline-variant text-m3-on-surface">
           <h2
             id={titleId}
-            className="text-2xl sm:text-3xl font-bold font-display leading-tight"
+            className="text-2xl sm:text-3xl font-bold font-display leading-tight text-m3-on-surface"
           >
             {title}
           </h2>
           <button
+            type="button"
             autoFocus
             onClick={onClose}
-            className="min-w-11 min-h-11 -mt-1 shrink-0 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            className="min-w-11 min-h-11 -mt-1 shrink-0 flex items-center justify-center rounded-full text-m3-on-surface-variant hover:bg-m3-on-surface/[0.08] transition-colors cursor-pointer"
             aria-label={t("footer.close")}
           >
             <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
         <div
-          className="min-h-0 overflow-y-auto overscroll-contain px-6 py-8 sm:px-10"
+          className="min-h-0 overflow-y-auto overscroll-contain px-6 py-8 sm:px-10 bg-m3-surface-container-low"
           data-lenis-prevent
         >
           {isHtml ? (
@@ -111,10 +112,11 @@ export function LegalModal({
             </div>
           )}
         </div>
-        <div className="px-6 py-4 sm:px-8 bg-m3-surface-container flex justify-end shrink-0">
+        <div className="px-6 py-4 sm:px-8 bg-m3-surface-container-high border-t border-m3-outline-variant flex justify-end shrink-0">
           <button
+            type="button"
             onClick={onClose}
-            className="min-h-11 px-6 rounded-lg bg-m3-primary text-m3-on-primary text-sm font-semibold hover:bg-tone-20 transition-colors"
+            className="min-h-11 px-6 rounded-full bg-m3-primary text-m3-on-primary text-sm font-semibold hover:brightness-95 transition-colors cursor-pointer"
           >
             {t("footer.close")}
           </button>

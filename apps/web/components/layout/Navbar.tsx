@@ -114,10 +114,10 @@ export function Navbar({
       <header
         data-scrolled={scrolled ? "true" : "false"}
         dir={isRTL ? "rtl" : "ltr"}
-        className={`fixed top-0 inset-x-0 z-50 border-b transition-all duration-200 ${
+        className={`site-navbar fixed top-0 inset-x-0 z-50 border-b transition-all duration-base ease-standard ${
           scrolled
-            ? "site-navbar bg-m3-surface/95 backdrop-blur-xl shadow-m3-2 border-m3-outline-variant"
-            : "bg-m3-surface/85 backdrop-blur-md border-m3-outline-variant/40"
+            ? "bg-m3-surface-container/95 backdrop-blur-xl shadow-m3-2 border-m3-outline-variant"
+            : "bg-m3-surface/90 backdrop-blur-md border-m3-outline-variant/60"
         }`}
       >
         <nav
@@ -126,7 +126,7 @@ export function Navbar({
         >
           <Link
             href={`/${locale}`}
-            className="site-brand group flex items-center gap-3 shrink-0"
+            className="site-brand group flex items-center gap-3 shrink-0 min-h-11"
           >
             <BrandImage company={company} icon className="h-9 w-9 shrink-0" />
             <BrandImage
@@ -135,7 +135,7 @@ export function Navbar({
             />
           </Link>
 
-          <div className="site-navigation hidden lg:flex items-center gap-1.5 text-sm font-medium tracking-wide">
+          <div className="site-navigation hidden lg:flex items-center gap-1 text-sm font-medium">
             {navLinks.map((link) => {
               const active = isLinkActive(link.href, link.exact);
               return (
@@ -143,10 +143,10 @@ export function Navbar({
                   key={link.href}
                   href={link.href}
                   aria-current={active ? "page" : undefined}
-                  className={`px-3.5 py-2 rounded-full transition-colors duration-150 whitespace-nowrap ${
+                  className={`min-h-10 px-4 py-2 rounded-full inline-flex items-center transition-colors duration-fast whitespace-nowrap ${
                     active
                       ? "bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
-                      : "text-ink-muted hover:text-ink hover:bg-m3-surface-container-high/60"
+                      : "text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/[0.08]"
                   }`}
                 >
                   {link.label}
@@ -155,7 +155,7 @@ export function Navbar({
             })}
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="site-nav-tools flex items-center gap-2.5 shrink-0">
             {searchEnabled && (
               <div ref={searchBoxRef} className="hidden md:block relative">
                 <form
@@ -165,7 +165,10 @@ export function Navbar({
                   onSubmit={() => setSearchFocused(false)}
                 >
                   <label className="relative flex items-center">
-                    <Search className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-3.5" />
+                    <Search
+                      aria-hidden="true"
+                      className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-3.5"
+                    />
                     <input
                       type="search"
                       name="q"
@@ -177,24 +180,26 @@ export function Navbar({
                       }}
                       aria-label={t("portfolio.searchCatalogue")}
                       placeholder={t("portfolio.searchPlaceholder")}
-                      className="w-44 lg:w-56 focus:w-64 transition-all duration-200 rounded-full bg-m3-surface-container-low border border-m3-outline-variant ps-9 pe-4 h-10 text-xs text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary"
+                      className="w-44 lg:w-56 focus:w-64 transition-all duration-base rounded-full bg-m3-surface-container-high border border-m3-outline-variant ps-10 pe-4 h-10 text-xs text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
                     />
                   </label>
                 </form>
 
                 {searchFocused && trimmedQuery.length > 0 && (
-                  <div className="absolute end-0 mt-2 w-80 rounded-2xl bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-4 p-2 z-50 text-m3-on-surface">
+                  <div className="absolute end-0 mt-2 w-80 rounded-[var(--md-sys-shape-corner-large,16px)] bg-m3-surface-container-high border border-m3-outline-variant shadow-m3-3 p-2 z-50 text-m3-on-surface">
                     {quickResults.length > 0 ? (
-                      <ul className="divide-y divide-m3-outline-variant/50">
+                      <ul className="divide-y divide-m3-outline-variant/60">
                         {quickResults.map((hit) => (
                           <li key={hit.id}>
                             <Link
                               href={hit.href}
                               onClick={() => setSearchFocused(false)}
-                              className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl hover:bg-m3-surface-container text-xs transition-colors"
+                              className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-[var(--md-sys-shape-corner-small,8px)] hover:bg-m3-on-surface/[0.08] text-xs transition-colors"
                             >
                               <div className="min-w-0">
-                                <p className="font-semibold truncate">{hit.title}</p>
+                                <p className="font-semibold text-m3-on-surface truncate">
+                                  {hit.title}
+                                </p>
                                 {hit.subtitle && (
                                   <p className="text-[11px] text-m3-on-surface-variant truncate">
                                     {hit.subtitle}
@@ -215,14 +220,14 @@ export function Navbar({
                       <Link
                         href={`${worksHref}?q=${encodeURIComponent(query.trim())}`}
                         onClick={() => setSearchFocused(false)}
-                        className="text-[11px] font-semibold text-m3-primary hover:underline"
+                        className="min-h-9 inline-flex items-center text-[11px] font-semibold text-m3-primary hover:underline"
                       >
                         {t("search.projectsGroup")}
                       </Link>
                       <Link
                         href={`${articlesHref}?q=${encodeURIComponent(query.trim())}`}
                         onClick={() => setSearchFocused(false)}
-                        className="text-[11px] font-semibold text-m3-primary hover:underline"
+                        className="min-h-9 inline-flex items-center text-[11px] font-semibold text-m3-primary hover:underline"
                       >
                         {t("search.articlesGroup")}
                       </Link>
@@ -235,13 +240,14 @@ export function Navbar({
             <LanguageSwitcher variant="compact" />
 
             <button
+              type="button"
               aria-label={t("common.menu")}
               aria-expanded={menuOpen}
               aria-controls="mobile-navigation"
               onClick={() => setMenuOpen(true)}
-              className="lg:hidden min-w-11 min-h-11 p-2 flex items-center justify-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-ink hover:bg-m3-surface-container transition-colors cursor-pointer"
+              className="lg:hidden min-w-11 min-h-11 p-2 flex items-center justify-center rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:bg-m3-surface-container-high transition-colors cursor-pointer"
             >
-              <Menu className="w-5 h-5" />
+              <Menu aria-hidden="true" className="w-5 h-5" />
             </button>
           </div>
         </nav>

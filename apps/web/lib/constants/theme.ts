@@ -1270,24 +1270,29 @@ export function themeStylesheet(input: BrandTheme) {
 
 export function websiteThemeStylesheet(input: BrandTheme) {
   const { light, dark } = themeVariables(normalizeTheme(input));
-  return (["light", "dark"] as const).map(mode => block(
-    `:root[data-site-tone="${mode}"],html[data-site-mode] [data-site-tone="${mode}"]`,
-    {
-      ...(mode === "light" ? light : dark),
-      "--brand-bg-base": "var(--m3-color-surface)",
-      "--brand-bg-surface": "var(--m3-color-surface-container-low)",
-      "--brand-bg-elevated": "var(--m3-color-surface-container-high)",
-      "--ui-ink": "var(--m3-color-on-surface)",
-      "--ui-ink-muted": "var(--m3-color-on-surface-variant)",
-      "--site-fg": "var(--m3-color-on-surface)",
-      "--web-accent": "var(--md-sys-color-primary)",
-      "--site-client-filter": mode === "light" ? "brightness(0) opacity(0.75)" : "initial",
-      "--brand-mint": "var(--m3-color-primary)",
-      "--site-logo-light": mode === "light" ? "block" : "none",
-      "--site-logo-dark": mode === "dark" ? "block" : "none",
-      "color-scheme": mode,
-    },
-  )).join("");
+  return (["light", "dark"] as const)
+    .map((mode) =>
+      block(
+        `html.${mode},:root[data-site-tone="${mode}"],html[data-site-mode] [data-site-tone="${mode}"]`,
+        {
+          ...(mode === "light" ? light : dark),
+          "--brand-bg-base": "var(--m3-color-surface)",
+          "--brand-bg-surface": "var(--m3-color-surface-container-low)",
+          "--brand-bg-elevated": "var(--m3-color-surface-container-high)",
+          "--ui-ink": "var(--m3-color-on-surface)",
+          "--ui-ink-muted": "var(--m3-color-on-surface-variant)",
+          "--site-fg": "var(--m3-color-on-surface)",
+          "--web-accent": "var(--md-sys-color-primary)",
+          "--site-client-filter":
+            mode === "light" ? "brightness(0) opacity(0.78)" : "initial",
+          "--brand-mint": "var(--m3-color-primary)",
+          "--site-logo-light": mode === "light" ? "block" : "none",
+          "--site-logo-dark": mode === "dark" ? "block" : "none",
+          "color-scheme": mode,
+        },
+      ),
+    )
+    .join("");
 }
 
 export function googleFontsHref(input: BrandTheme) {

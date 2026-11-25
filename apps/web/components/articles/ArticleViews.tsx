@@ -60,45 +60,45 @@ export async function ArticlesIndex({
   };
 
   return (
-    <div className="shell page-heading space-y-10 pb-24">
+    <div className="shell page-heading space-y-10 pb-24 text-m3-on-surface">
       <header className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <SectionBadge>{t.articles.badge}</SectionBadge>
           <a
             href={`${base}/feed.xml`}
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-m3-outline-variant bg-m3-surface-container-low px-4 text-xs font-semibold text-m3-on-surface-variant hover:text-m3-primary hover:border-m3-primary transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-m3-outline-variant bg-m3-surface-container-low px-4 text-xs font-semibold text-m3-on-surface-variant hover:text-m3-primary hover:border-m3-primary transition-colors"
           >
-            <Rss className="w-3.5 h-3.5 text-m3-primary" />
+            <Rss aria-hidden="true" className="w-3.5 h-3.5 text-m3-primary" />
             <span>{t.articles.rss}</span>
           </a>
         </div>
 
-        <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-display font-bold leading-[1.08] tracking-tight text-ink">
+        <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-display font-bold leading-[1.08] tracking-tight text-m3-on-surface">
           {t.articles.title}
         </h1>
-        <p className="max-w-2xl text-base sm:text-lg text-ink-muted leading-relaxed">
+        <p className="max-w-2xl text-base sm:text-lg text-m3-on-surface-variant leading-relaxed">
           {t.articles.subtitle}
         </p>
       </header>
 
-      <div className="rounded-3xl bg-m3-surface-container-low border border-m3-outline-variant p-4 sm:p-5 space-y-4">
+      <div className="rounded-[var(--md-sys-shape-corner-extra-large,28px)] bg-m3-surface-container-low border border-m3-outline-variant p-4 sm:p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <form action={base} method="get" className="flex flex-1 items-center gap-2">
             {category && <input type="hidden" name="category" value={category} />}
             <label className="relative flex-1">
-              <Search className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2" />
+              <Search aria-hidden="true" className="w-4 h-4 text-m3-on-surface-variant pointer-events-none absolute start-4 top-1/2 -translate-y-1/2" />
               <input
                 type="search"
                 name="q"
                 defaultValue={q}
                 placeholder={t.articles.searchPlaceholder}
                 aria-label={t.articles.searchArticles}
-                className="w-full h-11 rounded-full bg-m3-surface border border-m3-outline-variant ps-10 pe-4 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary"
+                className="w-full h-11 rounded-full bg-m3-surface-container-high border border-m3-outline-variant ps-11 pe-4 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary focus:ring-1 focus:ring-m3-primary"
               />
             </label>
             <button
               type="submit"
-              className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:bg-m3-primary/90 transition-colors cursor-pointer shrink-0"
+              className="min-h-11 px-5 rounded-full bg-m3-primary text-m3-on-primary text-xs font-semibold hover:brightness-95 transition-colors cursor-pointer shrink-0"
             >
               {t.articles.search}
             </button>
@@ -110,13 +110,13 @@ export async function ArticlesIndex({
         </div>
 
         {categories.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-m3-outline-variant/60">
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-m3-outline-variant">
             <Link
               href={href({ q })}
-              className={`min-h-10 px-4 rounded-full text-xs font-semibold inline-flex items-center border transition-colors ${
+              className={`min-h-11 px-4 rounded-[var(--md-sys-shape-corner-small,8px)] text-xs font-semibold inline-flex items-center border transition-colors ${
                 !category
                   ? "bg-m3-secondary-container text-m3-on-secondary-container border-transparent"
-                  : "bg-m3-surface border-m3-outline-variant text-m3-on-surface-variant hover:text-ink"
+                  : "bg-transparent border-m3-outline text-m3-on-surface-variant hover:bg-m3-on-surface/[0.08] hover:text-m3-on-surface"
               }`}
             >
               {t.articles.allCategories}
@@ -125,10 +125,10 @@ export async function ArticlesIndex({
               <Link
                 key={cat}
                 href={href({ q, category: cat })}
-                className={`min-h-10 px-4 rounded-full text-xs font-semibold inline-flex items-center border transition-colors ${
+                className={`min-h-11 px-4 rounded-[var(--md-sys-shape-corner-small,8px)] text-xs font-semibold inline-flex items-center border transition-colors ${
                   category === cat
                     ? "bg-m3-secondary-container text-m3-on-secondary-container border-transparent"
-                    : "bg-m3-surface border-m3-outline-variant text-m3-on-surface-variant hover:text-ink"
+                    : "bg-transparent border-m3-outline text-m3-on-surface-variant hover:bg-m3-on-surface/[0.08] hover:text-m3-on-surface"
                 }`}
               >
                 {cat}
@@ -141,7 +141,7 @@ export async function ArticlesIndex({
       {featuredArticle && (
         <Link
           href={`${base}/${encodeURIComponent(featuredArticle.slug)}`}
-          className="group grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] rounded-3xl overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-3 transition-all"
+          className="group grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] rounded-[var(--md-sys-shape-corner-extra-large,28px)] overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-2 transition-all"
         >
           <div className="relative aspect-[16/10] lg:aspect-auto min-h-[260px] bg-m3-surface-container overflow-hidden">
             <ContentImage
@@ -163,23 +163,23 @@ export async function ArticlesIndex({
                     {featuredArticle.category}
                   </span>
                 )}
-                <span className="text-ink-muted">{articleDate(featuredArticle, locale)}</span>
+                <span className="text-m3-on-surface-variant">{articleDate(featuredArticle, locale)}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-ink group-hover:text-m3-primary transition-colors leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors leading-tight">
                 {pickText(featuredArticle.title_en, featuredArticle.title_ar, locale)}
               </h2>
-              <p className="text-sm sm:text-base text-ink-muted leading-relaxed line-clamp-3">
+              <p className="text-sm sm:text-base text-m3-on-surface-variant leading-relaxed line-clamp-3">
                 {pickText(featuredArticle.excerpt_en, featuredArticle.excerpt_ar, locale)}
               </p>
             </div>
             <div className="flex items-center justify-between pt-4 border-t border-m3-outline-variant/60 text-xs font-semibold text-m3-primary">
               <span className="inline-flex items-center gap-1.5 text-m3-on-surface-variant">
-                <Clock className="w-3.5 h-3.5 text-m3-primary" />
+                <Clock aria-hidden="true" className="w-3.5 h-3.5 text-m3-primary" />
                 {formatMessage(t.articles.minRead, { minutes: estimateReadMinutes(featuredArticle, locale) })}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 {t.portfolio.viewProject}
-                <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
+                <ArrowUpRight aria-hidden="true" className="w-4 h-4 rtl:-scale-x-100" />
               </span>
             </div>
           </div>
@@ -196,7 +196,7 @@ export async function ArticlesIndex({
               <Link
                 key={article.id}
                 href={`${base}/${encodeURIComponent(article.slug)}`}
-                className="group flex flex-col rounded-3xl overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-3 transition-all"
+                className="group flex flex-col rounded-[var(--md-sys-shape-corner-extra-large,28px)] overflow-hidden bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/55 hover:shadow-m3-2 transition-all"
               >
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-m3-surface-container">
                   <ContentImage
@@ -217,23 +217,23 @@ export async function ArticlesIndex({
                     <div className="flex flex-wrap items-center gap-3 text-xs text-m3-on-surface-variant">
                       <span>{articleDate(article, locale)}</span>
                       <span className="inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-m3-primary" />
+                        <Clock aria-hidden="true" className="w-3 h-3 text-m3-primary" />
                         <span>{ar ? `${mins} د قراءة` : `${mins} min read`}</span>
                       </span>
                     </div>
-                    <h3 className="text-lg font-display font-bold text-ink group-hover:text-m3-primary transition-colors line-clamp-2">
+                    <h3 className="text-lg font-display font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors line-clamp-2">
                       {artTitle}
                     </h3>
                     {excerpt && (
-                      <p className="text-sm text-ink-muted line-clamp-3 leading-relaxed">
+                      <p className="text-sm text-m3-on-surface-variant line-clamp-3 leading-relaxed">
                         {excerpt}
                       </p>
                     )}
                   </div>
                   {article.author_name && (
-                    <div className="pt-3 border-t border-m3-outline-variant/60 flex items-center justify-between text-xs text-ink-muted">
+                    <div className="pt-3 border-t border-m3-outline-variant/60 flex items-center justify-between text-xs text-m3-on-surface-variant">
                       <span>{article.author_name}</span>
-                      <ArrowUpRight className="w-4 h-4 text-m3-primary rtl:-scale-x-100" />
+                      <ArrowUpRight aria-hidden="true" className="w-4 h-4 text-m3-primary rtl:-scale-x-100" />
                     </div>
                   )}
                 </div>
@@ -242,8 +242,8 @@ export async function ArticlesIndex({
           })}
         </div>
       ) : !featuredArticle ? (
-        <div className="rounded-3xl border border-m3-outline-variant bg-m3-surface-container-low p-10 text-center space-y-4">
-          <p className="text-sm sm:text-base text-ink-muted">
+        <div className="rounded-[var(--md-sys-shape-corner-extra-large,28px)] border border-m3-outline-variant bg-m3-surface-container-low p-10 text-center space-y-4">
+          <p className="text-sm sm:text-base text-m3-on-surface-variant">
             {q || category ? t.portfolio.noResults : t.articles.empty}
           </p>
           {(q || category) && (
@@ -262,7 +262,7 @@ export async function ArticlesIndex({
           {current > 1 && (
             <Link
               href={href({ q, category, page: current - 1 })}
-              className="min-h-11 px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-xs font-semibold inline-flex items-center gap-1.5 hover:border-m3-primary"
+              className="min-h-11 px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-xs font-semibold text-m3-on-surface inline-flex items-center gap-1.5 hover:border-m3-primary"
             >
               {ar ? <ArrowRight className="w-3.5 h-3.5" /> : <ArrowLeft className="w-3.5 h-3.5" />}
               <span>{t.articles.previous}</span>
@@ -276,7 +276,7 @@ export async function ArticlesIndex({
               className={`min-h-11 min-w-11 px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center border transition-colors ${
                 p === current
                   ? "bg-m3-primary text-m3-on-primary border-m3-primary"
-                  : "border-m3-outline-variant bg-m3-surface-container-low text-ink hover:border-m3-primary"
+                  : "border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface hover:border-m3-primary"
               }`}
             >
               {p}
@@ -285,7 +285,7 @@ export async function ArticlesIndex({
           {current < pages && (
             <Link
               href={href({ q, category, page: current + 1 })}
-              className="min-h-11 px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-xs font-semibold inline-flex items-center gap-1.5 hover:border-m3-primary"
+              className="min-h-11 px-4 rounded-full border border-m3-outline-variant bg-m3-surface-container-low text-xs font-semibold text-m3-on-surface inline-flex items-center gap-1.5 hover:border-m3-primary"
             >
               <span>{t.articles.next}</span>
               {ar ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
@@ -318,11 +318,11 @@ export async function ArticleView({
   const cover = article.cover_url || fallbackBannerMediaUrl(0);
 
   return (
-    <article className="shell page-heading space-y-12 pb-24">
+    <article className="shell page-heading space-y-12 pb-24 text-m3-on-surface">
       <div className="space-y-5 max-w-4xl">
         <Link
           href={base}
-          className="inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-m3-primary hover:underline"
+          className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-m3-primary hover:underline"
         >
           {locale === "ar" ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
           <span>{t.articles.back}</span>
@@ -336,16 +336,16 @@ export async function ArticleView({
           )}
           {date && <span>{date}</span>}
           <span className="inline-flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-m3-primary" />
+            <Clock aria-hidden="true" className="w-3.5 h-3.5 text-m3-primary" />
             {formatMessage(t.articles.minRead, { minutes: estimateReadMinutes(article, locale) })}
           </span>
           {article.author_name && <span>· {formatMessage(t.articles.by, { author: article.author_name })}</span>}
         </div>
 
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-bold leading-[1.08] tracking-tight text-ink">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-bold leading-[1.08] tracking-tight text-m3-on-surface">
           {title}
         </h1>
-        {excerpt && <p className="text-base sm:text-xl text-ink-muted leading-relaxed">{excerpt}</p>}
+        {excerpt && <p className="text-base sm:text-xl text-m3-on-surface-variant leading-relaxed">{excerpt}</p>}
 
         <ShareLinks
           url={url}
@@ -360,24 +360,24 @@ export async function ArticleView({
         />
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-m3-outline-variant bg-m3-surface-container-low aspect-[16/9] max-h-[540px]">
+      <div className="overflow-hidden rounded-[var(--md-sys-shape-corner-extra-large,28px)] border border-m3-outline-variant bg-m3-surface-container-low aspect-[16/9] max-h-[540px]">
         <ContentImage src={cover} alt={title} width={1200} height={675} className="w-full h-full object-cover" />
       </div>
 
       <div
-        className="rich-text max-w-4xl text-base sm:text-lg leading-relaxed text-ink"
+        className="rich-text max-w-4xl text-base sm:text-lg leading-relaxed"
         dangerouslySetInnerHTML={{ __html: html || `<p>${excerpt || title}</p>` }}
       />
 
       {related.length > 0 && (
         <section className="space-y-6 border-t border-m3-outline-variant pt-10">
-          <h2 className="text-2xl font-display font-bold text-ink">{t.articles.latest}</h2>
+          <h2 className="text-2xl font-display font-bold text-m3-on-surface">{t.articles.latest}</h2>
           <div className="grid gap-6 md:grid-cols-3">
             {related.map((entry, idx) => (
               <Link
                 key={entry.id}
                 href={`${base}/${encodeURIComponent(entry.slug)}`}
-                className="group rounded-3xl overflow-hidden border border-m3-outline-variant bg-m3-surface-container-low hover:border-m3-primary/50 transition-colors"
+                className="group rounded-[var(--md-sys-shape-corner-extra-large,28px)] overflow-hidden border border-m3-outline-variant bg-m3-surface-container-low hover:border-m3-primary/50 transition-colors"
               >
                 <div className="aspect-[16/10] bg-m3-surface-container overflow-hidden">
                   <ContentImage
@@ -390,7 +390,7 @@ export async function ArticleView({
                 </div>
                 <div className="p-5 space-y-2">
                   <p className="text-xs text-m3-on-surface-variant">{articleDate(entry, locale)}</p>
-                  <h3 className="text-base font-display font-bold text-ink group-hover:text-m3-primary transition-colors line-clamp-2">
+                  <h3 className="text-base font-display font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors line-clamp-2">
                     {pickText(entry.title_en, entry.title_ar, locale)}
                   </h3>
                 </div>
