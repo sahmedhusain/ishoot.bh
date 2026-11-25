@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getContentSnapshot } from "@platform/api-client";
 import { getWebsiteSnapshot, type WebsiteSnapshot } from "@platform/database";
+import { hydrateWebsiteSnapshot } from "./queries/website";
 
 const previewCookie = cache(async (): Promise<boolean> => {
   const value = (await cookies()).get("platform_preview")?.value;
@@ -36,7 +37,7 @@ const getPublishedWebsite = cache(
           pub.config.sections.length > 0 &&
           Array.isArray(pub.portfolio)
         ) {
-          return pub as unknown as WebsiteSnapshot;
+          return hydrateWebsiteSnapshot(pub as unknown as WebsiteSnapshot);
         }
       } catch {}
       return await getWebsiteSnapshot(false);

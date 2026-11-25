@@ -58,7 +58,11 @@
     "caption": "Ideas. Expertise. Possibilities with {companyName}.",
     "slideLabel": "Slide",
     "pause": "Pause motion",
-    "resume": "Resume motion"
+    "resume": "Resume motion",
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "featuredLabel": "Featured Mandate",
+    "trustedPartners": "Corporate Capabilities"
   },
   "services": {
     "badge": "What we offer",
@@ -140,8 +144,10 @@
     "headquartersLabel": "Headquarters",
     "leadershipLabel": "Executive Leadership",
     "requestConsultation": "Request Executive Consultation",
-    "executiveCtaTitle": "Partner with {companyName} for your next production",
-    "executiveCtaSub": "From concept development to final cinema-grade delivery — speak directly with our producers and specialists."
+    "executiveCtaTitle": "Partner with {companyName} on your next mandate",
+    "executiveCtaSub": "From strategic advisory and planning to disciplined turnkey execution — work directly with our leadership and specialist teams.",
+    "defaultMission": "Deliver transparent, high-accountability solutions tailored to enterprise and institutional partners.",
+    "defaultVision": "Set the regional benchmark for operational governance, service quality, and measurable long-term value."
   },
   "contact": {
     "fullName": "Full Name",
@@ -225,13 +231,17 @@
   "footer": {
     "allRights": "All rights reserved.",
     "navigation": "Navigation",
-    "social": "Follow Us",
+    "companyLinks": "Company & Legal",
+    "social": "Connect",
     "terms": "Terms & Conditions",
     "termsModalTitle": "Terms & Conditions",
     "rulesModalTitle": "Privacy & Security",
-    "termsUnavailable": "Terms of Conditions are not currently available.",
-    "rulesUnavailable": "Privacy & Security policy is not currently available.",
+    "termsUnavailable": "All engagements with {companyName} are governed by formal commercial agreements, clear milestone approvals, and applicable commercial law.",
+    "rulesUnavailable": "{companyName} collects only essential contact and operational data required to respond to your inquiries and fulfill contractual commitments.",
     "rules": "Privacy & Security",
+    "cookies": "Cookie Policy",
+    "cookieSettings": "Cookie Settings",
+    "pressKit": "Press & Media Kit",
     "invitationLabel": "Let’s talk",
     "invitationTitle": "Let’s work together.",
     "invitationAction": "Get in touch",
@@ -311,7 +321,9 @@
     "allCategories": "All",
     "search": "Search",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "minRead": "{minutes} min read",
+    "featuredStory": "Featured Story"
   },
   "account": {
     "title": "My account",
@@ -781,8 +793,8 @@
     "code401Desc": "You must be signed in to view this content.",
     "code403Title": "Access Forbidden",
     "code403Desc": "You do not have permission to access this page or resource.",
-    "code404Title": "Page or Scene Not Found",
-    "code404Desc": "The requested resource or production scene could not be located.",
+    "code404Title": "Page Not Found",
+    "code404Desc": "The requested page could not be located or may have been moved.",
     "code500Title": "Internal Server Exception",
     "code500Desc": "An unexpected error occurred while processing this page.",
     "code502Title": "Bad Gateway",
@@ -794,15 +806,44 @@
     "refPrefix": "REF: ",
     "quickLinksHeading": "Explore Other Pages",
     "homeLink": "Home",
-    "portfolioLink": "Portfolio",
+    "portfolioLink": "Our Work",
     "servicesLink": "Services",
     "contactLink": "Contact Us",
     "aboutLink": "About Us",
-    "storeLink": "Store",
+    "storeLink": "News & Insights",
     "diagnosticsToggle": "Technical Stack Trace & Diagnostics",
     "retry": "Retry",
     "returnHome": "Return to Home",
     "copyDiagnostics": "Copy Details",
     "copied": "Copied!"
+  },
+  "cookies": {
+    "bannerTitle": "Privacy & Cookie Preferences",
+    "bannerDesc": "{companyName} uses essential cookies for site security and language selection, plus optional preference and analytics cookies to improve your experience.",
+    "acceptAll": "Accept All",
+    "essentialOnly": "Essential Only",
+    "customize": "Manage Preferences",
+    "savePreferences": "Save Preferences",
+    "policyTitle": "Cookie Policy",
+    "policyIntro": "How {companyName} uses cookies and local storage across our digital corporate portal.",
+    "essentialTitle": "Strictly Necessary Cookies",
+    "essentialDesc": "Required for session integrity, CSRF protection, language selection, and remembering your privacy choice. Always active.",
+    "preferencesTitle": "Functional & Display Preferences",
+    "preferencesDesc": "Remembers theme contrast preferences (Light/Dark), readability settings, and interactive layout controls.",
+    "analyticsTitle": "Usage & Performance Diagnostics",
+    "analyticsDesc": "Helps us measure page load performance, troubleshoot broken navigation, and prioritize helpful company information.",
+    "statusActive": "Always Active",
+    "enabledLabel": "Enabled",
+    "disabledLabel": "Disabled",
+    "manageButton": "Update Cookie Preferences"
+  },
+  "search": {
+    "openSearch": "Search site",
+    "placeholder": "Search projects, articles, services, or policies…",
+    "projectsGroup": "Projects & Work",
+    "articlesGroup": "Articles & Press",
+    "pagesGroup": "Company Pages",
+    "noResults": "No quick matches found. Press Enter to run a full archive search.",
+    "viewAll": "View all results in {target}"
   }
 }

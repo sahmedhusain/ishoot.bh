@@ -127,6 +127,66 @@ describe("IT Company, Site, Tickets, Shell & Live Presence Components", () => {
     expect(itActionMocks.updateItSocialLinkAction).toBeDefined();
     expect(itActionMocks.deleteItSocialLinkAction).toBeDefined();
     expect(itActionMocks.publishItWebsiteSnapshotAction).toBeDefined();
+    expect(itActionMocks.syncStoreOperationsFromItAction).toBeDefined();
+
+    await user.click(screen.getByTestId("it-load-8currencies"));
+    expect(screen.getByText("BHD")).toBeInTheDocument();
+    expect(screen.queryByText("KWD")).toBeNull();
+    await user.click(screen.getByTestId("it-sync-store-ops"));
+    await waitFor(() => {
+      expect(itActionMocks.syncStoreOperationsFromItAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: "update_policies" }),
+      );
+    });
+    await user.click(screen.getByTestId("it-flush-store-cache"));
+    await waitFor(() => {
+      expect(itActionMocks.syncStoreOperationsFromItAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: "revalidate_store" }),
+      );
+    });
+
+    await user.type(screen.getByPlaceholderText(enCopy.storePresets.categoryEnPlaceholder), "VR Gear");
+    await user.click(screen.getByTestId("it-add-custom-category"));
+    await user.click(screen.getByTestId("it-sync-custom-categories"));
+    await waitFor(() => {
+      expect(itActionMocks.syncStoreOperationsFromItAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: "sync_categories" }),
+      );
+    });
+    await user.click(screen.getByTestId("it-sync-website-settings"));
+    await waitFor(() => {
+      expect(itActionMocks.syncStoreOperationsFromItAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: "update_website_settings" }),
+      );
+    });
+
+    await user.click(screen.getByRole("button", { name: new RegExp(enCopy.site.tabs.operations, "i") }));
+    expect(screen.getByTestId("it-store-route-matrix")).toBeInTheDocument();
+    await user.click(screen.getByTestId("it-flush-catalog-cache"));
+    await waitFor(() => {
+      expect(itActionMocks.revalidateFrontendCacheAction).toHaveBeenCalledWith(
+        "store",
+        ["/products", "/new-arrivals"],
+        ["products", "store"],
+      );
+    });
+    await user.click(screen.getByTestId("it-flush-account-cache"));
+    await waitFor(() => {
+      expect(itActionMocks.revalidateFrontendCacheAction).toHaveBeenCalledWith(
+        "store",
+        [
+          "/account",
+          "/account/orders",
+          "/account/wallet",
+          "/account/rewards",
+          "/account/addresses",
+          "/account/wishlist",
+          "/account/returns",
+          "/account/profile",
+        ],
+        ["company", "store", "website"],
+      );
+    });
   });
 
   it("OverviewView, QueueView, SLAView, TicketView & ticket-ui exercise ticket lifecycle and SLA updates", async () => {

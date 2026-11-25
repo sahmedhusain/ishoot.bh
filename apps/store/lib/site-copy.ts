@@ -29,6 +29,10 @@ export interface SiteInfo {
   showEquipment: boolean;
   footerInvitation?: boolean;
   currency: string;
+  country?: string;
+  city?: string;
+  addressEn?: string;
+  addressAr?: string;
   companyNameEn?: string;
   companyNameAr?: string;
 }

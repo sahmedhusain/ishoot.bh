@@ -15,6 +15,7 @@ import { StatsSection } from "../../components/about/StatsSection";
 import { ReviewsSection } from "../../components/about/ReviewsSection";
 import { FAQSection } from "../../components/about/FAQSection";
 import { collectionHref } from "../../lib/site-copy";
+import { synthesizeHeroBanners } from "../../lib/format-site";
 import type { WebsiteSection } from "@platform/database/website-config";
 import { notFound } from "next/navigation";
 import { isWebsitePreview } from "../../lib/website";
@@ -39,8 +40,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const catalogueItems = website.portfolio ?? [];
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
-  const banners = website.banners ?? [];
-  const heroStyle = info.heroStyle === "cinematic" && !banners.length ? "centered" : info.heroStyle;
+  const banners = synthesizeHeroBanners({
+    banners: website.banners,
+    companyNameEn: company.company_name_en,
+    companyNameAr: company.company_name_ar,
+    taglineEn: company.tagline_en,
+    taglineAr: company.tagline_ar,
+    services: website.services,
+    portfolio: website.portfolio,
+    collectionSlug: info.collection.slug,
+  });
+  const heroStyle = info.heroStyle;
   const config = website.config ?? {
     aboutImageUrl: undefined,
     pillars: [],

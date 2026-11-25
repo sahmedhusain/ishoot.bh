@@ -61,7 +61,7 @@ function mapItem(
     external_url: it.externalUrl ?? undefined,
     attributes: Array.isArray(meta.attributes) ? meta.attributes : [],
     aspect_ratio: meta.aspect_ratio ?? "16:9",
-    thumbnail_url: meta.thumbnail_url ?? "",
+    thumbnail_url: meta.thumbnail_url || `/api/files/media/banners/banner-0${(idx % 3) + 1}.png`,
     preview_video_url: meta.preview_video_url,
     full_video_url: meta.full_video_url,
     gallery_urls: Array.isArray(meta.gallery_urls) ? meta.gallery_urls : [],

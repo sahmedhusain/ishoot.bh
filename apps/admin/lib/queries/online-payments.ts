@@ -363,8 +363,10 @@ export async function refundOrder(
   amountInput: number,
   reason: string,
   byId: string | null,
+  toWallet = false,
 ) {
   const amount = round3(amountInput);
+  if (toWallet) return recordOrderRefund(orderId, amount, reason, byId, true);
   const allAttempts = await listTableRows<any>("finance", "payment_attempt");
   const attempts = allAttempts
     .filter(

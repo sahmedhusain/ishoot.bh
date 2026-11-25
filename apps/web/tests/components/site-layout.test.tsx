@@ -5,6 +5,8 @@ import { getWebsiteTranslations } from "@platform/locales";
 import { TelemetryMonitor } from "../../components/TelemetryMonitor";
 import { BackToTop } from "../../components/layout/BackToTop";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
+import { CookieConsentBanner, OPEN_COOKIE_PREFERENCES_EVENT, openCookiePreferences } from "../../components/layout/CookieConsentBanner";
+import { LegalPolicyView } from "../../components/legal/LegalPolicyView";
 import { Footer } from "../../components/layout/Footer";
 import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import { MobileMenu } from "../../components/layout/MobileMenu";
@@ -225,5 +227,38 @@ describe("Web Telemetry, Layout, Site & Shared Components", () => {
 
     await user.click(screen.getByRole("button", { name: /copy/i }));
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Boom backend error"));
+  });
+
+  it("CookieConsentBanner and LegalPolicyView render, customize and save preferences", async () => {
+    const user = userEvent.setup();
+    const company = makeWebCompany();
+    window.localStorage.removeItem("company_cookie_consent_v1");
+
+    render(
+      <WebTestProviders>
+        <LegalPolicyView
+          kind="cookies"
+          title="Cookie Policy"
+          intro="How we use cookies."
+          sections={[{ heading: "Essential", body: "Required for security." }]}
+          company={company}
+        />
+        <CookieConsentBanner />
+      </WebTestProviders>,
+    );
+
+    expect(screen.getByRole("region", { name: /cookie/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /manage preferences/i }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /save preferences/i }));
+
+    expect(window.localStorage.getItem("company_cookie_consent_v1")).toContain('"essential":true');
+
+    // Verify helper event reopens modal cleanly
+    const eventSpy = vi.fn();
+    window.addEventListener(OPEN_COOKIE_PREFERENCES_EVENT, eventSpy);
+    openCookiePreferences();
+    expect(eventSpy).toHaveBeenCalled();
+    window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, eventSpy);
   });
 });

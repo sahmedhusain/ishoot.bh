@@ -27,7 +27,31 @@ export const getSite = cache(async () => {
     websiteModuleEnabled().catch(() => false),
   ]);
   const company = { ...settings, ...(website?.brandAssets ?? {}), theme: website?.brandTheme ? normalizeTheme(website.brandTheme) : settings.theme };
-  const config = resolveWebsiteConfig(website?.config ?? defaultWebsiteConfig, company.theme.websiteMode);
+  const resolved = resolveWebsiteConfig(website?.config ?? defaultWebsiteConfig, company.theme.websiteMode);
+  const companyBranch = {
+    id: "company-hq",
+    nameEn: company.company_name_en || "Main Store",
+    nameAr: company.company_name_ar || company.company_name_en || "المتجر الرئيسي",
+    addressEn: company.address_en || company.city || "",
+    addressAr: company.address_ar || company.address_en || company.city || "",
+    city: company.city || "",
+    country: company.country || "BH",
+    phone: company.phone || "",
+    hoursEn: "",
+    hoursAr: "",
+    directionsUrl: company.map_url || "",
+    latitude: null,
+    longitude: null,
+    active: true,
+    pickup: true,
+  };
+  const config = {
+    ...resolved,
+    commerce: {
+      ...resolved.commerce,
+      branches: [companyBranch],
+    },
+  };
   const languages = config.interfaceLanguages?.filter(isLocale).length ? config.interfaceLanguages.filter(isLocale) : company.content_languages;
   const preferred = config.primaryInterfaceLanguage ?? company.primary_language;
   const primaryLanguage = isLocale(preferred) && languages.includes(preferred as never) ? preferred : languages[0];
@@ -45,6 +69,10 @@ export const getSite = cache(async () => {
     showEquipment: config.showEquipment,
     footerInvitation: config.sections.find(section => section.id === "cta")?.visible ?? true,
     currency: company.default_currency,
+    country: company.country,
+    city: company.city,
+    addressEn: company.address_en,
+    addressAr: company.address_ar,
     companyNameEn: company.company_name_en,
     companyNameAr: company.company_name_ar,
   };

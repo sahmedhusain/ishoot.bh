@@ -7,13 +7,16 @@ import {
   Globe,
   MapPin,
   Palette,
+  RefreshCw,
   Save,
+  ShieldCheck,
   Sliders,
   Sparkles,
   Store,
   Plus,
   Trash2,
 } from "lucide-react";
+import { syncStoreOperationsFromItAction } from "../app/(desk)/site/actions";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
@@ -111,10 +114,106 @@ export function StorePresetsView({ canEdit }: { canEdit: boolean }) {
   ]);
   const [regions, setRegions] = React.useState<RegionRouteItem[]>([
     { code: "BH", currency: "BHD", multiplier: "1.000", enabled: true },
-    { code: "SA", currency: "SAR", multiplier: "10.000", enabled: true },
-    { code: "AE", currency: "AED", multiplier: "9.750", enabled: true },
   ]);
+  const [policies, setPolicies] = React.useState({
+    loyaltyEnabled: true,
+    walletEnabled: true,
+    raffleEnabled: true,
+    cookieBannerEnabled: true,
+    sslBadgeEnabled: true,
+  });
+  const [websiteSettings, setWebsiteSettings] = React.useState({
+    announcementEn: "",
+    announcementAr: "",
+    crNumber: "",
+    vatNumber: "",
+    returnWindowDays: "14",
+    showCategoryBar: true,
+    showDealsSection: true,
+    showGiftCardsSection: true,
+  });
+  const [customCategories, setCustomCategories] = React.useState<
+    Array<{
+      id: string;
+      slug: string;
+      name_en: string;
+      name_ar: string;
+      display_order: number;
+      featured: boolean;
+      is_active: boolean;
+    }>
+  >([]);
+  const [newCatSlug, setNewCatSlug] = React.useState("");
+  const [newCatEn, setNewCatEn] = React.useState("");
+  const [newCatAr, setNewCatAr] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const [syncingOps, setSyncingOps] = React.useState(false);
+
+  const loadGccGlobalPreset = () => {
+    if (!canEdit) return;
+    setRegions([
+      { code: "BH", currency: "BHD", multiplier: "1.000", enabled: true },
+    ]);
+  };
+
+  const runStoreOps = async (
+    action: "revalidate_store" | "sync_regions" | "update_policies" | "sync_categories" | "update_website_settings",
+  ) => {
+    if (!canEdit) return;
+    setSyncingOps(true);
+    try {
+      await syncStoreOperationsFromItAction({
+        action,
+        regions: action === "sync_regions" || action === "update_policies" ? regions : undefined,
+        policies: action === "update_policies" ? policies : undefined,
+        customCategories:
+          action === "sync_categories" || action === "update_website_settings" ? customCategories : undefined,
+        websiteSettings:
+          action === "update_website_settings" || action === "update_policies"
+            ? {
+                announcementEn: websiteSettings.announcementEn,
+                announcementAr: websiteSettings.announcementAr,
+                crNumber: websiteSettings.crNumber,
+                vatNumber: websiteSettings.vatNumber,
+                returnWindowDays: Number(websiteSettings.returnWindowDays) || 14,
+                showCategoryBar: websiteSettings.showCategoryBar,
+                showDealsSection: websiteSettings.showDealsSection,
+                showGiftCardsSection: websiteSettings.showGiftCardsSection,
+              }
+            : undefined,
+      });
+      toast.success(sp.saved);
+    } catch {
+      toast.error(sp.saved);
+    } finally {
+      setSyncingOps(false);
+    }
+  };
+
+  const addCustomCategory = () => {
+    if (!canEdit || !newCatEn.trim()) return;
+    const slug = (newCatSlug || newCatEn)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-|-$/g, "");
+    if (!slug) return;
+    setCustomCategories((prev) => [
+      ...prev.filter((c) => c.slug !== slug),
+      {
+        id: `cat-${slug}`,
+        slug,
+        name_en: newCatEn.trim(),
+        name_ar: newCatAr.trim() || newCatEn.trim(),
+        display_order: prev.length + 1,
+        featured: true,
+        is_active: true,
+      },
+    ]);
+    setNewCatSlug("");
+    setNewCatEn("");
+    setNewCatAr("");
+  };
 
   const toggleCapability = (key: (typeof CAPABILITY_KEYS)[number]) => {
     if (!canEdit) return;
@@ -442,12 +541,24 @@ export function StorePresetsView({ canEdit }: { canEdit: boolean }) {
         </section>
 
         <section className="it-card p-4 space-y-3 font-mono text-xs">
-          <div className="flex items-center gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
-            <Globe className="size-4 text-sky-600 shrink-0" aria-hidden />
-            <div>
-              <h2 className="font-bold uppercase text-ink">{sp.regionsTitle}</h2>
-              <p className="text-[11px] text-ink-muted font-sans">{sp.regionsSubtitle}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
+            <div className="flex items-center gap-2">
+              <Globe className="size-4 text-sky-600 shrink-0" aria-hidden />
+              <div>
+                <h2 className="font-bold uppercase text-ink">{sp.regionsTitle}</h2>
+                <p className="text-[11px] text-ink-muted font-sans">{sp.regionsSubtitle}</p>
+              </div>
             </div>
+            {canEdit && (
+              <button
+                type="button"
+                data-testid="it-load-8currencies"
+                onClick={loadGccGlobalPreset}
+                className="it-btn-3d px-2.5 py-1 text-[11px] font-semibold"
+              >
+                {sp.load8Currencies}
+              </button>
+            )}
           </div>
           <table className="it-table w-full text-xs">
             <thead>
@@ -497,6 +608,262 @@ export function StorePresetsView({ canEdit }: { canEdit: boolean }) {
               ))}
             </tbody>
           </table>
+        </section>
+
+        <section className="it-card p-4 space-y-3 font-mono text-xs lg:col-span-2" data-testid="it-store-ops">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-4 text-emerald-600 shrink-0" aria-hidden />
+              <div>
+                <h2 className="font-bold uppercase text-ink">{sp.storeOpsTitle}</h2>
+                <p className="text-[11px] text-ink-muted font-sans">{sp.storeOpsSubtitle}</p>
+              </div>
+            </div>
+            {canEdit && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={syncingOps}
+                  data-testid="it-sync-store-ops"
+                  onClick={() => void runStoreOps("update_policies")}
+                  className="it-btn-3d px-3 py-1 text-[11px] font-semibold"
+                >
+                  {sp.syncStoreOps}
+                </button>
+                <button
+                  type="button"
+                  disabled={syncingOps}
+                  data-testid="it-flush-store-cache"
+                  onClick={() => void runStoreOps("revalidate_store")}
+                  className="it-btn-3d px-3 py-1 text-[11px] font-semibold inline-flex items-center gap-1"
+                >
+                  <RefreshCw className="size-3" aria-hidden />
+                  {sp.flushStoreCache}
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="grid sm:grid-cols-3 gap-3 font-sans text-xs">
+            {(
+              [
+                ["loyaltyEnabled", sp.opLoyalty],
+                ["walletEnabled", sp.opWallet],
+                ["raffleEnabled", sp.opRaffle],
+                ["cookieBannerEnabled", sp.opCookies],
+                ["sslBadgeEnabled", sp.opSsl],
+              ] as const
+            ).map(([key, labelText]) => (
+              <label
+                key={key}
+                className="flex items-center justify-between gap-2 rounded border border-slate-300 dark:border-slate-700 p-2.5 cursor-pointer"
+              >
+                <span className="font-medium text-ink">{labelText}</span>
+                <input
+                  type="checkbox"
+                  disabled={!canEdit}
+                  checked={policies[key]}
+                  onChange={(e) => setPolicies((prev) => ({ ...prev, [key]: e.target.checked }))}
+                  className="size-3.5"
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+
+        {/* 6. IT Storefront Website Settings & Custom Categories Manager */}
+        <section className="it-card p-4 space-y-4 font-mono text-xs lg:col-span-2" data-testid="it-custom-categories-panel">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 dark:border-slate-700 pb-2">
+            <div className="flex items-center gap-2">
+              <Globe className="size-4 text-sky-600 shrink-0" aria-hidden />
+              <div>
+                <h2 className="font-bold uppercase text-ink">{sp.websiteOpsTitle}</h2>
+                <p className="text-[11px] text-ink-muted font-sans">{sp.websiteOpsSubtitle}</p>
+              </div>
+            </div>
+            {canEdit && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={syncingOps}
+                  data-testid="it-sync-website-settings"
+                  onClick={() => void runStoreOps("update_website_settings")}
+                  className="it-btn-3d px-3 py-1 text-[11px] font-semibold"
+                >
+                  {sp.syncWebsiteSettings}
+                </button>
+                <button
+                  type="button"
+                  disabled={syncingOps}
+                  data-testid="it-sync-custom-categories"
+                  onClick={() => void runStoreOps("sync_categories")}
+                  className="it-btn-3d px-3 py-1 text-[11px] font-semibold"
+                >
+                  {sp.syncCustomCategories}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 font-sans">
+            <label className="block space-y-1">
+              <span className="text-[11px] text-ink-muted">{sp.announcementEnLabel}</span>
+              <input
+                type="text"
+                disabled={!canEdit}
+                value={websiteSettings.announcementEn}
+                onChange={(e) => setWebsiteSettings({ ...websiteSettings, announcementEn: e.target.value })}
+                className="it-field-sunken w-full text-xs"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-[11px] text-ink-muted">{sp.announcementArLabel}</span>
+              <input
+                type="text"
+                dir="rtl"
+                disabled={!canEdit}
+                value={websiteSettings.announcementAr}
+                onChange={(e) => setWebsiteSettings({ ...websiteSettings, announcementAr: e.target.value })}
+                className="it-field-sunken w-full text-xs"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block space-y-1">
+                <span className="text-[11px] text-ink-muted">{sp.crNumberLabel}</span>
+                <input
+                  type="text"
+                  dir="ltr"
+                  disabled={!canEdit}
+                  value={websiteSettings.crNumber}
+                  onChange={(e) => setWebsiteSettings({ ...websiteSettings, crNumber: e.target.value })}
+                  className="it-field-sunken w-full font-mono text-xs"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-[11px] text-ink-muted">{sp.returnDaysLabel}</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={365}
+                  disabled={!canEdit}
+                  value={websiteSettings.returnWindowDays}
+                  onChange={(e) => setWebsiteSettings({ ...websiteSettings, returnWindowDays: e.target.value })}
+                  className="it-field-sunken w-full font-mono text-xs"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-2 font-sans text-xs">
+            <label className="flex items-center justify-between rounded border border-slate-300 dark:border-slate-700 p-2 cursor-pointer">
+              <span>{sp.showCategoryBar}</span>
+              <input
+                type="checkbox"
+                disabled={!canEdit}
+                checked={websiteSettings.showCategoryBar}
+                onChange={(e) => setWebsiteSettings({ ...websiteSettings, showCategoryBar: e.target.checked })}
+                className="size-3.5"
+              />
+            </label>
+            <label className="flex items-center justify-between rounded border border-slate-300 dark:border-slate-700 p-2 cursor-pointer">
+              <span>{sp.showDealsHub}</span>
+              <input
+                type="checkbox"
+                disabled={!canEdit}
+                checked={websiteSettings.showDealsSection}
+                onChange={(e) => setWebsiteSettings({ ...websiteSettings, showDealsSection: e.target.checked })}
+                className="size-3.5"
+              />
+            </label>
+            <label className="flex items-center justify-between rounded border border-slate-300 dark:border-slate-700 p-2 cursor-pointer">
+              <span>{sp.showGiftCardsHub}</span>
+              <input
+                type="checkbox"
+                disabled={!canEdit}
+                checked={websiteSettings.showGiftCardsSection}
+                onChange={(e) => setWebsiteSettings({ ...websiteSettings, showGiftCardsSection: e.target.checked })}
+                className="size-3.5"
+              />
+            </label>
+          </div>
+
+          <div className="space-y-2 border-t border-slate-300 dark:border-slate-700 pt-3">
+            <h3 className="font-bold text-[11px] uppercase text-ink-muted">{sp.customCategoriesTitle}</h3>
+            <ul className="divide-y divide-slate-200 dark:divide-slate-700 font-sans text-xs">
+              {customCategories.map((cat) => (
+                <li key={cat.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
+                  <div>
+                    <span className="font-semibold text-ink">{cat.name_en}</span>
+                    <span className="ms-2 text-ink-muted">({cat.name_ar})</span>
+                    <span className="ms-2 font-mono text-[11px] text-ink-muted" dir="ltr">/category/{cat.slug}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 text-[11px]">
+                      <input
+                        type="checkbox"
+                        disabled={!canEdit}
+                        checked={cat.is_active}
+                        onChange={(e) =>
+                          setCustomCategories((prev) =>
+                            prev.map((item) =>
+                              item.id === cat.id ? { ...item, is_active: e.target.checked } : item,
+                            ),
+                          )
+                        }
+                        className="size-3"
+                      />
+                      <span>{cat.is_active ? "ON" : "OFF"}</span>
+                    </label>
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomCategories((prev) => prev.filter((item) => item.id !== cat.id))}
+                        className="text-rose-600 hover:underline p-1"
+                        aria-label={`Remove ${cat.name_en}`}
+                      >
+                        <Trash2 className="size-3.5" aria-hidden />
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {canEdit && (
+              <div className="grid sm:grid-cols-4 gap-2 pt-2 font-sans">
+                <input
+                  type="text"
+                  dir="ltr"
+                  placeholder="slug-name"
+                  value={newCatSlug}
+                  onChange={(e) => setNewCatSlug(e.target.value)}
+                  className="it-field-sunken text-xs"
+                />
+                <input
+                  type="text"
+                  placeholder={sp.categoryEnPlaceholder}
+                  value={newCatEn}
+                  onChange={(e) => setNewCatEn(e.target.value)}
+                  className="it-field-sunken text-xs"
+                />
+                <input
+                  type="text"
+                  dir="rtl"
+                  placeholder={sp.categoryArPlaceholder}
+                  value={newCatAr}
+                  onChange={(e) => setNewCatAr(e.target.value)}
+                  className="it-field-sunken text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={addCustomCategory}
+                  data-testid="it-add-custom-category"
+                  className="it-btn-3d px-3 py-1 text-xs font-semibold inline-flex items-center justify-center gap-1"
+                >
+                  <Plus className="size-3.5" aria-hidden />
+                  <span>{sp.addCategory}</span>
+                </button>
+              </div>
+            )}
+          </div>
         </section>
       </div>
     </div>

@@ -18,16 +18,18 @@ export function AccountSignIn({
   providers,
   notice,
   next,
+  initialTab = "password",
 }: {
   locale: string;
   providers: { google: boolean; apple: boolean };
   notice: string;
   next: string;
+  initialTab?: Tab;
 }) {
   const { t, isRTL } = useTranslation();
   const tabsId = "customer-sign-in";
   const router = useRouter();
-  const [tab, setTab] = React.useState<Tab>("password");
+  const [tab, setTab] = React.useState<Tab>(initialTab);
   const [form, setForm] = React.useState({
     name: "",
     email: "",
@@ -108,12 +110,13 @@ export function AccountSignIn({
     `/api/account/${id}?locale=${locale}${next ? `&next=${encodeURIComponent(next)}` : ""}`;
 
   return (
-    <div className="relative min-h-screen bg-brand-base text-ink">
-      <div className="shell page-heading max-w-xl">
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-          {t("account.signInTitle")}
-        </h1>
-        <p className="mt-3 text-ink-muted">{t("account.signInSubtitle")}</p>
+    <div className="bg-m3-surface text-m3-on-surface pb-20">
+      <div className="shell page-heading">
+        <div className="max-w-xl mx-auto rounded-3xl border border-m3-outline-variant bg-m3-surface-container-low p-6 sm:p-10">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-m3-on-surface font-display">
+            {t("account.signInTitle")}
+          </h1>
+          <p className="mt-3 text-ink-muted">{t("account.signInSubtitle")}</p>
 
         {!oauthMfa && (
           <div
@@ -329,6 +332,7 @@ export function AccountSignIn({
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

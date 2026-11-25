@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { getWebsiteTranslations } from "@platform/locales";
-import { AccountDashboard, OrderHelp } from "../../components/account/AccountDashboard";
+import { AccountDashboard, OrderHelp, OrderReturnForm } from "../../components/account/AccountDashboard";
 import { AccountSignIn } from "../../components/account/AccountSignIn";
 import { OrderAttachments, PrintOrder } from "../../components/account/OrderAttachments";
 import { WishlistButton } from "../../components/account/WishlistButton";
@@ -169,6 +169,76 @@ describe("Store Account, Auth, Wishlist & Orders Components", () => {
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(
         "/api/account/orders/ord-1/attachments",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    // Test Gift Card Redemption, Loyalty Points Conversion, and Return/Refund Requests
+    const dashboardRender = render(
+      <StoreTestProviders>
+        <AccountDashboard
+          locale="en"
+          customer={makeCustomerProfile({ wallet_balance: 10, loyalty_points: 1500 })}
+          addresses={makeAddresses()}
+          wishlist={[]}
+          orders={[]}
+        />
+        <OrderReturnForm orderId="ord-ret-2" maxAmount={50} />
+      </StoreTestProviders>,
+    );
+
+    const giftInput = dashboardRender.getAllByLabelText(/Gift card code/i)[0];
+    await user.type(giftInput, "GIFT-2026-CAZA");
+    fireEvent.submit(dashboardRender.getAllByTestId("redeem-gift-card-form")[0]);
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/account/redeem-gift-card",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    const navRail = dashboardRender.getAllByTestId("account-nav-rail")[0];
+    for (const suffix of [
+      "/en/account",
+      "/en/account/orders",
+      "/en/account/wallet",
+      "/en/account/rewards",
+      "/en/account/addresses",
+      "/en/account/wishlist",
+      "/en/account/returns",
+      "/en/account/profile",
+    ]) {
+      expect(navRail.querySelector(`a[href="${suffix}"]`)).toBeTruthy();
+    }
+    await user.click(dashboardRender.getAllByTestId("convert-points-submit")[0]);
+
+    const walletOnly = render(
+      <StoreTestProviders>
+        <AccountDashboard
+          locale="en"
+          customer={makeCustomerProfile()}
+          addresses={makeAddresses()}
+          wishlist={[]}
+          orders={[]}
+          activeSection="wallet"
+        />
+      </StoreTestProviders>,
+    );
+    expect(walletOnly.container.querySelector('[data-testid="redeem-gift-card-form"]')).toBeTruthy();
+    expect(walletOnly.container.querySelector('[data-testid="account-profile-save"]')).toBeNull();
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/account/convert-points",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    await user.click(dashboardRender.getByTestId("order-return-open-ord-ret-2"));
+    await user.type(dashboardRender.getByLabelText(/Return reason/i), "Wrong item received in box");
+    await user.click(dashboardRender.getByTestId("order-return-submit-ord-ret-2"));
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/account/return-request",
         expect.objectContaining({ method: "POST" }),
       );
     });

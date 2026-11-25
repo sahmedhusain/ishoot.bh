@@ -23,19 +23,24 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
   const { config } = await getSite();
   const hours = ar ? config.hoursAr : config.hoursEn;
   const response = ar ? config.responseAr : config.responseEn;
+  const heading = (ar ? config.contactTitleAr : config.contactTitleEn) || t.contact.makeYourselfHeard;
+  const intro =
+    (ar ? config.contactIntroAr : config.contactIntroEn) ||
+    pickText(company.tagline_en, company.tagline_ar, locale) ||
+    t.hero.fallbackSubtitle;
 
   return (
     <div className="relative min-h-screen bg-brand-base text-ink overflow-hidden">
       <header className="shell relative z-10 page-heading">
         <Reveal>
-          <p className="web-eyebrow text-mint mb-5">
+          <p className="web-eyebrow text-mint mb-4">
             {t.contact.directStudioLine}
           </p>
           <h1 className="max-w-4xl text-4xl sm:text-6xl lg:text-7xl font-display font-bold leading-[1.08] tracking-tight text-white">
-            {ar ? config.contactTitleAr : config.contactTitleEn}
+            {heading}
           </h1>
           <p className="max-w-2xl mt-5 text-base sm:text-lg text-ink-muted leading-relaxed">
-            {ar ? config.contactIntroAr : config.contactIntroEn}
+            {intro}
           </p>
         </Reveal>
       </header>

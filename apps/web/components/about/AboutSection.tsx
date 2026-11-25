@@ -131,7 +131,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
                 {t("about.missionLabel")}
               </h3>
               <p className="text-base sm:text-lg leading-relaxed text-ink-muted max-w-xl">
-                {(ar ? company?.mission_ar : company?.mission_en) || ""}
+                {(ar ? company?.mission_ar || company?.mission_en : company?.mission_en || company?.mission_ar) || t("about.defaultMission")}
               </p>
             </Reveal>
             <Reveal delay={0.08}>
@@ -140,7 +140,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
                 {t("about.visionLabel")}
               </h3>
               <p className="text-base sm:text-lg leading-relaxed text-ink-muted max-w-xl">
-                {(ar ? company?.vision_ar : company?.vision_en) || ""}
+                {(ar ? company?.vision_ar || company?.vision_en : company?.vision_en || company?.vision_ar) || t("about.defaultVision")}
               </p>
             </Reveal>
             {ceoQuote && (

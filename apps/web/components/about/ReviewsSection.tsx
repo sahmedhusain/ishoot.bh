@@ -65,7 +65,7 @@ export function ReviewsSection({
             {site?.commerce?.capabilities.inquiries !== false && <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-m3-surface-container-low hover:bg-m3-surface-container text-accent-pressed border border-m3-outline font-semibold text-sm transition-colors duration-150 cursor-pointer"
+              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-xl bg-m3-primary hover:bg-m3-primary/90 text-m3-on-primary shadow-m3-1 font-semibold text-sm transition-colors duration-150 cursor-pointer"
             >
               <MessageSquarePlus className="w-4 h-4" />
               <span>{t("reviews.writeReviewBtn")}</span>

@@ -11,13 +11,21 @@ import { LanguageSwitcher } from "../../components/layout/LanguageSwitcher";
 import { MobileMenu } from "../../components/layout/MobileMenu";
 import { Navbar, StoreNavbar } from "../../components/layout/Navbar";
 import { StoreNavbar as ReExportedStoreNavbar } from "../../components/layout/StoreNavbar";
+import {
+  openCookieSettingsModal,
+  openPreferencesModal,
+  StorePreferencesBar,
+  useStorePreferences,
+} from "../../components/layout/StorePreferencesBar";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { SocialIcon } from "../../components/layout/SocialIcon";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { ContentImage } from "../../components/shared/ContentImage";
 import { LegalModal } from "../../components/shared/LegalModal";
+import { PolicyDocumentView } from "../../components/shared/PolicyDocumentView";
 import { Reveal } from "../../components/shared/Reveal";
 import { WebUnifiedErrorPage } from "../../components/shared/WebUnifiedErrorPage";
+import { getStorePolicyDoc } from "../../lib/store-policy-pages";
 import { BrandImage } from "../../components/site/BrandImage";
 import { PreviewBridge, StorePreviewBridge } from "../../components/site/PreviewBridge";
 import { StorePreviewBridge as ReExportedStorePreviewBridge } from "../../components/site/StorePreviewBridge";
@@ -297,5 +305,87 @@ describe("Store Layout, Site, Shared & UI Components", () => {
     await user.click(screen.getByRole("button", { name: "Trigger Confirm" }));
     expect(screen.getByText("Confirm Delete")).toBeInTheDocument();
     anchor.remove();
+  });
+
+  it("StorePreferencesBar, Navbar search autocomplete & Footer trust/legal/newsletter controls work", async () => {
+    const user = userEvent.setup();
+    window.localStorage.removeItem("store-cookie-consent");
+    window.localStorage.removeItem("store-region-code");
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          products: [{ id: "p-1", slug: "rig", title_en: "Cinema Rig Pro", title_ar: "ريج", price: 120 }],
+          categories: [{ slug: "cameras", name_en: "Cameras", name_ar: "كاميرات" }],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    function RegionProbe() {
+      const prefs = useStorePreferences();
+      return <span data-testid="probe-region">{prefs.region.currency}</span>;
+    }
+
+    const termsDoc = getStorePolicyDoc("terms", "en", { companyName: "Test Store", crNumber: "136704-1", returnWindowDays: 14 });
+    render(
+      <StoreTestProviders>
+        <RegionProbe />
+        <Navbar
+          company={makeStoreCompany()}
+          cookieBannerEnabled
+          sslBadgeEnabled
+          showCategoryBar
+          announcement="Fast Bahrain Dispatch"
+          categories={[{ slug: "computer-parts", name_en: "PC Components", name_ar: "قطع الكمبيوتر" }]}
+        />
+        <PolicyDocumentView locale="en" doc={termsDoc} crNumber="136704-1" sslBadgeEnabled />
+        <Footer company={makeStoreCompany()} sslBadgeEnabled crNumber="136704-1" />
+      </StoreTestProviders>,
+    );
+
+    expect(screen.getByTestId("navbar-custom-categories")).toBeInTheDocument();
+    expect(screen.getAllByText(/PC Components/).length).toBeGreaterThanOrEqual(1);
+    await user.click(screen.getByTestId("navbar-mega-toggle"));
+    expect(screen.getByTestId("navbar-mega-menu")).toBeInTheDocument();
+
+    expect(screen.getAllByTestId("cookie-consent-banner").length).toBeGreaterThanOrEqual(1);
+    await user.click(screen.getAllByTestId("cookie-accept-all")[0]);
+
+    await user.click(screen.getByTestId("preferences-trigger"));
+    expect(screen.queryByTestId("region-option-SAR")).toBeNull();
+    await user.click(await screen.findByTestId("region-option-BHD"));
+    expect(screen.getByTestId("probe-region")).toHaveTextContent("BHD");
+
+    await user.click(screen.getByTestId("cookie-settings-trigger"));
+    expect(await screen.findByTestId("cookie-settings-modal")).toBeInTheDocument();
+
+    // Exercise standalone StorePreferencesBar export + modal helpers directly too
+    render(<StoreTestProviders><StorePreferencesBar /></StoreTestProviders>);
+    expect(typeof openPreferencesModal).toBe("function");
+    expect(typeof openCookieSettingsModal).toBe("function");
+
+    const searchInput = screen.getByRole("searchbox");
+    await user.type(searchInput, "Cinema");
+    await vi.waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/store/search",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+
+    expect(screen.getAllByTestId("ssl-security-badge")).toHaveLength(1);
+    const returnsDoc = getStorePolicyDoc("return-policy", "en", { companyName: "Test Store" });
+    const { container: returnsContainer } = render(
+      <StoreTestProviders>
+        <PolicyDocumentView locale="en" doc={returnsDoc} sslBadgeEnabled />
+      </StoreTestProviders>,
+    );
+    expect(returnsContainer.querySelector('[data-testid="ssl-security-badge"]')).toBeNull();
+    const newsletterForm = screen.getByTestId("newsletter-form");
+    const emailInput = newsletterForm.querySelector('input[type="email"]') as HTMLInputElement;
+    await user.type(emailInput, "fan@example.test");
+    fireEvent.submit(newsletterForm);
+    expect(screen.getByText(/Subscribed/i)).toBeInTheDocument();
   });
 });

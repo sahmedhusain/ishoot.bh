@@ -67,7 +67,7 @@ export async function POST(
     if (!(await storeEnabled()))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     const { config } = await getSite();
-    if ((!["quote", "delivery", "regions"].includes(action) && await isWebsitePreview()) || (action === "order" && !(await orderingEnabled())) || (action === "delivery" && !config.commerce.capabilities.delivery))
+    if ((!["quote", "delivery", "regions", "search"].includes(action) && await isWebsitePreview()) || (action === "order" && !(await orderingEnabled())) || (action === "delivery" && !config.commerce.capabilities.delivery))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     if (!sameOrigin(req))
       return NextResponse.json({ error: "generic" }, { status: 403 });
@@ -86,7 +86,50 @@ export async function POST(
         const regions = await listStoreRegions();
         return NextResponse.json(regions.filter((r) => r.isEnabled));
       }
-      if (action === "quote")
+      if (action === "search") {
+        const { getStoreCatalog } = await import("@platform/database");
+        const { website } = await getSite();
+        const q = str(body.q, 80).trim().toLowerCase();
+        const { items, categories } = await getStoreCatalog(
+          website?.portfolio ?? [],
+          website?.categories ?? [],
+        );
+        const matchingProducts = q
+          ? items
+              .filter(
+                (item) =>
+                  item.title_en.toLowerCase().includes(q) ||
+                  item.title_ar.toLowerCase().includes(q) ||
+                  (item.brand ?? "").toLowerCase().includes(q) ||
+                  (item.sku ?? "").toLowerCase().includes(q) ||
+                  (item.subtitle_en ?? "").toLowerCase().includes(q),
+              )
+              .slice(0, 6)
+          : items.slice(0, 6);
+        const matchingCategories = q
+          ? categories
+              .filter(
+                (c) =>
+                  c.name_en.toLowerCase().includes(q) ||
+                  c.name_ar.toLowerCase().includes(q),
+              )
+              .slice(0, 4)
+          : categories.slice(0, 4);
+        return NextResponse.json({
+          products: matchingProducts.map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            title_en: p.title_en,
+            title_ar: p.title_ar,
+            price: p.price ?? null,
+            thumbnail_url: p.thumbnail_url,
+            brand: p.brand ?? null,
+          })),
+          categories: matchingCategories,
+        });
+      }
+      if (action === "quote") {
+        const customer = await currentCustomer().catch(() => null);
         return NextResponse.json(
           await quoteCart({
             lines: cartLines(body.lines),
@@ -94,8 +137,12 @@ export async function POST(
             fulfilment,
             address: area,
             regionCode: str(body.regionCode, 20) || undefined,
+            customerId: customer?.id ?? null,
+            pointsToRedeem: Number(body.pointsToRedeem ?? 0) || 0,
+            useWallet: body.useWallet === true,
           }),
         );
+      }
       if (action === "delivery")
         return NextResponse.json(await deliveryOptions(area ?? {}));
       if (action === "pay") {
@@ -146,6 +193,8 @@ export async function POST(
         email: customer?.email || str(body.email, 254),
         phone: str(body.phone, 40),
         paymentMethod: str(body.paymentMethod, 20),
+        pointsToRedeem: Number(body.pointsToRedeem ?? 0) || 0,
+        useWallet: body.useWallet === true,
         note: str(body.note, 1000),
         locale,
         channel: "website",
@@ -172,7 +221,11 @@ export async function POST(
       return NextResponse.json({
         success: true,
         number: order.number,
-        ...(order.paymentMethod === "online"
+        pointsEarned: order.pointsEarned ?? 0,
+        raffleTickets: order.raffleTickets ?? 0,
+        walletApplied: order.walletApplied ?? 0,
+        amountDue: order.amountDue ?? order.total,
+        ...(order.paymentMethod === "online" && (order.amountDue ?? order.total) > 0
           ? { payToken: paymentLinkToken(order.id) }
           : {}),
       });

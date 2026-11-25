@@ -7,20 +7,23 @@ import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, 
 import { serverMessages } from "@platform/locales";
 import { runAtomicMutation } from "../api/atomic";
 import { listEntityAttachments } from "../api/files";
-import { listTableRows, upsertTableRow } from "../api/tables";
+import { deleteTableRow, listTableRows, upsertTableRow } from "../api/tables";
 import { getCompanyConfiguration } from "../api/company";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 import { roundQuantity } from "../constants/inventory";
 import {
+  DEFAULT_STORE_CATEGORIES,
   MAX_CART_LINES,
   MAX_LINE_QUANTITY,
   ORDER_PAYMENT_METHODS,
   RESERVED_STATUSES,
   canMoveOrder,
   couponProblem,
+  parseCustomCategories,
   priceOrder,
   type CartLine,
+  type CustomStoreCategorySpec,
   type OrderChannel,
   type OrderStatus,
 } from "../constants/store";
@@ -71,6 +74,43 @@ export async function getStoreSettings() {
     bank_instructions_ar: s?.bankInstructionsAr ?? "",
     order_notify_email: s?.orderNotifyEmail ?? "",
     payment_gateway: s?.paymentGateway ?? "",
+    loyalty_enabled: s?.loyaltyEnabled ?? true,
+    points_per_unit: num(s?.pointsPerUnit ?? 10),
+    points_redemption_rate: Math.max(1, num(s?.pointsRedemptionRate ?? 500)),
+    min_redeem_points: Math.max(0, num(s?.minRedeemPoints ?? 1000)),
+    wallet_enabled: s?.walletEnabled ?? true,
+    min_partial_wallet: num(s?.minPartialWallet ?? 1),
+    raffle_enabled: s?.raffleEnabled ?? true,
+    raffle_spend_unit: Math.max(1, num(s?.raffleSpendUnit ?? 10)),
+    raffle_prize_en: String(s?.rafflePrizeEn ?? s?.raffle_prize_en ?? ""),
+    raffle_prize_ar: String(s?.rafflePrizeAr ?? s?.raffle_prize_ar ?? ""),
+    cookie_banner_enabled: s?.cookieBannerEnabled ?? true,
+    ssl_badge_enabled: s?.sslBadgeEnabled ?? true,
+    announcement_en: String(s?.announcementEn ?? s?.announcement_en ?? ""),
+    announcement_ar: String(s?.announcementAr ?? s?.announcement_ar ?? ""),
+    cr_number: String(s?.crNumber ?? s?.cr_number ?? ""),
+    vat_number: String(s?.vatNumber ?? s?.vat_number ?? ""),
+    return_window_days: Math.max(1, num(s?.returnWindowDays ?? s?.return_window_days ?? 14)),
+    show_category_bar:
+      s?.showCategoryBar != null
+        ? Boolean(s.showCategoryBar)
+        : s?.show_category_bar == null
+          ? true
+          : Boolean(s.show_category_bar),
+    show_deals_section:
+      s?.showDealsSection != null
+        ? Boolean(s.showDealsSection)
+        : s?.show_deals_section == null
+          ? true
+          : Boolean(s.show_deals_section),
+    show_gift_cards_section:
+      s?.showGiftCardsSection != null
+        ? Boolean(s.showGiftCardsSection)
+        : s?.show_gift_cards_section == null
+          ? true
+          : Boolean(s.show_gift_cards_section),
+    custom_categories_json: String(s?.customCategoriesJson ?? s?.custom_categories_json ?? "[]"),
+    custom_categories: parseCustomCategories(s?.customCategoriesJson ?? s?.custom_categories_json),
   };
 }
 export type StoreSettingsRecord = Awaited<ReturnType<typeof getStoreSettings>>;
@@ -87,6 +127,27 @@ export interface StoreSettingsInput {
   bankInstructionsAr: string;
   orderNotifyEmail: string;
   paymentGateway?: string;
+  loyaltyEnabled?: boolean;
+  pointsPerUnit?: string;
+  pointsRedemptionRate?: string;
+  minRedeemPoints?: string;
+  walletEnabled?: boolean;
+  minPartialWallet?: string;
+  raffleEnabled?: boolean;
+  raffleSpendUnit?: string;
+  rafflePrizeEn?: string;
+  rafflePrizeAr?: string;
+  cookieBannerEnabled?: boolean;
+  sslBadgeEnabled?: boolean;
+  announcementEn?: string;
+  announcementAr?: string;
+  crNumber?: string;
+  vatNumber?: string;
+  returnWindowDays?: string;
+  showCategoryBar?: boolean;
+  showDealsSection?: boolean;
+  showGiftCardsSection?: boolean;
+  customCategoriesJson?: string;
 }
 
 export async function saveStoreSettings(input: StoreSettingsInput) {
@@ -120,6 +181,29 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
     ...(input.paymentGateway === undefined
       ? {}
       : { paymentGateway: gateway || null }),
+    ...(input.loyaltyEnabled !== undefined ? { loyaltyEnabled: input.loyaltyEnabled } : {}),
+    ...(input.pointsPerUnit !== undefined ? { pointsPerUnit: Math.max(0, Number(input.pointsPerUnit || 10)) } : {}),
+    ...(input.pointsRedemptionRate !== undefined ? { pointsRedemptionRate: Math.max(1, Number(input.pointsRedemptionRate || 500)) } : {}),
+    ...(input.minRedeemPoints !== undefined ? { minRedeemPoints: Math.max(0, Number(input.minRedeemPoints || 1000)) } : {}),
+    ...(input.walletEnabled !== undefined ? { walletEnabled: input.walletEnabled } : {}),
+    ...(input.minPartialWallet !== undefined ? { minPartialWallet: Math.max(0, Number(input.minPartialWallet || 1)) } : {}),
+    ...(input.raffleEnabled !== undefined ? { raffleEnabled: input.raffleEnabled } : {}),
+    ...(input.raffleSpendUnit !== undefined ? { raffleSpendUnit: Math.max(1, Number(input.raffleSpendUnit || 10)) } : {}),
+    ...(input.rafflePrizeEn !== undefined ? { rafflePrizeEn: input.rafflePrizeEn.trim().slice(0, 200) || null } : {}),
+    ...(input.rafflePrizeAr !== undefined ? { rafflePrizeAr: input.rafflePrizeAr.trim().slice(0, 200) || null } : {}),
+    ...(input.cookieBannerEnabled !== undefined ? { cookieBannerEnabled: input.cookieBannerEnabled } : {}),
+    ...(input.sslBadgeEnabled !== undefined ? { sslBadgeEnabled: input.sslBadgeEnabled } : {}),
+    ...(input.announcementEn !== undefined ? { announcementEn: input.announcementEn.trim().slice(0, 300) || "" } : {}),
+    ...(input.announcementAr !== undefined ? { announcementAr: input.announcementAr.trim().slice(0, 300) || "" } : {}),
+    ...(input.crNumber !== undefined ? { crNumber: input.crNumber.trim().slice(0, 64) || "" } : {}),
+    ...(input.vatNumber !== undefined ? { vatNumber: input.vatNumber.trim().slice(0, 64) || "" } : {}),
+    ...(input.returnWindowDays !== undefined
+      ? { returnWindowDays: Math.max(1, Math.min(365, Math.floor(Number(input.returnWindowDays || 14)))) }
+      : {}),
+    ...(input.showCategoryBar !== undefined ? { showCategoryBar: input.showCategoryBar } : {}),
+    ...(input.showDealsSection !== undefined ? { showDealsSection: input.showDealsSection } : {}),
+    ...(input.showGiftCardsSection !== undefined ? { showGiftCardsSection: input.showGiftCardsSection } : {}),
+    ...(input.customCategoriesJson !== undefined ? { customCategoriesJson: input.customCategoriesJson } : {}),
   };
   await upsertTableRow("commerce", "store_settings", data);
 }
@@ -843,6 +927,12 @@ export async function getOrder(id: string) {
     total: num(o.total),
     amount_paid: num(o.amountPaid),
     amount_refunded: num(o.amountRefunded),
+    account_discount_amount: num(o.accountDiscountAmount ?? o.account_discount_amount),
+    points_earned: Math.floor(num(o.pointsEarned ?? o.points_earned)),
+    points_redeemed: Math.floor(num(o.pointsRedeemed ?? o.points_redeemed)),
+    points_discount_amount: num(o.pointsDiscountAmount ?? o.points_discount_amount),
+    wallet_applied: num(o.walletApplied ?? o.wallet_applied),
+    raffle_tickets: Math.floor(num(o.raffleTickets ?? o.raffle_tickets)),
     currency: String(o.currency ?? "BHD"),
     locale: String(o.locale ?? "en"),
     note: o.note ?? "",
@@ -1286,6 +1376,7 @@ export async function recordOrderRefund(
   amountInput: number,
   reason: string,
   byId: string | null,
+  toWallet = false,
 ) {
   return runAtomicMutation(async () => {
     const orders = await listTableRows<Record<string, any>>("commerce", "sales_order");
@@ -1311,14 +1402,25 @@ export async function recordOrderRefund(
           ? "refunded"
           : "partially_refunded",
     });
+    const cleanReason = reason.trim().slice(0, 500);
     await upsertTableRow("commerce", "sales_order_event", {
       id: crypto.randomUUID(),
       orderId,
-      kind: "refund",
+      kind: toWallet ? "refund_wallet" : "refund",
       amount,
-      note: reason.trim().slice(0, 500) || null,
+      note: cleanReason || (toWallet ? "Refunded to customer wallet" : null),
       byId,
     });
+    if (toWallet && order.customerId) {
+      await adjustCustomerWallet(
+        String(order.customerId),
+        amount,
+        `Order ${order.number ?? orderId} refund: ${cleanReason}`.trim().slice(0, 500),
+        byId,
+        "refund_credit",
+        String(order.number ?? orderId),
+      );
+    }
   });
 }
 
@@ -1386,3 +1488,333 @@ export async function saleProductOptions() {
 export type SaleProductOption = Awaited<
   ReturnType<typeof saleProductOptions>
 >[number];
+
+export async function deleteCoupon(id: string) {
+  if (!id) throw new Error(serverMessages.invalidInput);
+  await deleteTableRow("commerce", "coupon", id);
+}
+
+export interface GiftCardInput {
+  id?: string;
+  code: string;
+  initialValue: string;
+  currency?: string;
+  recipientEmail?: string;
+  note?: string;
+  expiresAt?: string;
+  isActive: boolean;
+}
+
+export async function listGiftCards() {
+  const rows = await listTableRows<Record<string, any>>(
+    "commerce",
+    "gift_card",
+    "created_at DESC",
+  ).catch(() => []);
+  return rows.map((r) => ({
+    id: String(r.id),
+    code: String(r.code ?? ""),
+    initial_value: num(r.initialValue ?? r.initial_value),
+    remaining_value: num(r.remainingValue ?? r.remaining_value),
+    currency: String(r.currency ?? "BHD"),
+    recipient_email: r.recipientEmail ?? r.recipient_email ?? "",
+    note: r.note ?? "",
+    is_active: Boolean(r.isActive ?? r.is_active ?? true),
+    redeemed_by: r.redeemedBy ?? r.redeemed_by ?? null,
+    redeemed_at: r.redeemedAt ?? r.redeemed_at ?? null,
+    expires_at: r.expiresAt ? toIso(r.expiresAt).slice(0, 10) : null,
+  }));
+}
+export type GiftCardRow = Awaited<ReturnType<typeof listGiftCards>>[number];
+
+export async function saveGiftCard(input: GiftCardInput) {
+  const code = input.code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+  if (!code || code.length < 4) throw new Error(serverMessages.couponCodeInvalid);
+  const val = Number(input.initialValue);
+  if (!Number.isFinite(val) || val <= 0 || val > 99_999) {
+    throw new Error(serverMessages.productAmountInvalid);
+  }
+  const existing = await listGiftCards();
+  const prev = input.id ? existing.find((g) => g.id === input.id) : null;
+  if (existing.some((g) => g.code === code && g.id !== (input.id ?? ""))) {
+    throw new Error(serverMessages.couponCodeTaken);
+  }
+  const currency = (input.currency || "BHD").trim().toUpperCase() || "BHD";
+  const roundedVal = round3(val);
+  return upsertTableRow("commerce", "gift_card", {
+    id: input.id || crypto.randomUUID(),
+    code,
+    initialValue: roundedVal,
+    remainingValue: prev ? Math.min(prev.remaining_value, roundedVal) : roundedVal,
+    currency,
+    recipientEmail: input.recipientEmail?.trim().toLowerCase().slice(0, 254) || null,
+    note: input.note?.trim().slice(0, 500) || null,
+    isActive: Boolean(input.isActive),
+    expiresAt: input.expiresAt ? `${input.expiresAt}T23:59:59.999Z` : null,
+  });
+}
+
+export async function deleteGiftCard(id: string) {
+  if (!id) throw new Error(serverMessages.invalidInput);
+  await deleteTableRow("commerce", "gift_card", id);
+}
+
+export async function listStoreCustomers() {
+  const rows = await listTableRows<Record<string, any>>(
+    "commerce",
+    "customer",
+    "created_at DESC",
+  ).catch(() => []);
+  return rows.map((c) => ({
+    id: String(c.id),
+    email: String(c.email ?? ""),
+    name: String(c.name ?? ""),
+    phone: String(c.phone ?? ""),
+    loyalty_points: Math.floor(num(c.loyaltyPoints ?? c.loyalty_points)),
+    wallet_balance: round3(num(c.walletBalance ?? c.wallet_balance)),
+    discount_percent: num(c.discountPercent ?? c.discount_percent),
+    tier: String(c.tier ?? "standard"),
+  }));
+}
+export type StoreCustomerRow = Awaited<ReturnType<typeof listStoreCustomers>>[number];
+
+export async function adjustCustomerWallet(
+  customerId: string,
+  deltaAmount: number,
+  note: string,
+  byId: string | null,
+  kind = "admin_adjustment",
+  reference?: string,
+) {
+  const amount = round3(Number(deltaAmount));
+  if (!customerId || !Number.isFinite(amount) || amount === 0) {
+    throw new Error(serverMessages.productAmountInvalid);
+  }
+  const customers = await listStoreCustomers();
+  const customer = customers.find((c) => c.id === customerId);
+  if (!customer) throw new Error(serverMessages.procurementDocumentMissing);
+  const nextBalance = Math.max(0, round3(customer.wallet_balance + amount));
+  await upsertTableRow("commerce", "customer", {
+    id: customerId,
+    walletBalance: nextBalance,
+  });
+  await upsertTableRow("commerce", "customer_wallet_tx", {
+    id: crypto.randomUUID(),
+    customerId,
+    kind,
+    amount,
+    balanceAfter: nextBalance,
+    reference: reference ?? null,
+    note: note.trim().slice(0, 500) || null,
+    createdBy: byId,
+  });
+  return { id: customerId, wallet_balance: nextBalance };
+}
+
+export async function adjustCustomerPoints(
+  customerId: string,
+  deltaPoints: number,
+  note: string,
+  byId: string | null,
+) {
+  const delta = Math.trunc(Number(deltaPoints));
+  if (!customerId || !Number.isFinite(delta) || delta === 0) {
+    throw new Error(serverMessages.productAmountInvalid);
+  }
+  const customers = await listStoreCustomers();
+  const customer = customers.find((c) => c.id === customerId);
+  if (!customer) throw new Error(serverMessages.procurementDocumentMissing);
+  const nextPoints = Math.max(0, customer.loyalty_points + delta);
+  await upsertTableRow("commerce", "customer", {
+    id: customerId,
+    loyaltyPoints: nextPoints,
+  });
+  await upsertTableRow("commerce", "customer_points_tx", {
+    id: crypto.randomUUID(),
+    customerId,
+    kind: "admin_adjustment",
+    points: delta,
+    balanceAfter: nextPoints,
+    note: note.trim().slice(0, 500) || null,
+    createdBy: byId,
+  });
+  return { id: customerId, loyalty_points: nextPoints };
+}
+
+export async function saveCustomerAccountDiscount(
+  customerId: string,
+  discountPercentInput: number,
+  tierInput: string,
+) {
+  const pct = Number(discountPercentInput);
+  if (!customerId || !Number.isFinite(pct) || pct < 0 || pct > 100) {
+    throw new Error(serverMessages.productAmountInvalid);
+  }
+  const tier = ["standard", "silver", "gold", "vip"].includes(tierInput.trim().toLowerCase())
+    ? tierInput.trim().toLowerCase()
+    : "standard";
+  await upsertTableRow("commerce", "customer", {
+    id: customerId,
+    discountPercent: Math.round(pct * 100) / 100,
+    tier,
+  });
+  return { id: customerId, discount_percent: pct, tier };
+}
+
+export async function listOrderReturnRequests() {
+  const [requests, orders] = await Promise.all([
+    listTableRows<Record<string, any>>(
+      "commerce",
+      "order_return_request",
+      "created_at DESC",
+    ).catch(() => []),
+    listTableRows<Record<string, any>>("commerce", "sales_order").catch(() => []),
+  ]);
+  const orderById = new Map<string, Record<string, any>>(
+    orders.map((o) => [String(o.id), o] as const),
+  );
+  return requests.map((r) => {
+    const ord = orderById.get(String(r.orderId ?? r.order_id));
+    return {
+      id: String(r.id),
+      order_id: String(r.orderId ?? r.order_id ?? ""),
+      order_number: String(ord?.number ?? r.orderId ?? ""),
+      customer_id: r.customerId ?? r.customer_id ?? null,
+      customer_name: String(ord?.name ?? ""),
+      status: String(r.status ?? "pending"),
+      refund_destination: String(r.refundDestination ?? r.refund_destination ?? "wallet"),
+      amount_requested: num(r.amountRequested ?? r.amount_requested),
+      currency: String(ord?.currency ?? "BHD"),
+      reason: String(r.reason ?? ""),
+      resolution_note: r.resolutionNote ?? r.resolution_note ?? null,
+      created_at: r.createdAt ? toIso(r.createdAt) : new Date().toISOString(),
+    };
+  });
+}
+export type AdminOrderReturnRequestRow = Awaited<
+  ReturnType<typeof listOrderReturnRequests>
+>[number];
+
+export async function resolveOrderReturnRequest(
+  requestId: string,
+  decision: "approve_wallet" | "approve_original" | "reject",
+  note: string,
+  byId: string | null,
+) {
+  const requests = await listOrderReturnRequests();
+  const req = requests.find((r) => r.id === requestId);
+  if (!req) throw new Error(serverMessages.procurementDocumentMissing);
+
+  const cleanNote = note.trim().slice(0, 500);
+  const now = new Date().toISOString();
+  if (decision === "reject") {
+    await upsertTableRow("commerce", "order_return_request", {
+      id: requestId,
+      status: "rejected",
+      resolutionNote: cleanNote || "Rejected",
+      resolvedBy: byId,
+      resolvedAt: now,
+    });
+    return { id: requestId, status: "rejected" };
+  }
+
+  const toWallet = decision === "approve_wallet";
+  if (req.amount_requested > 0) {
+    await recordOrderRefund(
+      req.order_id,
+      req.amount_requested,
+      cleanNote || `Return request approved (${toWallet ? "wallet" : "original"})`,
+      byId,
+      toWallet,
+    ).catch(async () => {
+      if (toWallet && req.customer_id) {
+        await adjustCustomerWallet(
+          req.customer_id,
+          req.amount_requested,
+          cleanNote || `Return refund for order ${req.order_number}`,
+          byId,
+          "refund_credit",
+          req.order_number,
+        );
+      }
+    });
+  }
+
+  await upsertTableRow("commerce", "order_return_request", {
+    id: requestId,
+    status: "refunded",
+    refundDestination: toWallet ? "wallet" : "original_payment",
+    resolutionNote: cleanNote || "Approved & refunded",
+    resolvedBy: byId,
+    resolvedAt: now,
+  });
+  return { id: requestId, status: "refunded" };
+}
+
+export interface StoreCustomCategoryInput {
+  id?: string;
+  slug: string;
+  nameEn: string;
+  nameAr?: string;
+  icon?: string;
+  displayOrder?: number;
+  featured?: boolean;
+  isActive?: boolean;
+}
+
+export async function listStoreCustomCategories(): Promise<CustomStoreCategorySpec[]> {
+  const settings = await getStoreSettings();
+  return settings.custom_categories.map((c) => ({ ...c }));
+}
+
+export async function saveStoreCustomCategory(
+  input: StoreCustomCategoryInput,
+): Promise<CustomStoreCategorySpec[]> {
+  const current = await listStoreCustomCategories();
+  const normalizedSlug = (input.slug || input.nameEn)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-|-$/g, "");
+  if (!normalizedSlug || !input.nameEn.trim()) {
+    throw new Error(serverMessages.productAmountInvalid);
+  }
+  const existingIdx = current.findIndex(
+    (c) => (input.id && c.id === input.id) || c.slug.toLowerCase() === normalizedSlug,
+  );
+  const entry: CustomStoreCategorySpec = {
+    id: input.id?.trim() || (existingIdx >= 0 ? current[existingIdx]!.id : `cat-${normalizedSlug}`),
+    slug: normalizedSlug,
+    name_en: input.nameEn.trim().slice(0, 120),
+    name_ar: (input.nameAr ?? input.nameEn).trim().slice(0, 120) || input.nameEn.trim().slice(0, 120),
+    icon: (input.icon ?? "tag").trim().slice(0, 40) || "tag",
+    display_order: Number(input.displayOrder ?? (existingIdx >= 0 ? current[existingIdx]!.display_order : current.length + 1)) || current.length + 1,
+    featured: input.featured ?? true,
+    is_active: input.isActive ?? true,
+  };
+  const next =
+    existingIdx >= 0
+      ? current.map((item, idx) => (idx === existingIdx ? entry : item))
+      : [...current, entry];
+  next.sort((a, b) => a.display_order - b.display_order);
+  await upsertTableRow("commerce", "store_settings", {
+    id: "default",
+    customCategoriesJson: JSON.stringify(next),
+  });
+  return next;
+}
+
+export async function deleteStoreCustomCategory(
+  idOrSlug: string,
+): Promise<CustomStoreCategorySpec[]> {
+  const target = idOrSlug.trim();
+  const current = await listStoreCustomCategories();
+  const next = current.filter(
+    (c) => c.id !== target && c.slug !== target,
+  );
+  await upsertTableRow("commerce", "store_settings", {
+    id: "default",
+    customCategoriesJson: JSON.stringify(next),
+  });
+  return next;
+}

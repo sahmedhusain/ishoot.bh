@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../../../lib/site";
 import { collectionHref, collectionGridClass } from "../../../../lib/site-copy";
+import { fallbackBannerMediaUrl } from "../../../../lib/format-site";
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
@@ -107,12 +108,13 @@ export default async function CollectionItemPage({
         {subtitle ? <p className="max-w-3xl text-lg text-ink-muted">{subtitle}</p> : null}
       </Reveal>
   );
+  const posterOrThumb = item.thumbnail_url || fallbackBannerMediaUrl(0);
   const media = (
-    <Reveal className={`relative w-full overflow-hidden rounded-brand bg-m3-surface-container ${layout === "product" ? "aspect-square" : "aspect-video"}`}>
+    <Reveal className={`relative w-full overflow-hidden rounded-3xl border border-m3-outline-variant bg-m3-surface-container ${layout === "product" ? "aspect-square" : "aspect-video"}`}>
         {videoUrl ? (
-          <video src={videoUrl} poster={item.thumbnail_url} controls playsInline className="w-full h-full object-cover" />
+          <video src={videoUrl} poster={posterOrThumb} controls playsInline className="w-full h-full object-cover" />
         ) : (
-          <ContentImage src={item.thumbnail_url} alt={title} className={`w-full h-full ${layout === "product" ? "object-contain" : "object-cover"}`} />
+          <ContentImage src={posterOrThumb} alt={title} className={`w-full h-full ${layout === "product" ? "object-contain" : "object-cover"}`} />
         )}
       </Reveal>
   );
@@ -142,6 +144,13 @@ export default async function CollectionItemPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-bold text-white font-display">{t.portfolio.projectOverview ?? t.portfolio.productionOverview}</h2>
+          <div className="rounded-3xl border border-m3-outline-variant bg-m3-surface-container-low p-6 sm:p-8 text-sm sm:text-base leading-relaxed text-ink-muted whitespace-pre-line">
+            {description ||
+              subtitle ||
+              (locale === "ar"
+                ? `مشروع ${title}${item.client_name ? ` لصالح ${item.client_name}` : ""}${item.location ? ` في ${item.location}` : ""}.`
+                : `${title}${item.client_name ? ` delivered for ${item.client_name}` : ""}${item.location ? ` in ${item.location}` : ""}.`)}
+          </div>
           {description ? <p className="text-base text-ink-muted leading-relaxed whitespace-pre-line">{description}</p> : null}
         </div>
 

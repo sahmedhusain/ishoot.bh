@@ -1,219 +1,269 @@
 "use client";
-import { BrandImage } from "../site/BrandImage";
-import { SiteRegion, SiteModeSwitch, useSiteTheme } from "../site/SiteTheme";
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
-import { ArrowUpRight } from "lucide-react";
-import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
-import { SocialIcon } from "./SocialIcon";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Reveal } from "../shared/Reveal";
+import { ArrowUpRight, Mail, Phone, MapPin, ShieldCheck, Cookie } from "lucide-react";
 import { LegalModal } from "../shared/LegalModal";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { SocialIcon } from "./SocialIcon";
+import { SiteModeSwitch } from "../site/SiteTheme";
+import { BrandImage } from "../site/BrandImage";
+import { openCookiePreferences } from "./CookieConsentBanner";
+import { cleanSentenceEnd } from "../../lib/format-site";
+import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
 
-interface FooterProps {
+export function Footer({
+  company,
+  pages,
+  links = [],
+  extraLinks = [],
+  socialLinks = [],
+}: {
   company: PublicCompanySettings;
-  socialLinks?: SocialLink[];
   pages?: { id: string; visible: boolean }[];
-  links?: { id: string; href: string; label: string }[];
-}
+  links?: { href: string; label: string }[];
+  extraLinks?: { href: string; label: string }[];
+  socialLinks?: SocialLink[];
+}) {
+  const { t, locale, isRTL, site } = useTranslation();
+  const [activeModal, setActiveModal] = React.useState<"terms" | "rules" | null>(null);
+  const year = new Date().getFullYear();
 
-export function Footer({ company, socialLinks = [], pages, links }: FooterProps) {
-  const { isArabic, t, locale, site } = useTranslation();
-  const pathname = usePathname();
-  const theme = useSiteTheme();
-  const showInvitation = site?.footerInvitation !== false && theme?.design.footerLayout !== "compact" &&
-    !pathname.endsWith("/contact") &&
-    pages?.find((page) => page.id === "contact")?.visible !== false;
-  const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(
-    null,
+  const ar = locale === "ar";
+  const brandName = cleanSentenceEnd(
+    ar
+      ? company.company_name_ar || company.company_name_en
+      : company.company_name_en || company.company_name_ar,
   );
+  const tagline = ar ? company.tagline_ar : company.tagline_en;
+  const visible = (id: string) => pages?.find((p) => p.id === id)?.visible ?? true;
+  const showFooterInvitation = site?.footerInvitation ?? true;
 
-  const pageMap = React.useMemo(() => {
-    const map = new Map<string, boolean>();
-    pages?.forEach((p) => map.set(p.id, p.visible));
-    return map;
-  }, [pages]);
+  const seenNav = new Set<string>();
+  const navLinks = [
+    ...(visible("home") ? [{ href: `/${locale}`, label: t("nav.home") }] : []),
+    ...(visible("works")
+      ? [{ href: site ? collectionHref(site, locale) : `/${locale}/work`, label: t("nav.works") }]
+      : []),
+    ...(visible("about") ? [{ href: `/${locale}/about`, label: t("nav.about") }] : []),
+    ...(visible("articles")
+      ? [{ href: `/${locale}/${site?.articles.slug ?? "news"}`, label: t("nav.articles") }]
+      : []),
+    ...links,
+    ...extraLinks,
+    ...(visible("contact") ? [{ href: `/${locale}/contact`, label: t("nav.contact") }] : []),
+  ].filter((item) => {
+    if (seenNav.has(item.href)) return false;
+    seenNav.add(item.href);
+    return true;
+  });
 
-  const navLinks = links ?? [
-    { id: "home", href: `/${locale}`, label: t("nav.home") },
-    { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
-    { id: "about", href: `/${locale}/about`, label: t("nav.about") },
-    { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
-  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
+  const governanceLinks = [
+    { href: `/${locale}/press`, label: t("footer.pressKit") },
+    { href: `/${locale}/terms`, label: t("footer.terms") },
+    { href: `/${locale}/rules`.replace("/rules", "/privacy"), label: t("footer.rules") },
+    { href: `/${locale}/cookies`, label: t("footer.cookies") },
+  ];
 
-  const activeLinks = React.useMemo(() => {
-    const seen = new Set<string>();
-    return [...socialLinks]
-      .filter((link) => link.is_active && !/whatsapp/i.test(link.platform) && !/^https?:\/\/(wa\.me|(?:[a-z0-9-]+\.)*whatsapp\.com)(?:\/|$)/i.test(link.url))
-      .sort((a, b) => a.display_order - b.display_order)
-      .filter((link) => {
-        const destination = link.url.trim().replace(/\/+$/, "");
-        if (seen.has(destination)) return false;
-        seen.add(destination);
-        return true;
-      });
-  }, [socialLinks]);
+  const rulesText =
+    (ar ? company.rules_ar || company.rules_en : company.rules_en || company.rules_ar) ||
+    t("footer.rulesUnavailable");
 
-  const renderModalContent = () => {
-    if (modalType === "terms") {
-      const content = isArabic ? company.terms_ar : company.terms_en;
-      return content ? content : t("footer.termsUnavailable");
-    }
-    if (modalType === "rules") {
-      const content = isArabic ? company.rules_ar : company.rules_en;
-      return content ? content : t("footer.rulesUnavailable");
-    }
-    return "";
-  };
+  const termsText =
+    (ar ? company.terms_ar || company.terms_en : company.terms_en || company.terms_ar) ||
+    t("footer.termsUnavailable");
 
-  const renderModalTitle = () => {
-    if (modalType === "terms") {
-      return t("footer.termsModalTitle");
-    }
-    if (modalType === "rules") {
-      return t("footer.rulesModalTitle");
-    }
-    return "";
-  };
+  const activeSocials = socialLinks.filter((s) => s.url);
 
   return (
-    <SiteRegion region="footer"><footer className="site-footer relative bg-brand-surface border-t border-white/10 pt-16 sm:pt-24 pb-6">
-      <div className="shell relative">
-        {showInvitation && (
-          <Reveal className="footer-invitation border-b border-white/10 pb-12">
-            <p className="web-eyebrow text-ink-muted">
-              {t("footer.invitationLabel")}
-            </p>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mt-4">
-              <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.12] max-w-2xl">
-                {t("footer.invitationTitle")}
-              </h2>
-              <Link
-                href={`/${locale}/contact?intent=quote_request`}
-                className="web-button self-start md:self-end shrink-0"
-              >
-                {t("footer.invitationAction")}
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="w-4 h-4 rtl:-scale-x-100"
-                />
-              </Link>
-            </div>
-            {company.email && (
-              <a
-                href={`mailto:${company.email}`}
-                className="footer-email"
-                dir="ltr"
-              >
-                {company.email}
-              </a>
-            )}
-          </Reveal>
-        )}
-        <div className="site-footer-grid grid grid-cols-1 md:grid-cols-[2fr_1fr_1.2fr] gap-10 lg:gap-16 py-12 sm:py-16">
-          <div className="space-y-5">
-            <Link
-              href={`/${locale}`}
-              className="flex items-center gap-3 group w-fit"
-            >
-              <BrandImage company={company} icon className="h-10 w-10 shrink-0" />
-              <BrandImage company={company} className="h-7 min-w-0 max-w-[min(36vw,15rem)]" />
-            </Link>
-            {(locale === "ar" ? company.address_ar : company.address_en) ? (
-              <p className="text-sm text-ink-muted max-w-md leading-relaxed font-sans">
-                {locale === "ar" ? company.address_ar : company.address_en}
-              </p>
-            ) : null}
-            <div className="text-xs text-ink-muted pt-2 font-sans">
-              {company.cr_number &&
-                `${t("footer.registrationLabel")}: ${company.cr_number}`}
-            </div>
-          </div>
+    <>
+      <footer
+        dir={isRTL ? "rtl" : "ltr"}
+        className="relative bg-m3-surface text-ink border-t border-m3-outline-variant"
+      >
+        <div className="shell py-16 md:py-20 space-y-12">
+          {showFooterInvitation && (
+            <div className="pb-12 border-b border-m3-outline-variant flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+              <div className="space-y-3">
+                <span className="web-eyebrow text-m3-primary">
+                  {t("footer.invitationLabel")}
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-[1.08] max-w-xl">
+                  {cleanSentenceEnd(t("footer.invitationTitle"))}
+                </h2>
+              </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
-              {t("footer.navigation")}
-            </h3>
-            <ul className="space-y-2.5 text-sm text-ink-muted font-sans">
-              {navLinks.map((link) => (
-                <li key={link.id}>
-                  <Link href={link.href} className="footer-link">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
-              {t("footer.social")}
-            </h3>
-            <div className="flex flex-col items-start gap-1">
-              {activeLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer-link group inline-flex items-center gap-3"
-                  aria-label={link.platform}
-                  title={link.platform}
+              <div className="flex flex-wrap items-center gap-4">
+                <Link
+                  href={`/${locale}/contact?intent=quote_request`}
+                  className="web-button group shadow-m3-2"
                 >
-                  <SocialIcon
-                    name={link.platform}
-                    hint={link.icon}
-                    className="w-4 h-4"
-                  />
-                  <span>{link.platform}</span>
-                  <ArrowUpRight
-                    aria-hidden="true"
-                    className="w-3.5 h-3.5 rtl:-scale-x-100"
-                  />
-                </a>
-              ))}
+                  <span>{t("footer.invitationAction")}</span>
+                  <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-4 space-y-4">
+              <Link href={`/${locale}`} className="inline-flex items-center gap-3 group">
+                <BrandImage company={company} icon className="h-9 w-9 shrink-0" />
+                <BrandImage company={company} className="h-7 min-w-0 max-w-[min(45vw,16rem)]" />
+              </Link>
+              {tagline && (
+                <p className="text-sm text-ink-muted leading-relaxed max-w-sm">
+                  {tagline}
+                </p>
+              )}
+              {company.cr_number && (
+                <div className="inline-flex items-center gap-2 rounded-full bg-m3-surface-container border border-m3-outline-variant px-3.5 py-1.5 text-xs text-ink-muted">
+                  <ShieldCheck className="w-3.5 h-3.5 text-m3-primary shrink-0" />
+                  <span>
+                    {t("footer.registrationLabel")}: <bdi dir="ltr">{company.cr_number}</bdi>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="lg:col-span-3 space-y-3">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+                {t("footer.navigation")}
+              </h3>
+              <ul className="space-y-1">
+                {navLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="inline-flex min-h-10 items-center text-sm text-ink-muted hover:text-m3-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="lg:col-span-2 space-y-3">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+                {t("footer.companyLinks")}
+              </h3>
+              <ul className="space-y-1">
+                {governanceLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="inline-flex min-h-10 items-center text-sm text-ink-muted hover:text-m3-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="lg:col-span-3 space-y-3">
+              <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-ink-muted">
+                {t("footer.social")}
+              </h3>
+              <div className="space-y-2.5 text-sm text-ink-muted">
+                {company.email && (
+                  <a
+                    href={`mailto:${company.email}`}
+                    className="flex items-center gap-2.5 hover:text-m3-primary transition-colors break-all"
+                  >
+                    <Mail className="w-4 h-4 text-m3-primary shrink-0" />
+                    <bdi dir="ltr">{company.email}</bdi>
+                  </a>
+                )}
+                {company.phone && (
+                  <a
+                    href={`tel:${company.phone.replace(/\s+/g, "")}`}
+                    className="flex items-center gap-2.5 hover:text-m3-primary transition-colors"
+                  >
+                    <Phone className="w-4 h-4 text-m3-primary shrink-0" />
+                    <bdi dir="ltr">{company.phone}</bdi>
+                  </a>
+                )}
+                {(ar ? company.address_ar || company.address_en : company.address_en) && (
+                  <p className="flex items-start gap-2.5 text-xs leading-relaxed">
+                    <MapPin className="w-4 h-4 text-m3-primary shrink-0 mt-0.5" />
+                    <span>{ar ? company.address_ar || company.address_en : company.address_en}</span>
+                  </p>
+                )}
+              </div>
+
+              {activeSocials.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  {activeSocials.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.platform}
+                      className="w-11 h-11 rounded-full border border-m3-outline-variant bg-m3-surface-container-low hover:border-m3-primary hover:bg-m3-surface-container flex items-center justify-center transition-colors text-ink-muted hover:text-ink"
+                    >
+                      <SocialIcon name={social.platform} className="w-4 h-4" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-m3-outline-variant flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-ink-muted">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2">
+              <p>
+                © {year} {brandName.endsWith(".") ? brandName : `${brandName}.`} {t("footer.allRights")}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveModal("terms")}
+                className="min-h-10 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                {t("footer.terms")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModal("rules")}
+                className="min-h-10 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                {t("footer.rules")}
+              </button>
+              <button
+                type="button"
+                onClick={() => openCookiePreferences()}
+                className="inline-flex min-h-10 items-center gap-1.5 hover:text-m3-primary transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                <Cookie className="w-3.5 h-3.5" />
+                <span>{t("footer.cookieSettings")}</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <LanguageSwitcher variant="footer" />
+              <SiteModeSwitch locale={locale} />
             </div>
           </div>
         </div>
-
-        <div className="pt-6 border-t border-white/10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-ink-muted font-sans">
-          <div>
-            © {new Date().getFullYear()}{" "}
-            {isArabic
-              ? company.company_name_ar || company.company_name_en
-              : company.company_name_en}
-            {" · "}
-            {t("footer.allRights")}
-          </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <LanguageSwitcher variant="footer" />
-            <SiteModeSwitch locale={locale} placement="up" />
-            <button
-              onClick={() => setModalType("rules")}
-              className="footer-link bg-transparent border-none cursor-pointer"
-            >
-              {t("footer.rules")}
-            </button>
-            <button
-              onClick={() => setModalType("terms")}
-              className="footer-link bg-transparent border-none cursor-pointer"
-            >
-              {t("footer.terms")}
-            </button>
-          </div>
-        </div>
-      </div>
+      </footer>
 
       <LegalModal
-        isOpen={modalType !== null}
-        onClose={() => setModalType(null)}
-        title={renderModalTitle()}
-        content={renderModalContent()}
+        isOpen={activeModal === "terms"}
+        onClose={() => setActiveModal(null)}
+        title={t("footer.termsModalTitle")}
+        content={termsText}
       />
-    </footer></SiteRegion>
+
+      <LegalModal
+        isOpen={activeModal === "rules"}
+        onClose={() => setActiveModal(null)}
+        title={t("footer.rulesModalTitle")}
+        content={rulesText}
+      />
+    </>
   );
 }

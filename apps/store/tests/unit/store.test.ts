@@ -1,12 +1,17 @@
 import { describe, expect, test } from "vitest";
 import {
+  STORE_REGIONS,
   ORDER_CHANNELS,
   ORDER_PAYMENT_METHODS,
   ORDER_STATUSES,
   ORDER_TRANSITIONS,
+  calculatePointsEarned,
+  calculateRaffleTickets,
   canMoveOrder,
   couponProblem,
+  pointsToMoney,
   priceOrder,
+  priceOrderDetailed,
 } from "@platform/database/constants/store";
 
 describe("store", () => {
@@ -115,6 +120,35 @@ describe("store", () => {
   test("orders have known status, channel and method values", () => {
     expect(ORDER_STATUSES.length).toBeGreaterThan(0);
     expect(ORDER_CHANNELS.length).toBeGreaterThan(0);
-    expect(ORDER_PAYMENT_METHODS.length).toBeGreaterThan(0);
+    expect(ORDER_PAYMENT_METHODS).toContain("wallet");
+  });
+
+  test("loyalty points, raffle tickets, company currency region, and wallet split pricing compute accurately", () => {
+    expect(STORE_REGIONS.map((r) => r.currency)).toEqual(["BHD"]);
+    expect(calculatePointsEarned(25.5, 10, true)).toBe(255);
+    expect(pointsToMoney(1000, 500)).toBe(2);
+    expect(calculateRaffleTickets(39.9, 10, true)).toBe(3);
+
+    const out = priceOrderDetailed({
+      currency: "BHD",
+      lines: [{ unitPrice: 100, quantity: 1 }],
+      vatPercentage: 10,
+      deliveryFee: 2,
+      delivery: true,
+      accountDiscountPercent: 5,
+      pointsAvailable: 2000,
+      pointsToRedeem: 1000,
+      pointsRedemptionRate: 500,
+      minRedeemPoints: 1000,
+      walletBalance: 50,
+      useWallet: true,
+    });
+    expect(out.accountDiscount).toBe(5);
+    expect(out.pointsRedeemed).toBe(1000);
+    expect(out.pointsDiscount).toBe(2);
+    expect(out.total).toBe(105.2);
+    expect(out.walletApplied).toBe(50);
+    expect(out.amountDue).toBe(55.2);
+    expect(out.raffleTickets).toBe(10);
   });
 });

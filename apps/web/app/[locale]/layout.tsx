@@ -10,10 +10,11 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { isValidLocale } from "../../lib/i18n";
 import { getSite, requireSiteLanguage, siteTranslations } from "../../lib/site";
-import { Navbar } from "../../components/layout/Navbar";
+import { Navbar, type NavbarSearchEntry } from "../../components/layout/Navbar";
 import { siteMenus } from "../../lib/menus";
 import { SiteAnalytics, SiteCustomCode } from "../../components/site/SiteCode";
 import { Footer } from "../../components/layout/Footer";
+import { CookieConsentBanner } from "../../components/layout/CookieConsentBanner";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
@@ -126,12 +127,33 @@ export default async function LocaleLayout({
           <FloatingScrollbar />
           <BackToTop />
           <SmoothScroll>
-            <Navbar company={company} pages={config.pages} links={menus?.header} />
+            <Navbar
+              company={company}
+              pages={config.pages}
+              links={menus?.header}
+              searchIndex={([
+                ...(website?.portfolio ?? []).slice(0, 12).map((item) => ({
+                  id: `proj-${item.id}`,
+                  title: pickText(item.title_en, item.title_ar, locale),
+                  subtitle: item.category ? (locale === "ar" ? item.category.name_ar : item.category.name_en) : item.client_name ?? undefined,
+                  href: `/${locale}/${info.collection.slug}/${encodeURIComponent(item.slug)}`,
+                  group: "project" as const,
+                })),
+                ...(website?.articles ?? []).slice(0, 10).map((art) => ({
+                  id: `art-${art.id}`,
+                  title: pickText(art.title_en, art.title_ar, locale),
+                  subtitle: art.category ?? undefined,
+                  href: `/${locale}/${info.articles.slug}/${encodeURIComponent(art.slug)}`,
+                  group: "article" as const,
+                })),
+              ]) satisfies NavbarSearchEntry[]}
+            />
             <SiteRegion as="main" region="page" id="main-content" className="w-full">
               <TelemetryMonitor />
               {children}
             </SiteRegion>
             <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
+            <CookieConsentBanner />
             {!preview && code ? <SiteCustomCode code={code} nonce={nonce} /> : null}
           </SmoothScroll>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>

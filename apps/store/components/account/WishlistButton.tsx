@@ -10,7 +10,7 @@ export function WishlistButton({ itemId, initiallySaved, signedIn, next }: { ite
   const { t, locale } = useTranslation();
   const [saved, setSaved] = React.useState(initiallySaved);
   const [busy, setBusy] = React.useState(false);
-  const className = "inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/5 transition-colors";
+  const className = "inline-flex min-h-10 items-center gap-2 rounded-full border border-m3-outline-variant bg-m3-surface px-4 py-2 text-xs font-semibold text-m3-on-surface hover:border-m3-primary hover:text-m3-primary transition-colors";
   const text = saved ? t("account.removeFromWishlist") : t("account.saveToWishlist");
   if (!signedIn)
     return (

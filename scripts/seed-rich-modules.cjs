@@ -917,6 +917,11 @@ function buildRichModuleSql({
           apple_sub: idx % 7 === 0 ? `apple-${company.slug}-${c.id}` : null,
           marketing_opt_in: idx % 3 !== 0,
           crm_contact_id: cntId,
+          loyalty_points: company.hasStore ? 500 + (idx % 12) * 250 : 0,
+          wallet_balance: company.hasStore && idx % 3 === 0 ? Number((15 + (idx % 6) * 2.5).toFixed(3)) : 0,
+          discount_percent: company.hasStore ? (idx === 0 ? 10 : idx < 4 ? 5 : 0) : 0,
+          tier: company.hasStore ? (idx === 0 ? "platinum" : idx < 4 ? "gold" : idx < 10 ? "silver" : "standard") : "standard",
+          preferred_currency: cur,
           status: "active",
           created_at: ago(Math.max(5, 65 - idx)),
           updated_at: now,
@@ -3214,9 +3219,40 @@ function buildRichModuleSql({
         bank_instructions_ar: `يرجى تحويل المبلغ إلى حساب ${company.nameAr} الآيبان ${companyJson.company.bankIban} مع ذكر رقم الطلب.`,
         payment_gateway: "benefitpay",
         order_notify_email: company.email,
+        loyalty_enabled: true,
+        points_per_unit: 10.0,
+        points_redemption_rate: 500,
+        min_redeem_points: 1000,
+        wallet_enabled: true,
+        min_partial_wallet: 1.0,
+        raffle_enabled: true,
+        raffle_spend_unit: 10.0,
+        raffle_prize_en: `${company.shortEn} Seasonal Prize & Voucher Draw`,
+        raffle_prize_ar: `سحب الجوائز والقسائم الموسمية من ${company.shortAr}`,
+        custom_categories_json: JSON.stringify(
+          pCats.slice(0, 8).map((c, idx) => ({
+            id: `cat-${idx + 1}`,
+            slug: c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `cat-${idx + 1}`,
+            name_en: c,
+            name_ar: c,
+            display_order: idx + 1,
+            featured: idx < 6,
+            is_active: true,
+          })),
+        ),
+        cookie_banner_enabled: true,
+        ssl_badge_enabled: true,
+        announcement_en: `Fast delivery across Bahrain — ${company.shortEn} Official Store`,
+        announcement_ar: `توصيل سريع في جميع أنحاء البحرين — متجر ${company.shortAr} الرسمي`,
+        cr_number: company.crNumber || "136704-1",
+        vat_number: company.vatId || "220001367040002",
+        return_window_days: 14,
+        show_category_bar: true,
+        show_deals_section: true,
+        show_gift_cards_section: true,
         updated_at: now,
       },
-      "ON CONFLICT (id) DO UPDATE SET delivery_enabled = EXCLUDED.delivery_enabled, pickup_enabled = EXCLUDED.pickup_enabled, guest_checkout = EXCLUDED.guest_checkout, bank_instructions_en = EXCLUDED.bank_instructions_en, bank_instructions_ar = EXCLUDED.bank_instructions_ar, payment_gateway = EXCLUDED.payment_gateway, updated_at = now()",
+      "ON CONFLICT (id) DO UPDATE SET delivery_enabled = EXCLUDED.delivery_enabled, pickup_enabled = EXCLUDED.pickup_enabled, guest_checkout = EXCLUDED.guest_checkout, bank_instructions_en = EXCLUDED.bank_instructions_en, bank_instructions_ar = EXCLUDED.bank_instructions_ar, payment_gateway = EXCLUDED.payment_gateway, loyalty_enabled = EXCLUDED.loyalty_enabled, wallet_enabled = EXCLUDED.wallet_enabled, raffle_enabled = EXCLUDED.raffle_enabled, announcement_en = EXCLUDED.announcement_en, announcement_ar = EXCLUDED.announcement_ar, cr_number = EXCLUDED.cr_number, vat_number = EXCLUDED.vat_number, raffle_prize_en = EXCLUDED.raffle_prize_en, raffle_prize_ar = EXCLUDED.raffle_prize_ar, custom_categories_json = EXCLUDED.custom_categories_json, updated_at = now()",
     ),
   );
   lines.push(
@@ -3262,13 +3298,64 @@ function buildRichModuleSql({
   }
 
   if (company.hasStore) {
-    lines.push(
-      ins(
-        "commerce.store_region",
-        { id: "reg-bh", code: "BH", name_en: "Bahrain", name_ar: "البحرين", currency: cur, default_language: "ar", branch_id: "br-hq", is_enabled: true, price_multiplier: 1.0, settings: {} },
-        "ON CONFLICT (id) DO NOTHING",
-      ),
-    );
+    const companyCode = company.country || "BH";
+    const companyCurrency = company.currency || "BHD";
+    const storeRegions = [
+      {
+        id: `reg-${companyCode.toLowerCase()}`,
+        code: companyCode,
+        en: company.city || "Bahrain",
+        ar: company.city || "البحرين",
+        cc: companyCurrency,
+        sym: companyCurrency === "BHD" ? "BD" : companyCurrency,
+        lang: "ar",
+        br: "br-hq",
+        mul: 1.0,
+        free: 25.0,
+      },
+    ];
+    for (const r of storeRegions) {
+      lines.push(
+        ins(
+          "commerce.store_region",
+          {
+            id: r.id,
+            code: r.code,
+            name_en: r.en,
+            name_ar: r.ar,
+            currency: r.cc,
+            currency_symbol: r.sym,
+            free_shipping_threshold: r.free,
+            default_language: r.lang,
+            branch_id: r.br,
+            is_enabled: true,
+            price_multiplier: r.mul,
+            settings: {},
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    }
+    for (const [gcIdx, gcVal] of [10, 25, 50].entries()) {
+      lines.push(
+        ins(
+          "commerce.gift_card",
+          {
+            id: `gc-${gcIdx + 1}`,
+            code: `${pfx}-GIFT-${gcVal}`,
+            initial_value: gcVal,
+            remaining_value: gcVal,
+            currency: cur,
+            recipient_email: customers[gcIdx]?.email || company.email,
+            note: `Promotional gift voucher (${gcVal} ${cur})`,
+            is_active: true,
+            expires_at: ahead(365),
+            created_at: now,
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    }
     lines.push(
       ins(
         "commerce.coupon",
@@ -3399,6 +3486,73 @@ function buildRichModuleSql({
         ),
       );
     }
+
+    // Seed Customer Wallet Transactions, Loyalty Points Ledger, Wishlists & Return Requests
+    for (let wIdx = 0; wIdx < Math.min(4, customers.length); wIdx++) {
+      const cust = customers[wIdx];
+      lines.push(
+        ins(
+          "commerce.customer_wallet_tx",
+          {
+            id: `wtx-${wIdx + 1}`,
+            customer_id: cust.id,
+            kind: "gift_card",
+            amount: 15.0 + wIdx * 5,
+            balance_after: 15.0 + wIdx * 5,
+            reference: `${pfx}-GIFT-${wIdx === 0 ? 25 : 10}`,
+            note: "Store wallet welcome credit",
+            created_by: "super-admin",
+            created_at: ago(10 - wIdx),
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+      lines.push(
+        ins(
+          "commerce.customer_points_tx",
+          {
+            id: `ptx-${wIdx + 1}`,
+            customer_id: cust.id,
+            kind: "earn",
+            points: 500 + wIdx * 250,
+            balance_after: 500 + wIdx * 250,
+            reference: `${pfx}-ORD-${1001 + wIdx}`,
+            note: "Order loyalty points earned",
+            created_by: "system",
+            created_at: ago(10 - wIdx),
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+      lines.push(
+        ins(
+          "commerce.customer_wishlist",
+          {
+            id: `wsh-${wIdx + 1}`,
+            customer_id: cust.id,
+            product_id: `prod-${(wIdx % prodList.length) + 1}`,
+            created_at: ago(5 - wIdx),
+          },
+          "ON CONFLICT (id) DO NOTHING",
+        ),
+      );
+    }
+    lines.push(
+      ins(
+        "commerce.order_return_request",
+        {
+          id: "ret-req-001",
+          order_id: "ord-001",
+          customer_id: customers[0].id,
+          status: "pending",
+          refund_destination: "wallet",
+          amount_requested: Number(Math.min(25, prodList[0].price || 15).toFixed(3)),
+          reason: "Requested exchange/wallet credit within return window",
+          created_at: ago(1),
+        },
+        "ON CONFLICT (id) DO NOTHING",
+      ),
+    );
   }
 
   if (hasLogistics) {

@@ -27,7 +27,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
   const copy = t.orders.detail;
   const [note, setNote] = React.useState("");
   const [payment, setPayment] = React.useState({ amount: String(Math.max(0, Math.round((order.total - order.amount_paid) * 1000) / 1000)), method: "cash", reference: "", proofUrl: "" });
-  const [refund, setRefund] = React.useState({ amount: "", reason: "" });
+  const [refund, setRefund] = React.useState({ amount: "", reason: "", toWallet: false });
   const [currentStatus, setCurrentStatus] = React.useState<OrderStatus>(order.status as OrderStatus);
   React.useEffect(() => {
     setCurrentStatus(order.status as OrderStatus);
@@ -119,6 +119,18 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           <div className="flex justify-between font-bold border-t border-outline-variant pt-1"><dt>{copy.total}</dt><dd>{money(order.total)}</dd></div>
           <div className="flex justify-between"><dt className="text-ink-muted">{copy.paid}</dt><dd data-testid="order-paid">{money(order.amount_paid)}</dd></div>
           {order.amount_refunded > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{copy.refunded}</dt><dd>{money(order.amount_refunded)}</dd></div>}
+          {(order.wallet_applied ?? 0) > 0 && (
+            <div className="flex justify-between text-accent"><dt>{t.orders.rewards.walletApplied}</dt><dd>- {money(order.wallet_applied ?? 0)}</dd></div>
+          )}
+          {(order.points_redeemed ?? 0) > 0 && (
+            <div className="flex justify-between text-amber-600"><dt>{t.orders.rewards.pointsRedeemed}</dt><dd>{order.points_redeemed} pts (-{money(order.points_discount_amount ?? 0)})</dd></div>
+          )}
+          {(order.points_earned ?? 0) > 0 && (
+            <div className="flex justify-between text-emerald-600"><dt>{t.orders.rewards.pointsEarned}</dt><dd>+{order.points_earned} pts</dd></div>
+          )}
+          {(order.raffle_tickets ?? 0) > 0 && (
+            <div className="flex justify-between text-accent"><dt>{t.orders.rewards.raffleTickets}</dt><dd>{order.raffle_tickets}</dd></div>
+          )}
         </dl>
       </Card>
 
@@ -164,8 +176,20 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
               <Field label={copy.amount}>{(id) => <Input id={id} name="refundAmount" type="number" min={0} step="any" value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.refundReason}>{(id) => <Input id={id} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} className="rounded-lg" />}</Field>
             </div>
+            {order.customer_id && (
+              <label className="flex items-center gap-2 text-xs text-ink cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={refund.toWallet}
+                  onChange={(e) => setRefund({ ...refund, toWallet: e.target.checked })}
+                  data-testid="order-refund-to-wallet"
+                  className="h-4 w-4 accent-accent"
+                />
+                <span>{t.orders.rewards.refundToWalletLabel}</span>
+              </label>
+            )}
             {paidOnline && <p className="text-xs text-ink-muted">{formatMessage(copy.refundOnline, { gateway: gatewayName(paidOnline.gateway) })}</p>}
-            <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !refund.amount} onClick={() => confirmAction({ title: copy.refund, description: formatMessage(copy.refundConfirm, { amount: money(Number(refund.amount)), number: order.number }), confirmMatchText: order.number, onConfirm: () => run(async () => { await recordOrderRefundAction(order.id, refund.amount, refund.reason); setRefund({ amount: "", reason: "" }); }) })} data-testid="order-refund">{copy.refund}</Button>
+            <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !refund.amount} onClick={() => confirmAction({ title: copy.refund, description: formatMessage(copy.refundConfirm, { amount: money(Number(refund.amount)), number: order.number }), confirmMatchText: order.number, onConfirm: () => run(async () => { await recordOrderRefundAction(order.id, refund.amount, refund.reason, ...(refund.toWallet ? [true] : [])); setRefund({ amount: "", reason: "", toWallet: false }); }) })} data-testid="order-refund">{copy.refund}</Button>
           </Card>
         )}
         {paymentLink && (

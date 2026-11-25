@@ -116,6 +116,7 @@ export const itActionMocks = {
   deleteItSocialLinkAction: vi.fn(async () => ({ ok: true })),
   publishItWebsiteSnapshotAction: vi.fn(async () => ({ ok: true, revision: 2 })),
   revalidatePublicSiteFromItAction: vi.fn(async () => ({ ok: true })),
+  syncStoreOperationsFromItAction: vi.fn(async () => ({ ok: true, revalidated: true, syncedRegions: 8 })),
   revalidateFrontendCacheAction: vi.fn(async () => ({
     results: [
       { target: "web", url: "http://127.0.0.1:3000/api/revalidate", ok: true, status: 200, durationMs: 18 },
@@ -229,6 +230,7 @@ vi.mock("../../app/(desk)/site/actions", () => ({
   deleteItSocialLinkAction: itActionMocks.deleteItSocialLinkAction,
   publishItWebsiteSnapshotAction: itActionMocks.publishItWebsiteSnapshotAction,
   revalidatePublicSiteFromItAction: itActionMocks.revalidatePublicSiteFromItAction,
+  syncStoreOperationsFromItAction: itActionMocks.syncStoreOperationsFromItAction,
 }));
 vi.mock("../../app/(desk)/staff-accounts/actions", () => ({
   copyStaffAccessAction: itActionMocks.copyStaffAccessAction,

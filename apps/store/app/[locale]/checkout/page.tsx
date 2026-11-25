@@ -17,8 +17,21 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
   return (
     <CheckoutView
       locale={locale}
-      settings={{ guestCheckout: settings.guest_checkout, delivery: settings.delivery_enabled && config.commerce.capabilities.delivery, pickup: settings.pickup_enabled && pickupAvailable(config.commerce), cod: settings.cod_enabled, online, bankTransfer: settings.bank_transfer_enabled, bankInstructions: locale === "ar" ? settings.bank_instructions_ar || settings.bank_instructions_en : settings.bank_instructions_en || settings.bank_instructions_ar }}
+      settings={{
+        guestCheckout: settings.guest_checkout,
+        delivery: settings.delivery_enabled && config.commerce.capabilities.delivery,
+        pickup: settings.pickup_enabled && pickupAvailable(config.commerce),
+        cod: settings.cod_enabled,
+        online,
+        bankTransfer: settings.bank_transfer_enabled,
+        bankInstructions: locale === "ar" ? settings.bank_instructions_ar || settings.bank_instructions_en : settings.bank_instructions_en || settings.bank_instructions_ar,
+        loyaltyEnabled: settings.loyalty_enabled,
+        walletEnabled: settings.wallet_enabled,
+        pointsRedemptionRate: settings.points_redemption_rate,
+        minRedeemPoints: settings.min_redeem_points,
+      }}
       customer={customer ? { name: customer.name, email: customer.email, phone: customer.phone } : null}
+      rewards={customer ? { loyaltyPoints: customer.loyalty_points ?? 0, walletBalance: customer.wallet_balance ?? 0, discountPercent: customer.discount_percent ?? 0 } : null}
       addresses={addresses}
       country={company.country ?? ""}
       branches={config.commerce.branches}

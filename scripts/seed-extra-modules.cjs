@@ -661,6 +661,21 @@ function buildExtraModuleSql({
       ctaLabelEn: `Explore ${company.shortEn}`,
       ctaLabelAr: `استكشف ${company.shortAr}`,
     },
+    banners: svcList.slice(0, 3).map((s, i) => ({
+      id: `hero-${i + 1}`,
+      title_en: `${company.shortEn}: ${s.en}`,
+      title_ar: `${company.shortAr}: ${s.ar}`,
+      subtitle_en: company.taglineEn,
+      subtitle_ar: company.taglineAr,
+      media_type: "image",
+      media_url: `/api/files/media/banners/banner-0${(i % 3) + 1}.png`,
+      poster_url: `/api/files/media/banners/banner-0${(i % 3) + 1}.png`,
+      display_order: i + 1,
+      is_active: true,
+      cta_label_en: i % 2 === 0 ? "Request Proposal" : "Explore Our Work",
+      cta_label_ar: i % 2 === 0 ? "اطلب عرض سعر" : "استعرض أعمالنا",
+      cta_link: i % 2 === 0 ? "/contact" : "/work",
+    })),
     featuredServices: svcList.slice(0, 4).map((s) => ({ code: s.code, en: s.en, ar: s.ar, rate: s.rate })),
   };
   lines.push(

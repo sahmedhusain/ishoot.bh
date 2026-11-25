@@ -8,11 +8,11 @@ Complete schema reference for PostgreSQL 17 (`platform_db`) generated directly f
 |---|---|---:|---:|---:|
 | [`audit`](#schema-audit) | `audit` | 1 | 10 | 0 |
 | [`cms`](#schema-cms) | `cms` | 17 | 175 | 0 |
-| [`commerce`](#schema-commerce) | `commerce` | 17 | 215 | 7 |
+| [`commerce`](#schema-commerce) | `commerce` | 22 | 296 | 13 |
 | [`delivery`](#schema-delivery) | `delivery` | 13 | 133 | 7 |
 | [`files`](#schema-files) | `files` | 2 | 27 | 2 |
 | [`finance`](#schema-finance) | `finance` | 32 | 438 | 30 |
-| [`hr`](#schema-hr) | `hr` | 25 | 311 | 24 |
+| [`hr`](#schema-hr) | `hr` | 25 | 321 | 24 |
 | [`identity`](#schema-identity) | `identity` | 26 | 199 | 24 |
 | [`inventory`](#schema-inventory) | `inventory` | 29 | 330 | 31 |
 | [`itsm`](#schema-itsm) | `itsm` | 16 | 158 | 8 |
@@ -21,7 +21,7 @@ Complete schema reference for PostgreSQL 17 (`platform_db`) generated directly f
 | [`sales`](#schema-sales) | `sales` | 14 | 238 | 9 |
 | [`system`](#schema-system) | `system` | 70 | 725 | 7 |
 | [`workflow`](#schema-workflow) | `workflow` | 14 | 196 | 8 |
-| **Total** | **15 stateful services** | **286** | **3244** | **159** |
+| **Total** | **15 stateful services** | **291** | **3335** | **165** |
 
 ## Cross-Service Relational Event Mesh
 
@@ -605,6 +605,12 @@ erDiagram
         text crm_contact_id
         text country_code
         text mobile_number
+        integer loyalty_points
+        numeric wallet_balance
+        numeric discount_percent
+        text tier
+        text preferred_currency
+        text cookie_consent_json
     }
     commerce__customer_address {
         text id PK
@@ -634,6 +640,17 @@ erDiagram
         timestamptz used_at
         timestamptz created_at
     }
+    commerce__customer_points_tx {
+        text id PK
+        text customer_id FK
+        text kind
+        integer points
+        integer balance_after
+        text reference
+        text note
+        text created_by
+        timestamptz created_at
+    }
     commerce__customer_segment {
         text id PK
         text name
@@ -646,10 +663,54 @@ erDiagram
         text user_agent
         timestamptz created_at
     }
+    commerce__customer_wallet_tx {
+        text id PK
+        text customer_id FK
+        text kind
+        numeric amount
+        numeric balance_after
+        text reference
+        text note
+        text created_by
+        timestamptz created_at
+    }
+    commerce__customer_wishlist {
+        text id PK
+        text customer_id FK
+        text product_id
+        timestamptz created_at
+    }
+    commerce__gift_card {
+        text id PK
+        text code
+        numeric initial_value
+        numeric remaining_value
+        text currency
+        text recipient_email
+        text note
+        boolean is_active
+        text redeemed_by FK
+        timestamptz redeemed_at
+        timestamptz expires_at
+        timestamptz created_at
+    }
     commerce__inbox {
         text consumer PK
         uuid event_id PK
         timestamptz handled_at
+    }
+    commerce__order_return_request {
+        text id PK
+        text order_id FK
+        text customer_id FK
+        text status
+        text refund_destination
+        numeric amount_requested
+        text reason
+        text resolution_note
+        text resolved_by
+        timestamptz resolved_at
+        timestamptz created_at
     }
     commerce__outbox {
         uuid id PK
@@ -748,6 +809,13 @@ erDiagram
         text tracking_token
         text country_code
         text mobile_number
+        numeric account_discount_amount
+        integer points_earned
+        integer points_redeemed
+        numeric points_discount_amount
+        numeric wallet_applied
+        integer raffle_tickets
+        text currency_display
     }
     commerce__sales_order_event {
         text id PK
@@ -785,6 +853,8 @@ erDiagram
         boolean is_enabled
         numeric price_multiplier
         jsonb settings
+        text currency_symbol
+        numeric free_shipping_threshold
     }
     commerce__store_settings {
         text id PK
@@ -805,6 +875,27 @@ erDiagram
         text order_notify_email
         text payment_gateway
         timestamptz updated_at
+        boolean loyalty_enabled
+        numeric points_per_unit
+        integer points_redemption_rate
+        integer min_redeem_points
+        boolean wallet_enabled
+        numeric min_partial_wallet
+        boolean raffle_enabled
+        numeric raffle_spend_unit
+        text raffle_prize_en
+        text raffle_prize_ar
+        boolean cookie_banner_enabled
+        boolean ssl_badge_enabled
+        text announcement_en
+        text announcement_ar
+        text cr_number
+        text vat_number
+        integer return_window_days
+        boolean show_category_bar
+        boolean show_deals_section
+        boolean show_gift_cards_section
+        text custom_categories_json
     }
     commerce__warehouse_ref {
         text warehouse_id PK
@@ -816,7 +907,13 @@ erDiagram
         timestamptz updated_at
     }
     commerce__customer ||--o{ commerce__customer_address : "customer_id"
+    commerce__customer ||--o{ commerce__customer_points_tx : "customer_id"
     commerce__customer ||--o{ commerce__customer_session : "customer_id"
+    commerce__customer ||--o{ commerce__customer_wallet_tx : "customer_id"
+    commerce__customer ||--o{ commerce__customer_wishlist : "customer_id"
+    commerce__customer ||--o{ commerce__gift_card : "redeemed_by"
+    commerce__customer ||--o{ commerce__order_return_request : "customer_id"
+    commerce__sales_order ||--o{ commerce__order_return_request : "order_id"
     commerce__retail_shift ||--o{ commerce__retail_closing : "shift_id"
     commerce__retail_register ||--o{ commerce__retail_shift : "register_id"
     commerce__customer ||--o{ commerce__sales_order : "customer_id"
@@ -871,6 +968,12 @@ erDiagram
 | `crm_contact_id` | `text` | YES |  |  |
 | `country_code` | `text` | YES |  |  |
 | `mobile_number` | `text` | YES |  |  |
+| `loyalty_points` | `integer` | NO |  |  |
+| `wallet_balance` | `numeric` | NO |  |  |
+| `discount_percent` | `numeric` | NO |  |  |
+| `tier` | `text` | NO |  |  |
+| `preferred_currency` | `text` | NO |  |  |
+| `cookie_consent_json` | `text` | YES |  |  |
 
 #### `commerce.customer_address`
 
@@ -906,6 +1009,20 @@ erDiagram
 | `used_at` | `timestamp with time zone` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 
+#### `commerce.customer_points_tx`
+
+| Column | Type | Nullable | Key | References |
+|---|---|---|---|---|
+| `id` | `text` | NO | PK |  |
+| `customer_id` | `text` | NO | FK | `commerce.customer.id` |
+| `kind` | `text` | NO |  |  |
+| `points` | `integer` | NO |  |  |
+| `balance_after` | `integer` | NO |  |  |
+| `reference` | `text` | YES |  |  |
+| `note` | `text` | YES |  |  |
+| `created_by` | `text` | YES |  |  |
+| `created_at` | `timestamp with time zone` | NO |  |  |
+
 #### `commerce.customer_segment`
 
 | Column | Type | Nullable | Key | References |
@@ -924,6 +1041,46 @@ erDiagram
 | `user_agent` | `text` | YES |  |  |
 | `created_at` | `timestamp with time zone` | NO |  |  |
 
+#### `commerce.customer_wallet_tx`
+
+| Column | Type | Nullable | Key | References |
+|---|---|---|---|---|
+| `id` | `text` | NO | PK |  |
+| `customer_id` | `text` | NO | FK | `commerce.customer.id` |
+| `kind` | `text` | NO |  |  |
+| `amount` | `numeric` | NO |  |  |
+| `balance_after` | `numeric` | NO |  |  |
+| `reference` | `text` | YES |  |  |
+| `note` | `text` | YES |  |  |
+| `created_by` | `text` | YES |  |  |
+| `created_at` | `timestamp with time zone` | NO |  |  |
+
+#### `commerce.customer_wishlist`
+
+| Column | Type | Nullable | Key | References |
+|---|---|---|---|---|
+| `id` | `text` | NO | PK |  |
+| `customer_id` | `text` | NO | FK | `commerce.customer.id` |
+| `product_id` | `text` | NO |  |  |
+| `created_at` | `timestamp with time zone` | NO |  |  |
+
+#### `commerce.gift_card`
+
+| Column | Type | Nullable | Key | References |
+|---|---|---|---|---|
+| `id` | `text` | NO | PK |  |
+| `code` | `text` | NO |  |  |
+| `initial_value` | `numeric` | NO |  |  |
+| `remaining_value` | `numeric` | NO |  |  |
+| `currency` | `text` | NO |  |  |
+| `recipient_email` | `text` | YES |  |  |
+| `note` | `text` | YES |  |  |
+| `is_active` | `boolean` | NO |  |  |
+| `redeemed_by` | `text` | YES | FK | `commerce.customer.id` |
+| `redeemed_at` | `timestamp with time zone` | YES |  |  |
+| `expires_at` | `timestamp with time zone` | YES |  |  |
+| `created_at` | `timestamp with time zone` | NO |  |  |
+
 #### `commerce.inbox`
 
 | Column | Type | Nullable | Key | References |
@@ -931,6 +1088,22 @@ erDiagram
 | `consumer` | `text` | NO | PK |  |
 | `event_id` | `uuid` | NO | PK |  |
 | `handled_at` | `timestamp with time zone` | NO |  |  |
+
+#### `commerce.order_return_request`
+
+| Column | Type | Nullable | Key | References |
+|---|---|---|---|---|
+| `id` | `text` | NO | PK |  |
+| `order_id` | `text` | NO | FK | `commerce.sales_order.id` |
+| `customer_id` | `text` | YES | FK | `commerce.customer.id` |
+| `status` | `text` | NO |  |  |
+| `refund_destination` | `text` | NO |  |  |
+| `amount_requested` | `numeric` | NO |  |  |
+| `reason` | `text` | NO |  |  |
+| `resolution_note` | `text` | YES |  |  |
+| `resolved_by` | `text` | YES |  |  |
+| `resolved_at` | `timestamp with time zone` | YES |  |  |
+| `created_at` | `timestamp with time zone` | NO |  |  |
 
 #### `commerce.outbox`
 
@@ -1044,6 +1217,13 @@ erDiagram
 | `tracking_token` | `text` | YES |  |  |
 | `country_code` | `text` | YES |  |  |
 | `mobile_number` | `text` | YES |  |  |
+| `account_discount_amount` | `numeric` | NO |  |  |
+| `points_earned` | `integer` | NO |  |  |
+| `points_redeemed` | `integer` | NO |  |  |
+| `points_discount_amount` | `numeric` | NO |  |  |
+| `wallet_applied` | `numeric` | NO |  |  |
+| `raffle_tickets` | `integer` | NO |  |  |
+| `currency_display` | `text` | YES |  |  |
 
 #### `commerce.sales_order_event`
 
@@ -1090,6 +1270,8 @@ erDiagram
 | `is_enabled` | `boolean` | YES |  |  |
 | `price_multiplier` | `numeric` | YES |  |  |
 | `settings` | `jsonb` | YES |  |  |
+| `currency_symbol` | `text` | YES |  |  |
+| `free_shipping_threshold` | `numeric` | YES |  |  |
 
 #### `commerce.store_settings`
 
@@ -1113,6 +1295,27 @@ erDiagram
 | `order_notify_email` | `text` | YES |  |  |
 | `payment_gateway` | `text` | YES |  |  |
 | `updated_at` | `timestamp with time zone` | YES |  |  |
+| `loyalty_enabled` | `boolean` | NO |  |  |
+| `points_per_unit` | `numeric` | NO |  |  |
+| `points_redemption_rate` | `integer` | NO |  |  |
+| `min_redeem_points` | `integer` | NO |  |  |
+| `wallet_enabled` | `boolean` | NO |  |  |
+| `min_partial_wallet` | `numeric` | NO |  |  |
+| `raffle_enabled` | `boolean` | NO |  |  |
+| `raffle_spend_unit` | `numeric` | NO |  |  |
+| `raffle_prize_en` | `text` | YES |  |  |
+| `raffle_prize_ar` | `text` | YES |  |  |
+| `cookie_banner_enabled` | `boolean` | NO |  |  |
+| `ssl_badge_enabled` | `boolean` | NO |  |  |
+| `announcement_en` | `text` | YES |  |  |
+| `announcement_ar` | `text` | YES |  |  |
+| `cr_number` | `text` | NO |  |  |
+| `vat_number` | `text` | YES |  |  |
+| `return_window_days` | `integer` | NO |  |  |
+| `show_category_bar` | `boolean` | NO |  |  |
+| `show_deals_section` | `boolean` | NO |  |  |
+| `show_gift_cards_section` | `boolean` | NO |  |  |
+| `custom_categories_json` | `text` | YES |  |  |
 
 #### `commerce.warehouse_ref`
 
@@ -2814,6 +3017,16 @@ erDiagram
         text manager_id FK
         text country_code
         text mobile_number
+        jsonb contacts
+        jsonb emails
+        jsonb emergency_contacts
+        jsonb health_record
+        text work_location
+        date probation_end_date
+        text marital_status
+        text bank_name
+        text iban
+        text hr_notes
     }
     hr__employee_credential {
         text id PK
@@ -3188,7 +3401,7 @@ erDiagram
 | `last_name_en` | `text` | NO |  |  |
 | `first_name_ar` | `text` | NO |  |  |
 | `last_name_ar` | `text` | NO |  |  |
-| `email` | `text` | NO |  |  |
+| `email` | `text` | YES |  |  |
 | `phone` | `text` | YES |  |  |
 | `job_title_en` | `text` | NO |  |  |
 | `job_title_ar` | `text` | NO |  |  |
@@ -3215,6 +3428,16 @@ erDiagram
 | `manager_id` | `text` | YES | FK | `hr.employee.id` |
 | `country_code` | `text` | YES |  |  |
 | `mobile_number` | `text` | YES |  |  |
+| `contacts` | `jsonb` | NO |  |  |
+| `emails` | `jsonb` | NO |  |  |
+| `emergency_contacts` | `jsonb` | NO |  |  |
+| `health_record` | `jsonb` | NO |  |  |
+| `work_location` | `text` | YES |  |  |
+| `probation_end_date` | `date` | YES |  |  |
+| `marital_status` | `text` | YES |  |  |
+| `bank_name` | `text` | YES |  |  |
+| `iban` | `text` | YES |  |  |
+| `hr_notes` | `text` | YES |  |  |
 
 #### `hr.employee_credential`
 
@@ -3823,17 +4046,17 @@ erDiagram
     identity__user ||--o{ identity__auth_challenge : "user_id"
     identity__branch ||--o{ identity__branch_grant : "branch_id"
     identity__user ||--o{ identity__branch_grant : "user_id"
-    identity__account ||--o{ identity__customer_provider : "subject_id"
     identity__account ||--o{ identity__customer_provider : "realm"
+    identity__account ||--o{ identity__customer_provider : "subject_id"
     identity__it_role ||--o{ identity__it_permission : "role_id"
     identity__it_role ||--o{ identity__it_role : "reporting_to_role"
-    identity__account ||--o{ identity__legacy_reset_challenge : "realm"
     identity__account ||--o{ identity__legacy_reset_challenge : "subject_id"
+    identity__account ||--o{ identity__legacy_reset_challenge : "realm"
     identity__user ||--o{ identity__mfa_recovery_code : "user_id"
-    identity__account ||--o{ identity__mfa_recovery_code : "subject_id"
     identity__account ||--o{ identity__mfa_recovery_code : "realm"
-    identity__account ||--o{ identity__password_reset : "realm"
+    identity__account ||--o{ identity__mfa_recovery_code : "subject_id"
     identity__account ||--o{ identity__password_reset : "subject_id"
+    identity__account ||--o{ identity__password_reset : "realm"
     identity__session_family ||--o{ identity__refresh_token : "family_id"
     identity__river_client ||--o{ identity__river_client_queue : "river_client_id"
     identity__user ||--o{ identity__session : "user_id"

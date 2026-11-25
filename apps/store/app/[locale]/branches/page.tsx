@@ -8,12 +8,34 @@ export default async function BranchesPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [{ config }, t] = await Promise.all([
+  const [{ company, config }, t] = await Promise.all([
     getSite(),
     siteTranslations(locale),
   ]);
 
-  const branches = config.commerce.branches.filter((branch) => branch.active);
+  const rawBranches = config.commerce.branches.filter((branch) => branch.active);
+  const branches =
+    rawBranches.length > 0
+      ? rawBranches
+      : [
+          {
+            id: "company-hq",
+            nameEn: company.company_name_en || "Main Store",
+            nameAr: company.company_name_ar || company.company_name_en || "المتجر الرئيسي",
+            addressEn: company.address_en || company.city || "",
+            addressAr: company.address_ar || company.address_en || company.city || "",
+            city: company.city || "",
+            country: company.country || "BH",
+            phone: company.phone || "",
+            hoursEn: "",
+            hoursAr: "",
+            directionsUrl: company.map_url || "",
+            latitude: null,
+            longitude: null,
+            active: true,
+            pickup: true,
+          },
+        ];
 
   return (
     <section className="shell page-heading space-y-10 pb-20">

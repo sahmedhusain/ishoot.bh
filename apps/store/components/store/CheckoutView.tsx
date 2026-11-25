@@ -6,7 +6,9 @@ import { getUiTranslations } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Award, Wallet } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useStorePreferences } from "../layout/StorePreferencesBar";
 import { field, label, primaryButton } from "../account/ui";
 import { useCart, writeCart } from "./cart";
 import { CartTotals } from "./CartTotals";
@@ -40,13 +42,18 @@ interface Address {
 
 interface CheckoutViewProps {
   locale: string;
-  settings: { guestCheckout: boolean; delivery: boolean; pickup: boolean; cod: boolean; online: boolean; bankTransfer: boolean; bankInstructions: string };
+  settings: { guestCheckout: boolean; delivery: boolean; pickup: boolean; cod: boolean; online: boolean; bankTransfer: boolean; bankInstructions: string; loyaltyEnabled?: boolean; walletEnabled?: boolean; pointsRedemptionRate?: number; minRedeemPoints?: number };
   customer: { name: string; email: string; phone: string } | null;
   addresses: Address[];
   country: string;
   branches: PublicBranch[];
   accountsEnabled: boolean;
   collectCoordinates: boolean;
+  rewards?: {
+    loyaltyPoints: number;
+    walletBalance: number;
+    discountPercent: number;
+  } | null;
 }
 
 const formatDay = (date: string, locale: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
@@ -79,18 +86,27 @@ const read = (key: string) => {
   }
 };
 
-export function CheckoutView({ locale, settings, customer, addresses, country, branches, accountsEnabled, collectCoordinates }: CheckoutViewProps) {
+export function CheckoutView({ locale, settings, customer, addresses, country, branches, accountsEnabled, collectCoordinates, rewards }: CheckoutViewProps) {
   const { t, site } = useTranslation();
   const router = useRouter();
+  const { regionCode } = useStorePreferences();
   const lines = useCart();
   const [coupon, setCoupon] = React.useState("");
   const [fulfilment, setFulfilment] = React.useState<"delivery" | "pickup">(settings.delivery ? "delivery" : "pickup");
+  const [pointsToRedeem, setPointsToRedeem] = React.useState(0);
+  const [useWallet, setUseWallet] = React.useState(false);
   React.useEffect(() => {
     setCoupon(read(COUPON_KEY));
     const saved = read(FULFILMENT_KEY);
     if ((saved === "delivery" && settings.delivery) || (saved === "pickup" && settings.pickup)) setFulfilment(saved);
   }, [settings.delivery, settings.pickup]);
-  const methods = [settings.online && "online", settings.cod && "cod", settings.bankTransfer && "bank_transfer"].filter(Boolean) as string[];
+  const walletEligible = Boolean(customer && settings.walletEnabled !== false && (rewards?.walletBalance ?? 0) > 0);
+  const methods = [
+    settings.online && "online",
+    settings.cod && "cod",
+    settings.bankTransfer && "bank_transfer",
+    walletEligible && "wallet",
+  ].filter(Boolean) as string[];
   const [contact, setContact] = React.useState({ name: customer?.name ?? "", email: customer?.email ?? "", phone: customer?.phone ?? "" });
   const defaultAddress = addresses.find((a) => a.is_default) ?? addresses[0];
   const [addressId, setAddressId] = React.useState(defaultAddress?.id ?? "");
@@ -105,7 +121,10 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
   const [paymentMethod, setPaymentMethod] = React.useState(methods[0] ?? "");
   const savedAddress = addresses.find((a) => a.id === addressId);
   const deliveryArea = fulfilment === "delivery" ? (savedAddress ? { area: savedAddress.area, city: savedAddress.city } : { area: address.area, city: address.city }) : undefined;
-  const { quote, loading, failed, retry } = useQuote(lines, coupon, fulfilment, deliveryArea);
+  const { quote, loading, failed, retry } = useQuote(lines, coupon, fulfilment, deliveryArea, {
+    pointsToRedeem,
+    useWallet: useWallet || paymentMethod === "wallet",
+  });
   const delivery = useDeliveryOptions(deliveryArea);
   const [slot, setSlot] = React.useState("");
   React.useEffect(() => {
@@ -118,9 +137,9 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
 
   if (!customer && !settings.guestCheckout)
     return (
-      <div className="relative min-h-screen bg-brand-base text-ink">
-        <div className="shell page-heading max-w-xl space-y-4">
-          <h1 className="text-3xl font-bold text-white font-display">{t("store.checkoutTitle")}</h1>
+      <div className="bg-m3-surface text-m3-on-surface pb-20">
+        <div className="shell page-heading space-y-4">
+          <h1 className="text-3xl font-bold text-m3-on-surface font-display">{t("store.checkoutTitle")}</h1>
           <Link href={`/${locale}/account?next=${encodeURIComponent(`/${locale}/checkout`)}`} className={primaryButton}>{t("account.signIn")}</Link>
         </div>
       </div>
@@ -147,7 +166,28 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
     setBusy(true);
     const shipping = destination && collectCoordinates ? { ...destination, latitude: pin.latitude === "" ? null : Number(pin.latitude), longitude: pin.longitude === "" ? null : Number(pin.longitude) } : destination;
     try {
-      const response = await fetch("/api/store/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lines, couponCode: coupon, fulfilment, pickupBranchId: fulfilment === "pickup" ? pickupBranchId : null, address: shipping, ...contact, paymentMethod, note, locale, slot: fulfilment === "delivery" && slot ? { date: slot.split("|")[0], slotId: slot.split("|")[1] } : null }) });
+      const response = await fetch("/api/store/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lines,
+          couponCode: coupon,
+          fulfilment,
+          pickupBranchId: fulfilment === "pickup" ? pickupBranchId : null,
+          regionCode: regionCode !== "BH" ? regionCode : undefined,
+          address: shipping,
+          ...contact,
+          paymentMethod,
+          pointsToRedeem,
+          useWallet: useWallet || paymentMethod === "wallet",
+          note,
+          locale,
+          slot:
+            fulfilment === "delivery" && slot
+              ? { date: slot.split("|")[0], slotId: slot.split("|")[1] }
+              : null,
+        }),
+      });
       const data = (await response.json().catch(() => ({ error: "generic" }))) as { number?: string; payToken?: string; error?: string };
       if (!response.ok || !data.number) throw new Error(data.error || "generic");
       writeCart([]);
@@ -163,14 +203,14 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
   };
 
   return (
-    <div className="relative min-h-screen bg-brand-base text-ink">
-      <form onSubmit={place} className={`shell page-heading max-w-5xl grid ${site?.commerce?.orderLayout === "stacked" ? "" : "lg:grid-cols-[1fr_340px]"} gap-8 items-start`} data-testid="checkout-form">
+    <div className="bg-m3-surface text-m3-on-surface pb-20">
+      <form onSubmit={place} className={`shell page-heading grid ${site?.commerce?.orderLayout === "stacked" ? "" : "lg:grid-cols-[1fr_340px]"} gap-8 items-start`} data-testid="checkout-form">
         <div className="space-y-8">
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">{t("store.checkoutTitle")}</h1>
-          {!customer && accountsEnabled && <p className="text-sm text-ink-muted"><Link href={`/${locale}/account?next=${encodeURIComponent(`/${locale}/checkout`)}`} className="font-semibold text-[var(--web-accent)] hover:underline">{t("store.signInHint")}</Link></p>}
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-m3-on-surface font-display">{t("store.checkoutTitle")}</h1>
+          {!customer && accountsEnabled && <p className="text-sm text-m3-on-surface-variant"><Link href={`/${locale}/account?next=${encodeURIComponent(`/${locale}/checkout`)}`} className="font-semibold text-m3-primary hover:underline">{t("store.signInHint")}</Link></p>}
 
           <fieldset className="space-y-4">
-            <legend className="text-lg font-bold text-white">{t("store.contact")}</legend>
+            <legend className="text-lg font-bold text-m3-on-surface">{t("store.contact")}</legend>
             <div className="grid sm:grid-cols-3 gap-4">
               <label className="block space-y-2"><span className={label}>{t("account.name")}</span><input name="name" required autoComplete="name" maxLength={120} readOnly={!!customer} value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} className={field} /></label>
               <label className="block space-y-2"><span className={label}>{t("account.email")}</span><input name="email" type="email" required autoComplete="email" dir="ltr" maxLength={254} readOnly={!!customer} value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} className={field} /></label>
@@ -189,10 +229,10 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
 
           {settings.delivery && settings.pickup && (
             <fieldset className="space-y-2">
-              <legend className="text-lg font-bold text-white">{t("store.fulfilment")}</legend>
+              <legend className="text-lg font-bold text-m3-on-surface">{t("store.fulfilment")}</legend>
               <div className="flex gap-2">
                 {(["delivery", "pickup"] as const).map((f) => (
-                  <label key={f} className={`rounded-xl border px-4 py-2 text-sm cursor-pointer ${fulfilment === f ? "border-m3-primary text-white" : "border-white/10 text-ink-muted"}`}>
+                  <label key={f} className={`inline-flex min-h-11 items-center rounded-xl border px-4 py-2 text-sm cursor-pointer transition-colors ${fulfilment === f ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold" : "border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface-variant"}`}>
                     <input type="radio" name="fulfilment" value={f} checked={fulfilment === f} onChange={() => setFulfilment(f)} className="sr-only" />
                     {t(`store.fulfilments.${f}`)}
                   </label>
@@ -217,7 +257,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
 
           {fulfilment === "delivery" && (
             <fieldset className="space-y-4">
-              <legend className="text-lg font-bold text-white">{t("store.deliveryAddress")}</legend>
+              <legend className="text-lg font-bold text-m3-on-surface">{t("store.deliveryAddress")}</legend>
               {addresses.length > 0 && (
                 <Select aria-label={t("store.savedAddress")} value={addressId} onChange={(e) => setAddressId(e.target.value)} className={field}>
                   {addresses.map((a) => <option key={a.id} value={a.id}>{[a.label || a.name, a.line1, a.city].filter(Boolean).join(" · ")}</option>)}
@@ -261,7 +301,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
 
           {fulfilment === "delivery" && delivery && delivery.covered && (delivery.slots.length > 0 || delivery.slaHours) && (
             <fieldset className="space-y-3" data-testid="checkout-slots">
-              <legend className="text-lg font-bold text-white">{t("store.deliveryTime")}</legend>
+              <legend className="text-lg font-bold text-m3-on-surface">{t("store.deliveryTime")}</legend>
               {delivery.slots.length > 0 ? (
                 <Select aria-label={t("store.deliveryTime")} name="slot" required={delivery.requireSlot} value={slot} onChange={(e) => setSlot(e.target.value)} className={field}>
                   {delivery.requireSlot ? <option value="" disabled>{t("store.deliveryTime")}</option> : <option value="">{t("store.anyTime")}</option>}
@@ -277,16 +317,67 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
             </fieldset>
           )}
 
+          {customer && ((settings.loyaltyEnabled !== false && (rewards?.loyaltyPoints ?? 0) >= (settings.minRedeemPoints ?? 1000)) || (settings.walletEnabled !== false && (rewards?.walletBalance ?? 0) > 0) || (rewards?.discountPercent ?? 0) > 0) && (
+            <fieldset className="space-y-3 rounded-2xl border border-m3-outline-variant bg-m3-surface-container-low p-4" data-testid="checkout-rewards">
+              <legend className="text-sm font-bold text-ink px-1">
+                {t("store.rewardsAndWallet", { defaultValue: "Loyalty Points & Store Wallet" })}
+              </legend>
+              {(rewards?.discountPercent ?? 0) > 0 && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                  {t("store.memberDiscountNotice", { percent: rewards?.discountPercent ?? 0, defaultValue: `Member Account Discount Applied: ${rewards?.discountPercent ?? 0}%` })}
+                </p>
+              )}
+              {settings.loyaltyEnabled !== false && (rewards?.loyaltyPoints ?? 0) >= (settings.minRedeemPoints ?? 1000) && (
+                <div className="space-y-1.5 text-sm">
+                  <label className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-ink">
+                      <Award className="w-4 h-4 text-amber-600" aria-hidden="true" />
+                      {t("store.redeemPointsLabel", { points: rewards?.loyaltyPoints ?? 0, defaultValue: `Redeem Points (Available: ${rewards?.loyaltyPoints ?? 0})` })}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={rewards?.loyaltyPoints ?? 0}
+                      step={settings.pointsRedemptionRate ?? 500}
+                      value={pointsToRedeem}
+                      onChange={(e) => setPointsToRedeem(Math.max(0, Math.min(rewards?.loyaltyPoints ?? 0, Math.floor(Number(e.target.value) || 0))))}
+                      className={`${field} w-28 py-1.5`}
+                      data-testid="checkout-points-input"
+                    />
+                  </label>
+                </div>
+              )}
+              {settings.walletEnabled !== false && (rewards?.walletBalance ?? 0) > 0 && (
+                <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+                  <input
+                    type="checkbox"
+                    data-testid="checkout-use-wallet"
+                    checked={useWallet || paymentMethod === "wallet"}
+                    onChange={(e) => setUseWallet(e.target.checked)}
+                    className="h-4 w-4 rounded accent-m3-primary"
+                  />
+                  <Wallet className="w-4 h-4 text-m3-primary" aria-hidden="true" />
+                  <span>
+                    {t("store.applyWalletCredit", {
+                      balance: (rewards?.walletBalance ?? 0).toFixed(3),
+                      defaultValue: `Apply Store Wallet Balance (${(rewards?.walletBalance ?? 0).toFixed(3)} BHD)`,
+                    })}
+                  </span>
+                </label>
+              )}
+            </fieldset>
+          )}
+
           <fieldset className="space-y-3">
-            <legend className="text-lg font-bold text-white">{t("store.payment")}</legend>
+            <legend className="text-lg font-bold text-m3-on-surface">{t("store.payment")}</legend>
             {methods.map((m) => (
-              <label key={m} className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm cursor-pointer ${paymentMethod === m ? "border-m3-primary text-white" : "border-white/10 text-ink-muted"}`}>
+              <label key={m} className={`flex min-h-11 items-center gap-3 rounded-xl border px-4 py-3 text-sm cursor-pointer transition-colors ${paymentMethod === m ? "border-m3-primary bg-m3-secondary-container text-m3-on-secondary-container font-semibold" : "border-m3-outline-variant bg-m3-surface-container-low text-m3-on-surface-variant"}`}>
                 <input type="radio" name="paymentMethod" value={m} checked={paymentMethod === m} onChange={() => setPaymentMethod(m)} className="h-4 w-4 accent-[var(--web-accent)]" />
-                {t(`store.paymentMethods.${m}`)}
+                {t(`store.paymentMethods.${m}`, { defaultValue: m === "wallet" ? "Store Wallet" : m })}
               </label>
             ))}
             {paymentMethod === "bank_transfer" && settings.bankInstructions && (
-              <div className="rounded-xl bg-white/5 p-4 text-sm"><p className="font-semibold text-white mb-1">{t("store.bankInstructions")}</p><p className="whitespace-pre-line text-ink-muted">{settings.bankInstructions}</p></div>
+              <div className="rounded-xl border border-m3-outline-variant bg-m3-surface-container p-4 text-sm"><p className="font-semibold text-m3-on-surface mb-1">{t("store.bankInstructions")}</p><p className="whitespace-pre-line text-m3-on-surface-variant">{settings.bankInstructions}</p></div>
             )}
           </fieldset>
 

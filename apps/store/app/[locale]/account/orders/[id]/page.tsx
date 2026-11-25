@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { listEntityAttachments } from "@platform/api-client";
-import { customerOrder, formatDocumentPhone, paymentLinkToken } from "@platform/database";
+import { customerOrder, formatDocumentPhone, getOrder, paymentLinkToken } from "@platform/database";
 import type { OrderAddress } from "@platform/database/queries/store";
 import { accountsEnabled, currentCustomer } from "../../../../../lib/customer";
 import {
@@ -14,7 +14,7 @@ import {
   OrderAttachments,
   PrintOrder,
 } from "../../../../../components/account/OrderAttachments";
-import { OrderHelp } from "../../../../../components/account/AccountDashboard";
+import { OrderHelp, OrderReturnForm } from "../../../../../components/account/AccountDashboard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
@@ -33,12 +33,13 @@ export default async function CustomerOrderPage({
     );
   const order = await customerOrder(customer.id, id);
   if (!order) notFound();
-  const [site, t, files] = await Promise.all([
+  const [site, t, files, extendedOrder] = await Promise.all([
     getSite(),
     siteTranslations(locale),
     listEntityAttachments({ entityType: "order", entityId: id })
       .then((rows) => rows.map((r) => ({ id: r.id, fileName: r.fileName || "attachment" })))
       .catch(() => [] as { id: string; fileName: string }[]),
+    getOrder(id).catch(() => null),
   ]);
   const ar = locale === "ar";
   const money = (value: { toString(): string }) =>
@@ -46,7 +47,7 @@ export default async function CustomerOrderPage({
   const address = order.shippingAddress as unknown as OrderAddress | null;
   return (
     <article
-      className="shell page-heading space-y-8 max-w-5xl order-receipt"
+      className="shell page-heading space-y-8 order-receipt"
       data-testid="customer-order-detail"
     >
       <div className="flex flex-wrap justify-between gap-4 print:hidden">
@@ -154,6 +155,24 @@ export default async function CustomerOrderPage({
             </dd>
           </div>
         ))}
+        {(extendedOrder?.wallet_applied ?? 0) > 0 && (
+          <div className="flex justify-between gap-4 text-m3-primary">
+            <dt>{t.store.walletCreditApplied ?? "Wallet Credit Applied"}</dt>
+            <dd className="font-semibold">- {money(extendedOrder!.wallet_applied)}</dd>
+          </div>
+        )}
+        {(extendedOrder?.points_earned ?? 0) > 0 && (
+          <div className="flex justify-between gap-4 text-amber-600 dark:text-amber-400">
+            <dt>{t.account?.loyaltyPoints ?? "Loyalty Points Earned"}</dt>
+            <dd className="font-semibold">+{extendedOrder!.points_earned} pts</dd>
+          </div>
+        )}
+        {(extendedOrder?.raffle_tickets ?? 0) > 0 && (
+          <div className="flex justify-between gap-4 text-m3-primary">
+            <dt>{t.store.raffleTicketsLabel ?? "Raffle Entries"}</dt>
+            <dd className="font-semibold">{extendedOrder!.raffle_tickets}</dd>
+          </div>
+        )}
       </dl>
       <p className="text-sm text-ink-muted">
         {t.store.amountPaid}: {money(order.amountPaid)}
@@ -176,6 +195,7 @@ export default async function CustomerOrderPage({
           locale={locale}
         />
         <OrderHelp orderId={id} locale={locale} />
+        <OrderReturnForm orderId={id} maxAmount={Number(order.total)} />
       </div>
     </article>
   );

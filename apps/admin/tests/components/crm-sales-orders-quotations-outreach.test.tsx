@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { CRMContact, CRMDeal, DealPipelineStage, Quotation, ServiceItem } from "@platform/database";
 import { ClientAutocomplete } from "../../components/crm/ClientAutocomplete";
 import { ClientProfileForm } from "../../components/crm/ClientProfileForm";
@@ -238,7 +238,7 @@ describe("Admin Batch 3: CRM, Quotations, Sales, Orders, Outreach, Services, Sup
     expect(adminActionMocks.deleteEmployeeSupportAction).toBeDefined();
   });
 
-  it("renders Orders, Outreach (Audience/Campaigns/Legal/Press) & IT Support components cleanly", () => {
+  it("renders Orders, Outreach (Audience/Campaigns/Legal/Press) & IT Support components cleanly", async () => {
     const orderRecord = {
       id: "ord-1",
       number: "ORD-100",
@@ -288,12 +288,16 @@ describe("Admin Batch 3: CRM, Quotations, Sales, Orders, Outreach, Services, Sup
         <OrderView order={orderRecord} attempts={[]} requests={[]} paymentLink="https://store.example.test/pay/ord-1" rights={{ edit: true, refund: true, invoice: true }} />
         <StoreSettingsView
           settings={{ guest_checkout: true, delivery_enabled: true, delivery_fee: 2, free_delivery_over: 50, bank_transfer_instructions_en: "", bank_transfer_instructions_ar: "" } as unknown as Parameters<typeof StoreSettingsView>[0]["settings"]}
-          coupons={[]}
+          coupons={[{ id: "cp-1", code: "CAZA10", kind: "percent", value: 10, min_order: null, starts_at: null, ends_at: null, max_uses: null, used_count: 0, is_active: true }]}
           gateways={[]}
           currency="BHD"
           languages={["en", "ar"]}
           canEdit
           canCoupons
+          giftCards={[{ id: "gc-1", code: "GIFT-2026", initial_value: 20, remaining_value: 20, currency: "BHD", recipient_email: "vip@example.test", note: "", is_active: true, redeemed_by: null, redeemed_at: null, expires_at: null }]}
+          storeCustomers={[{ id: "cust-1", email: "vip@example.test", name: "Noor", phone: "+97339000001", loyalty_points: 1200, wallet_balance: 15, discount_percent: 5, tier: "gold" }]}
+          returnRequests={[{ id: "ret-1", order_id: "ord-1", order_number: "ORD-100", customer_id: "cust-1", customer_name: "Noor", status: "pending", refund_destination: "wallet", amount_requested: 10, currency: "BHD", reason: "Damaged box", resolution_note: null, created_at: "2026-05-01T00:00:00Z" }]}
+          customCategories={[{ id: "cat-custom-1", slug: "computer-parts", name_en: "PC Components", name_ar: "قطع الكمبيوتر", display_order: 1, featured: true, is_active: true }]}
         />
         <AudienceView segments={[]} broadcasts={[]} campaigns={[]} currency="BHD" languages={["en", "ar"]} canEdit />
         <CampaignsView campaigns={[]} currency="BHD" canEdit websiteUrl="https://example.test" />
@@ -331,6 +335,44 @@ describe("Admin Batch 3: CRM, Quotations, Sales, Orders, Outreach, Services, Sup
     expect(adminActionMocks.addOrderNoteAction).toBeDefined();
     expect(adminActionMocks.saveStoreSettingsAction).toBeDefined();
     expect(adminActionMocks.saveCouponAction).toBeDefined();
+    expect(adminActionMocks.deleteCouponAction).toBeDefined();
+    expect(adminActionMocks.saveGiftCardAction).toBeDefined();
+    expect(adminActionMocks.deleteGiftCardAction).toBeDefined();
+    expect(adminActionMocks.adjustCustomerWalletAction).toBeDefined();
+    expect(adminActionMocks.adjustCustomerPointsAction).toBeDefined();
+    expect(adminActionMocks.saveCustomerAccountDiscountAction).toBeDefined();
+    expect(adminActionMocks.resolveOrderReturnRequestAction).toBeDefined();
+    expect(adminActionMocks.saveStoreCustomCategoryAction).toBeDefined();
+    expect(adminActionMocks.deleteStoreCustomCategoryAction).toBeDefined();
+    fireEvent.click(screen.getByTestId("coupon-delete-cp-1"));
+    await waitFor(() => expect(adminActionMocks.deleteCouponAction).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId("custom-category-delete-cat-custom-1"));
+    await waitFor(() => expect(adminActionMocks.deleteStoreCustomCategoryAction).toHaveBeenCalledWith("cat-custom-1"));
+    expect(screen.getByTestId("storefront-pages-directory")).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText("Featured Collection"), { target: { value: "Seasonal Essentials" } });
+    fireEvent.click(screen.getByTestId("custom-category-save"));
+    await waitFor(() => expect(adminActionMocks.saveStoreCustomCategoryAction).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId("gift-card-new"));
+    await waitFor(() => expect(screen.getByTestId("gift-card-save")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("gift-card-save"));
+    await waitFor(() => expect(adminActionMocks.saveGiftCardAction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("gift-card-delete-gc-1")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("gift-card-delete-gc-1"));
+    await waitFor(() => expect(adminActionMocks.deleteGiftCardAction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("admin-wallet-submit")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("admin-wallet-submit"));
+    await waitFor(() => expect(adminActionMocks.adjustCustomerWalletAction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("admin-points-submit")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("admin-points-submit"));
+    await waitFor(() => expect(adminActionMocks.adjustCustomerPointsAction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("admin-tier-submit")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("admin-tier-submit"));
+    await waitFor(() => expect(adminActionMocks.saveCustomerAccountDiscountAction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("return-approve-wallet-ret-1")).toBeEnabled());
+    fireEvent.click(screen.getByTestId("return-approve-wallet-ret-1"));
+    await waitFor(() => {
+      expect(adminActionMocks.resolveOrderReturnRequestAction).toHaveBeenCalled();
+    });
     expect(adminActionMocks.saveSegmentAction).toBeDefined();
     expect(adminActionMocks.saveBroadcastAction).toBeDefined();
     expect(adminActionMocks.sendBroadcastAction).toBeDefined();

@@ -210,6 +210,11 @@ export function makeCustomerProfile(
     apple: false,
     marketing_opt_in: true,
     email_verified: true,
+    loyalty_points: 1500,
+    wallet_balance: 25,
+    discount_percent: 5,
+    tier: "gold",
+    preferred_currency: "BHD",
     ...overrides,
   };
 }

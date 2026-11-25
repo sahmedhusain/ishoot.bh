@@ -13,9 +13,9 @@ import {
   ChevronUp,
   Copy,
   Check,
-  Film,
+  Briefcase,
   Sparkles,
-  ShoppingBag,
+  Newspaper,
   Mail,
   Info,
 } from "lucide-react";
@@ -40,8 +40,10 @@ export function WebUnifiedErrorPage({
   reset,
   showQuickLinks,
 }: WebUnifiedErrorPageProps) {
-  const { t, locale, isRTL, translations } = useTranslation();
+  const { locale, isRTL, translations, site } = useTranslation();
   const copy = translations.errorPages;
+  const collectionSlug = site?.collection?.slug || "work";
+  const articlesSlug = site?.articles?.slug || "news";
 
   const [copied, setCopied] = useState(false);
   const [showStack, setShowStack] = useState(false);
@@ -87,9 +89,9 @@ export function WebUnifiedErrorPage({
 
   const quickLinks = [
     { href: `/${locale}`, label: copy.homeLink, icon: Home },
-    { href: `/${locale}/portfolio`, label: copy.portfolioLink, icon: Film },
-    { href: `/${locale}/services`, label: copy.servicesLink, icon: Sparkles },
-    { href: `/${locale}/store`, label: copy.storeLink, icon: ShoppingBag },
+    { href: `/${locale}/${collectionSlug}`, label: copy.portfolioLink, icon: Briefcase },
+    { href: `/${locale}/#services`, label: copy.servicesLink, icon: Sparkles },
+    { href: `/${locale}/${articlesSlug}`, label: copy.storeLink, icon: Newspaper },
     { href: `/${locale}/about`, label: copy.aboutLink, icon: Info },
     { href: `/${locale}/contact`, label: copy.contactLink, icon: Mail },
   ];
@@ -154,20 +156,22 @@ export function WebUnifiedErrorPage({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/60 p-4 text-left font-mono text-xs text-rose-300 break-words space-y-1.5 shadow-inner relative z-10">
-          <div className="flex items-center gap-2 text-white/50 text-[11px] uppercase tracking-wider font-sans font-semibold">
-            <Terminal className="w-3.5 h-3.5 text-rose-400" />
-            <span>{copy.technicalMessageLabel}</span>
-          </div>
-          <div className="text-rose-400 font-semibold pl-1">
-            {resolvedMessage}
-          </div>
-          {error?.digest && (
-            <div className="text-[11px] text-white/40 pt-1 border-t border-white/5 pl-1">
-              {copy.refPrefix} {error.digest}
+        {Boolean(error || customMessage) && (
+          <div className="rounded-2xl border border-white/10 bg-black/60 p-4 text-left font-mono text-xs text-rose-300 break-words space-y-1.5 shadow-inner relative z-10">
+            <div className="flex items-center gap-2 text-white/50 text-[11px] uppercase tracking-wider font-sans font-semibold">
+              <Terminal className="w-3.5 h-3.5 text-rose-400" />
+              <span>{copy.technicalMessageLabel}</span>
             </div>
-          )}
-        </div>
+            <div className="text-rose-400 font-semibold pl-1">
+              {resolvedMessage}
+            </div>
+            {error?.digest && (
+              <div className="text-[11px] text-white/40 pt-1 border-t border-white/5 pl-1">
+                {copy.refPrefix} {error.digest}
+              </div>
+            )}
+          </div>
+        )}
 
         {is404 && (
           <div className="pt-1 text-left relative z-10">

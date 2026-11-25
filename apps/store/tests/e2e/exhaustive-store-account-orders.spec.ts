@@ -238,8 +238,12 @@ test.describe("Store App — Exhaustive Customer Account, Wishlist, OTP, Checkou
     await gotoStrict(page, `/en/track/${trackingToken}`, observer);
     await expect(page.getByTestId("track-state")).toBeVisible();
 
-    // 7. Delete test customer account & verify signed out
+    // 7. Verify Loyalty Points & Store Wallet Account Dashboard + Delete test customer account
     await gotoStrict(page, "/en/account", observer);
+    await expect(page.getByTestId("account-wallet-balance")).toBeVisible();
+    await expect(page.getByTestId("account-loyalty-points")).toBeVisible();
+    await expect(page.getByTestId("redeem-gift-card-form")).toBeVisible();
+    await expect(page.getByTestId("convert-points-form")).toBeVisible();
     await page.locator('input[name="confirmEmail"]').fill(email);
     const [delRes] = await Promise.all([
       page.waitForResponse((r) => r.url().includes("/api/account/delete") && r.request().method() === "POST"),

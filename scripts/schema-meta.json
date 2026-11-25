@@ -1287,6 +1287,42 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "loyalty_points": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "wallet_balance": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "discount_percent": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "tier": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "preferred_currency": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "cookie_consent_json": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "commerce.customer_address": {
@@ -1437,6 +1473,62 @@
       "fk": null
     }
   },
+  "commerce.customer_points_tx": {
+    "id": {
+      "udt": "text",
+      "req": true,
+      "pk": true,
+      "fk": null
+    },
+    "customer_id": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": "commerce.customer.id"
+    },
+    "kind": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "points": {
+      "udt": "int4",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "balance_after": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "reference": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "note": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_by": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    }
+  },
   "commerce.customer_segment": {
     "id": {
       "udt": "text",
@@ -1478,6 +1570,230 @@
     },
     "user_agent": {
       "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    }
+  },
+  "commerce.customer_wallet_tx": {
+    "id": {
+      "udt": "text",
+      "req": true,
+      "pk": true,
+      "fk": null
+    },
+    "customer_id": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": "commerce.customer.id"
+    },
+    "kind": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "amount": {
+      "udt": "numeric",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "balance_after": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "reference": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "note": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_by": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    }
+  },
+  "commerce.customer_wishlist": {
+    "id": {
+      "udt": "text",
+      "req": true,
+      "pk": true,
+      "fk": null
+    },
+    "customer_id": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": "commerce.customer.id"
+    },
+    "product_id": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "created_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    }
+  },
+  "commerce.gift_card": {
+    "id": {
+      "udt": "text",
+      "req": true,
+      "pk": true,
+      "fk": null
+    },
+    "code": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "initial_value": {
+      "udt": "numeric",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "remaining_value": {
+      "udt": "numeric",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "currency": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "recipient_email": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "note": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "is_active": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "redeemed_by": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": "commerce.customer.id"
+    },
+    "redeemed_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "expires_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "created_at": {
+      "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    }
+  },
+  "commerce.order_return_request": {
+    "id": {
+      "udt": "text",
+      "req": true,
+      "pk": true,
+      "fk": null
+    },
+    "order_id": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": "commerce.sales_order.id"
+    },
+    "customer_id": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": "commerce.customer.id"
+    },
+    "status": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "refund_destination": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "amount_requested": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "reason": {
+      "udt": "text",
+      "req": true,
+      "pk": false,
+      "fk": null
+    },
+    "resolution_note": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "resolved_by": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "resolved_at": {
+      "udt": "timestamptz",
       "req": false,
       "pk": false,
       "fk": null
@@ -1969,6 +2285,48 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "account_discount_amount": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "points_earned": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "points_redeemed": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "points_discount_amount": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "wallet_applied": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "raffle_tickets": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "currency_display": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "commerce.sales_order_event": {
@@ -2161,6 +2519,18 @@
       "req": false,
       "pk": false,
       "fk": null
+    },
+    "currency_symbol": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "free_shipping_threshold": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
     }
   },
   "commerce.store_settings": {
@@ -2268,6 +2638,132 @@
     },
     "updated_at": {
       "udt": "timestamptz",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "loyalty_enabled": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "points_per_unit": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "points_redemption_rate": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "min_redeem_points": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "wallet_enabled": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "min_partial_wallet": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "raffle_enabled": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "raffle_spend_unit": {
+      "udt": "numeric",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "raffle_prize_en": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "raffle_prize_ar": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "cookie_banner_enabled": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "ssl_badge_enabled": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "announcement_en": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "announcement_ar": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "cr_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "vat_number": {
+      "udt": "text",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "return_window_days": {
+      "udt": "int4",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "show_category_bar": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "show_deals_section": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "show_gift_cards_section": {
+      "udt": "bool",
+      "req": false,
+      "pk": false,
+      "fk": null
+    },
+    "custom_categories_json": {
+      "udt": "text",
       "req": false,
       "pk": false,
       "fk": null

@@ -1,179 +1,207 @@
 "use client";
-import { useSiteReducedMotion, useSiteMotionTransition, useSiteTheme } from "../site/SiteTheme";
-import { useHeroContent } from "./HeroActions";
-import { ContentImage } from "../shared/ContentImage";
-import * as React from "react";
-import Link from "next/link";
-import type { HeroBanner } from "@platform/database/types";
-import { safeWebsiteUrl } from "@platform/database/website-config";
-import { useTranslation } from "../../hooks/useTranslation";
-import { collectionHref } from "../../lib/site-copy";
-import { ArrowUpRight, Pause, Play } from "lucide-react";
-import { motion } from "framer-motion";
 
-export function ShowcaseHero({ banners, companyName }: { banners: HeroBanner[]; companyName: { en: string; ar: string } }) {
-  const { t, locale, site } = useTranslation();
-  const catalogue = site ? collectionHref(site, locale) : `/${locale}/works`;
+import * as React from "react";
+import { Pause, Play, ChevronLeft, ChevronRight, ShieldCheck, Globe2, Award } from "lucide-react";
+import type { HeroBanner } from "@platform/database/types";
+import { useTranslation } from "../../hooks/useTranslation";
+import { useSiteReducedMotion, useSiteTheme } from "../site/SiteTheme";
+import { cleanSentenceEnd, fallbackBannerMediaUrl } from "../../lib/format-site";
+import { HeroActions, useHeroContent } from "./HeroActions";
+
+function HeroMedia({ banner, slideIndex }: { banner?: HeroBanner; slideIndex: number }) {
+  const { isArabic: ar } = useTranslation();
+  const title = banner ? (ar ? banner.title_ar : banner.title_en) || banner.title_en || banner.title_ar : "";
+  const mediaSrc = banner?.media_url || fallbackBannerMediaUrl(slideIndex);
+
+  if (banner?.media_type === "video" && banner.media_url) {
+    return (
+      <video
+        src={banner.media_url}
+        poster={banner.poster_url ?? fallbackBannerMediaUrl(slideIndex)}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+    );
+  }
+  return (
+    <img
+      src={mediaSrc}
+      alt={title}
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 scale-[1.01]"
+    />
+  );
+}
+
+export function ShowcaseHero({
+  banners,
+  companyName,
+}: {
+  banners: HeroBanner[];
+  companyName: { en: string; ar: string };
+}) {
+  const { t, locale } = useTranslation();
+  const theme = useSiteTheme();
+  const siteReduced = useSiteReducedMotion();
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
-  const [visible, setVisible] = React.useState(true);
-  const reduced = useSiteReducedMotion();
-  const theme = useSiteTheme();
-  const transition = useSiteMotionTransition();
-  const section = React.useRef<HTMLElement>(null);
-  const video = React.useRef<HTMLVideoElement>(null);
-  const banner = banners[index % Math.max(1, banners.length)];
-  const moving = !paused && reduced === false && visible;
+
+  const safeBanners = banners.length > 0 ? banners : [];
+  const activeIdx = safeBanners.length > 0 ? index % safeBanners.length : 0;
+  const banner = safeBanners[activeIdx];
+
+  const brand = locale === "ar" ? companyName.ar || companyName.en : companyName.en || companyName.ar;
+  const { heading, subtitle } = useHeroContent(banner, brand, t("hero.fallbackSubtitle"));
+
+  const moving = !paused && !siteReduced;
+  const seconds = Math.max(4, Math.min(20, theme?.design.bannerIntervalSeconds ?? 7));
+
   React.useEffect(() => {
-    const observer = new IntersectionObserver((entries) =>
-      setVisible(entries[0].isIntersecting && !document.hidden),
+    if (!moving || safeBanners.length < 2) return;
+    const id = window.setInterval(
+      () => setIndex((i) => (i + 1) % safeBanners.length),
+      seconds * 1000,
     );
-    if (section.current) observer.observe(section.current);
-    const update = () =>
-      setVisible(
-        !document.hidden &&
-        !!section.current &&
-        section.current.getBoundingClientRect().bottom > 0,
-      );
-    document.addEventListener("visibilitychange", update);
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", update);
-    };
-  }, []);
+    return () => window.clearInterval(id);
+  }, [moving, safeBanners.length, seconds]);
+
   React.useEffect(() => {
-    if (!moving || banners.length < 2) return;
-    const timer = setInterval(
-      () => setIndex((i) => (i + 1) % banners.length),
-      (theme?.design.bannerIntervalSeconds ?? 8) * 1000,
-    );
-    return () => clearInterval(timer);
-  }, [moving, banners.length, theme?.design.bannerIntervalSeconds]);
-  React.useEffect(() => {
-    if (moving) video.current?.play().catch(() => { });
-    else video.current?.pause();
-  }, [moving, banner?.id]);
-  const { heading: title, subtitle, primaryLabel, exploreLabel } = useHeroContent(banner, companyName[locale === "ar" ? "ar" : "en"], t("hero.fallbackSubtitle"));
-  let href = safeWebsiteUrl(
-    banner?.cta_link || "",
-    `/${locale}/contact?intent=quote_request`,
-  );
-  if (/^\/works([/?#]|$)/.test(href)) href = href.replace(/^\/works/, catalogue);
-  else if (/^\/(contact|about|services)([/?#]|$)/.test(href))
-    href = `/${locale}${href}`;
-  if (!banner) return null;
+    if (!banner || banner.media_type !== "video") return;
+    document.querySelectorAll<HTMLVideoElement>("#home video").forEach((video) => {
+      if (paused) video.pause();
+      else void video.play().catch(() => {});
+    });
+  }, [paused, banner]);
+
+  const prevSlide = () => {
+    if (safeBanners.length < 2) return;
+    setIndex((i) => (i - 1 + safeBanners.length) % safeBanners.length);
+  };
+  const nextSlide = () => {
+    if (safeBanners.length < 2) return;
+    setIndex((i) => (i + 1) % safeBanners.length);
+  };
+
   return (
     <section
-      ref={section}
       id="home"
-      data-hero="true"
-      data-hero-height={theme?.design.heroHeight ?? "comfortable"}
-      className="on-media relative flex items-end bg-tone-10 overflow-hidden"
+      className="on-media relative min-h-[min(92vh,760px)] pt-24 pb-14 lg:pt-28 lg:pb-16 flex flex-col justify-end overflow-hidden bg-brand-base"
     >
-      <div className="absolute inset-0" aria-hidden="true">
-        {banner?.media_type === "video" ? (
-          <video
-            ref={video}
-            key={banner.id}
-            src={safeWebsiteUrl(banner.media_url)}
-            poster={safeWebsiteUrl(
-              banner.poster_url || "",
-              "",
-            )}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <ContentImage
-            src={safeWebsiteUrl(
-              banner?.media_url || "",
-              "",
-            )}
-            alt=""
-            fetchPriority="high"
-            className="w-full h-full object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-m3-scrim" style={{ opacity: (theme?.design.heroOverlayOpacity ?? 45) / 100 }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-m3-scrim/50 via-m3-scrim/10 to-transparent pointer-events-none" />
-      </div>
+      <div className="shell relative z-10 flex-1 flex flex-col justify-end">
+        <div className="relative rounded-[2rem] overflow-hidden border border-white/15 bg-surface-900 shadow-2xl min-h-[min(78vh,640px)] flex flex-col justify-between">
+          <HeroMedia banner={banner} slideIndex={activeIdx} />
 
-      <div className="site-hero-content shell relative pt-40 pb-16 md:pb-24">
-        <motion.div
-          key={banner?.id || "fallback"}
-          initial={reduced ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={transition}
-          className="max-w-5xl"
-        >
-          <p className="web-eyebrow text-mint mb-6">{t("hero.eyebrow", { companyName: companyName[locale === "ar" ? "ar" : "en"] })}</p>
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
-              {subtitle}
-            </p>
-          )}
-          <div className="mt-9 flex flex-wrap items-center gap-5">
-            <div>
-              <Link href={href} className="web-button">
-                {primaryLabel}
-                <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
-              </Link>
-            </div>
-            {href.replace(/[?#].*$/, "") !== catalogue && (
-              <div>
-                <Link href={catalogue} className="web-hero-secondary">
-                  <span>{exploreLabel}</span>
-                  <ArrowUpRight
-                    aria-hidden="true"
-                    className="w-4 h-4 rtl:-scale-x-100"
-                  />
-                </Link>
+          {/* Multi-stop M3 contrast scrim so text is legible across any image */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30 pointer-events-none"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent pointer-events-none rtl:bg-gradient-to-l"
+          />
+
+          {/* Top bar strip inside banner frame */}
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 px-6 pt-6 sm:px-10 sm:pt-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 backdrop-blur-md border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-mint" />
+              <span>{cleanSentenceEnd(brand)}</span>
+            </span>
+
+            {safeBanners.length > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={prevSlide}
+                  aria-label={t("hero.prevSlide")}
+                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextSlide}
+                  aria-label={t("hero.nextSlide")}
+                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaused((p) => !p)}
+                  aria-label={paused ? t("hero.resume") : t("hero.pause")}
+                  aria-pressed={paused}
+                  className="w-11 h-11 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                </button>
               </div>
             )}
           </div>
-        </motion.div>
-        <div className="mt-12 flex items-center justify-between gap-4 border-t border-white/20 pt-5">
-          <span className="text-xs text-ink-muted">{t("hero.caption")}</span>
-          <div className="flex items-center gap-3">
-            {banners.length > 1 &&
-              banners.map((item, i) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setIndex(i);
-                    setPaused(true);
-                  }}
-                  aria-label={`${t("hero.slideLabel")} ${i + 1}`}
-                  aria-pressed={i === index % banners.length}
-                  className={`w-11 h-11 rounded-full border text-xs transition-colors duration-150 ${i === index % banners.length ? "bg-white text-tone-15 border-white" : "border-white/30 text-white"}`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            {(banners.length > 1 || banner?.media_type === "video") && (
-              <button
-                onClick={() => setPaused((p) => !p)}
-                aria-label={paused ? t("hero.resume") : t("hero.pause")}
-                aria-pressed={paused}
-                className="w-11 h-11 rounded-full border border-white/30 hover:bg-white/10 transition-colors duration-150 flex items-center justify-center"
-              >
-                {paused ? (
-                  <Play className="w-4 h-4" />
-                ) : (
-                  <Pause className="w-4 h-4" />
+
+          {/* Bottom foreground editorial content & desktop quick card */}
+          <div className="relative z-10 px-6 pb-8 pt-10 sm:px-10 sm:pb-10 grid lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.85fr)] gap-8 items-end">
+            <div className="space-y-5 max-w-3xl">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-mint">
+                <Award className="w-3.5 h-3.5 shrink-0" />
+                <span>{t("hero.featuredLabel")}</span>
+              </p>
+
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-bold leading-[1.08] tracking-tight text-white whitespace-pre-line">
+                {cleanSentenceEnd(heading)}
+              </h1>
+
+              {subtitle && (
+                <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-white/85">
+                  {subtitle}
+                </p>
+              )}
+
+              <div className="pt-2">
+                <HeroActions banner={banner} />
+              </div>
+            </div>
+
+            {/* Right desktop corporate card & slide selector */}
+            <div className="flex flex-col gap-4 lg:items-end justify-end">
+              <div className="w-full max-w-sm rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 p-5 space-y-3 text-white">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-mint">
+                  <Globe2 className="w-4 h-4" />
+                  <span>{t("hero.trustedPartners")}</span>
+                </div>
+                <p className="text-sm text-white/90 leading-relaxed">
+                  {t("hero.caption")}
+                </p>
+                {safeBanners.length > 1 && (
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/15">
+                    {safeBanners.map((item, i) => {
+                      const active = i === activeIdx;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setIndex(i)}
+                          aria-label={`${t("hero.slideLabel")} ${i + 1}`}
+                          aria-pressed={active}
+                          className={`min-h-11 min-w-11 px-3 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                            active
+                              ? "bg-white text-tone-15 border-white shadow-sm"
+                              : "bg-white/5 border-white/25 text-white hover:bg-white/15"
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-              </button>
-            )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 }
-

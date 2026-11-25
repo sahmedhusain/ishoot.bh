@@ -38,6 +38,10 @@ export function writeCart(lines: CartLine[]) {
   window.dispatchEvent(new Event(EVENT));
 }
 
+export function clearCart() {
+  writeCart([]);
+}
+
 export function addToCart(line: CartLine) {
   const lines = readCart();
   const same = lines.find(

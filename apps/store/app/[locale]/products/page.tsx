@@ -43,10 +43,12 @@ export default async function ProductsPage({
           {t.store.allProducts}
         </h1>
       </header>
-      <ProductGrid
-        items={catalogueItems}
-        categories={categories}
-      />
+      <div className="shell">
+        <ProductGrid
+          items={catalogueItems}
+          categories={categories}
+        />
+      </div>
     </div>
   );
 }

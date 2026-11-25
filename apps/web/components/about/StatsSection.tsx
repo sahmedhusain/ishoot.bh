@@ -27,7 +27,13 @@ export function StatsSection({ stats }: { stats: WebsiteSnapshot["stats"] }) {
             </div>
           </div>
 
-          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+          <div
+            className={`relative z-10 grid gap-4 sm:gap-8 ${
+              stats.length === 3 || stats.length === 6 || stats.length === 5
+                ? "grid-cols-2 lg:grid-cols-3"
+                : "grid-cols-2 md:grid-cols-4"
+            }`}
+          >
             {stats.map((stat) => (
               <Reveal
                 key={stat.id}

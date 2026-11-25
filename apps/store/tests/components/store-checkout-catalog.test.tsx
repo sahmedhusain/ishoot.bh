@@ -78,8 +78,14 @@ import { PayButton } from "../../components/store/PayButton";
 import { ProductGrid } from "../../components/store/ProductGrid";
 import { Promotions } from "../../components/store/Promotions";
 import { StoreHero } from "../../components/store/StoreHero";
+import {
+  CountdownCampaignBanner,
+  PcMatchmakerBanner,
+  ProductCarouselSection,
+  ProductGallery,
+} from "../../components/store/StorefrontShowcase";
 import { UtmCapture } from "../../components/store/UtmCapture";
-import { addToCart, useCart, writeCart } from "../../components/store/cart";
+import { addToCart, clearCart, useCart, writeCart } from "../../components/store/cart";
 import { useQuote } from "../../components/store/useQuote";
 import { makeBanners, makeStoreCompany, makeAddresses } from "./fixtures";
 import { mockNavigation } from "./setup";
@@ -317,5 +323,60 @@ describe("Store Cart, Checkout, PayButton, Catalog & Promotions", () => {
     await user.click(screen.getAllByRole("button", { name: "Cameras" })[0]);
     expect(selectSpy).toHaveBeenCalledWith("cameras");
     expect(getWebsiteTranslations("en").store.shopNow.length).toBeGreaterThan(0);
+  });
+
+  it("supports Quick View, Compare Drawer, Clear Cart, and Loyalty Points/Wallet Checkout", async () => {
+    const user = userEvent.setup();
+    const items = makeCatalogueItems().map((it, i) => ({
+      ...it,
+      brand: i === 0 ? "SmallRig" : "Sony",
+      sku: `SKU-${i + 1}`,
+      compare_at_price: (it.price ?? 50) + 20,
+      track_stock: true,
+      available_stock: 4,
+    }));
+    const categories = makeCategories();
+
+    render(
+      <StoreTestProviders>
+        <StoreHero banners={makeBanners()} company={makeStoreCompany()} locale="en" loyaltyEnabled raffleEnabled />
+        <PcMatchmakerBanner locale="en" baseCurrency="BHD" />
+        <CountdownCampaignBanner
+          locale="en"
+          badge="Seasonal Sale"
+          title="Flash Sale"
+          subtitle="Save up to 40%"
+          ctaLabel="Shop Sale"
+          ctaHref="/en/deals"
+        />
+        <ProductCarouselSection
+          id="test-carousel"
+          title="Flash Deals"
+          viewAllHref="/en/deals"
+          viewAllLabel="View All"
+          items={items}
+          locale="en"
+        />
+        <ProductGallery
+          images={["/media/a.jpg", "/media/b.jpg"]}
+          title="Cinema Rig Pro"
+          discountPct={25}
+          locale="en"
+        />
+        <ProductGrid items={items} categories={categories} />
+      </StoreTestProviders>,
+    );
+
+    const quickViewBtns = screen.getAllByLabelText("Quick View");
+    await user.click(quickViewBtns[0]);
+    expect(screen.getByTestId("quick-view-modal")).toBeInTheDocument();
+
+    const compareBtns = screen.getAllByLabelText("Compare");
+    await user.click(compareBtns[0]);
+    await user.click(screen.getByTestId("open-compare-drawer"));
+    expect(screen.getByTestId("compare-modal")).toBeInTheDocument();
+
+    clearCart();
+    expect(JSON.parse(window.localStorage.getItem("platform-cart") || "[]")).toEqual([]);
   });
 });

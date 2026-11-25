@@ -241,6 +241,13 @@ export interface PortfolioItem {
   is_featured: boolean;
   display_order: number;
   created_at: string;
+  brand?: string | null;
+  sku?: string | null;
+  barcode?: string | null;
+  compare_at_price?: number | null;
+  available_stock?: number | null;
+  track_stock?: boolean;
+  weight_kg?: number | null;
 }
 
 export interface ClientLogo {

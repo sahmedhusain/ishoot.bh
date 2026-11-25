@@ -5829,13 +5829,34 @@
       "data": {
         "kind": "object",
         "fields": {
-          "description_en": { "kind": "string", "optional": true },
-          "description_ar": { "kind": "string", "optional": true },
-          "vendor_name": { "kind": "string", "optional": true },
-          "amount": { "kind": "number", "optional": true },
-          "category_id": { "kind": "string", "optional": true },
-          "expense_date": { "kind": "string", "optional": true },
-          "notes": { "kind": "string", "optional": true }
+          "description_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "vendor_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "category_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "expense_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
         },
         "optional": false
       }
@@ -6622,49 +6643,83 @@
           "userAccountMode": {
             "kind": "union",
             "variants": [
-              { "kind": "literal", "value": "none" },
-              { "kind": "literal", "value": "existing" },
-              { "kind": "literal", "value": "request_it" }
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "existing"
+              },
+              {
+                "kind": "literal",
+                "value": "request_it"
+              }
             ],
             "optional": true
           },
           "requestedUsername": {
             "kind": "union",
             "variants": [
-              { "kind": "string" },
-              { "kind": "literal", "value": null }
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
             ],
             "optional": true
           },
           "referenceUserId": {
             "kind": "union",
             "variants": [
-              { "kind": "string" },
-              { "kind": "literal", "value": null }
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
             ],
             "optional": true
           },
           "referenceUserName": {
             "kind": "union",
             "variants": [
-              { "kind": "string" },
-              { "kind": "literal", "value": null }
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
             ],
             "optional": true
           },
           "referenceUserRole": {
             "kind": "union",
             "variants": [
-              { "kind": "string" },
-              { "kind": "literal", "value": null }
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
             ],
             "optional": true
           },
           "itRequestNotes": {
             "kind": "union",
             "variants": [
-              { "kind": "string" },
-              { "kind": "literal", "value": null }
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
             ],
             "optional": true
           },
@@ -8355,6 +8410,10 @@
       "reason": {
         "kind": "string",
         "optional": false
+      },
+      "toWallet": {
+        "kind": "boolean",
+        "optional": true
       }
     }
   },
@@ -8570,8 +8629,144 @@
           "paymentGateway": {
             "kind": "string",
             "optional": true
+          },
+          "loyaltyEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "pointsPerUnit": {
+            "kind": "string",
+            "optional": true
+          },
+          "pointsRedemptionRate": {
+            "kind": "string",
+            "optional": true
+          },
+          "minRedeemPoints": {
+            "kind": "string",
+            "optional": true
+          },
+          "walletEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "minPartialWallet": {
+            "kind": "string",
+            "optional": true
+          },
+          "raffleEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "raffleSpendUnit": {
+            "kind": "string",
+            "optional": true
+          },
+          "rafflePrizeEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "rafflePrizeAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "cookieBannerEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "sslBadgeEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "announcementEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "announcementAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "crNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "returnWindowDays": {
+            "kind": "string",
+            "optional": true
+          },
+          "showCategoryBar": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "showDealsSection": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "showGiftCardsSection": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "customCategoriesJson": {
+            "kind": "string",
+            "optional": true
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "saveStoreCustomCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon": {
+            "kind": "string",
+            "optional": true
+          },
+          "displayOrder": {
+            "kind": "number",
+            "optional": true
+          },
+          "featured": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteStoreCustomCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
         "optional": false
       }
     }
@@ -15559,6 +15754,135 @@
             "optional": false
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "deleteCouponAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveGiftCardAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "optional": false,
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "initialValue": {
+            "kind": "string",
+            "optional": false
+          },
+          "currency": {
+            "kind": "string",
+            "optional": true
+          },
+          "recipientEmail": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          },
+          "expiresAt": {
+            "kind": "string",
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        }
+      }
+    }
+  },
+  "deleteGiftCardAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "adjustCustomerWalletAction": {
+    "kind": "object",
+    "fields": {
+      "customerId": {
+        "kind": "string",
+        "optional": false
+      },
+      "delta": {
+        "kind": "number",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "adjustCustomerPointsAction": {
+    "kind": "object",
+    "fields": {
+      "customerId": {
+        "kind": "string",
+        "optional": false
+      },
+      "delta": {
+        "kind": "number",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveCustomerAccountDiscountAction": {
+    "kind": "object",
+    "fields": {
+      "customerId": {
+        "kind": "string",
+        "optional": false
+      },
+      "discountPercent": {
+        "kind": "number",
+        "optional": false
+      },
+      "tier": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "resolveOrderReturnRequestAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
+        "kind": "string",
+        "optional": false
+      },
+      "decision": {
+        "kind": "string",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
         "optional": false
       }
     }

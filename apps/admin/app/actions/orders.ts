@@ -3,9 +3,14 @@ import { revalidatePath } from "next/cache";
 import { serverMessages } from "@platform/locales";
 import {
   addOrderNote,
+  adjustCustomerPoints,
+  adjustCustomerWallet,
   claimUpload,
   confirmReturn,
   createActivityLog,
+  deleteCoupon,
+  deleteGiftCard,
+  deleteStoreCustomCategory,
   issueOrderInvoice,
   measureOperation,
   moveOrder,
@@ -13,10 +18,16 @@ import {
   recordOrderPayment,
   refundOrder,
   requireFeatureEnabled,
+  resolveOrderReturnRequest,
   saveCoupon,
+  saveCustomerAccountDiscount,
+  saveGiftCard,
+  saveStoreCustomCategory,
   saveStoreSettings,
   type CouponInput,
+  type GiftCardInput,
   type OrderAddress,
+  type StoreCustomCategoryInput,
   type StoreSettingsInput,
 } from "@platform/database";
 import {
@@ -104,18 +115,19 @@ export async function recordOrderRefundAction(
   id: string,
   amount: string,
   reason: string,
+  toWallet?: boolean,
 ) {
   return measureOperation("action:recordOrderRefundAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "approve");
-    validateActionArguments("recordOrderRefundAction", { id, amount, reason });
-    await refundOrder(id, Number(amount), reason, user.id);
+    validateActionArguments("recordOrderRefundAction", { id, amount, reason, toWallet });
+    await refundOrder(id, Number(amount), reason, user.id, Boolean(toWallet));
     await createActivityLog({
       user_id: user.id,
       action: "refund",
       entity_type: "sales_order",
       entity_id: id,
-      details: { amount },
+      details: { amount, toWallet: Boolean(toWallet) },
     });
     refresh(id);
     return { success: true };
@@ -241,7 +253,48 @@ export async function saveStoreSettingsAction(input: StoreSettingsInput) {
       details: {},
     });
     revalidatePath(ROUTES.orders.settings);
+    void revalidatePublicStore(["store", "products", "website", "company"]);
     return { success: true };
+  });
+}
+
+export async function saveStoreCustomCategoryAction(
+  input: StoreCustomCategoryInput,
+) {
+  return measureOperation("action:saveStoreCustomCategoryAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("settings", "edit");
+    validateActionArguments("saveStoreCustomCategoryAction", { input });
+    const categories = await saveStoreCustomCategory(input);
+    await createActivityLog({
+      user_id: user.id,
+      action: input.id ? "update" : "create",
+      entity_type: "store_category",
+      entity_id: input.slug,
+      details: { count: categories.length },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    void revalidatePublicStore(["store", "products", "website", "company"]);
+    return { success: true, categories };
+  });
+}
+
+export async function deleteStoreCustomCategoryAction(id: string) {
+  return measureOperation("action:deleteStoreCustomCategoryAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("settings", "edit");
+    validateActionArguments("deleteStoreCustomCategoryAction", { id });
+    const categories = await deleteStoreCustomCategory(id);
+    await createActivityLog({
+      user_id: user.id,
+      action: "delete",
+      entity_type: "store_category",
+      entity_id: id,
+      details: { count: categories.length },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    void revalidatePublicStore(["store", "products", "website", "company"]);
+    return { success: true, categories };
   });
 }
 
@@ -287,5 +340,173 @@ export async function recheckOrderPaymentAction(
     });
     refresh(orderId);
     return { success: true, state: result.state };
+  });
+}
+
+export async function deleteCouponAction(id: string) {
+  return measureOperation("action:deleteCouponAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("deleteCouponAction", { id });
+    await deleteCoupon(id);
+    await createActivityLog({
+      user_id: user.id,
+      action: "delete",
+      entity_type: "coupon",
+      entity_id: id,
+      details: {},
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true };
+  });
+}
+
+export async function saveGiftCardAction(input: GiftCardInput) {
+  return measureOperation("action:saveGiftCardAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("saveGiftCardAction", { input });
+    const card = await saveGiftCard(input);
+    await createActivityLog({
+      user_id: user.id,
+      action: input.id ? "update" : "create",
+      entity_type: "gift_card",
+      entity_id: String((card as Record<string, unknown>).id ?? input.code),
+      details: { code: input.code },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true };
+  });
+}
+
+export async function deleteGiftCardAction(id: string) {
+  return measureOperation("action:deleteGiftCardAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("deleteGiftCardAction", { id });
+    await deleteGiftCard(id);
+    await createActivityLog({
+      user_id: user.id,
+      action: "delete",
+      entity_type: "gift_card",
+      entity_id: id,
+      details: {},
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true };
+  });
+}
+
+export async function adjustCustomerWalletAction(
+  customerId: string,
+  delta: number,
+  note: string,
+) {
+  return measureOperation("action:adjustCustomerWalletAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("adjustCustomerWalletAction", {
+      customerId,
+      delta,
+      note,
+    });
+    const out = await adjustCustomerWallet(customerId, delta, note, user.id);
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "customer",
+      entity_id: customerId,
+      details: { walletDelta: delta, walletBalance: out.wallet_balance },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true, walletBalance: out.wallet_balance };
+  });
+}
+
+export async function adjustCustomerPointsAction(
+  customerId: string,
+  delta: number,
+  note: string,
+) {
+  return measureOperation("action:adjustCustomerPointsAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("adjustCustomerPointsAction", {
+      customerId,
+      delta,
+      note,
+    });
+    const out = await adjustCustomerPoints(customerId, delta, note, user.id);
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "customer",
+      entity_id: customerId,
+      details: { pointsDelta: delta, loyaltyPoints: out.loyalty_points },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true, loyaltyPoints: out.loyalty_points };
+  });
+}
+
+export async function saveCustomerAccountDiscountAction(
+  customerId: string,
+  discountPercent: number,
+  tier: string,
+) {
+  return measureOperation("action:saveCustomerAccountDiscountAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("saveCustomerAccountDiscountAction", {
+      customerId,
+      discountPercent,
+      tier,
+    });
+    const out = await saveCustomerAccountDiscount(
+      customerId,
+      discountPercent,
+      tier,
+    );
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "customer",
+      entity_id: customerId,
+      details: { discountPercent: out.discount_percent, tier: out.tier },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    return { success: true };
+  });
+}
+
+export async function resolveOrderReturnRequestAction(
+  requestId: string,
+  decision: "approve_wallet" | "approve_original" | "reject",
+  note: string,
+) {
+  return measureOperation("action:resolveOrderReturnRequestAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "approve");
+    validateActionArguments("resolveOrderReturnRequestAction", {
+      requestId,
+      decision,
+      note,
+    });
+    const out = await resolveOrderReturnRequest(
+      requestId,
+      decision,
+      note,
+      user.id,
+    );
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "order_return_request",
+      entity_id: requestId,
+      details: { decision, status: out.status },
+    });
+    revalidatePath(ROUTES.orders.settings);
+    revalidatePath(ROUTES.orders.list);
+    return { success: true, status: out.status };
   });
 }

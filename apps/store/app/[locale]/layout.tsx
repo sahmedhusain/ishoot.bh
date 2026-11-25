@@ -3,6 +3,7 @@ import Script from "next/script";
 import { StorePreviewBridge } from "../../components/site/StorePreviewBridge";
 import { TelemetryMonitor } from "../../components/TelemetryMonitor";
 import { storeEnabled, orderingEnabled } from "../../lib/customer";
+import { getEffectiveStoreCategories, getStoreSettings } from "@platform/database";
 import * as React from "react";
 import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
 import { isRtlLocale } from "@platform/locales/registry";
@@ -70,7 +71,13 @@ export default async function LocaleLayout({
     }),
   ]);
   const isRTL = isRtlLocale(locale);
-  const [store, ordering] = await Promise.all([storeEnabled().catch(() => false), orderingEnabled().catch(() => false)]);
+  const [store, ordering, storeSettings, effectiveCategories] = await Promise.all([
+    storeEnabled().catch(() => false),
+    orderingEnabled().catch(() => false),
+    getStoreSettings().catch(() => null),
+    getEffectiveStoreCategories(website?.categories ?? []).catch(() => website?.categories ?? []),
+  ]);
+  const announcementText = pickText(storeSettings?.announcement_en, storeSettings?.announcement_ar, locale) || undefined;
   const adminOrigin = originOf(process.env.ADMIN_URL);
   const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
@@ -133,12 +140,28 @@ export default async function LocaleLayout({
           <BackToTop />
           <UtmCapture />
           <SmoothScroll>
-            <StoreNavbar cartEnabled={ordering} company={company} pages={config.pages} links={menus?.header} accountHref={store && config.commerce.capabilities.accounts ? `/${locale}/account` : undefined} />
+            <StoreNavbar
+              cartEnabled={ordering}
+              company={company}
+              pages={config.pages}
+              links={menus?.header}
+              accountHref={store && config.commerce.capabilities.accounts ? `/${locale}/account` : undefined}
+              cookieBannerEnabled={storeSettings?.cookie_banner_enabled ?? true}
+              sslBadgeEnabled={storeSettings?.ssl_badge_enabled ?? true}
+              categories={effectiveCategories}
+              showCategoryBar={storeSettings?.show_category_bar ?? true}
+              announcement={announcementText}
+            />
             <StoreRegion as="main" region="page" id="main-content" className="w-full">
               <TelemetryMonitor />
               {children}
             </StoreRegion>
-            <StoreFooter company={company} socialLinks={socialLinks} />
+            <StoreFooter
+              company={company}
+              socialLinks={socialLinks}
+              sslBadgeEnabled={storeSettings?.ssl_badge_enabled ?? true}
+              crNumber={storeSettings?.cr_number || undefined}
+            />
             {!preview && code ? <SiteCustomCode code={code} nonce={nonce} /> : null}
           </SmoothScroll>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>

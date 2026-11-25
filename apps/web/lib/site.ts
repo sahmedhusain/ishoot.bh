@@ -11,6 +11,7 @@ import {
   resolveWebsiteConfig,
 } from "@platform/database/website-config";
 import { getPublicCompanySettings } from "./company";
+import { resolveTranslationsTree } from "./format-site";
 import { getWebsite } from "./website";
 import { siteCopyOverrides, type SiteInfo } from "./site-copy";
 
@@ -52,12 +53,20 @@ export const getSite = cache(async () => {
 });
 
 export const siteTranslations = cache(async (locale: string) => {
-  const { info } = await getSite();
-  return getWebsiteTranslations(
+  const { info, company } = await getSite();
+  const raw = getWebsiteTranslations(
     locale as Locale,
     info.activity,
     deepMerge(siteCopyOverrides(info, locale), info.interfaceCopy?.[locale] as never),
   );
+  const companyName = locale === "ar"
+    ? (company.company_name_ar || company.company_name_en)
+    : (company.company_name_en || company.company_name_ar);
+  return resolveTranslationsTree(raw, {
+    companyName,
+    year: new Date().getFullYear(),
+    currency: company.default_currency || info.currency,
+  });
 });
 
 export async function requireSiteLanguage(locale: string) {

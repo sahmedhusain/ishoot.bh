@@ -37,17 +37,21 @@ import type { PortfolioCategory, PortfolioItem } from "../types";
 import { listShipments as listApiShipments } from "../api/delivery";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { getStoreRegion } from "./regional-store";
+import { listTable, upsertTable } from "../api/tables";
+import { applyOrderRewardsLedger, getCustomerProfile } from "./customers";
 
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 import { roundQuantity } from "../constants/inventory";
 import {
+  DEFAULT_STORE_CATEGORIES,
   MAX_CART_LINES,
   MAX_LINE_QUANTITY,
   ORDER_PAYMENT_METHODS,
   RESERVED_STATUSES,
   canMoveOrder,
   couponProblem,
-  priceOrder,
+  parseCustomCategories,
+  priceOrderDetailed,
   type CartLine,
   type OrderChannel,
   type OrderStatus,
@@ -90,36 +94,84 @@ const numOrNull = (value: { toString(): string } | null | undefined) =>
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 export async function getStoreSettings() {
-  try {
-    const apiSettings = await getStoreApiSettings();
-    if (apiSettings) {
-      return {
-        guest_checkout: true,
-        delivery_enabled: true,
-        delivery_fee: 5,
-        free_delivery_over: numOrNull(apiSettings.freeShippingThreshold),
-        pickup_enabled: true,
-        cod_enabled: true,
-        bank_transfer_enabled: true,
-        bank_instructions_en: "",
-        bank_instructions_ar: "",
-        order_notify_email: "",
-        payment_gateway: "",
-      };
-    }
-  } catch {}
+  const [apiSettings, tableRows] = await Promise.all([
+    getStoreApiSettings().catch(() => null),
+    listTable<Record<string, unknown>>("commerce", "store_settings").catch(() => []),
+  ]);
+  const raw =
+    tableRows.find((r) => String(r.id ?? "") === "default") ??
+    tableRows[0] ??
+    null;
+
   return {
-    guest_checkout: true,
-    delivery_enabled: true,
-    delivery_fee: 0,
-    free_delivery_over: null,
-    pickup_enabled: true,
-    cod_enabled: true,
-    bank_transfer_enabled: true,
-    bank_instructions_en: "",
-    bank_instructions_ar: "",
-    order_notify_email: "",
-    payment_gateway: "",
+    guest_checkout:
+      raw?.guest_checkout !== undefined ? Boolean(raw.guest_checkout) : true,
+    delivery_enabled:
+      raw?.delivery_enabled !== undefined ? Boolean(raw.delivery_enabled) : true,
+    delivery_fee:
+      raw?.delivery_fee !== undefined
+        ? Number(raw.delivery_fee)
+        : apiSettings
+          ? 5
+          : 0,
+    free_delivery_over:
+      raw?.free_delivery_over !== undefined
+        ? numOrNull(raw.free_delivery_over)
+        : apiSettings
+          ? numOrNull(apiSettings.freeShippingThreshold)
+          : null,
+    pickup_enabled:
+      raw?.pickup_enabled !== undefined ? Boolean(raw.pickup_enabled) : true,
+    cod_enabled:
+      raw?.cod_enabled !== undefined ? Boolean(raw.cod_enabled) : true,
+    bank_transfer_enabled:
+      raw?.bank_transfer_enabled !== undefined
+        ? Boolean(raw.bank_transfer_enabled)
+        : true,
+    bank_instructions_en: String(raw?.bank_instructions_en ?? ""),
+    bank_instructions_ar: String(raw?.bank_instructions_ar ?? ""),
+    order_notify_email: String(raw?.order_notify_email ?? ""),
+    payment_gateway: String(raw?.payment_gateway ?? ""),
+    loyalty_enabled:
+      raw?.loyalty_enabled !== undefined ? Boolean(raw.loyalty_enabled) : true,
+    points_per_unit: Number(raw?.points_per_unit ?? 10),
+    points_redemption_rate: Number(raw?.points_redemption_rate ?? 500),
+    min_redeem_points: Number(raw?.min_redeem_points ?? 1000),
+    wallet_enabled:
+      raw?.wallet_enabled !== undefined ? Boolean(raw.wallet_enabled) : true,
+    min_partial_wallet: Number(raw?.min_partial_wallet ?? 1),
+    raffle_enabled:
+      raw?.raffle_enabled !== undefined ? Boolean(raw.raffle_enabled) : true,
+    raffle_spend_unit: Number(raw?.raffle_spend_unit ?? 10),
+    raffle_prize_en: String(raw?.raffle_prize_en ?? raw?.rafflePrizeEn ?? ""),
+    raffle_prize_ar: String(raw?.raffle_prize_ar ?? raw?.rafflePrizeAr ?? ""),
+    cookie_banner_enabled:
+      raw?.cookie_banner_enabled !== undefined
+        ? Boolean(raw.cookie_banner_enabled)
+        : true,
+    ssl_badge_enabled:
+      raw?.ssl_badge_enabled !== undefined
+        ? Boolean(raw.ssl_badge_enabled)
+        : true,
+    announcement_en: String(raw?.announcement_en ?? raw?.announcementEn ?? ""),
+    announcement_ar: String(raw?.announcement_ar ?? raw?.announcementAr ?? ""),
+    cr_number: String(raw?.cr_number ?? raw?.crNumber ?? ""),
+    vat_number: String(raw?.vat_number ?? raw?.vatNumber ?? ""),
+    return_window_days: Math.max(1, Number(raw?.return_window_days ?? 14)),
+    show_category_bar:
+      raw?.show_category_bar !== undefined
+        ? Boolean(raw.show_category_bar)
+        : true,
+    show_deals_section:
+      raw?.show_deals_section !== undefined
+        ? Boolean(raw.show_deals_section)
+        : true,
+    show_gift_cards_section:
+      raw?.show_gift_cards_section !== undefined
+        ? Boolean(raw.show_gift_cards_section)
+        : true,
+    custom_categories_json: String(raw?.custom_categories_json ?? ""),
+    custom_categories: parseCustomCategories(raw?.custom_categories_json ?? ""),
   };
 }
 
@@ -137,6 +189,27 @@ export interface StoreSettingsInput {
   bankInstructionsAr: string;
   orderNotifyEmail: string;
   paymentGateway?: string;
+  loyaltyEnabled?: boolean;
+  pointsPerUnit?: string;
+  pointsRedemptionRate?: string;
+  minRedeemPoints?: string;
+  walletEnabled?: boolean;
+  minPartialWallet?: string;
+  raffleEnabled?: boolean;
+  raffleSpendUnit?: string;
+  rafflePrizeEn?: string;
+  rafflePrizeAr?: string;
+  cookieBannerEnabled?: boolean;
+  sslBadgeEnabled?: boolean;
+  announcementEn?: string;
+  announcementAr?: string;
+  crNumber?: string;
+  vatNumber?: string;
+  returnWindowDays?: string;
+  showCategoryBar?: boolean;
+  showDealsSection?: boolean;
+  showGiftCardsSection?: boolean;
+  customCategoriesJson?: string;
 }
 
 export async function saveStoreSettings(input: StoreSettingsInput) {
@@ -155,21 +228,8 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
   const gateway = (input.paymentGateway ?? "").trim();
   if (gateway && !isPaymentGateway(gateway))
     throw new Error(serverMessages.storePaymentMethodInvalid);
-  const data = {
-    guestCheckout: input.guestCheckout,
-    deliveryEnabled: input.deliveryEnabled,
-    deliveryFee: money(input.deliveryFee, false)!,
-    freeDeliveryOver: money(input.freeDeliveryOver, true),
-    pickupEnabled: input.pickupEnabled,
-    codEnabled: input.codEnabled,
-    bankTransferEnabled: input.bankTransferEnabled,
-    bankInstructionsEn: input.bankInstructionsEn.trim().slice(0, 2000) || null,
-    bankInstructionsAr: input.bankInstructionsAr.trim().slice(0, 2000) || null,
-    orderNotifyEmail: email || null,
-    ...(input.paymentGateway === undefined
-      ? {}
-      : { paymentGateway: gateway || null }),
-  };
+  const deliveryFee = money(input.deliveryFee, false)!;
+  const freeDeliveryOver = money(input.freeDeliveryOver, true);
   const currency = await getAccountingCurrency();
   await upsertStoreSettings({
     id: "default",
@@ -178,8 +238,45 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
     defaultTaxRate: "0",
     minimumOrderAmount: "0",
     freeShippingThreshold:
-      data.freeDeliveryOver != null ? String(data.freeDeliveryOver) : "0",
+      freeDeliveryOver != null ? String(freeDeliveryOver) : "0",
   });
+  await upsertTable("commerce", "store_settings", {
+    id: "default",
+    guest_checkout: input.guestCheckout,
+    delivery_enabled: input.deliveryEnabled,
+    delivery_fee: deliveryFee,
+    free_delivery_over: freeDeliveryOver,
+    pickup_enabled: input.pickupEnabled,
+    cod_enabled: input.codEnabled,
+    bank_transfer_enabled: input.bankTransferEnabled,
+    bank_instructions_en: input.bankInstructionsEn.trim().slice(0, 2000) || null,
+    bank_instructions_ar: input.bankInstructionsAr.trim().slice(0, 2000) || null,
+    order_notify_email: email || null,
+    ...(input.paymentGateway === undefined
+      ? {}
+      : { payment_gateway: gateway || null }),
+    ...(input.loyaltyEnabled !== undefined ? { loyalty_enabled: input.loyaltyEnabled } : {}),
+    ...(input.pointsPerUnit !== undefined ? { points_per_unit: Number(input.pointsPerUnit || 10) } : {}),
+    ...(input.pointsRedemptionRate !== undefined ? { points_redemption_rate: Math.max(1, Number(input.pointsRedemptionRate || 500)) } : {}),
+    ...(input.minRedeemPoints !== undefined ? { min_redeem_points: Math.max(0, Number(input.minRedeemPoints || 1000)) } : {}),
+    ...(input.walletEnabled !== undefined ? { wallet_enabled: input.walletEnabled } : {}),
+    ...(input.minPartialWallet !== undefined ? { min_partial_wallet: Number(input.minPartialWallet || 1) } : {}),
+    ...(input.raffleEnabled !== undefined ? { raffle_enabled: input.raffleEnabled } : {}),
+    ...(input.raffleSpendUnit !== undefined ? { raffle_spend_unit: Math.max(1, Number(input.raffleSpendUnit || 10)) } : {}),
+    ...(input.rafflePrizeEn !== undefined ? { raffle_prize_en: input.rafflePrizeEn.trim().slice(0, 200) || null } : {}),
+    ...(input.rafflePrizeAr !== undefined ? { raffle_prize_ar: input.rafflePrizeAr.trim().slice(0, 200) || null } : {}),
+    ...(input.cookieBannerEnabled !== undefined ? { cookie_banner_enabled: input.cookieBannerEnabled } : {}),
+    ...(input.sslBadgeEnabled !== undefined ? { ssl_badge_enabled: input.sslBadgeEnabled } : {}),
+    ...(input.announcementEn !== undefined ? { announcement_en: input.announcementEn.trim().slice(0, 300) || null } : {}),
+    ...(input.announcementAr !== undefined ? { announcement_ar: input.announcementAr.trim().slice(0, 300) || null } : {}),
+    ...(input.crNumber !== undefined ? { cr_number: input.crNumber.trim().slice(0, 60) || "99779-1" } : {}),
+    ...(input.vatNumber !== undefined ? { vat_number: input.vatNumber.trim().slice(0, 60) || null } : {}),
+    ...(input.returnWindowDays !== undefined ? { return_window_days: Math.max(1, Number(input.returnWindowDays || 14)) } : {}),
+    ...(input.showCategoryBar !== undefined ? { show_category_bar: input.showCategoryBar } : {}),
+    ...(input.showDealsSection !== undefined ? { show_deals_section: input.showDealsSection } : {}),
+    ...(input.showGiftCardsSection !== undefined ? { show_gift_cards_section: input.showGiftCardsSection } : {}),
+    ...(input.customCategoriesJson !== undefined ? { custom_categories_json: input.customCategoriesJson } : {}),
+  }).catch(() => null);
 }
 
 export async function listCoupons() {
@@ -254,10 +351,90 @@ export async function saveCoupon(input: CouponInput) {
   });
 }
 
+function mergeStoreCategories(
+  baseCategories: PortfolioCategory[],
+  customCategories: ReturnType<typeof parseCustomCategories>,
+): PortfolioCategory[] {
+  const map = new Map<string, PortfolioCategory>();
+  const seedList =
+    baseCategories.length > 0
+      ? baseCategories
+      : customCategories.length > 0
+        ? []
+        : DEFAULT_STORE_CATEGORIES.map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            name_en: c.name_en,
+            name_ar: c.name_ar,
+            display_order: c.display_order,
+          }));
+  for (const cat of seedList) {
+    map.set(cat.slug.toLowerCase(), cat);
+  }
+  for (const custom of customCategories) {
+    if (!custom.is_active) continue;
+    const key = custom.slug.toLowerCase();
+    if (!map.has(key)) {
+      map.set(key, {
+        id: custom.id,
+        slug: custom.slug,
+        name_en: custom.name_en,
+        name_ar: custom.name_ar,
+        display_order: custom.display_order,
+      });
+    }
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
+  );
+}
+
+export async function getEffectiveStoreCategories(
+  portfolioCategories: PortfolioCategory[] = [],
+): Promise<PortfolioCategory[]> {
+  const [apiCategories, settings] = await Promise.all([
+    listCategories().catch(() => []),
+    getStoreSettings().catch(() => null),
+  ]);
+  const invCategories: PortfolioCategory[] = (apiCategories ?? [])
+    .filter((c) => c.isActive)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((c, idx) => ({
+      id: c.id,
+      slug: c.slug,
+      name_en: c.nameEn,
+      name_ar: c.nameAr || c.nameEn,
+      display_order: c.sortOrder ?? idx + 1,
+    }));
+  const base = invCategories.length > 0 ? invCategories : portfolioCategories;
+  return mergeStoreCategories(base, settings?.custom_categories ?? []);
+}
+
+export async function listActiveCouponsPublic() {
+  const apiCoupons = await listStoreApiCoupons().catch(() => []);
+  const now = Date.now();
+  return (apiCoupons ?? [])
+    .filter(
+      (c) =>
+        c.isActive !== false &&
+        (!c.expiresAt || new Date(c.expiresAt).getTime() >= now),
+    )
+    .map((c) => ({
+      id: c.id,
+      code: c.code,
+      kind: c.discountType === "percentage" ? "percent" : c.discountType,
+      value: num(c.discountValue),
+      minOrder: numOrNull(c.minOrderAmount),
+      expiresAt: c.expiresAt ?? null,
+    }));
+}
+
 export async function getStoreCatalog(
   portfolio: PortfolioItem[] = [],
   portfolioCategories: PortfolioCategory[] = [],
 ): Promise<{ items: PortfolioItem[]; categories: PortfolioCategory[] }> {
+  const settings = await getStoreSettings().catch(() => null);
+  const customCategories = settings?.custom_categories ?? [];
   try {
     const [apiProducts, apiCategories] = await Promise.all([
       listProducts().catch(() => []),
@@ -276,10 +453,39 @@ export async function getStoreCatalog(
         name_ar: c.nameAr || c.nameEn,
         display_order: c.sortOrder ?? idx + 1,
       }));
-      const catById = new Map(invCategories.map((c) => [c.id, c]));
+      const mergedCategories = mergeStoreCategories(
+        invCategories.length > 0 ? invCategories : portfolioCategories,
+        customCategories,
+      );
+      const catById = new Map(mergedCategories.map((c) => [c.id, c]));
+      const stockMap = new Map<string, number>();
+      await Promise.all(
+        activeProducts
+          .filter((p) => p.trackInventory)
+          .slice(0, 50)
+          .map(async (p) => {
+            const levels = await listStockLevels(p.id).catch(() => []);
+            if (levels.length > 0) {
+              const totalAvail = levels.reduce(
+                (sum, lvl) =>
+                  sum +
+                  num(
+                    lvl.quantityAvailable ??
+                      num(lvl.quantityOnHand) - num(lvl.quantityReserved),
+                  ),
+                0,
+              );
+              stockMap.set(p.id, totalAvail);
+            }
+          }),
+      );
       const items: PortfolioItem[] = activeProducts.map((p, idx) => {
         const linked = portfolioById.get(p.id);
         const category = p.categoryId ? catById.get(p.categoryId) : linked?.category;
+        const pAny = p as unknown as Record<string, unknown>;
+        const avail = stockMap.has(p.id)
+          ? stockMap.get(p.id)!
+          : linked?.available_stock ?? null;
         return {
           id: p.id,
           category_id: p.categoryId ?? linked?.category_id,
@@ -302,15 +508,26 @@ export async function getStoreCatalog(
           is_featured: linked?.is_featured ?? idx < 6,
           display_order: linked?.display_order ?? idx + 1,
           created_at: p.createdAt || new Date().toISOString(),
+          brand: (pAny.brand as string | null | undefined) ?? linked?.brand ?? null,
+          sku: p.sku || linked?.sku || null,
+          barcode: (pAny.barcode as string | null | undefined) ?? linked?.barcode ?? null,
+          compare_at_price:
+            num(pAny.compareAtPrice ?? pAny.compare_at_price ?? linked?.compare_at_price) ||
+            null,
+          track_stock: Boolean(p.trackInventory ?? linked?.track_stock),
+          available_stock: avail,
         };
       });
       return {
         items,
-        categories: invCategories.length > 0 ? invCategories : portfolioCategories,
+        categories: mergedCategories,
       };
     }
   } catch {}
-  return { items: portfolio, categories: portfolioCategories };
+  return {
+    items: portfolio,
+    categories: mergeStoreCategories(portfolioCategories, customCategories),
+  };
 }
 
 export async function catalogueProductPrices(itemIds: string[]) {
@@ -411,6 +628,9 @@ export async function quoteCart(
     fulfilment: "delivery" | "pickup";
     address?: { area?: string; city?: string } | null;
     regionCode?: string;
+    customerId?: string | null;
+    pointsToRedeem?: number;
+    useWallet?: boolean;
   },
   _client?: unknown,
 ) {
@@ -621,16 +841,35 @@ export async function quoteCart(
   if (zone?.minOrder != null && hasAddress && goods < zone.minOrder)
     problems.push({ productId: "", problem: "below_minimum" });
   const finalCurrency = input.regionCode ? targetCurrency : (company?.defaultCurrency ?? accountingCurrency);
-  const totals = priceOrder({
+  const customerProfile = input.customerId
+    ? await getCustomerProfile(input.customerId).catch(() => null)
+    : null;
+  const effectiveMultiplier = priceMultiplier > 0 && Number.isFinite(priceMultiplier) ? priceMultiplier : 1;
+  const totals = priceOrderDetailed({
     currency: finalCurrency,
     lines,
     vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0,
     coupon,
-    deliveryFee: zone ? zone.fee : num(settings.delivery_fee),
+    deliveryFee: zone ? zone.fee : num(settings.delivery_fee) * effectiveMultiplier,
     freeDeliveryOver: zone
       ? zone.freeOver
-      : numOrNull(settings.free_delivery_over),
+      : numOrNull(settings.free_delivery_over) != null
+        ? Number(settings.free_delivery_over) * effectiveMultiplier
+        : null,
     delivery,
+    accountDiscountPercent: customerProfile?.discount_percent ?? 0,
+    pointsAvailable: customerProfile?.loyalty_points ?? 0,
+    pointsToRedeem: input.pointsToRedeem ?? 0,
+    pointsRedemptionRate: Math.max(1, settings.points_redemption_rate / effectiveMultiplier),
+    minRedeemPoints: settings.min_redeem_points,
+    loyaltyEnabled: settings.loyalty_enabled,
+    pointsPerUnit: settings.points_per_unit / effectiveMultiplier,
+    walletBalance: (customerProfile?.wallet_balance ?? 0) * effectiveMultiplier,
+    useWallet: Boolean(input.useWallet),
+    walletEnabled: settings.wallet_enabled,
+    minPartialWallet: settings.min_partial_wallet * effectiveMultiplier,
+    raffleEnabled: settings.raffle_enabled,
+    raffleSpendUnit: settings.raffle_spend_unit * effectiveMultiplier,
   });
   return {
     lines,
@@ -668,6 +907,8 @@ export interface PlaceOrderInput {
   email: string;
   phone: string;
   paymentMethod: string;
+  pointsToRedeem?: number;
+  useWallet?: boolean;
   note?: string;
   locale: string;
   channel: OrderChannel;
@@ -707,10 +948,13 @@ export async function placeOrder(input: PlaceOrderInput) {
       throw new Error(serverMessages.storeFulfilmentRequired);
     const online =
       input.paymentMethod === "online" && !!(await activePaymentGateway());
+    const walletAllowed =
+      settings.wallet_enabled && Boolean(input.customerId);
     const allowed = [
       settings.cod_enabled && "cod",
       settings.bank_transfer_enabled && "bank_transfer",
       online && "online",
+      walletAllowed && "wallet",
     ].filter(Boolean);
     if (!allowed.includes(input.paymentMethod))
       throw new Error(serverMessages.storePaymentMethodInvalid);
@@ -745,12 +989,16 @@ export async function placeOrder(input: PlaceOrderInput) {
     };
   }
   const warehouse = await ensureDefaultWarehouse();
+  const useWallet = Boolean(input.useWallet || input.paymentMethod === "wallet");
   const preQuote = await quoteCart({
     lines: input.lines,
     couponCode: input.couponCode,
     fulfilment: input.fulfilment,
     address,
     regionCode: input.regionCode,
+    customerId: input.customerId ?? null,
+    pointsToRedeem: input.pointsToRedeem,
+    useWallet,
   });
   const problem = (p: string) => preQuote.problems.some((x) => x.problem === p);
   if (problem("no_delivery_zone"))
@@ -763,7 +1011,11 @@ export async function placeOrder(input: PlaceOrderInput) {
         ? serverMessages.couponCannotBeUsed
         : serverMessages.storeCartChanged,
     );
+  if (input.paymentMethod === "wallet" && preQuote.amountDue > 0) {
+    throw new Error(serverMessages.storePaymentMethodInvalid);
+  }
   const number = await getNextSequenceNumber("SO");
+  const paidByWalletOnly = preQuote.amountDue === 0;
   const created = await placeStoreApiOrder({
     order: {
       number,
@@ -772,13 +1024,17 @@ export async function placeOrder(input: PlaceOrderInput) {
       name,
       phone: phone || null,
       channel: input.channel,
-      status: "placed",
+      status: paidByWalletOnly ? "paid" : "placed",
       paymentMethod: input.paymentMethod,
-      paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
+      paymentStatus: paidByWalletOnly
+        ? "paid"
+        : input.paymentMethod === "online"
+          ? "pending"
+          : "unpaid",
       fulfilment: input.fulfilment,
       shippingAddress: (address ?? null) as Record<string, unknown> | null,
       subtotal: String(preQuote.subtotal),
-      discountAmount: String(preQuote.discount),
+      discountAmount: String(preQuote.discount + preQuote.pointsDiscount),
       couponCode: preQuote.couponCode,
       vatAmount: String(preQuote.vatAmount),
       deliveryFee: String(preQuote.deliveryFee),
@@ -800,6 +1056,27 @@ export async function placeOrder(input: PlaceOrderInput) {
       lineTotal: String(roundMoney(l.quantity * l.unitPrice, preQuote.currency)),
     })),
   });
+  await upsertTable("commerce", "sales_order", {
+    id: created.id,
+    account_discount_amount: preQuote.accountDiscount,
+    points_earned: preQuote.pointsEarned,
+    points_redeemed: preQuote.pointsRedeemed,
+    points_discount_amount: preQuote.pointsDiscount,
+    wallet_applied: preQuote.walletApplied,
+    raffle_tickets: preQuote.raffleTickets,
+    currency_display: preQuote.currency,
+    ...(paidByWalletOnly ? { amount_paid: preQuote.total } : {}),
+  }).catch(() => null);
+  if (input.customerId) {
+    await applyOrderRewardsLedger({
+      customerId: input.customerId,
+      orderId: created.id,
+      orderNumber: created.number || number,
+      pointsEarned: preQuote.pointsEarned,
+      pointsRedeemed: preQuote.pointsRedeemed,
+      walletApplied: preQuote.walletApplied,
+    }).catch(() => null);
+  }
   return {
     id: created.id,
     number: created.number || number,
@@ -820,6 +1097,13 @@ export async function placeOrder(input: PlaceOrderInput) {
     vatAmount: Number(created.vatAmount || preQuote.vatAmount),
     deliveryFee: Number(created.deliveryFee || preQuote.deliveryFee),
     total: Number(created.total || preQuote.total),
+    accountDiscount: preQuote.accountDiscount,
+    pointsEarned: preQuote.pointsEarned,
+    pointsRedeemed: preQuote.pointsRedeemed,
+    pointsDiscount: preQuote.pointsDiscount,
+    walletApplied: preQuote.walletApplied,
+    amountDue: preQuote.amountDue,
+    raffleTickets: preQuote.raffleTickets,
     currency: created.currency || preQuote.currency,
     locale: isLocale(input.locale) ? input.locale : "en",
     note: created.note ?? null,
@@ -832,10 +1116,12 @@ export async function getOrder(id: string) {
   try {
     const apiOrder = await getStoreApiOrder(id);
     if (apiOrder) {
-      const [apiLines, apiEvents] = await Promise.all([
+      const [apiLines, apiEvents, rawOrders] = await Promise.all([
         listOrderLines(id).catch(() => []),
         listOrderEvents(id).catch(() => []),
+        listTable<Record<string, unknown>>("commerce", "sales_order").catch(() => []),
       ]);
+      const rawOrder = rawOrders.find((r) => String(r.id ?? "") === id);
       return {
         id: apiOrder.id,
         number: apiOrder.number,
@@ -858,6 +1144,12 @@ export async function getOrder(id: string) {
         vat_amount: num(apiOrder.vatAmount),
         delivery_fee: num(apiOrder.deliveryFee),
         total: num(apiOrder.total),
+        account_discount_amount: Number(rawOrder?.account_discount_amount ?? 0),
+        points_earned: Number(rawOrder?.points_earned ?? 0),
+        points_redeemed: Number(rawOrder?.points_redeemed ?? 0),
+        points_discount_amount: Number(rawOrder?.points_discount_amount ?? 0),
+        wallet_applied: Number(rawOrder?.wallet_applied ?? 0),
+        raffle_tickets: Number(rawOrder?.raffle_tickets ?? 0),
         amount_paid: num(apiOrder.amountPaid),
         amount_refunded: num(apiOrder.amountRefunded),
         currency: apiOrder.currency,

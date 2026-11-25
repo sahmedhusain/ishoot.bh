@@ -130,9 +130,61 @@ test.describe("Store App — Exhaustive Catalog, Categories, Cart, Offers, Branc
     await removeCouponBtn.click();
 
     // Remove item & verify empty cart message
-    await page.locator('[data-testid="cart-lines"] button').first().click();
+    await page
+      .locator('[data-testid="cart-lines"] button[aria-label*="Remove" i]')
+      .first()
+      .click();
     await expect(page.getByTestId("cart-lines")).toHaveCount(0);
     await expect(page.locator('a[href*="/en/products"]').first()).toBeVisible();
+
+    // Check Store Preferences (8-currency selector), Cookie Consent & SSL Security badge
+    const cookieBanner = page.getByTestId("cookie-consent-banner");
+    if (await cookieBanner.isVisible().catch(() => false)) {
+      await page.getByTestId("cookie-accept-all").click();
+    }
+    await page.getByTestId("preferences-trigger").click();
+    await expect(page.getByTestId("welcome-modal")).toBeVisible();
+    await expect(page.getByTestId("region-option-SAR")).toHaveCount(0);
+    await page.getByTestId("region-option-BHD").click();
+    await page.getByRole("button", { name: /Apply Preferences/i }).click();
+    // Global pages must NOT display the 256-Bit SSL badge; it only appears on Terms/Cookies/Privacy pages
+    await expect(page.getByTestId("ssl-security-badge")).toHaveCount(0);
+
+    // Check storefront hubs & legal policy routes
+    for (const extraRoute of [
+      "/en/shop",
+      "/en/categories",
+      "/en/deals",
+      "/en/black-friday",
+      "/en/drops",
+      "/en/ready-made-pcs",
+      "/en/build-pc",
+      "/en/giveaways/seasonal",
+      "/en/rewards",
+      "/en/wishlist",
+      "/en/track-order",
+      "/en/stores",
+      "/en/new-arrivals",
+      "/en/gift-cards",
+      "/en/account",
+      "/en/account/orders",
+      "/en/account/wallet",
+      "/en/account/rewards",
+      "/en/account/addresses",
+      "/en/account/wishlist",
+      "/en/account/returns",
+      "/en/account/profile",
+      "/en/terms",
+      "/en/privacy",
+      "/en/return-policy",
+      "/en/warranty",
+      "/en/devo-warranty",
+      "/en/vat-tax",
+      "/en/page/faq",
+    ]) {
+      await gotoStrict(page, extraRoute, observer);
+      await expect(page.locator("h1").first()).toBeVisible();
+    }
 
     // AR Cart page
     await gotoStrict(page, "/ar/cart", observer);

@@ -1033,6 +1033,56 @@ function SiteOperationsCard({ canEdit }: { canEdit: boolean }) {
   const [maintenanceOn, setMaintenanceOn] = React.useState(false);
   const [statusLog, setStatusLog] = React.useState<string[]>([]);
 
+  const STOREFRONT_ROUTES = [
+    { path: "/", group: "Home & Hero", tags: ["website", "banners"] },
+    { path: "/shop", group: "Catalog", tags: ["products", "store"] },
+    { path: "/products", group: "Catalog", tags: ["products", "store"] },
+    { path: "/categories", group: "Categories", tags: ["products", "website"] },
+    { path: "/category/[slug]", group: "Custom Categories", tags: ["products", "website"] },
+    { path: "/deals", group: "Deals & Coupons", tags: ["coupons", "products"] },
+    { path: "/new-arrivals", group: "Catalog", tags: ["products"] },
+    { path: "/gift-cards", group: "Loyalty & Wallet", tags: ["store"] },
+    { path: "/rewards", group: "Loyalty & Wallet", tags: ["store"] },
+    { path: "/account", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/orders", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/wallet", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/rewards", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/addresses", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/wishlist", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/returns", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/account/profile", group: "Account Portal", tags: ["company", "store"] },
+    { path: "/login", group: "Customer Auth", tags: ["company"] },
+    { path: "/register", group: "Customer Auth", tags: ["company"] },
+    { path: "/terms", group: "Legal & Compliance", tags: ["company", "store"] },
+    { path: "/privacy", group: "Legal & Compliance", tags: ["company", "store"] },
+    { path: "/return-policy", group: "Legal & Compliance", tags: ["company", "store"] },
+    { path: "/warranty", group: "Legal & Compliance", tags: ["company", "store"] },
+    { path: "/vat-tax", group: "Legal & Compliance", tags: ["company", "store"] },
+    { path: "/page/faq", group: "Help Center", tags: ["faqs", "website"] },
+    { path: "/page/payment-methods", group: "Help Center", tags: ["store", "company"] },
+  ] as const;
+
+  const handleSelectiveFlush = async (label: string, paths: string[], tags: string[]) => {
+    setBusy(true);
+    try {
+      const res = await revalidateFrontendCacheAction("store", paths, tags);
+      const ok = res.results.filter((r) => r.ok).length;
+      if (ok > 0 || res.results.length > 0) {
+        toast.success(`${label}: ${ok}/${res.results.length}`);
+      } else {
+        toast.error(copy.site.failed);
+      }
+      setStatusLog((prev) => [
+        `Flush ${label}: ${res.results.map((r) => `${r.target}=${r.status}`).join(", ")}`,
+        ...prev,
+      ].slice(0, 6));
+    } catch {
+      toast.error(copy.site.failed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handlePublish = async () => {
     setBusy(true);
     try {
@@ -1133,6 +1183,89 @@ function SiteOperationsCard({ canEdit }: { canEdit: boolean }) {
           >
             {op.revalidateAll}
           </button>
+        </div>
+      </div>
+
+      {/* Storefront Route Health & Selective Cache Matrix */}
+      <div className="border border-rule p-3.5 bg-surface space-y-3" data-testid="it-store-route-matrix">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="font-bold text-ink uppercase">{op.storeRoutesTitle}</div>
+            <p className="text-[11px] text-ink-muted font-sans">{op.storeRoutesSubtitle}</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              disabled={busy || !canEdit}
+              data-testid="it-flush-catalog-cache"
+              onClick={() => void handleSelectiveFlush(op.flushCatalog, ["/products", "/new-arrivals"], ["products", "store"])}
+              className="it-btn-3d py-1 px-2.5 text-[11px] font-semibold"
+            >
+              {op.flushCatalog}
+            </button>
+            <button
+              type="button"
+              disabled={busy || !canEdit}
+              data-testid="it-flush-deals-cache"
+              onClick={() => void handleSelectiveFlush(op.flushDeals, ["/deals", "/gift-cards"], ["coupons", "store"])}
+              className="it-btn-3d py-1 px-2.5 text-[11px] font-semibold"
+            >
+              {op.flushDeals}
+            </button>
+            <button
+              type="button"
+              disabled={busy || !canEdit}
+              data-testid="it-flush-policies-cache"
+              onClick={() => void handleSelectiveFlush(op.flushPolicies, ["/terms", "/privacy", "/return-policy", "/warranty", "/vat-tax"], ["company", "website"])}
+              className="it-btn-3d py-1 px-2.5 text-[11px] font-semibold"
+            >
+              {op.flushPolicies}
+            </button>
+            <button
+              type="button"
+              disabled={busy || !canEdit}
+              data-testid="it-flush-account-cache"
+              onClick={() =>
+                void handleSelectiveFlush(
+                  "Account Portal",
+                  [
+                    "/account",
+                    "/account/orders",
+                    "/account/wallet",
+                    "/account/rewards",
+                    "/account/addresses",
+                    "/account/wishlist",
+                    "/account/returns",
+                    "/account/profile",
+                  ],
+                  ["company", "store", "website"],
+                )
+              }
+              className="it-btn-3d py-1 px-2.5 text-[11px] font-semibold"
+            >
+              {op.flushAccount}
+            </button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="it-table w-full text-[11px]">
+            <thead>
+              <tr>
+                <th className="text-start">ROUTE</th>
+                <th className="text-start">MODULE</th>
+                <th className="text-start">TAGS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {STOREFRONT_ROUTES.map((r) => (
+                <tr key={r.path}>
+                  <td className="font-mono font-bold text-ink" dir="ltr">{r.path}</td>
+                  <td className="font-sans text-ink-muted">{r.group}</td>
+                  <td className="font-mono text-ink-muted" dir="ltr">{r.tags.join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

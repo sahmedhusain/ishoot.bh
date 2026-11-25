@@ -40,7 +40,7 @@ export function useTranslation() {
     const merged = values ? { ...defaultValues, ...values } : defaultValues;
     if (values || /\{[A-Za-z0-9_]+\}/.test(template)) {
       try {
-        return formatMessage(template, merged);
+        return formatMessage(template, merged).replace(/\.{2}(?!\.)/g, ".");
       } catch {
         return template;
       }

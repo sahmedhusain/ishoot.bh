@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import { Promotions } from "../../../../components/store/Promotions";
 import { ProductGrid } from "../../../../components/store/ProductGrid";
 import { storeEnabled } from "../../../../lib/customer";
@@ -41,14 +43,34 @@ export default async function CategoryPage({
   const category = categories.find((cat) => cat.slug === slug);
   if (!category) notFound();
 
+  const categoryTitle = pickText(category.name_en, category.name_ar, locale);
+
   return (
-    <div className="space-y-8 pb-20">
+    <div className="bg-m3-surface text-m3-on-surface space-y-8 pb-20">
       <Promotions locale={locale} placement="catalogue" />
-      <ProductGrid
-        items={catalogueItems}
-        categories={categories}
-        initialCategory={slug}
-      />
+      <header className="shell pt-6 space-y-3">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
+          <Link href={`/${locale}`} className="hover:text-m3-primary">
+            {locale === "ar" ? "الرئيسية" : "Home"}
+          </Link>
+          <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
+          <Link href={`/${locale}/products`} className="hover:text-m3-primary">
+            {locale === "ar" ? "المنتجات" : "Products"}
+          </Link>
+          <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
+          <span className="text-m3-on-surface font-medium">{categoryTitle}</span>
+        </nav>
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-m3-on-surface">
+          {categoryTitle}
+        </h1>
+      </header>
+      <div className="shell">
+        <ProductGrid
+          items={catalogueItems}
+          categories={categories}
+          initialCategory={slug}
+        />
+      </div>
     </div>
   );
 }

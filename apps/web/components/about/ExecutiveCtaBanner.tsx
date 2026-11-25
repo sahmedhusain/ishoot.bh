@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { formatMessage } from "@platform/locales";
+import { cleanSentenceEnd } from "../../lib/format-site";
 import { siteTranslations } from "../../lib/site";
 
 export async function ExecutiveCtaBanner({
@@ -25,10 +26,10 @@ export async function ExecutiveCtaBanner({
               {t.about.credentialsBadge}
             </span>
             <h2 className="text-2xl sm:text-4xl font-display font-bold text-white leading-tight">
-              {formatMessage(t.about.executiveCtaTitle, { companyName })}
+              {cleanSentenceEnd(formatMessage(t.about.executiveCtaTitle, { companyName: cleanSentenceEnd(companyName) }))}
             </h2>
             <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
-              {t.about.executiveCtaSub}
+              {cleanSentenceEnd(formatMessage(t.about.executiveCtaSub, { companyName: cleanSentenceEnd(companyName) }))}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 shrink-0">

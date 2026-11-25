@@ -3,24 +3,29 @@
 import * as React from "react";
 import type { CartQuote } from "@platform/database";
 import type { CartLine } from "@platform/database/constants/store";
+import { useStorePreferences } from "../layout/StorePreferencesBar";
 
 export function useQuote(
   lines: CartLine[],
   couponCode: string,
   fulfilment: "delivery" | "pickup",
   place?: { area: string; city: string },
+  options?: { pointsToRedeem?: number; useWallet?: boolean },
 ) {
+  const { regionCode } = useStorePreferences();
   const [quote, setQuote] = React.useState<CartQuote | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [failed, setFailed] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
-  const retry = React.useCallback(() => setAttempt(value => value + 1), []);
+  const retry = React.useCallback(() => setAttempt((value) => value + 1), []);
   const key = JSON.stringify([
     lines,
     couponCode,
     fulfilment,
-    place?.area.trim(),
-    place?.city.trim(),
+    place,
+    regionCode,
+    options?.pointsToRedeem ?? 0,
+    Boolean(options?.useWallet),
     attempt,
   ]);
   React.useEffect(() => {
@@ -37,11 +42,22 @@ export function useQuote(
             couponCode,
             fulfilment,
             address: place ?? null,
+            regionCode: regionCode !== "BH" ? regionCode : undefined,
+            pointsToRedeem: options?.pointsToRedeem ?? 0,
+            useWallet: Boolean(options?.useWallet),
           }),
         })
-          .then((r) => { if (!r.ok) throw new Error("quote_unavailable"); return r.json(); })
+          .then((r) => {
+            if (!r.ok) throw new Error("quote_unavailable");
+            return r.json();
+          })
           .then((data: CartQuote) => live && setQuote(data))
-          .catch(() => { if (live) { setQuote(null); setFailed(true); } })
+          .catch(() => {
+            if (live) {
+              setQuote(null);
+              setFailed(true);
+            }
+          })
           .finally(() => live && setLoading(false));
       },
       place ? 350 : 0,

@@ -22,8 +22,10 @@ func (h *handler) extrasRoutes(g *echo.Group) {
 	g.GET("/segments", list("customer_segment", "name ASC"))
 
 	db.RegisterTableRoutes(g, h.svc.Pool(), "commerce", []string{
-		"coupon", "customer", "customer_address", "customer_auth_code", "customer_segment",
-		"customer_session", "retail_closing", "retail_register", "retail_shift", "sales_order",
-		"sales_order_event", "sales_order_line", "store_region", "store_settings", "warehouse_ref",
+		"coupon", "customer", "customer_address", "customer_auth_code", "customer_points_tx",
+		"customer_segment", "customer_session", "customer_wallet_tx", "customer_wishlist",
+		"gift_card", "order_return_request", "retail_closing", "retail_register",
+		"retail_shift", "sales_order", "sales_order_event", "sales_order_line",
+		"store_region", "store_settings", "warehouse_ref",
 	})
 }

@@ -18,6 +18,39 @@ import { getPublishedArticles } from "./cms-articles";
 import { getAllServices } from "./services";
 import { getSocialLinks } from "./social-links";
 
+const FALLBACK_BANNER_POOL = [
+  "/api/files/media/banners/banner-01.png",
+  "/api/files/media/banners/banner-02.png",
+  "/api/files/media/banners/banner-03.png",
+];
+
+/**
+ * Ensures published website snapshots always have live hero banners, active social links,
+ * and populated portfolio thumbnails even if an earlier DB snapshot stored empty arrays.
+ */
+export async function hydrateWebsiteSnapshot(snapshot: WebsiteSnapshot): Promise<WebsiteSnapshot> {
+  const needsBanners = !Array.isArray(snapshot.banners) || snapshot.banners.length === 0;
+  const needsSocial = !Array.isArray(snapshot.socialLinks) || snapshot.socialLinks.length === 0;
+  const [liveBanners, liveSocial] = await Promise.all([
+    needsBanners ? getActiveBanners().catch(() => []) : Promise.resolve(snapshot.banners),
+    needsSocial ? getSocialLinks(true).catch(() => []) : Promise.resolve(snapshot.socialLinks),
+  ]);
+  const portfolio = Array.isArray(snapshot.portfolio)
+    ? snapshot.portfolio.map((item, idx) => ({
+        ...item,
+        thumbnail_url:
+          item.thumbnail_url ||
+          FALLBACK_BANNER_POOL[idx % FALLBACK_BANNER_POOL.length],
+      }))
+    : [];
+  return {
+    ...snapshot,
+    banners: needsBanners && liveBanners.length > 0 ? liveBanners : (snapshot.banners ?? []),
+    socialLinks: needsSocial && liveSocial.length > 0 ? liveSocial : (snapshot.socialLinks ?? []),
+    portfolio,
+  };
+}
+
 export async function getPublicServices(): Promise<PublicService[]> {
   const all = await getAllServices({ includeInactive: false });
   return all
@@ -118,7 +151,7 @@ export const getWebsiteSnapshot = cache(
         Array.isArray(pub.portfolio),
     );
     if (!preview && hasPublished)
-      return snap!.published as unknown as WebsiteSnapshot;
+      return hydrateWebsiteSnapshot(snap!.published as unknown as WebsiteSnapshot);
     if (!preview) {
       const cfg = await getCompanyConfiguration().catch(() => null);
       if (cfg?.websitePublished) {

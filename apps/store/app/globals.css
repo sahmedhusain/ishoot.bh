@@ -118,9 +118,10 @@ body::-webkit-scrollbar {
 @layer components {
   .shell {
     width: 100%;
-    max-width: var(--site-shell-width, 1240px);
+    max-width: var(--site-shell-width, 1344px);
     margin-inline: auto;
-    padding-inline: clamp(1.5rem, 5vw, 3.5rem);
+    padding-inline: clamp(1.5rem, 4vw, 3rem);
+    box-sizing: border-box;
   }
 }
 
@@ -449,8 +450,8 @@ html[lang="en"] h2.font-display {
   color: rgb(var(--brand-mint));
 }
 .page-heading {
-  padding-top: clamp(8rem, 12vw, 11rem);
-  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: clamp(2rem, 4vw, 3rem);
 }
 .contact-panel {
   padding: clamp(1.5rem, 4vw, 2.5rem);
@@ -821,8 +822,8 @@ html.light .on-media {
 .on-media { --site-fg: 255 255 255; --ui-ink: 255 255 255; --ui-ink-muted: 225 228 234; --brand-mint: 255 255 255; }
 [data-site-tone] { color: rgb(var(--ui-ink)); }
 [data-site-region="page"] { background: rgb(var(--brand-bg-base)); }
-html[data-site-width="standard"] { --site-shell-width: 1120px; }
-html[data-site-width="wide"] { --site-shell-width: 1440px; }
+html[data-site-width="standard"] { --site-shell-width: 1240px; }
+html[data-site-width="wide"] { --site-shell-width: 1344px; }
 html[data-site-density="compact"] .page-heading { padding-bottom: 2rem; }
 html[data-site-density="compact"] [data-block] > div > section { padding-block: 3rem; }
 .site-navbar { background: rgb(var(--m3-color-surface) / .96); border-color: rgb(var(--m3-color-outline-variant)); }
@@ -857,7 +858,7 @@ html[data-site-footer="compact"] .site-footer-grid { padding-block: 1.5rem; gap:
   html[data-site-header="centered"] .site-brand { grid-column: 2; grid-row: 1; }
   html[data-site-header="centered"] .site-navigation { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
   html[data-site-header="centered"] .site-nav-tools { grid-column: 3; grid-row: 1; justify-content: end; }
-  html[data-site-header="centered"] .page-heading { padding-top: 12rem; }
+  html[data-site-header="centered"] .page-heading { padding-top: 2.5rem; }
 }
 
 [data-hero-height="compact"] .site-hero-content { min-height: min(34rem, 65svh); }

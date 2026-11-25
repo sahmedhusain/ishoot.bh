@@ -7,12 +7,15 @@ import { cookies } from "next/headers";
 import { getWebsiteTranslations, formatMessage } from "@platform/locales";
 import {
   consumeAbuseLimit,
-  ensureCustomerProfile,
+  convertLoyaltyPointsToWallet,
   createOrderHelpRequest,
+  createOrderReturnRequest,
   deleteCustomerAccount,
   deleteCustomerAddress,
+  ensureCustomerProfile,
   measureOperation,
   normalizeCustomerEmail,
+  redeemGiftCardToWallet,
   saveCustomerAddress,
   toggleWishlist,
   updateCustomerProfile,
@@ -261,6 +264,34 @@ export async function POST(
             success: true,
             saved: await toggleWishlist(customer.id, str(body.itemId, 60)),
           });
+        case "convert-points": {
+          const result = await convertLoyaltyPointsToWallet(
+            customer.id,
+            Number(body.points ?? 0),
+          );
+          return NextResponse.json({ success: true, ...result });
+        }
+        case "redeem-gift-card": {
+          const result = await redeemGiftCardToWallet(
+            customer.id,
+            str(body.code, 40),
+          );
+          return NextResponse.json({ success: true, ...result });
+        }
+        case "return-request": {
+          const destRaw = str(body.refundDestination, 30);
+          const refundDestination =
+            destRaw === "original_payment" || destRaw === "replacement"
+              ? destRaw
+              : "wallet";
+          const request = await createOrderReturnRequest(customer.id, {
+            orderId: str(body.orderId, 80),
+            reason: str(body.reason, 1000),
+            refundDestination,
+            amountRequested: Number(body.amountRequested ?? 0) || undefined,
+          });
+          return NextResponse.json({ success: true, request });
+        }
         case "order-help": {
           await consumeAbuseLimit("customer-order-help", customer.id, 5, 3600);
           const result = await createOrderHelpRequest(

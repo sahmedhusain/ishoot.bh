@@ -26,6 +26,7 @@ export const ORDER_PAYMENT_METHODS = [
   "cash",
   "card",
   "online",
+  "wallet",
 ] as const;
 export type OrderPaymentMethod = (typeof ORDER_PAYMENT_METHODS)[number];
 
@@ -133,3 +134,48 @@ export interface CartLine {
 export const CART_STORAGE_KEY = "platform-cart";
 export const MAX_CART_LINES = 50;
 export const MAX_LINE_QUANTITY = 999;
+
+export interface CustomStoreCategorySpec {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_ar: string;
+  parent_slug?: string | null;
+  icon?: string;
+  display_order: number;
+  featured?: boolean;
+  is_active: boolean;
+}
+
+export const DEFAULT_STORE_CATEGORIES: readonly CustomStoreCategorySpec[] = [] as const;
+
+export function parseCustomCategories(raw: unknown): CustomStoreCategorySpec[] {
+  if (!raw) return [];
+  let parsed: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+    .map((entry, idx) => ({
+      id: String(entry.id ?? `custom-cat-${idx + 1}`),
+      slug: String(entry.slug ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/^-|-$/g, ""),
+      name_en: String(entry.name_en ?? entry.nameEn ?? "").trim(),
+      name_ar: String(entry.name_ar ?? entry.nameAr ?? entry.name_en ?? entry.nameEn ?? "").trim(),
+      parent_slug: entry.parent_slug ? String(entry.parent_slug) : null,
+      icon: entry.icon ? String(entry.icon) : "tag",
+      display_order: Number(entry.display_order ?? idx + 1) || idx + 1,
+      featured: entry.featured !== false,
+      is_active: entry.is_active !== false,
+    }))
+    .filter((cat) => Boolean(cat.slug) && Boolean(cat.name_en));
+}

@@ -16,8 +16,8 @@ export default async function TrackPage({ params }: { params: Promise<{ locale: 
   if (!(await storeEnabled())) notFound();
   const [t, shipment] = await Promise.all([siteTranslations(locale), shipmentForTracking(token)]);
   const shell = (children: React.ReactNode) => (
-    <div className="relative min-h-screen bg-brand-base text-ink">
-      <div className="shell page-heading max-w-2xl space-y-8">{children}</div>
+    <div className="bg-m3-surface text-m3-on-surface pb-20">
+      <div className="shell page-heading space-y-8">{children}</div>
     </div>
   );
   if (!shipment) return shell(<p className="text-ink-muted" role="alert">{t.store.trackNotFound}</p>);

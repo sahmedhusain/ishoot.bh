@@ -82,7 +82,7 @@ vi.mock("@platform/database", async (importOriginal) => {
   };
 });
 
-import { ArticleCards, articleDate } from "../../components/articles/ArticleCards";
+import { ArticleCards, articleDate, estimateReadMinutes } from "../../components/articles/ArticleCards";
 import { ArticleView, ArticlesIndex, liveArticles } from "../../components/articles/ArticleViews";
 import { ShareLinks } from "../../components/articles/ShareLinks";
 import { CmsPageView, findPage } from "../../components/blocks/CmsPageView";
@@ -152,6 +152,7 @@ describe("Web Portfolio, Articles, CMS Blocks & Contact Components", () => {
     const articles = makeArticles();
     expect(liveArticles(articles)).toHaveLength(1);
     expect(articleDate(articles[0], "en")).toContain("2026");
+    expect(estimateReadMinutes(articles[0], "en")).toBeGreaterThanOrEqual(2);
 
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,

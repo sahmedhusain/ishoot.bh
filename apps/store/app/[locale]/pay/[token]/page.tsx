@@ -17,8 +17,8 @@ export default async function PayPage({ params, searchParams }: { params: Promis
   const orderId = orderFromPaymentLink(token);
   const order = orderId ? await paymentLinkOrder(orderId) : null;
   const shell = (children: React.ReactNode) => (
-    <div className="relative min-h-screen bg-brand-base text-ink">
-      <div className="shell page-heading max-w-xl space-y-6">{children}</div>
+    <div className="bg-m3-surface text-m3-on-surface pb-20">
+      <div className="shell page-heading space-y-6">{children}</div>
     </div>
   );
   if (!order) return shell(<p className="text-ink-muted" role="alert">{t.store.linkInvalid}</p>);
